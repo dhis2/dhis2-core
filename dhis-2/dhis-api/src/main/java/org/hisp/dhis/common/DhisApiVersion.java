@@ -42,12 +42,12 @@ package org.hisp.dhis.common;
 public enum DhisApiVersion
 {
     ALL( -1, true ),
-    V26( 26 ),
-    V27( 27 ),
     V28( 28 ),
     V29( 29 ),
     V30( 30 ),
-    DEFAULT( V30.getVersion() );
+    V31( 31 ),
+    V32( 32 ),
+    DEFAULT( V32.getVersion() );
 
     final int version;
 

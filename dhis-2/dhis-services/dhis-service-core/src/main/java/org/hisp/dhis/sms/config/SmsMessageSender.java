@@ -28,8 +28,14 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.commons.util.TextUtils.LN;
+
+import java.io.Serializable;
+import java.util.*;
+import java.util.concurrent.Future;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -42,13 +48,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 
-import java.io.Serializable;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.commons.util.TextUtils.LN;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Nguyen Kim Lai
@@ -70,14 +75,26 @@ public class SmsMessageSender
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private GatewayAdministrationService gatewayAdminService;
 
-    @Autowired
     private List<SmsGateway> smsGateways;
 
-    @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    public SmsMessageSender( GatewayAdministrationService gatewayAdminService, List<SmsGateway> smsGateways,
+        UserSettingService userSettingService )
+    {
+
+        Preconditions.checkNotNull( gatewayAdminService );
+        Preconditions.checkNotNull( smsGateways );
+        Preconditions.checkNotNull( userSettingService );
+        Preconditions.checkState( !smsGateways.isEmpty() );
+
+        this.gatewayAdminService = gatewayAdminService;
+        this.smsGateways = smsGateways;
+        this.userSettingService = userSettingService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -106,11 +123,20 @@ public class SmsMessageSender
         }
 
         // Extract summary from text in case of COLLECTIVE_SUMMARY
+        
         text = SUMMARY_PATTERN.matcher( text ).find() ? StringUtils.substringBefore( text, LN ) : text;
 
         return sendMessage( subject, text, SmsUtils.getRecipientsPhoneNumber( toSendList ) );
     }
 
+    @Async
+    @Override
+    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    {
+        OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
+        return new AsyncResult<OutboundMessageResponse>( response );
+    }
+    
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
@@ -154,7 +180,7 @@ public class SmsMessageSender
             return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch.size() );
         }
 
-        batch.getMessages().stream().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
+        batch.getMessages().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
 
         sliceBatchMessages( batch );
 

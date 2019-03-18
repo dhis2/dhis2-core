@@ -72,7 +72,7 @@ public class ProgramMessage
 
     private Date processedDate;
 
-    private transient boolean storeCopy;
+    private transient boolean storeCopy = true;
 
     // -------------------------------------------------------------------------
     // Constructors

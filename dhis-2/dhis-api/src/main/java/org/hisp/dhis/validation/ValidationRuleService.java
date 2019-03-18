@@ -29,6 +29,8 @@ package org.hisp.dhis.validation;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -50,7 +52,7 @@ public interface ValidationRuleService
      * @param validationRule the ValidationRule to save.
      * @return the generated unique identifier for the ValidationRule.
      */
-    int saveValidationRule( ValidationRule validationRule );
+    long saveValidationRule( ValidationRule validationRule );
 
     /**
      * Update a ValidationRule to the database.
@@ -72,7 +74,7 @@ public interface ValidationRuleService
      * @param id the unique identifier of the ValidationRule.
      * @return the ValidationRule or null if it doesn't exist.
      */
-    ValidationRule getValidationRule( int id );
+    ValidationRule getValidationRule( long id );
 
     /**
      * Get ValidationRule with the given uid.
@@ -114,13 +116,12 @@ public interface ValidationRuleService
     Set<DataElement> getDataElements( ValidationRule validationRule );
 
     /**
-     * Returns all form validation rules which have specified data elements
-     * assigned to them.
+     * Returns all form validation rules for validating a data set.
      *
-     * @param dataElements the data elements to look for.
-     * @return all validation rules which have the data elements assigned.
+     * @param dataSet the data set to validate.
+     * @return all validation rules which apply to that data set.
      */
-    Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements );
+    Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet );
 
     /**
      * Returns all ValidationRules which have associated ValidationNotificationTemplates.
@@ -139,7 +140,7 @@ public interface ValidationRuleService
      * @param validationRuleGroup the ValidationRuleGroup to add.
      * @return the generated unique identifier for the ValidationRuleGroup.
      */
-    int addValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
+    long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
 
     /**
      * Delete a ValidationRuleGroup with the given identifiers from the database.
@@ -161,7 +162,7 @@ public interface ValidationRuleService
      * @param id the unique identifier of the ValidationRuleGroup.
      * @return the ValidationRuleGroup or null if it doesn't exist.
      */
-    ValidationRuleGroup getValidationRuleGroup( int id );
+    ValidationRuleGroup getValidationRuleGroup( long id );
 
     /**
      * Get ValidationRuleGroup with the given uid.

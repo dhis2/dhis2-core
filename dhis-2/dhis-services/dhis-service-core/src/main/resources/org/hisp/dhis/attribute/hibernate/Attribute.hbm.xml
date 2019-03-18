@@ -83,17 +83,22 @@
 
     <property name="categoryOptionComboAttribute" not-null="false" />
 
+    <property name="categoryOptionGroupSetAttribute" not-null="false" />
+
+    <property name="dataElementGroupSetAttribute" not-null="false" />
+
+    <property name="validationRuleAttribute" not-null="false" />
+
+    <property name="validationRuleGroupAttribute" not-null="false" />
+
+    <property name="categoryAttribute" not-null="false" />
+
     <property name="sortOrder" />
+
+    <property name="translations" type="jblTranslations"/>
 
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
       foreign-key="fk_attribute_optionsetid" />
-
-    <!-- Object Translation -->
-    <set name="translations" table="attributetranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="attributeid" foreign-key="fk_objecttranslation_attributeid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_attribute_userid" />

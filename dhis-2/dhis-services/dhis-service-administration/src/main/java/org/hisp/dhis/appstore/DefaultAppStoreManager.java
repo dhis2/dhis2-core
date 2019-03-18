@@ -40,6 +40,7 @@ import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
@@ -51,48 +52,55 @@ public class DefaultAppStoreManager
 {
     @Autowired
     private RestTemplate restTemplate;
-    
+
     @Autowired
     private AppManager appManager;
-    
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     // -------------------------------------------------------------------------
     // AppStoreManager implementation
     // -------------------------------------------------------------------------
 
+    @Override
     public AppStore getAppStore()
         throws IOException
     {
-        return restTemplate.getForObject( SettingKey.APP_STORE_INDEX_URL.getDefaultValue().toString(), AppStore.class );
+        String appStoreIndexUrl = (String) systemSettingManager.getSystemSetting( SettingKey.APP_STORE_INDEX_URL );
+
+        return restTemplate.getForObject( appStoreIndexUrl, AppStore.class );
     }
-    
+
+    @Override
     public AppStatus installAppFromAppStore( String id )
     {
         if ( id == null )
         {
             return AppStatus.NOT_FOUND;
         }
-        
+
         try
         {
             Optional<WebAppVersion> webAppVersion = getWebAppVersion( id );
-            
+
             if ( webAppVersion.isPresent() )
             {
                 WebAppVersion version = webAppVersion.get();
-                
+
                 URL url = new URL( version.getDownloadUrl() );
-                
+
                 String filename = version.getFilename();
-                
+
                 return appManager.installApp( getFile( url ), filename );
             }
-            
+
             return AppStatus.NOT_FOUND;
         }
         catch ( IOException ex )
         {
             throw new RuntimeException( "Failed to install app", ex );
-        }        
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -103,7 +111,7 @@ public class DefaultAppStoreManager
         throws IOException
     {
         AppStore appStore = getAppStore();
-        
+
         for ( WebApp app : appStore.getApps() )
         {
             for ( WebAppVersion version : app.getVersions() )
@@ -114,25 +122,25 @@ public class DefaultAppStoreManager
                 }
             }
         }
-        
+
         return Optional.empty();
     }
-    
+
     private static File getFile( URL url )
         throws IOException
-    {        
+    {
         URLConnection connection = url.openConnection();
-        
+
         BufferedInputStream in = new BufferedInputStream( connection.getInputStream() );
-        
+
         File tempFile = File.createTempFile( "dhis", null );
 
         tempFile.deleteOnExit();
-        
+
         FileOutputStream out = new FileOutputStream( tempFile );
-        
+
         IOUtils.copy( in, out );
-        
+
         return tempFile;
     }
 }

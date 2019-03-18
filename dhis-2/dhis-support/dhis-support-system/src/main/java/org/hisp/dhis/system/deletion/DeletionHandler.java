@@ -30,6 +30,12 @@ package org.hisp.dhis.system.deletion;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
@@ -38,13 +44,7 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -56,8 +56,10 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.expression.Expression;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -81,6 +83,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.predictor.Predictor;
+import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
@@ -105,12 +109,11 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
@@ -367,6 +370,24 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteRelativePeriods( RelativePeriods relativePeriods )
+    {
+        return null;
+    }
+
+    public void deletePredictor( Predictor predictor )
+    {
+    }
+
+    public String allowDeletePredictor( Predictor predictor )
+    {
+        return null;
+    }
+
+    public void deletePredictorGroup( PredictorGroup predictorGroup )
+    {
+    }
+
+    public String allowDeletePredictorGroup( PredictorGroup predictorGroup )
     {
         return null;
     }
@@ -708,11 +729,11 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteTrackedEntityDataValue( TrackedEntityDataValue dataValue )
+    public void deleteEventDataValue( EventDataValue eventDataValue )
     {
     }
 
-    public String allowDeleteTrackedEntityDataValue( TrackedEntityDataValue dataValue )
+    public String allowDeleteEventDataValue( EventDataValue eventDataValue )
     {
         return null;
     }
@@ -970,5 +991,14 @@ public abstract class DeletionHandler
     public String allowDeleteJobConfiguration(JobConfiguration jobConfiguration )
     {
         return null;
+    }
+
+    public String allowDeleteFileResource( FileResource fileResource )
+    {
+        return null;
+    }
+
+    public void deleteFileResource( FileResource fileResource )
+    {
     }
 }

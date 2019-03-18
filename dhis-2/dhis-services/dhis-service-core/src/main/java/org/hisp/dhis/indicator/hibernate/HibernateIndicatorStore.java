@@ -47,7 +47,6 @@ public class HibernateIndicatorStore
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Indicator> getIndicatorsWithGroupSets()
     {
         final String hql = "from Indicator d where size(d.groupSets) > 0";
@@ -56,7 +55,6 @@ public class HibernateIndicatorStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Indicator> getIndicatorsWithoutGroups()
     {
         final String hql = "from Indicator d where size(d.groups) = 0";
@@ -65,7 +63,6 @@ public class HibernateIndicatorStore
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<Indicator> getIndicatorsWithDataSets()
     {
         final String hql = "from Indicator d where size(d.dataSets) > 0";

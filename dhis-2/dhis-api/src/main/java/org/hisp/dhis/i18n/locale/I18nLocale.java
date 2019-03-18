@@ -28,9 +28,10 @@ package org.hisp.dhis.i18n.locale;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Locale;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+
+import java.util.Locale;
 
 /**
  * Wrapper for java.util.Locale for persistence purposes.
@@ -62,6 +63,7 @@ public class I18nLocale
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @JsonProperty
     public String getLocale()
     {
         return locale;

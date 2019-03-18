@@ -1,5 +1,14 @@
 package org.hisp.dhis.common;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.legend.LegendSet;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -8,13 +17,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.legend.LegendSet;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -87,6 +89,18 @@ public class BaseDimensionalObject
      */
     private String filter;
 
+    /**
+     * A {@link DimensionalKeywords} defines a pre-defined group of items. For instance,
+     * all the OU withing a district
+     */
+    private DimensionalKeywords dimensionalKeywords;
+
+    /**
+     * Indicates whether this dimension is fixed, meaning that the name of the
+     * dimension will be returned as is for all dimension items in the response.
+     */
+    private boolean fixed;
+
     //--------------------------------------------------------------------------
     // Persistent properties
     //--------------------------------------------------------------------------
@@ -95,12 +109,6 @@ public class BaseDimensionalObject
      * Indicates whether this object should be handled as a data dimension.
      */
     protected boolean dataDimension = true;
-
-    /**
-     * Indicates whether this dimension is fixed, meaning that the name of the
-     * dimension will be returned as is for all dimension items in the response.
-     */
-    private boolean fixed;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -137,6 +145,14 @@ public class BaseDimensionalObject
         this.displayName = displayName;
     }
 
+    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
+    {
+        this( dimension, dimensionType, items );
+        this.dimensionName = dimensionName;
+        this.displayName = displayName;
+        this.dimensionalKeywords = dimensionalKeywords;
+    }
+
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, List<? extends DimensionalItemObject> items, boolean allItems )
     {
         this( dimension, dimensionType, dimensionName, displayName, items );
@@ -169,7 +185,7 @@ public class BaseDimensionalObject
         object.filter = this.filter;
         object.dataDimension = this.dataDimension;
         object.fixed = this.fixed;
-
+        object.dimensionalKeywords = this.dimensionalKeywords;
         return object;
     }
 
@@ -218,6 +234,21 @@ public class BaseDimensionalObject
         String filterItems = filter.substring( opLen, filter.length() );
 
         return new ArrayList<>( Arrays.asList( filterItems.split( DimensionalObject.OPTION_SEP ) ) );
+    }
+
+    @Override
+    public String getKey()
+    {
+        QueryKey key = new QueryKey();
+
+        key.add( getDimension() );
+        getItems().forEach( e -> key.add( e.getDimensionItem() ) );
+
+        return key
+            .add( allItems )
+            .addIgnoreNull( legendSet )
+            .addIgnoreNull( aggregationType )
+            .addIgnoreNull( filter ).asPlainKey();
     }
 
     //--------------------------------------------------------------------------
@@ -324,6 +355,18 @@ public class BaseDimensionalObject
     }
 
     @Override
+    @JsonIgnore
+    public boolean isFixed()
+    {
+        return fixed;
+    }
+
+    public void setFixed( boolean fixed )
+    {
+        this.fixed = fixed;
+    }
+
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDataDimension()
@@ -337,15 +380,16 @@ public class BaseDimensionalObject
     }
 
     @Override
-    @JsonIgnore
-    public boolean isFixed()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DimensionalKeywords getDimensionalKeywords()
     {
-        return fixed;
+        return this.dimensionalKeywords;
     }
 
-    public void setFixed( boolean fixed )
+    public void setDimensionalKeywords( DimensionalKeywords dimensionalKeywords )
     {
-        this.fixed = fixed;
+        this.dimensionalKeywords = dimensionalKeywords;
     }
 
     @Override
@@ -356,7 +400,7 @@ public class BaseDimensionalObject
             .add( "name", item.getName() )
             .toString() )
             .collect( Collectors.toList() );
-        
+
         return MoreObjects.toStringHelper( this )
             .add( "Dimension", uid )
             .add( "type", dimensionType )

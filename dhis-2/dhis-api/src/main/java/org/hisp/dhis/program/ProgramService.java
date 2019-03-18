@@ -60,7 +60,7 @@ public interface ProgramService
      * @param program The to Program add.
      * @return A generated unique id of the added {@link Program}.
      */
-    int addProgram( Program program );
+    long addProgram( Program program );
 
     /**
      * Updates an {@link Program}.
@@ -84,7 +84,7 @@ public interface ProgramService
      * @param id the id of the Program to return.
      * @return the Program with the given id
      */
-    Program getProgram( int id );
+    Program getProgram( long id );
 
     /**
      * Returns all {@link Program}.
@@ -141,9 +141,9 @@ public interface ProgramService
      *
      * @return Immutable set of programs associated with the current user.
      */
-    Set<Program> getUserPrograms();
+    List<Program> getUserPrograms();
 
-    Set<Program> getUserPrograms( User user );
+    List<Program> getUserPrograms( User user );
 
     /**
      * Get {@link Program} by the current user and a certain type
@@ -156,18 +156,18 @@ public interface ProgramService
     Set<Program> getUserPrograms( ProgramType programType );
 
     /**
-     * Sets the given merge organisation units on the given programs. Only 
-     * the sub-hierarchy of the current user is modified. 
-     * 
+     * Sets the given merge organisation units on the given programs. Only
+     * the sub-hierarchy of the current user is modified.
+     *
      * @param program the program.
      * @param mergeOrganisationUnits the merge organisation units.
      */
     void mergeWithCurrentUserOrganisationUnits( Program program, Collection<OrganisationUnit> mergeOrganisationUnits );
-    
+
     /**
      * Returns a list of generated, non-persisted program data elements for the
      * program with the given identifier.
-     * 
+     *
      * @param programUid the program identifier.
      * @return a list of program data elements.
      */

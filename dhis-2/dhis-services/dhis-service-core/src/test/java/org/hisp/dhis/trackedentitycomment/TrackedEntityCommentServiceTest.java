@@ -28,15 +28,13 @@ package org.hisp.dhis.trackedentitycomment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.Date;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Chau Thu Tran
@@ -54,15 +52,15 @@ public class TrackedEntityCommentServiceTest
     @Override
     public void setUpTest()
     {
-        commentA = new TrackedEntityComment( "A", "Test", new Date() );
-        commentB = new TrackedEntityComment( "B", "Test", new Date() );
+        commentA = new TrackedEntityComment( "A", "Test" );
+        commentB = new TrackedEntityComment( "B", "Test" );
     }
 
     @Test
     public void testSaveTrackedEntityComment()
     {
-        int idA = commentService.addTrackedEntityComment( commentA );
-        int idB = commentService.addTrackedEntityComment( commentB );
+        long idA = commentService.addTrackedEntityComment( commentA );
+        long idB = commentService.addTrackedEntityComment( commentB );
 
         assertNotNull( commentService.getTrackedEntityComment( idA ) );
         assertNotNull( commentService.getTrackedEntityComment( idB ) );
@@ -71,8 +69,8 @@ public class TrackedEntityCommentServiceTest
     @Test
     public void testDeleteTrackedEntityComment()
     {
-        int idA = commentService.addTrackedEntityComment( commentA );
-        int idB = commentService.addTrackedEntityComment( commentB );
+        long idA = commentService.addTrackedEntityComment( commentA );
+        long idB = commentService.addTrackedEntityComment( commentB );
 
         assertNotNull( commentService.getTrackedEntityComment( idA ) );
         assertNotNull( commentService.getTrackedEntityComment( idB ) );
@@ -91,21 +89,21 @@ public class TrackedEntityCommentServiceTest
     @Test
     public void testUpdateTrackedEntityComment()
     {
-        int idA = commentService.addTrackedEntityComment( commentA );
+        long idA = commentService.addTrackedEntityComment( commentA );
 
         assertNotNull( commentService.getTrackedEntityComment( idA ) );
 
         commentA.setCommentText( "B" );
         commentService.updateTrackedEntityComment( commentA );
 
-        assertEquals( "B", commentService.getTrackedEntityComment( idA ).getCommentText());
+        assertEquals( "B", commentService.getTrackedEntityComment( idA ).getCommentText() );
     }
 
     @Test
     public void testGetTrackedEntityCommentById()
     {
-        int idA = commentService.addTrackedEntityComment( commentA );
-        int idB = commentService.addTrackedEntityComment( commentB );
+        long idA = commentService.addTrackedEntityComment( commentA );
+        long idB = commentService.addTrackedEntityComment( commentB );
 
         assertEquals( commentA, commentService.getTrackedEntityComment( idA ) );
         assertEquals( commentB, commentService.getTrackedEntityComment( idB ) );

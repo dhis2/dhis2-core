@@ -1,5 +1,12 @@
 package org.hisp.dhis.dataanalysis;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,14 +35,14 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.period.Period;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -43,34 +50,45 @@ import java.util.List;
 public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
+    private static final Log log = LogFactory.getLog( DefaultFollowupAnalysisService.class );
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private DataAnalysisStore dataAnalysisStore;
-    
+
     public void setDataAnalysisStore( DataAnalysisStore dataAnalysisStore )
     {
         this.dataAnalysisStore = dataAnalysisStore;
     }
-
-    @Autowired
-    private DataSetService dataSetService;
 
     // -------------------------------------------------------------------------
     // FollowupAnalysisService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, String dataSetId, int limit )
+    public List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
+        Collection<DataElement> dataElements, Collection<Period> periods, int limit )
     {
-        if( organisationUnit == null || limit < 1 )
+        if ( parents == null || parents.size() == 0 || limit < 1 )
         {
             return new ArrayList<>();
         }
 
-        DataSet dataSet = dataSetService.getDataSet( dataSetId );
+        Set<DataElement> elements = dataElements.stream()
+            .filter( de -> ValueType.NUMERIC_TYPES.contains( de.getValueType() ) )
+            .collect( Collectors.toSet() );
 
-        return dataAnalysisStore.getFollowupDataValues( organisationUnit, dataSet, limit );
+        Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
+
+        for ( DataElement dataElement : elements )
+        {
+            categoryOptionCombos.addAll( dataElement.getCategoryOptionCombos() );
+        }
+
+        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: " + parents.size() );
+
+        return dataAnalysisStore.getFollowupDataValues( elements, categoryOptionCombos, periods, parents, limit );
     }
 }

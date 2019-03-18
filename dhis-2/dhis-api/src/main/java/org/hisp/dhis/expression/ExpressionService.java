@@ -28,11 +28,9 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -40,9 +38,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 
 import java.util.Collection;
 import java.util.List;
@@ -89,12 +84,14 @@ public interface ExpressionService
     String DAYS_EXPRESSION = "\\[days\\]";
     String WILDCARD_EXPRESSION = "(?<key>#)\\{(?<id>(\\w|\\.)+)(\\.\\*){1,2}\\}";
     String ISNULL_EXPRESSION = "ISNULL\\s*\\(";
+    String UID_EXPRESSION = "[a-zA-Z]\\w{10}";
+    String INT_EXPRESSION = "^(0|-?[1-9]\\d*)$";
 
     /**
-     * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.  
+     * Variable pattern. Contains the named groups {@code key}, {@code id}, {@code id1} and {@code id2}.
      */
     Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION );
-    
+
     /**
      * Data element operand pattern. Contains the named groups {@code de} and {@code coc}.
      */
@@ -109,7 +106,7 @@ public interface ExpressionService
      * Option combo pattern. Contains the named groups {@code de} and {@code coc}.
      */
     Pattern CATEGORY_OPTION_COMBO_OPERAND_PATTERN = Pattern.compile( CATEGORY_OPTION_COMBO_OPERAND_EXPRESSION );
-    
+
     /**
      * Constant pattern. Contains the named group {@code id}.
      */
@@ -119,7 +116,7 @@ public interface ExpressionService
      * Organisation unit groups pattern. Contains the named group {@code id}.
      */
     Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
-    
+
     /**
      * Days pattern.
      */
@@ -141,17 +138,6 @@ public interface ExpressionService
     String TRUE_VALUE = "1";
     String FALSE_VALUE = "0";
 
-    /**
-     * Variable types with their associated classes.
-     */
-    static final Map<String, Class<? extends DimensionalItemObject>> VARIABLE_TYPES = ImmutableMap.of(
-        "#", DataElementOperand.class,
-        "D", ProgramDataElementDimensionItem.class,
-        "A", ProgramTrackedEntityAttributeDimensionItem.class,
-        "I", ProgramIndicator.class,
-        "R", ReportingRate.class
-    );
-
     String GROUP_KEY = "key";
     String GROUP_ID = "id";
     String GROUP_ID1 = "id1";
@@ -167,7 +153,7 @@ public interface ExpressionService
      * @param expression The Expression to add.
      * @return The generated identifier for this Expression.
      */
-    int addExpression( Expression expression );
+    long addExpression( Expression expression );
 
     /**
      * Updates an Expression.
@@ -189,7 +175,7 @@ public interface ExpressionService
      * @param id The identifier.
      * @return an Expression with the given identifier.
      */
-    Expression getExpression( int id );
+    Expression getExpression( long id );
 
     /**
      * Gets all Expressions.
@@ -321,20 +307,27 @@ public interface ExpressionService
         Set<String> aggregates, Set<String> nonAggregates );
 
     /**
-     * Returns identifiers of all data elements which are present in the expression.
+     * Returns UIDs of Data Elements and associated Option Combos (if any)
+     * found in the Data Element Operands an expression.
+     * <p/>
+     * If the Data Element Operand consists of just a Data Element, or if
+     * the Option Combo is a wildcard "*", returns just dataElementUID.
+     * <p/>
+     * If an Option Combo is present, returns dataElementUID.optionComboUID.
+     *
      * @param expression the expression.
      * @return set of data element identifiers.
      */
-    Set<String> getDataElementIdsInExpression( String expression );
+    Set<String> getElementsAndOptionCombosInExpression( String expression );
 
     /**
      * Returns identifiers of all dimensional item objects which are present
      * in the given expression.
      *
      * @param expression the expression.
-     * @return sets of dimensional item identifiers, mapped by class.
+     * @return set of dimensional item identifiers.
      */
-    SetMap<Class<? extends DimensionalItemObject>, String> getDimensionalItemIdsInExpression( String expression );
+    Set<DimensionalItemId> getDimensionalItemIdsInExpression( String expression );
 
     /**
      * Returns all dimensional item objects which are present in the given expression.

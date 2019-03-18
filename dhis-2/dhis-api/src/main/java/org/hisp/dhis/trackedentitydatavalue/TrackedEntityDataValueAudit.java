@@ -47,7 +47,7 @@ import java.util.Objects;
 public class TrackedEntityDataValueAudit
     implements Serializable
 {
-    private int id;
+    private long id;
 
     private DataElement dataElement;
 
@@ -71,11 +71,11 @@ public class TrackedEntityDataValueAudit
     {
     }
 
-    public TrackedEntityDataValueAudit( TrackedEntityDataValue trackedEntityDataValue, String value, String modifiedBy, AuditType auditType )
+    public TrackedEntityDataValueAudit( DataElement dataElement, ProgramStageInstance programStageInstance, String value, String modifiedBy, boolean providedElsewhere, AuditType auditType )
     {
-        this.dataElement = trackedEntityDataValue.getDataElement();
-        this.programStageInstance = trackedEntityDataValue.getProgramStageInstance();
-        this.providedElsewhere = trackedEntityDataValue.getProvidedElsewhere();
+        this.dataElement = dataElement;
+        this.programStageInstance = programStageInstance;
+        this.providedElsewhere = providedElsewhere;
 
         this.created = new Date();
         this.value = value;
@@ -117,12 +117,12 @@ public class TrackedEntityDataValueAudit
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

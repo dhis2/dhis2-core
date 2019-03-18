@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule;
  */
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.program.Program;
 
@@ -38,15 +39,13 @@ import org.hisp.dhis.program.Program;
  */
 public interface ProgramRuleService
 {
-    String ID = ProgramRuleService.class.getName();
-
     /**
      * Adds an {@link ProgramRule}
      *
      * @param programRule The to ProgramRule add.
      * @return A generated unique id of the added {@link ProgramRule}.
      */
-    int addProgramRule( ProgramRule programRule );
+    long addProgramRule( ProgramRule programRule );
 
     /**
      * Deletes a {@link ProgramRule}
@@ -68,7 +67,7 @@ public interface ProgramRuleService
      * @param id the id of the ProgramRule to return.
      * @return the ProgramRule with the given id
      */
-    ProgramRule getProgramRule( int id );
+    ProgramRule getProgramRule( long id );
 
     /**
      * Returns a {@link ProgramRule}.
@@ -95,6 +94,8 @@ public interface ProgramRuleService
      */
     List<ProgramRule> getAllProgramRule();
 
+    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
+
     /**
      * Get validation by {@link Program}
      *
@@ -111,4 +112,14 @@ public interface ProgramRuleService
      * @return ProgramRule list
      */
     List<ProgramRule> getProgramRules( Program program, String key );
+
+    /**
+     *
+     * @return all {@link ProgramRule} with no priority
+     */
+    List<ProgramRule> getProgramRulesWithNoPriority();
+
+    List<ProgramRule> getProgramRulesWithNoCondition();
+
+    List<ProgramRule> getProgramRulesWithNoAction();
 }

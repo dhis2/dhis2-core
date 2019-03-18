@@ -28,6 +28,7 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -455,5 +456,22 @@ public class DataValueServiceTest
 
         assertEquals( 3, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, true ) );
         assertEquals( 1, dataValueService.getDataValueCountLastUpdatedBetween( getDate( 1970, 1, 1 ), null, false ) );
+    }
+
+    @Test
+    public void testGetDataValues()
+    {
+        DataValue dataValueA = new DataValue( dataElementA, periodA, sourceA, optionCombo, optionCombo, "1" );
+        DataValue dataValueB = new DataValue( dataElementA, periodA, sourceB, optionCombo, optionCombo, "2" );
+        DataValue dataValueC = new DataValue( dataElementB, periodA, sourceB, optionCombo, optionCombo, "3" );
+
+        dataValueService.addDataValue( dataValueA );
+        dataValueService.addDataValue( dataValueB );
+        dataValueService.addDataValue( dataValueC );
+
+        assertEquals( 2, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA, dataElementB ), optionCombo ).size() );
+        assertEquals( 2, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA, dataElementB ), null ).size() );
+        assertEquals( 1, dataValueService.getDataValues(  sourceB,  periodA, Lists.newArrayList( dataElementA ), optionCombo ).size() );
+        assertEquals( 1, dataValueService.getDataValues(  sourceA,  periodA, Lists.newArrayList( dataElementA, dataElementB ), optionCombo ).size() );
     }
 }

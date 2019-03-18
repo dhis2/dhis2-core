@@ -1,5 +1,15 @@
 package org.hisp.dhis.security;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.jboss.aerogear.security.otp.Totp;
+import org.springframework.util.Assert;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,35 +38,28 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.jboss.aerogear.security.otp.Totp;
-import org.springframework.util.Assert;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 /**
  * @author Henning Håkonsen
  */
 public class SecurityUtils
 {
-    private static final String APP_NAME = "";
+    private static final String APP_NAME_PREFIX = "DHIS 2 ";
     private static final String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
 
     /**
      * Generates a QR URL using Google chart API.
      *
+     * @param appName the name of the DHIS 2 instance.
      * @param user the user to generate the URL for.
      * @return a QR URL.
      */
-    public static String generateQrUrl( User user )
+    public static String generateQrUrl( String appName, User user )
     {
         Assert.notNull( user.getUserCredentials().getSecret(), "User must have a secret" );
 
+        String app = (APP_NAME_PREFIX + StringUtils.stripToEmpty( appName )).replace( " ", "%20" );
         String url = String.format( "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-            APP_NAME, user.getUsername(), user.getUserCredentials().getSecret(), APP_NAME );
+            app, user.getUsername(), user.getUserCredentials().getSecret(), app );
 
         try
         {

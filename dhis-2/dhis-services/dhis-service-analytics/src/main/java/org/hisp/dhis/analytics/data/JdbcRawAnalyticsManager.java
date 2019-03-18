@@ -28,9 +28,14 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
+import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_NAME;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.analytics.DataQueryParams.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,9 +46,11 @@ import javax.annotation.Resource;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AnalyticsUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.RawAnalyticsManager;import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -51,11 +58,8 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
@@ -72,14 +76,11 @@ public class JdbcRawAnalyticsManager
     implements RawAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcRawAnalyticsManager.class );
-    
+
     private static final String DIM_NAME_OU = "ou.path";
-    
+
     @Resource( name = "readOnlyJdbcTemplate" )
     private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private StatementBuilder statementBuilder;
 
     // -------------------------------------------------------------------------
     // RawAnalyticsManager implementation
@@ -89,103 +90,103 @@ public class JdbcRawAnalyticsManager
     public Grid getRawDataValues( DataQueryParams params, Grid grid )
     {
         Assert.isTrue( params.hasStartEndDate(), "Start and end dates must be specified" );
-        
+
         List<DimensionalObject> dimensions = new ArrayList<>();
         dimensions.addAll( params.getDimensions() );
         dimensions.addAll( params.getOrgUnitLevelsAsDimensions() );
-        
+
         if ( params.isIncludePeriodStartEndDates() )
         {
             dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, Lists.newArrayList() ) );
-            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, Lists.newArrayList() ) ); 
+            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, Lists.newArrayList() ) );
         }
-        
+
         String sql = getSelectStatement( params, dimensions );
-        
+
         log.debug( "Get raw data SQL: " + sql );
-        
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-        
+
         while ( rowSet.next() )
         {
             grid.addRow();
-            
+
             for ( DimensionalObject dim : dimensions )
             {
                 grid.addValue( rowSet.getString( dim.getDimensionName() ) );
             }
-            
+
             grid.addValue( rowSet.getDouble( "value" ) );
         }
-        
+
         return grid;
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-    
+
     /**
      * Returns a SQL select statement.
-     * 
+     *
      * @param params the data query parameters.
      * @param dimensions the list of dimensions.
      * @return a SQL select statement.
      */
     private String getSelectStatement( DataQueryParams params, List<DimensionalObject> dimensions )
-    {        
+    {
         String idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID ).getIdentifiableString().toLowerCase();
-        
+
         List<String> dimensionColumns = dimensions.stream()
             .map( d -> asColumnSelect( d, idScheme ) )
             .collect( Collectors.toList() );
-        
+
         SqlHelper sqlHelper = new SqlHelper();
-        
-        String sql = 
+
+        String sql =
             "select " + StringUtils.join( dimensionColumns, ", " ) + ", " +  DIM_NAME_OU + ", value " +
-            "from " + params.getTableName() + " ax " +
+            "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "inner join organisationunit ou on ax.ou = ou.uid " +
             "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid " +
             "inner join _periodstructure ps on ax.pe = ps.iso ";
-        
+
         for ( DimensionalObject dim : dimensions )
         {
             if ( !dim.getItems().isEmpty() && !dim.isFixed() )
             {
-                String col = statementBuilder.columnQuote( dim.getDimensionName() );
+                String col = quote( dim.getDimensionName() );
 
                 if ( DimensionalObject.ORGUNIT_DIM_ID.equals( dim.getDimension() ) )
                 {
                     sql += sqlHelper.whereAnd() + " (";
-                    
+
                     for ( DimensionalItemObject item : dim.getItems() )
                     {
                         OrganisationUnit unit = (OrganisationUnit) item;
-                        
+
                         sql += DIM_NAME_OU + " like '" + unit.getPath() + "%' or ";
                     }
-                    
+
                     sql = TextUtils.removeLastOr( sql ) + ") ";
                 }
                 else
                 {
                     sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
-                }                
+                }
             }
         }
-        
+
         sql += sqlHelper.whereAnd() + " " +
             "ps.startdate >= '" + DateUtils.getMediumDateString( params.getStartDate() ) + "' and " +
             "ps.enddate <= '" + DateUtils.getMediumDateString( params.getEndDate() ) + "' ";
-        
+
         return sql;
     }
-    
+
     /**
      * Converts the given dimension to a column select statement according to the
      * given identifier scheme.
-     * 
+     *
      * @param dimension the dimensional object.
      * @param idScheme the identifier scheme.
      * @return a column select statement.
@@ -194,17 +195,17 @@ public class JdbcRawAnalyticsManager
     {
         if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
         {
-            return ( "ou." + idScheme + " as " + statementBuilder.columnQuote( dimension.getDimensionName() ) );
+            return ( "ou." + idScheme + " as " + quote( dimension.getDimensionName() ) );
         }
         else if ( DimensionType.ORGANISATION_UNIT_LEVEL == dimension.getDimensionType() )
         {
             int level = AnalyticsUtils.getLevelFromOrgUnitDimensionName( dimension.getDimensionName() );
-                        
-            return ( "ous." + idScheme + "level" + level + " as " + statementBuilder.columnQuote( dimension.getDimensionName() ) );
+
+            return ( "ous." + idScheme + "level" + level + " as " + quote( dimension.getDimensionName() ) );
         }
         else
         {
-            return statementBuilder.columnQuote( dimension.getDimensionName() );
+            return quote( dimension.getDimensionName() );
         }
     }
 }

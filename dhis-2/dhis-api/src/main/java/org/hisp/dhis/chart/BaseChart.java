@@ -102,13 +102,15 @@ public abstract class BaseChart
     protected Integer rangeAxisSteps; // Minimum 1
 
     protected Integer rangeAxisDecimals;
-    
+
     protected LegendSet legendSet;
-    
+
     protected LegendDisplayStrategy legendDisplayStrategy;
-    
+
     protected ColorSet colorSet;
-    
+
+    private List<String> yearlySeries = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Dimensional properties
     // -------------------------------------------------------------------------
@@ -511,6 +513,19 @@ public abstract class BaseChart
     public void setColorSet( ColorSet colorSet )
     {
         this.colorSet = colorSet;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "yearlySeries", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "yearlySerie", namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getYearlySeries()
+    {
+        return yearlySeries;
+    }
+
+    public void setYearlySeries( List<String> yearlySeries )
+    {
+        this.yearlySeries = yearlySeries;
     }
 
     @JsonProperty

@@ -30,7 +30,9 @@ package org.hisp.dhis.relationship;
 
 import java.util.List;
 
-import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
@@ -38,37 +40,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
  * @version $Id$
  */
 public interface RelationshipStore
-    extends GenericStore<Relationship>
+    extends IdentifiableObjectStore<Relationship>
 {
     String ID = RelationshipStore.class.getName();
 
-    /**
-     * Get the relationship between two entityInstances by retrieving a
-     * {@link RelationshipType}
-     * 
-     * @param entityInstanceA {@link TrackedEntityInstance}
-     * @param entityInstanceB {@link TrackedEntityInstance}
-     * @param relationshipType {@link RelationshipType}
-     * 
-     * @return {@link RelationshipType}
-     */
-    Relationship get( TrackedEntityInstance entityInstanceA, TrackedEntityInstance entityInstanceB, RelationshipType relationshipType );
+    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei );
 
-    /**
-     * Retrieve relationships of a instance
-     * 
-     * @param instance TrackedEntityInstance
-     * 
-     * @return Relationship list
-     */
-    List<Relationship> getForTrackedEntityInstance( TrackedEntityInstance instance );
+    List<Relationship> getByProgramInstance( ProgramInstance pi );
 
-    /**
-     * Retrieve all relationships of a relationship type
-     * 
-     * @param relationshipType RelationshipType
-     * 
-     * @return Relationship list
-     */
-    List<Relationship> getByRelationshipType( RelationshipType relationshipType );
+    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi );
 }

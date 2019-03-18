@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" fill="#333" transform="translate(0,-284.3)">
+  <path id="rect915" d="m0.13281 0c-0.073448 0-0.13281 0.059362-0.13281 0.13281v47.734c0 0.074 0.059362 0.133 0.13281 0.133h47.734c0.074 0 0.133-0.059 0.133-0.133v-47.734c0-0.073638-0.059-0.133-0.133-0.133zm5.6016 4c4.5822 5.155-2.3092 4.5275 0 9-4.5822-5.155 1.5592-3.1213 0-9zm6.1055 0c4.5822 5.155-2.3092 4.5275 0 9-4.5822-5.155 1.5592-3.1213 0-9zm6.1035 0c4.5822 5.155-2.3092 4.5275 0 9-4.5822-5.155 1.5592-3.1213 0-9zm6.1055 0c4.5822 5.155-2.3092 4.5275 0 9-4.5822-5.155 1.5592-3.1213 0-9zm6.1035 0c4.5822 5.155-2.3092 4.5275 0 9-4.5822-5.155 1.5592-3.1213 0-9zm6.1055 0c4.5822 5.155-2.3092 4.5275 0 9-4.5822-5.155 1.5592-3.1213 0-9zm6.1035 0c4.5822 5.155-2.3092 4.5275 0 9-4.5822-5.155 1.5592-3.1213 0-9zm-38.317 13h39.926a20 20 0 0 1 -19.969 19.123 20 20 0 0 1 -19.957 -19.123zm0.085938 23h39.734c0.074 0 0.133 0.059 0.133 0.133v3.7344c0 0.074-0.059 0.133-0.133 0.133h-39.734c-0.0736 0-0.133-0.059-0.133-0.133v-3.7344c0-0.074 0.0594-0.133 0.1328-0.133z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
+ </g>
+</svg>

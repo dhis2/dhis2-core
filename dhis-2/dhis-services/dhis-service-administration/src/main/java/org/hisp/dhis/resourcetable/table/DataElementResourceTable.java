@@ -48,9 +48,9 @@ import com.google.common.collect.Lists;
 public class DataElementResourceTable
     extends ResourceTable<DataElement>
 {
-    public DataElementResourceTable( List<DataElement> objects, String columnQuote )
+    public DataElementResourceTable( List<DataElement> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
 
     @Override

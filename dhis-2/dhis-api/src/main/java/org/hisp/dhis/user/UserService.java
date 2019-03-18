@@ -53,7 +53,7 @@ public interface UserService
      * @param user the User to add.
      * @return the generated identifier.
      */
-    int addUser( User user );
+    long addUser( User user );
 
     /**
      * Updates a User.
@@ -68,7 +68,7 @@ public interface UserService
      * @param id the identifier of the User to retrieve.
      * @return the User.
      */
-    User getUser( int id );
+    User getUser( long id );
 
     /**
      * Retrieves the User with the given unique identifier.
@@ -77,6 +77,14 @@ public interface UserService
      * @return the User.
      */
     User getUser( String uid );
+
+    /**
+     * Retrieves a collection of User with the given unique identifiers.
+     *
+     * @param uids the identifiers of the collection of Users to retrieve.
+     * @return the User.
+     */
+    List<User> getUsers( Collection<String> uids );
 
     /**
      * Returns a List of all Users.
@@ -103,29 +111,21 @@ public interface UserService
      */
     void deleteUser( User user );
 
-    List<User> getUsersByUid( List<String> uids );
-
+    /**
+     * Checks if the given user represents the last user with ALL authority.
+     * 
+     * @param userCredentials the user.
+     * @return true if the given user represents the last user with ALL authority.
+     */
     boolean isLastSuperUser( UserCredentials userCredentials );
 
+    /**
+     * Checks if the given user role represents the last role with ALL authority.
+     * 
+     * @param userAuthorityGroup the user role.
+     * @return true if the given user role represents the last role with ALL authority.
+     */
     boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
-
-    /**
-     * Returns all users which are managed by the given user through its managed
-     * groups association.
-     *
-     * @param user the user.
-     * @return a List of users.
-     */
-    List<User> getManagedUsers( User user );
-
-    /**
-     * Returns the number of users which are managed by the given user through its
-     * managed groups association.
-     *
-     * @param user the user.
-     * @return number of users.
-     */
-    int getManagedUserCount( User user );
 
     /**
      * Returns a list of users based on the given query parameters.
@@ -176,7 +176,7 @@ public interface UserService
      * @param userCredentials the UserCredentials to add.
      * @return the User which the UserCredentials is associated with.
      */
-    int addUserCredentials( UserCredentials userCredentials );
+    long addUserCredentials( UserCredentials userCredentials );
 
     /**
      * Updates a UserCredentials.
@@ -270,7 +270,7 @@ public interface UserService
      * @param userAuthorityGroup the UserAuthorityGroup.
      * @return the generated identifier.
      */
-    int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
+    long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup );
 
     /**
      * Updates a UserAuthorityGroup.
@@ -285,7 +285,7 @@ public interface UserService
      * @param id the identifier of the UserAuthorityGroup to retrieve.
      * @return the UserAuthorityGroup.
      */
-    UserAuthorityGroup getUserAuthorityGroup( int id );
+    UserAuthorityGroup getUserAuthorityGroup( long id );
 
     /**
      * Retrieves the UserAuthorityGroup with the given identifier.
@@ -347,20 +347,6 @@ public interface UserService
      * @return number of UserAuthorityGroups.
      */
     int countDataSetUserAuthorityGroups( DataSet dataSet );
-
-    /**
-     * Returns the number of UserAuthorityGroups.
-     *
-     * @return the number of UserAuthorityGroups.
-     */
-    int getUserRoleCount();
-
-    /**
-     * Returns the number of UserAuthorityGroups with the given name.
-     *
-     * @return the number of UserAuthorityGroups with the given name.
-     */
-    int getUserRoleCountByName( String name );
 
     /**
      * Filters the given collection of user roles based on whether the current user

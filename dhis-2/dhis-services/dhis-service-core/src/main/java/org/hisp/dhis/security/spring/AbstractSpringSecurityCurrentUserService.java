@@ -1,5 +1,12 @@
 package org.hisp.dhis.security.spring;
 
+import com.google.api.client.util.Sets;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,14 +38,6 @@ import java.util.stream.Collectors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import com.google.api.client.util.Sets;
-
 /**
  * @author Torgeir Lorange Ostby
  */
@@ -56,7 +55,7 @@ public abstract class AbstractSpringSecurityCurrentUserService
         }
 
         // Principal being a string implies anonymous authentication
-        
+
         if ( authentication.getPrincipal() instanceof String )
         {
             String principal = (String) authentication.getPrincipal();
@@ -78,17 +77,17 @@ public abstract class AbstractSpringSecurityCurrentUserService
     public Set<String> getCurrentUserAuthorities()
     {
         UserDetails userDetails = getCurrentUserDetails();
-        
+
         if ( userDetails == null )
         {
             return Sets.newHashSet();
         }
-        
+
         return userDetails.getAuthorities().stream()
             .map( GrantedAuthority::getAuthority )
-            .collect( Collectors.toSet() );        
+            .collect( Collectors.toSet() );
     }
-    
+
     /**
      * Returns the current UserDetails, or null of there is no
      * current user or if principal is not of type UserDetails.
@@ -97,15 +96,15 @@ public abstract class AbstractSpringSecurityCurrentUserService
     {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if ( authentication == null || !authentication.isAuthenticated() || 
-            authentication.getPrincipal() == null || !( authentication.getPrincipal() instanceof UserDetails ) )
+        if ( authentication == null || !authentication.isAuthenticated() ||
+            authentication.getPrincipal() == null || !(authentication.getPrincipal() instanceof UserDetails) )
         {
             return null;
         }
-        
+
         return (UserDetails) authentication.getPrincipal();
     }
-    
+
     @Override
     public void clearCurrentUser()
     {

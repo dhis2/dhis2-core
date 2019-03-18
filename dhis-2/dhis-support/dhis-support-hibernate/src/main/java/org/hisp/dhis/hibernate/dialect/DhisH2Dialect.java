@@ -40,7 +40,7 @@ public class DhisH2Dialect extends H2Dialect
     public DhisH2Dialect()
     {
         registerColumnType( Types.JAVA_OBJECT, "text" );
-        registerColumnType( Types.JAVA_OBJECT - 1, "jsonb" );
+        registerColumnType( Types.JAVA_OBJECT, "jsonb" );
     }
 
     @Override

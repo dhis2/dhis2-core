@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
+import org.hisp.dhis.analytics.AggregationType;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -47,15 +49,15 @@ import java.util.List;
 
 /**
  * Utilities for analytics query planning.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class QueryPlannerUtils
 {
     /**
-     * Creates a mapping between level and organisation unit for the given 
+     * Creates a mapping between level and organisation units for the given
      * organisation units.
-     * 
+     *
      * @param orgUnits list of organisation units.
      */
     public static ListMap<Integer, DimensionalItemObject> getLevelOrgUnitMap( List<DimensionalItemObject> orgUnits )
@@ -65,7 +67,7 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject orgUnit : orgUnits )
         {
             OrganisationUnit ou = (OrganisationUnit) orgUnit;
-            
+
             map.putValue( ou.getLevel(), orgUnit );
         }
 
@@ -73,9 +75,22 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between data type and data element for the given data 
+     * Creates a mapping between level and organisation units for the given
+     * organisation units.
+     *
+     * @param orgUnits list of organisation units.
+     */
+    public static ListMap<Integer, OrganisationUnit> getLevelOrgUnitTypedMap( List<OrganisationUnit> orgUnits )
+    {
+        ListMap<Integer, OrganisationUnit> map = new ListMap<>();
+        orgUnits.stream().forEach( ou -> map.putValue( ou.getLevel(), ou ) );
+        return map;
+    }
+
+    /**
+     * Creates a mapping between data type and data elements for the given data
      * elements.
-     * 
+     *
      * @param dataElements list of data elements.
      */
     public static ListMap<DataType, DimensionalItemObject> getDataTypeDataElementMap( List<DimensionalItemObject> dataElements )
@@ -89,7 +104,7 @@ public class QueryPlannerUtils
             ValueType valueType = dataElement.getValueType();
 
             // Both text and date types are recognized as DataType.TEXT
-            
+
             DataType dataType = ( valueType.isText() || valueType.isDate() ) ? DataType.TEXT : DataType.NUMERIC;
 
             map.putValue( dataType, dataElement );
@@ -99,26 +114,26 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the aggregation type and data element for the
+     * Creates a mapping between the aggregation type and data elements for the
      * given data elements and period type.
-     * 
+     *
      * @param params the data query parameters.
      */
     public static ListMap<AnalyticsAggregationType, DimensionalItemObject> getAggregationTypeDataElementMap( DataQueryParams params )
     {
         List<DimensionalItemObject> dataElements = params.getDataElements();
         PeriodType aggregationPeriodType = PeriodType.getPeriodTypeByName( params.getPeriodType() );
-        
+
         ListMap<AnalyticsAggregationType, DimensionalItemObject> map = new ListMap<>();
 
         for ( DimensionalItemObject element : dataElements )
         {
             DataElement de = (DataElement) element;
-            
-            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(), 
+
+            AnalyticsAggregationType aggregationType = ObjectUtils.firstNonNull( params.getAggregationType(),
                 AnalyticsAggregationType.fromAggregationType( de.getAggregationType() ) );
 
-            AnalyticsAggregationType analyticsAggregationType = getAggregationType( aggregationType, de.getValueType(), 
+            AnalyticsAggregationType analyticsAggregationType = getAggregationType( aggregationType, de.getValueType(),
                 aggregationPeriodType, de.getPeriodType() );
 
             map.putValue( analyticsAggregationType, de );
@@ -128,9 +143,9 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the number of days in the period interval and period
+     * Creates a mapping between the number of days in the period interval and periods
      * for the given periods.
-     * 
+     *
      * @param periods
      */
     public static ListMap<Integer, DimensionalItemObject> getDaysPeriodMap( List<DimensionalItemObject> periods )
@@ -140,7 +155,7 @@ public class QueryPlannerUtils
         for ( DimensionalItemObject period : periods )
         {
             Period pe = (Period) period;
-            
+
             map.putValue( pe.getDaysInPeriod(), pe );
         }
 
@@ -148,22 +163,21 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Puts the given element into the map according to the value type, aggregation
-     * operator, aggregation period type and data period type.
-     * 
-     * @param aggregationType the aggregation operator.
+     * Returns the {@link AnalyticsAggregationType} according to the given value type,
+     * aggregation type, value type aggregation period type and data period type.
+     *
+     * @param aggregationType the aggregation type.
      * @param valueType the value type.
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType, ValueType valueType, 
+    public static AnalyticsAggregationType getAggregationType( AnalyticsAggregationType aggregationType, ValueType valueType,
         PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         DataType dataType = DataType.fromValueType( valueType );
+        boolean disaggregation = isDisaggregation( aggregationType, aggregationPeriodType, dataPeriodType );
 
-        boolean disaggregation = isDisaggregation( aggregationPeriodType, dataPeriodType );
-
-        return new AnalyticsAggregationType( aggregationType.getAggregationType(), 
+        return new AnalyticsAggregationType( aggregationType.getAggregationType(),
             aggregationType.getPeriodAggregationType(), dataType, disaggregation );
     }
 
@@ -171,56 +185,54 @@ public class QueryPlannerUtils
      * Indicates whether disaggregation is allowed for the given input. Disaggregation
      * implies that the frequency order of the aggregation period type is lower than
      * the data period type.
-     * 
+     *
      * @param aggregationPeriodType the aggregation period type.
      * @param dataPeriodType the data period type.
      */
-    public static boolean isDisaggregation( PeriodType aggregationPeriodType, PeriodType dataPeriodType )
+    public static boolean isDisaggregation( AnalyticsAggregationType aggregationType, PeriodType aggregationPeriodType, PeriodType dataPeriodType )
     {
         if ( dataPeriodType == null || aggregationPeriodType == null )
         {
             return false;
         }
-        
+
+        if ( aggregationType == null || AggregationType.AVERAGE != aggregationType.getPeriodAggregationType() )
+        {
+            return false;
+        }
+
         if ( aggregationPeriodType.getFrequencyOrder() < dataPeriodType.getFrequencyOrder() )
         {
             return true;
         }
-        
+
         if ( aggregationPeriodType.getFrequencyOrder() == dataPeriodType.getFrequencyOrder() &&
             !aggregationPeriodType.equals( dataPeriodType ) )
         {
             return true;
         }
-        
+
         return false;
     }
 
     /**
-     * Creates a mapping between the period type and the data element for the
-     * given data elements.
-     * 
-     * @param dataElements list of data elements.
+     * Creates a mapping between the period type and data elements for the
+     * given list of data elements.
+     *
+     * @param dataElements the list of data elements.
      */
-    public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap( 
+    public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap(
         Collection<DimensionalItemObject> dataElements )
     {
         ListMap<PeriodType, DimensionalItemObject> map = new ListMap<>();
-
-        for ( DimensionalItemObject element : dataElements )
-        {
-            DataElement dataElement = (DataElement) element;
-            
-            map.putValue( dataElement.getPeriodType(), element );
-        }
-
+        dataElements.forEach( de -> map.putValue( ((DataElement) de).getPeriodType(), de ) );
         return map;
     }
 
     /**
      * Converts a list of data query parameters to a list of event query parameters.
-     * 
-     * @param params list of data query parameters.
+     *
+     * @param params the list of data query parameters.
      */
     public static List<EventQueryParams> convert( List<DataQueryParams> params )
     {

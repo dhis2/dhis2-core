@@ -38,21 +38,23 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -82,11 +84,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private static final Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 2, TimeUnit.HOURS )
-        .initialCapacity( 4 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10 )
-        .build();
+    private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
     @Autowired
     private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
@@ -102,6 +100,19 @@ public class DefaultIdentifiableObjectManager
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    private Environment env;
+
+    @PostConstruct
+    public void init()
+    {
+        DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .initialCapacity( 4 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10 )
+            .build();
+    }
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
@@ -166,7 +177,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public void updateTranslations( IdentifiableObject persistedObject, Set<ObjectTranslation> translations )
+    public void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations )
     {
         Session session = sessionFactory.getCurrentSession();
         persistedObject.getTranslations().clear();
@@ -176,12 +187,11 @@ public class DefaultIdentifiableObjectManager
         {
             if ( StringUtils.isNotEmpty( translation.getValue() ) )
             {
-                session.save( translation );
                 persistedObject.getTranslations().add( translation );
             }
         } );
 
-        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+        BaseIdentifiableObject translatedObject = ( BaseIdentifiableObject ) persistedObject;
         translatedObject.setLastUpdated( new Date() );
         translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
 
@@ -224,7 +234,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( Class<T> clazz, int id )
+    public <T extends IdentifiableObject> T get( Class<T> clazz, long id )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -486,7 +496,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids )
+    public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -717,7 +727,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Integer> identifiers )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Long> identifiers )
     {
         IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
@@ -794,7 +804,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public IdentifiableObject getObject( int id, String simpleClassName )
+    public IdentifiableObject getObject( long id, String simpleClassName )
     {
         for ( IdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
         {
@@ -957,30 +967,26 @@ public class DefaultIdentifiableObjectManager
             .build();
     }
 
+    //--------------------------------------------------------------------------
+    // Supportive methods
+    //--------------------------------------------------------------------------
+
     @Override
     public boolean isDefault( IdentifiableObject object )
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
-
         if ( object == null )
         {
             return false;
         }
-
         Class<?> realClass = getRealClass( object.getClass() );
-
         if ( !defaults.containsKey( realClass ) )
         {
             return false;
         }
-
         IdentifiableObject defaultObject = defaults.get( realClass );
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
-
-    //--------------------------------------------------------------------------
-    // Supportive methods
-    //--------------------------------------------------------------------------
 
     @SuppressWarnings( "unchecked" )
     private <T extends IdentifiableObject> IdentifiableObjectStore<IdentifiableObject> getIdentifiableObjectStore( Class<T> clazz )
@@ -995,7 +1001,7 @@ public class DefaultIdentifiableObjectManager
 
             if ( store == null && !UserCredentials.class.isAssignableFrom( clazz ) )
             {
-                log.warn( "No IdentifiableObjectStore found for class: " + clazz );
+                log.debug( "No IdentifiableObjectStore found for class: " + clazz );
             }
         }
 
@@ -1015,7 +1021,7 @@ public class DefaultIdentifiableObjectManager
 
             if ( store == null )
             {
-                log.warn( "No DimensionalObjectStore found for class: " + clazz );
+                log.debug( "No DimensionalObjectStore found for class: " + clazz );
             }
         }
 

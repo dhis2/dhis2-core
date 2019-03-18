@@ -51,7 +51,7 @@ public class DataElementDeletionHandler
 {
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-    
+
     @Autowired
     private CategoryService categoryService;
 
@@ -80,9 +80,9 @@ public class DataElementDeletionHandler
 
         for ( DataElement dataElement : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
-            if ( dataElement != null && dataElement.getDataElementCategoryCombo().equals( categoryCombo ) )
+            if ( dataElement != null && dataElement.getCategoryCombo().equals( categoryCombo ) )
             {
-                dataElement.setDataElementCategoryCombo( defaultCategoryCombo );
+                dataElement.setCategoryCombo( defaultCategoryCombo );
 
                 idObjectManager.updateNoAcl( dataElement );
             }
@@ -93,12 +93,12 @@ public class DataElementDeletionHandler
     public void deleteDataSet( DataSet dataSet )
     {
         Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
-        
+
         while ( elements.hasNext() )
         {
             DataSetElement element = elements.next();
             elements.remove();
-            
+
             dataSet.removeDataSetElement( element );
             idObjectManager.updateNoAcl( element.getDataElement() );
         }
@@ -121,16 +121,15 @@ public class DataElementDeletionHandler
         {
             for ( LegendSet ls : element.getLegendSets() )
             {
-                if( legendSet.equals( ls ) )
+                if ( legendSet.equals( ls ) )
                 {
                     element.getLegendSets().remove( ls );
                     idObjectManager.updateNoAcl( element );
                 }
-
             }
         }
     }
-    
+
     @Override
     public String allowDeleteOptionSet( OptionSet optionSet )
     {

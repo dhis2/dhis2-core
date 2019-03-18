@@ -28,18 +28,14 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -52,39 +48,12 @@ public class ObjectUtilsTest
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
         DataElement deC = new DataElement( "DataElementC" );
-        
+
         List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
-        
+
         String actual = ObjectUtils.join( elements, ", ", de -> de.getName() );
-                
+
         assertEquals( "DataElementA, DataElementB, DataElementC", actual );
         assertEquals( null, ObjectUtils.join( null, ", ", null ) );
-    }
-    
-    @Test
-    public void testGetAll()
-    {
-        Category ctA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
-        Category ctB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
-        Category ctC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
-        Category ctD = new Category( "CategoryD", DataDimensionType.DISAGGREGATION );
-
-        CategoryCombo ccA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
-        CategoryCombo ccB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
-        
-        ccA.addCategory( ctA );
-        ccA.addCategory( ctB );
-        ccB.addCategory( ctC );
-        ccB.addCategory( ctD );
-        
-        List<CategoryCombo> ccs = Lists.newArrayList( ccA, ccB );
-        
-        Set<Category> cts = ObjectUtils.getAll( ccs, cc -> cc.getCategories() );
-        
-        assertEquals( 4, cts.size() );
-        assertTrue( cts.contains( ctA ) );
-        assertTrue( cts.contains( ctB ) );
-        assertTrue( cts.contains( ctC ) );
-        assertTrue( cts.contains( ctD ) );        
     }
 }

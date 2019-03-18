@@ -80,11 +80,6 @@
 		class="org.hisp.dhis.mobile.action.UpdateClickatellGateWayConfigAction"
 		scope="prototype" />
 
-	<bean
-		id="org.hisp.dhis.mobile.action.UpdateGenericHTTPGateWayConfigAction"
-		class="org.hisp.dhis.mobile.action.UpdateGenericHTTPGateWayConfigAction"
-		scope="prototype" />
-
 	<bean id="org.hisp.dhis.mobile.action.UpdateDefaultGatewayAction"
 		class="org.hisp.dhis.mobile.action.UpdateDefaultGatewayAction" 
 		scope="prototype" />

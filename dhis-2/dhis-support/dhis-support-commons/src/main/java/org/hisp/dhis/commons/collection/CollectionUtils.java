@@ -88,7 +88,7 @@ public class CollectionUtils
     /**
      * Applies the given consumer to each item in the given collection after filtering
      * out null items.
-     * 
+     *
      * @param collection the collection.
      * @param consumer the consumer.
      */
@@ -98,15 +98,28 @@ public class CollectionUtils
             .filter( Objects::nonNull )
             .forEach( consumer );
     }
-    
+
     /**
      * Returns an empty set if the given set is null, if not returns the set.
-     * 
+     *
      * @param set the set.
      * @return a non-null set.
      */
     public static <T> Set<T> emptyIfNull( Set<T> set )
     {
         return set != null ? set : new HashSet<>();
+    }
+
+    /**
+     * Adds all items not already present in the target collection
+     *
+     * @param collection collection to add items to.
+     * @param items collection of items to add.
+     */
+    public static <E> void addAllUnique( Collection<E> collection, Collection<E> items )
+    {
+        items.stream()
+            .filter( item -> !collection.contains( item ) )
+            .forEach( item -> collection.add( item ) );
     }
 }

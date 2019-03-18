@@ -37,6 +37,7 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.user.User;
 
 /**
  * The idScheme is a general setting which will apply to all objects. The idSchemes
@@ -47,8 +48,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
  */
 public class ImportOptions
 {
-    private static final ImportOptions DEFAULT_OPTIONS = new ImportOptions()
-        .setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
+    private User user;
 
     private IdSchemes idSchemes = new IdSchemes();
 
@@ -70,9 +70,13 @@ public class ImportOptions
 
     private boolean skipNotifications;
 
+    private boolean skipAudit;
+
     private boolean datasetAllowsPeriods;
 
     private boolean strictPeriods;
+
+    private boolean strictDataElements;
 
     private boolean strictCategoryOptionCombos;
 
@@ -85,6 +89,12 @@ public class ImportOptions
     private boolean requireAttributeOptionCombo;
 
     private boolean skipPatternValidation;
+
+    private boolean ignoreEmptyCollection;
+
+    private boolean force;
+
+    private boolean firstRowIsHeader = true;
 
     private String filename;
 
@@ -106,6 +116,7 @@ public class ImportOptions
     {
         ImportOptions options = new ImportOptions();
 
+        options.user = this.user;
         options.idSchemes = this.idSchemes;
         options.dryRun = this.dryRun;
         options.preheatCache = this.preheatCache;
@@ -117,21 +128,25 @@ public class ImportOptions
         options.skipNotifications = this.skipNotifications;
         options.datasetAllowsPeriods = this.datasetAllowsPeriods;
         options.strictPeriods = this.strictPeriods;
+        options.strictDataElements = this.strictDataElements;
         options.strictCategoryOptionCombos = this.strictCategoryOptionCombos;
         options.strictAttributeOptionCombos = this.strictAttributeOptionCombos;
         options.strictOrganisationUnits = this.strictOrganisationUnits;
         options.requireCategoryOptionCombo = this.requireCategoryOptionCombo;
         options.requireAttributeOptionCombo = this.requireAttributeOptionCombo;
         options.skipPatternValidation = this.skipPatternValidation;
+        options.force = this.force;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
+        options.ignoreEmptyCollection = this.ignoreEmptyCollection;
+        options.firstRowIsHeader = this.firstRowIsHeader;
 
         return options;
     }
 
     public static ImportOptions getDefaultImportOptions()
     {
-        return DEFAULT_OPTIONS;
+        return new ImportOptions().setImportStrategy( ImportStrategy.NEW_AND_UPDATES );
     }
 
     /**
@@ -165,6 +180,17 @@ public class ImportOptions
     //--------------------------------------------------------------------------
     // Get methods
     //--------------------------------------------------------------------------
+
+    public User getUser()
+    {
+        return user;
+    }
+
+    public ImportOptions setUser( User user )
+    {
+        this.user = user;
+        return this;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -255,9 +281,23 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipAudit()
+    {
+        return skipAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictPeriods()
     {
         return strictPeriods;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isStrictDataElements()
+    {
+        return strictDataElements;
     }
 
     @JsonProperty
@@ -304,6 +344,20 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isIgnoreEmptyCollection()
+    {
+        return ignoreEmptyCollection;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isForce()
+    {
+        return force;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFilename()
     {
         return filename;
@@ -314,6 +368,13 @@ public class ImportOptions
     public NotificationLevel getNotificationLevel()
     {
         return notificationLevel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFirstRowIsHeader()
+    {
+        return firstRowIsHeader;
     }
 
     //--------------------------------------------------------------------------
@@ -440,9 +501,20 @@ public class ImportOptions
         return this;
     }
 
+    public void setSkipAudit( boolean skipAudit )
+    {
+        this.skipAudit = skipAudit;
+    }
+
     public ImportOptions setStrictPeriods( boolean strictPeriods )
     {
         this.strictPeriods = strictPeriods;
+        return this;
+    }
+
+    public ImportOptions setStrictDataElements( boolean strictDataElements )
+    {
+        this.strictDataElements = strictDataElements;
         return this;
     }
 
@@ -482,6 +554,18 @@ public class ImportOptions
         return this;
     }
 
+    public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
+    {
+        this.ignoreEmptyCollection = ignoreEmptyCollection;
+        return this;
+    }
+
+    public ImportOptions setForce( boolean force )
+    {
+        this.force = force;
+        return this;
+    }
+
     public ImportOptions setFilename( String filename )
     {
         this.filename = filename;
@@ -491,6 +575,12 @@ public class ImportOptions
     public ImportOptions setNotificationLevel( NotificationLevel notificationLevel )
     {
         this.notificationLevel = notificationLevel;
+        return this;
+    }
+
+    public ImportOptions setFirstRowIsHeader( boolean firstRowIsHeader )
+    {
+        this.firstRowIsHeader = firstRowIsHeader;
         return this;
     }
 
@@ -505,15 +595,19 @@ public class ImportOptions
             .add( "importStrategy", importStrategy )
             .add( "mergeMode", mergeMode )
             .add( "skipExistingCheck", skipExistingCheck )
+            .add( "ignoreEmptyCollection", ignoreEmptyCollection )
             .add( "sharing", sharing )
             .add( "skipNotifications", skipNotifications )
             .add( "datasetAllowsPeriods", datasetAllowsPeriods )
             .add( "strictPeriods", strictPeriods )
+            .add( "strictDataElements", strictDataElements )
             .add( "strictCategoryOptionCombos", strictCategoryOptionCombos )
             .add( "strictAttributeOptionCombos", strictAttributeOptionCombos )
             .add( "strictOrganisationUnits", strictOrganisationUnits )
             .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
+            .add( "force", force )
+            .add( "firstRowIsHeader", firstRowIsHeader )
             .toString();
     }
 }

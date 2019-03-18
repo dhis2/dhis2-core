@@ -113,6 +113,7 @@ public class UserGroupAccess
         return userGroup != null ? userGroup.getDisplayName() : null;
     }
 
+    @JsonIgnore
     public UserGroup getUserGroup()
     {
         if ( userGroup == null )
@@ -125,6 +126,7 @@ public class UserGroupAccess
         return userGroup;
     }
 
+    @JsonProperty
     public void setUserGroup( UserGroup userGroup )
     {
         this.userGroup = userGroup;

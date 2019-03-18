@@ -1,10 +1,12 @@
 package org.hisp.dhis.message;
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -39,31 +41,29 @@ import java.util.List;
  */
 public interface MessageService
 {
-    String ID = MessageService.class.getName();
-
     String META_USER_AGENT = "User-agent: ";
 
-    MessageConversationParams.Builder createPrivateMessage( Collection<User> recipients, String subject, String text, String metaData );
+    long sendTicketMessage( String subject, String text, String metaData );
+    
+    long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments );
+    
+    long sendSystemMessage( Set<User> recipients, String subject, String text );
+    
+    long sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority );
+    
+    long sendMessage( MessageConversationParams params );
 
-    MessageConversationParams.Builder createTicketMessage( String subject, String text, String metaData );
+    long sendSystemErrorNotification( String subject, Throwable t );
 
-    MessageConversationParams.Builder createSystemMessage( String subject, String text );
+    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments );
 
-    MessageConversationParams.Builder createValidationResultMessage( Collection<User> users, String subject, String text );
-
-    int sendMessage( MessageConversationParams params );
-
-    int sendSystemErrorNotification( String subject, Throwable t );
-
-    void sendReply( MessageConversation conversation, String text, String metaData, boolean internal );
-
-    int saveMessageConversation( MessageConversation conversation );
+    long saveMessageConversation( MessageConversation conversation );
 
     void updateMessageConversation( MessageConversation conversation );
 
-    int sendCompletenessMessage( CompleteDataSetRegistration registration );
+    long sendCompletenessMessage( CompleteDataSetRegistration registration );
 
-    MessageConversation getMessageConversation( int id );
+    MessageConversation getMessageConversation( long id );
 
     MessageConversation getMessageConversation( String uid );
 
@@ -80,14 +80,7 @@ public interface MessageService
 
     List<MessageConversation> getMessageConversations( int first, int max );
 
-    List<MessageConversation> getMessageConversations( MessageConversationStatus status, boolean followUpOnly,
-        boolean unreadOnly, int first, int max );
-
-    List<MessageConversation> getMessageConversations( User user, Collection<String> messageConversationUids );
-
-    int getMessageConversationCount();
-
-    int getMessageConversationCount( boolean followUpOnly, boolean unreadOnly );
+    List<MessageConversation> getMessageConversations( User user, Collection<String> uids );
 
     void deleteMessages( User sender );
 

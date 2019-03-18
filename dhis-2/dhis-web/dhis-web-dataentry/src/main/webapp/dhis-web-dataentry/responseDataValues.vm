@@ -34,5 +34,6 @@
   "locked":${locked},
   "complete":${complete},
   "date":"$!format.formatDate( $date )",
-  "storedBy":"$!encoder.jsonEncode( ${storedBy} )"
+  "storedBy":"$!encoder.jsonEncode( ${storedBy} )",
+  "lastUpdatedBy":"$!encoder.jsonEncode( ${lastUpdatedBy} )"
 }

@@ -59,4 +59,19 @@ public enum FeatureType
     {
         return this == POLYGON || this == MULTI_POLYGON;
     }
+
+    public static FeatureType getTypeFromName( String type )
+    {
+        switch ( type )
+        {
+        case "Point":
+            return POINT;
+        case "Polygon":
+            return POLYGON;
+        case "MultiPolygon":
+            return MULTI_POLYGON;
+        default:
+            return NONE;
+        }
+    }
 }

@@ -113,6 +113,7 @@ public class UserAccess
         return user != null ? user.getDisplayName() : null;
     }
 
+    @JsonIgnore
     public User getUser()
     {
         if ( user == null )
@@ -125,6 +126,7 @@ public class UserAccess
         return user;
     }
 
+    @JsonProperty
     public void setUser( User user )
     {
         this.user = user;

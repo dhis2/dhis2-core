@@ -36,22 +36,19 @@ import com.google.common.base.MoreObjects;
  */
 public class SharingUserGroupAccess
 {
-    @JsonProperty
     private String id;
 
-    @JsonProperty
     private String name;
 
-    @JsonProperty
     private String displayName;
 
-    @JsonProperty
     private String access;
 
     public SharingUserGroupAccess()
     {
     }
 
+    @JsonProperty
     public String getId()
     {
         return id;
@@ -62,6 +59,7 @@ public class SharingUserGroupAccess
         this.id = id;
     }
 
+    @JsonProperty
     public String getName()
     {
         return name;
@@ -72,6 +70,7 @@ public class SharingUserGroupAccess
         this.name = name;
     }
 
+    @JsonProperty
     public String getDisplayName()
     {
         return displayName;
@@ -82,6 +81,7 @@ public class SharingUserGroupAccess
         this.displayName = displayName;
     }
 
+    @JsonProperty
     public String getAccess()
     {
         return access;

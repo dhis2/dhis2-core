@@ -31,9 +31,11 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InterpretableObject;
@@ -43,10 +45,6 @@ import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -65,6 +63,7 @@ import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.config.InclusionStrategy;
@@ -94,8 +93,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -112,7 +111,7 @@ import java.util.Map;
 @Component
 public class DefaultMetadataExportService implements MetadataExportService
 {
-    private static final Log log = LogFactory.getLog( MetadataExportService.class );
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultMetadataExportService.class );
 
     @Autowired
     private SchemaService schemaService;
@@ -209,8 +208,10 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass,
-                new FieldFilterParams( metadata.get( klass ), params.getFields( klass ), params.getDefaults() ) );
+            FieldFilterParams fieldFilterParams = new FieldFilterParams( metadata.get( klass ), params.getFields( klass ), params.getDefaults(), params.getSkipSharing() );
+            fieldFilterParams.setUser( params.getUser() );
+
+            CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass, fieldFilterParams );
 
             if ( !collectionNode.getChildren().isEmpty() )
             {
@@ -254,6 +255,12 @@ public class DefaultMetadataExportService implements MetadataExportService
         {
             params.setDefaultOrder( parameters.get( "order" ) );
             parameters.remove( "order" );
+        }
+
+        if ( parameters.containsKey( "skipSharing" ) )
+        {
+            params.setSkipSharing( Boolean.parseBoolean( parameters.get( "skipSharing" ).get( 0 ) ) );
+            parameters.remove( "skipSharing" );
         }
 
         for ( String parameterKey : parameters.keySet() )
@@ -492,7 +499,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         metadata.putValue( DataElement.class, dataElement );
         handleAttributes( metadata, dataElement );
 
-        handleCategoryCombo( metadata, dataElement.getDataElementCategoryCombo() );
+        handleCategoryCombo( metadata, dataElement.getCategoryCombo() );
         handleOptionSet( metadata, dataElement.getOptionSet() );
         handleOptionSet( metadata, dataElement.getCommentOptionSet() );
 
@@ -808,7 +815,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDashboardItem( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DashboardItem dashboardItem )
     {
         if ( dashboardItem == null ) return metadata;
-        metadata.putValue( DashboardItem.class, dashboardItem );
         handleAttributes( metadata, dashboardItem );
 
         handleChart( metadata, dashboardItem.getChart() );
@@ -819,7 +825,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleEmbbedItem( metadata, dashboardItem.getEmbeddedItem() );
 
         dashboardItem.getReports().forEach( report -> handleReport( metadata, report ) );
-
         dashboardItem.getResources().forEach( document -> handleDocument( metadata, document ) );
 
         return metadata;

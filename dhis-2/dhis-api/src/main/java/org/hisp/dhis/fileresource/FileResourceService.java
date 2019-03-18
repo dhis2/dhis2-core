@@ -50,7 +50,9 @@ public interface FileResourceService
     String saveFileResource( FileResource fileResource, byte[] bytes );
 
     void deleteFileResource( String uid );
-    
+
+    void deleteFileResource( FileResource fileResource );
+
     ByteSource getFileResourceContent( FileResource fileResource );
     
     boolean fileResourceExists( String uid );

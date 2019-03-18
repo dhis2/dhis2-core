@@ -71,15 +71,15 @@ public class GenericGatewayParameter
         this.key = key;
     }
 
+    @JsonProperty( value = "value" )
     public String getValue()
     {
-        return value;
+        return classified ? "" : value;
     }
 
-    @JsonProperty( value = "value" )
-    public String getValueFilterIfClassified()
+    public String getValueForKey()
     {
-        return classified ? "" : value;
+        return value;
     }
 
     public void setValue( String value )

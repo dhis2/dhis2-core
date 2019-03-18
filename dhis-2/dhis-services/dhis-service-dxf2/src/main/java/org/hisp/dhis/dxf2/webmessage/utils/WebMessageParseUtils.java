@@ -36,9 +36,9 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
-import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.render.ParseDateStdDeserializer;
-import org.hisp.dhis.render.WriteDateStdSerializer;
+import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -113,10 +113,10 @@ public class WebMessageParseUtils
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
 

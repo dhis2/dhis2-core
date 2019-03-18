@@ -51,7 +51,12 @@ public final class FieldFilterParams
      */
     private List<String> fields;
 
-    private Defaults defaults = Defaults.EXCLUDE;
+    /**
+     * Filters out sharing fields if true
+     */
+    private boolean skipSharing;
+
+    private Defaults defaults = Defaults.INCLUDE;
 
     public FieldFilterParams( List<?> objects, List<String> fields )
     {
@@ -64,6 +69,14 @@ public final class FieldFilterParams
         this.objects = objects;
         this.fields = fields;
         this.defaults = defaults;
+    }
+
+    public FieldFilterParams( List<?> objects, List<String> fields, Defaults defaults, boolean skipSharing )
+    {
+        this.objects = objects;
+        this.fields = fields;
+        this.defaults = defaults;
+        this.skipSharing = skipSharing;
     }
 
     public User getUser()
@@ -108,5 +121,15 @@ public final class FieldFilterParams
     {
         this.defaults = defaults;
         return this;
+    }
+
+    public boolean getSkipSharing()
+    {
+        return this.skipSharing;
+    }
+
+    public void setSkipSharing( boolean skipSharing )
+    {
+        this.skipSharing = skipSharing;
     }
 }

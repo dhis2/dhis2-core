@@ -30,10 +30,12 @@ package org.hisp.dhis.program;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -51,9 +53,7 @@ import java.util.Set;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE;
 import static org.hisp.dhis.program.notification.NotificationTrigger.SCHEDULED_DAYS_INCIDENT_DATE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Chau Thu Tran
@@ -75,6 +75,9 @@ public class ProgramInstanceStoreTest
 
     @Autowired
     private ProgramStageService programStageService;
+
+    @Autowired
+    private ProgramInstanceAuditStore auditStore;
 
     @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     private IdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore;
@@ -103,16 +106,16 @@ public class ProgramInstanceStoreTest
 
     private TrackedEntityInstance entityInstanceA;
 
-    private Collection<Integer> orgunitIds;
+    private Collection<Long> orgunitIds;
 
     @Override
     public void setUpTest()
     {
         organisationUnitA = createOrganisationUnit( 'A' );
-        int idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
+        long idA = organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         organisationUnitB = createOrganisationUnit( 'B' );
-        int idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
+        long idB = organisationUnitService.addOrganisationUnit( organisationUnitB );
 
         orgunitIds = new HashSet<>();
         orgunitIds.add( idA );
@@ -142,10 +145,10 @@ public class ProgramInstanceStoreTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
 
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         DateTime testDate1 = DateTime.now();
@@ -222,9 +225,9 @@ public class ProgramInstanceStoreTest
     public void testGetWithScheduledNotifications()
     {
         ProgramNotificationTemplate
-            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE ),
-            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE ),
-            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE );
+            a1 = createProgramNotificationTemplate( "a1", -1, SCHEDULED_DAYS_INCIDENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a2 = createProgramNotificationTemplate( "a2", 1, SCHEDULED_DAYS_INCIDENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE ),
+            a3 = createProgramNotificationTemplate( "a3", 7, SCHEDULED_DAYS_ENROLLMENT_DATE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
 
         programNotificationStore.save( a1 );
         programNotificationStore.save( a2 );
@@ -232,8 +235,8 @@ public class ProgramInstanceStoreTest
 
         // TEI
 
-        TrackedEntityInstance teiX = createTrackedEntityInstance( 'X', organisationUnitA );
-        TrackedEntityInstance teiY = createTrackedEntityInstance( 'Y', organisationUnitA );
+        TrackedEntityInstance teiX = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntityInstance teiY = createTrackedEntityInstance( organisationUnitA );
 
         entityInstanceService.addTrackedEntityInstance( teiX );
         entityInstanceService.addTrackedEntityInstance( teiY );
@@ -287,5 +290,36 @@ public class ProgramInstanceStoreTest
 
         results = programInstanceStore.getWithScheduledNotifications( a3, yesterday );
         assertEquals( 0, results.size() );
+    }
+
+    @Test
+    public void testProgramInstanceAudit()
+    {
+        programInstanceStore.save( programInstanceA );
+        programInstanceStore.save( programInstanceB );
+
+        ProgramInstanceAudit auditA = new ProgramInstanceAudit( programInstanceA, "testUser", AuditType.CREATE );
+        ProgramInstanceAudit auditB = new ProgramInstanceAudit( programInstanceB, "testUser", AuditType.CREATE );
+        auditStore.addProgramInstanceAudit( auditA );
+        auditStore.addProgramInstanceAudit( auditB );
+
+        ProgramInstanceAuditQueryParams params = new ProgramInstanceAuditQueryParams();
+        params.setAuditType( AuditType.CREATE );
+        params.setProgramInstances( Sets.newHashSet( programInstanceA, programInstanceB ) );
+        params.setSkipPaging( true );
+
+        assertEquals( 2, auditStore.getProgramInstanceAudits( params ).size() );
+        assertEquals( 2, auditStore.getProgramInstanceAuditsCount( params ) );
+    }
+
+    @Test
+    public void testGetExcludeDeletedProgramInstance()
+    {
+        programInstanceStore.save( programInstanceA );
+        programInstanceStore.save( programInstanceB );
+
+        programInstanceStore.delete( programInstanceA );
+
+        assertEquals( 1, programInstanceStore.getAll().size() );
     }
 }

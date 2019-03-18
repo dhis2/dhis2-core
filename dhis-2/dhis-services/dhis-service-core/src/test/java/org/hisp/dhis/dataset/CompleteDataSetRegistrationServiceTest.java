@@ -31,14 +31,23 @@ package org.hisp.dhis.dataset;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -51,10 +60,19 @@ public class CompleteDataSetRegistrationServiceTest
     extends DhisSpringTest
 {
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
     @Autowired
     private DataSetService dataSetService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
+    private DataValueService dataValueService;
 
     @Autowired
     private PeriodService periodService;
@@ -64,11 +82,17 @@ public class CompleteDataSetRegistrationServiceTest
 
     @Autowired
     private CategoryService categoryService;
-  
+
     private CompleteDataSetRegistration registrationA;
     private CompleteDataSetRegistration registrationB;
     private CompleteDataSetRegistration registrationC;
     private CompleteDataSetRegistration registrationD;
+
+    DataElement elementA;
+    DataElement elementB;
+    DataElement elementC;
+    DataElement elementD;
+    DataElement elementE;
 
     private DataSet dataSetA;
     private DataSet dataSetB;
@@ -85,6 +109,8 @@ public class CompleteDataSetRegistrationServiceTest
 
     private CategoryOptionCombo optionCombo;
 
+    private User user;
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -96,6 +122,9 @@ public class CompleteDataSetRegistrationServiceTest
         sourceB = createOrganisationUnit( 'B' );
         sourceC = createOrganisationUnit( 'C' );
 
+        user = createUser( 'A' );
+        userService.addUser( user );
+
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
         organisationUnitService.addOrganisationUnit( sourceC );
@@ -106,9 +135,27 @@ public class CompleteDataSetRegistrationServiceTest
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
 
+        elementA = createDataElement( 'A' );
+        elementB = createDataElement( 'B' );
+        elementC = createDataElement( 'C' );
+        elementD = createDataElement( 'D' );
+        elementE = createDataElement( 'E' );
+
+        dataElementService.addDataElement( elementA );
+        dataElementService.addDataElement( elementB );
+        dataElementService.addDataElement( elementC );
+        dataElementService.addDataElement( elementD );
+        dataElementService.addDataElement( elementE );
+
         dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         dataSetB = createDataSet( 'B', new MonthlyPeriodType() );
         dataSetC = createDataSet( 'C', new MonthlyPeriodType() );
+
+        dataSetA.addDataSetElement( elementA );
+        dataSetA.addDataSetElement( elementB );
+        dataSetA.addDataSetElement( elementC );
+        dataSetA.addDataSetElement( elementD );
+        dataSetA.addDataSetElement( elementE );
 
         dataSetA.getSources().add( sourceA );
         dataSetA.getSources().add( sourceB );
@@ -126,6 +173,35 @@ public class CompleteDataSetRegistrationServiceTest
         onTimeA = getDate( 2000, 1, 10 );
     }
 
+    public static User createUser( char uniqueCharacter )
+    {
+        UserCredentials credentials = new UserCredentials();
+        User user = new User();
+        user.setUid( BASE_USER_UID + uniqueCharacter );
+
+        credentials.setUserInfo( user );
+        user.setUserCredentials( credentials );
+
+        credentials.setUsername( "username" + uniqueCharacter );
+        credentials.setPassword( "password" + uniqueCharacter );
+
+        user.setFirstName( "FirstName" + uniqueCharacter );
+        user.setSurname( "Surname" + uniqueCharacter );
+        user.setEmail( "Email" + uniqueCharacter );
+        user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
+        user.setCode( "UserCode" + uniqueCharacter );
+        user.setAutoFields();
+
+        return user;
+    }
+
+
+//    @Override
+//    public boolean emptyDatabaseAfterTest()
+//    {
+//        return true;
+//    }
+
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
@@ -133,8 +209,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testSaveGet()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "" );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true );
+        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -148,8 +224,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testDelete()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "" );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true );
+        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -166,8 +242,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testGetAll()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "" );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "" );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
+        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -183,10 +259,10 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testDeleteByDataSet()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, onTimeA, "" );
-        registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "" );
-        registrationC = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, onTimeA, "" );
-        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, onTimeA, "" );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
+        registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
+        registrationC = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
+        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -204,5 +280,30 @@ public class CompleteDataSetRegistrationServiceTest
         assertNull( completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo ) );
         assertNotNull( completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo ) );
         assertNotNull( completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo ) );
+    }
+
+    @Test
+    public void testGetMissingCompulsoryFields()
+    {
+        DataElementOperand compulsoryA = new DataElementOperand( elementA, optionCombo );
+        DataElementOperand compulsoryB = new DataElementOperand( elementB, optionCombo );
+        DataElementOperand compulsoryC = new DataElementOperand( elementC, optionCombo );
+
+        dataSetA.addCompulsoryDataElementOperand( compulsoryA );
+        dataSetA.addCompulsoryDataElementOperand( compulsoryB );
+        dataSetA.addCompulsoryDataElementOperand( compulsoryC );
+
+        dataValueService.addDataValue( new DataValue( elementA, periodA, sourceA, optionCombo, optionCombo, "10" ) );
+        dataValueService.addDataValue( new DataValue( elementE, periodA, sourceA, optionCombo, optionCombo, "20" ) );
+
+        List<DataElementOperand> missingFields = completeDataSetRegistrationService.getMissingCompulsoryFields(
+            dataSetA, periodA, sourceA, optionCombo );
+
+        Collections.sort( missingFields );
+
+        assertEquals( 2, missingFields.size() );
+
+        assertEquals( "DataElementB", missingFields.get( 0 ).getDataElement().getName() );
+        assertEquals( "DataElementC", missingFields.get( 1 ).getDataElement().getName() );
     }
 }

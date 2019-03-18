@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" transform="translate(0,-284.3)" fill="#333">
+  <path id="path889" d="m6.35 288.04c-2.1259-3e-7 -3.8758 1.5992-4.1191 3.6597-0.33983 0.15179-0.52579 0.31961-0.52762 0.49093 1.89e-7 0.59363 2.0804 1.0749 4.6467 1.0749s4.6467-0.48124 4.6467-1.0749c-0.001526-0.17124-0.18879-0.33876-0.52762-0.49041-0.24307-2.0607-1.9931-3.6602-4.1191-3.6602zm0 0.13539c2.2176-2e-7 4.0153 1.7977 4.0153 4.0153-0.00088927 0.019644-0.001923 0.039282-0.003101 0.058911 0.012021 0.11878 0.13164 0.076567 0.13643 0 0.00082841-0.019632 0.001517-0.039269 0.002067-0.058911 1e-8 -0.12565-0.007672-0.24927-0.018604-0.37207 0.24434 0.11737 0.37844 0.24372 0.37879 0.37207-1.8e-7 0.5183-2.0194 0.93846-4.5103 0.93844-2.491 0.0000174-4.5103-0.42014-4.5103-0.93844 0.0018011-0.12744 0.13512-0.25283 0.37775-0.36949-0.010782 0.12197-0.018604 0.24471-0.018604 0.36949 0.00089398 0.019644 0.0019275 0.039282 0.0031006 0.058911 0.001863 0.08017 0.13676 0.095287 0.13436 0-0.00083316-0.019632-0.0015222-0.039269-0.0020671-0.058911-2.63e-7 -2.2176 1.7977-4.0153 4.0153-4.0153z" fill-rule="evenodd"/>
+ </g>
+</svg>

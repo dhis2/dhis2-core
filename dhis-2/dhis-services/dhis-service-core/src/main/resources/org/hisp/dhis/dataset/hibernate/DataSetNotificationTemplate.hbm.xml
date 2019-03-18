@@ -21,6 +21,10 @@
 
         <property name="relativeScheduledDays" column="relativeScheduledDays" not-null="false" />
 
+        <property name="notifyParentOrganisationUnitOnly" column="notifyparentorganisationunitonly" />
+
+        <property name="notifyUsersInHierarchyOnly" column="notifyusersinhierarchyonly" />
+
         <property name="sendStrategy" length="50" column="sendstrategy">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.notification.SendStrategy</param>

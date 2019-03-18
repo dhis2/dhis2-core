@@ -28,18 +28,28 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Strings;
-import com.google.common.io.ByteSource;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
@@ -50,7 +60,11 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
-import org.hisp.dhis.fileresource.*;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -76,16 +90,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import com.google.common.base.Strings;
+import com.google.common.io.ByteSource;
 
 /**
  * @author Lars Helge Overland
@@ -154,7 +160,8 @@ public class DataValueController
         @RequestParam( required = false ) String ds,
         @RequestParam( required = false ) String value,
         @RequestParam( required = false ) String comment,
-        @RequestParam( required = false ) boolean followUp, HttpServletResponse response )
+        @RequestParam( required = false ) boolean followUp,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
         boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
@@ -162,12 +169,13 @@ public class DataValueController
         boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
         boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        DataElement dataElement = getAndValidateDataElement( currentUser, de );
 
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
 
@@ -184,8 +192,6 @@ public class DataValueController
         validateAttributeOptionComboWithOrgUnitAndPeriod( attributeOptionCombo, organisationUnit, period );
 
         String valueValid = ValidationUtils.dataValueIsValid( value, dataElement );
-
-        User currentUser = currentUserService.getCurrentUser();
 
         if ( valueValid != null )
         {
@@ -204,6 +210,20 @@ public class DataValueController
         if ( !Strings.isNullOrEmpty( value ) && optionSet != null && !optionSet.getOptionCodesAsSet().contains( value ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data value is not a valid option of the data element option set: " + dataElement.getUid() ) );
+        }
+
+        List<String> categoryOptionComboErrors = accessManager.canWriteCached( currentUser, categoryOptionCombo );
+
+        if ( !categoryOptionComboErrors.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "User does not have write access to category option combo: " + co + ", errors: " + categoryOptionComboErrors ) );
+        }
+
+        List<String> attributeOptionComboErrors = accessManager.canWriteCached( currentUser, attributeOptionCombo );
+
+        if ( !attributeOptionComboErrors.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "User does not have write access to attribute option combo: " + co + ", errors: " + attributeOptionComboErrors ) );
         }
 
         // ---------------------------------------------------------------------
@@ -232,7 +252,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation
@@ -258,7 +281,7 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType() == ValueType.FILE_RESOURCE )
+            if ( dataElement.getValueType().isFile() )
             {
                 fileResource = validateAndSetAssigned( value );
             }
@@ -266,32 +289,10 @@ public class DataValueController
             dataValue = new DataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo,
                 StringUtils.trimToNull( value ), storedBy, now, StringUtils.trimToNull( comment ) );
 
-            // ---------------------------------------------------------------------
-            // Data Sharing check
-            // ---------------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUser, dataValue );
-
-            if ( !errors.isEmpty() )
-            {
-                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
-            }
-
             dataValueService.addDataValue( dataValue );
         }
         else
         {
-            // ---------------------------------------------------------------------
-            // Data Sharing check
-            // ---------------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUser, dataValue );
-
-            if ( !errors.isEmpty() )
-            {
-                throw new WebMessageException( WebMessageUtils.forbidden( errors.toString() ) );
-            }
-
             if ( value == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
                 if ( comment == null )
@@ -325,11 +326,12 @@ public class DataValueController
                     // If we fail to delete the fileResource now, mark it as unassigned for removal later
                     fileResourceService.getFileResource( dataValue.getValue() ).setAssigned( false );
                 }
+
                 dataValue.setValue( StringUtils.EMPTY );
             }
 
             // -----------------------------------------------------------------
-            // Value and comment are sent individually, so null checks must be 
+            // Value and comment are sent individually, so null checks must be
             // made for each. Empty string is sent for clearing a value.
             // -----------------------------------------------------------------
 
@@ -374,17 +376,19 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) String ds, HttpServletResponse response )
+        @RequestParam( required = false ) String ds,
+        @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
-
         FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+
+        User currentUser = currentUserService.getCurrentUser();
 
         // ---------------------------------------------------------------------
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        DataElement dataElement = getAndValidateDataElement( currentUserService.getCurrentUser(), de );
 
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
 
@@ -400,7 +404,10 @@ public class DataValueController
         // Locking validation
         // ---------------------------------------------------------------------
 
-        validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        if ( !inputUtils.canForceDataInput( currentUser, force ) )
+        {
+            validateDataSetNotLocked( dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+        }
 
         // ---------------------------------------------------------------------
         // Period validation
@@ -447,7 +454,9 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        User currentUser = currentUserService.getCurrentUser();
+
+        DataElement dataElement = getAndValidateDataElement( currentUser, de );
 
         CategoryOptionCombo categoryOptionCombo = getAndValidateCategoryOptionCombo( co, false );
 
@@ -471,8 +480,6 @@ public class DataValueController
         // ---------------------------------------------------------------------
         // Data Sharing check
         // ---------------------------------------------------------------------
-
-        User currentUser = currentUserService.getCurrentUser();
 
         List<String> errors = accessManager.canRead( currentUser, dataValue );
 
@@ -506,7 +513,7 @@ public class DataValueController
         // Input validation
         // ---------------------------------------------------------------------
 
-        DataElement dataElement = getAndValidateDataElement( de );
+        DataElement dataElement = getAndValidateDataElement( currentUserService.getCurrentUser(), de );
 
         if ( !dataElement.isFileType() )
         {
@@ -551,8 +558,8 @@ public class DataValueController
         if ( storageStatus != FileResourceStorageStatus.STORED )
         {
             // Special case:
-            //  The FileResource exists and has been tied to this DataValue, however, the underlying file
-            //  content is still not stored to the (most likely external) file store provider.
+            // The FileResource exists and has been tied to this DataValue, however, the underlying file
+            // content is still not stored to the (most likely external) file store provider.
 
             // HTTP 409, for lack of a more suitable status code
             WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
@@ -596,11 +603,8 @@ public class DataValueController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        InputStream inputStream = null;
-
-        try
+        try ( InputStream inputStream = content.openStream() )
         {
-            inputStream = content.openStream();
             IOUtils.copy( inputStream, response.getOutputStream() );
         }
         catch ( IOException e )
@@ -609,24 +613,20 @@ public class DataValueController
                 "There was an exception when trying to fetch the file from the storage backend. " +
                     "Depending on the provider the root cause could be network or file system related." ) );
         }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
-        }
     }
 
     // ---------------------------------------------------------------------
     // Supportive methods
     // ---------------------------------------------------------------------
 
-    private DataElement getAndValidateDataElement( String de )
+    private DataElement getAndValidateDataElement( User user, String de )
         throws WebMessageException
     {
         DataElement dataElement = idObjectManager.get( DataElement.class, de );
 
         if ( dataElement == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal data element identifier: " + de ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data element not found or not accessible: " + de ) );
         }
 
         return dataElement;
@@ -645,7 +645,7 @@ public class DataValueController
             }
             else if ( co != null )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Illegal category option combo identifier: " + co ) );
+                throw new WebMessageException( WebMessageUtils.conflict( "Category option combo not found or not accessible: " + co ) );
             }
             else
             {
@@ -663,7 +663,7 @@ public class DataValueController
 
         if ( attributeOptionCombo == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal attribute option combo identifier: " + cc + " " + cp ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Attribute option combo not found or not accessible: " + cc + " " + cp ) );
         }
 
         return attributeOptionCombo;
@@ -689,10 +689,10 @@ public class DataValueController
 
         if ( organisationUnit == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit not found or not accessible: " + ou ) );
         }
 
-        boolean isInHierarchy = organisationUnitService.isInUserHierarchy( organisationUnit );
+        boolean isInHierarchy = organisationUnitService.isInUserHierarchyCached( organisationUnit );
 
         if ( !isInHierarchy )
         {
@@ -714,12 +714,12 @@ public class DataValueController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set not found or not accessible: " + ds ) );
         }
 
         if ( !dataSet.getDataElements().contains( dataElement ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set " + ds + " does not contain data element: " + dataElement.getUid() ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set: " + ds + " does not contain data element: " + dataElement.getUid() ) );
         }
 
         return dataSet;
@@ -756,26 +756,6 @@ public class DataValueController
                     + " is after end date " + i18nManager.getI18nFormat().formatDate( option.getEndDate() )
                     + " for attributeOption '" + option.getName() + "'" ) );
             }
-
-            if ( option.getOrganisationUnits() != null && !option.getOrganisationUnits().isEmpty() )
-            {
-                boolean validOrgUnit = false;
-
-                for ( OrganisationUnit optionOrgUnit : option.getOrganisationUnits() )
-                {
-                    if ( organisationUnit.getPath().contains( optionOrgUnit.getUid() ) )
-                    {
-                        validOrgUnit = true;
-                        break;
-                    }
-                }
-
-                if ( !validOrgUnit )
-                {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Organisation Unit " + organisationUnit.getUid() +
-                        " is not valid for attributeOption '" + option.getName() ) );
-                }
-            }
         }
     }
 
@@ -783,8 +763,10 @@ public class DataValueController
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
         throws WebMessageException
     {
-        if ( dataSet == null ? dataSetService.isLocked( dataElement, period, organisationUnit, attributeOptionCombo, null )
-            : dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null) )
+        User user = currentUserService.getCurrentUser();
+
+        if ( dataSet == null ? dataSetService.isLocked( user, dataElement, period, organisationUnit, attributeOptionCombo, null )
+            : dataSetService.isLocked( user, dataSet, period, organisationUnit, attributeOptionCombo, null) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data set is locked" ) );
         }

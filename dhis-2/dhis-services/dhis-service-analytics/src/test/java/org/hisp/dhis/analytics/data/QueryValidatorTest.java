@@ -74,7 +74,7 @@ public class QueryValidatorTest
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-    
+
     @Autowired
     private DataElementService dataElementService;
 
@@ -91,9 +91,9 @@ public class QueryValidatorTest
     private IndicatorType itA;
     private Indicator inA;
     private Indicator inB;
-    
+
     private Program prA;
-    
+
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
@@ -102,7 +102,7 @@ public class QueryValidatorTest
     private DataElement deF;
     private DataElement deG;
     private DataElement deH;
-    
+
     private ProgramDataElementDimensionItem pdeA;
     private ProgramDataElementDimensionItem pdeB;
 
@@ -110,15 +110,15 @@ public class QueryValidatorTest
 
     private Period peA;
     private Period peB;
-    
+
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
     private OrganisationUnit ouC;
     private OrganisationUnit ouD;
     private OrganisationUnit ouE;
-    
+
     private DataElementGroup degA;
-    
+
     private DataElementGroupSet dgsA;
 
     @Override
@@ -135,9 +135,9 @@ public class QueryValidatorTest
 
         idObjectManager.save( inA );
         idObjectManager.save( inB );
-        
+
         prA = createProgram( 'A' );
-        
+
         idObjectManager.save( prA );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
@@ -148,7 +148,7 @@ public class QueryValidatorTest
         deF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
         deG = createDataElement( 'G', ValueType.INTEGER, AggregationType.SUM );
         deH = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
-        
+
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
         dataElementService.addDataElement( deC );
@@ -165,12 +165,12 @@ public class QueryValidatorTest
         DataSet dsB = createDataSet( 'B', pt );
         DataSet dsC = createDataSet( 'C', pt );
         DataSet dsD = createDataSet( 'D', pt );
-        
+
         dataSetService.addDataSet( dsA );
         dataSetService.addDataSet( dsB );
         dataSetService.addDataSet( dsC );
         dataSetService.addDataSet( dsD );
-        
+
         rrA = new ReportingRate( dsA );
         peA = PeriodType.getPeriodFromIsoString( "201501" );
         peB = PeriodType.getPeriodFromIsoString( "201502" );
@@ -186,16 +186,16 @@ public class QueryValidatorTest
         organisationUnitService.addOrganisationUnit( ouC );
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
-        
+
         degA = createDataElementGroup( 'A' );
         degA.addDataElement( deA );
         degA.addDataElement( deB );
-        
+
         dataElementService.addDataElementGroup( degA );
-        
+
         dgsA = createDataElementGroupSet( 'A' );
         dgsA.getMembers().add( degA );
-        
+
         dataElementService.addDataElementGroupSet( dgsA );
     }
 
@@ -206,7 +206,7 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -217,7 +217,7 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB, pdeA, pdeB ) ) )
             .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -228,17 +228,17 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
-    
+
     @Test( expected = IllegalQueryException.class )
     public void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -249,7 +249,7 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .addFilter( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( inA, inB ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -260,7 +260,19 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
             .addDimension( new BaseDimensionalObject( dgsA.getDimension(), DimensionType.DATA_ELEMENT_GROUP_SET, getList( deA ) ) ).build();
-        
+
+        queryValidator.validate( params );
+    }
+
+    @Test( expected = IllegalQueryException.class )
+    public void validateFailureReportingRatesAndStartEndDates()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( rrA, inA ) ) )
+            .withStartDate( getDate( 2018, 3, 1 ) )
+            .withEndDate( getDate( 2018, 6, 30 ) ).build();
+
         queryValidator.validate( params );
     }
 
@@ -268,12 +280,12 @@ public class QueryValidatorTest
     public void validateFailureValueType()
     {
         deB.setValueType( ValueType.FILE_RESOURCE );
-        
+
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -281,12 +293,12 @@ public class QueryValidatorTest
     public void validateFailureAggregationType()
     {
         deB.setAggregationType( AggregationType.CUSTOM );
-        
+
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -298,7 +310,7 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( CATEGORYOPTIONCOMBO_DIM_ID, DimensionType.DATA_X, getList() ) )
             .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) ).build();
-        
+
         queryValidator.validate( params );
     }
 
@@ -309,8 +321,8 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
-        
+
         queryValidator.validate( params );
     }
-    
+
 }

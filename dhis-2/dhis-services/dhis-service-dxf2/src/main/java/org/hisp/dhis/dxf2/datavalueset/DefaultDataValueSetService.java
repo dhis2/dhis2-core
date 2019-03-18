@@ -28,11 +28,31 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.api.util.DateUtils.parseDate;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -48,8 +68,6 @@ import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -59,6 +77,7 @@ import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -85,6 +104,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -94,7 +114,6 @@ import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -104,21 +123,7 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.*;
-import static org.hisp.dhis.system.util.DateUtils.parseDate;
+import com.csvreader.CsvReader;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -179,6 +184,9 @@ public class DefaultDataValueSetService
     private CalendarService calendarService;
 
     @Autowired
+    private DataValueService dataValueService;
+
+    @Autowired
     private FileResourceService fileResourceService;
 
     @Autowired
@@ -221,7 +229,7 @@ public class DefaultDataValueSetService
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
                 DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
         }
-        
+
         if ( periods != null && !periods.isEmpty() )
         {
             params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
@@ -244,10 +252,10 @@ public class DefaultDataValueSetService
             params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
                 OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
         }
-        
+
         if ( attributeOptionCombos != null )
         {
-            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects( 
+            params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects(
                 CategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
         }
 
@@ -361,6 +369,13 @@ public class DefaultDataValueSetService
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
     {
         dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes );
+    }
+
+    @Override
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
+        int page )
+    {
+        dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes, pageSize, page );
     }
 
     @Override
@@ -569,7 +584,14 @@ public class DefaultDataValueSetService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            DataValueSet dataValueSet = new StreamingCsvDataValueSet( new CsvReader( in, Charset.forName( "UTF-8" ) ) );
+            CsvReader csvReader = new CsvReader( in, Charset.forName( "UTF-8" ) );
+
+            if ( importOptions == null || importOptions.isFirstRowIsHeader() )
+            {
+                csvReader.readRecord(); // Ignore the first row
+            }
+
+            DataValueSet dataValueSet = new StreamingCsvDataValueSet( csvReader );
             return saveDataValueSet( importOptions, id, dataValueSet );
         }
         catch ( Exception ex )
@@ -638,6 +660,11 @@ public class DefaultDataValueSetService
         final User currentUser = currentUserService.getCurrentUser();
         final String currentUserName = currentUser.getUsername();
 
+        boolean hasSkipAuditAuth = currentUser != null && currentUser.isAuthorized( Authorities.F_SKIP_DATA_IMPORT_AUDIT );
+        boolean skipAudit = importOptions.isSkipAudit() && hasSkipAuditAuth;
+
+        log.info( String.format( "Skip audit: %b, has authority to skip: %b", skipAudit, hasSkipAuditAuth ) );
+
         // ---------------------------------------------------------------------
         // Get import options
         // ---------------------------------------------------------------------
@@ -668,11 +695,13 @@ public class DefaultDataValueSetService
         boolean dryRun = dataValueSet.getDryRun() != null ? dataValueSet.getDryRun() : importOptions.isDryRun();
         boolean skipExistingCheck = importOptions.isSkipExistingCheck();
         boolean strictPeriods = importOptions.isStrictPeriods() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+        boolean strictDataElements = importOptions.isStrictDataElements() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS );
         boolean strictCategoryOptionCombos = importOptions.isStrictCategoryOptionCombos() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
         boolean strictAttrOptionCombos = importOptions.isStrictAttributeOptionCombos() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
         boolean strictOrgUnits = importOptions.isStrictOrganisationUnits() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
         boolean requireCategoryOptionCombo = importOptions.isRequireCategoryOptionCombo() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
         boolean requireAttrOptionCombo = importOptions.isRequireAttributeOptionCombo() || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+        boolean forceDataInput = inputUtils.canForceDataInput( currentUser, importOptions.isForce() );
 
         // ---------------------------------------------------------------------
         // Create meta-data maps
@@ -738,6 +767,8 @@ public class DefaultDataValueSetService
 
         CategoryOptionCombo outerAttrOptionCombo = null;
 
+        Set<DataElement> dataSetDataElements = dataSet != null ? dataSet.getDataElements() : new HashSet<>();
+
         if ( dataValueSet.getAttributeOptionCombo() != null )
         {
             outerAttrOptionCombo = optionComboMap.get( trimToNull( dataValueSet.getAttributeOptionCombo() ), attributeOptionComboCallable.setId( trimToNull( dataValueSet.getAttributeOptionCombo() ) ) );
@@ -759,7 +790,13 @@ public class DefaultDataValueSetService
 
         if ( dataSet != null && !aclService.canDataWrite( currentUser, dataSet ) )
         {
-            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid()) );
+            summary.getConflicts().add( new ImportConflict( dataValueSet.getDataSet(), "User does not have write access for DataSet: " + dataSet.getUid() ) );
+            summary.setStatus( ImportStatus.ERROR );
+        }
+
+        if ( dataSet == null && strictDataElements )
+        {
+            summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS", "A valid datset is required" ) );
             summary.setStatus( ImportStatus.ERROR );
         }
 
@@ -778,7 +815,7 @@ public class DefaultDataValueSetService
         if ( ImportStatus.ERROR.equals( summary.getStatus() ) )
         {
             summary.setDescription( "Import process was aborted" );
-            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary );
+            notifier.notify( id, WARN, "Import process aborted", true ).addJobSummary( id, summary, ImportSummary.class );
             dataValueSet.close();
             return summary;
         }
@@ -786,7 +823,7 @@ public class DefaultDataValueSetService
         if ( dataSet != null && completeDate != null )
         {
             notifier.notify( id, notificationLevel, "Completing data set" );
-            handleComplete( dataSet, completeDate, outerPeriod, outerOrgUnit, fallbackCategoryOptionCombo, summary ); //TODO
+            handleComplete( dataSet, completeDate, outerPeriod, outerOrgUnit, fallbackCategoryOptionCombo, currentUserName, summary ); //TODO
         }
         else
         {
@@ -879,7 +916,7 @@ public class DefaultDataValueSetService
 
             if ( categoryOptionCombo == null && trimToNull( dataValue.getCategoryOptionCombo() ) != null )
             {
-                summary.getConflicts().add( new ImportConflict( dataValue.getCategoryOptionCombo(), "Category option combo not found or not accessible" ) );
+                summary.getConflicts().add( new ImportConflict( dataValue.getCategoryOptionCombo(), "Category option combo not found or not accessible for writing data" ) );
                 continue;
             }
 
@@ -896,7 +933,7 @@ public class DefaultDataValueSetService
 
             if ( attrOptionCombo == null && trimToNull( dataValue.getAttributeOptionCombo() ) != null )
             {
-                summary.getConflicts().add( new ImportConflict( dataValue.getAttributeOptionCombo(), "Attribute option combo not found or not accessible" ) );
+                summary.getConflicts().add( new ImportConflict( dataValue.getAttributeOptionCombo(), "Attribute option combo not found or not accessible for writing data" ) );
                 continue;
             }
 
@@ -991,6 +1028,13 @@ public class DefaultDataValueSetService
                 continue;
             }
 
+            if ( strictDataElements && !dataSetDataElements.contains( dataElement ) )
+            {
+                summary.getConflicts().add( new ImportConflict( "DATA_IMPORT_STRICT_DATA_ELEMENTS",
+                    "Data element: " + dataValue.getDataElement() + " is not part of dataset: " + dataSet.getUid() ) );
+                continue;
+            }
+
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
                 () -> dataElement.getCategoryOptionCombos() ).contains( categoryOptionCombo ) )
             {
@@ -1015,12 +1059,11 @@ public class DefaultDataValueSetService
                 continue;
             }
 
-            boolean zeroInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
+            boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant( dataValue.getValue(), dataElement );
 
-            if ( zeroInsignificant )
+            if ( zeroAndInsignificant )
             {
-                summary.getConflicts().add( new ImportConflict( dataValue.getValue(), "Value is zero and not significant, must match data element: " + dataElement.getUid() ) );
-                continue;
+                continue; // Ignore value
             }
 
             String storedByValid = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
@@ -1037,8 +1080,8 @@ public class DefaultDataValueSetService
 
             DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), () -> aoc.getDateRange() );
 
-            if ( (aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0)
-                || (aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0) )
+            if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0 )
+                || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0 ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not within date range of attribute option combo: " + attrOptionCombo.getUid() ) );
@@ -1059,10 +1102,10 @@ public class DefaultDataValueSetService
             final DataSet approvalDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
                 () -> dataElement.getApprovalDataSet() );
 
-            if ( approvalDataSet != null ) // Data element is assigned to at least one data set
+            if ( approvalDataSet != null && !forceDataInput ) // Data element is assigned to at least one data set
             {
                 if ( dataSetLockedMap.get( approvalDataSet.getUid() + period.getUid() + orgUnit.getUid(),
-                    () -> isLocked( approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
+                    () -> isLocked( currentUser, approvalDataSet, period, orgUnit, skipLockExceptionCheck ) ) )
                 {
                     summary.getConflicts().add( new ImportConflict( period.getIsoDate(), "Current date is past expiry days for period " +
                         period.getIsoDate() + " and data set: " + approvalDataSet.getUid() ) );
@@ -1100,17 +1143,28 @@ public class DefaultDataValueSetService
                 }
             }
 
-            if ( approvalDataSet != null && !approvalDataSet.isDataInputPeriodAndDateAllowed( period, new Date() ) )
+            if ( approvalDataSet != null && !forceDataInput && !approvalDataSet.isDataInputPeriodAndDateAllowed( period, new Date() ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(),
                     "Period: " + period.getIsoDate() + " is not open for this data set at this time: " + approvalDataSet.getUid() ) );
                 continue;
             }
 
-            if ( !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(), () -> dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) ) )
+            if ( !forceDataInput && !periodOpenForDataElement.get( dataElement.getUid() + period.getIsoDate(), () -> dataElement.isDataInputAllowedForPeriodAndDate( period, new Date() ) ) )
             {
                 summary.getConflicts().add( new ImportConflict( orgUnit.getUid(), "Period " + period.getName() + " does not conform to the open periods of associated data sets" ) );
                 continue;
+            }
+
+            DataValue actualDataValue = null;
+            if ( strategy.isDelete() && dataElement.isFileType() )
+            {
+                actualDataValue = dataValueService.getDataValue( dataElement, period, orgUnit, categoryOptionCombo, attrOptionCombo );
+                if ( actualDataValue == null )
+                {
+                    summary.getConflicts().add( new ImportConflict( dataElement.getUid(), "No data value for file resource exist for the given combination" ) );
+                    continue;
+                }
             }
 
             // -----------------------------------------------------------------
@@ -1133,18 +1187,6 @@ public class DefaultDataValueSetService
             internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );
 
             // -----------------------------------------------------------------
-            // Check if current user has permission to save this value
-            // -----------------------------------------------------------------
-
-            List<String> errors = accessManager.canWrite( currentUser, internalValue );
-
-            if ( !errors.isEmpty() )
-            {
-                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataValueSet", s ) ).collect( Collectors.toList() ) );
-                continue;
-            }
-
-            // -----------------------------------------------------------------
             // Save, update or delete data value
             // -----------------------------------------------------------------
 
@@ -1158,13 +1200,13 @@ public class DefaultDataValueSetService
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
                 {
-                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.UPDATE );
+                    AuditType auditType = AuditType.UPDATE;
 
                     if ( internalValue.isNullValue() || internalValue.isDeleted() )
                     {
                         internalValue.setDeleted( true );
 
-                        auditValue.setAuditType( AuditType.DELETE );
+                        auditType = AuditType.DELETE;
 
                         deleteCount++;
                     }
@@ -1177,7 +1219,12 @@ public class DefaultDataValueSetService
                     {
                         dataValueBatchHandler.updateObject( internalValue );
 
-                        auditBatchHandler.addObject( auditValue );
+                        if ( !skipAudit )
+                        {
+                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, auditType );
+
+                            auditBatchHandler.addObject( auditValue );
+                        }
 
                         if ( dataElement.isFileType() )
                         {
@@ -1192,25 +1239,28 @@ public class DefaultDataValueSetService
                 }
                 else if ( strategy.isDelete() )
                 {
-                    DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
-
                     internalValue.setDeleted( true );
 
                     deleteCount++;
 
                     if ( !dryRun )
                     {
-                        dataValueBatchHandler.updateObject( internalValue );
-
-                        auditBatchHandler.addObject( auditValue );
-
-                        if ( dataElement.isFileType() )
+                        if ( dataElement.isFileType() && actualDataValue != null )
                         {
-                            FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+                            FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
 
                             fr.setAssigned( false );
 
                             fileResourceService.updateFileResource( fr );
+                        }
+
+                        dataValueBatchHandler.updateObject( internalValue );
+
+                        if ( !skipAudit )
+                        {
+                            DataValueAudit auditValue = new DataValueAudit( internalValue, existingValue.getValue(), storedBy, AuditType.DELETE );
+
+                            auditBatchHandler.addObject( auditValue );
                         }
                     }
                 }
@@ -1277,7 +1327,7 @@ public class DefaultDataValueSetService
         summary.setDescription( "Import process completed successfully" );
 
         clock.logTime( "Data value import done, total: " + totalCount + ", import: " + importCount + ", update: " + updateCount + ", delete: " + deleteCount );
-        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary );
+        notifier.notify( id, notificationLevel, "Import done", true ).addJobSummary( id, notificationLevel, summary, ImportSummary.class );
 
         dataValueSet.close();
 
@@ -1289,7 +1339,7 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     private void handleComplete( DataSet dataSet, Date completeDate, Period period, OrganisationUnit orgUnit,
-        CategoryOptionCombo attributeOptionCombo, ImportSummary summary )
+        CategoryOptionCombo attributeOptionCombo, String currentUserName, ImportSummary summary )
     {
         if ( orgUnit == null )
         {
@@ -1308,19 +1358,21 @@ public class DefaultDataValueSetService
         CompleteDataSetRegistration completeAlready = registrationService
             .getCompleteDataSetRegistration( dataSet, period, orgUnit, attributeOptionCombo );
 
-        String username = currentUserService.getCurrentUsername();
-
         if ( completeAlready != null )
         {
-            completeAlready.setStoredBy( username );
+            // At this point, DataSet is completed. Override, eventual non-completeness
             completeAlready.setDate( completeDate );
+            completeAlready.setStoredBy( currentUserName );
+            completeAlready.setLastUpdated( new Date() );
+            completeAlready.setLastUpdatedBy( currentUserName );
+            completeAlready.setCompleted( true );
 
             registrationService.updateCompleteDataSetRegistration( completeAlready );
         }
         else
         {
             CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, orgUnit,
-                attributeOptionCombo, completeDate, username );
+                attributeOptionCombo, completeDate, currentUserName, new Date(), currentUserName, true );
 
             registrationService.saveCompleteDataSetRegistration( registration );
         }
@@ -1336,8 +1388,8 @@ public class DefaultDataValueSetService
      * @param organisationUnit       the organisation unit.
      * @param skipLockExceptionCheck whether to skip lock exception check.
      */
-    private boolean isLocked( DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
+    private boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, boolean skipLockExceptionCheck )
     {
-        return dataSet.isLocked( period, null ) && (skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L);
+        return dataSet.isLocked( user, period, null ) && (skipLockExceptionCheck || lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L);
     }
 }

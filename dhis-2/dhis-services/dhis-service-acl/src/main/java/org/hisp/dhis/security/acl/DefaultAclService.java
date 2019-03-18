@@ -28,6 +28,8 @@ package org.hisp.dhis.security.acl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -35,6 +37,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
@@ -91,26 +94,26 @@ public class DefaultAclService implements AclService
         Schema schema = schemaService.getSchema( klass );
         return schema != null && schema.isDataShareable();
     }
-
+    
     @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
-
+        
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
-            if ( !schema.isShareable() || object.getUser() == null || object.getPublicAccess() == null || checkUser( user, object )
-                || checkSharingPermission( user, object, AccessStringHelper.Permission.READ ) )
+            if ( object instanceof CategoryOptionCombo )
+            {
+                return checkOptionComboSharingPermission( user, object, Permission.READ );
+            }
+
+            if ( !schema.isShareable() || object.getPublicAccess() == null || checkUser( user, object )
+                || checkSharingPermission( user, object, Permission.READ ) )
             {
                 return true;
             }
@@ -126,23 +129,20 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataRead( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
-        {
-            return true;
-        }
+        if ( readWriteCommonCheck( user, object ) ) return true;
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
-
+        
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
         {
+            if ( object instanceof CategoryOptionCombo )
+            {
+                return checkOptionComboSharingPermission( user, object, Permission.DATA_READ ) || checkOptionComboSharingPermission( user, object, Permission.DATA_WRITE );
+            }
+
             if ( schema.isDataShareable() &&
-                (checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_READ )
-                    || checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE )) )
+                ( checkSharingPermission( user, object, Permission.DATA_READ )
+                    || checkSharingPermission( user, object, Permission.DATA_WRITE )) )
             {
                 return true;
             }
@@ -152,19 +152,22 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean canDataOrMetadataRead( User user, IdentifiableObject object )
+    {
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        return schema.isDataShareable() ? canDataRead( user, object ) : canRead( user, object );
+    }
+
+    @Override
     public boolean canWrite( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.CREATE );
 
@@ -176,16 +179,12 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            if ( !schema.isShareable() )
+            if ( object instanceof CategoryOptionCombo )
             {
-                return true;
+                return checkOptionComboSharingPermission( user, object, Permission.WRITE );
             }
 
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
-            {
-                return true;
-            }
+            return writeCommonCheck(schema, user, object);
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
         {
@@ -198,23 +197,23 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataWrite( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( schema == null )
-        {
-            return true;
-        }
-
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            if ( schema.isDataShareable() && checkSharingPermission( user, object, AccessStringHelper.Permission.DATA_WRITE ) )
+            if ( object instanceof CategoryOptionCombo )
+            {
+                return checkOptionComboSharingPermission( user, object, Permission.DATA_WRITE );
+            }
+
+            if ( schema.isDataShareable() && checkSharingPermission( user, object, Permission.DATA_WRITE ) )
             {
                 return true;
             }
@@ -226,17 +225,12 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canUpdate( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
 
@@ -249,18 +243,10 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            if ( !schema.isShareable() )
-            {
-                return true;
-            }
-
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
-            {
-                return true;
-            }
+            return writeCommonCheck( schema, user, object );
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) && checkSharingAccess( user, object ) )
+        else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object )
+            && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
         }
@@ -271,17 +257,12 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDelete( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DELETE );
 
@@ -300,7 +281,7 @@ public class DefaultAclService implements AclService
             }
 
             if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, AccessStringHelper.Permission.WRITE )) )
+                (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
             {
                 return true;
             }
@@ -423,10 +404,7 @@ public class DefaultAclService implements AclService
 
         if ( isDataShareable( object.getClass() ) )
         {
-            AccessData data = new AccessData(
-                canDataRead( user, object ),
-                canDataWrite( user, object )
-            );
+            AccessData data = new AccessData( canDataRead( user, object ), canDataWrite( user, object ) );
 
             access.setData( data );
         }
@@ -658,7 +636,7 @@ public class DefaultAclService implements AclService
      * @param permission Permission to check against
      * @return true if user can access object, false otherwise
      */
-    private boolean checkSharingPermission( User user, IdentifiableObject object, AccessStringHelper.Permission permission )
+    private boolean checkSharingPermission( User user, IdentifiableObject object, Permission permission )
     {
         if ( AccessStringHelper.isEnabled( object.getPublicAccess(), permission ) )
         {
@@ -667,7 +645,10 @@ public class DefaultAclService implements AclService
 
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            /* Is the user allowed to read this object through group access? */
+            /*
+             * Is the user allowed to read this object through group access? 
+             *
+             */
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
                 && userGroupAccess.getUserGroup().getMembers().contains( user ) )
             {
@@ -677,7 +658,10 @@ public class DefaultAclService implements AclService
 
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
-            /* Is the user allowed to read to this object through user access? */
+            /*
+             * Is the user allowed to read to this object through user access? 
+             *
+             */
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
                 && user.equals( userAccess.getUser() ) )
             {
@@ -686,5 +670,48 @@ public class DefaultAclService implements AclService
         }
 
         return false;
+    }
+
+    private boolean checkOptionComboSharingPermission( User user, IdentifiableObject object, Permission permission )
+    {
+        CategoryOptionCombo optionCombo = (CategoryOptionCombo) object;
+
+        if ( optionCombo.isDefault() || optionCombo.getCategoryOptions().isEmpty() )
+        {
+            return true;
+        }
+
+        List<Long> accessibleOptions = new ArrayList<>();
+
+        for ( CategoryOption option : optionCombo.getCategoryOptions() )
+        {
+            if ( checkSharingPermission( user, option, permission ) )
+            {
+                accessibleOptions.add( option.getId() );
+            }
+        }
+
+        return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
+    }
+
+    private boolean readWriteCommonCheck(User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        return schemaService.getSchema( object.getClass() ) == null;
+    }
+
+    private boolean writeCommonCheck(Schema schema, User user, IdentifiableObject object ) 
+    {
+        if ( !schema.isShareable() )
+        {
+            return true;
+        }
+
+        return checkSharingAccess(user, object) &&
+            ( checkUser(user, object) || checkSharingPermission( user, object, Permission.WRITE ) );
     }
 }

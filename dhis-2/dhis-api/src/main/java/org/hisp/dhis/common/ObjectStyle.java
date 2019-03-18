@@ -32,11 +32,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class ObjectStyle
     implements Serializable
 {
-
     private String color;
 
     private String icon;
@@ -63,5 +63,30 @@ public class ObjectStyle
     public void setIcon( String icon )
     {
         this.icon = icon;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        ObjectStyle that = (ObjectStyle) o;
+
+        return Objects.equals( color, that.color ) &&
+            Objects.equals( icon, that.icon );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( color, icon );
     }
 }

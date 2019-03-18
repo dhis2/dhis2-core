@@ -90,6 +90,11 @@ public class StaticRenderingConfiguration
         .add( new ObjectValueTypeRenderingOption( ProgramTrackedEntityAttribute.class, ValueType.PERCENTAGE, false,
             ValueTypeRenderingType.NUMERIC_TYPES ) )
 
+        .add( new ObjectValueTypeRenderingOption( ProgramStageDataElement.class, ValueType.TEXT, false,
+            ValueTypeRenderingType.TEXT_TYPES ) )
+        .add( new ObjectValueTypeRenderingOption( ProgramTrackedEntityAttribute.class, ValueType.TEXT, false,
+            ValueTypeRenderingType.TEXT_TYPES ) )
+
         .build();
 
 }

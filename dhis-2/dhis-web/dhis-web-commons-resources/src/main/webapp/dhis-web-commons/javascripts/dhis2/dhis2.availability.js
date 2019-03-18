@@ -39,13 +39,13 @@ dhis2.availability._availableTimeoutHandler = -1;
  * when availability changes.
  *
  * @param onlineInterval How often to check for availability when online,
- *            default is 10000.
+ *            default is 15000.
  * @param offlineInterval How often to check for availability when offline,
- *            default is 1000.
+ *            default is 10000.
  */
 dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineInterval ) {
   onlineInterval = onlineInterval ? onlineInterval : 15000;
-  offlineInterval = offlineInterval ? offlineInterval : 1000;
+  offlineInterval = offlineInterval ? offlineInterval : 10000;
 
   function _checkAvailability() {
     $.ajax({

@@ -234,7 +234,7 @@ public class DataImportTest extends DhisSpringTest
         programE.setTrackedEntityType( trackedEntityType );
         programE.setProgramAttributes( programAttributes );
 
-        teiA = createTrackedEntityInstance( 'A', organisationUnitA );
+        teiA = createTrackedEntityInstance( organisationUnitA );
         teiA.setTrackedEntityType( trackedEntityType );
         Set<TrackedEntityAttributeValue> attributeValues = createTrackedEntityAttributeValues( teiA );
         teiA.setTrackedEntityAttributeValues( attributeValues );
@@ -346,7 +346,7 @@ public class DataImportTest extends DhisSpringTest
         ImportOptions io = new ImportOptions();
         io.setStrategy( ImportStrategy.UPDATE );
 
-        ImportSummary summary = teiDXF2Service.updateTrackedEntityInstanceJson( teiUID, is, io );
+        ImportSummary summary = teiDXF2Service.updateTrackedEntityInstanceJson( teiUID, null, is, io );
         sessionFactory.getCurrentSession().flush();
         sessionFactory.getCurrentSession().clear();
 

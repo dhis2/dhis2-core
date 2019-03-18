@@ -28,6 +28,8 @@ package org.hisp.dhis.commons.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Arrays;
+
 /**
  * @author Torgeir Lorange Ostby
  */
@@ -39,11 +41,11 @@ public class SystemUtils
      * Indicates whether the current thread is running for testing.
      * @return true if test run.
      */
-    public static boolean isTestRun()
+    public static boolean isTestRun(String[] profiles)
     {
-        return "true".equals( System.getProperty( "org.hisp.dhis.test", "false" ) );
+        return Arrays.asList(profiles).contains("test");
     }
-    
+
     /**
      * Gets the number of CPU cores available to this JVM.
      * @return the number of available CPU cores.
@@ -59,8 +61,8 @@ public class SystemUtils
      */
     public static String getMemoryString()
     {
-        return "Mem Total in JVM: " + ( Runtime.getRuntime().totalMemory() / FACTOR_MB ) + 
+        return "Mem Total in JVM: " + ( Runtime.getRuntime().totalMemory() / FACTOR_MB ) +
             " Free in JVM: " + ( Runtime.getRuntime().freeMemory() / FACTOR_MB ) +
-            " Max Limit: " + ( Runtime.getRuntime().maxMemory() / FACTOR_MB );     
+            " Max Limit: " + ( Runtime.getRuntime().maxMemory() / FACTOR_MB );
     }
 }

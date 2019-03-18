@@ -16,6 +16,8 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.OrganisationUnitObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataElementObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DataSetObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.UserObjectBundleHook" />
@@ -34,19 +36,30 @@
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramNotificationTemplateObjectBundleHook" />
 
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramRuleVariableObjectBundleHook" />
+
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.DocumentObjectBundleHook" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.ProgramObjectBundleHook" />
 
-  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.JobConfigurationObjectBundleHook" >
+  <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.JobConfigurationObjectBundleHook">
     <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
   </bean>
 
-  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook"
+    class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook"
+    class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleValidationService" />
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook"
+    class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService"
+    class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleService" />
+
+  <bean id="org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService"
+    class="org.hisp.dhis.dxf2.metadata.objectbundle.DefaultObjectBundleValidationService" />
 
   <bean class="org.hisp.dhis.dxf2.metadata.objectbundle.hooks.SmsCommandObjectBundleHook" />
 
@@ -62,7 +75,8 @@
 
   <bean id="org.hisp.dhis.dxf2.csv.CsvImportService" class="org.hisp.dhis.dxf2.csv.DefaultCsvImportService" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.collection.CollectionService" class="org.hisp.dhis.dxf2.metadata.collection.DefaultCollectionService" />
+  <bean id="org.hisp.dhis.dxf2.metadata.collection.CollectionService"
+    class="org.hisp.dhis.dxf2.metadata.collection.DefaultCollectionService" />
 
   <bean id="org.hisp.dhis.dxf2.datavalueset.DataValueSetService"
     class="org.hisp.dhis.dxf2.datavalueset.DefaultDataValueSetService" />
@@ -84,6 +98,9 @@
 
   <bean id="org.hisp.dhis.dxf2.events.TrackerAccessManager" class="org.hisp.dhis.dxf2.events.DefaultTrackerAccessManager" />
 
+  <bean id="org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService"
+    class="org.hisp.dhis.dxf2.events.eventdatavalue.DefaultEventDataValueService" />
+
   <bean id="org.hisp.dhis.dxf2.events.report.EventRowService" class="org.hisp.dhis.dxf2.events.report.AbstractEventRowService" />
 
   <bean id="org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService"
@@ -96,11 +113,17 @@
     <aop:scoped-proxy proxy-target-class="false" />
   </bean>
 
+  <bean id="org.hisp.dhis.dxf2.events.relationship.RelationshipService"
+    class="org.hisp.dhis.dxf2.events.relationship.JacksonRelationshipService" scope="prototype">
+    <aop:scoped-proxy proxy-target-class="false" />
+  </bean>
+
   <bean id="pdfDataEntryFormService" class="org.hisp.dhis.dxf2.pdfform.DefaultPdfDataEntryFormService" scope="prototype" />
 
   <bean id="org.hisp.dhis.dxf2.synch.SynchronizationManager" class="org.hisp.dhis.dxf2.synch.DefaultSynchronizationManager" />
 
-  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService" class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" />
+  <bean id="org.hisp.dhis.metadata.version.MetadataVersionService"
+    class="org.hisp.dhis.dxf2.metadata.version.DefaultMetadataVersionService" />
 
   <bean id="org.hisp.dhis.dxf2.monitoring.MonitoringService" class="org.hisp.dhis.dxf2.monitoring.DefaultMonitoringService" />
 
@@ -112,19 +135,23 @@
 
   <bean id="metadataSyncPostProcessor" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" class="org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService" scope="prototype" />
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService"
+    class="org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService" scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncImportHandler" scope="prototype" />
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncImportHandler"
+    scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" scope="prototype" />
+  <bean id="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" class="org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate"
+    scope="prototype" />
 
-  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" scope="prototype" />
+  <bean id="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" class="org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate"
+    scope="prototype" />
 
   <bean id="retryPolicy" class="org.springframework.retry.policy.SimpleRetryPolicy">
     <constructor-arg ref="maxAttempts" />
     <constructor-arg>
       <map>
-        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true"/>
+        <entry key="org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException" value="true" />
       </map>
     </constructor-arg>
   </bean>
@@ -140,11 +167,24 @@
 
   <bean id="inputUtils" class="org.hisp.dhis.dxf2.utils.InputUtils" />
 
+  <bean id="categoryUtils" class="org.hisp.dhis.dxf2.utils.CategoryUtils" />
+
   <bean id="org.hisp.dhis.dxf2.AdxDataService" class="org.hisp.dhis.dxf2.adx.DefaultAdxDataService" />
 
+
+  <bean id="trackerSynchronization" class="org.hisp.dhis.dxf2.sync.TrackerSynchronization" />
+
+  <bean id="eventSynchronization" class="org.hisp.dhis.dxf2.sync.EventSynchronization" />
+
+  <bean id="dataValuesSynchronization" class="org.hisp.dhis.dxf2.sync.DataValueSynchronization" />
+
+  <bean id="completeDataSetRegistrationSynchronization" class="org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization" />
+
   <!-- Scheduling -->
-  <bean id="metadataSyncJob" class="org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob"  />
+  <bean id="metadataSyncJob" class="org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob" />
 
   <bean id="dataSynchJob" class="org.hisp.dhis.dxf2.synch.DataSynchronizationJob" />
+
+  <bean id="programDataSyncJob" class="org.hisp.dhis.dxf2.sync.ProgramDataSynchronizationJob" />
 
 </beans>

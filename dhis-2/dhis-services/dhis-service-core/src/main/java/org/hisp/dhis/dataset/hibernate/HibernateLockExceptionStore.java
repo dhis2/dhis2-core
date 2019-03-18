@@ -28,10 +28,7 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.Query;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.query.Query;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
@@ -43,6 +40,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -149,36 +147,33 @@ public class HibernateLockExceptionStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<LockException> getAllOrderedName( int first, int max )
     {
-        Criteria criteria = getCriteria();
-        criteria.setFirstResult( first );
-        criteria.setMaxResults( max );
-
-        return criteria.list();
+        return getList( getCriteriaBuilder(), newJpaParameters()
+            .setFirstResult( first )
+            .setMaxResults( max ) );
     }
 
     @Override
     public long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit )
     {
-        Criteria criteria = getCriteria(
-            Restrictions.eq( "period", periodService.reloadPeriod( period ) ),
-            Restrictions.eq( "organisationUnit", organisationUnit ),
-            Restrictions.in( "dataSet", dataElement.getDataSets() ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (Long) criteria.setProjection( Projections.rowCount() ).uniqueResult();
+        return getCount( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "period" ), periodService.reloadPeriod( period ) ) )
+            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
+            .addPredicate( root -> root.get( "dataSet" ).in( dataElement.getDataSets() ) ) );
     }
 
     @Override
     public long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit )
     {
-        Criteria criteria = getCriteria(
-            Restrictions.eq( "period", periodService.reloadPeriod( period ) ),
-            Restrictions.eq( "organisationUnit", organisationUnit ),
-            Restrictions.eq( "dataSet", dataSet ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (Long) criteria.setProjection( Projections.rowCount() ).uniqueResult();
+        return getCount( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "period" ),  periodService.reloadPeriod( period ) ) )
+            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
+            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
     }
     
     @Override

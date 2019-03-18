@@ -64,7 +64,7 @@ public class RelationshipDeletionHandler
     public void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
     {
         Collection<Relationship> relationships = relationshipSevice
-            .getRelationshipsForTrackedEntityInstance( entityInstance );
+            .getRelationshipsByTrackedEntityInstance( entityInstance, false );
 
         if ( relationships != null )
         {

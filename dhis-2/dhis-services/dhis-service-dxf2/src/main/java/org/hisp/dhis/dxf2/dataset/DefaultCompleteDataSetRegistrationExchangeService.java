@@ -28,14 +28,23 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.staxwax.factory.XMLFactory;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -45,13 +54,11 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
@@ -64,6 +71,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
+import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -71,6 +79,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
@@ -79,21 +88,14 @@ import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
+import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.annotation.Nonnull;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -144,7 +146,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Autowired
     private CompleteDataSetRegistrationService registrationService;
-    
+
     @Autowired
     private InputUtils inputUtils;
 
@@ -209,12 +211,20 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         cdsrStore.writeCompleteDataSetRegistrationsXml( params, out );
     }
 
+    @Override
     public void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream out )
     {
         decideAccess( params );
         validate( params );
 
         cdsrStore.writeCompleteDataSetRegistrationsJson( params, out );
+    }
+
+    @Override
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,
+        IdSchemes idSchemes )
+    {
+        cdsrStore.writeCompleteDataSetRegistrationsJson( lastUpdated, outputStream, idSchemes );
     }
 
     @Override
@@ -282,8 +292,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( !params.hasPeriods() && !params.hasStartEndDate() && !params.hasCreated() && !params.hasCreatedDuration() )
         {
-            validationError(
-                "At least one valid period, start/end dates, created or created duration must be specified" );
+            validationError( "At least one valid period, start/end dates, created or created duration must be specified" );
         }
 
         if ( params.hasPeriods() && params.hasStartEndDate() )
@@ -324,15 +333,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         limitToValidIdSchemes( params );
     }
 
-    /*
+    /**
      * Limit valid IdSchemes for export to UID, CODE, NAME
      */
     private static void limitToValidIdSchemes( ExportParams params )
     {
         IdSchemes schemes = params.getOutputIdSchemes();
 
-        // If generic IdScheme is set to ID -> override to UID
-        // For others: nullify field (inherits from generic scheme)
+        // If generic IdScheme is set to ID -> override to UID, for others: nullify field (inherits from generic scheme)
 
         if ( !EXPORT_ID_SCHEMES.contains( schemes.getIdScheme() ) )
         {
@@ -427,7 +435,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         int totalCount = batchImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
-        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary );
+        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary, ImportSummary.class );
 
         ImportCount count = importSummary.getImportCount();
 
@@ -476,6 +484,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // ---------------------------------------------------------------------
 
             String storedBy;
+            String lastUpdatedBy;
+            Boolean isCompleted;
 
             try
             {
@@ -507,6 +517,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 validateStoredBy( storedBy, i18n );
                 storedBy = StringUtils.isBlank( storedBy ) ? currentUser : storedBy;
 
+                lastUpdatedBy = cdsr.getLastUpdatedBy();
+                validateStoredBy( lastUpdatedBy, i18n );
+                lastUpdatedBy = StringUtils.isBlank( lastUpdatedBy ) ? currentUser : lastUpdatedBy;
+
+                cdsr.setLastUpdatedBy( lastUpdatedBy );
+
+                boolean DEFAULT_COMPLETENESS_STATUS = true;
+                isCompleted = cdsr.getCompleted();
+                isCompleted = ( isCompleted == null ) ? DEFAULT_COMPLETENESS_STATUS : isCompleted;
+                cdsr.setCompleted( isCompleted );
+
                 // TODO Check if Period is within range of data set?
             }
             catch ( ImportConflictException ic )
@@ -521,7 +542,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // ---------------------------------------------------------------------
 
             List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
-                mdProps.orgUnit, mdProps.attrOptCombo, false );
+                mdProps.orgUnit, mdProps.attrOptCombo );
 
             if( !missingDataElementOperands.isEmpty() )
             {
@@ -580,6 +601,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 else if ( strategy.isDelete() )
                 {
                     // TODO Does 'delete' even make sense for CDSR?
+
                     // Replace existing CDSR
 
                     deleteCount++;
@@ -653,8 +675,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now,
         String storedBy )
     {
+        Date date = cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now;
+
         return new CompleteDataSetRegistration( mdProps.dataSet, mdProps.period, mdProps.orgUnit, mdProps.attrOptCombo,
-            cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now, storedBy );
+            date, storedBy, date, cdsr.getLastUpdatedBy(), cdsr.getCompleted() );
     }
 
     private static void validateOrgUnitInUserHierarchy( MetaDataCaches mdCaches, MetaDataProperties mdProps,
@@ -797,8 +821,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             log.info( "Org unit cache heated after cache miss threshold reached" );
         }
 
-        // TODO Consider need for checking/re-heating attrOptCombo and period
-        // caches
+        // TODO Consider need for checking/re-heating attrOptCombo and period caches
 
         if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
         {
@@ -817,16 +840,17 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     public MetaDataProperties initMetaDataProperties(
         org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
     {
-        String ds = StringUtils.trimToNull( cdsr.getDataSet() ), pe = StringUtils.trimToNull( cdsr.getPeriod() ),
-            ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() ),
-            aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );    
-        
-        if( aoc == null )
+        String ds = StringUtils.trimToNull( cdsr.getDataSet() );
+        String pe = StringUtils.trimToNull( cdsr.getPeriod() );
+        String ou = StringUtils.trimToNull( cdsr.getOrganisationUnit() );
+        String aoc = StringUtils.trimToNull( cdsr.getAttributeOptionCombo() );
+
+        if ( aoc == null )
         {
             CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
-        
+
         return new MetaDataProperties( cache.dataSets.get( ds, callables.dataSetCallable.setId( ds ) ),
             cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
             cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),
@@ -881,8 +905,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     new ImportConflict( cdsr.getOrganisationUnit(), "Organisation unit not found or not accessible" ) );
             }
 
-            // Ensure AOC is set is required, or is otherwise set to the default
-            // COC
+            // Ensure AOC is set is required, or is otherwise set to the default COC
 
             if ( attrOptCombo == null )
             {
@@ -988,8 +1011,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private static class ImportConflictException
-        extends
-        RuntimeException
+        extends RuntimeException
     {
         private final ImportConflict importConflict;
 

@@ -28,30 +28,34 @@ package org.hisp.dhis.external.conf;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.commons.text.StrSubstitutor;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-
-import javax.crypto.Cipher;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.crypto.Cipher;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StrSubstitutor;
+import org.hisp.dhis.encryption.EncryptionStatus;
+import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.external.location.LocationManagerException;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 
 /**
  * @author Lars Helge Overland
@@ -62,11 +66,10 @@ public class DefaultDhisConfigurationProvider
     private static final Log log = LogFactory.getLog( DefaultDhisConfigurationProvider.class );
 
     private static final String CONF_FILENAME = "dhis.conf";
-    private static final String TEST_CONF_FILENAME = "dhis-test.conf";
     private static final String GOOGLE_AUTH_FILENAME = "dhis-google-auth.json";
     private static final String GOOGLE_EE_SCOPE = "https://www.googleapis.com/auth/earthengine";
     private static final String ENABLED_VALUE = "on";
-    private static final String CACHE_PROVIDER_MEMCACHED = "memcached";
+    private static final String DISABLED_VALUE = "off";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -83,7 +86,7 @@ public class DefaultDhisConfigurationProvider
      * Cache for properties.
      */
     private Properties properties;
-    
+
     /**
      * Cache for Google credential.
      */
@@ -95,18 +98,9 @@ public class DefaultDhisConfigurationProvider
         // Load DHIS 2 configuration file into properties bundle
         // ---------------------------------------------------------------------
 
-        if ( SystemUtils.isTestRun() )
-        {
-            this.properties = loadDhisTestConf();
-            this.properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisH2Dialect" );
-
-            return; // Short-circuit here when we're setting up a test context
-        }
-        else
-        {
-            this.properties = loadDhisConf();
-            this.properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
-        }
+        this.properties = loadDhisConf();
+        this.properties
+            .setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
 
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into properties bundle
@@ -115,7 +109,7 @@ public class DefaultDhisConfigurationProvider
         try ( InputStream jsonIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             Map<String, String> json = new ObjectMapper().readValue( jsonIn, new TypeReference<HashMap<String,Object>>() {} );
-            
+
             this.properties.put( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID.getKey(), json.get( "client_id" ) );
         }
         catch ( LocationManagerException ex )
@@ -130,15 +124,15 @@ public class DefaultDhisConfigurationProvider
         // ---------------------------------------------------------------------
         // Load Google JSON authentication file into GoogleCredential
         // ---------------------------------------------------------------------
-        
+
         try ( InputStream credentialIn = locationManager.getInputStream( GOOGLE_AUTH_FILENAME ) )
         {
             GoogleCredential credential = GoogleCredential
                 .fromStream( credentialIn )
                 .createScoped( Collections.singleton( GOOGLE_EE_SCOPE ) );
-            
+
             this.googleCredential = Optional.of( credential );
-            
+
             log.info( "Loaded dhis-google-auth.json authentication file" );
         }
         catch ( LocationManagerException ex )
@@ -175,7 +169,7 @@ public class DefaultDhisConfigurationProvider
 
     @Override
     public boolean hasProperty( ConfigurationKey key )
-    {        
+    {
         return StringUtils.isNotEmpty( properties.getProperty( key.getKey() ) );
     }
 
@@ -186,6 +180,12 @@ public class DefaultDhisConfigurationProvider
     }
 
     @Override
+    public boolean isDisabled( ConfigurationKey key )
+    {
+        return DISABLED_VALUE.equals( getProperty( key ) );
+    }
+
+    @Override
     public Optional<GoogleCredential> getGoogleCredential()
     {
         return googleCredential;
@@ -193,38 +193,38 @@ public class DefaultDhisConfigurationProvider
 
     @Override
     public Optional<GoogleAccessToken> getGoogleAccessToken()
-    {        
+    {
         if ( !getGoogleCredential().isPresent() )
         {
             return Optional.empty();
         }
-        
+
         GoogleCredential credential = getGoogleCredential().get();
-        
+
         try
         {
             if ( !credential.refreshToken() || credential.getExpiresInSeconds() == null )
             {
                 log.warn( "There is no refresh token to be retrieved" );
-                
+
                 return Optional.empty();
-            }            
+            }
         }
         catch ( IOException ex )
         {
             throw new IllegalStateException( "Could not retrieve refresh token: " + ex.getMessage(), ex );
         }
-        
+
         GoogleAccessToken token = new GoogleAccessToken();
-        
-        token.setAccessToken( credential.getAccessToken() );        
+
+        token.setAccessToken( credential.getAccessToken() );
         token.setClientId( getProperty( ConfigurationKey.GOOGLE_SERVICE_ACCOUNT_CLIENT_ID ) );
         token.setExpiresInSeconds( credential.getExpiresInSeconds() );
         token.setExpiresOn( LocalDateTime.now().plusSeconds( token.getExpiresInSeconds() ) );
-        
+
         return Optional.of( token );
     }
-    
+
     @Override
     public boolean isReadOnlyMode()
     {
@@ -232,15 +232,27 @@ public class DefaultDhisConfigurationProvider
     }
 
     @Override
+    public long getAnalyticsCacheExpiration()
+    {
+        return Long.parseLong( getProperty( ConfigurationKey.ANALYTICS_CACHE_EXPIRATION ) );
+    }
+
+    @Override
+    public boolean isAnalyticsCacheEnabled()
+    {
+        return getAnalyticsCacheExpiration() > 0;
+    }
+
+    @Override
     public boolean isClusterEnabled()
-    {        
+    {
         return StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_MEMBERS ) ) && StringUtils.isNotBlank( getProperty( ConfigurationKey.CLUSTER_HOSTNAME) );
     }
 
     @Override
-    public boolean isMemcachedCacheProviderEnabled()
+    public String getServerBaseUrl()
     {
-        return CACHE_PROVIDER_MEMCACHED.equals( getProperty( ConfigurationKey.CACHE_PROVIDER ) );
+        return StringUtils.trimToNull( properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey() ) );
     }
 
     @Override
@@ -257,11 +269,11 @@ public class DefaultDhisConfigurationProvider
     public EncryptionStatus getEncryptionStatus()
     {
         String password;
-        
+
         int maxKeyLength;
 
         // Check for JCE files is present (key length > 128) and AES is available
-        
+
         try
         {
             maxKeyLength = Cipher.getMaxAllowedKeyLength( "AES" );
@@ -318,20 +330,6 @@ public class DefaultDhisConfigurationProvider
             log.debug( String.format( "Could not load %s", CONF_FILENAME ), ex );
 
             throw new IllegalStateException( "Properties could not be loaded", ex );
-        }
-    }
-
-    private Properties loadDhisTestConf()
-    {
-        try
-        {
-            return PropertiesLoaderUtils.loadProperties( new ClassPathResource( TEST_CONF_FILENAME ) );
-        }
-        catch ( IOException ex )
-        {
-            log.warn( String.format( "Could not load %s from classpath", TEST_CONF_FILENAME ), ex );
-
-            return new Properties();
         }
     }
 

@@ -83,9 +83,9 @@ public class DataSetStoreTest
         DataSet dataSetB = createDataSet( 'B', periodType );
 
         dataSetStore.save( dataSetA );
-        int idA = dataSetA.getId();
+        long idA = dataSetA.getId();
         dataSetStore.save( dataSetB );
-        int idB = dataSetB.getId();
+        long idB = dataSetB.getId();
 
         dataSetA = dataSetStore.get( idA );
         dataSetB = dataSetStore.get( idB );
@@ -103,7 +103,7 @@ public class DataSetStoreTest
         DataSet dataSet = createDataSet( 'A', periodType );
 
         dataSetStore.save( dataSet );
-        int id = dataSet.getId();
+        long id = dataSet.getId();
 
         dataSet = dataSetStore.get( id );
 
@@ -125,9 +125,9 @@ public class DataSetStoreTest
         DataSet dataSetB = createDataSet( 'B', periodType );
 
         dataSetStore.save( dataSetA );
-        int idA = dataSetA.getId();
+        long idA = dataSetA.getId();
         dataSetStore.save( dataSetB );
-        int idB = dataSetB.getId();
+        long idB = dataSetB.getId();
 
         assertNotNull( dataSetStore.get( idA ) );
         assertNotNull( dataSetStore.get( idB ) );
@@ -145,9 +145,9 @@ public class DataSetStoreTest
         DataSet dataSetB = createDataSet( 'B', periodType );
 
         dataSetStore.save( dataSetA );
-        int idA = dataSetA.getId();
+        long idA = dataSetA.getId();
         dataSetStore.save( dataSetB );
-        int idB = dataSetB.getId();
+        long idB = dataSetB.getId();
 
         assertEquals( dataSetStore.getByName( "DataSetA" ).getId(), idA );
         assertEquals( dataSetStore.getByName( "DataSetB" ).getId(), idB );
@@ -168,6 +168,22 @@ public class DataSetStoreTest
         assertEquals( dataSets.size(), 2 );
         assertTrue( dataSets.contains( dataSetA ) );
         assertTrue( dataSets.contains( dataSetB ) );
+    }
+
+    @Test
+    public void testGetDataSetByPeriodType()
+    {
+        List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
+        PeriodType periodType1 = types.get( 0 );
+        PeriodType periodType2 = types.get( 1 );
+        DataSet dataSetA = createDataSet( 'A', periodType1 );
+        DataSet dataSetB = createDataSet( 'B', periodType2 );
+
+        dataSetStore.save( dataSetA );
+        dataSetStore.save( dataSetB );
+
+        assertEquals( 1, dataSetStore.getDataSetsByPeriodType( periodType1 ).size() );
+        assertEquals( 1, dataSetStore.getDataSetsByPeriodType( periodType2 ).size() );
     }
 
     @Test

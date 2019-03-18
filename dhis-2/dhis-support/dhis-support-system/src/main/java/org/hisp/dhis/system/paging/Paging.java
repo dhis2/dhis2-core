@@ -80,22 +80,22 @@ public class Paging
     public int getStartPage()
     {
         int startPage = 1;
-        
+
         if ( currentPage > PAGE_OFFSET ) // Far enough from start, set start page
         {
             startPage = currentPage - PAGE_OFFSET;
         }
-        
+
         if ( ( getNumberOfPages() - startPage ) < PAGE_TOTAL_OFFSET ) // Too close to end, decrease start page to maintain page range length
         {
-            startPage = getNumberOfPages() - PAGE_TOTAL_OFFSET;            
+            startPage = getNumberOfPages() - PAGE_TOTAL_OFFSET;
         }
 
         if ( startPage <= 0 ) // Cannnot be 0 or less, set start page to 1
         {
             startPage = 1;
         }
-        
+
         return startPage;
     }
 
@@ -115,7 +115,7 @@ public class Paging
     public int getEndPos()
     {
     	int endPos = getStartPos() + pageSize;
-        endPos = ( endPos > total ) ? total : endPos; 
+        endPos = ( endPos > total ) ? total : endPos;
         return endPos;
     }
 
@@ -125,7 +125,7 @@ public class Paging
         {
             currentPage = getNumberOfPages();
         }
-        
+
         return currentPage;
     }
 
@@ -171,7 +171,7 @@ public class Paging
     public static <T extends IdentifiableObject> int getCountByName( Collection<T> objects, String name )
     {
         int count = 0;
-        
+
         if ( name != null )
         {
             for ( IdentifiableObject object : objects )
@@ -182,27 +182,27 @@ public class Paging
                 }
             }
         }
-        
+
         return count;
     }
-    
+
     public static <T extends IdentifiableObject> List<T> getObjectsBetween( Collection<T> objects, int first, int max )
     {
         final List<T> list = new ArrayList<>( objects );
 
         Collections.sort( list );
-        
+
         int last = first + max;
-        
+
         last = last < list.size() ? last : list.size();
-        
+
         return list.subList( first, last );
     }
 
     public static <T extends IdentifiableObject> List<T> getObjectsBetweenByName( Collection<T> objects, String name, int first, int max )
     {
         final List<T> list = new ArrayList<>();
-        
+
         if ( name != null )
         {
             for ( T object : objects )
@@ -213,20 +213,20 @@ public class Paging
                 }
             }
         }
-        
+
         Collections.sort( list );
 
         int last = first + max;
 
         last = last < list.size() ? last : list.size();
-        
+
         return list.subList( first, last );
     }
-    
+
     public static <T extends IdentifiableObject> List<T> getObjectsByName( Collection<T> objects, String name )
     {
         final List<T> list = new ArrayList<>();
-        
+
         if ( name != null )
         {
             for ( T object : objects )
@@ -237,7 +237,7 @@ public class Paging
                 }
             }
         }
-        
-        return list;        
+
+        return list;
     }
 }

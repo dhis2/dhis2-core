@@ -42,8 +42,8 @@
 
   <!-- GML feature matchers -->
   <xsl:template match="gml:Polygon">
-    <featureType>POLYGON</featureType>
-    <coordinates>
+    <geometryAsJson>
+      <xsl:text>{"type":"Polygon", "coordinates":</xsl:text>
       <xsl:text>[[</xsl:text>
       <xsl:apply-templates select=".//gml:coordinates" mode="multipleCoordinates"/>
       <xsl:apply-templates select=".//gml:posList"/>
@@ -51,24 +51,27 @@
       <xsl:if test="position() != last()">
         <xsl:text>,</xsl:text>
       </xsl:if>
-    </coordinates>
+      <xsl:text>}</xsl:text>
+    </geometryAsJson>
   </xsl:template>
 
   <xsl:template match="gml:MultiPolygon">
-    <featureType>MULTI_POLYGON</featureType>
-    <coordinates>
+    <geometryAsJson>
+      <xsl:text>{"type":"MultiPolygon", "coordinates":</xsl:text>
       <xsl:text>[</xsl:text>
       <xsl:apply-templates select=".//gml:polygonMember"/>
       <xsl:text>]</xsl:text>
-    </coordinates>
+      <xsl:text>}</xsl:text>
+    </geometryAsJson>
   </xsl:template>
 
   <xsl:template match="gml:Point">
-    <featureType>POINT</featureType>
-    <coordinates>
+    <geometryAsJson>
+      <xsl:text>{"type":"Point", "coordinates":</xsl:text>
       <xsl:apply-templates select=".//gml:coordinates" mode="singleCoordinate"/>
       <xsl:apply-templates select=".//gml:pos"/>
-    </coordinates>
+      <xsl:text>}</xsl:text>
+    </geometryAsJson>
   </xsl:template>
 
   <xsl:template match="gml:polygonMember">

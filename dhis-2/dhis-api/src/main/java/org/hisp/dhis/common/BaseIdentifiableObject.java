@@ -36,7 +36,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -44,7 +43,7 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
@@ -69,7 +68,7 @@ public class BaseIdentifiableObject
     /**
      * The database internal identifier for this Object.
      */
-    protected int id;
+    protected long id;
 
     /**
      * The Unique Identifier for this Object.
@@ -104,7 +103,7 @@ public class BaseIdentifiableObject
     /**
      * Set of available object translation, normally filtered by locale.
      */
-    protected Set<ObjectTranslation> translations = new HashSet<>();
+    protected Set<Translation> translations = new HashSet<>();
 
     /**
      * Cache for object translations, where the cache key is a combination of
@@ -165,7 +164,7 @@ public class BaseIdentifiableObject
     {
     }
 
-    public BaseIdentifiableObject( int id, String uid, String name )
+    public BaseIdentifiableObject( long id, String uid, String name )
     {
         this.id = id;
         this.uid = uid;
@@ -214,12 +213,12 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonIgnore
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -347,15 +346,15 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "translation", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ObjectTranslation> getTranslations()
+    public Set<Translation> getTranslations()
     {
-        return translations;
+        return translations != null ? translations : new HashSet<>();
     }
 
     /**
      * Clears out cache when setting translations.
      */
-    public void setTranslations( Set<ObjectTranslation> translations )
+    public void setTranslations( Set<Translation> translations )
     {
         this.translationCache.clear();
         this.translations = translations;
@@ -382,7 +381,7 @@ public class BaseIdentifiableObject
 
         loadTranslationsCacheIfEmpty();
 
-        String cacheKey = ObjectTranslation.getCacheKey( locale.toString(), property );
+        String cacheKey = Translation.getCacheKey( locale.toString(), property );
 
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }
@@ -392,13 +391,13 @@ public class BaseIdentifiableObject
      */
     private void loadTranslationsCacheIfEmpty()
     {
-        if ( translationCache.isEmpty() )
+        if ( translationCache.isEmpty() && translations != null )
         {
-            for ( ObjectTranslation translation : translations )
+            for ( Translation translation : translations )
             {
                 if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
                 {
-                    String key = ObjectTranslation.getCacheKey( translation.getLocale(), translation.getProperty() );
+                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
                 }
             }
@@ -678,26 +677,6 @@ public class BaseIdentifiableObject
                 {
                     return attributeValue.getValue();
                 }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns the attribute value for the given attributes. Returns null
-     * if there are no attribute values for the given attribute.
-     *
-     * @param attribute the attribute.
-     * @return the attribute value if exists, null if not.
-     */
-    public String getValueForAttribute( Attribute attribute )
-    {
-        for ( AttributeValue attributeValue : attributeValues )
-        {
-            if ( attribute.equals( attributeValue.getAttribute().getUid() ) )
-            {
-                return attributeValue.getValue();
             }
         }
 

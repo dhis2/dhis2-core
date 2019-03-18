@@ -33,6 +33,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -61,9 +62,9 @@ public interface CompleteDataSetRegistrationService
      * Retrieves the CompleteDataSetRegistration for the given DataSet, Period
      * and Source.
      *
-     * @param dataSet              the DataSet.
-     * @param period               the Period.
-     * @param source               the Source.
+     * @param dataSet the DataSet.
+     * @param period the Period.
+     * @param source the Source.
      * @param attributeOptionCombo the attribute option combo.
      * @return the CompleteDataSetRegistration.
      */
@@ -104,18 +105,25 @@ public interface CompleteDataSetRegistrationService
      * @param unit the OrganisationUnit.
      */
     void deleteCompleteDataSetRegistrations( OrganisationUnit unit );
-    
+
     /**
-    * Checks for missing compulsory fields of the data set to be completed
-    *    
-    * @param dataSet              the DataSet.
-    * @param period               the Period.
-    * @param source               the Source.
-    * @param attributeOptionCombo the attribute option combo.    
-    * @param multiOrgUnit whether to check for multi orgunits or not
-    * @return list of missing compulsory fields, null if all are filled.
-    */
-    
+     * Checks for missing compulsory fields of the data set to be completed
+     *
+     * @param dataSet the DataSet.
+     * @param period the Period.
+     * @param source the Source.
+     * @param attributeOptionCombo the attribute option combo.
+     * @return list of missing compulsory fields, null if all are filled.
+     */
+
     List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
-        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo, boolean multiOrgUnit );
+        OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
+
+    /**
+     * Returns the number of Complete DataSets which have been updated at or after the given date time.
+     *
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @return the number of completed DataSets.
+     */
+    int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated );
 }

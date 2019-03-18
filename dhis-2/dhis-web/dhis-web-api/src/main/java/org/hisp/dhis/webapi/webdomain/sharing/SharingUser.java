@@ -35,16 +35,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class SharingUser
 {
-    @JsonProperty
     private String id;
 
-    @JsonProperty
     private String name;
 
     public SharingUser()
     {
     }
 
+    @JsonProperty
     public String getId()
     {
         return id;
@@ -55,6 +54,7 @@ public class SharingUser
         this.id = id;
     }
 
+    @JsonProperty
     public String getName()
     {
         return name;

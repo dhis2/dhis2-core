@@ -28,8 +28,8 @@ package org.hisp.dhis.jdbc.statementbuilder;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.quick.StatementDialect;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.quick.StatementDialect;
 import org.springframework.beans.factory.FactoryBean;
 
 /**
@@ -42,9 +42,9 @@ public class StatementBuilderFactoryBean
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     private StatementDialect statementDialect;
-    
+
     public void setStatementDialect( StatementDialect statementDialect )
     {
         this.statementDialect = statementDialect;
@@ -55,14 +55,10 @@ public class StatementBuilderFactoryBean
     // -------------------------------------------------------------------------
     // Initialisation
     // -------------------------------------------------------------------------
-    
+
     public void init()
     {
-        if ( statementDialect.equals( StatementDialect.MYSQL ) )
-        {
-            this.statementBuilder = new MySQLStatementBuilder();
-        }
-        else if ( statementDialect.equals( StatementDialect.POSTGRESQL ) )
+        if ( statementDialect.equals( StatementDialect.POSTGRESQL ) )
         {
             this.statementBuilder = new PostgreSQLStatementBuilder();
         }
@@ -83,7 +79,7 @@ public class StatementBuilderFactoryBean
     // -------------------------------------------------------------------------
     // FactoryBean implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     public StatementBuilder getObject()
         throws Exception

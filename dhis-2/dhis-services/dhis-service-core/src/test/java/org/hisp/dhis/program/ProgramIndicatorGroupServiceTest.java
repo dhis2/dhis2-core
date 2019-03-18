@@ -73,7 +73,7 @@ public class ProgramIndicatorGroupServiceTest
     @Test
     public void testDeleteProgramIndicatorGroup()
     {
-        int id = service.addProgramIndicatorGroup( programIndicatorGroupA );
+        long id = service.addProgramIndicatorGroup( programIndicatorGroupA );
 
         service.deleteProgramIndicatorGroup( programIndicatorGroupA );
 

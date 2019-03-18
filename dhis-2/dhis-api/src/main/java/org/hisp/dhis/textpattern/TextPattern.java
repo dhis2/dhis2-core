@@ -101,4 +101,30 @@ public class TextPattern
     {
         return this.segments;
     }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        TextPattern that = (TextPattern) o;
+
+        return java.util.Objects.equals( segments, that.segments ) &&
+            ownerObject == that.ownerObject &&
+            java.util.Objects.equals( ownerUid, that.ownerUid );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return java.util.Objects.hash( segments, ownerObject, ownerUid );
+    }
 }

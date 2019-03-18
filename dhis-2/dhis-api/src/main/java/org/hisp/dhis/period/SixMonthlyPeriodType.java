@@ -96,7 +96,7 @@ public class SixMonthlyPeriodType
             case 7:
                 return dateTimeUnit.getYear() + "S2";
             default:
-                throw new IllegalArgumentException( "Month not valid [1,7]" );
+                throw new IllegalArgumentException( String.format( "Month not valid [1,7]: %d", month ) );
         }
     }
 

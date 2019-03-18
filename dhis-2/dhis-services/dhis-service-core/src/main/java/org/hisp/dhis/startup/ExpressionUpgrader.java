@@ -54,7 +54,7 @@ import static org.hisp.dhis.dataentryform.DataEntryFormService.*;
 /**
  * Upgrades indicator formulas, expressions (for validation rules) and custom
  * data entry forms from using identifiers to using uids.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class ExpressionUpgrader
@@ -67,22 +67,22 @@ public class ExpressionUpgrader
     private static final Pattern OLD_CONSTANT_PATTERN = Pattern.compile( OLD_CONSTANT_EXPRESSION );
 
     private static final Log log = LogFactory.getLog( ExpressionUpgrader.class );
-    
+
     @Autowired
     private DataEntryFormService dataEntryFormService;
-    
+
     @Autowired
     private DataElementService dataElementService;
-    
+
     @Autowired
     private CategoryService categoryService;
-    
+
     @Autowired
     private IndicatorService indicatorService;
-    
+
     @Autowired
     private ConstantService constantService;
-    
+
     @Autowired
     private ExpressionService expressionService;
 
@@ -93,16 +93,16 @@ public class ExpressionUpgrader
         upgradeExpressions();
         upgradeDataEntryForms();
     }
-    
+
     private void upgradeIndicators()
     {
         Collection<Indicator> indicators = indicatorService.getAllIndicators();
-        
+
         for ( Indicator indicator : indicators )
         {
             String numerator = upgradeExpression( indicator.getNumerator() );
             String denominator = upgradeExpression( indicator.getDenominator() );
-            
+
             if ( numerator != null || denominator != null )
             {
                 indicator.setNumerator( numerator );
@@ -115,11 +115,11 @@ public class ExpressionUpgrader
     private void upgradeExpressions()
     {
         Collection<Expression> expressions = expressionService.getAllExpressions();
-        
+
         for ( Expression expression : expressions )
         {
             String expr = upgradeExpression( expression.getExpression() );
-            
+
             if ( expr != null )
             {
                 expression.setExpression( expr );
@@ -127,16 +127,16 @@ public class ExpressionUpgrader
             }
         }
     }
-    
+
     private String upgradeExpression( String expression )
     {
         if ( expression == null || expression.trim().isEmpty() )
         {
             return null;
         }
-        
+
         boolean changes = false;
-        
+
         StringBuffer sb = new StringBuffer();
 
         try
@@ -144,9 +144,9 @@ public class ExpressionUpgrader
             // -----------------------------------------------------------------
             // Constants
             // -----------------------------------------------------------------
-    
+
             Matcher matcher = OLD_CONSTANT_PATTERN.matcher( expression );
-            
+
             while ( matcher.find() )
             {
                 Constant constant = constantService.getConstant( Integer.parseInt( matcher.group( 1 ) ) );
@@ -154,54 +154,54 @@ public class ExpressionUpgrader
                 matcher.appendReplacement( sb, replacement );
                 changes = true;
             }
-            
+
             matcher.appendTail( sb );
             expression = sb.toString();
 
             // -----------------------------------------------------------------
             // Operands
             // -----------------------------------------------------------------
-    
+
             matcher = OLD_OPERAND_PATTERN.matcher( expression );
             sb = new StringBuffer();
-            
+
             while ( matcher.find() )
             {
                 DataElement de = dataElementService.getDataElement( Integer.parseInt( matcher.group( 1 ) ) );
                 String replacement = "#{" + de.getUid();
-                
+
                 if ( matcher.groupCount() == 2 && matcher.group( 2 ) != null && !matcher.group( 2 ).trim().isEmpty() )
                 {
                     CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
                     replacement += "." + coc.getUid();
                 }
-                
+
                 replacement += "}";
-                matcher.appendReplacement( sb, replacement );                
+                matcher.appendReplacement( sb, replacement );
                 changes = true;
             }
-    
+
             matcher.appendTail( sb );
-            expression = sb.toString();            
+            expression = sb.toString();
         }
         catch ( Exception ex )
         {
             log.error( "Failed to upgrade expression: " + expression );
             log.error( ex ); // Log and continue
         }
-        
+
         if ( changes )
         {
             log.info( "Upgraded expression: " + expression );
         }
-        
+
         return changes ? expression : null;
     }
-    
+
     private void upgradeDataEntryForms()
     {
         Collection<DataEntryForm> forms = dataEntryFormService.getAllDataEntryForms();
-        
+
         for ( DataEntryForm form : forms )
         {
             if ( DataEntryForm.CURRENT_FORMAT > form.getFormat() && form.getHtmlCode() != null && !form.getHtmlCode().trim().isEmpty() )
@@ -214,16 +214,16 @@ public class ExpressionUpgrader
 
                     Matcher matcher = IDENTIFIER_PATTERN.matcher( form.getHtmlCode() );
                     StringBuffer sb = new StringBuffer();
-                    
+
                     while ( matcher.find() )
                     {
                         DataElement de = dataElementService.getDataElement( Integer.parseInt( matcher.group( 1 ) ) );
-                        CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );                        
-                        String replacement = "id=\"" + de.getUid() + "-" + coc.getUid() + "-val\"";                        
+                        CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( Integer.parseInt( matcher.group( 2 ) ) );
+                        String replacement = "id=\"" + de.getUid() + "-" + coc.getUid() + "-val\"";
                         matcher.appendReplacement( sb, replacement );
                     }
-                    
-                    matcher.appendTail( sb );                    
+
+                    matcher.appendTail( sb );
                     form.setHtmlCode( sb.toString() );
 
                     // ---------------------------------------------------------
@@ -232,7 +232,7 @@ public class ExpressionUpgrader
 
                     matcher = DATAELEMENT_TOTAL_PATTERN.matcher( form.getHtmlCode() );
                     sb = new StringBuffer();
-                    
+
                     while ( matcher.find() )
                     {
                         DataElement de = dataElementService.getDataElement( Integer.parseInt( matcher.group( 1 ) ) );
@@ -240,7 +240,7 @@ public class ExpressionUpgrader
                         matcher.appendReplacement( sb, replacement );
                     }
 
-                    matcher.appendTail( sb );                    
+                    matcher.appendTail( sb );
                     form.setHtmlCode( sb.toString() );
 
                     // ---------------------------------------------------------
@@ -249,7 +249,7 @@ public class ExpressionUpgrader
 
                     matcher = INDICATOR_PATTERN.matcher( form.getHtmlCode() );
                     sb = new StringBuffer();
-                    
+
                     while ( matcher.find() )
                     {
                         Indicator in = indicatorService.getIndicator( Integer.parseInt( matcher.group( 1 ) ) );
@@ -257,16 +257,16 @@ public class ExpressionUpgrader
                         matcher.appendReplacement( sb, replacement );
                     }
 
-                    matcher.appendTail( sb );                    
+                    matcher.appendTail( sb );
                     form.setHtmlCode( sb.toString() );
 
                     // ---------------------------------------------------------
                     // Update format and save
                     // ---------------------------------------------------------
 
-                    form.setFormat( DataEntryForm.CURRENT_FORMAT );                    
+                    form.setFormat( DataEntryForm.CURRENT_FORMAT );
                     dataEntryFormService.updateDataEntryForm( form );
-                    
+
                     log.info( "Upgraded custom data entry form: " + form.getName() );
                 }
                 catch ( Exception ex )

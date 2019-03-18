@@ -28,6 +28,7 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 import java.lang.Object;
@@ -49,6 +50,7 @@ public class MedianValue
     }
 
     // nFunk's JEP run() method uses the raw Stack type
+    @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     public void run( Stack inStack )
         throws ParseException
@@ -58,14 +60,14 @@ public class MedianValue
         Object param = inStack.pop();
         List<Double> vals = CustomFunctions.checkVector( param );
         int n = vals.size();
-        // Sort it here
+        Collections.sort( vals );
         if ( n % 2 == 0 )
         {
-            inStack.push( new Double( (vals.get( n / 2 ) + vals.get( n / 2 + 1 )) / 2 ) );
+            inStack.push( ( vals.get( n / 2 - 1 ) + vals.get( n / 2 ) ) / 2 );
         }
         else
         {
-            inStack.push( new Double( vals.get( (n + 1) / 2 ) ) );
+            inStack.push( vals.get( n / 2 ) );
         }
     }
 }

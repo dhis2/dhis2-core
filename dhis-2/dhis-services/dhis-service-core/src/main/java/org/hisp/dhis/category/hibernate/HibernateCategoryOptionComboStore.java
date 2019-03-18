@@ -30,18 +30,18 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
-import java.util.List;
-import java.util.Set;
-
-import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -65,11 +65,11 @@ public class HibernateCategoryOptionComboStore
         
         Query query = getQuery( hql );
         
-        query.setEntity( "categoryCombo", categoryCombo );
+        query.setParameter( "categoryCombo", categoryCombo );
         
         for ( CategoryOption option : categoryOptions )
         {
-            query.setEntity( "option" + option.getId(), option );
+            query.setParameter( "option" + option.getId(), option );
         }
         
         return (CategoryOptionCombo) query.uniqueResult();

@@ -44,7 +44,7 @@ public interface ProgramTrackedEntityAttributeGroupService
      * 
      * @return A generated unique id of the added {@link ProgramTrackedEntityAttributeGroup}.
      */
-    int addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
+    long addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
 
     /**
      * Deletes a {@link ProgramTrackedEntityAttributeGroup}.
@@ -69,7 +69,7 @@ public interface ProgramTrackedEntityAttributeGroupService
      * 
      * @return the ProgramTrackedEntityAttributeGroup with the given id
      */
-    ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( int id );
+    ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( long id );
 
     /**
      * Returns a {@link ProgramTrackedEntityAttributeGroup}.

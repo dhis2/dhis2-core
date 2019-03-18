@@ -279,9 +279,9 @@
 		#set($index = 0)
         #foreach( $dataElement in $dataElements)
 			#set($index = $index + 1)
-            #if ($dataElement.dataElementCategoryCombo && $dataElement.dataElementCategoryCombo.sortedOptionCombos)
+            #if ($dataElement.categoryCombo && $dataElement.categoryCombo.sortedOptionCombos)
 				#set ($index = $index - 1)
-				#foreach($x in $dataElement.dataElementCategoryCombo.sortedOptionCombos)
+				#foreach($x in $dataElement.categoryCombo.sortedOptionCombos)
 					#set ($index = $index + 1)
 					
 					#set ($str = ""+$dataElement.id+""+$x.id)

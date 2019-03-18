@@ -78,6 +78,7 @@
     </list>
 
     <list name="attributeDimensions" table="eventchart_attributedimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_eventchart_attributedimensions_eventchartid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentityattributedimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension"
@@ -85,6 +86,7 @@
     </list>
 
     <list name="dataElementDimensions" table="eventchart_dataelementdimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_eventchart_dataelementdimensions_eventchartid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentitydataelementdimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension"
@@ -92,6 +94,7 @@
     </list>
 
     <list name="programIndicatorDimensions" table="eventchart_programindicatordimensions" cascade="all, delete-orphan">
+      <cache usage="read-write" />
       <key column="eventchartid" foreign-key="fk_eventchart_programindicatordimensions_eventchartid" />
       <list-index column="sort_order" base="0" />
       <many-to-many column="trackedentityprogramindicatordimensionid" class="org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension"
@@ -130,6 +133,10 @@
 
     <property name="completedOnly" column="completedonly" />
 
+    <property name="timeField" column="timefield" />
+    
+    <property name="orgUnitField" column="orgunitfield" />
+    
     <property name="title" />
     
     <property name="subtitle" />
@@ -248,6 +255,8 @@
 
     <property name="sortOrder" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <!-- Access properties -->
     <property name="externalAccess" />
 
@@ -267,14 +276,9 @@
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
-    <!-- Object Translation -->
-    <set name="translations" table="eventcharttranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="eventchartid" foreign-key="fk_objecttranslation_eventchartid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
-
     <property name="favorites" type="jbSet" />
+
+    <property name="subscribers" type="jbSet" />
 
   </class>
 

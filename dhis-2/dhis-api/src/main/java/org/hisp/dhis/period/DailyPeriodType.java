@@ -111,7 +111,7 @@ public class DailyPeriodType
 
         while ( year == dateTimeUnit.getYear() )
         {
-            periods.add( createPeriod( dateTimeUnit, null ) );
+            periods.add( createPeriod( dateTimeUnit, calendar ) );
             dateTimeUnit = calendar.plusDays( dateTimeUnit, 1 );
         }
 

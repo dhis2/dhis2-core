@@ -34,6 +34,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
@@ -61,7 +62,7 @@ import java.util.Set;
  * <p>Attributes specified in the query follows on the next column indexes.
  * Example usage for retrieving TEIs with two attributes using one attribute as
  * filter:</p>
- * <p>
+ *
  * <pre>
  * <code>
  * TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
@@ -106,15 +107,24 @@ public interface TrackedEntityInstanceService
     Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     /**
-     * Returns a list with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params               the TrackedEntityInstanceQueryParams.
+     * @param skipAccessValidation If true, access validation is skipped. Should be set to true only for internal
+     *                             tasks (e.g. currently used by synchronization job)
      * @return List of TEIs matching the params
      */
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync );
+    /**
+     * Return the count of the Tracked entity instances that meet the criteria specified in params
+     *
+     * @param params                    Parameteres that specify searching criteria
+     * @param skipAccessValidation      If true, the access validation is skipped
+     * @param skipSearchScopeValidation If true, the search scope validation is skipped
+     * @return the count of the Tracked entity instances that meet the criteria specified in params
+     */
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
      * Returns a TrackedEntityInstanceQueryParams based on the given input.
@@ -142,12 +152,13 @@ public interface TrackedEntityInstanceService
      * @param totalPages                 indicates whether to include the total number of pages.
      * @param skipPaging                 whether to skip paging.
      * @param includeDeleted             whether to include soft deleted items
+     * @param includeAllAttributes       whether to include all user attributes that user has access
      * @return a TrackedEntityInstanceQueryParams.
      */
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, List<String> orders );
+        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
 
     /**
      * Decides whether current user is authorized to perform the given query.
@@ -185,7 +196,7 @@ public interface TrackedEntityInstanceService
      * @param entityInstance The to TrackedEntityInstance add.
      * @return A generated unique id of the added {@link TrackedEntityInstance}.
      */
-    int addTrackedEntityInstance( TrackedEntityInstance entityInstance );
+    long addTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
      * Soft deletes a {@link TrackedEntityInstance}.
@@ -202,12 +213,20 @@ public interface TrackedEntityInstanceService
     void updateTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
+     * Updates a last sync timestamp on specified TrackedEntityInstances
+     *
+     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where the lastSynchronized flag should be updated
+     * @param lastSynchronized          The date of last successful sync
+     */
+    void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
+
+    /**
      * Returns a {@link TrackedEntityInstance}.
      *
      * @param id the id of the TrackedEntityInstanceAttribute to return.
      * @return the TrackedEntityInstanceAttribute with the given id
      */
-    TrackedEntityInstance getTrackedEntityInstance( int id );
+    TrackedEntityInstance getTrackedEntityInstance( long id );
 
     /**
      * Returns the {@link TrackedEntityAttribute} with the given UID.
@@ -238,11 +257,10 @@ public interface TrackedEntityInstanceService
      * Register a new entityInstance
      *
      * @param entityInstance     TrackedEntityInstance
-     * @param representativeId   The uid of entityInstance who is representative
-     * @param relationshipTypeId The id of relationship type defined
      * @param attributeValues    Set of attribute values
      * @return The error code after registering entityInstance
      */
-    int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
-        Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
+    long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
+
+    List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 }

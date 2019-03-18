@@ -53,7 +53,7 @@ public class PushAnalysisSchemaDescriptor
     {
         Schema schema = new Schema( PushAnalysis.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1000 );
+        schema.setOrder( 3502 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PUSH_ANALYSIS_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PUSH_ANALYSIS_DELETE" ) ) );

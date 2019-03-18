@@ -80,9 +80,15 @@ public class DefaultKeyJsonValueService
     {
         return keyJsonValueStore.getKeyJsonValue( namespace, key );
     }
-
+    
     @Override
-    public int addKeyJsonValue( KeyJsonValue keyJsonValue )
+    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
+    {
+        return keyJsonValueStore.getKeyJsonValueByNamespace( namespace );
+    }
+   
+    @Override
+    public long addKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         keyJsonValueStore.save( keyJsonValue );
 
@@ -106,12 +112,12 @@ public class DefaultKeyJsonValueService
     {
         KeyJsonValue value = getKeyJsonValue( namespace, key );
 
-        if ( value == null || value.getPlainValue() == null )
+        if ( value == null || value.getJbPlainValue() == null )
         {
             return null;
         }
         
-        return JacksonUtils.fromJson( value.getPlainValue(), clazz );
+        return JacksonUtils.fromJson( value.getJbPlainValue(), clazz );
     }
 
     @Override

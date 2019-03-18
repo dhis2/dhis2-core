@@ -94,6 +94,11 @@ public class Chart
     @Override
     public List<DimensionalItemObject> series()
     {
+        if ( series == null )
+        {
+            return null;
+        }
+
         DimensionalObject object = getDimensionalObject( series, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
@@ -103,6 +108,11 @@ public class Chart
     @Override
     public List<DimensionalItemObject> category()
     {
+        if ( category == null )
+        {
+            return null;
+        }
+
         DimensionalObject object = getDimensionalObject( category, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
@@ -112,8 +122,15 @@ public class Chart
     @Override
     public void populateAnalyticalProperties()
     {
-        columns.add( getDimensionalObject( series ) );
-        rows.add( getDimensionalObject( category ) );
+        if ( series != null )
+        {
+            columns.add( getDimensionalObject( series ) );
+        }
+
+        if ( category != null )
+        {
+            rows.add( getDimensionalObject( category ) );
+        }
 
         for ( String filter : filterDimensions )
         {

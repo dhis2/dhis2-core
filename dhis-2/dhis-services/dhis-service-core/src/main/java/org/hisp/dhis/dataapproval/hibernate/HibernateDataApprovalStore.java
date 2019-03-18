@@ -41,15 +41,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -57,9 +66,6 @@ import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -67,10 +73,10 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
@@ -86,6 +92,23 @@ public class HibernateDataApprovalStore
 
     private static final String SQL_CONCAT = "-";
     private static final String SQL_CAT = StatementBuilder.QUOTE + SQL_CONCAT + StatementBuilder.QUOTE;
+
+    private Cache<Boolean> IS_APPROVED_CACHE;
+
+    @Autowired
+    private CacheProvider cacheProvider;
+
+    @Autowired
+    private Environment env;
+
+    @PostConstruct
+    public void init()
+    {
+        IS_APPROVED_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "isDataApproved" )
+            .expireAfterAccess( 12, TimeUnit.HOURS )
+            .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 20000 ).build();
+    }
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -136,6 +159,8 @@ public class HibernateDataApprovalStore
     @Override
     public void addDataApproval( DataApproval dataApproval )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
         save( dataApproval );
@@ -144,6 +169,8 @@ public class HibernateDataApprovalStore
     @Override
     public void updateDataApproval( DataApproval dataApproval )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
         update( dataApproval );
@@ -152,18 +179,22 @@ public class HibernateDataApprovalStore
     @Override
     public void deleteDataApproval( DataApproval dataApproval )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
         delete( dataApproval );
-    }    
+    }
 
     @Override
     public void deleteDataApprovals( OrganisationUnit organisationUnit )
     {
+        IS_APPROVED_CACHE.invalidateAll();
+
         String hql = "delete from DataApproval d where d.organisationUnit = :unit";
-        
+
         getSession().createQuery( hql ).
-            setEntity( "unit", organisationUnit ).executeUpdate();
+            setParameter( "unit", organisationUnit ).executeUpdate();
     }
 
     @Override
@@ -179,31 +210,53 @@ public class HibernateDataApprovalStore
     {
         Period storedPeriod = periodService.reloadPeriod( period );
 
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.eq( "dataApprovalLevel", dataApprovalLevel ) );
-        criteria.add( Restrictions.eq( "workflow", workflow ) );
-        criteria.add( Restrictions.eq( "period", storedPeriod ) );
-        criteria.add( Restrictions.eq( "organisationUnit", organisationUnit ) );
-        criteria.add( Restrictions.eq( "attributeOptionCombo", attributeOptionCombo ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (DataApproval) criteria.uniqueResult();
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "dataApprovalLevel" ), dataApprovalLevel ) )
+            .addPredicate( root -> builder.equal( root.get( "workflow" ), workflow ) )
+            .addPredicate( root -> builder.equal( root.get( "period" ), storedPeriod ) )
+            .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
+            .addPredicate( root -> builder.equal( root.get( "attributeOptionCombo" ), attributeOptionCombo ) ) );
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<DataApproval> getDataApprovals( Collection<DataApprovalLevel> dataApprovalLevels, Collection<DataApprovalWorkflow> workflows,
         Collection<Period> periods, Collection<OrganisationUnit> organisationUnits, Collection<CategoryOptionCombo> attributeOptionCombos )
     {
         List<Period> storedPeriods = periods.stream().map(p -> periodService.reloadPeriod( p ) ).collect( Collectors.toList() );
 
-        Criteria criteria = getCriteria();
-        criteria.add( Restrictions.in( "dataApprovalLevel", dataApprovalLevels ) );
-        criteria.add( Restrictions.in( "workflow", workflows ) );
-        criteria.add( Restrictions.in( "period", storedPeriods ) );
-        criteria.add( Restrictions.in( "organisationUnit", organisationUnits ) );
-        criteria.add( Restrictions.in( "attributeOptionCombo", attributeOptionCombos ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return criteria.list();
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> root.get( "dataApprovalLevel" ).in( dataApprovalLevels ) )
+            .addPredicate( root -> root.get( "workflow" ).in( workflows ) )
+            .addPredicate( root -> root.get( "period" ).in( storedPeriods ) )
+            .addPredicate( root -> root.get( "organisationUnit" ).in( organisationUnits ) )
+            .addPredicate( root -> root.get( "attributeOptionCombo" ).in( attributeOptionCombos ) ) );
+    }
+
+    @Override
+    public boolean dataApprovalExists( DataApproval dataApproval )
+    {
+        return IS_APPROVED_CACHE.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) ).orElse( false );
+    }
+
+    private boolean dataApprovalExistsInternal( DataApproval dataApproval )
+    {
+        Period storedPeriod = periodService.reloadPeriod( dataApproval.getPeriod() );
+
+        String sql =
+            "select dataapprovalid " +
+            "from dataapproval " +
+            "where dataapprovallevelid = " + dataApproval.getDataApprovalLevel().getId() + " " +
+            "and workflowid = " + dataApproval.getWorkflow().getId() + " " +
+            "and periodid  = " + storedPeriod.getId() + " " +
+            "and organisationunitid = " + dataApproval.getOrganisationUnit().getId() + " " +
+            "and attributeoptioncomboid = " + dataApproval.getAttributeOptionCombo().getId() + " " +
+            "limit 1";
+
+        return jdbcTemplate.queryForList( sql ).size() > 0;
     }
 
     @Override
@@ -400,7 +453,10 @@ public class HibernateDataApprovalStore
             boolean acceptanceRequiredForApproval = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
             readyBelowSubquery = "not exists (select 1 from organisationunit dao " +
-                "where not exists (select 1 from dataapproval da " +
+                "where exists (select 1 from organisationunit child " +
+                    "where " + statementBuilder.position( "dao.uid", "child.path" ) + " <> 0 " +
+                    "and child.organisationunitid in (select distinct sourceid from datasetsource dss join dataset ds on ds.datasetid = dss.datasetid where ds.workflowid = " + workflow.getId() + ")) " +
+                "and not exists (select 1 from dataapproval da " +
                     "join period p on p.periodid = da.periodid " +
                     "where da.organisationunitid = dao.organisationunitid " +
                     "and da.dataapprovallevelid = " + approvalLevelBelowOrgUnit.getId() + " " +
@@ -442,7 +498,9 @@ public class HibernateDataApprovalStore
             "join organisationunit o on " + (orgUnits != null ? "o.organisationunitid in (" + orgUnitIds + ")" : "o.hierarchylevel = " + orgUnitLevel + userOrgUnitRestrictions ) + " " +
             "left join categoryoption_organisationunits coo on coo.categoryoptionid = co.categoryoptionid " +
             "left join organisationunit oc on oc.organisationunitid = coo.organisationunitid " +
-            "where ( coo.categoryoptionid is null or " + statementBuilder.position( "o.uid", "oc.path" ) + " <> 0 )" +
+            "where ( coo.categoryoptionid is null or " +
+                statementBuilder.position( "o.uid", "oc.path" ) + " <> 0  or " +
+                statementBuilder.position( "oc.uid", "o.path" ) + " <> 0 )" +
             ( attributeOptionCombos == null || attributeOptionCombos.isEmpty() ? "" : " and cocco.categoryoptioncomboid in (" +
                 StringUtils.join( IdentifiableObjectUtils.getIdentifiers( attributeOptionCombos ), "," ) + ") " ) +
             ( isSuperUser ? "" :
@@ -450,7 +508,9 @@ public class HibernateDataApprovalStore
                 "select 1 from dataelementcategoryoptionusergroupaccesses couga " +
                 "left join usergroupaccess uga on uga.usergroupaccessid = couga.usergroupaccessid " +
                 "left join usergroupmembers ugm on ugm.usergroupid = uga.usergroupid " +
-                "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") )" );
+                    "where couga.categoryoptionid = cocco.categoryoptionid and ugm.userid = " + user.getId() + ") ) " ) +
+                " and exists (select 1 from organisationunit od where od.path like o.path || '%' and od.organisationunitid in " +
+                "(select distinct sourceid from datasetsource dss join dataset ds on ds.datasetid = dss.datasetid where ds.workflowid = " + workflow.getId() + "))";
 
         log.debug( "User " + user.getUsername() + " superuser " + isSuperUser
             + " workflow " + workflow.getName() + " period " + period.getIsoDate()
@@ -507,7 +567,7 @@ public class HibernateDataApprovalStore
                             accepted ?
                                 ACCEPTED_HERE :
                                 APPROVED_HERE );
-    
+
                 statusList.add( new DataApprovalStatus( state, approvedLevel, approvedOrgUnitId, actionLevel, ouUid, ouName, aocUid, accepted, null ) );
             }
         }

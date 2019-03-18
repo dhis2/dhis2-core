@@ -28,12 +28,12 @@ package org.hisp.dhis.i18n.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Locale;
-
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.i18n.I18nLocaleStore;
 import org.hisp.dhis.i18n.locale.I18nLocale;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.Locale;
 
 public class HibernateI18nLocaleStore
     extends HibernateIdentifiableObjectStore<I18nLocale>
@@ -42,7 +42,10 @@ public class HibernateI18nLocaleStore
     @Override
     public I18nLocale getI18nLocaleByLocale( Locale locale )
     {
-        return (I18nLocale) getCriteria( Restrictions.eq( "locale", locale.toString() ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "locale" ), locale.toString() ) ) );
     }
 
 }

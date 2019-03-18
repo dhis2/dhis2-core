@@ -28,10 +28,11 @@ package org.hisp.dhis.organisationunit.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,6 +52,9 @@ public class HibernateOrganisationUnitLevelStore
     @Override
     public OrganisationUnitLevel getByLevel( int level )
     {
-        return (OrganisationUnitLevel) getCriteria( Restrictions.eq( "level", level ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "level" ), level ) ) );
     }
 }

@@ -28,9 +28,9 @@ package org.hisp.dhis.notification.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * Created by zubair@dhis2.org on 10.01.18.
@@ -42,16 +42,18 @@ public class HibernateNotificationLoggingStore
     @Override
     public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
     {
-        Criteria criteria = getCriteria().add( Restrictions.eq( "notificationTemplateUid", templateUid ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (ExternalNotificationLogEntry) criteria.uniqueResult();
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "notificationTemplateUid" ), templateUid ) ) );
     }
 
     @Override
     public ExternalNotificationLogEntry getByKey( String key )
     {
-        Criteria criteria = getCriteria().add( Restrictions.eq( "key", key ) );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        return (ExternalNotificationLogEntry) criteria.uniqueResult();
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
     }
 }

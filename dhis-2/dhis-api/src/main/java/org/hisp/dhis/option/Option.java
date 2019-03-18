@@ -47,6 +47,7 @@ public class Option
     extends BaseIdentifiableObject implements MetadataObject
 {
     private OptionSet optionSet;
+    
     private Integer sortOrder;
 
     private String description;

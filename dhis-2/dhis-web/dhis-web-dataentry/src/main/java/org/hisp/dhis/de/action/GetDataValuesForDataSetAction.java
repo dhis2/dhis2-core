@@ -48,6 +48,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.dxf2.utils.InputUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -111,6 +113,13 @@ public class GetDataValuesForDataSetAction
     public void setFileResourceService( FileResourceService fileResourceService )
     {
         this.fileResourceService = fileResourceService;
+    }
+
+    private CurrentUserService currentUserService;
+
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
     }
 
     @Autowired
@@ -213,6 +222,10 @@ public class GetDataValuesForDataSetAction
         return storedBy;
     }
 
+    private String lastUpdatedBy;
+
+    public String getLastUpdatedBy() { return lastUpdatedBy; }
+
     private Map<String, FileResource> dataValueFileResourceMap = new HashMap<>();
 
     public Map<String, FileResource> getDataValueFileResourceMap()
@@ -231,6 +244,8 @@ public class GetDataValuesForDataSetAction
         // ---------------------------------------------------------------------
         // Validation
         // ---------------------------------------------------------------------
+
+        User currentUser = currentUserService.getCurrentUser();
 
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
@@ -298,17 +313,16 @@ public class GetDataValuesForDataSetAction
 
             if ( registration != null )
             {
-                complete = true;
+                complete = registration.getCompleted();
                 date = registration.getDate();
                 storedBy = registration.getStoredBy();
+                lastUpdatedBy = registration.getLastUpdatedBy();
             }
 
-            locked = dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null );
+            locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo, null );
         }
         else
         {
-            complete = true;
-
             // -----------------------------------------------------------------
             // If multi-org and one of the children is locked, lock all
             // -----------------------------------------------------------------
@@ -317,19 +331,20 @@ public class GetDataValuesForDataSetAction
             {
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    locked = dataSetService.isLocked( dataSet, period, organisationUnit, attributeOptionCombo, null );
+                    locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo, null );
 
                     if ( locked )
                     {
                         break;
                     }
 
-                    CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration(
-                        dataSet, period, ou, attributeOptionCombo );
+                    CompleteDataSetRegistration registration =
+                            registrationService.getCompleteDataSetRegistration( dataSet, period, ou, attributeOptionCombo );
 
-                    if ( complete && registration == null )
+                    if( registration != null )
                     {
-                        complete = false;
+                        complete = registration.getCompleted();
+                        lastUpdatedBy = registration.getLastUpdatedBy();
                     }
                 }
             }

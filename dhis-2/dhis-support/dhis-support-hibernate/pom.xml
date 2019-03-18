@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-support</artifactId>
-    <version>2.30-SNAPSHOT</version>
+    <version>2.32-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-support-hibernate</artifactId>
@@ -25,7 +25,11 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-external</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-db-migration</artifactId>
+    </dependency>
+    
     <!-- Hibernate -->
 
     <dependency>
@@ -34,11 +38,11 @@
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-ehcache</artifactId>
+      <artifactId>hibernate-spatial</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.github.mihaicostin</groupId>
-      <artifactId>hibernate-l2-memcached</artifactId>
+      <groupId>org.hibernate</groupId>
+      <artifactId>hibernate-ehcache</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
@@ -62,10 +66,6 @@
 
     <!-- Database connectors -->
 
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>

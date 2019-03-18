@@ -28,9 +28,9 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -42,6 +42,9 @@ public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiab
     @Override
     public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger )
     {
-        return getCriteria( Restrictions.eq( "notificationtrigger", trigger ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "notificationtrigger" ), trigger ) ) );
     }
 }

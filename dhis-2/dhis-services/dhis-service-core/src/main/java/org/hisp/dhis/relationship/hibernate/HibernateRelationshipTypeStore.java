@@ -28,10 +28,11 @@ package org.hisp.dhis.relationship.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -43,8 +44,10 @@ public class HibernateRelationshipTypeStore
     @Override
     public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
     {
-        return (RelationshipType) getCriteria( 
-            Restrictions.eq( "aIsToB", aIsToB ), 
-            Restrictions.eq( "bIsToA", bIsToA ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "aIsToB" ), aIsToB ) )
+            .addPredicate( root -> builder.equal( root.get( "bIsToA" ), bIsToA ) ) );
     }
 }

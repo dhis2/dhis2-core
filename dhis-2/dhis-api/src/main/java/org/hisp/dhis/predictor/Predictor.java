@@ -49,6 +49,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -111,6 +112,11 @@ public class Predictor
      */
     private Integer sequentialSkipCount;
 
+    /**
+     * The set of PredictorGroups to which this Predictor belongs.
+     */
+    private Set<PredictorGroup> groups = new HashSet<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -124,7 +130,7 @@ public class Predictor
     // -------------------------------------------------------------------------
 
     /**
-     * Gets the validation rule description, but returns the validation rule
+     * Gets the predictor description, but returns the predictor
      * name if there is no description.
      *
      * @return the description (or name).
@@ -132,6 +138,28 @@ public class Predictor
     public String getDescriptionNameFallback()
     {
         return description != null && !description.trim().isEmpty() ? description : name;
+    }
+
+    /**
+     * Joins a predictor group.
+     *
+     * @param predictorGroup the group to join.
+     */
+    public void addPredictorGroup( PredictorGroup predictorGroup )
+    {
+        groups.add( predictorGroup );
+        predictorGroup.getMembers().add( this );
+    }
+
+    /**
+     * Leaves a predictor group.
+     *
+     * @param predictorGroup the group to leave.
+     */
+    public void removePredictorGroup( PredictorGroup predictorGroup )
+    {
+        groups.remove( predictorGroup );
+        predictorGroup.getMembers().remove( this );
     }
 
     // -------------------------------------------------------------------------
@@ -250,6 +278,20 @@ public class Predictor
     public void setSampleSkipTest( Expression sampleSkipTest )
     {
         this.sampleSkipTest = sampleSkipTest;
+    }
+
+    @JsonProperty( "predictorGroups" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "predictorGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<PredictorGroup> getGroups()
+    {
+        return groups;
+    }
+
+    public void setGroups( Set<PredictorGroup> groups )
+    {
+        this.groups = groups;
     }
 
     /**

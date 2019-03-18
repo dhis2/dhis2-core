@@ -114,9 +114,9 @@ public class StreamingJsonDataValue extends DataValue
     }
 
     @Override
-    public void setFollowup( Boolean followUp )
+    public void setFollowup( Boolean followup )
     {
-        writeObjectField( "followUp", followUp );
+        writeObjectField( "followup", followup );
     }
     
     @Override

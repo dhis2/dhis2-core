@@ -38,7 +38,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -47,7 +46,7 @@ import java.util.Date;
  */
 @JacksonXmlRootElement( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistration
-    implements Serializable
+        implements Serializable
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -66,6 +65,12 @@ public class CompleteDataSetRegistration
 
     private String storedBy;
 
+    private Date lastUpdated;
+
+    private String lastUpdatedBy;
+
+    private Boolean completed;
+
     private transient String periodName;
 
     // -------------------------------------------------------------------------
@@ -77,7 +82,16 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
-        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy )
+        CategoryOptionCombo attributeOptionCombo )
+    {
+        this.dataSet = dataSet;
+        this.period = period;
+        this.source = source;
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
+        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, Date lastUpdated, String lastUpdatedBy, Boolean completed )
     {
         this.dataSet = dataSet;
         this.period = period;
@@ -85,6 +99,9 @@ public class CompleteDataSetRegistration
         this.attributeOptionCombo = attributeOptionCombo;
         this.date = date;
         this.storedBy = storedBy;
+        this.lastUpdated = lastUpdated;
+        this.lastUpdatedBy = lastUpdatedBy;
+        this.completed = completed;
     }
 
     // -------------------------------------------------------------------------
@@ -257,6 +274,42 @@ public class CompleteDataSetRegistration
         this.storedBy = storedBy;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy( String lastUpdatedBy )
+    {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getCompleted()
+    {
+        return completed;
+    }
+
+    public void setCompleted( Boolean isCompleted )
+    {
+        this.completed = isCompleted;
+    }
+
     public String getPeriodName()
     {
         return periodName;
@@ -277,7 +330,9 @@ public class CompleteDataSetRegistration
             .add( "attributeOptionCombo", attributeOptionCombo )
             .add( "date", date )
             .add( "storedBy", storedBy )
-            .add( "periodName", periodName )
+            .add( "lastUpdated", lastUpdated )
+            .add( "lastUpdatedBy", lastUpdatedBy )
+            .add( "isCompleted", completed )
             .toString();
     }
 }

@@ -31,6 +31,9 @@ package org.hisp.dhis.query.planner;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.Schema;
 
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -41,4 +44,6 @@ public interface QueryPlanner
     QueryPlan planQuery( Query query, boolean persistedOnly );
 
     QueryPath getQueryPath( Schema schema, String path );
+
+    Path getQueryPath( Root root, Schema schema, String path );
 }

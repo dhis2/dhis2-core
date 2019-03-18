@@ -15,9 +15,9 @@
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" length="230" />
+    <property name="name" column="name" not-null="true" unique="false" length="230" />
 
-    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
+    <property name="shortName" column="shortname" not-null="true" unique="false" length="50" />
 
     <property name="description" type="text" />
 
@@ -58,8 +58,6 @@
 
     <property name="useFirstStageDuringRegistration" />
 
-    <property name="captureCoordinates" />
-
     <property name="expiryDays" />
 
     <property name="completeEventsExpiryDays" />
@@ -69,6 +67,24 @@
     <property name="maxTeiCountToReturn" />
 
     <property name="style" type="jbObjectStyle" column="style" />
+
+    <property name="translations" type="jblTranslations"/>
+    
+    <property name="featureType" column="featuretype">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
+    
+    <property name="accessLevel" length="100">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.AccessLevel</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <many-to-one name="expiryPeriodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="expiryperiodtypeid"
       foreign-key="fk_program_expiryperiodtypeid" />
@@ -92,11 +108,6 @@
       <one-to-many class="org.hisp.dhis.program.ProgramIndicator" />
     </set>
 
-    <set name="programRules" inverse="true">
-      <key column="programid" />
-      <one-to-many class="org.hisp.dhis.programrule.ProgramRule" />
-    </set>
-
     <set name="programRuleVariables" inverse="true">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.programrule.ProgramRuleVariable" />
@@ -111,13 +122,6 @@
 
     <property name="selectIncidentDatesInFuture" />
 
-    <property name="relationshipText" />
-
-    <many-to-one name="relationshipType" class="org.hisp.dhis.relationship.RelationshipType"
-      column="relationshiptypeid" foreign-key="fk_program_relationshipid" />
-
-    <property name="relationshipFromA" />
-
     <many-to-one name="relatedProgram" class="org.hisp.dhis.program.Program"
       column="relatedprogramid" foreign-key="fk_program_relatedprogram" />
 
@@ -130,22 +134,12 @@
     <many-to-one name="dataEntryForm" class="org.hisp.dhis.dataentryform.DataEntryForm"
       column="dataentryformid" foreign-key="fk_program_dataentryformid" cascade="all" />
 
-    <many-to-one name="workflow" lazy="false" class="org.hisp.dhis.dataapproval.DataApprovalWorkflow" column="workflowid"
-      foreign-key="fk_program_workflowid" />
-
     <!-- Dynamic attribute values -->
 
     <set name="attributeValues" table="programattributevalues" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="programid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="programtranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="programid" foreign-key="fk_objecttranslation_programid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
     <!-- Access properties -->

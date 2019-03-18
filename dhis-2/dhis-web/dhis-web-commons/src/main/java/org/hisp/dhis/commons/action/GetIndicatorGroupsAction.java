@@ -35,7 +35,7 @@ import java.util.List;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.paging.ActionPagingSupport;
-import org.hisp.dhis.system.filter.IndicatorGroupWIthoutGroupSetFilter;
+import org.hisp.dhis.system.filter.IndicatorGroupWithoutGroupSetFilter;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 
@@ -92,7 +92,7 @@ public class GetIndicatorGroupsAction
 
         if ( filterNoGroupSet )
         {
-            FilterUtils.filter( indicatorGroups, new IndicatorGroupWIthoutGroupSetFilter() );
+            FilterUtils.filter( indicatorGroups, new IndicatorGroupWithoutGroupSetFilter() );
         }
 
         if ( key != null )

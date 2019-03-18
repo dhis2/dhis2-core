@@ -28,16 +28,16 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericStore;
+
 import java.util.List;
 
 /**
  * Store for incoming SMS messages.
  */
-public interface IncomingSmsStore
+public interface IncomingSmsStore extends GenericStore<IncomingSms>
 {
     String ID = IncomingSmsStore.class.getName();
-
-    int save( IncomingSms incomingSms );
 
     void update( IncomingSms incomingSms );
 

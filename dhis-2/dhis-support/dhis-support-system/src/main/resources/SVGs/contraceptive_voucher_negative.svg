@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" transform="translate(0,-284.3)">
+  <text id="text1512" style="word-spacing:0px;letter-spacing:0px" xml:space="preserve" font-size="7.0556px" line-height="1.25" y="270.5416565" x="44.97916794" font-family="robo" fill="#000000"><tspan id="tspan1510" y="276.9786682" x="44.97916794" stroke-width=".26458"/></text>
+  <path id="rect2036" d="m0 284.3v12.7h12.7v-12.7zm6.4146 1.0583c1.3818 0.020028 2.7035 0.57491 3.6819 1.5555 2.0641 2.0698 2.0598 5.4183-0.009302 7.4817-2.0699 2.0641-5.4204 2.0608-7.4838-0.0062-2.0641-2.0698-2.0598-5.4214 0.0093018-7.4848 0.97485-0.97197 2.2909-1.5252 3.667-1.5431 0.045059-0.000716 0.090532-0.000716 0.13488 0zm-0.083716 1.0806c-0.92764 0.00287-1.8307 0.31563-2.5652 0.8878l5.8978 5.917c1.3096-1.6736 1.1687-4.0619-0.3297-5.5681-0.75027-0.75097-1.7572-1.1894-2.8179-1.2309-0.061509-0.00143-0.12349-0.00413-0.185-0.00413zm2.0345 1.4351v0.00258c0.30111 0.00215 0.54606 0.065996 0.63045 0.154 0.40625 0.25462 0.27421 2.7186-1.8035 2.2794-0.010728 0.0293-0.029306 0.039274-0.052193 0.039274l-0.5178-0.5085c0.0035761-0.04861 0.030707-0.083337 0.076481-0.10904-0.2396-1.4597 0.89699-1.8621 1.6666-1.8578zm-5.3304 0.18552c-1.3096 1.6736-1.1656 4.0604 0.3328 5.5666 1.502 1.5041 3.8887 1.6546 5.5666 0.34933zm2.1177 2.5973 0.50436 0.48214c0.27608 1.0707-0.1273 1.3202-0.65371 1.4232-1.0271-0.00286-1.1458 0.11434-1.296 0.79737-0.010728-0.47919-0.14584-1.1288 1.296-1.1188 0.64298-0.14161-0.31626-1.3393 0.14934-1.5839z" fill-rule="evenodd" fill-opacity=".99608" fill="#323232"/>
+ </g>
+</svg>

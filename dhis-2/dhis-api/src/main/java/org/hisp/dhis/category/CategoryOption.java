@@ -89,6 +89,7 @@ public class CategoryOption
     // Logic
     // -------------------------------------------------------------------------
 
+    @JsonProperty( "isDefault" )
     public boolean isDefault()
     {
         return DEFAULT_NAME.equals( name );

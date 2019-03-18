@@ -29,6 +29,12 @@ package org.hisp.dhis.jdbc;
  */
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.ProgramIndicator;
 
 /**
  * @author Lars Helge Overland
@@ -36,7 +42,9 @@ import java.util.Collection;
  */
 public interface StatementBuilder
 {
-    final String QUOTE = "'";
+    String QUOTE = "'";
+    
+    String ANALYTICS_TBL_ALIAS = "ax";
 
     //--------------------------------------------------------------------------
     // General
@@ -226,4 +234,86 @@ public interface StatementBuilder
      * @return the derived literal table
      */
     String literalStringTable( Collection<String> values, String table, String column );
+
+    /**
+     * Generates a derived table containing literals in two columns: integer
+     * and string.
+     *
+     * @param longValue (non-empty) Integer values for the derived table
+     * @param strValues (same size) String values for the derived table
+     * @param table the desired table name alias
+     * @param longColumn the desired integer column name
+     * @param strColumn the desired string column name
+     * @return the derived literal table
+     */
+    String literalLongStringTable( List<Long> longValue,
+        List<String> strValues, String table, String longColumn, String strColumn );
+
+    /**
+     * Generates a derived table containing literals in two columns: integer
+     * and integer.
+     *
+     * @param long1Values (non-empty) 1st integer column values for the table
+     * @param long2Values (same size) 2nd integer column values for the table
+     * @param table the desired table name alias
+     * @param long1Column the desired 1st integer column name
+     * @param long2Column the desired 2nd integer column name
+     * @return the derived literal table
+     */
+    String literalLongLongTable( List<Long> long1Values,
+        List<Long> long2Values, String table, String long1Column, String long2Column );
+
+    /**
+     * Indicates whether the DBMS supports partial indexes (index statements with
+     * {@code where} clauses).
+     * 
+     * @return true if partial indexes aer supported.
+     */
+    boolean supportsPartialIndexes();
+   
+    /**
+     * Get SQL where-condition for all analyticsPeriodBoundaries in a program indicator.
+     * @param programIndicator the program indicator context
+     * @param reportingStartDate the date of the start of the reporting period
+     * @param reportingEndDate the date of the end of the reporting period
+     * @param sqlHelper a SQL helper that makes sure the where/and is correctly assigned in the where clause
+     * @return SQL to use in where clause.
+     */
+    String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, 
+        SqlHelper sqlHelper );
+    
+    /**
+     * Get SQL where-condition for a single analyticsPeriodBoundary in a program indicator.
+     * @param boundary the boundary to get where-condition for
+     * @param programIndicator the program indicator context
+     * @param reportingStartDate the date of the start of the reporting period
+     * @param reportingEndDate the date of the end of the reporting period
+     * @return SQL to use in where clause.
+     */
+    String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate );
+    
+    /**
+     * Get a SQL for selecting a single data value in a program indicator expression, abiding to boundaries.
+     * Internally adds quotes to the param dataElementUid and calls the {@link StatementBuilder#getProgramIndicatorColumnSelectSql(String, String, Date, Date, ProgramIndicator)} function.
+     * @param programStageUid the program stage to get data for
+     * @param dataElementUid the data element to get data for
+     * @param reportingStartDate the reporting start date
+     * @param reportingEndDate the reporting end date
+     * @param programIndicator the program indicator context
+     * @return
+     */
+    String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator );
+
+    /**
+     * Get a SQL for selecting a single column from events in a program indicators, abiding to boundaries.
+     * @param programStageUid the program stage to get data for
+     * @param columnName the column to get data for
+     * @param reportingStartDate the reporting start date
+     * @param reportingEndDate the reporting end date
+     * @param programIndicator the program indicator context
+     * @return
+     */
+    String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator );
 }

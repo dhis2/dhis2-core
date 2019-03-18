@@ -72,6 +72,10 @@ public class DataSetNotificationTemplate
 
     private SendStrategy sendStrategy = SendStrategy.SINGLE_NOTIFICATION;
 
+    private Boolean notifyUsersInHierarchyOnly;
+
+    private Boolean notifyParentOrganisationUnitOnly;
+
     public DataSetNotificationTemplate()
     {
     }
@@ -207,5 +211,29 @@ public class DataSetNotificationTemplate
     public void setSendStrategy( SendStrategy sendStrategy )
     {
         this.sendStrategy = sendStrategy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getNotifyUsersInHierarchyOnly()
+    {
+        return notifyUsersInHierarchyOnly;
+    }
+
+    public void setNotifyUsersInHierarchyOnly( Boolean notifyUsersInHierarchyOnly )
+    {
+        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getNotifyParentOrganisationUnitOnly()
+    {
+        return notifyParentOrganisationUnitOnly;
+    }
+
+    public void setNotifyParentOrganisationUnitOnly( Boolean notifyParentOrganisationUnitOnly )
+    {
+        this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
     }
 }

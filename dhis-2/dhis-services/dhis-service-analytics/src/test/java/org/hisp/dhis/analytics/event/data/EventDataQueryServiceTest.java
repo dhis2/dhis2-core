@@ -39,6 +39,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
+import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -71,6 +72,7 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -178,9 +180,10 @@ public class EventDataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
 
-        EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, false, false,
-            false, false, null, null, null, null, null, false, false, false, null, null, null, null );
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).build();
+
+        EventQueryParams params = dataQueryService.getFromRequest( request );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -198,15 +201,128 @@ public class EventDataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
 
-        EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, deA.getUid(), AggregationType.AVERAGE, false,
-            false, false, false, false, false, null, null, null, null, null, false, false, false, null, null, null, null );
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).build();
+
+        EventQueryParams params = dataQueryService.getFromRequest( request );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
+        assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
+    }
+
+    @Test
+    public void testGetFromUrlWithEventdateSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( "eventdate" );
+
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+
+        EventQueryParams params = dataQueryService.getFromRequest( request );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( deA, params.getValue() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( "executiondate".equals( params.getDesc().get( 0 ).getName() ) );
+        assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
+    }
+
+    @Test
+    public void testGetFromUrlWithOrgUnitNameSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( "ouname" );
+
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+
+        EventQueryParams params = dataQueryService.getFromRequest( request );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( deA, params.getValue() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( "ouname".equals( params.getDesc().get( 0 ).getName() ) );
+        assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
+    }
+
+    @Test
+    public void testGetFromUrlWithDataElementSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( deA.getUid() );
+
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+
+        EventQueryParams params = dataQueryService.getFromRequest( request );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( deA, params.getValue() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( deA.getUid().equals( params.getDesc().get( 0 ).getUid() ) );
+        assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
+    }
+
+    @Test
+    public void testGetFromUrlWithProgramAttributeSorting()
+    {
+        Set<String> dimensionParams = new HashSet<>();
+        dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
+        dimensionParams.add( atA.getUid() + ":LE:5" );
+
+        Set<String> filterParams = new HashSet<>();
+        filterParams.add( "pe:201401" );
+
+        Set<String> desc = new HashSet<String>();
+        desc.add( atA.getUid() );
+
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+
+        EventQueryParams params = dataQueryService.getFromRequest( request );
+
+        assertEquals( prA, params.getProgram() );
+        assertEquals( 1, params.getOrganisationUnits().size() );
+        assertEquals( 1, params.getItems().size() );
+        assertEquals( 1, params.getFilterPeriods().size() );
+        assertEquals( deA, params.getValue() );
+        assertEquals( 1, params.getDesc().size() );
+        assertTrue( atA.getUid().equals( params.getDesc().get( 0 ).getUid() ) );
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -337,9 +453,10 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401;201402" );
         filterParams.add( atA.getUid() + ":LE:5" );
 
-        EventQueryParams params = dataQueryService.getFromUrl( prA.getUid(), null,
-            null, null, dimensionParams, filterParams, null, null, false, false, false, false,
-            false, false, null, null, null, null, null, false, false, false, null, null, null, null );
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).build();
+
+        EventQueryParams params = dataQueryService.getFromRequest( request );
 
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getItems().size() );
@@ -351,8 +468,9 @@ public class EventDataQueryServiceTest
     @Test
     public void testGetCoordinateField()
     {
-        assertEquals( "geom", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
-        assertEquals( "geom", dataQueryService.getCoordinateField( null ) );
+        assertEquals( "psigeometry", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
+        assertEquals( "pigeometry", dataQueryService.getCoordinateField( EventQueryParams.ENROLLMENT_COORDINATE_FIELD ) );
+        assertEquals( "psigeometry", dataQueryService.getCoordinateField( null ) );
         assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
     }
 

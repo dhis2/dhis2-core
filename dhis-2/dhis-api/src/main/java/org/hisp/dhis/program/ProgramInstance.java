@@ -33,11 +33,14 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
@@ -74,6 +77,8 @@ public class ProgramInstance
 
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
 
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
+
     private List<MessageConversation> messageConversations = new ArrayList<>();
 
     private Boolean followup = false;
@@ -82,9 +87,7 @@ public class ProgramInstance
 
     private String completedBy;
 
-    private Double longitude;
-
-    private Double latitude;
+    private Geometry geometry;
 
     private Boolean deleted = false;
 
@@ -184,6 +187,32 @@ public class ProgramInstance
         }
 
         return null;
+    }
+    
+    public boolean hasActiveProgramStageInstance( ProgramStage programStage )
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public boolean hasProgramStageInstance( ProgramStage programStage )
+    {
+        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        {
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() != EventStatus.SKIPPED )
+            {
+                return true;
+            }
+        }
+        
+        return false;        
     }
 
     // -------------------------------------------------------------------------
@@ -452,28 +481,14 @@ public class ProgramInstance
         this.completedBy = completedBy;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Double getLongitude()
+    public Geometry getGeometry()
     {
-        return longitude;
+        return geometry;
     }
 
-    public void setLongitude( Double longitude )
+    public void setGeometry( Geometry geometry )
     {
-        this.longitude = longitude;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
+        this.geometry = geometry;
     }
 
     @JsonProperty
@@ -488,15 +503,48 @@ public class ProgramInstance
         this.deleted = deleted;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getStoredBy()
     {
         return storedBy;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public void setStoredBy( String storedBy )
     {
         this.storedBy = storedBy;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<RelationshipItem> getRelationshipItems()
+    {
+        return relationshipItems;
+    }
+
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
+    {
+        this.relationshipItems = relationshipItems;
+    }
+
+
+    @Override public String toString()
+    {
+        return "ProgramInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", code='" + code + '\'' +
+            ", name='" + name + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", status=" + status +
+            ", organisationUnit=" + organisationUnit.getUid() +
+            ", incidentDate=" + incidentDate +
+            ", enrollmentDate=" + enrollmentDate +
+            ", entityInstance=" + entityInstance.getUid() +
+            ", program=" + program +
+            ", deleted=" + deleted +
+            ", storedBy='" + storedBy + '\'' +
+            '}';
     }
 }

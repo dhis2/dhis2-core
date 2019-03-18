@@ -115,7 +115,6 @@ public class ConfigurationController
     // Resources
     // -------------------------------------------------------------------------
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
     @RequestMapping( value = "/settings", method = RequestMethod.GET, produces = { "application/json", "application/xml" } )
     public @ResponseBody Map<String, Map<String, Serializable>> getAllSettings( HttpServletRequest request, HttpServletResponse response )
     {
@@ -124,7 +123,6 @@ public class ConfigurationController
         return readConfigurationsBasedOnType( Sets.newHashSet( SettingType.values() ) );
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SETTINGS')" )
     @RequestMapping( value = "/settings/filter", method = RequestMethod.GET )
     public @ResponseBody Map<String, Map<String, Serializable>> getAllSettingsBasedOnType( @RequestParam Set<SettingType> type, HttpServletRequest request, HttpServletResponse response )
     {
@@ -139,7 +137,6 @@ public class ConfigurationController
         return configurationService.getConfiguration();
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @ResponseStatus( value = HttpStatus.OK )
     @RequestMapping( value = "/systemId", method = RequestMethod.GET )
     public @ResponseBody String getSystemId( Model model, HttpServletRequest request )

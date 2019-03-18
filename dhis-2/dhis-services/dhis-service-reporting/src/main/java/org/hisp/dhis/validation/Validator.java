@@ -53,7 +53,10 @@ public class Validator
      * method breaks the job down by organisation unit. It assigns the
      * evaluation for each organisation unit to a task that can be evaluated
      * independently in a multi-threaded environment.
-     * 
+     * <p/>
+     * Return early with no results if there are no organisation units
+     * or no validation rules.
+     *
      * @return a collection of any validations that were found
      */
     public static Collection<ValidationResult> validate( ValidationRunContext context,
@@ -64,7 +67,7 @@ public class Validator
                 
         int threadPoolSize = getThreadPoolSize( context );
 
-        if ( threadPoolSize == 0 )
+        if ( threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty() )
         {
             return context.getValidationResults();
         }

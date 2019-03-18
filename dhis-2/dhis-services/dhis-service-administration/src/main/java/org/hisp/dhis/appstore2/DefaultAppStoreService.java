@@ -34,7 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.setting.SettingKey;
-
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.client.RestTemplate;
 
@@ -61,10 +61,15 @@ public class DefaultAppStoreService implements AppStoreService
     @Autowired
     private AppManager appManager;
 
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     @Override
     public List<WebApp> getAppStore()
     {
-        WebApp[] apps = restTemplate.getForObject( SettingKey.APP_STORE_API_URL.getDefaultValue().toString(), WebApp[].class );
+        String appStoreApiUrl = (String) systemSettingManager.getSystemSetting( SettingKey.APP_STORE_API_URL );
+
+        WebApp[] apps = restTemplate.getForObject( appStoreApiUrl, WebApp[].class );
 
         return Arrays.asList( apps );
     }

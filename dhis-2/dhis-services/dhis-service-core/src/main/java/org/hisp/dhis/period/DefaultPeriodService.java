@@ -28,14 +28,21 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.system.util.DateUtils;
-import org.springframework.transaction.annotation.Transactional;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
@@ -61,7 +68,7 @@ public class DefaultPeriodService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addPeriod( Period period )
+    public long addPeriod( Period period )
     {
         periodStore.addPeriod( period );
         return period.getId();
@@ -74,7 +81,7 @@ public class DefaultPeriodService
     }
 
     @Override
-    public Period getPeriod( int id )
+    public Period getPeriod( long id )
     {
         return periodStore.get( id );
     }

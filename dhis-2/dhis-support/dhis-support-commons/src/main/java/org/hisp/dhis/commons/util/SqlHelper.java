@@ -30,17 +30,17 @@ package org.hisp.dhis.commons.util;
 
 /**
  * Class with utility methods for constructing SQL strings.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class SqlHelper
 {
     private boolean includeSpaces = false;
 
-    private boolean invoked = false;
+    private boolean whereInvoked = false;
 
     private boolean havingInvoked = false;
-    
+
     private boolean orInvoked = false;
 
     private boolean betweenInvoked = false;
@@ -57,14 +57,14 @@ public class SqlHelper
     /**
      * Returns "where" the first time it is invoked, then "and" for subsequent
      * invocations.
-     * 
+     *
      * @return "where" or "and".
      */
     public String whereAnd()
     {
-        String str = invoked ? "and" : "where";
+        String str = whereInvoked ? "and" : "where";
 
-        invoked = true;
+        whereInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }
@@ -72,7 +72,7 @@ public class SqlHelper
     /**
      * Returns "having" the first time it is invoked, then "and" for subsequent
      * invocations.
-     * 
+     *
      * @return "having" or "and".
      */
     public String havingAnd()
@@ -87,7 +87,7 @@ public class SqlHelper
     /**
      * Returns the empty string the first time it is invoked, then "or" for subsequent
      * invocations.
-     * 
+     *
      * @return empty string or "or".
      */
     public String or()
@@ -102,7 +102,7 @@ public class SqlHelper
     /**
      * Returns the empty string the first time it is invoked, then "or" for subsequent
      * invocations.
-     * 
+     *
      * @return empty or "or".
      */
     public String betweenAnd()

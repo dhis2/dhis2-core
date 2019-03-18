@@ -32,7 +32,7 @@ package org.hisp.dhis.system.log;
  * @author Lars Helge Overland
  */
 public interface LogConfigInitializer
-{    
+{
     /**
      * Initializes log configuration.
      */

@@ -295,6 +295,14 @@ public class Period
 
         return getEndDate().after( period.getEndDate() );
     }
+    
+    /**
+     * Returns a unique key suitable for caching and lookups.
+     */
+    public String getCacheKey()
+    {
+        return periodType.getName() + "-" + startDate.toString() + "-" + endDate.toString();
+    }
 
     // -------------------------------------------------------------------------
     // DimensionalItemObject

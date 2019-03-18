@@ -28,22 +28,20 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -53,10 +51,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -64,10 +61,11 @@ import java.util.Set;
  * @author Stian Sandvold
  */
 @Controller
-@RequestMapping( value = "/dataSetReport" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataSetReportController
 {
+    private static final String RESOURCE_PATH = "/dataSetReport";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -82,9 +80,6 @@ public class DataSetReportController
     private PeriodService periodService;
 
     @Autowired
-    private I18nManager i18nManager;
-
-    @Autowired
     private ContextUtils contextUtils;
 
     @Autowired
@@ -93,96 +88,117 @@ public class DataSetReportController
     @Autowired
     IdentifiableObjectManager idObjectManager;
 
-    @RequestMapping( method = RequestMethod.GET )
-    public void getDataSetReport( HttpServletResponse response,
+    @RequestMapping( value = RESOURCE_PATH + "/custom", method = RequestMethod.GET, produces = "text/html" )
+    public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam( required = false ) Set<String> dimension,
-        @RequestParam( required = false ) boolean selectedUnitOnly,
-        @RequestParam( required = false ) String type )
-        throws Exception
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
     {
-        OrganisationUnit selectedOrgunit = idObjectManager.get( OrganisationUnit.class, ou );
-        DataSet selectedDataSet = dataSetService.getDataSet( ds );
-        Period selectedPeriod = PeriodType.getPeriodFromIsoString( pe );
+        OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
+        DataSet dataSet = getAndValidateDataSet( ds );
+        Period period = getAndValidatePeriod( pe );
 
-        if ( selectedOrgunit == null )
+        if ( !dataSet.getFormType().isCustom() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal organisation unit identifier: " + ou ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
         }
-
-        if ( selectedDataSet == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal data set identifier: " + ds ) );
-        }
-
-        if ( selectedPeriod == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Illegal period identifier: " + pe ) );
-        }
-
-        selectedPeriod = periodService.reloadPeriod( selectedPeriod );
-
-        String customDataEntryFormCode = null;
-        List<Grid> grids = new ArrayList<>();
-
-        FormType formType = selectedDataSet.getFormType();
-
-        // ---------------------------------------------------------------------
-        // Configure response
-        // ---------------------------------------------------------------------
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
 
-        // ---------------------------------------------------------------------
-        // Assemble report
-        // ---------------------------------------------------------------------
+        return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
+    }
 
-        if ( formType.isCustom() )
+    @RequestMapping( value = RESOURCE_PATH, method = RequestMethod.GET, produces = "application/json" )
+    public @ResponseBody List<Grid> getDataSetReportAsJson( HttpServletResponse response,
+        @RequestParam String ds,
+        @RequestParam String pe,
+        @RequestParam String ou,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) Set<String> dimension, //TODO remove, deprecated in 2.31
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+    {
+        OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
+        DataSet dataSet = getAndValidateDataSet( ds );
+        Period period = getAndValidatePeriod( pe );
+        filter = ObjectUtils.firstNonNull( filter, dimension );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        return dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + ".xls", method = RequestMethod.GET )
+    public void getDataSetReportAsExcel( HttpServletResponse response,
+        @RequestParam String ds,
+        @RequestParam String pe,
+        @RequestParam String ou,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+    {
+        OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
+        DataSet dataSet = getAndValidateDataSet( ds );
+        Period period = getAndValidatePeriod( pe );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        GridUtils.toXls( grids, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + ".pdf", method = RequestMethod.GET )
+    public void getDataSetReportAsPdf( HttpServletResponse response,
+        @RequestParam String ds,
+        @RequestParam String pe,
+        @RequestParam String ou,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) boolean selectedUnitOnly ) throws Exception
+    {
+        OrganisationUnit orgUnit = getAndValidateOrgUnit( ou );
+        DataSet dataSet = getAndValidateDataSet( ds );
+        Period period = getAndValidatePeriod( pe );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.RESPECT_SYSTEM_SETTING );
+        List<Grid> grids = dataSetReportService.getDataSetReportAsGrid( dataSet, period, orgUnit, filter, selectedUnitOnly );
+        GridUtils.toPdf( grids, response.getOutputStream() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private OrganisationUnit getAndValidateOrgUnit( String ou ) throws WebMessageException
+    {
+        OrganisationUnit orgUnit = idObjectManager.get( OrganisationUnit.class, ou );
+
+        if ( orgUnit == null )
         {
-            if ( type != null )
-            {
-                grids = dataSetReportService.getCustomDataSetReportAsGrid(
-                    selectedDataSet, selectedPeriod, selectedOrgunit, dimension,
-                    selectedUnitOnly, i18nManager.getI18nFormat() );
-            }
-            else
-            {
-                customDataEntryFormCode = dataSetReportService.getCustomDataSetReport(
-                    selectedDataSet, selectedPeriod, selectedOrgunit, dimension,
-                    selectedUnitOnly, i18nManager.getI18nFormat() );
-            }
-        }
-        else if ( formType.isSection() )
-        {
-            grids = dataSetReportService.getSectionDataSetReport(
-                selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly,
-                i18nManager.getI18nFormat(), i18nManager.getI18n() );
-        }
-        else
-        {
-            grids = dataSetReportService.getDefaultDataSetReport(
-                selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly,
-                i18nManager.getI18nFormat(), i18nManager.getI18n() );
+            throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
         }
 
-        // ---------------------------------------------------------------------
-        // Write response
-        // ---------------------------------------------------------------------
+        return orgUnit;
+    }
 
-        Writer output = response.getWriter();
+    private DataSet getAndValidateDataSet( String ds ) throws WebMessageException
+    {
+        DataSet dataSet = dataSetService.getDataSet( ds );
 
-        if ( formType.isCustom() && type == null )
+        if ( dataSet == null )
         {
-            IOUtils.write( customDataEntryFormCode, output );
+            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not exist: " + ds ) );
         }
-        else
+
+        return dataSet;
+    }
+
+    private Period getAndValidatePeriod( String pe ) throws WebMessageException
+    {
+        Period period = PeriodType.getPeriodFromIsoString( pe );
+
+        if ( period == null )
         {
-            for ( Grid grid : grids )
-            {
-                GridUtils.toHtmlCss( grid, output );
-            }
+            throw new WebMessageException( WebMessageUtils.conflict( "Period does not exist: " + pe ) );
         }
+
+        return periodService.reloadPeriod( period );
     }
 }

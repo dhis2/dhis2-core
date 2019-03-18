@@ -45,6 +45,8 @@ public final class MergeParams<T>
 
     private boolean skipSharing;
 
+    private boolean skipTranslation;
+
     public MergeParams( T source, T target )
     {
         this.source = Objects.requireNonNull( source );
@@ -80,6 +82,17 @@ public final class MergeParams<T>
     public MergeParams<T> setSkipSharing( boolean skipSharing )
     {
         this.skipSharing = skipSharing;
+        return this;
+    }
+
+    public boolean isSkipTranslation()
+    {
+        return skipTranslation;
+    }
+
+    public MergeParams<T> setSkipTranslation( boolean skipTranslation )
+    {
+        this.skipTranslation = skipTranslation;
         return this;
     }
 }

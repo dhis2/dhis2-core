@@ -73,6 +73,8 @@ public class DashboardServiceTest
     private Chart chartA;
     private Chart chartB;
 
+    private Document docA;
+
     @Override
     public void setUpTest()
     {
@@ -82,7 +84,7 @@ public class DashboardServiceTest
         chartService.addChart( chartA );
         chartService.addChart( chartB );
 
-        Document docA = new Document( "A", "url", false, null );
+        docA = new Document( "A", "url", false, null );
         Document docB = new Document( "B", "url", false, null );
         Document docC = new Document( "C", "url", false, null );
         Document docD = new Document( "D", "url", false, null );
@@ -124,20 +126,24 @@ public class DashboardServiceTest
     @Test
     public void testAddGet()
     {
-        int dAId = dashboardService.saveDashboard( dA );
-        int dBId = dashboardService.saveDashboard( dB );
+        long dAId = dashboardService.saveDashboard( dA );
+        long dBId = dashboardService.saveDashboard( dB );
 
         assertEquals( dA, dashboardService.getDashboard( dAId ) );
         assertEquals( dB, dashboardService.getDashboard( dBId ) );
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
+
+        assertEquals( 1, dashboardService.countChartDashboardItems( chartA ) );
+        assertEquals( 1, dashboardService.countChartDashboardItems( chartB ) );
+        assertEquals( 1, dashboardService.countDocumentDashboardItems( docA ) );
     }
 
     @Test
     public void testUpdate()
     {
-        int dAId = dashboardService.saveDashboard( dA );
+        long dAId = dashboardService.saveDashboard( dA );
 
         assertEquals( "A", dashboardService.getDashboard( dAId ).getName() );
 
@@ -151,8 +157,8 @@ public class DashboardServiceTest
     @Test
     public void testDelete()
     {
-        int dAId = dashboardService.saveDashboard( dA );
-        int dBId = dashboardService.saveDashboard( dB );
+        long dAId = dashboardService.saveDashboard( dA );
+        long dBId = dashboardService.saveDashboard( dB );
 
         assertNotNull( dashboardService.getDashboard( dAId ) );
         assertNotNull( dashboardService.getDashboard( dBId ) );
@@ -190,7 +196,7 @@ public class DashboardServiceTest
         eventChart.setProgram( prA );
         eventChart.setType( ChartType.COLUMN );
 
-        int idA = eventChartService.saveEventChart( eventChart );
+        long idA = eventChartService.saveEventChart( eventChart );
 
         assertNotNull( eventChartService.getEventChart( idA ) );
 
@@ -204,5 +210,25 @@ public class DashboardServiceTest
         assertNotNull( itemA );
 
         eventChartService.deleteEventChart( eventChart );
+    }
+
+    @Test
+    public void testSearchDashboard()
+    {
+        dashboardService.saveDashboard( dA );
+        dashboardService.saveDashboard( dB );
+
+        DashboardSearchResult result = dashboardService.search( "C" );
+        assertEquals(2, result.getChartCount() );
+        assertEquals(1, result.getResourceCount() );
+
+        result = dashboardService.search( "A" );
+        assertEquals(2, result.getChartCount() );
+        assertEquals(1, result.getResourceCount() );
+
+        result = dashboardService.search( "Z" );
+        assertEquals(0, result.getChartCount() );
+        assertEquals(0, result.getResourceCount() );
+
     }
 }

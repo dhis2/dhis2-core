@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.user.User;
 
 import java.util.List;
 import java.util.Set;
@@ -49,7 +50,7 @@ public interface TrackedEntityAttributeService
      * @return A generated unique id of the added {@link TrackedEntityAttribute}
      * .
      */
-    int addTrackedEntityAttribute( TrackedEntityAttribute attribute );
+    long addTrackedEntityAttribute( TrackedEntityAttribute attribute );
 
     /**
      * Deletes a {@link TrackedEntityAttribute}.
@@ -71,7 +72,7 @@ public interface TrackedEntityAttributeService
      * @param id the id of the TrackedEntityAttribute to return.
      * @return the TrackedEntityAttribute with the given id
      */
-    TrackedEntityAttribute getTrackedEntityAttribute( int id );
+    TrackedEntityAttribute getTrackedEntityAttribute( long id );
 
     /**
      * Returns the {@link TrackedEntityAttribute} with the given UID.
@@ -98,8 +99,12 @@ public interface TrackedEntityAttributeService
      * List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
-    
-    
+
+
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user );
+
+    Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes );
+
     /**
      * Returns all {@link TrackedEntityAttribute}
      *

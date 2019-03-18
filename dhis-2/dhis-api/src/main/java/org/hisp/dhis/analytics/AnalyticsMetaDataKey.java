@@ -37,7 +37,6 @@ public enum AnalyticsMetaDataKey
 {
     ITEMS( "items" ),
     DIMENSIONS( "dimensions" ),
-    NAMES( "names" ),
     PAGER( "pager" ),
     ORG_UNIT_HIERARCHY( "ouHierarchy" ),
     ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" ),

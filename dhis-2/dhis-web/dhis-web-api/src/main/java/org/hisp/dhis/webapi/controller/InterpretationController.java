@@ -55,7 +55,6 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -91,9 +89,6 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     @Autowired
     private IdentifiableObjectManager idObjectManager;
     
-    @Autowired
-    private UserService userService;
-
     @Override
     @SuppressWarnings( "unchecked" )
     protected List<Interpretation> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
@@ -326,9 +321,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             throw new AccessDeniedException( "You are not allowed to update this interpretation." );
         }
 
-        interpretation.setText( text );
-
-        interpretationService.updateInterpretation( interpretation );
+        interpretationService.updateInterpretationText( interpretation, text );
     }
 
     @Override
@@ -399,12 +392,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
                 }
 
                 comment.setText( content );
-                Set<User> users = MentionUtils.getMentionedUsers( content, userService );
-                comment.setMentionsFromUsers( users );
-                interpretationService.updateSharingForMentions( interpretation, users );
-                
-                interpretationService.updateInterpretation( interpretation );
-                interpretationService.sendNotifications( interpretation, comment, users );
+                interpretationService.updateComment( interpretation, comment );
 
             }
         }

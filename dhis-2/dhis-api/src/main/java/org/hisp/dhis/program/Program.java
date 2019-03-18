@@ -28,6 +28,34 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.UserAuthorityGroup;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -35,29 +63,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.user.UserAuthorityGroup;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew
@@ -93,8 +98,6 @@ public class Program
 
     private Set<ProgramIndicator> programIndicators = new HashSet<>();
 
-    private Set<ProgramRule> programRules = new HashSet<>();
-
     private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
     private Boolean onlyEnrollOnce = false;
@@ -104,12 +107,6 @@ public class Program
     private Boolean selectEnrollmentDatesInFuture = false;
 
     private Boolean selectIncidentDatesInFuture = false;
-
-    private String relationshipText;
-
-    private RelationshipType relationshipType;
-
-    private Boolean relationshipFromA = false;
 
     private Program relatedProgram;
 
@@ -131,11 +128,6 @@ public class Program
     private boolean skipOffline;
 
     /**
-     * The approval workflow (if any) for this program.
-     */
-    private DataApprovalWorkflow workflow;
-
-    /**
      * Property indicating whether a list of tracked entity instances should be
      * displayed, or whether a query must be made.
      */
@@ -148,9 +140,10 @@ public class Program
     private Boolean useFirstStageDuringRegistration = false;
 
     /**
-     * Property indicating whether program allows for capturing of coordinates
+     * Property indicating type of feature - none, point, symbol, polygon or
+     * multipolygon - to capture for program.
      */
-    private Boolean captureCoordinates = false;
+    private FeatureType featureType;
 
     /**
      * How many days after period is over will this program block creation and modification of events
@@ -167,18 +160,24 @@ public class Program
     /**
      * How many days after an event is completed will this program block modification of the event
      */
-    private int completeEventsExpiryDays;    
-    
+    private int completeEventsExpiryDays;
+
     /**
      * Property indicating minimum number of attributes required to fill
      * before search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
-    
+
     /**
      * Property indicating maximum number of TEI to return after search
      */
     private int maxTeiCountToReturn = 0;
+
+
+    /**
+     * Property indicating level of access
+     */
+    private AccessLevel accessLevel = AccessLevel.OPEN;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -221,21 +220,28 @@ public class Program
         organisationUnits.clear();
         organisationUnits.addAll( updates );
     }
-    
+
     /**
      * Returns IDs of searchable TrackedEntityAttributes.
      */
     public List<String> getSearchableAttributeIds()
-    {        
-        return programAttributes.stream().filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() ).map( ProgramTrackedEntityAttribute::getAttribute ).map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+    {
+        return programAttributes.stream()
+            .filter( pa -> pa.getAttribute().isSystemWideUnique() || pa.isSearchable() )
+            .map( ProgramTrackedEntityAttribute::getAttribute )
+            .map( TrackedEntityAttribute::getUid )
+            .collect( Collectors.toList() );
     }
-    
+
     /**
      * Returns display in list TrackedEntityAttributes
      */
     public List<TrackedEntityAttribute> getDisplayInListAttributes()
     {
-        return programAttributes.stream().filter( pa -> pa.isDisplayInList() ).map( ProgramTrackedEntityAttribute::getAttribute ).collect( Collectors.toList() );        
+        return programAttributes.stream()
+            .filter( pa -> pa.isDisplayInList() )
+            .map( ProgramTrackedEntityAttribute::getAttribute )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -260,14 +266,9 @@ public class Program
      */
     public Set<DataElement> getDataElements()
     {
-        Set<DataElement> elements = new HashSet<>();
-
-        for ( ProgramStage stage : programStages )
-        {
-            elements.addAll( stage.getAllDataElements() );
-        }
-
-        return elements;
+        return programStages.stream()
+            .flatMap( ps -> ps.getAllDataElements().stream() )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -276,7 +277,9 @@ public class Program
      */
     public Set<DataElement> getDataElementsWithLegendSet()
     {
-        return getDataElements().stream().filter( e -> e.hasLegendSet() && e.isNumericType() ).collect( Collectors.toSet() );
+        return getDataElements().stream()
+            .filter( de -> de.hasLegendSet() && de.isNumericType() )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -285,14 +288,9 @@ public class Program
      */
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
-        List<TrackedEntityAttribute> attributes = new ArrayList<>();
-
-        for ( ProgramTrackedEntityAttribute attribute : programAttributes )
-        {
-            attributes.add( attribute.getAttribute() );
-        }
-
-        return attributes;
+        return programAttributes.stream()
+            .map( at -> at.getAttribute() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -301,7 +299,9 @@ public class Program
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes()
     {
-        return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() ).collect( Collectors.toList() );
+        return getTrackedEntityAttributes().stream()
+            .filter( a -> !a.isConfidentialBool() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -310,7 +310,9 @@ public class Program
      */
     public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet()
     {
-        return getTrackedEntityAttributes().stream().filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() ).collect( Collectors.toList() );
+        return getTrackedEntityAttributes().stream()
+            .filter( a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType() )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -534,20 +536,6 @@ public class Program
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programRules", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRule> getProgramRules()
-    {
-        return programRules;
-    }
-
-    public void setProgramRules( Set<ProgramRule> programRules )
-    {
-        this.programRules = programRules;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "programRuleVariables", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
     public Set<ProgramRuleVariable> getProgramRuleVariables()
@@ -611,31 +599,6 @@ public class Program
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 2 )
-    public String getRelationshipText()
-    {
-        return relationshipText;
-    }
-
-    public void setRelationshipText( String relationshipText )
-    {
-        this.relationshipText = relationshipText;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelationshipType getRelationshipType()
-    {
-        return relationshipType;
-    }
-
-    public void setRelationshipType( RelationshipType relationshipType )
-    {
-        this.relationshipType = relationshipType;
-    }
-
-    @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Program getRelatedProgram()
@@ -646,18 +609,6 @@ public class Program
     public void setRelatedProgram( Program relatedProgram )
     {
         this.relatedProgram = relatedProgram;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getRelationshipFromA()
-    {
-        return relationshipFromA;
-    }
-
-    public void setRelationshipFromA( Boolean relationshipFromA )
-    {
-        this.relationshipFromA = relationshipFromA;
     }
 
     @JsonProperty( "programTrackedEntityAttributes" )
@@ -712,18 +663,6 @@ public class Program
         this.categoryCombo = categoryCombo;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataApprovalWorkflow getWorkflow()
-    {
-        return workflow;
-    }
-
-    public void setWorkflow( DataApprovalWorkflow workflow )
-    {
-        this.workflow = workflow;
-    }
-
     /**
      * Indicates whether this program has a category combination which is different
      * from the default category combination.
@@ -771,14 +710,14 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getCaptureCoordinates()
+    public FeatureType getFeatureType()
     {
-        return captureCoordinates;
+        return featureType;
     }
 
-    public void setCaptureCoordinates( Boolean captureCoordinates )
+    public void setFeatureType( FeatureType featureType )
     {
-        this.captureCoordinates = captureCoordinates;
+        this.featureType = featureType;
     }
 
     @JsonProperty
@@ -830,7 +769,7 @@ public class Program
     {
         this.minAttributesRequiredToSearch = minAttributesRequiredToSearch;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getMaxTeiCountToReturn()
@@ -879,5 +818,37 @@ public class Program
     public void setProgramSections( Set<ProgramSection> programSections )
     {
         this.programSections = programSections;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AccessLevel getAccessLevel()
+    {
+        return accessLevel;
+    }
+
+    public void setAccessLevel( AccessLevel accessLevel )
+    {
+        this.accessLevel = accessLevel;
+    }
+
+    public boolean isOpen()
+    {
+        return this.accessLevel == AccessLevel.OPEN;
+    }
+
+    public boolean isAudited()
+    {
+        return this.accessLevel == AccessLevel.AUDITED;
+    }
+
+    public boolean isProtected()
+    {
+        return this.accessLevel == AccessLevel.PROTECTED;
+    }
+
+    public boolean isClosed()
+    {
+        return this.accessLevel == AccessLevel.CLOSED;
     }
 }

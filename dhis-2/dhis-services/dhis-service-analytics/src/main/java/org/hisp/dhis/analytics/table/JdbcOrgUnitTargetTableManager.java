@@ -28,9 +28,13 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -40,6 +44,7 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -61,12 +66,12 @@ public class JdbcOrgUnitTargetTableManager
     {
         return AnalyticsTableType.ORG_UNIT_TARGET;
     }
-    
+
     @Override
     @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        return Lists.newArrayList( new AnalyticsTable( getTableName(), getDimensionColumns(), getValueColumns() ) );
+        return Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -74,7 +79,7 @@ public class JdbcOrgUnitTargetTableManager
     {
         return Sets.newHashSet( getTableName() );
     }
-    
+
     @Override
     public String validState()
     {
@@ -86,9 +91,9 @@ public class JdbcOrgUnitTargetTableManager
     {
         return Lists.newArrayList();
     }
-        
+
     @Override
-    protected void populateTable( AnalyticsTablePartition partition )
+    protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String tableName = partition.getTempTableName();
 
@@ -96,9 +101,9 @@ public class JdbcOrgUnitTargetTableManager
 
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
-        
+
         validateDimensionColumns( columns );
-        
+
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
             sql += col.getName() + ",";
@@ -110,13 +115,13 @@ public class JdbcOrgUnitTargetTableManager
         {
             sql += col.getAlias() + ",";
         }
-        
+
         sql +=
             "1 as value " +
             "from orgunitgroupmembers ougm " +
             "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
             "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
-            "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";            
+            "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
 
         populateAndLog( sql, tableName );
     }
@@ -127,25 +132,23 @@ public class JdbcOrgUnitTargetTableManager
 
         List<OrganisationUnitLevel> levels =
             organisationUnitService.getFilledOrganisationUnitLevels();
-                
+
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, "character(11)", "ous." + column, level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "oug" ), "character(11) not null", "oug.uid" ) );
-        
+        columns.add( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
+
         return filterDimensionColumns( columns );
     }
-    
+
     private List<AnalyticsTableColumn> getValueColumns()
     {
-        final String dbl = statementBuilder.getDoubleColumnType();
-        
-        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), dbl, "value" ) );
+        return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DOUBLE, "value" ) );
     }
-    
+
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )

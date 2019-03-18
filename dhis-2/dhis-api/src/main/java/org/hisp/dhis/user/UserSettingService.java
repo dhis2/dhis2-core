@@ -134,10 +134,10 @@ public interface UserSettingService
     /**
      * Returns all specified user settings. If any user settings have not been set,
      * system settings will be used as a fallback.
-     * @param names the settings to retrieve
+     * @param userSettingKeys the set of user settings to retrieve
      * @return a map of setting names and their values
      */
-    Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<String> names, boolean useFallback );
+    Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys, boolean useFallback );
 
     /**
      * Invalidates in-memory caches.

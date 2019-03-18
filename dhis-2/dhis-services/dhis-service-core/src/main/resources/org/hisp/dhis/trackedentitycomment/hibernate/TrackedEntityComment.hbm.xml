@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
   "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+  >
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.trackedentitycomment.TrackedEntityComment" table="trackedentitycomment">
@@ -9,12 +11,11 @@
     <id name="id" column="trackedentitycommentid">
       <generator class="native" />
     </id>
+    &identifiableProperties;
 
-    <property name="commentText" column="commenttext" type="text"/>
+    <property name="commentText" column="commenttext" type="text" />
 
-    <property name="createdDate" column="createddate"/>
-	
-	<property name="creator" column="creator"/>
-	 
+    <property name="creator" column="creator" />
+
   </class>
 </hibernate-mapping>

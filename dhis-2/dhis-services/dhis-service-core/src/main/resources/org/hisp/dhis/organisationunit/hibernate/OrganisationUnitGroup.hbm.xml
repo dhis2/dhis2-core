@@ -23,6 +23,8 @@
     
     <property name="color" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <set name="members" table="orgunitgroupmembers">
       <cache usage="read-write" />
       <key column="orgunitgroupid" foreign-key="fk_orgunitgroupmembers_orgunitgroupid" />
@@ -36,14 +38,7 @@
       <many-to-many class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" column="orgunitgroupsetid" />
     </set>
 
-    <property name="coordinates" type="text" />
-
-    <!-- Object Translation -->
-    <set name="translations" table="orgunitgrouptranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="orgunitgroupid" foreign-key="fk_objecttranslation_orgunitgroupid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
+    <property name="geometry" />
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_orgunitgroup_userid" />

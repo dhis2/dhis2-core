@@ -72,14 +72,14 @@ public interface DataStatisticsService
      * @param dataStatistics the DataStatistics instance.
      * @return identifier of the persisted DataStatistics object.
      */
-    int saveDataStatistics( DataStatistics dataStatistics );
+    long saveDataStatistics( DataStatistics dataStatistics );
 
     /**
      * Gets all information and creates a DataStatistics object and persists it.
      *
      * @return identifier of the persisted DataStatistics object.
      */
-    int saveDataStatisticsSnapshot();
+    long saveDataStatisticsSnapshot();
 
     /**
      * Returns top favorites by views

@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.metadata;
 
-    /*
+/*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
@@ -30,8 +30,7 @@ package org.hisp.dhis.dxf2.metadata;
 
 import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,6 +49,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.preheat.PreheatMode;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -62,7 +62,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -75,7 +74,7 @@ import java.util.Map;
 @Transactional
 public class DefaultMetadataImportService implements MetadataImportService
 {
-    private static final Log log = LogFactory.getLog( DefaultMetadataImportService.class );
+    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultMetadataImportService.class );
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -159,7 +158,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         if ( bundle.hasJobId() )
         {
             notifier.notify( bundle.getJobId(), NotificationLevel.INFO, message, true )
-                .addJobSummary( bundle.getJobId(), importReport );
+                .addJobSummary( bundle.getJobId(), importReport, ImportReport.class );
         }
 
         if ( ObjectBundleMode.VALIDATE == params.getImportMode() )
@@ -208,6 +207,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         }
 
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
+        params.setSkipTranslation( getBooleanWithDefault( parameters, "skipTranslation", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
         params.setUserOverrideMode( getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
         params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
@@ -218,6 +218,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         params.setMergeMode( getEnumWithDefault( MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
         params.setImportReportMode( getEnumWithDefault( ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS ) );
+        params.setFirstRowIsHeader( getBooleanWithDefault( parameters, "firstRowIsHeader", true ) );
 
         if ( getBooleanWithDefault( parameters, "async", false ) )
         {
@@ -239,6 +240,10 @@ public class DefaultMetadataImportService implements MetadataImportService
             if ( overrideUser == null )
             {
                 throw new MetadataImportException( "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
+            }
+            else
+            {
+                params.setOverrideUser( overrideUser );
             }
         }
 
@@ -293,7 +298,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, bundle.getUser() );
         }
 
-        if ( object.getUser() == null || manager.get( object.getUser().getUid() ) == null )
+        if ( object.getUser() == null || bundle.getPreheat().get( params.getPreheatIdentifier(), User.class, object.getUser().getUid() ) == null )
         {
             object.setUser( bundle.getUser() );
         }

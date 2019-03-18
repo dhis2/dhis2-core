@@ -50,7 +50,7 @@ public class EventAnalyticsUtils
 {
     /**
      * Get all combinations from map. Fill the result into list.
-     * 
+     *
      * @param map the map with all values
      * @param list the resulting list
      */
@@ -114,7 +114,7 @@ public class EventAnalyticsUtils
 
     /**
      * Get event data mapping for values.
-     * 
+     *
      * @param grid the grid to collect data from
      * @return map with key and values
      */

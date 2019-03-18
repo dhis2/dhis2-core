@@ -28,10 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.cronutils.model.Cron;
-import com.cronutils.model.definition.CronDefinition;
-import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.parser.CronParser;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -44,6 +40,7 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static com.cronutils.model.CronType.QUARTZ;
 import static org.hisp.dhis.scheduling.DefaultSchedulingManager.CONTINOUS_CRON;
 import static org.hisp.dhis.scheduling.DefaultSchedulingManager.HOUR_CRON;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -63,8 +59,6 @@ public class JobConfigurationObjectBundleHook
     extends AbstractObjectBundleHook
 {
     private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
-
-    private static final int SUCCESS = 1;
 
     @Autowired
     private JobConfigurationService jobConfigurationService;
@@ -127,14 +121,14 @@ public class JobConfigurationObjectBundleHook
         return errorReports;
     }
 
-    private List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
+    protected List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
         JobConfiguration persitedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
         if ( persitedJobConfiguration != null && !persitedJobConfiguration.isConfigurable() )
         {
-            if ( persitedJobConfiguration.compareTo( jobConfiguration ) !=  SUCCESS )
+            if ( persitedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
             {
                 errorReports
                     .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
@@ -148,24 +142,16 @@ public class JobConfigurationObjectBundleHook
 
         if ( !jobConfiguration.isContinuousExecution() )
         {
-            if ( jobConfiguration.getCronExpression() == null )
+            if ( Objects.isNull( jobConfiguration.getCronExpression() ) )
             {
                 errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
                 return errorReports;
             }
 
             // Validate the cron expression
-            CronDefinition cronDefinition = CronDefinitionBuilder.instanceDefinitionFor( QUARTZ );
-            CronParser parser = new CronParser( cronDefinition );
-            Cron quartzCron;
-            try
+            if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
             {
-                quartzCron = parser.parse( jobConfiguration.getCronExpression() );
-                quartzCron.validate();
-            }
-            catch ( IllegalArgumentException e )
-            {
-                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005, e ) );
+                errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
                 return errorReports;
             }
         }
@@ -176,7 +162,7 @@ public class JobConfigurationObjectBundleHook
         // Validate parameters
         ErrorReport parameterValidation =
             jobConfiguration.getJobParameters() != null ? jobConfiguration.getJobParameters().validate() : null;
-        if ( parameterValidation != null )
+        if ( !Objects.isNull( parameterValidation ) )
         {
             errorReports.add( parameterValidation );
         }
@@ -185,7 +171,13 @@ public class JobConfigurationObjectBundleHook
         ErrorReport jobValidation = job.validate();
         if ( jobValidation != null )
         {
-            errorReports.add( jobValidation );
+            // If the error is caused by the environment and the job is a non configurable job
+            // that exists already, then the error can be ignored. Job has the issue with and
+            // without updating it.
+            if ( jobValidation.getErrorCode() != ErrorCode.E7010 || persitedJobConfiguration == null || jobConfiguration.isConfigurable() )
+            {
+                errorReports.add( jobValidation );
+            }
         }
 
         return errorReports;

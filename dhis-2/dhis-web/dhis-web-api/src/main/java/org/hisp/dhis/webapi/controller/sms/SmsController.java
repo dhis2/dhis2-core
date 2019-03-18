@@ -28,9 +28,14 @@ package org.hisp.dhis.webapi.controller.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.program.message.ProgramMessage;
+import org.hisp.dhis.program.message.ProgramMessageQueryParams;
+import org.hisp.dhis.program.message.ProgramMessageService;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -46,9 +51,8 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -58,9 +62,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -89,42 +94,49 @@ public class SmsController
     @Autowired
     private UserService userService;
 
+    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
+    private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+
+    @Autowired
+    private ProgramMessageService programMessageService;
+
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/commands", method = RequestMethod.GET, produces = "application/json" )
-    public void getSmsCommands( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
+    @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
+    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response ) throws IOException
     {
-        List<SMSCommand> commands = smsCommandService.getSMSCommands();
+        List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
 
-        if ( commands != null && !commands.isEmpty() )
+        if ( scheduledAt != null )
         {
-            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-            renderService.toJson( response.getOutputStream(), commands );
+            instances = instances.parallelStream().filter( Objects::nonNull )
+                .filter( i -> scheduledAt.equals( i.getScheduledAt() ) )
+                .collect( Collectors.toList() );
         }
+
+        renderService.toJson( response.getOutputStream(), instances );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
-    @RequestMapping( value = "/commands/{commandName}", method = RequestMethod.GET, produces = "application/json" )
-    public void getSmsCommandTypes( @PathVariable( "commandName" ) String commandName, @RequestParam ParserType type,
-        HttpServletRequest request, HttpServletResponse response )
-        throws IOException, WebMessageException
+    @RequestMapping( value = "/scheduled/sent", method = RequestMethod.GET )
+    public void getScheduledSentMessage(
+        @RequestParam( required = false ) String programInstance,
+        @RequestParam( required = false ) String programStageInstance,
+        @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        HttpServletResponse response ) throws IOException
     {
-        SMSCommand command = smsCommandService.getSMSCommand( commandName, type );
+        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
+            null, page, pageSize, afterDate, null );
 
-        if ( command == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "No SMS command found" ) );
-        }
+        List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-
-        renderService.toJson( response.getOutputStream(), command );
+        renderService.toJson( response.getOutputStream(), programMessages );
     }
+
 
     // -------------------------------------------------------------------------
     // POST
@@ -182,7 +194,7 @@ public class SmsController
     public void receiveSMSMessage( @RequestParam String originator, @RequestParam( required = false ) Date receivedTime,
         @RequestParam String message, @RequestParam( defaultValue = "Unknown", required = false ) String gateway,
         HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, ParseException
+        throws WebMessageException
     {
         if ( originator == null || originator.length() <= 0 )
         {
@@ -202,7 +214,7 @@ public class SmsController
     @RequestMapping( value = "/inbound", method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void receiveSMSMessage( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, ParseException, IOException
+        throws WebMessageException, IOException
     {
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
         sms.setUser( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
@@ -215,7 +227,6 @@ public class SmsController
     @RequestMapping( value = "/import", method = RequestMethod.POST, consumes = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void importUnparsedSMSMessages( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, ParseException, IOException
     {
         List<IncomingSms> importMessageList = incomingSMSService.getAllUnparsedMessages();
 

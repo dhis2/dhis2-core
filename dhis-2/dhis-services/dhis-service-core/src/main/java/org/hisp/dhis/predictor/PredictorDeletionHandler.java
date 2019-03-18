@@ -32,6 +32,7 @@ import org.hisp.dhis.dataelement.DataElement;
 
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Iterator;
 import java.util.List;
@@ -46,12 +47,8 @@ public class PredictorDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
+    @Autowired
     private PredictorService predictorService;
-
-    public void setPredictorService( PredictorService predictorService )
-    {
-        this.predictorService = predictorService;
-    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -83,7 +80,17 @@ public class PredictorDeletionHandler
             }
         }
     }
-    
+
+    @Override
+    public void deletePredictorGroup( PredictorGroup predictorGroup )
+    {
+        for ( Predictor predictor : predictorGroup.getMembers() )
+        {
+            predictor.getGroups().remove( predictorGroup );
+            predictorService.updatePredictor( predictor );
+        }
+    }
+
     @Override
     public String allowDeleteDataElement( DataElement dataElement )
     {

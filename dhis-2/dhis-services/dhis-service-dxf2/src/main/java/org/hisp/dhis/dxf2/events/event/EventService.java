@@ -28,10 +28,17 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -41,12 +48,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.JobConfiguration;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,13 +62,17 @@ public interface EventService
 
     EventRows getEventRows( EventSearchParams params );
 
-    EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp, String orgUnit,
-        OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
-        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
-        Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters, Set<String> dataElements, boolean includeDeleted );
+    EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
+        String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
+        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
+        Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes,
+        Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
+        List<String> gridOrders, boolean includeAttributes, Set<String> events, Set<String> filters,
+        Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
     Event getEvent( ProgramStageInstance programStageInstance );
+
+    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery );
 
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
@@ -77,13 +82,32 @@ public interface EventService
 
     int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
 
+    /**
+     * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     *
+     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
+     * @return the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
+     */
+    int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore );
+
     Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
+
+    /**
+     * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     *
+     * @param pageSize Specifies the max number for the events returned.
+     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
+     * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the data should not be synchronized
+     * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
+     */
+    Events getAnonymousEventsForSync( int pageSize, Date skipChangedBefore,
+        Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
 
-    ImportSummary addEvent( Event event, ImportOptions importOptions );
+    ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport );
 
     ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession );
 
@@ -91,25 +115,36 @@ public interface EventService
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
+        throws IOException;
 
     ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
+        throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
-    ImportSummary updateEvent( Event event, boolean singleValue );
+    ImportSummary updateEvent( Event event, boolean singleValue, boolean bulkUpdate );
 
-    ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions );
+    ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate );
 
-    ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession );
+    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
+        boolean clearSession );
 
     void updateEventForNote( Event event );
 
     void updateEventForEventDate( Event event );
+
+    /**
+     * Updates a last sync timestamp on specified Events
+     *
+     * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be updated
+     * @param lastSynchronized The date of last successful sync
+     */
+    void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );
 
     // -------------------------------------------------------------------------
     // DELETE
@@ -117,8 +152,7 @@ public interface EventService
 
     ImportSummary deleteEvent( String uid );
 
-    ImportSummaries deleteEvents( List<String> uids );
+    ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
-
 }

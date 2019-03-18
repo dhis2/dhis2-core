@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner"
+    table="trackedentityprogramowner">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="trackedentityprogramownerid">
+      <generator class="native" />
+    </id>
+
+    <many-to-one name="entityInstance"
+      class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
+      foreign-key="fk_trackedentityprogramowner_trackedentityinstanceid"
+      lazy="false" unique-key="uk_tei_program" />
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+      column="programid" not-null="true"
+      foreign-key="fk_trackedentityprogramowner_programid" lazy="false"
+      unique-key="uk_tei_program" />
+
+    <property name="created" type="timestamp" not-null="true" />
+
+    <property name="lastUpdated" type="timestamp" not-null="true" />
+
+    <many-to-one name="organisationUnit"
+      class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
+      foreign-key="fk_trackedentityprogramowner_organisationunitid" />
+
+    <property name="createdBy" column="createdBy" not-null="true" />
+
+  </class>
+
+</hibernate-mapping>

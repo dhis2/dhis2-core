@@ -28,9 +28,6 @@ package org.hisp.dhis.mock;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.User;
@@ -38,6 +35,10 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Adrian Quintana
@@ -53,7 +54,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public int addUser( User user )
+    public long addUser( User user )
     {
         this.users.add( user );
         return user.getId();
@@ -65,7 +66,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public User getUser( int id )
+    public User getUser( long id )
     {
         return null;
     }
@@ -74,6 +75,12 @@ public class MockUserService implements UserService
     public User getUser( String uid )
     {
         return null;
+    }
+
+    @Override
+    public List<User> getUsers( Collection<String> uid )
+    {
+        return this.users;
     }
 
     @Override
@@ -94,12 +101,6 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public List<User> getUsersByUid( List<String> uids )
-    {
-        return null;
-    }
-
-    @Override
     public boolean isLastSuperUser( UserCredentials userCredentials )
     {
         return false;
@@ -109,18 +110,6 @@ public class MockUserService implements UserService
     public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
     {
         return false;
-    }
-
-    @Override
-    public List<User> getManagedUsers( User user )
-    {
-        return null;
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        return 0;
     }
 
     @Override
@@ -160,7 +149,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public int addUserCredentials( UserCredentials userCredentials )
+    public long addUserCredentials( UserCredentials userCredentials )
     {
         return 0;
     }
@@ -235,7 +224,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         return 0;
     }
@@ -246,7 +235,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public UserAuthorityGroup getUserAuthorityGroup( int id )
+    public UserAuthorityGroup getUserAuthorityGroup( long id )
     {
         return null;
     }
@@ -294,18 +283,6 @@ public class MockUserService implements UserService
 
     @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
-    {
-        return 0;
-    }
-
-    @Override
-    public int getUserRoleCount()
-    {
-        return 0;
-    }
-
-    @Override
-    public int getUserRoleCountByName( String name )
     {
         return 0;
     }

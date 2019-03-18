@@ -28,11 +28,11 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -46,18 +46,21 @@ public class HibernateTrackedEntityAttributeStore
     // Implementation methods
     // -------------------------------------------------------------------------
 
-
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttribute> getByDisplayOnVisitSchedule( boolean displayOnVisitSchedule )
     {
-        return getCriteria( Restrictions.eq( "displayOnVisitSchedule", displayOnVisitSchedule ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "displayOnVisitSchedule" ), displayOnVisitSchedule ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityAttribute> getDisplayInListNoProgram()
     {
-        return getCriteria( Restrictions.eq( "displayInListNoProgram", true ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "displayInListNoProgram" ), true ) ) );
     }
 }

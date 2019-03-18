@@ -30,6 +30,7 @@ package org.hisp.dhis.common.adapter;
 
 import java.io.IOException;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
@@ -47,6 +48,7 @@ class LocalPeriod
     {
     }
 
+    @JsonProperty
     public String getId()
     {
         return id;
@@ -57,6 +59,7 @@ class LocalPeriod
         this.id = id;
     }
 
+    @JsonProperty
     public String getName()
     {
         return name;

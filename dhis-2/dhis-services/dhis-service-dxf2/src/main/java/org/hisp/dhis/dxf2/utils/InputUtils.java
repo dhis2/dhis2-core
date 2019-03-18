@@ -1,18 +1,5 @@
 package org.hisp.dhis.dxf2.utils;
 
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Set;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -41,21 +28,56 @@ import java.util.Set;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.core.env.Environment;
+
+import javax.annotation.PostConstruct;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 /**
  * @author Lars Helge Overland
  */
 public class InputUtils
 {
+    private static Cache<String, Long> ATTR_OPTION_COMBO_ID_CACHE;
+
     @Autowired
     private CategoryService categoryService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
+    @Autowired
+    private Environment env;
+
+    @PostConstruct
+    public void init()
+    {
+
+        ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
+                .expireAfterWrite( 3, TimeUnit.HOURS )
+                .initialCapacity( 1000 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+    }
+
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as
      * status code along with a textual message will be set on the response in
-     * case of invalid input.
+     * case of invalid input. The response is cached.
      *
      * @param cc the category combo identifier.
      * @param cp the category and option query string.
@@ -65,6 +87,29 @@ public class InputUtils
      *         null. if the input was invalid.
      */
     public CategoryOptionCombo getAttributeOptionCombo( String cc, String cp, boolean skipFallback )
+    {
+        String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
+
+        Long id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
+
+        if ( id != null )
+        {
+            return categoryService.getCategoryOptionCombo( id );
+        }
+        else
+        {
+            CategoryOptionCombo aoc = getAttributeOptionComboInternal( cc, cp, skipFallback );
+
+            if ( aoc != null )
+            {
+                ATTR_OPTION_COMBO_ID_CACHE.put( cacheKey, aoc.getId() );
+            }
+
+            return aoc;
+        }
+    }
+
+    private CategoryOptionCombo getAttributeOptionComboInternal( String cc, String cp, boolean skipFallback )
     {
         Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
 
@@ -94,25 +139,7 @@ public class InputUtils
             categoryCombo = categoryService.getDefaultCategoryCombo();
         }
 
-        return getAttributeOptionCombo( categoryCombo, cp, null, IdScheme.UID );
-    }
-
-    /**
-     * Validates and retrieves the attribute option combo. 409 conflict as
-     * status code along with a textual message will be set on the response in
-     * case of invalid input.
-     *
-     * @param categoryCombo the category combo.
-     * @param cp the category option query string.
-     * @param attributeOptionCombo the explicit attribute option combo identifier.
-     * @return the attribute option combo identified from the given input, or
-     *         null if the input was invalid.
-     */
-    public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String cp, String attributeOptionCombo, IdScheme idScheme )
-    {
-        Set<String> opts = TextUtils.splitToArray( cp, TextUtils.SEMICOLON );
-
-        return getAttributeOptionCombo( categoryCombo, opts, attributeOptionCombo, idScheme );
+        return getAttributeOptionCombo( categoryCombo, opts, null, IdScheme.UID );
     }
 
     /**
@@ -198,5 +225,18 @@ public class InputUtils
         }
 
         return attrOptCombo;
+    }
+
+    /**
+     * Checks if user is authorized to force data input.
+     * Having just the authority is not enough. User has to explicitly ask for it.
+     *
+     * @param currentUser the user attempting to force data input
+     * @param force request to force data input
+     * @return true if authorized and requested for it, otherwise false
+     */
+    public boolean canForceDataInput( User currentUser, boolean force )
+    {
+        return force && currentUser.isSuper();
     }
 }

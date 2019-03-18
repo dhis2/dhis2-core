@@ -66,7 +66,7 @@ public class RedirectAction
         String startModule = (String) systemSettingManager.getSystemSetting( SettingKey.START_MODULE );
 
         String contextPath = (String) ContextUtils.getContextPath( ServletActionContext.getRequest() );
-        
+
         if ( startModule != null && !startModule.trim().isEmpty() )
         {
             if ( startModule.startsWith( "app:" ) )
@@ -84,13 +84,12 @@ public class RedirectAction
             }
             else
             {
-                redirectUrl = "../" + startModule + "/index.action";
+                redirectUrl = "../" + startModule + "/";
                 return SUCCESS;
             }
         }
 
-        redirectUrl = "../dhis-web-dashboard/index.html";
-
+        redirectUrl = "../dhis-web-dashboard/";
         return SUCCESS;
     }
 }

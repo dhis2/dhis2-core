@@ -36,7 +36,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -175,5 +177,14 @@ public class ProgramStageDataElementServiceTest
 
         assertTrue( equals( programStageDataElementService.getAllProgramStageDataElements(), stageDataElementA,
             stageDataElementB ) );
+    }
+
+    @Test( expected = DeleteNotAllowedException.class )
+    public void testRemoveReferencedDataElement()
+    {
+        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
+        stageA.setProgramStageDataElements( ImmutableSet.of( stageDataElementA ) );
+        programStageService.updateProgramStage( stageA );
+        dataElementService.deleteDataElement( dataElementA );
     }
 }

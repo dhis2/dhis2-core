@@ -49,7 +49,7 @@ public class DefaultColorService
     // ColorService implementation
     // -------------------------------------------------------------------------
 
-    public int addColorSet( ColorSet colorSet )
+    public long addColorSet( ColorSet colorSet )
     {
         colorSetStore.save( colorSet );
         return colorSet.getId();

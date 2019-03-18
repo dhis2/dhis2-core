@@ -1,10 +1,5 @@
 package org.hisp.dhis.program;
 
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.util.Date;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -33,9 +28,18 @@ import java.util.Date;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface ProgramStageInstanceService
 {
@@ -47,7 +51,7 @@ public interface ProgramStageInstanceService
      * @param programStageInstance The ProgramStageInstance to add.
      * @return A generated unique id of the added {@link ProgramStageInstance}.
      */
-    int addProgramStageInstance( ProgramStageInstance programStageInstance );
+    long addProgramStageInstance( ProgramStageInstance programStageInstance );
 
     /**
      * Deletes a {@link ProgramStageInstance}.
@@ -72,6 +76,14 @@ public interface ProgramStageInstanceService
     void updateProgramStageInstance( ProgramStageInstance programStageInstance );
 
     /**
+     * Updates a last sync timestamp on specified ProgramStageInstances
+     *
+     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the lastSynchronized flag should be updated
+     * @param lastSynchronized         The date of last successful sync
+     */
+    void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
+
+    /**
      * Checks whether a {@link ProgramStageInstance} with the given identifier
      * exists. Doesn't take into account the deleted values.
      *
@@ -93,7 +105,7 @@ public interface ProgramStageInstanceService
      * @param id the id of the ProgramStageInstance to return.
      * @return the ProgramStageInstance with the given id.
      */
-    ProgramStageInstance getProgramStageInstance( int id );
+    ProgramStageInstance getProgramStageInstance( long id );
 
     /**
      * Returns the {@link ProgramStageInstance} with the given UID.
@@ -130,8 +142,9 @@ public interface ProgramStageInstanceService
      * @param programStageInstance the ProgramStageInstance.
      * @param skipNotifications    whether to send prgram stage notifications or not.
      * @param format               the I18nFormat for the notification messages.
+     * @param completedDate        the completedDate for the event. If null, the current date is set as the completed date.
      */
-    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format );
+    void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications, I18nFormat format, Date completedDate );
 
     /**
      * Creates a program stage instance.
@@ -145,4 +158,27 @@ public interface ProgramStageInstanceService
      */
     ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
+
+    /**
+     * Handles files for File EventDataValues and creates audit logs for the upcoming changes. DOES NOT PERSIST the changes to the PSI object
+     *
+     * @param newDataValues EventDataValues to add
+     * @param updatedDataValues EventDataValues to update
+     * @param removedDataValues EventDataValues to remove
+     * @param dataElementsCache DataElements cache map with DataElements required for creating audit logs for changed EventDataValues
+     * @param programStageInstance programStageInstance to which the EventDataValues belongs to
+     * @param singleValue specifies whether the update is a single value update
+     */
+    void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues, Set<EventDataValue> updatedDataValues,Set<EventDataValue> removedDataValues,
+        Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue );
+
+    /**
+     * Validates EventDataValues, handles files for File EventDataValues and creates audit logs for the upcoming create/save changes.
+     * DOES PERSIST the changes to the PSI object.
+     *
+     * @param programStageInstance the ProgramStageInstance that EventDataValues belong to
+     * @param dataElementEventDataValueMap the map of DataElements and related EventDataValues to update
+     */
+    void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance,
+        Map<DataElement, EventDataValue> dataElementEventDataValueMap );
 }

@@ -38,7 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Super class for gateway configurations
- * 
+ *
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
@@ -57,19 +57,20 @@ public abstract class SmsGatewayConfig
 
     private boolean isDefault;
 
-    private String urltemplate;
+    private String urlTemplate;
 
-    @JsonProperty( value = "urltemplate" )
+    @JsonProperty( value = "urlTemplate" )
     public String getUrlTemplate()
     {
-        return urltemplate;
+        return urlTemplate;
     }
 
     public void setUrlTemplate( String urlTemplate )
     {
-        this.urltemplate = urlTemplate;
+        this.urlTemplate = urlTemplate;
     }
 
+    @JsonProperty( value = "name" )
     public String getName()
     {
         return name;
@@ -80,6 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
+    @JsonProperty( value = "default" )
     public boolean isDefault()
     {
         return isDefault;
@@ -101,10 +103,6 @@ public abstract class SmsGatewayConfig
         this.uid = uid;
     }
 
-    public abstract boolean isInbound();
-
-    public abstract boolean isOutbound();
-
     @JsonIgnore
     public String getPassword()
     {
@@ -125,5 +123,42 @@ public abstract class SmsGatewayConfig
     public void setUsername(String username)
     {
         this.username = username;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( !( o instanceof SmsGatewayConfig ) )
+        {
+            return false;
+        }
+
+        final SmsGatewayConfig other = (SmsGatewayConfig) o;
+
+        return uid.equals( other.getUid() );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return uid.hashCode();
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SmsGatewayConfig{" +
+                "uid='" + uid + '\'' +
+                ", name='" + name + '\'' +
+                ", username='" + username + '\'' +
+                ", password='" + password + '\'' +
+                ", isDefault=" + isDefault +
+                ", urlTemplate='" + urlTemplate + '\'' +
+                '}';
     }
 }

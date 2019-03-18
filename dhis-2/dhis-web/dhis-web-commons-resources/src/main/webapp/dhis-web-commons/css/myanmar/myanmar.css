@@ -66,8 +66,8 @@ input[type=text],input[type=password],input[type=email],textarea
 #headerBanner
 {
   position: absolute;
-  top: 13px;
-  left: 55px;
+  top: 0;
+  left: 0;
 }
 
 #headerText

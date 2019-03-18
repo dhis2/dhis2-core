@@ -176,7 +176,7 @@ public class HibernateDbmsManager
         emptyTable( "eventchartusergroupaccesses" );
         emptyTable( "eventcharttranslations" );
         emptyTable( "eventchart" );
-        
+
         emptyTable( "dataelementgroupsetdimension_items" );
         emptyTable( "dataelementgroupsetdimension" );
         emptyTable( "categoryoptiongroupsetdimension" );
@@ -232,6 +232,10 @@ public class HibernateDbmsManager
         emptyTable( "dataapprovalworkflow" );
         emptyTable( "dataapprovallevel" );
 
+        emptyTable( "predictorgroupmembers" );
+        emptyTable( "predictorgroup" );
+        emptyTable( "predictorgroupusergroupaccesses" );
+
         emptyTable( "predictororgunitlevels" );
         emptyTable( "predictor" );
 
@@ -241,8 +245,8 @@ public class HibernateDbmsManager
         emptyTable( "programruleaction" );
         emptyTable( "programrule" );
 
-        emptyTable( "trackedentitydatavalue" );
         emptyTable( "trackedentitydatavalueaudit" );
+        emptyTable( "trackedentityprogramowner" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );
@@ -252,6 +256,7 @@ public class HibernateDbmsManager
         emptyTable( "program_organisationunits" );
         emptyTable( "programusergroupaccesses" );
         emptyTable( "program_attributes" );
+        emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "program" );
 
@@ -259,6 +264,7 @@ public class HibernateDbmsManager
         emptyTable( "trackedentityattributevalueaudit" );
         emptyTable( "trackedentityattribute" );
         emptyTable( "trackedentityinstance" );
+        emptyTable( "trackedentitytype" );
         emptyTable( "trackedentity" );
 
         emptyTable( "minmaxdataelement" );

@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
+
+import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
+import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -64,6 +67,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -81,6 +86,9 @@ public class DimensionController
 
     @Autowired
     private DimensionService dimensionService;
+
+    @Autowired
+    private AnalyticsDimensionService analyticsDimensionService;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
@@ -162,6 +170,25 @@ public class DimensionController
         return rootNode;
     }
 
+    @RequestMapping( value = "/recommendations", method = RequestMethod.GET )
+    public @ResponseBody RootNode getRecommendedDimensions( @RequestParam Set<String> dimension )
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        DataQueryRequest request = DataQueryRequest.newBuilder().dimension( dimension ).build();
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.defaultPreset().getFields() );
+        }
+
+        List<DimensionalObject> dimensions = analyticsDimensionService.getRecommendedDimensions( request );
+
+        RootNode rootNode = NodeUtils.createMetadata();
+        rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(), new FieldFilterParams( dimensions, fields ) ) );
+
+        return rootNode;
+    }
+
     @RequestMapping( value = "/dataSet/{uid}", method = RequestMethod.GET )
     public @ResponseBody RootNode getDimensionsForDataSet( @PathVariable String uid,
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
@@ -174,16 +201,13 @@ public class DimensionController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + uid ) );
-        }
-
-        if ( !dataSet.hasCategoryCombo() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data set does not have a category combination: " + uid ) );
+            throw new WebMessageException( WebMessageUtils.notFound( "Data set not found: " + uid ) );
         }
 
         List<DimensionalObject> dimensions = new ArrayList<>();
-        dimensions.addAll( dataSet.getCategoryCombo().getCategories() );
+        dimensions.addAll( dataSet.getCategoryCombo().getCategories().stream()
+            .filter( ca -> !ca.isDefault() )
+            .collect( Collectors.toList() ) );
         dimensions.addAll( dataSet.getCategoryOptionGroupSets() );
 
         dimensions = dimensionService.getCanReadObjects( dimensions );

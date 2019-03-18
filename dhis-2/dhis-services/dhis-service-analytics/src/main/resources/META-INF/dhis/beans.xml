@@ -47,11 +47,14 @@
   <bean id="org.hisp.dhis.analytics.EnrollmentAnalyticsTableService" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableService">
     <property name="tableManager" ref="org.hisp.dhis.analytics.EnrollmentAnalyticsTableManager" />
   </bean>
-
   
   <!-- Table generator -->
   
   <bean id="org.hisp.dhis.analytics.AnalyticsTableGenerator" class="org.hisp.dhis.analytics.table.DefaultAnalyticsTableGenerator" />
+  
+  <!-- Dimension -->
+
+  <bean id="org.hisp.dhis.analytics.dimension.AnalyticsDimensionService" class="org.hisp.dhis.analytics.dimension.DefaultAnalyticsDimensionService" />
   
   <!-- Partition manager -->
   
@@ -87,9 +90,18 @@
   
   <bean id="org.hisp.dhis.analytics.event.EventQueryValidator" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryValidator" />
 
+  <!-- Org unit analytics -->
+
+  <bean id="org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService" class="org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitAnalyticsService" />
+  
+  <bean id="org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner" class="org.hisp.dhis.analytics.orgunit.data.DefaultOrgUnitQueryPlanner" />
+  
+  <bean id="org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" class="org.hisp.dhis.analytics.orgunit.data.JdbcOrgUnitAnalyticsManager" />
+
   <!-- Scheduled jobs -->
   
   <bean id="resourceTableJob" class="org.hisp.dhis.analytics.table.scheduling.ResourceTableJob" scope="prototype" />
 
   <bean id="analyticsTableJob" class="org.hisp.dhis.analytics.table.scheduling.AnalyticsTableJob" />
+  
 </beans>

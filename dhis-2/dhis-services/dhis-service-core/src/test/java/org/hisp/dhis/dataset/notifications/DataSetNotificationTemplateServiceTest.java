@@ -28,16 +28,6 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataset.DataSet;
@@ -52,6 +42,13 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * Created by zubair@dhis2.org on 28.07.17.
@@ -221,5 +218,22 @@ public class DataSetNotificationTemplateServiceTest
 
         assertEquals( 2, templates.size() );
         assertTrue( templates.contains( templateA ) );
+    }
+
+    @Test
+    public void testGetNotificationsByTriggerType()
+    {
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA.setAutoFields();
+        templateA.setName( templateNameA );
+
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB.setAutoFields();
+        templateB.setName( templateNameB );
+
+        dsntService.save( templateA );
+        dsntService.save( templateB );
+
+        assertEquals( 2, dsntService.getCompleteNotifications( dataSetA ).size() );
     }
 }

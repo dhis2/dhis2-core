@@ -40,8 +40,6 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +53,6 @@ import static org.junit.Assert.*;
 /**
  * @author sultanm
  */
-
 public class DefaultMetadataVersionServiceTest
     extends DhisSpringTest
 {
@@ -105,8 +102,8 @@ public class DefaultMetadataVersionServiceTest
     @Test
     public void testShouldAddVersions()
     {
-        int idA = versionService.addVersion( versionA );
-        int idB = versionService.addVersion( versionB );
+        long idA = versionService.addVersion( versionA );
+        long idB = versionService.addVersion( versionB );
 
         assertTrue( idA >= 0 );
         assertTrue( idB >= 0 );
@@ -118,7 +115,7 @@ public class DefaultMetadataVersionServiceTest
     @Test
     public void testShouldDeleteAVersion()
     {
-        int id = versionService.addVersion( versionA );
+        long id = versionService.addVersion( versionA );
 
         versionService.deleteVersion( versionA );
 
@@ -128,7 +125,7 @@ public class DefaultMetadataVersionServiceTest
     @Test
     public void testShouldGetVersionsBasedOnIdOrName()
     {
-        int idA = versionService.addVersion( versionA );
+        long idA = versionService.addVersion( versionA );
 
         assertTrue( compareVersionsUtil( versionA, versionService.getVersionById( idA ) ) );
 
@@ -209,7 +206,7 @@ public class DefaultMetadataVersionServiceTest
 
         //testing hash code for the given metadata string
         KeyJsonValue metadaVersionSnap = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_2" );
-        String hashCode = HashCodeGenerator.getHashCode( metadaVersionSnap.getPlainValue() );
+        String hashCode = HashCodeGenerator.getHashCode( metadaVersionSnap.getJbPlainValue() );
         assertEquals( hashCode, versionService.getCurrentVersion().getHashCode() );
 
         //testing if correct version is saved in keyjsonvalue table
@@ -229,7 +226,7 @@ public class DefaultMetadataVersionServiceTest
 
         assertEquals( 2, allVersions.size() );
         assertEquals( "Version_3", allVersions.get( 1 ) );
-        assertEquals( true, expectedJson.getPlainValue().contains( "DataElementA" ) );
+        assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
     }
 
     @Test
@@ -247,8 +244,8 @@ public class DefaultMetadataVersionServiceTest
 
         KeyJsonValue expectedJson = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_3" );
 
-        assertEquals( false, expectedJson.getPlainValue().contains( "DataElementA" ) );
-        assertEquals( true, expectedJson.getPlainValue().contains( "DataElementB" ) );
+        assertEquals( false, expectedJson.getJbPlainValue().contains( "DataElementA" ) );
+        assertEquals( true, expectedJson.getJbPlainValue().contains( "DataElementB" ) );
     }
 
     @Test
@@ -257,7 +254,7 @@ public class DefaultMetadataVersionServiceTest
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
         keyJsonValue.setKey( "myVersion" );
-        keyJsonValue.setPlainValue( "myJson" );
+        keyJsonValue.setJbPlainValue( "myJson" );
 
         keyJsonValueService.addKeyJsonValue( keyJsonValue );
 
@@ -275,7 +272,7 @@ public class DefaultMetadataVersionServiceTest
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "mySnapshot" );
 
-        assertEquals( "mySnapshot", keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "myVersion" ).getPlainValue() );
+        assertEquals( "mySnapshot", keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "myVersion" ).getJbPlainValue() );
     }
 
     @Test( expected = MetadataVersionServiceException.class )
@@ -310,14 +307,5 @@ public class DefaultMetadataVersionServiceTest
         {
             e.printStackTrace();
         }
-    }
-
-    private ComplexNode[] getVersionFromNodeTree( RootNode root )
-    {
-        List<?> versionList = (List<?>) root.getChildren().get( 0 ).getChildren();
-        ComplexNode[] versions = new ComplexNode[versionList.size()];
-        for ( int i = 0, numberOfVersions = versionList.size(); i < numberOfVersions; i++ )
-            versions[i] = (ComplexNode) versionList.get( i );
-        return versions;
     }
 }

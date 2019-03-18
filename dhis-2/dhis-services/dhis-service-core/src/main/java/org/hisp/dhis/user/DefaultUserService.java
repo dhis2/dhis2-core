@@ -28,10 +28,17 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -42,15 +49,10 @@ import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
-import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -125,7 +127,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUser( User user )
+    public long addUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
 
@@ -157,7 +159,7 @@ public class DefaultUserService
     }
 
     @Override
-    public User getUser( int userId )
+    public User getUser( long userId )
     {
         return userStore.get( userId );
     }
@@ -169,7 +171,7 @@ public class DefaultUserService
     }
 
     @Override
-    public List<User> getUsersByUid( List<String> uids )
+    public List<User> getUsers( Collection<String> uids )
     {
         return userStore.getByUid( uids );
     }
@@ -183,26 +185,6 @@ public class DefaultUserService
         params.setMax( max );
 
         return userStore.getUsers( params );
-    }
-
-    @Override
-    public List<User> getManagedUsers( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUsers( params );
-    }
-
-    @Override
-    public int getManagedUserCount( User user )
-    {
-        UserQueryParams params = new UserQueryParams( user );
-        params.setCanManage( true );
-        params.setAuthSubset( true );
-
-        return userStore.getUserCount( params );
     }
 
     @Override
@@ -242,12 +224,12 @@ public class DefaultUserService
         boolean canGrantOwnRoles = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
         params.setDisjointRoles( !canGrantOwnRoles );
 
-        if ( params.getUser() == null )
+        if ( !params.hasUser() )
         {
             params.setUser( currentUserService.getCurrentUser() );
         }
 
-        if ( params.getUser() != null && params.getUser().isSuper() )
+        if ( params.hasUser() && params.getUser().isSuper() )
         {
             params.setCanManage( false );
             params.setAuthSubset( false );
@@ -259,6 +241,11 @@ public class DefaultUserService
             Calendar cal = PeriodType.createCalendarInstance();
             cal.add( Calendar.MONTH, (params.getInactiveMonths() * -1) );
             params.setInactiveSince( cal.getTime() );
+        }
+        
+        if ( params.isUserOrgUnits() && params.hasUser() )
+        {
+            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
         }
     }
 
@@ -379,7 +366,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         userAuthorityGroupStore.save( userAuthorityGroup );
         return userAuthorityGroup.getId();
@@ -404,7 +391,7 @@ public class DefaultUserService
     }
 
     @Override
-    public UserAuthorityGroup getUserAuthorityGroup( int id )
+    public UserAuthorityGroup getUserAuthorityGroup( long id )
     {
         return userAuthorityGroupStore.get( id );
     }
@@ -440,18 +427,6 @@ public class DefaultUserService
     }
 
     @Override
-    public int getUserRoleCount()
-    {
-        return userAuthorityGroupStore.getCount();
-    }
-
-    @Override
-    public int getUserRoleCountByName( String name )
-    {
-        return userAuthorityGroupStore.getCountLikeName( name );
-    }
-
-    @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
         return userAuthorityGroupStore.countDataSetUserAuthorityGroups( dataSet );
@@ -472,7 +447,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUserCredentials( UserCredentials userCredentials )
+    public long addUserCredentials( UserCredentials userCredentials )
     {
         userCredentialsStore.save( userCredentials );
         return userCredentials.getId();
@@ -607,11 +582,13 @@ public class DefaultUserService
         
         boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
-        user.getUserCredentials().getUserAuthorityGroups().forEach( ur ->
+        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials().getUserAuthorityGroups().stream().map( r -> r.getUid() ).collect( Collectors.toList() ) );
+
+        roles.forEach( ur ->
         {
             if ( !currentUser.getUserCredentials().canIssueUserRole( ur, canGrantOwnUserAuthorityGroups ) )
             {
-                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser, ur ) );
+                errors.add( new ErrorReport( UserAuthorityGroup.class, ErrorCode.E3003, currentUser.getUsername(), ur.getName() ) );
             }
         } );
 
@@ -650,11 +627,9 @@ public class DefaultUserService
 
         Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD ).toDate();
 
-        UserQueryParams userQueryParams = new UserQueryParams();
-
-        userQueryParams.setDisabled( false );
-
-        userQueryParams.setDaysPassedSincePasswordChange( daysPassed );
+        UserQueryParams userQueryParams = new UserQueryParams()
+            .setDisabled( false )
+            .setPasswordLastUpdated( daysPassed );
 
         return userStore.getExpiringUsers( userQueryParams );
     }

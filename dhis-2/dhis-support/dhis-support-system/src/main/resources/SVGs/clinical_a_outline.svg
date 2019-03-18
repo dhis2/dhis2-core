@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" transform="translate(0,-284.3)">
+  <path id="path1009" d="m20.523 5.8691c-0.366 0-0.662 0.2956-0.662 0.6621v3.4629c0 0.3669 0.296 0.6619 0.662 0.6619h0.26v1.252h-0.017c-0.25 0-0.45 0.202-0.45 0.451v24.801 0.842 0.447 0.004c0.002 1.314 0.703 2.528 1.84 3.186 1.14 0.658 2.544 0.658 3.684 0 1.138-0.658 1.84-1.871 1.842-3.186h0.002v-0.451-0.842-24.801c0-0.249-0.2-0.451-0.45-0.451h-0.017v-1.252h0.26c0.366 0 0.662-0.295 0.662-0.6619v-3.4629c0-0.3666-0.296-0.6621-0.662-0.6621h-6.954zm-0.013 0.5137h6.972c0.078 0 0.141 0.0627 0.141 0.1406v3.4786c0 0.078-0.063 0.141-0.141 0.141h-6.972c-0.078 0-0.141-0.063-0.141-0.141v-3.4786c0-0.0779 0.063-0.1406 0.141-0.1406zm0.787 4.2732h0.387 4.632 0.387v1.252h-0.387-3.156c-0.41 0.003-0.389 0.508-0.055 0.514h3.196v-0.002h0.867v26.158c-0.312 2.46-2.218 3.004-3.301 3.037-1.05-0.008-2.895-0.933-3.039-3.039v-26.269c0.469-0.005 0.469-0.009 0.469-0.399v-1.252zm1.129 9.088l-0.373 0.002v6.24 5.416 0.446 0.236 0.004 5.557 0.445 0.234 0.002c0 0.695 0.371 1.336 0.972 1.684 0.603 0.347 1.345 0.347 1.948 0 0.601-0.348 0.971-0.989 0.972-1.684h0.002v-0.238-0.445-5.557-6.102-6.24h-0.373-0.103-2.942-0.103zm0.14 0.322h2.868v18.266c0.005 1.744-2.619 2.056-2.868 0v-18.266z" transform="matrix(.26458 0 0 .26458 0 284.3)" fill="#333"/>
+ </g>
+</svg>

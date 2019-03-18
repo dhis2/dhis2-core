@@ -42,7 +42,7 @@ public interface EventQueryValidator
      * Validates the given query. Throws an IllegalQueryException if the query
      * is not valid with a descriptive message. Returns normally if the query is
      * valid.
-     * 
+     *
      * @param params the event query parameters.
      * @throws IllegalQueryException if the query is invalid.
      */
@@ -64,7 +64,7 @@ public interface EventQueryValidator
 
     /**
      * Returns the max number of records to return. A value of 0 indicates no limit.
-     * 
+     *
      * @return the max number of recrods to return.
      */
     int getMaxLimit();

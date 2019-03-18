@@ -28,8 +28,20 @@ package org.hisp.dhis.webapi.controller.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,11 +62,13 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -75,25 +89,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( value = "/me", method = RequestMethod.GET )
-@ApiVersion( { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
 public class MeController
 {
     @Autowired
@@ -138,8 +142,8 @@ public class MeController
     @Autowired
     private DataSetService dataSetService;
 
-    private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
-        UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
+        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public void getCurrentUser( HttpServletResponse response ) throws Exception
@@ -169,7 +173,7 @@ public class MeController
         if ( fieldsContains( "settings", fields ) )
         {
             rootNode.addChild( new ComplexNode( "settings" ) ).addChildren(
-                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, true ) ) );
+                NodeUtils.createSimples( userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, true ) ) );
         }
 
         if ( fieldsContains( "authorities", fields ) )
@@ -213,7 +217,6 @@ public class MeController
     }
 
     @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -231,6 +234,11 @@ public class MeController
         if ( user.getUserCredentials() != null )
         {
             updatePassword( currentUser, user.getUserCredentials().getPassword() );
+        }
+
+        if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
         }
 
         manager.update( currentUser );
@@ -290,7 +298,7 @@ public class MeController
         }
 
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
-            currentUser, USER_SETTING_NAMES, true );
+            currentUser, USER_SETTING_KEYS, true );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
         setNoStore( response );
@@ -382,7 +390,7 @@ public class MeController
     }
 
     @PostMapping( value = "/dashboard/interpretations/read" )
-    @ResponseStatus( value = HttpStatus.OK )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
     public void updateInterpretationsLastRead()
     {
@@ -454,6 +462,14 @@ public class MeController
         currentUser.setIntroduction( stringWithDefault( user.getIntroduction(), currentUser.getIntroduction() ) );
         currentUser.setGender( stringWithDefault( user.getGender(), currentUser.getGender() ) );
 
+        currentUser.setAvatar( user.getAvatar() != null ? user.getAvatar() : currentUser.getAvatar() );
+
+        currentUser.setSkype( stringWithDefault( user.getSkype(), currentUser.getSkype() ) );
+        currentUser.setFacebookMessenger( stringWithDefault( user.getFacebookMessenger(), currentUser.getFacebookMessenger() ) );
+        currentUser.setTelegram( stringWithDefault( user.getTelegram(), currentUser.getTelegram() ) );
+        currentUser.setWhatsApp( stringWithDefault( user.getWhatsApp(), currentUser.getWhatsApp() ) );
+        currentUser.setTwitter( stringWithDefault( user.getTwitter(), currentUser.getTwitter() ) );
+
         if ( user.getBirthday() != null )
         {
             currentUser.setBirthday( user.getBirthday() );
@@ -464,6 +480,14 @@ public class MeController
         currentUser.setEducation( stringWithDefault( user.getEducation(), currentUser.getEducation() ) );
         currentUser.setInterests( stringWithDefault( user.getInterests(), currentUser.getInterests() ) );
         currentUser.setLanguages( stringWithDefault( user.getLanguages(), currentUser.getLanguages() ) );
+
+        if ( user.getUserCredentials() != null && currentUser.getUserCredentials() != null )
+        {
+            UserCredentials userCredentials = user.getUserCredentials();
+            currentUser.getUserCredentials().setOpenId( userCredentials.getOpenId() );
+            currentUser.getUserCredentials().setLdapId( userCredentials.getLdapId() );
+            currentUser.getUserCredentials().setTwoFA( userCredentials.isTwoFA() );
+        }
     }
 
     private void updatePassword( User currentUser, String password ) throws WebMessageException

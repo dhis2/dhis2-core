@@ -39,6 +39,7 @@ public enum ConfigurationKey
     SYSTEM_MONITORING_URL( "system.monitoring.url" ),
     SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
+    SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", "on", false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
@@ -47,7 +48,7 @@ public enum ConfigurationKey
     CONNECTION_USERNAME( "connection.username", "", false ),
     CONNECTION_PASSWORD( "connection.password", "", true ),
     CONNECTION_SCHEMA( "connection.schema", "", false ),
-    CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "", false ),
+    CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "80", false ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -65,19 +66,32 @@ public enum ConfigurationKey
     CLUSTER_MEMBERS( "cluster.members", "", false ),
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
-    CACHE_PROVIDER( "cache.provider", "ehcache", false ),
-    CACHE_SERVERS( "cache.servers", "localhost:11211", false ),
-    CACHE_TIME( "cache.time", "600", false ),
     METADATA_AUDIT_PERSIST( "metadata.audit.persist", "off", false ),
     METADATA_AUDIT_LOG( "metadata.audit.log", "off", false ),
-    RABBITMQ_HOST( "rabbitmq.host" ),
-    RABBITMQ_ADDRESSES( "rabbitmq.addresses" ),
-    RABBITMQ_VIRTUAL_HOST( "rabbitmq.virtual-host", "/", false ),
-    RABBITMQ_PORT( "rabbitmq.port", "5672", false ),
-    RABBITMQ_EXCHANGE( "rabbitmq.exchange", "dhis2", false ),
-    RABBITMQ_USERNAME( "rabbitmq.username", "guest", false ),
-    RABBITMQ_PASSWORD( "rabbitmq.password", "guest", true ),
-    RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false );
+    REDIS_HOST( "redis.host", "localhost", false ),
+    REDIS_PORT( "redis.port", "6379", false ),
+    REDIS_PASSWORD( "redis.password", "", true ),
+    REDIS_ENABLED( "redis.enabled", "false", false ),
+    REDIS_USE_SSL( "redis.use.ssl", "false", false ),
+    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", "false", false ),
+    PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
+    LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
+    ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
+    AMQP_MODE( "amqp.mode", "EMBEDDED" ),
+    AMQP_HOST( "amqp.host", "127.0.0.1" ),
+    AMQP_PORT( "amqp.port", "15672" ),
+    AMQP_USERNAME( "amqp.username", "guest", true ),
+    AMQP_PASSWORD( "amqp.password", "guest", true ),
+    AMQP_EMBEDDED_SECURITY( "amqp.embedded.security", "false" ),
+    AMQP_EMBEDDED_PERSISTENCE( "amqp.embedded.persistence", "false" ),
+    LOGGING_LEVEL( "logging.level", "INFO" ),
+    LOGGING_FORMAT( "logging.format", "TEXT" ),
+    LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
+    LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
+    LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
+    LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
+    LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
+    SERVER_BASE_URL( "server.base.url", "", false );
 
     private final String key;
 
@@ -89,6 +103,13 @@ public enum ConfigurationKey
     {
         this.key = key;
         this.defaultValue = null;
+        this.confidential = false;
+    }
+
+    ConfigurationKey( String key, String defaultValue )
+    {
+        this.key = key;
+        this.defaultValue = defaultValue;
         this.confidential = false;
     }
 

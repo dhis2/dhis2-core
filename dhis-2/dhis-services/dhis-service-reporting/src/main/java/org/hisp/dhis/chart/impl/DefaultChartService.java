@@ -104,9 +104,9 @@ public class DefaultChartService
         Color.decode( "#ffda64" ), Color.decode( "#4fbdae" ), Color.decode( "#b78040" ), Color.decode( "#676767" ),
         Color.decode( "#6a33cf" ), Color.decode( "#4a7833" ) };
 
-    private static final Color COLOR_TRANSPARENT = new Color( 255, 255, 255, 0 );
     private static final Color COLOR_LIGHT_GRAY = Color.decode( "#dddddd" );
     private static final Color COLOR_LIGHTER_GRAY = Color.decode( "#eeeeee" );
+    private static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -179,7 +179,7 @@ public class DefaultChartService
     }
 
     @Override
-    public JFreeChart getJFreeChart( int id, I18nFormat format )
+    public JFreeChart getJFreeChart( long id, I18nFormat format )
     {
         Chart chart = getChart( id );
 
@@ -682,12 +682,12 @@ public class DefaultChartService
 
         MultiplePiePlot multiplePiePlot = (MultiplePiePlot) multiplePieChart.getPlot();
         JFreeChart pieChart = multiplePiePlot.getPieChart();
-        pieChart.setBackgroundPaint( COLOR_TRANSPARENT );
+        pieChart.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
         pieChart.getTitle().setFont( SUB_TITLE_FONT );
 
         PiePlot piePlot = (PiePlot) pieChart.getPlot();
-        piePlot.setBackgroundPaint( COLOR_TRANSPARENT );
-        piePlot.setOutlinePaint( COLOR_TRANSPARENT );
+        piePlot.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
+        piePlot.setOutlinePaint( DEFAULT_BACKGROUND_COLOR );
         piePlot.setLabelFont( LABEL_FONT );
         piePlot.setLabelGenerator( new StandardPieSectionLabelGenerator( "{2}" ) );
         piePlot.setSimpleLabels( true );
@@ -713,8 +713,8 @@ public class DefaultChartService
 
         for ( int i = 0; i < 10; i++ )
         {
-            double start = i * 10;
-            double end = start + 10;
+            double start = i * 10d;
+            double end = start + 10d;
             String label = String.valueOf( start );
 
             meterPlot.addInterval( new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
@@ -746,7 +746,7 @@ public class DefaultChartService
     {
         jFreeChart.getTitle().setFont( TITLE_FONT );
 
-        jFreeChart.setBackgroundPaint( COLOR_TRANSPARENT );
+        jFreeChart.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
         jFreeChart.setAntiAlias( true );
 
         if ( !chart.isHideTitle() )
@@ -755,8 +755,8 @@ public class DefaultChartService
         }
 
         Plot plot = jFreeChart.getPlot();
-        plot.setBackgroundPaint( COLOR_TRANSPARENT );
-        plot.setOutlinePaint( COLOR_TRANSPARENT );
+        plot.setBackgroundPaint( DEFAULT_BACKGROUND_COLOR );
+        plot.setOutlinePaint( DEFAULT_BACKGROUND_COLOR );
     }
 
     private TextTitle getSubTitle( BaseChart chart )
@@ -793,7 +793,7 @@ public class DefaultChartService
 
         SimpleRegression regression = new SimpleRegression();
 
-        BaseAnalyticalObject.sortKeys( valueMap );
+        valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         List<NameableObject> seriez = new ArrayList<>( chart.series() );
         List<NameableObject> categories = new ArrayList<>( chart.category() );
@@ -860,7 +860,7 @@ public class DefaultChartService
 
         // TODO fix issue with keys including -.
 
-        return BaseAnalyticalObject.sortKey( key );
+        return DimensionalObjectUtils.sortKey( key );
     }
 
     /**
@@ -897,7 +897,7 @@ public class DefaultChartService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addChart( Chart chart )
+    public long addChart( Chart chart )
     {
         chartStore.save( chart );
 
@@ -911,7 +911,7 @@ public class DefaultChartService
     }
 
     @Override
-    public Chart getChart( int id )
+    public Chart getChart( long id )
     {
         return chartStore.get( id );
     }

@@ -31,6 +31,7 @@ package org.hisp.dhis;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
+import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -47,16 +48,28 @@ import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
+import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.indicator.Indicator;
@@ -65,6 +78,7 @@ import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -75,16 +89,31 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.predictor.Predictor;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.predictor.PredictorGroup;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UniqunessType;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.*;
-import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
@@ -93,7 +122,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
@@ -106,8 +140,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
@@ -118,14 +154,25 @@ import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
  */
+@ActiveProfiles(profiles = {"test"})
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
@@ -154,14 +201,14 @@ public abstract class DhisConvenienceTest
     protected RenderService renderService;
 
     @Autowired( required = false )
-    protected CategoryService _categoryService;
+    protected CategoryService internalCategoryService;
 
     protected static CategoryService categoryService;
 
     @PostConstruct
-    protected void initStaticServices()
+    protected void initServices()
     {
-        categoryService = _categoryService;
+        categoryService = internalCategoryService;
     }
 
     static
@@ -324,7 +371,7 @@ public abstract class DhisConvenienceTest
             targetService = getRealObject( targetService );
 
             String setMethodName = "set" + fieldName.substring( 0, 1 ).toUpperCase()
-                + fieldName.substring( 1, fieldName.length() );
+                + fieldName.substring( 1 );
 
             Class<?>[] argumentClass = new Class<?>[]{ clazz };
 
@@ -334,7 +381,7 @@ public abstract class DhisConvenienceTest
         }
         catch ( Exception ex )
         {
-            throw new RuntimeException( "Failed to set dependency '" + fieldName + "' on service: " + getStackTrace( ex ), ex );
+            throw new IllegalArgumentException( "Failed to set dependency '" + fieldName + "' on service: " + getStackTrace( ex ), ex );
         }
     }
 
@@ -389,11 +436,11 @@ public abstract class DhisConvenienceTest
 
         if ( categoryCombo != null )
         {
-            dataElement.setDataElementCategoryCombo( categoryCombo );
+            dataElement.setCategoryCombo( categoryCombo );
         }
         else if ( categoryService != null )
         {
-            dataElement.setDataElementCategoryCombo( categoryService.getDefaultCategoryCombo() );
+            dataElement.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
         }
 
         return dataElement;
@@ -475,33 +522,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryComboUniqueIdentifier A unique character to identify the
-     *                                      category option combo.
-     * @param dataElementCategoryCombo      The associated category combination.
-     * @param categoryOptions               the category options.
-     * @return CategoryOptionCombo
-     */
-    public static CategoryOptionCombo createCategoryOptionCombo( char categoryComboUniqueIdentifier,
-        CategoryCombo dataElementCategoryCombo,
-        CategoryOption... categoryOptions )
-    {
-        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-        categoryOptionCombo.setAutoFields();
-
-        categoryOptionCombo.setCategoryCombo( dataElementCategoryCombo );
-
-        for ( CategoryOption categoryOption : categoryOptions )
-        {
-            categoryOptionCombo.getCategoryOptions().add( categoryOption );
-
-            categoryOption.getCategoryOptionCombos().add( categoryOptionCombo );
-        }
-
-        return categoryOptionCombo;
-    }
-
-    /**
-     * @param categoryCombo   the category combo.
+     * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -803,6 +824,15 @@ public abstract class DhisConvenienceTest
         return unit;
     }
 
+    public static OrganisationUnit createOrganisationUnit(char uniqueCharacter, Geometry geometry)
+    {
+        OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
+
+        unit.setGeometry(geometry);
+
+        return unit;
+    }
+
     /**
      * @param uniqueCharacter A unique character to identify the object.
      * @param parent          The parent.
@@ -971,7 +1001,7 @@ public abstract class DhisConvenienceTest
      * @param attributeOptionCombo The attribute option combo.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        String value, CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
     {
         DataValue dataValue = new DataValue();
 
@@ -983,36 +1013,8 @@ public abstract class DhisConvenienceTest
         dataValue.setValue( value );
         dataValue.setComment( "Comment" );
         dataValue.setStoredBy( "StoredBy" );
-
-        return dataValue;
-    }
-
-    /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param categoryOptionCombo  The category option combo.
-     * @param attributeOptionCombo The attribute option combo.
-     * @param value                The value.
-     * @param comment              The comment.
-     * @param storedBy             The stored by.
-     * @param created              The created date.
-     * @param lastupdated          The last updated date.
-     */
-    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
-        String value, String comment, String storedBy, Date created, Date lastupdated )
-    {
-        DataValue dataValue = new DataValue();
-
-        dataValue.setDataElement( dataElement );
-        dataValue.setPeriod( period );
-        dataValue.setSource( source );
-        dataValue.setCategoryOptionCombo( categoryOptionCombo );
-        dataValue.setAttributeOptionCombo( attributeOptionCombo );
-        dataValue.setValue( value );
-        dataValue.setComment( "Comment" );
-        dataValue.setStoredBy( "StoredBy" );
+        dataValue.setCreated( new Date() );
+        dataValue.setLastUpdated( new Date() );
 
         return dataValue;
     }
@@ -1089,8 +1091,6 @@ public abstract class DhisConvenienceTest
     /**
      * @param uniqueCharacter          A unique character to identify the object.
      * @param expressionString         The expression string.
-     * @param dataElementsInExpression A collection of the data elements
-     *                                 entering into the expression.
      */
     public static Expression createExpression2( char uniqueCharacter, String expressionString )
     {
@@ -1141,6 +1141,24 @@ public abstract class DhisConvenienceTest
         return predictor;
     }
 
+    /**
+     * Creates a Predictor Group
+     *
+     * @param uniqueCharacter A unique character to identify the object.
+     * @return PredictorGroup
+     */
+    public static PredictorGroup createPredictorGroup( char uniqueCharacter )
+    {
+        PredictorGroup group = new PredictorGroup();
+        group.setAutoFields();
+
+        group.setName( "PredictorGroup" + uniqueCharacter );
+        group.setDescription( "Description" + uniqueCharacter );
+
+        return group;
+    }
+
+
     public static Legend createLegend( char uniqueCharacter, Double startValue, Double endValue )
     {
         Legend legend = new Legend();
@@ -1176,20 +1194,20 @@ public abstract class DhisConvenienceTest
 
         return legendSet;
     }
-    
+
     public static ColorSet createColorSet( char uniqueCharacter, String... hexColorCodes )
     {
         ColorSet colorSet = new ColorSet();
         colorSet.setAutoFields();
         colorSet.setName( "ColorSet" + uniqueCharacter );
-        
+
         for ( String colorCode : hexColorCodes )
         {
             Color color = new Color( colorCode );
             color.setAutoFields();
             colorSet.getColors().add( color );
         }
-        
+
         return colorSet;
     }
 
@@ -1220,6 +1238,11 @@ public abstract class DhisConvenienceTest
 
     public static User createUser( char uniqueCharacter )
     {
+        return createUser( uniqueCharacter, Lists.newArrayList() );
+    }
+
+    public static User createUser( char uniqueCharacter, List<String> auths )
+    {
         UserCredentials credentials = new UserCredentials();
         User user = new User();
         user.setUid( BASE_USER_UID + uniqueCharacter );
@@ -1229,6 +1252,13 @@ public abstract class DhisConvenienceTest
 
         credentials.setUsername( "username" + uniqueCharacter );
         credentials.setPassword( "password" + uniqueCharacter );
+
+        if ( auths != null && !auths.isEmpty() )
+        {
+            UserAuthorityGroup role = new UserAuthorityGroup();
+            auths.stream().forEach( auth -> role.getAuthorities().add( auth ) );
+            credentials.getUserAuthorityGroups().add( role );
+        }
 
         user.setFirstName( "FirstName" + uniqueCharacter );
         user.setSurname( "Surname" + uniqueCharacter );
@@ -1267,11 +1297,21 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
+        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
+    }
+
+    public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
+    {
         UserAuthorityGroup role = new UserAuthorityGroup();
         role.setAutoFields();
 
         role.setUid( BASE_UID + uniqueCharacter );
         role.setName( "UserAuthorityGroup" + uniqueCharacter );
+
+        for ( String auth : auths )
+        {
+            role.getAuthorities().add( auth );
+        }
 
         return role;
     }
@@ -1459,7 +1499,7 @@ public abstract class DhisConvenienceTest
     {
         return createProgramIndicator( uniqueCharacter, AnalyticsType.EVENT, program, expression, filter );
     }
-    
+
     public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType, Program program, String expression, String filter )
     {
         ProgramIndicator indicator = new ProgramIndicator();
@@ -1472,8 +1512,8 @@ public abstract class DhisConvenienceTest
         indicator.setExpression( expression );
         indicator.setAnalyticsType( analyticsType );
         indicator.setFilter( filter );
-        
-        List<AnalyticsPeriodBoundary> boundaries = new ArrayList<AnalyticsPeriodBoundary>();
+
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
         if ( analyticsType == AnalyticsType.EVENT )
         {
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
@@ -1484,6 +1524,13 @@ public abstract class DhisConvenienceTest
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
         }
+
+        for ( AnalyticsPeriodBoundary boundary : boundaries )
+        {
+            boundary.setAutoFields();
+        }
+
+        indicator.setAnalyticsPeriodBoundaries( boundaries );
 
         return indicator;
     }
@@ -1497,7 +1544,7 @@ public abstract class DhisConvenienceTest
 
         return section;
     }
-    
+
     public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilter = new TrackedEntityInstanceFilter();
@@ -1519,19 +1566,13 @@ public abstract class DhisConvenienceTest
         return trackedEntityType;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit )
+    public static TrackedEntityInstance createTrackedEntityInstance( OrganisationUnit organisationUnit )
     {
         TrackedEntityInstance entityInstance = new TrackedEntityInstance();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
 
         return entityInstance;
-    }
-
-    public static ProgramStageInstance createProgramStageInstance()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        return programStageInstance;
     }
 
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
@@ -1571,11 +1612,19 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
+        attribute.setShortName( "AttributeShortName" + uniqueChar );
         attribute.setCode( "AttributeCode" + uniqueChar );
         attribute.setDescription( "Attribute" + uniqueChar );
         attribute.setValueType( ValueType.TEXT );
         attribute.setAggregationType( AggregationType.NONE );
 
+        return attribute;
+    }
+
+    public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
+    {
+        TrackedEntityAttribute attribute = createTrackedEntityAttribute( uniqueChar );
+        attribute.setValueType( valueType );
         return attribute;
     }
 
@@ -1585,24 +1634,6 @@ public abstract class DhisConvenienceTest
         attribute.setAutoFields();
 
         attribute.setName( "Attribute" + uniqueChar );
-
-        return attribute;
-    }
-
-    /**
-     * @param uniqueChar A unique character to identify the object.
-     * @return TrackedEntityAttribute
-     */
-    public static TrackedEntityAttribute createTrackedEntityAttribute( char uniqueChar, ValueType valueType )
-    {
-        TrackedEntityAttribute attribute = new TrackedEntityAttribute();
-        attribute.setAutoFields();
-
-        attribute.setName( "Attribute" + uniqueChar );
-        attribute.setCode( "AttributeCode" + uniqueChar );
-        attribute.setDescription( "Attribute" + uniqueChar );
-        attribute.setValueType( valueType );
-        attribute.setAggregationType( AggregationType.NONE );
 
         return attribute;
     }
@@ -1635,20 +1666,9 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @return RelationshipType
+     * @param content The content of the file
+     * @return a fileResource object
      */
-    public static RelationshipType createRelationshipType( char uniqueChar )
-    {
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setAutoFields();
-
-        relationshipType.setaIsToB( "aIsToB" );
-        relationshipType.setbIsToA( "bIsToA" );
-        relationshipType.setName( "RelationshipType" + uniqueChar );
-
-        return relationshipType;
-    }
-
     public static FileResource createFileResource( char uniqueChar, byte[] content )
     {
         String filename = "filename" + uniqueChar;
@@ -1661,6 +1681,22 @@ public abstract class DhisConvenienceTest
         fileResource.setAutoFields();
 
         return fileResource;
+    }
+
+    /**
+     * @param uniqueChar A unique character to identify the object.
+     * @param content The content of the file
+     * @return an externalFileResource object
+     */
+    public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
+    {
+        FileResource fileResource = createFileResource( uniqueChar, content );
+        ExternalFileResource externalFileResource = new ExternalFileResource();
+
+        externalFileResource.setFileResource( fileResource );
+        fileResource.setAssigned( true );
+        externalFileResource.setAccessToken( String.valueOf( uniqueChar ) );
+        return externalFileResource;
     }
 
     /**
@@ -1699,17 +1735,49 @@ public abstract class DhisConvenienceTest
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
-        String name, int days, NotificationTrigger trigger )
+        String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient )
     {
         return new ProgramNotificationTemplate(
             name,
             "Subject",
             "Message",
             trigger,
-            ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE,
+            recipient,
             Sets.newHashSet(),
             days,
             null, null
+        );
+    }
+
+    public static ProgramNotificationTemplate createProgramNotificationTemplate(
+            String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
+    {
+        return new ProgramNotificationTemplate(
+                name,
+                "Subject",
+                "Message",
+                trigger,
+                recipient,
+                Sets.newHashSet(),
+                days,
+                null, null
+        );
+    }
+
+    public static DataSetNotificationTemplate createDataSetNotificationTemplate(
+        String name, DataSetNotificationRecipient notificationRecipient, DataSetNotificationTrigger dataSetNotificationTrigger,
+        Integer relativeScheduledDays, SendStrategy sendStrategy )
+    {
+        return new DataSetNotificationTemplate(
+            Sets.newHashSet(),
+            Sets.newHashSet(),
+            "Message",
+            notificationRecipient,
+            dataSetNotificationTrigger,
+            "Subject",
+            null,
+            relativeScheduledDays,
+            sendStrategy
         );
     }
 
@@ -1761,6 +1829,18 @@ public abstract class DhisConvenienceTest
         return option;
     }
 
+    public static void configureHierarchy( OrganisationUnit root, OrganisationUnit lvlOneLeft,
+        OrganisationUnit lvlOneRight, OrganisationUnit lvlTwoLeftLeft, OrganisationUnit lvlTwoLeftRight )
+    {
+        root.getChildren().addAll( Sets.newHashSet( lvlOneLeft, lvlOneRight ) );
+        lvlOneLeft.setParent( root );
+        lvlOneRight.setParent( root );
+
+        lvlOneLeft.getChildren().addAll( Sets.newHashSet( lvlTwoLeftLeft, lvlTwoLeftRight ) );
+        lvlTwoLeftLeft.setParent( lvlOneLeft );
+        lvlTwoLeftRight.setParent( lvlOneLeft );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -1773,9 +1853,9 @@ public abstract class DhisConvenienceTest
         {
             return renderService.fromJson( new ClassPathResource( path ).getInputStream(), klass );
         }
-        catch ( IOException e )
+        catch ( IOException ex )
         {
-            e.printStackTrace();
+            log.error( ex );
         }
 
         return null;
@@ -2076,7 +2156,10 @@ public abstract class DhisConvenienceTest
             user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
 
         return user;
     }
@@ -2090,11 +2173,19 @@ public abstract class DhisConvenienceTest
             user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
     }
 
     protected void clearSecurityContext()
     {
+        if ( SecurityContextHolder.getContext() != null )
+        {
+            SecurityContextHolder.getContext().setAuthentication( null );
+        }
+
         SecurityContextHolder.clearContext();
     }
 

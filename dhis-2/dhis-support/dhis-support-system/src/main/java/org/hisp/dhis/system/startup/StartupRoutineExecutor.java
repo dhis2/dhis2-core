@@ -30,7 +30,7 @@ package org.hisp.dhis.system.startup;
 
 /**
  * Executes a collection of StartupRoutines when the system is started.
- * 
+ *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
 public interface StartupRoutineExecutor
@@ -44,7 +44,7 @@ public interface StartupRoutineExecutor
      */
     void execute()
         throws Exception;
-    
+
     /**
      * Executes the StartupRoutines for testing.
      *

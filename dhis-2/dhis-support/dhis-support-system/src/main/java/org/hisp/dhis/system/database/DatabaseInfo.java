@@ -38,28 +38,24 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  */
 public class DatabaseInfo
 {
-    private String type;
-    
     private String name;
-    
+
     private String user;
-    
+
     private String password;
-    
-    private String dialect;
-    
-    private String driverClass;
-    
+
     private String url;
-    
+
+    private String databaseVersion;
+
     private boolean spatialSupport;
-    
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
     public DatabaseInfo()
-    {   
+    {
     }
 
     // -------------------------------------------------------------------------
@@ -73,7 +69,7 @@ public class DatabaseInfo
         this.password = null;
         this.url = null;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -92,18 +88,6 @@ public class DatabaseInfo
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getType()
-    {
-        return type;
-    }
-
-    public void setType( String type )
-    {
-        this.type = type;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUser()
     {
         return user;
@@ -114,6 +98,16 @@ public class DatabaseInfo
         this.user = user;
     }
 
+    public String getDatabaseVersion()
+    {
+        return databaseVersion;
+    }
+
+    public void setDatabaseVersion( String databaseVersion )
+    {
+        this.databaseVersion = databaseVersion;
+    }
+
     public String getPassword()
     {
         return password;
@@ -122,26 +116,6 @@ public class DatabaseInfo
     public void setPassword( String password )
     {
         this.password = password;
-    }
-
-    public String getDialect()
-    {
-        return dialect;
-    }
-
-    public void setDialect( String dialect )
-    {
-        this.dialect = dialect;
-    }
-
-    public String getDriverClass()
-    {
-        return driverClass;
-    }
-
-    public void setDriverClass( String driverClass )
-    {
-        this.driverClass = driverClass;
     }
 
     public String getUrl()
@@ -170,9 +144,10 @@ public class DatabaseInfo
     // toString
     // -------------------------------------------------------------------------
 
+    @Override
     public String toString()
     {
-        return "[Type: " + type + ", Name: " + name + ", User: " + user + ", Password: " + password +
-            ", Dialect: " + dialect + ", Driver class: " + driverClass + ", URL: " + url + "]";
+        return "[Name: " + name + ", User: " + user + ", Password: " + password +
+            ", URL: " + url + "]";
     }
 }

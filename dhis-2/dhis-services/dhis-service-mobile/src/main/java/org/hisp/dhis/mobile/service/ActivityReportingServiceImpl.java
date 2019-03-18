@@ -91,7 +91,7 @@ public class ActivityReportingServiceImpl
         String text = message.getText();
         String metaData = MessageService.META_USER_AGENT;
 
-        messageService.sendMessage( messageService.createTicketMessage( subject, text, metaData ).build() );
+        messageService.sendTicketMessage( subject, text, metaData );
 
         return FEEDBACK_SENT;
     }
@@ -173,7 +173,7 @@ public class ActivityReportingServiceImpl
 
         }
 
-        messageService.sendMessage( messageService.createPrivateMessage( users, subject, text, metaData ).build() );
+        messageService.sendPrivateMessage( users, subject, text, metaData, null );
 
         return MESSAGE_SENT;
     }
@@ -239,7 +239,7 @@ public class ActivityReportingServiceImpl
         MessageConversation conversation = messageService
             .getMessageConversation( Integer.parseInt( message.getSubject() ) );
 
-        messageService.sendReply( conversation, message.getText(), metaData, false );
+        messageService.sendReply( conversation, message.getText(), metaData, false, null );
 
         return MESSAGE_SENT;
     }

@@ -86,6 +86,11 @@ public class ValidationRuleGroup
 
     public void removeAllValidationRules()
     {
+        for ( ValidationRule validationRule : members )
+        {
+            validationRule.getGroups().remove( this );
+        }
+
         members.clear();
     }
 

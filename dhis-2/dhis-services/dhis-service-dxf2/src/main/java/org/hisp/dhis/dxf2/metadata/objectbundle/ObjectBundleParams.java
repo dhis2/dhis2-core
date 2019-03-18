@@ -78,6 +78,8 @@ public class ObjectBundleParams
 
     private boolean skipSharing;
 
+    private boolean skipTranslation;
+
     private boolean skipValidation;
 
     private JobConfiguration jobId;
@@ -216,6 +218,17 @@ public class ObjectBundleParams
     public ObjectBundleParams setSkipSharing( boolean skipSharing )
     {
         this.skipSharing = skipSharing;
+        return this;
+    }
+
+    public boolean isSkipTranslation()
+    {
+        return skipTranslation;
+    }
+
+    public ObjectBundleParams setSkipTranslation( boolean skipTranslation )
+    {
+        this.skipTranslation = skipTranslation;
         return this;
     }
 

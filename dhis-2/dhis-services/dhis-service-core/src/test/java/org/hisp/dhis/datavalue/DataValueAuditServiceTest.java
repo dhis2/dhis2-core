@@ -29,10 +29,10 @@ package org.hisp.dhis.datavalue;
  */
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -41,10 +41,10 @@ import org.hisp.dhis.period.PeriodService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Created by Halvdan Hoem Grelland
@@ -180,5 +180,33 @@ public class DataValueAuditServiceTest
         List<DataValueAudit> audits = dataValueAuditService.getDataValueAudits( dataValueA );
         assertNotNull( audits );
         assertTrue( audits.contains( dataValueAuditA ) );
+    }
+
+    @Test
+    public void testGetDataValueAudit()
+    {
+        DataValueAudit dataValueAuditA = new DataValueAudit( dataValueA, dataValueA.getValue(), dataValueA.getStoredBy(), AuditType.UPDATE );
+        DataValueAudit dataValueAuditB = new DataValueAudit( dataValueB, dataValueB.getValue(), dataValueB.getStoredBy(), AuditType.UPDATE );
+
+        dataValueAuditService.addDataValueAudit( dataValueAuditA );
+        dataValueAuditService.addDataValueAudit( dataValueAuditB );
+
+        List<DataElement> dataElements = new ArrayList<>();
+        dataElements.add( dataValueA.getDataElement() );
+
+        List<Period> periods = new ArrayList<>();
+        periods.add( dataValueA.getPeriod() );
+
+        List<OrganisationUnit> orgs = new ArrayList<>();
+        orgs.add( dataValueA.getSource() );
+
+        assertEquals( 1, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
+            optionCombo, null, AuditType.UPDATE ).size() );
+
+        dataElements.add( dataElementB );
+        periods.add( periodB );
+        orgs.add( orgUnitB );
+        assertEquals( 2, dataValueAuditService.getDataValueAudits( dataElements, periods, orgs,
+            optionCombo, null, AuditType.UPDATE ).size() );
     }
 }

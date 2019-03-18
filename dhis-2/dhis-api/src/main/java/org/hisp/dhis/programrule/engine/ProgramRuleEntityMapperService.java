@@ -61,7 +61,9 @@ public interface ProgramRuleEntityMapperService
      * @param programRules The list of program rules to be mapped
      * @return A list of mapped Rules for list of programs.
      */
-    List<Rule> toMappedProgramRules( List<ProgramRule> programRules);
+    List<Rule> toMappedProgramRules( List<ProgramRule> programRules );
+
+    Rule toMappedProgramRule( ProgramRule programRule );
 
     /**
      * @param program The program which provides ProgramRuleVariable.

@@ -1,1 +1,0 @@
-<message type="success">$encoder.xmlEncode( $message )</message>

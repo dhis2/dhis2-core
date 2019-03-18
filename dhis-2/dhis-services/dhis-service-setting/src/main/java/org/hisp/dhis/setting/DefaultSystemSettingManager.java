@@ -28,12 +28,24 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.collect.Lists;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
@@ -43,12 +55,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
-
-import javax.annotation.Resource;
-import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import org.springframework.core.env.Environment;
+import com.google.common.collect.Lists;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -61,17 +69,6 @@ import java.util.stream.Collectors;
 public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
-    /**
-     * Cache for system settings. Does not accept nulls. Disabled during test phase.
-     */
-    private static final Cache<String, Optional<Serializable>> SETTING_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 1, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 400 )
-        .build();
-
-    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -80,6 +77,26 @@ public class DefaultSystemSettingManager
     private static final Log log = LogFactory.getLog( DefaultSystemSettingManager.class );
 
     private SystemSettingStore systemSettingStore;
+
+    /**
+     * Cache for system settings. Does not accept nulls. Disabled during test phase.
+     */
+    private Cache<Serializable> settingCache;
+
+    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
+    @Resource( name = "tripleDesStringEncryptor" )
+    private PBEStringEncryptor pbeStringEncryptor;
+
+    @Autowired
+    private CacheProvider cacheProvider;
+
+    @Autowired
+    private Environment environment;
 
     public void setSystemSettingStore( SystemSettingStore systemSettingStore )
     {
@@ -93,11 +110,17 @@ public class DefaultSystemSettingManager
         this.flags = flags;
     }
 
-    @Autowired
-    private TransactionTemplate transactionTemplate;
+    // -------------------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------------------
 
-    @Resource( name = "tripleDesStringEncryptor" )
-    private PBEStringEncryptor pbeStringEncryptor;
+    @PostConstruct
+    public void init()
+    {
+        settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
+            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
+    }
 
     // -------------------------------------------------------------------------
     // SystemSettingManager implementation
@@ -105,13 +128,13 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void saveSystemSetting( String name, Serializable value )
+    public void saveSystemSetting( SettingKey settingKey, Serializable value )
     {
-        SETTING_CACHE.invalidate( name );
+        settingCache.invalidate( settingKey.getName() );
 
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
 
-        if ( isConfidential( name ) )
+        if ( isConfidential( settingKey.getName() ) )
         {
             value = pbeStringEncryptor.encrypt( value.toString() );
         }
@@ -120,7 +143,7 @@ public class DefaultSystemSettingManager
         {
             setting = new SystemSetting();
 
-            setting.setName( name );
+            setting.setName( settingKey.getName() );
             setting.setValue( value );
 
             systemSettingStore.save( setting );
@@ -135,44 +158,16 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void saveSystemSetting( SettingKey setting, Serializable value )
+    public void deleteSystemSetting( SettingKey settingKey )
     {
-        saveSystemSetting( setting.getName(), value );
-    }
-
-    @Override
-    @Transactional
-    public void deleteSystemSetting( String name )
-    {
-        SystemSetting setting = systemSettingStore.getByName( name );
+        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
 
         if ( setting != null )
         {
-            SETTING_CACHE.invalidate( name );
+            settingCache.invalidate( settingKey.getName() );
 
             systemSettingStore.delete( setting );
         }
-    }
-
-    @Override
-    @Transactional
-    public void deleteSystemSetting( SettingKey setting )
-    {
-        deleteSystemSetting( setting.getName() );
-    }
-
-    @Override
-    @Transactional
-    public Serializable getSystemSetting( String name )
-    {
-        SystemSetting setting = systemSettingStore.getByName( name );
-
-        if ( isConfidential( name ) )
-        {
-            setting.setValue( pbeStringEncryptor.decrypt( setting.getValue().toString() ) );
-        }
-
-        return setting != null && setting.hasValue() ? setting.getValue() : null;
     }
 
     /**
@@ -182,8 +177,8 @@ public class DefaultSystemSettingManager
     @Override
     public Serializable getSystemSetting( SettingKey setting )
     {
-        Optional<Serializable> value = SETTING_CACHE.get( setting.getName(),
-            key -> getSystemSettingOptional( key, setting.getDefaultValue() ) );
+        Optional<Serializable> value = settingCache.get( setting.getName(),
+            key -> getSystemSettingOptional( key, setting.getDefaultValue() ).orElse( null ) );
 
         return value.orElse( null );
     }
@@ -210,6 +205,7 @@ public class DefaultSystemSettingManager
     {
         SystemSetting setting = transactionTemplate.execute( new TransactionCallback<SystemSetting>()
         {
+            @Override
             public SystemSetting doInTransaction( TransactionStatus status )
             {
                 return systemSettingStore.getByName( name );
@@ -255,7 +251,7 @@ public class DefaultSystemSettingManager
     public Map<String, Serializable> getSystemSettingsAsMap()
     {
         final Map<String, Serializable> settingsMap = new HashMap<>();
-        
+
         for ( SettingKey key : SettingKey.values() )
         {
             if ( key.hasDefaultValue() )
@@ -288,35 +284,6 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public Map<String, Serializable> getSystemSettingsAsMap( Set<String> names )
-    {
-        Map<String, Serializable> map = new HashMap<>();
-
-        for ( String name : names )
-        {
-            Serializable settingValue = getSystemSetting( name );
-
-            if ( settingValue == null )
-            {
-                Optional<SettingKey> setting = SettingKey.getByName( name );
-
-                if ( setting.isPresent() )
-                {
-                    settingValue = setting.get().getDefaultValue();
-                }
-            }
-
-            if ( settingValue != null )
-            {
-                map.put( name, settingValue );
-            }
-        }
-
-        return map;
-    }
-
-    @Override
-    @Transactional
     public Map<String, Serializable> getSystemSettings( Collection<SettingKey> settings )
     {
         Map<String, Serializable> map = new HashMap<>();
@@ -337,7 +304,7 @@ public class DefaultSystemSettingManager
     @Override
     public void invalidateCache()
     {
-        SETTING_CACHE.invalidateAll();
+        settingCache.invalidateAll();
     }
 
     // -------------------------------------------------------------------------
@@ -390,12 +357,6 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    public String getInstanceBaseUrl()
-    {
-        return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.INSTANCE_BASE_URL ) );
-    }
-
-    @Override
     public boolean accountRecoveryEnabled()
     {
         return (Boolean) getSystemSetting( SettingKey.ACCOUNT_RECOVERY );
@@ -408,9 +369,10 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    public boolean emailEnabled()
+    public boolean emailConfigured()
     {
-        return (Boolean) getSystemSetting( SettingKey.MESSAGE_EMAIL_NOTIFICATION );
+        return StringUtils.isNotBlank( getEmailHostName() )
+            && StringUtils.isNotBlank( getEmailUsername() );
     }
 
     @Override

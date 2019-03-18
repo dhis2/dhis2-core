@@ -31,18 +31,15 @@ package org.hisp.dhis.analytics.event.data;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.LegendSet;
@@ -56,7 +53,6 @@ import org.springframework.util.Assert;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
@@ -71,7 +67,7 @@ public class DefaultEventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
-    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of( 
+    private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
         ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     @Autowired
@@ -94,84 +90,46 @@ public class DefaultEventDataQueryService
 
     @Autowired
     private DataQueryService dataQueryService;
-    
+
     @Autowired
     private I18nManager i18nManager;
 
     @Override
-    public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
-        Set<String> dimension, Set<String> filter, String value, AggregationType aggregationType, boolean skipMeta,
-        boolean skipData, boolean skipRounding, boolean completedOnly, boolean hierarchyMeta, boolean showHierarchy,
-        SortOrder sortOrder, Integer limit, EventOutputType outputType, EventStatus eventStatus,
-        ProgramStatus programStatus, boolean collapseDataDimensions, boolean aggregateData, boolean includeMetadataDetails, 
-        DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, DhisApiVersion apiVersion )
-    {
-        EventQueryParams query = getFromUrl( program, stage, startDate, endDate, dimension, filter, null, null, null,
-            skipMeta, skipData, completedOnly, hierarchyMeta, false, false, eventStatus, programStatus, displayProperty,
-            relativePeriodDate, userOrgUnit, null, null, null, apiVersion );
-
-        EventQueryParams.Builder params = new EventQueryParams.Builder( query );
-        
-        if ( aggregationType != null )
-        {
-            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( aggregationType ) );
-        }
-        
-        return params
-            .withValue( getValueDimension( value ) )
-            .withSkipRounding( skipRounding )
-            .withShowHierarchy( showHierarchy )
-            .withSortOrder( sortOrder )
-            .withLimit( limit )
-            .withOutputType( MoreObjects.firstNonNull( outputType, EventOutputType.EVENT ) )
-            .withCollapseDataDimensions( collapseDataDimensions )
-            .withAggregateData( aggregateData )
-            .withIncludeMetadataDetails( includeMetadataDetails )
-            .withProgramStatus( programStatus )
-            .build();
-    }
-
-    @Override
-    public EventQueryParams getFromUrl( String program, String stage, Date startDate, Date endDate,
-        Set<String> dimension, Set<String> filter, OrganisationUnitSelectionMode ouMode, Set<String> asc,
-        Set<String> desc, boolean skipMeta, boolean skipData, boolean completedOnly, boolean hierarchyMeta,
-        boolean coordinatesOnly, boolean includeMetadataDetails, EventStatus eventStatus, ProgramStatus programStatus,
-        DisplayProperty displayProperty, Date relativePeriodDate, String userOrgUnit, String coordinateField, 
-        Integer page, Integer pageSize, DhisApiVersion apiVersion )
+    public EventQueryParams getFromRequest( EventDataQueryRequest request )
     {
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         EventQueryParams.Builder params = new EventQueryParams.Builder();
-        
+
         IdScheme idScheme = IdScheme.UID;
 
-        List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, userOrgUnit );
+        List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits( null, request.getUserOrgUnit() );
 
-        Program pr = programService.getProgram( program );
+        Program pr = programService.getProgram( request.getProgram() );
 
         if ( pr == null )
         {
-            throw new IllegalQueryException( "Program does not exist: " + program );
+            throw new IllegalQueryException( "Program does not exist: " + request.getProgram() );
         }
 
-        ProgramStage ps = programStageService.getProgramStage( stage );
+        ProgramStage ps = programStageService.getProgramStage( request.getStage() );
 
-        if ( StringUtils.isNotEmpty( stage ) && ps == null )
+        if ( StringUtils.isNotEmpty( request.getStage() ) && ps == null )
         {
-            throw new IllegalQueryException( "Program stage is specified but does not exist: " + stage );
+            throw new IllegalQueryException( "Program stage is specified but does not exist: " + request.getStage() );
         }
 
-        if ( dimension != null )
+        if ( request.getDimension() != null )
         {
-            for ( String dim : dimension )
+            for ( String dim : request.getDimension() )
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
-                    items, relativePeriodDate, userOrgUnits, format, true, false, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
+                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
 
                 if ( dimObj != null )
-                {                    
+                {
                     params.addDimension( dimObj );
                 }
                 else
@@ -181,14 +139,14 @@ public class DefaultEventDataQueryService
             }
         }
 
-        if ( filter != null )
+        if ( request.getFilter() != null )
         {
-            for ( String dim : filter )
+            for ( String dim : request.getFilter() )
             {
                 String dimensionId = getDimensionFromParam( dim );
                 List<String> items = getDimensionItemsFromParam( dim );
-                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId, 
-                    items, relativePeriodDate, userOrgUnits, format, true, false, idScheme );
+                DimensionalObject dimObj = dataQueryService.getDimension( dimensionId,
+                    items, request.getRelativePeriodDate(), userOrgUnits, format, true, false, idScheme );
 
                 if ( dimObj != null )
                 {
@@ -201,42 +159,59 @@ public class DefaultEventDataQueryService
             }
         }
 
-        if ( asc != null )
+        if ( request.getAsc() != null )
         {
-            for ( String sort : asc )
+            for ( String sort : request.getAsc() )
             {
                 params.addAscSortItem( getSortItem( sort, pr ) );
             }
         }
 
-        if ( desc != null )
+        if ( request.getDesc() != null )
         {
-            for ( String sort : desc )
+            for ( String sort : request.getDesc() )
             {
                 params.addDescSortItem( getSortItem( sort, pr ) );
             }
         }
 
+        if ( request.getAggregationType() != null )
+        {
+            params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
+        }
+
         return params
+            .withValue( getValueDimension( request.getValue() ) )
+            .withSkipRounding( request.isSkipRounding() )
+            .withShowHierarchy( request.isShowHierarchy() )
+            .withSortOrder( request.getSortOrder() )
+            .withLimit( request.getLimit() )
+            .withOutputType( MoreObjects.firstNonNull( request.getOutputType(), EventOutputType.EVENT ) )
+            .withCollapseDataDimensions( request.isCollapseDataDimensions() )
+            .withAggregateData( request.isAggregateData() )
             .withProgram( pr )
             .withProgramStage( ps )
-            .withStartDate( startDate )
-            .withEndDate( endDate )
-            .withOrganisationUnitMode( ouMode )
-            .withSkipMeta( skipMeta )
-            .withSkipData( skipData )
-            .withCompletedOnly( completedOnly )
-            .withHierarchyMeta( hierarchyMeta )
-            .withCoordinatesOnly( coordinatesOnly )
-            .withEventStatus( eventStatus )
-            .withDisplayProperty( displayProperty )
-            .withCoordinateField( getCoordinateField( coordinateField ) )
-            .withPage( page )
-            .withPageSize( pageSize )
-            .withProgramStatus( programStatus )
-            .withIncludeMetadataDetails( includeMetadataDetails )
-            .withApiVersion( apiVersion )
+            .withStartDate( request.getStartDate() )
+            .withEndDate( request.getEndDate() )
+            .withOrganisationUnitMode( request.getOuMode() )
+            .withSkipMeta( request.isSkipMeta() )
+            .withSkipData( request.isSkipData() )
+            .withCompletedOnly( request.isCompletedOnly() )
+            .withHierarchyMeta( request.isHierarchyMeta() )
+            .withCoordinatesOnly( request.isCoordinatesOnly() )
+            .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
+            .withDataIdScheme( request.getDataIdScheme() )
+            .withEventStatus( request.getEventStatus() )
+            .withDisplayProperty( request.getDisplayProperty() )
+            .withTimeField( request.getTimeField() )
+            .withOrgUnitField( request.getOrgUnitField() )
+            .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
+            .withPage( request.getPage() )
+            .withPageSize( request.getPageSize() )
+            .withProgramStatus( request.getProgramStatus() )
+            .withApiVersion( request.getApiVersion() )
             .build();
+
     }
 
     @Override
@@ -244,11 +219,11 @@ public class DefaultEventDataQueryService
     {
         Assert.notNull( object, "Event analytical object cannot be null" );
         Assert.notNull( object.getProgram(), "Event analytical object must specify a program" );
-        
+
         EventQueryParams.Builder params = new EventQueryParams.Builder();
-        
-        I18nFormat format = i18nManager.getI18nFormat();        
-        IdScheme idScheme = IdScheme.UID;        
+
+        I18nFormat format = i18nManager.getI18nFormat();
+        IdScheme idScheme = IdScheme.UID;
         Date date = object.getRelativePeriodDate();
 
         object.populateAnalyticalProperties();
@@ -292,39 +267,44 @@ public class DefaultEventDataQueryService
             .withOutputType( object.getOutputType() )
             .build();
     }
-    
+
     @Override
     public String getCoordinateField( String coordinateField )
     {
         if ( coordinateField == null || EventQueryParams.EVENT_COORDINATE_FIELD.equals( coordinateField ) )
         {
-            return "geom";
+            return "psigeometry";
         }
-        
+
+        if ( EventQueryParams.ENROLLMENT_COORDINATE_FIELD.equals( coordinateField ) )
+        {
+            return "pigeometry";
+        }
+
         DataElement dataElement = dataElementService.getDataElement( coordinateField );
-        
+
         if ( dataElement != null )
         {
             if ( ValueType.COORDINATE != dataElement.getValueType() )
             {
                 throw new IllegalQueryException( "Data element must be of value type coordinate to be used as coordinate field: " + coordinateField );
             }
-            
+
             return dataElement.getUid();
         }
-                
+
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( coordinateField );
-        
+
         if ( attribute != null )
         {
             if ( ValueType.COORDINATE != attribute.getValueType() )
             {
                 throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as coordinate field: " + coordinateField );
             }
-            
+
             return attribute.getUid();
         }
-        
+
         throw new IllegalQueryException( "Cluster field not valid: " + coordinateField );
     }
 
@@ -368,14 +348,17 @@ public class DefaultEventDataQueryService
 
     private DimensionalItemObject getSortItem( String item, Program program )
     {
-        QueryItem queryItem = getQueryItem( item, program );
-        
-        if ( !SORTABLE_ITEMS.contains( item.toLowerCase() ) && queryItem == null )
-        {
-            throw new IllegalQueryException( "Sort item is invalid: " + item );
-        }
+        QueryItem queryItem = null;
 
-        item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
+        if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
+        {
+            item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
+            queryItem = new QueryItem( new BaseDimensionalItemObject( item ) );
+        }
+        else
+        {
+            queryItem = getQueryItem( item, program );
+        }
 
         return queryItem.getItem();
     }
@@ -393,7 +376,7 @@ public class DefaultEventDataQueryService
         if ( de != null && program.containsDataElement( de ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
-            
+
             return new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
         }
 
@@ -402,7 +385,7 @@ public class DefaultEventDataQueryService
         if ( at != null && program.containsAttribute( at ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
-            
+
             return new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
 
@@ -441,4 +424,5 @@ public class DefaultEventDataQueryService
         throw new IllegalQueryException( "Value identifier does not reference any " +
             "data element or attribute which are numeric type and part of the program: " + value );
     }
+
 }

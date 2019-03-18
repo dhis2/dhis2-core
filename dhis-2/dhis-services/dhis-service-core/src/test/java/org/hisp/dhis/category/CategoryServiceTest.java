@@ -67,6 +67,9 @@ public class CategoryServiceTest
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private CategoryStore categoryStore;
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -104,9 +107,9 @@ public class CategoryServiceTest
         categoryB = createCategory( 'B', categoryOptionA, categoryOptionB, categoryOptionC );
         categoryC = createCategory( 'C', categoryOptionA, categoryOptionB, categoryOptionC );
 
-        int idA = categoryService.addCategory( categoryA );
-        int idB = categoryService.addCategory( categoryB );
-        int idC = categoryService.addCategory( categoryC );
+        long idA = categoryService.addCategory( categoryA );
+        long idB = categoryService.addCategory( categoryB );
+        long idC = categoryService.addCategory( categoryC );
 
         assertEquals( categoryA, categoryService.getCategory( idA ) );
         assertEquals( categoryB, categoryService.getCategory( idB ) );
@@ -124,9 +127,9 @@ public class CategoryServiceTest
         categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
         categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
 
-        int idA = categoryService.addCategory( categoryA );
-        int idB = categoryService.addCategory( categoryB );
-        int idC = categoryService.addCategory( categoryC );
+        long idA = categoryService.addCategory( categoryA );
+        long idB = categoryService.addCategory( categoryB );
+        long idC = categoryService.addCategory( categoryC );
 
         assertNotNull( categoryService.getCategory( idA ) );
         assertNotNull( categoryService.getCategory( idB ) );
@@ -179,9 +182,9 @@ public class CategoryServiceTest
         groupA.getMembers().add( categoryOptionB );
         groupB.getMembers().add( categoryOptionC );
 
-        int idA = categoryService.saveCategoryOptionGroup( groupA );
-        int idB = categoryService.saveCategoryOptionGroup( groupB );
-        int idC = categoryService.saveCategoryOptionGroup( groupC );
+        long idA = categoryService.saveCategoryOptionGroup( groupA );
+        long idB = categoryService.saveCategoryOptionGroup( groupB );
+        long idC = categoryService.saveCategoryOptionGroup( groupC );
 
         assertEquals( groupA, categoryService.getCategoryOptionGroup( idA ) );
         assertEquals( groupB, categoryService.getCategoryOptionGroup( idB ) );
@@ -219,9 +222,9 @@ public class CategoryServiceTest
         groupSetA.getMembers().add( groupB );
         groupSetB.getMembers().add( groupC );
 
-        int idA = categoryService.saveCategoryOptionGroupSet( groupSetA );
-        int idB = categoryService.saveCategoryOptionGroupSet( groupSetB );
-        int idC = categoryService.saveCategoryOptionGroupSet( groupSetC );
+        long idA = categoryService.saveCategoryOptionGroupSet( groupSetA );
+        long idB = categoryService.saveCategoryOptionGroupSet( groupSetB );
+        long idC = categoryService.saveCategoryOptionGroupSet( groupSetC );
 
         assertEquals( groupSetA, categoryService.getCategoryOptionGroupSet( idA ) );
         assertEquals( groupSetB, categoryService.getCategoryOptionGroupSet( idB ) );
@@ -300,5 +303,67 @@ public class CategoryServiceTest
         assertTrue( operands.contains( new DataElementOperand( deB ) ) );
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 0 ) ) ) );
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 1 ) ) ) );
+    }
+
+    @Test
+    public void testGetDisaggregationCategoryCombos()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
+
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+
+        ccA = createCategoryCombo( 'A', categoryA, categoryB );
+
+        categoryService.addCategoryCombo( ccA );
+
+        assertEquals( 1, categoryService.getDisaggregationCategoryCombos().size() );
+    }
+
+    @Test
+    public void testGetDisaggregationCategoryOptionGroupSetsNoAcl()
+    {
+        CategoryOptionGroup groupA = createCategoryOptionGroup( 'A' );
+        groupA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+        CategoryOptionGroup groupB = createCategoryOptionGroup( 'B' );
+        groupB.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+        CategoryOptionGroup groupC = createCategoryOptionGroup( 'C' );
+        groupC.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        groupA.getMembers().add( categoryOptionA );
+        groupA.getMembers().add( categoryOptionB );
+        groupB.getMembers().add( categoryOptionC );
+
+        categoryService.saveCategoryOptionGroup( groupA );
+        categoryService.saveCategoryOptionGroup( groupB );
+        categoryService.saveCategoryOptionGroup( groupC );
+
+        CategoryOptionGroupSet groupSetA = createCategoryOptionGroupSet( 'A' );
+        groupSetA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        groupSetA.getMembers().add( groupA );
+        groupSetA.getMembers().add( groupB );
+        groupSetA.getMembers().add( groupC );
+        categoryService.saveCategoryOptionGroupSet( groupSetA );
+
+        assertEquals( 1, categoryService.getDisaggregationCategoryOptionGroupSetsNoAcl().size() );
+    }
+
+    @Test
+    public void testGetDisaggregationCategories()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
+        categoryA.setDataDimensionType( DataDimensionType.DISAGGREGATION );
+
+        categoryService.addCategory( categoryA );
+
+        // Default Category is created so count should be equal 2
+        assertEquals( 2, categoryService.getDisaggregationCategories().size() );
+
+        assertEquals( 1, categoryStore.getCategories( DataDimensionType.DISAGGREGATION, true ).size() );
+
+        assertEquals( 1, categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true ).size() );
+
     }
 }

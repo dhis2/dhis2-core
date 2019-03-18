@@ -87,6 +87,12 @@ public class TrackedEntityAttribute
     private TextPattern textPattern;
 
     /**
+     * Field mask represent how the value should be formatted during input. This string will
+     * be validated as a TextPatternSegment of type TEXT.
+     */
+    private String fieldMask;
+
+    /**
      * The style representing how TrackedEntityAttributes should be presented on the client
      */
     private ObjectStyle style;
@@ -96,6 +102,8 @@ public class TrackedEntityAttribute
     private Boolean orgunitScope = false;
 
     private Boolean programScope = false;
+
+    private Boolean skipSynchronization = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -377,7 +385,7 @@ public class TrackedEntityAttribute
     {
         this.optionSet = optionSet;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getConfidential()
@@ -424,10 +432,58 @@ public class TrackedEntityAttribute
     {
         this.formName = formName;
     }
-    
+
     public Boolean isSystemWideUnique()
     {
         return isUnique() && !getProgramScope() && !getOrgunitScope();
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
+
+    public void setSkipSynchronization( Boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFieldMask()
+    {
+        return fieldMask;
+    }
+
+    public void setFieldMask( String fieldMask )
+    {
+        this.fieldMask = fieldMask;
+    }
+
+    @Override public String toString()
+    {
+        return "TrackedEntityAttribute{" +
+            "description='" + description + '\'' +
+            ", formName='" + formName + '\'' +
+            ", valueType=" + valueType +
+            ", inherit=" + inherit +
+            ", optionSet=" + optionSet +
+            ", expression='" + expression + '\'' +
+            ", displayOnVisitSchedule=" + displayOnVisitSchedule +
+            ", sortOrderInVisitSchedule=" + sortOrderInVisitSchedule +
+            ", displayInListNoProgram=" + displayInListNoProgram +
+            ", sortOrderInListNoProgram=" + sortOrderInListNoProgram +
+            ", confidential=" + confidential +
+            ", unique=" + unique +
+            ", generated=" + generated +
+            ", pattern='" + pattern + '\'' +
+            ", textPattern=" + textPattern +
+            ", style=" + style +
+            ", orgunitScope=" + orgunitScope +
+            ", programScope=" + programScope +
+            ", skipSynchronization=" + skipSynchronization +
+            '}';
+    }
 }

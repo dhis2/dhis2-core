@@ -29,11 +29,11 @@ package org.hisp.dhis.appmanager;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -85,8 +85,6 @@ public class JCloudsAppStorageService
     private static final Pattern CONTAINER_NAME_PATTERN = Pattern.compile( "^(?![.-])(?=.{1,63}$)([.-]?[a-zA-Z0-9]+)+$" );
 
     private static final long FIVE_MINUTES_IN_SECONDS = Minutes.minutes( 5 ).toStandardDuration().getStandardSeconds();
-
-    private Map<String, App> apps = new HashMap<>();
 
     private Map<String, App> reservedNamespaces = new HashMap<>();
 
@@ -180,8 +178,6 @@ public class JCloudsAppStorageService
             log.error( String.format( "Could not authenticate with file store provider '%s' and container '%s'. " +
                 "File storage will not be available.", config.provider, config.location ), ex );
         }
-
-        discoverInstalledApps();
     }
 
     @PreDestroy
@@ -191,15 +187,14 @@ public class JCloudsAppStorageService
     }
 
     @Override
-    public void discoverInstalledApps()
+    public Map<String, App> discoverInstalledApps()
     {
+        Map<String, App> appMap = new HashMap<>();
         List<App> appList = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
 
-        apps.clear();
-
-        log.info( " Starting JCloud discovery..." );
+        log.info( "Starting JClouds discovery" );
 
         for ( StorageMetadata resource : blobStore.list( config.container, prefix( APPS_DIR + "/" ).delimiter( "/" ) ) )
         {
@@ -225,10 +220,10 @@ public class JCloudsAppStorageService
 
                 appList.add( app );
             }
-            catch ( IOException e )
+            catch ( IOException ex )
             {
-                log.warn( "Could not read manifest file of " + resource.getName() + ".", e );
-                e.printStackTrace();
+                log.error( "Could not read manifest file of " + resource.getName(), ex );
+                log.error( DebugUtils.getStackTrace( ex ) );
             }
         }
 
@@ -241,7 +236,7 @@ public class JCloudsAppStorageService
                     reservedNamespaces.put( namespace, app );
                 }
 
-                apps.put( app.getUrlFriendlyName(), app );
+                appMap.put( app.getUrlFriendlyName(), app );
 
                 log.info( "Discovered app '" + app.getName() + "' from JClouds storage " );
             }
@@ -249,15 +244,9 @@ public class JCloudsAppStorageService
 
         if ( appList.isEmpty() )
         {
-            log.info( " No apps found during JClouds discovery." );
+            log.info( "No apps found during JClouds discovery." );
         }
-
-    }
-
-    @Override
-    public Map<String, App> getApps()
-    {
-        return apps;
+        return appMap;
     }
 
     @Override
@@ -267,32 +256,36 @@ public class JCloudsAppStorageService
     }
 
     @Override
-    public AppStatus installApp( File file, String filename )
+    public App installApp( File file, String filename )
     {
+        App app = new App();
         log.info( "Installing new app: " + filename );
-        try
+
+        try( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
             // Parse ZIP file and it's manifest.webapp file.
             // -----------------------------------------------------------------
-
-            ZipFile zip = new ZipFile( file );
 
             ZipEntry entry = zip.getEntry( MANIFEST_FILENAME );
 
             if ( entry == null )
             {
                 log.error( "Failed to install app: Missing manifest.webapp in zip" );
-                
+
                 zip.close();
-                return AppStatus.MISSING_MANIFEST;
+                app.setAppState( AppStatus.MISSING_MANIFEST );
+                return app;
             }
 
             InputStream inputStream = zip.getInputStream( entry );
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
 
-            App app = mapper.readValue( inputStream, App.class );
+            app = mapper.readValue( inputStream, App.class );
+
+            app.setFolderName( APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) ) );
+            app.setAppStorageSource( AppStorageSource.JCLOUDS );
 
             // -----------------------------------------------------------------
             // Check for namespace and if it's already taken by another app
@@ -306,17 +299,8 @@ public class JCloudsAppStorageService
                     app.getName(), namespace ) );
 
                 zip.close();
-                return AppStatus.NAMESPACE_TAKEN;
-            }
-
-            // -----------------------------------------------------------------
-            // Delete if app is already installed, assuming app update so no
-            // data is deleted
-            // -----------------------------------------------------------------
-
-            if ( apps.containsKey( app.getName() ) )
-            {
-                deleteApp( apps.get( app.getName() ) );
+                app.setAppState( AppStatus.NAMESPACE_TAKEN );
+                return app;
             }
 
             // -----------------------------------------------------------------
@@ -325,32 +309,27 @@ public class JCloudsAppStorageService
 
             String dest = APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) );
 
-            zip.stream().forEach( new Consumer<ZipEntry>()
-            {
-                @Override
-                public void accept( ZipEntry zipEntry )
+            zip.stream().forEach( (Consumer<ZipEntry>) zipEntry -> {
+
+                log.info( "Uploading zipEntry: " + zipEntry );
+
+                try
                 {
+                    InputStream input = zip.getInputStream( zipEntry );
 
-                    log.info( "Uploading zipEntry: " + zipEntry );
+                    Blob blob = blobStore.blobBuilder( dest + File.separator + zipEntry.getName() )
+                        .payload( input )
+                        .contentLength( zipEntry.getSize() )
+                        .build();
 
-                    try
-                    {
-                        InputStream input = zip.getInputStream( zipEntry );
+                    blobStore.putBlob( config.container, blob );
 
-                        Blob blob = blobStore.blobBuilder( dest + File.separator + zipEntry.getName() )
-                            .payload( input )
-                            .contentLength( zipEntry.getSize() )
-                            .build();
+                    input.close();
 
-                        blobStore.putBlob( config.container, blob );
-
-                        input.close();
-
-                    }
-                    catch ( IOException e )
-                    {
-                        e.printStackTrace();
-                    }
+                }
+                catch ( IOException e )
+                {
+                    log.error( "Unable to store app file '" + zipEntry.getName() + "'", e );
                 }
             } );
 
@@ -365,29 +344,26 @@ public class JCloudsAppStorageService
             // -----------------------------------------------------------------
 
             zip.close();
-
-            return AppStatus.OK;
+            app.setAppState( AppStatus.OK );
+            return app;
         }
         catch ( ZipException e )
         {
             log.error( "Failed to install app: Invalid ZIP format", e );
-            return AppStatus.INVALID_ZIP_FORMAT;
+            app.setAppState( AppStatus.INVALID_ZIP_FORMAT );
         }
         catch ( JsonParseException e )
         {
             log.error( "Failed to install app: Invalid manifest.webapp", e );
-            return AppStatus.INVALID_MANIFEST_JSON;
-        }
-        catch ( JsonMappingException e )
-        {
-            log.error( "Failed to install app: Invalid manifest.webapp", e );
-            return AppStatus.INVALID_MANIFEST_JSON;
+            app.setAppState( AppStatus.INVALID_MANIFEST_JSON );
         }
         catch ( IOException e )
         {
             log.error( "Failed to install app: Could not save app", e );
-            return AppStatus.INSTALLATION_FAILED;
+            app.setAppState( AppStatus.INSTALLATION_FAILED );
         }
+
+        return app;
     }
 
     @Override
@@ -402,6 +378,8 @@ public class JCloudsAppStorageService
 
             blobStore.removeBlob( config.container, resource.getName() );
         }
+
+        reservedNamespaces.remove( app.getActivities().getDhis().getNamespace(), app );
 
         log.info( "Deleted app " + app.getName() );
 

@@ -32,7 +32,7 @@ import java.util.HashMap;
 
 /**
  * HashMap that returns as value the given key.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class MimicingHashMap<K, V>
@@ -40,7 +40,7 @@ public class MimicingHashMap<K, V>
 {
     /**
      * Returns the given key.
-     * 
+     *
      * @param key the key.
      * @return the given key.
      */

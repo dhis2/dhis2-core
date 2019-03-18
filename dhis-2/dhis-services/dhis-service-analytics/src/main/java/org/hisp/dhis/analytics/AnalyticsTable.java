@@ -38,21 +38,21 @@ import org.springframework.util.Assert;
 
 /**
  * Class representing an analytics database table.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class AnalyticsTable
 {
     /**
-     * Name of the base analytics table.
+     * Analytics table type.
      */
-    private String baseName;
+    private AnalyticsTableType tableType;
 
     /**
      * Columns representing dimensions.
      */
     private List<AnalyticsTableColumn> dimensionColumns;
-    
+
     /**
      * Columns representing values.
      */
@@ -62,7 +62,7 @@ public class AnalyticsTable
      * Program for analytics tables, applies to events and enrollments.
      */
     private Program program;
-    
+
     /**
      * Analytics partition tables for this base analytics table.
      */
@@ -76,16 +76,16 @@ public class AnalyticsTable
     {
     }
 
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        this.baseName = baseName;
+        this.tableType = tableType;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
     }
 
-    public AnalyticsTable( String baseName, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns, Program program )
+    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns, Program program )
     {
-        this( baseName, dimensionColumns, valueColumns );
+        this( tableType, dimensionColumns, valueColumns );
         this.program = program;
     }
 
@@ -95,7 +95,7 @@ public class AnalyticsTable
 
     /**
      * Adds an analytics partition table to this master table.
-     * 
+     *
      * @param year the year.
      * @param startDate the start date.
      * @param endDate the end date.
@@ -104,15 +104,20 @@ public class AnalyticsTable
     public AnalyticsTable addPartitionTable( Integer year, Date startDate, Date endDate )
     {
         Assert.notNull( year, "Year must be specified" );
-        
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval        
+
+        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
         this.partitionTables.add( partitionTable );
         return this;
     }
-        
+
+    public String getBaseName()
+    {
+        return tableType.getTableName();
+    }
+
     public String getTableName()
     {
-        String name = baseName;
+        String name = getBaseName();
 
         if ( program != null )
         {
@@ -124,7 +129,7 @@ public class AnalyticsTable
 
     public String getTempTableName()
     {
-        String name = baseName + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
+        String name = getBaseName() + AnalyticsTableManager.TABLE_TEMP_SUFFIX;
 
         if ( program != null )
         {
@@ -138,7 +143,7 @@ public class AnalyticsTable
     {
         return program != null;
     }
-    
+
     public boolean hasPartitionTables()
     {
         return !partitionTables.isEmpty();
@@ -148,9 +153,9 @@ public class AnalyticsTable
     // Getters
     // -------------------------------------------------------------------------
 
-    public String getBaseName()
+    public AnalyticsTableType getTableType()
     {
-        return baseName;
+        return tableType;
     }
 
     public List<AnalyticsTableColumn> getDimensionColumns()
@@ -182,7 +187,7 @@ public class AnalyticsTable
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ( ( baseName == null ) ? 0 : baseName.hashCode() );
+        result = prime * result + ( ( tableType == null ) ? 0 : tableType.hashCode() );
         result = prime * result + ( ( program == null ) ? 0 : program.hashCode() );
         return result;
     }
@@ -194,31 +199,31 @@ public class AnalyticsTable
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( getClass() != object.getClass() )
         {
             return false;
         }
-        
+
         AnalyticsTable other = (AnalyticsTable) object;
-        
-        if ( baseName == null )
+
+        if ( tableType == null )
         {
-            if ( other.baseName != null )
+            if ( other.tableType != null )
             {
                 return false;
             }
         }
-        else if ( !baseName.equals( other.baseName ) )
+        else if ( tableType != other.tableType )
         {
             return false;
         }
-                
+
         if ( program == null )
         {
             if ( other.program != null )
@@ -230,7 +235,7 @@ public class AnalyticsTable
         {
             return false;
         }
-        
+
         return true;
     }
 

@@ -28,6 +28,13 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+
+import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableSet;
 
@@ -35,25 +42,32 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 public class GridHeader
+    implements Serializable
 {
-    private static final ImmutableSet<String> NUMERIC_TYPES = 
+    private static final ImmutableSet<String> NUMERIC_TYPES =
         ImmutableSet.of( Float.class.getName(), Double.class.getName(), Long.class.getName(), Integer.class.getName() );
 
+    /**
+     * Format header key name.
+     */
     private String name;
 
+    /**
+     * Readable pretty header title.
+     */
     private String column;
 
     private ValueType valueType;
-    
+
     private String type;
 
     private boolean hidden;
 
     private boolean meta;
 
-    private String optionSet;
+    private OptionSet optionSet;
 
-    private String legendSet;
+    private LegendSet legendSet;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -64,7 +78,7 @@ public class GridHeader
     }
 
     /**
-     * @param name   name
+     * @param name formal header name.
      */
     public GridHeader( String name )
     {
@@ -75,8 +89,8 @@ public class GridHeader
     }
 
     /**
-     * @param name name
-     * @param column column
+     * @param name formal header name.
+     * @param column readable header title.
      */
     public GridHeader( String name, String column )
     {
@@ -88,9 +102,9 @@ public class GridHeader
      * Sets the column property to the name value. Sets the type property to
      * String.
      *
-     * @param name name
-     * @param hidden hidden
-     * @param meta meta
+     * @param name formal header name.
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
      */
     public GridHeader( String name, boolean hidden, boolean meta )
     {
@@ -101,12 +115,12 @@ public class GridHeader
     }
 
     /**
-     * @param name name
-     * @param column column
-     * @param valueType valueType
-     * @param type type
-     * @param hidden hidden
-     * @param meta meta
+     * @param name formal header name.
+     * @param column readable header title.
+     * @param valueType header value type.
+     * @param type header type (deprecated).
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
      */
     public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta )
     {
@@ -118,15 +132,16 @@ public class GridHeader
     }
 
     /**
-     * @param name name
-     * @param column column
-     * @param type type
-     * @param hidden hidden
-     * @param meta meta
-     * @param optionSet optionSet
-     * @param legendSet legendSet
+     * @param name formal header name.
+     * @param column readable header title.
+     * @param valueType header value type.
+     * @param type header type (deprecated).
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
+     * @param optionSet option set.
+     * @param legendSet legend set.
      */
-    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, String optionSet, String legendSet )
+    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta, OptionSet optionSet, LegendSet legendSet )
     {
         this( name, column, valueType, type, hidden, meta );
         this.optionSet = optionSet;
@@ -173,20 +188,10 @@ public class GridHeader
         return column;
     }
 
-    public void setColumn( String column )
-    {
-        this.column = column;
-    }
-
     @JsonProperty
     public ValueType getValueType()
     {
         return valueType;
-    }
-
-    public void setValueType( ValueType valueType )
-    {
-        this.valueType = valueType;
     }
 
     @JsonProperty
@@ -195,20 +200,10 @@ public class GridHeader
         return type;
     }
 
-    public void setType( String type )
-    {
-        this.type = type;
-    }
-
     @JsonProperty
     public boolean isHidden()
     {
         return hidden;
-    }
-
-    public void setHidden( boolean hidden )
-    {
-        this.hidden = hidden;
     }
 
     @JsonProperty
@@ -217,31 +212,28 @@ public class GridHeader
         return meta;
     }
 
-    public void setMeta( boolean meta )
-    {
-        this.meta = meta;
-    }
-
     @JsonProperty
     public String getOptionSet()
     {
-        return optionSet;
+        return optionSet != null ? optionSet.getUid() : null;
     }
 
-    public void setOptionSet( String optionSet )
+    @JsonIgnore
+    public OptionSet getOptionSetObject()
     {
-        this.optionSet = optionSet;
+        return optionSet;
     }
 
     @JsonProperty
     public String getLegendSet()
     {
-        return legendSet;
+        return legendSet != null ? legendSet.getUid() : null;
     }
 
-    public void setLegendSet( String legendSet )
+    @JsonIgnore
+    public LegendSet getLegendSetObject()
     {
-        this.legendSet = legendSet;
+        return legendSet;
     }
 
     // -------------------------------------------------------------------------

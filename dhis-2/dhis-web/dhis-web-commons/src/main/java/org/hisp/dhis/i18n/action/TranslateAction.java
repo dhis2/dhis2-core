@@ -36,7 +36,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 
 import javax.servlet.http.HttpServletRequest;
@@ -146,7 +146,7 @@ public class TranslateAction
 
         HttpServletRequest request = ServletActionContext.getRequest();
 
-        Set<ObjectTranslation> listObjectTranslation = new HashSet<>(object.getTranslations());
+        Set<Translation> listObjectTranslation = new HashSet<>(object.getTranslations());
 
         for ( TranslationProperty p :  TranslationProperty.values()  )
         {
@@ -162,7 +162,7 @@ public class TranslateAction
                     {
                         listObjectTranslation.removeIf( o -> o.getProperty().equals( p ) && o.getLocale().equalsIgnoreCase( loc )  );
 
-                        listObjectTranslation.add( new ObjectTranslation( loc, p, paramValues[0] ) );
+                        listObjectTranslation.add( new Translation( loc, p, paramValues[0] ) );
                     }
                 }
             });

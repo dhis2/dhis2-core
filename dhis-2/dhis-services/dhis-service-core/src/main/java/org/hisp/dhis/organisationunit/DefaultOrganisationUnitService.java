@@ -1,5 +1,8 @@
 package org.hisp.dhis.organisationunit;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,14 +31,16 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
@@ -44,13 +49,16 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.version.VersionService;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.awt.geom.Point2D;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -61,9 +69,16 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
+    private static Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    private Environment env;
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
 
     private OrganisationUnitStore organisationUnitStore;
 
@@ -107,12 +122,22 @@ public class DefaultOrganisationUnitService
         this.configurationService = configurationService;
     }
 
+    @PostConstruct
+    public void init()
+    {
+
+        IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
+                .expireAfterWrite( 3, TimeUnit.HOURS )
+                .initialCapacity( 1000 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+    }
+
     // -------------------------------------------------------------------------
     // OrganisationUnit
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnit( OrganisationUnit organisationUnit )
+    public long addOrganisationUnit( OrganisationUnit organisationUnit )
     {
         organisationUnitStore.save( organisationUnit );
         User user = currentUserService.getCurrentUser();
@@ -168,7 +193,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public OrganisationUnit getOrganisationUnit( int id )
+    public OrganisationUnit getOrganisationUnit( long id )
     {
         return organisationUnitStore.get( id );
     }
@@ -186,7 +211,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnits( Collection<Integer> identifiers )
+    public List<OrganisationUnit> getOrganisationUnits( Collection<Long> identifiers )
     {
         return organisationUnitStore.getById( identifiers );
     }
@@ -267,19 +292,19 @@ public class DefaultOrganisationUnitService
     {
         OrganisationUnit unit = getOrganisationUnit( uid );
 
-        int id = unit != null ? unit.getId() : -1;
+        long id = unit != null ? unit.getId() : -1;
 
         return getOrganisationUnitWithChildren( id, maxLevels );
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitWithChildren( int id )
+    public List<OrganisationUnit> getOrganisationUnitWithChildren( long id )
     {
         return getOrganisationUnitWithChildren( id, null );
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitWithChildren( int id, Integer maxLevels )
+    public List<OrganisationUnit> getOrganisationUnitWithChildren( long id, Integer maxLevels )
     {
         OrganisationUnit organisationUnit = getOrganisationUnit( id );
 
@@ -300,6 +325,7 @@ public class DefaultOrganisationUnitService
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( organisationUnit ) );
         params.setMaxLevels( levels );
+        params.setFetchChildren( true );
 
         return organisationUnitStore.getOrganisationUnits( params );
     }
@@ -364,10 +390,12 @@ public class DefaultOrganisationUnitService
     @Override
     public OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxLevels )
     {
-        Map<String, Set<String>> associationSet = Maps.newHashMap( organisationUnitStore.getOrganisationUnitDataSetAssocationMap() );
+        User user = currentUserService.getCurrentUser();
 
-        filterUserDataSets( associationSet );
-        filterChildOrganisationUnits( associationSet, maxLevels );
+        Set<OrganisationUnit> organisationUnits = user != null ? user.getOrganisationUnits() : null;
+        List<DataSet> dataSets = ( user != null && user.isSuper() ) ? null : dataSetService.getUserDataWrite( user );
+
+        Map<String, Set<String>> associationSet = organisationUnitStore.getOrganisationUnitDataSetAssocationMap( organisationUnits, dataSets );
 
         OrganisationUnitDataSetAssociationSet set = new OrganisationUnitDataSetAssociationSet();
 
@@ -388,55 +416,6 @@ public class DefaultOrganisationUnitService
         return set;
     }
 
-    /**
-     * Retains only the data sets from the map which the current user has access to.
-     *
-     * @param associationMap the associations between organisation unit and data sets.
-     */
-    private void filterUserDataSets( Map<String, Set<String>> associationMap )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null && !currentUser.isSuper() )
-        {
-            List<DataSet> accessibleDataSets = dataSetService.getUserDataWrite( currentUser );
-
-            if ( accessibleDataSets.isEmpty() )
-            {
-                associationMap.values().iterator().forEachRemaining( Set::clear );
-            }
-            else
-            {
-                Set<String> userDataSets = Sets.newHashSet( getUids( accessibleDataSets ) );
-
-                associationMap.values().forEach( ds -> ds.retainAll( userDataSets ) );
-            }
-        }
-    }
-
-    /**
-     * Retains only the organisation units in the sub-tree of the current user.
-     *
-     * @param associationMap the associations between organisation unit and data sets.
-     * @param maxLevels      the maximum number of levels to include relative to
-     *                       current user, inclusive.
-     */
-    private void filterChildOrganisationUnits( Map<String, Set<String>> associationMap, Integer maxLevels )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null && currentUser.getOrganisationUnits() != null )
-        {
-            List<String> parentIds = getUids( currentUser.getOrganisationUnits() );
-
-            List<OrganisationUnit> organisationUnitsWithChildren = getOrganisationUnitsWithChildren( parentIds, maxLevels );
-
-            Set<String> children = Sets.newHashSet( getUids( organisationUnitsWithChildren ) );
-
-            associationMap.keySet().retainAll( children );
-        }
-    }
-
     @Override
     public List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max )
     {
@@ -447,6 +426,14 @@ public class DefaultOrganisationUnitService
     public boolean isInUserHierarchy( OrganisationUnit organisationUnit )
     {
         return isInUserHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( currentUserService.getCurrentUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( organisationUnit ) );
     }
 
     @Override
@@ -479,7 +466,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public void updateOrganisationUnitParent( int organisationUnitId, int parentId )
+    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
     {
         organisationUnitStore.updateOrganisationUnitParent( organisationUnitId, parentId );
     }
@@ -489,7 +476,7 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
+    public long addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
     {
         organisationUnitLevelStore.save( organisationUnitLevel );
         return organisationUnitLevel.getId();
@@ -532,7 +519,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public OrganisationUnitLevel getOrganisationUnitLevel( int id )
+    public OrganisationUnitLevel getOrganisationUnitLevel( long id )
     {
         return organisationUnitLevelStore.get( id );
     }
@@ -683,6 +670,25 @@ public class DefaultOrganisationUnitService
         organisationUnitStore.forceUpdatePaths();
     }
 
+    @Override
+    public Integer getOrganisationUnitLevelByLevelOrUid( String level )
+    {
+        if ( level.matches( ExpressionService.INT_EXPRESSION ) )
+        {
+            Integer orgUnitLevel = Integer.parseInt( level );
+
+            return orgUnitLevel > 0 ? orgUnitLevel : null;
+        }
+        else if ( level.matches( ExpressionService.UID_EXPRESSION ) )
+        {
+            OrganisationUnitLevel orgUnitLevel = getOrganisationUnitLevel( level );
+
+            return orgUnitLevel != null ? orgUnitLevel.getLevel() : null;
+        }
+
+        return null;
+    }
+
     /**
      * Get all the Organisation Units within the distance of a coordinate.
      */
@@ -706,7 +712,7 @@ public class DefaultOrganisationUnitService
                 OrganisationUnit orgunit = iter.next();
 
                 double distancebetween = GeoUtils.getDistanceBetweenTwoPoints( centerPoint,
-                    ValidationUtils.getCoordinatePoint2D( orgunit.getCoordinates() ) );
+                    ValidationUtils.getCoordinatePoint2D( GeoUtils.getCoordinatesFromGeometry( orgunit.getGeometry()) ) );
 
                 if ( distancebetween > distance )
                 {

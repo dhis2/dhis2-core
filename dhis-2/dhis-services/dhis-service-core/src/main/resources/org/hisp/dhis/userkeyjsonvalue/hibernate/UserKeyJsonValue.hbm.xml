@@ -26,7 +26,7 @@
       unique-key="userkeyjsonvalue_unique_key_on_user_and_namespace" />
     <!-- set not-null -->
 
-    <property name="plainValue" column="value" type="text" access="property" />
+    <property name="jbPlainValue" type="jbPlainString" column="jbvalue" access="property" />
 
     <property name="encryptedValue" column="encrypted_value" type="Aes128EncryptedString" access="property" />
 

@@ -32,12 +32,7 @@
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
-    <!-- Object Translation -->
-    <set name="translations" table="maplegendsettranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="maplegendsetid" foreign-key="fk_objecttranslation_maplegendsetid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
+    <property name="translations" type="jblTranslations"/>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_legendset_userid" />

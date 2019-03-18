@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
@@ -87,7 +88,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -332,28 +333,28 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        TypeReport typeReport = new TypeReport( ObjectTranslation.class );
+        TypeReport typeReport = new TypeReport( Translation.class );
 
-        List<ObjectTranslation> objectTranslations = Lists.newArrayList( object.getTranslations() );
+        List<Translation> objectTranslations = Lists.newArrayList( object.getTranslations() );
 
         for ( int idx = 0; idx < object.getTranslations().size(); idx++ )
         {
-            ObjectReport objectReport = new ObjectReport( ObjectTranslation.class, idx );
-            ObjectTranslation translation = objectTranslations.get( idx );
+            ObjectReport objectReport = new ObjectReport( Translation.class, idx );
+            Translation translation = objectTranslations.get( idx );
 
             if ( translation.getLocale() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
             }
 
             if ( translation.getProperty() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "property" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" ).setErrorKlass( getEntityClass() ) );
             }
 
             if ( translation.getValue() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( ObjectTranslation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
             }
 
             typeReport.addObjectReport( objectReport );
@@ -484,6 +485,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(), options.getRootJunction() );
         query.setUser( user );
         query.setObjects( entities );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
         entities = (List<T>) queryService.query( query );
 
@@ -650,15 +652,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-
         object.setAsFavorite( user );
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
+    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.OK )
+    @SuppressWarnings("unchecked")
+    public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isSubscribable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+        }
+
+        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        SubscribableObject object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        object.subscribe( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid );
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
@@ -810,15 +834,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         T object = entity.get( 0 );
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "No current user found" ) );
-        }
-
         object.removeAsFavorite( user );
         manager.updateNoAcl( object );
 
         String message = String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() );
+        webMessageService.send( WebMessageUtils.ok( message ), response, request );
+    }
+
+    @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.OK )
+    @SuppressWarnings("unchecked")
+    public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    {
+        if ( !getSchema().isSubscribable() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+        }
+
+        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
+
+        if ( entity.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
+        }
+
+        SubscribableObject object = entity.get( 0 );
+        User user = currentUserService.getCurrentUser();
+
+        object.unsubscribe( user );
+        manager.updateNoAcl( object );
+
+        String message = String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid );
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
@@ -1158,7 +1204,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected void handleLinksAndAccess( List<T> entityList, List<String> fields, boolean deep, User user )
     {
         boolean generateLinks = hasHref( fields );
-        boolean generateAccess = hasAccess( fields );
 
         if ( generateLinks )
         {

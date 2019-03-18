@@ -60,7 +60,7 @@ public interface DataEntryFormService
      * @param dataEntryForm The DataEntryForm to add.
      * @return The generated unique identifier for this DataEntryForm.
      */
-    int addDataEntryForm( DataEntryForm dataEntryForm );
+    long addDataEntryForm( DataEntryForm dataEntryForm );
 
     /**
      * Updates a DataEntryForm.
@@ -82,7 +82,7 @@ public interface DataEntryFormService
      * @param id The unique identifier for the DataEntryForm to get.
      * @return The DataEntryForm with the given id or null if it does not exist.
      */
-    DataEntryForm getDataEntryForm( int id );
+    DataEntryForm getDataEntryForm( long id );
 
     /**
      * Returns a DataEntryForm with the given name.
@@ -130,6 +130,4 @@ public interface DataEntryFormService
     String prepareDataEntryFormForEntry( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n );
     
     Set<DataElement> getDataElementsInDataEntryForm( DataSet dataSet );
-    
-    List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds );
 }

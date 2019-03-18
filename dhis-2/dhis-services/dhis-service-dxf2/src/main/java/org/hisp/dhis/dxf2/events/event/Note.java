@@ -33,9 +33,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.util.Objects;
+
 @JacksonXmlRootElement( localName = "note", namespace = DxfNamespaces.DXF_2_0 )
 public class Note
 {
+    private String note;
+
     private String value;
 
     private String storedBy;
@@ -44,6 +48,18 @@ public class Note
 
     public Note()
     {
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getNote()
+    {
+        return note;
+    }
+
+    public void setNote( String note )
+    {
+        this.note = note;
     }
 
     @JsonProperty
@@ -80,5 +96,42 @@ public class Note
     public void setStoredDate( String storedDate )
     {
         this.storedDate = storedDate;
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        Note that = (Note) o;
+        return Objects.equals( note, that.note ) &&
+            Objects.equals( storedDate, that.storedDate ) &&
+            Objects.equals( storedBy, that.storedBy ) &&
+            Objects.equals( value, that.value );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( note, storedDate, storedBy, value );
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Note{" +
+            "note='" + note + '\'' +
+            ", value='" + value + '\'' +
+            ", storedBy='" + storedBy + '\'' +
+            ", storedDate='" + storedDate + '\'' +
+            '}';
     }
 }

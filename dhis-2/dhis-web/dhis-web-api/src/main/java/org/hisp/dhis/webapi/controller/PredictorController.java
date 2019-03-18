@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.predictor.PredictionService;
+import org.hisp.dhis.predictor.PredictionSummary;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorService;
 import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
@@ -82,9 +83,11 @@ public class PredictorController
 
         try
         {
-            int count = predictionService.predict( predictor, startDate, endDate );
+            PredictionSummary predictionSummary = new PredictionSummary();
 
-            webMessageService.send( WebMessageUtils.ok( "Generated " + count + " predictions" ), response, request );
+            predictionService.predict( predictor, startDate, endDate, predictionSummary );
+
+            webMessageService.send( WebMessageUtils.ok( "Generated " + predictionSummary.getPredictions() + " predictions" ), response, request );
         }
         catch ( Exception ex )
         {
@@ -110,7 +113,11 @@ public class PredictorController
         {
             try
             {
-                count += predictionService.predict( predictor, startDate, endDate );
+                PredictionSummary predictionSummary = new PredictionSummary();
+
+                predictionService.predict( predictor, startDate, endDate, predictionSummary );
+
+                count += predictionSummary.getPredictions();
             }
             catch ( Exception ex )
             {

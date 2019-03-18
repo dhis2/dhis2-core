@@ -34,10 +34,12 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -46,25 +48,21 @@ import java.util.stream.Collectors;
 /**
  * Service for retrieving information about the currently
  * authenticated user.
- * 
+ * <p>
  * Note that most methods are transactional, except for
  * retrieving current UserInfo.
- * 
+ *
  * @author Torgeir Lorange Ostby
  */
 public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
     /**
-     * Cache for user IDs. Key is username. Disabled during test phase. 
+     * Cache for user IDs. Key is username. Disabled during test phase.
      * Take care not to cache user info which might change during runtime.
      */
-    private static final Cache<String, Integer> USERNAME_ID_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 1, TimeUnit.HOURS )
-        .initialCapacity( 200 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 2000 )
-        .build();
-    
+    private static Cache<String, Long> USERNAME_ID_CACHE;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -72,9 +70,22 @@ public class DefaultCurrentUserService
     @Autowired
     private CurrentUserStore currentUserStore;
 
+    @Autowired
+    private Environment env;
+
     // -------------------------------------------------------------------------
     // CurrentUserService implementation
     // -------------------------------------------------------------------------
+
+    @PostConstruct
+    public void init()
+    {
+        USERNAME_ID_CACHE = Caffeine.newBuilder()
+                .expireAfterAccess( 1, TimeUnit.HOURS )
+                .initialCapacity( 200 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 4000 )
+                .build();
+    }
 
     @Override
     @Transactional
@@ -87,44 +98,44 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        UserCredentials userCredentials = currentUserStore.getUserCredentialsByUsername( username );
+        Long userId = USERNAME_ID_CACHE.get( username, un -> getUserId( un ) );
 
-        if ( userCredentials == null )
+        if ( userId == null )
         {
             return null;
         }
 
-        return userCredentials.getUserInfo();
+        return currentUserStore.getUser( userId );
     }
 
     @Override
     public UserInfo getCurrentUserInfo()
     {
         UserDetails userDetails = getCurrentUserDetails();
-        
+
         if ( userDetails == null )
         {
             return null;
         }
-        
-        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
-        
+
+        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
+
         if ( userId == null )
         {
             return null;
         }
-        
+
         Set<String> authorities = userDetails.getAuthorities()
             .stream().map( GrantedAuthority::getAuthority )
             .collect( Collectors.toSet() );
-        
+
         return new UserInfo( userId, userDetails.getUsername(), authorities );
     }
-    
-    private Integer getUserId( String username )
+
+    private Long getUserId( String username )
     {
         UserCredentials credentials = currentUserStore.getUserCredentialsByUsername( username );
-        
+
         return credentials != null ? credentials.getId() : null;
     }
 
@@ -142,16 +153,16 @@ public class DefaultCurrentUserService
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
-        
+
         return user != null ? new HashSet<>( user.getOrganisationUnits() ) : new HashSet<>();
     }
-    
+
     @Override
     @Transactional
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();
-        
+
         return user != null && user.getUserCredentials().isAuthorized( auth );
     }
 }

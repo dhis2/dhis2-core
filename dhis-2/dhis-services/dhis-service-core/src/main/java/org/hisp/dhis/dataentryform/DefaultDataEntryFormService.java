@@ -107,13 +107,9 @@ public class DefaultDataEntryFormService
     // ------------------------------------------------------------------------
 
     @Override
-    public int addDataEntryForm( DataEntryForm dataEntryForm )
+    public long addDataEntryForm( DataEntryForm dataEntryForm )
     {
-        if ( dataEntryForm != null )
-        {
-            dataEntryForm.setFormat( DataEntryForm.CURRENT_FORMAT );
-        }
-
+        dataEntryForm.setFormat( DataEntryForm.CURRENT_FORMAT );
         dataEntryFormStore.save( dataEntryForm );
         return dataEntryForm.getId();
     }
@@ -131,7 +127,7 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    public DataEntryForm getDataEntryForm( int id )
+    public DataEntryForm getDataEntryForm( long id )
     {
         return dataEntryFormStore.get( id );
     }
@@ -489,16 +485,5 @@ public class DefaultDataEntryFormService
         }
 
         return dataElements;
-    }
-
-    @Override
-    public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
-    {
-        if ( programStageIds == null || programStageIds.isEmpty() )
-        {
-            return null;
-        }
-
-        return dataEntryFormStore.listDistinctDataEntryFormByProgramStageIds( programStageIds );
     }
 }

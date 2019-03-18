@@ -28,7 +28,6 @@ package org.hisp.dhis.trackedentitydatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -62,24 +61,6 @@ public class DefaultTrackedEntityDataValueAuditService
     }
 
     @Override
-    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( TrackedEntityDataValue trackedEntityDataValue )
-    {
-        return getTrackedEntityDataValueAudits( trackedEntityDataValue.getDataElement(), trackedEntityDataValue.getProgramStageInstance() );
-    }
-
-    @Override
-    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( DataElement dataElement, ProgramStageInstance programStageInstance )
-    {
-        return getTrackedEntityDataValueAudits( Lists.newArrayList( dataElement ), Lists.newArrayList( programStageInstance ) );
-    }
-
-    @Override
-    public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances )
-    {
-        return trackedEntityDataValueAuditStore.getTrackedEntityDataValueAudits( dataElements, programStageInstances, null );
-    }
-
-    @Override
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
@@ -97,11 +78,5 @@ public class DefaultTrackedEntityDataValueAuditService
     public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
         return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType );
-    }
-    
-    @Override
-    public void deleteTrackedEntityDataValueAudits( ProgramStageInstance programStageInstance )
-    {
-        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudits( programStageInstance );
     }
 }

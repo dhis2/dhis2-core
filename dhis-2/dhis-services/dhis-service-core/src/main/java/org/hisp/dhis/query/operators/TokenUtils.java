@@ -47,9 +47,16 @@ public class TokenUtils
     public static StringBuilder createRegex( String value )
     {
         StringBuilder regex = new StringBuilder();
-
+        
+        List<String> tokens = TokenUtils.getTokens( value );
+        
+        if ( tokens == null || tokens.isEmpty() )
+        {
+            return regex;
+        }
+        
         TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
-
+                
         return regex;
     }
 
@@ -79,6 +86,7 @@ public class TokenUtils
                 for ( String s : s1_tokens )
                 {
                     boolean found = false;
+
                     for ( String s3 : s2_tokens )
                     {
                         switch ( matchMode )
@@ -94,6 +102,7 @@ public class TokenUtils
                             break;
                         case ANYWHERE:
                             found = s3.contains( s );
+                            break;
                         }
 
                         if ( found )

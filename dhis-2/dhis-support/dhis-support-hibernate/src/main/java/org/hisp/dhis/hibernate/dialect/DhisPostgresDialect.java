@@ -28,7 +28,7 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.dialect.PostgreSQL95Dialect;
+import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
 
 import java.sql.Types;
 
@@ -37,7 +37,7 @@ import java.sql.Types;
  * @author Stian Sandvold <stian@dhis2.org>
  */
 public class DhisPostgresDialect
-    extends PostgreSQL95Dialect
+    extends PostgisPG95Dialect
 {
     public DhisPostgresDialect()
     {

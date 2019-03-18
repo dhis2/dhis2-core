@@ -1,5 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,9 +34,13 @@ import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.utils.CategoryUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.maintenance.MaintenanceService;
@@ -55,6 +61,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
@@ -76,9 +83,6 @@ public class MaintenanceController
     private MaintenanceService maintenanceService;
 
     @Autowired
-    private CategoryService categoryService;
-
-    @Autowired
     private HibernateCacheManager cacheManager;
 
     @Autowired
@@ -91,6 +95,9 @@ public class MaintenanceController
     private ResourceTableService resourceTableService;
 
     @Autowired
+    private AnalyticsTableGenerator analyticsTableGenerator;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
@@ -100,7 +107,16 @@ public class MaintenanceController
     private List<AnalyticsTableService> analyticsTableService;
 
     @Autowired
+    private CategoryManager categoryManager;
+    
+    @Autowired
+    private CategoryUtils categoryUtils;
+
+    @Autowired
     private AppManager appManager;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @RequestMapping( value = "/analyticsTablesClear", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
@@ -203,7 +219,24 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCategoryOptionCombos()
     {
-        categoryService.addAndPruneAllOptionCombos();
+        categoryManager.addAndPruneAllOptionCombos();
+    }
+
+    @RequestMapping( value = "/categoryOptionComboUpdate/categoryCombo/{uid}", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    public void updateCategoryOptionCombos( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    {
+        CategoryCombo categoryCombo = categoryService.getCategoryCombo( uid );
+
+        if ( categoryCombo == null )
+        {
+            webMessageService.sendJson( WebMessageUtils.conflict( "CategoryCombo does not exist: " + uid ), response );
+            return;
+        }
+
+        ImportSummaries importSummaries = categoryUtils.addAndPruneOptionCombos( categoryCombo );
+        
+        webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
     }
 
     @RequestMapping( value = { "/cacheClear", "/cache" }, method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -290,7 +323,8 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
         @RequestParam( required = false ) boolean cacheClear,
-        @RequestParam( required = false ) boolean appReload )
+        @RequestParam( required = false ) boolean appReload,
+        @RequestParam( required = false ) boolean resourceTableUpdate )
     {
         if ( analyticsTableClear )
         {
@@ -365,6 +399,11 @@ public class MaintenanceController
         if ( appReload )
         {
             appManager.reloadApps();
+        }
+        
+        if ( resourceTableUpdate )
+        {
+            analyticsTableGenerator.generateResourceTables( null );
         }
     }
 }

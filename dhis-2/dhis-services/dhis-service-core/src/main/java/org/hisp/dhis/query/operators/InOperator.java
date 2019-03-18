@@ -33,6 +33,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
+import org.hisp.dhis.schema.Property;
 
 import java.util.Collection;
 import java.util.Date;
@@ -55,7 +56,14 @@ public class InOperator extends Operator
     @Override
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
+        Property property = queryPath.getProperty();
+
+        if ( property.isCollection() )
+        {
+            return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getItemKlass(), args.get( 0 ) ) );
+        }
+
+        return Restrictions.in( queryPath.getPath(), getValue( Collection.class, queryPath.getProperty().getKlass(), args.get( 0 ) ) );
     }
 
     @Override

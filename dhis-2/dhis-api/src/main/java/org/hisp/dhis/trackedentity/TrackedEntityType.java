@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.organisationunit.FeatureType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,8 @@ public class TrackedEntityType
 {
     private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
 
+    private FeatureType featureType = FeatureType.NONE;
+
     private ObjectStyle style;
 
     private String formName;
@@ -60,7 +63,12 @@ public class TrackedEntityType
     /**
      * Property indicating maximum number of TEI to return after search
      */
-    private int maxTeiCountToReturn = 0;
+    private int maxTeiCountToReturn = 0;    
+    
+    /**
+     * Property indicating whether to allow (read) audit log or not
+     */
+    private boolean allowAuditLog;
     
     // -------------------------------------------------------------------------
     // Constructor
@@ -130,6 +138,18 @@ public class TrackedEntityType
         this.maxTeiCountToReturn = maxTeiCountToReturn;
     }
     
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isAllowAuditLog()
+    {
+        return allowAuditLog;
+    }
+
+    public void setAllowAuditLog( boolean allowAuditLog )
+    {
+        this.allowAuditLog = allowAuditLog;
+    }
+    
     // -------------------------------------------------------------------------
     // Logic methods
     // -------------------------------------------------------------------------    
@@ -174,5 +194,17 @@ public class TrackedEntityType
     public void setFormName( String formName )
     {
         this.formName = formName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public FeatureType getFeatureType()
+    {
+        return featureType;
+    }
+
+    public void setFeatureType( FeatureType featureType )
+    {
+        this.featureType = featureType;
     }
 }

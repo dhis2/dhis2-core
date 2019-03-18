@@ -31,14 +31,14 @@ package org.hisp.dhis.system.startup;
 /**
  * Convenience class for creating startup routines. Contains a setter for the
  * runlevel property which should be used in bean mappings.
- * 
+ *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
 public abstract class AbstractStartupRoutine
     implements StartupRoutine
 {
     private String name = this.getClass().getSimpleName();
-    
+
     public void setName( String name )
     {
         this.name = name;
@@ -50,14 +50,14 @@ public abstract class AbstractStartupRoutine
     {
         this.runlevel = runlevel;
     }
-    
+
     private boolean skipInTests = false;
 
     public void setSkipInTests( boolean skipInTests )
     {
         this.skipInTests = skipInTests;
     }
-    
+
     // -------------------------------------------------------------------------
     // StartupRoutine implementation
     // -------------------------------------------------------------------------
@@ -67,7 +67,7 @@ public abstract class AbstractStartupRoutine
     {
         return runlevel;
     }
-    
+
     @Override
     public String getName()
     {

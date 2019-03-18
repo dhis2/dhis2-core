@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -42,7 +43,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -50,9 +51,9 @@ import com.google.common.collect.Lists;
 public class DatePeriodResourceTable
     extends ResourceTable<Period>
 {
-    public DatePeriodResourceTable( List<Period> objects, String columnQuote )
+    public DatePeriodResourceTable( List<Period> objects )
     {
-        super( objects, columnQuote );
+        super( objects );
     }
     
     @Override
@@ -64,11 +65,11 @@ public class DatePeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key";
+        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key, year integer not null";
         
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
-            sql += ", " + columnQuote + periodType.getName().toLowerCase() + columnQuote + " varchar(15)";
+            sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
         }
         
         sql += ")";
@@ -91,20 +92,25 @@ public class DatePeriodResourceTable
 
         Date startDate = new Cal( 1975, 1, 1, true ).time(); //TODO
         Date endDate = new Cal( 2025, 1, 1, true ).time();
+        
+        List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
-        List<Period> days = new UniqueArrayList<>( new DailyPeriodType().generatePeriods( startDate, endDate ) );
+        List<Date> days = new UniqueArrayList<>( dailyPeriods.stream().map( Period::getStartDate ).collect( Collectors.toList() ) );
 
         Calendar calendar = PeriodType.getCalendar();
 
-        for ( Period day : days )
+        for ( Date day : days )
         {
             List<Object> values = new ArrayList<>();
 
-            values.add( day.getStartDate() );
+            final int year = PeriodType.getCalendar().fromIso( day ).getYear();
+            
+            values.add( day );
+            values.add( year );
 
             for ( PeriodType periodType : periodTypes )
             {
-                values.add( periodType.createPeriod( day.getStartDate(), calendar ).getIsoDate() );
+                values.add( periodType.createPeriod( day, calendar ).getIsoDate() );
             }
 
             batchArgs.add( values.toArray() );
@@ -116,6 +122,16 @@ public class DatePeriodResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();
+        List<String> indexes = new ArrayList<>();
+
+        for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
+        {
+            String colName = periodType.getName().toLowerCase();
+            String indexName = "in" + getTableName() + "_" + colName + "_" + getRandomSuffix();
+            String sql = "create index " + indexName + " on " + getTempTableName() + "(" + quote( colName ) + ")";
+            indexes.add( sql );
+        }
+        
+        return indexes;
     }
 }

@@ -38,7 +38,6 @@ import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
@@ -49,7 +48,7 @@ import com.google.common.collect.Lists;
 
 /**
  * Utilities for analytics table partition handling.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class PartitionUtils
@@ -58,7 +57,7 @@ public class PartitionUtils
 
     /**
      * Returns the start date for the given year, inclusive.
-     * 
+     *
      * @param calendar the calendar to base the date on.
      * @param year the year.
      * @return the start date.
@@ -71,7 +70,7 @@ public class PartitionUtils
     /**
      * Returns the end date for the given year, exclusive, i.e.
      * the start date of the year after the given year.
-     * 
+     *
      * @param calendar the calendar to base the date on.
      * @param year the year.
      * @return the start date.
@@ -81,36 +80,10 @@ public class PartitionUtils
         Integer nextYear = year + 1;
         return getStartDate( calendar, nextYear );
     }
-    
-    /**
-     * Returns the start date of the year which occurred 
-     * {@code lastYears} ago.
-     * 
-     * @param lastYears the number of years ago to base the 
-     *         returned date.
-     * @return the start date of the given year.
-     */
-    public static Date getStartDate( Integer lastYears )
-    {
-        Date earliest = null;
 
-        if ( lastYears != null )
-        {
-            Calendar calendar = PeriodType.getCalendar();
-            DateTimeUnit dateTimeUnit = calendar.today();
-            dateTimeUnit = calendar.minusYears( dateTimeUnit, lastYears - 1 );
-            dateTimeUnit.setMonth( 1 );
-            dateTimeUnit.setDay( 1 );
-
-            earliest = dateTimeUnit.toJdkDate();
-        }
-
-        return earliest;
-    }
-    
     /**
      * Returns the table name of the table with the given base name and program.
-     * 
+     *
      * @param baseName the table base name.
      * @param program the program.
      * @return the table name.
@@ -122,25 +95,25 @@ public class PartitionUtils
 
     /**
      * Returns partitions for the given list of periods.
-     * 
+     *
      * @param period the period.
      * @return partitions for the given list of periods.
      */
     public static Partitions getPartitions( List<DimensionalItemObject> periods )
     {
         final Set<Integer> years = new HashSet<>();
-        
+
         periods.forEach( p -> {
             Period period = (Period) p;
             years.addAll( getYears( period ) );
         } );
-        
+
         return new Partitions( years );
     }
 
     /**
      * Returns partitions for the given period.
-     * 
+     *
      * @param period the period.
      * @return partitions for the given period.
      */
@@ -148,10 +121,10 @@ public class PartitionUtils
     {
         return new Partitions( getYears( period ) );
     }
-    
+
     /**
      * Returns partitions for the given start and end date.
-     * 
+     *
      * @param startDate the start date.
      * @param endDate the end date.
      * @return partitions for the given start and end date.
@@ -161,13 +134,13 @@ public class PartitionUtils
         Period period = new Period();
         period.setStartDate( startDate );
         period.setEndDate( endDate );
-        
-        return getPartitions( period );        
+
+        return getPartitions( period );
     }
 
     /**
      * Returns the years which the given period spans.
-     * 
+     *
      * @param period the period.
      * @return a set of years.
      */
@@ -186,7 +159,7 @@ public class PartitionUtils
 
         return years;
     }
-    
+
     /**
      * Creates a mapping between period type name and period for the given periods.
      */
@@ -208,14 +181,14 @@ public class PartitionUtils
      * Returns a list of table partitions based on the given analytics tables. For
      * master tables with no partitions, a fake partition representing the master
      * table is used.
-     * 
+     *
      * @param tables the list of {@link AnalyticsTable}.
      * @return a list of {@link AnalyticsTablePartition}.
      */
     public static List<AnalyticsTablePartition> getTablePartitions( List<AnalyticsTable> tables )
     {
         final List<AnalyticsTablePartition> partitions = Lists.newArrayList();
-        
+
         for ( AnalyticsTable table : tables )
         {
             if ( table.hasPartitionTables() )
@@ -225,11 +198,23 @@ public class PartitionUtils
             else
             {
                 // Fake partition representing the master table
-                
+
                 partitions.add( new AnalyticsTablePartition( table, null, null, null, false ) );
             }
         }
-        
+
         return partitions;
+    }
+
+    /**
+     * Returns partition name. Aggregate only for now!
+     *
+     * @param tableName the table name.
+     * @param partitiont the partition.
+     * @return the partition name.
+     */
+    public static String getPartitionName( String tableName, Integer partition )
+    {
+        return tableName + SEP + partition;
     }
 }

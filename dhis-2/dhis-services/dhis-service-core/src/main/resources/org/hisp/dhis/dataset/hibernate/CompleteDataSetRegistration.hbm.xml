@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC
-  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
-  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
 
 <hibernate-mapping>
   <class name="org.hisp.dhis.dataset.CompleteDataSetRegistration" table="completedatasetregistration">
@@ -14,14 +15,19 @@
       <key-many-to-one name="source" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="sourceid"
         foreign-key="fk_completedatasetregistration_organisationunitid" />
       <key-many-to-one name="attributeOptionCombo" class="org.hisp.dhis.category.CategoryOptionCombo"
-        column="attributeoptioncomboid"
-        foreign-key="fk_completedatasetregistration_attributeoptioncomboid" />
+        column="attributeoptioncomboid" foreign-key="fk_completedatasetregistration_attributeoptioncomboid" />
     </composite-id>
 
     <!-- TODO Consider renaming to 'created' -->
     <property name="date" column="date" type="timestamp" />
 
     <property name="storedBy" column="storedby" />
+
+    <property name="lastUpdated" column="lastupdated" type="timestamp"/>
+
+    <property name="lastUpdatedBy" column="lastupdatedby" />
+
+    <property name="completed" type="boolean" column="completed" not-null="true"/>
 
   </class>
 </hibernate-mapping>

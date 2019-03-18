@@ -37,7 +37,7 @@ import org.hisp.dhis.common.ListMap;
 
 /**
  * Manager for queries for retrieval of analytics data.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface AnalyticsManager
@@ -45,25 +45,26 @@ public interface AnalyticsManager
     /**
      * Retrieves aggregated data values for the given query. The data is returned
      * as a mapping where the key is concatenated from the dimension options for
-     * all dimensions separated by "-", and the value is the data value. This 
+     * all dimensions separated by "-", and the value is the data value. This
      * method is invoked asynchronously. The value class can be Double or String.
-     * 
+     *
      * @param params the query to retrieve aggregated data for.
+     * @param tableType the {@link AnalyticsTableType}.
      * @param maxLimit the max number of records to retrieve.
      * @return a map.
      * @throws IllegalQueryException if query result set exceeds the max limit.
      */
-    Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, int maxLimit );
-    
+    Future<Map<String, Object>> getAggregatedDataValues( DataQueryParams params, AnalyticsTableType tableType, int maxLimit );
+
     /**
      * Inserts entries for the aggregation periods mapped to each data period
      * in the given data value map. Removes the original entry for the data period.
-     * 
+     *
      * @param dataValueMap map with entries for all data values produced for the query.
      * @param params the query.
      * @param dataPeriodAggregationPeriodMap the mapping between data periods and
      *        aggregation periods for this query.
      */
-    void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap, 
+    void replaceDataPeriodsWithAggregationPeriods( Map<String, Object> dataValueMap,
         DataQueryParams params, ListMap<DimensionalItemObject, DimensionalItemObject> dataPeriodAggregationPeriodMap );
 }

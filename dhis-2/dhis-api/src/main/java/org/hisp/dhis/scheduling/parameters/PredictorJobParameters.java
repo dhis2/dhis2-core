@@ -28,10 +28,11 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.schema.annotation.Property;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,24 +43,28 @@ public class PredictorJobParameters
 {
     private static final long serialVersionUID = 5526554074518768146L;
 
-    @Property
+    @JsonProperty
     private int relativeStart;
 
-    @Property
+    @JsonProperty
     private int relativeEnd;
 
-    @Property
-    private List<String> predictors;
+    @JsonProperty
+    private List<String> predictors = new ArrayList<>();
+
+    @JsonProperty
+    private List<String> predictorGroups = new ArrayList<>();
 
     public PredictorJobParameters()
     {
     }
 
-    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors )
+    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors, List<String> predictorGroups )
     {
         this.relativeStart = relativeStart;
         this.relativeEnd = relativeEnd;
         this.predictors = predictors;
+        this.predictorGroups = predictorGroups;
     }
 
     public int getRelativeStart()
@@ -90,6 +95,16 @@ public class PredictorJobParameters
     public void setPredictors( List<String> predictors )
     {
         this.predictors = predictors;
+    }
+
+    public List<String> getPredictorGroups()
+    {
+        return predictorGroups;
+    }
+
+    public void setPredictorGroups( List<String> predictorGroups )
+    {
+        this.predictorGroups = predictorGroups;
     }
 
     @Override

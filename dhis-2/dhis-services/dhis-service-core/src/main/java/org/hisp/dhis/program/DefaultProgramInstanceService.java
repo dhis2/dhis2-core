@@ -30,6 +30,8 @@ package org.hisp.dhis.program;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -39,7 +41,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
+import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -47,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -55,7 +59,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 
 /**
  * @author Abyot Asalefew
@@ -95,14 +101,20 @@ public class DefaultProgramInstanceService
     private ProgramNotificationPublisher programNotificationPublisher;
 
     @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private ProgramInstanceAuditService programInstanceAuditService;
+    
+    @Autowired
+    private AclService aclService;
 
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramInstance( ProgramInstance programInstance )
+    public long addProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.save( programInstance );
         return programInstance.getId();
@@ -130,15 +142,33 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    public ProgramInstance getProgramInstance( int id )
+    public ProgramInstance getProgramInstance( long id )
     {
-        return programInstanceStore.get( id );
+        ProgramInstance programInstance = programInstanceStore.get( id );
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            addProgramInstanceAudit( programInstance, user.getUsername() );
+        }
+
+        return programInstance;
     }
 
     @Override
-    public ProgramInstance getProgramInstance( String id )
+    public ProgramInstance getProgramInstance( String uid )
     {
-        return programInstanceStore.getByUid( id );
+        ProgramInstance programInstance = programInstanceStore.getByUid( uid );
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            addProgramInstanceAudit( programInstance, user.getUsername() );
+        }
+
+        return programInstance;
     }
 
     @Override
@@ -161,9 +191,19 @@ public class DefaultProgramInstanceService
 
     @Override
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
-        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted )
+        Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize,
+        boolean totalPages, boolean skipPaging, boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        
+        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( user != null )
+        {
+            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+        }
 
         if ( ou != null )
         {
@@ -174,6 +214,11 @@ public class DefaultProgramInstanceService
                 if ( organisationUnit == null )
                 {
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
+                }
+                
+                if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
+                {
+                    throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
                 }
 
                 params.getOrganisationUnits().add( organisationUnit );
@@ -215,6 +260,7 @@ public class DefaultProgramInstanceService
         params.setTotalPages( totalPages );
         params.setSkipPaging( skipPaging );
         params.setIncludeDeleted( includeDeleted );
+        params.setUser( user );
 
         return params;
     }
@@ -251,7 +297,14 @@ public class DefaultProgramInstanceService
             params.setDefaultPaging();
         }
 
-        return programInstanceStore.getProgramInstances( params );
+        List<ProgramInstance> programInstances = programInstanceStore.getProgramInstances( params );
+
+        if ( user != null )
+        {
+            addProrgamInstanceAudits( programInstances, user.getUsername() );
+        }
+
+        return programInstances;
     }
 
     @Override
@@ -288,7 +341,25 @@ public class DefaultProgramInstanceService
     @Override
     public void decideAccess( ProgramInstanceQueryParams params )
     {
-        // TODO Check access for current user
+
+        if ( params.hasProgram() )
+        {
+            if ( !aclService.canDataRead( params.getUser(), params.getProgram() ) )
+            {
+                throw new IllegalQueryException( "Current user is not authorized to read data from selected program:  " + params.getProgram().getUid() );
+            }
+
+            if ( params.getProgram().getTrackedEntityType() != null && !aclService.canDataRead( params.getUser(), params.getProgram().getTrackedEntityType() ) )
+            {
+                throw new IllegalQueryException( "Current user is not authorized to read data from selected program's tracked entity type:  " + params.getProgram().getTrackedEntityType().getUid() );
+            }
+
+        }
+
+        if ( params.hasTrackedEntityType() && !aclService.canDataRead( params.getUser(), params.getTrackedEntityType() ) )
+        {
+            throw new IllegalQueryException( "Current user is not authorized to read data from selected tracked entity type:  " + params.getTrackedEntityType().getUid() );
+        }
     }
 
     @Override
@@ -301,7 +372,7 @@ public class DefaultProgramInstanceService
             throw new IllegalQueryException( "Params cannot be null" );
         }
 
-        User user = currentUserService.getCurrentUser();
+        User user = params.getUser();
 
         if ( !params.hasOrganisationUnits() && !(params.isOrganisationUnitMode( ALL ) || params.isOrganisationUnitMode( ACCESSIBLE )) )
         {
@@ -365,21 +436,8 @@ public class DefaultProgramInstanceService
     }
 
     @Override
-    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
-        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
-    {
-        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
-            incidentDate, organisationUnit, CodeGenerator.generateUid() );
-    }
-
-    @Override
-    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,
-        Program program, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
-    {
-        // ---------------------------------------------------------------------
-        // Add program instance
-        // ---------------------------------------------------------------------
-
+    public ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid ) {
         if ( program.getTrackedEntityType() != null && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException( "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
@@ -408,7 +466,29 @@ public class DefaultProgramInstanceService
             programInstance.setIncidentDate( new Date() );
         }
 
-        programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstance.setStatus( programStatus );
+
+        return programInstance;
+    }
+
+    @Override
+    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
+    {
+        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
+            incidentDate, organisationUnit, CodeGenerator.generateUid() );
+    }
+
+    @Override
+    public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,Program program,
+        Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
+    {
+        // ---------------------------------------------------------------------
+        // Add program instance
+        // ---------------------------------------------------------------------
+
+        ProgramInstance programInstance = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE, enrollmentDate,
+            incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
 
         // -----------------------------------------------------------------
@@ -417,7 +497,7 @@ public class DefaultProgramInstanceService
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
 
-        programRuleEngineService.evaluate( programInstance );
+        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -458,7 +538,7 @@ public class DefaultProgramInstanceService
 
         programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
 
-        programRuleEngineService.evaluate( programInstance );
+        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update program-instance
@@ -532,5 +612,23 @@ public class DefaultProgramInstanceService
         programInstance.setStatus( ProgramStatus.ACTIVE );
 
         updateProgramInstance( programInstance );
+    }
+
+    private void addProgramInstanceAudit( ProgramInstance programInstance, String accessedBy )
+    {
+        if ( programInstance != null && programInstance.getProgram().getAccessLevel() != null && programInstance.getProgram().getAccessLevel() != AccessLevel.OPEN && accessedBy != null )
+        {
+            ProgramInstanceAudit programInstanceAudit = new ProgramInstanceAudit( programInstance, accessedBy, AuditType.READ );
+
+            programInstanceAuditService.addProgramInstanceAudit( programInstanceAudit );
+        }
+    }
+
+    private void addProrgamInstanceAudits( List<ProgramInstance> programInstances, String accessedBy )
+    {
+        for ( ProgramInstance programInstance : programInstances )
+        {
+            addProgramInstanceAudit( programInstance, accessedBy );
+        }
     }
 }

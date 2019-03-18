@@ -37,7 +37,14 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
@@ -50,7 +57,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
-import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 
 import java.util.*;
@@ -62,11 +68,7 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  * A DataElement is a definition (meta-information about) of the entities that
  * are captured in the system. An example from public health care is a
  * DataElement representing the number BCG doses; A DataElement with "BCG dose"
- * as name, with type DataElement.TYPE_INT. DataElements can be structured
- * hierarchically, one DataElement can have a parent and a collection of
- * children. The sum of the children represent the same entity as the parent.
- * Hierarchies of DataElements are used to give more fine- or course-grained
- * representations of the entities.
+ * as name, with type DataElement.TYPE_INT.
  * <p>
  * DataElement acts as a DimensionSet in the dynamic dimensional model, and as a
  * DimensionOption in the static DataElement dimension.
@@ -107,7 +109,7 @@ public class DataElement
      * that this category combination could be overridden by data set elements
      * which this data element is part of, see {@link DataSetElement}.
      */
-    private CategoryCombo dataElementCategoryCombo;
+    private CategoryCombo categoryCombo;
 
     /**
      * URL for lookup of additional information on the web.
@@ -148,6 +150,12 @@ public class DataElement
      * The style defines how the DataElement should be represented on clients
      */
     private ObjectStyle style;
+
+    /**
+     * Field mask represent how the value should be formatted during input. This string will
+     * be validated as a TextPatternSegment of type TEXT.
+     */
+    private String fieldMask;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -210,9 +218,9 @@ public class DataElement
         return ImmutableSet.<CategoryCombo>builder()
             .addAll( dataSetElements.stream()
                 .filter( DataSetElement::hasCategoryCombo )
-                .map( dse -> dse.getCategoryCombo() )
+                .map(DataSetElement::getCategoryCombo)
                 .collect( Collectors.toSet() ) )
-            .add( dataElementCategoryCombo ).build();
+            .add( categoryCombo ).build();
     }
 
     /**
@@ -230,7 +238,7 @@ public class DataElement
             }
         }
 
-        return dataElementCategoryCombo;
+        return categoryCombo;
     }
 
     /**
@@ -240,7 +248,10 @@ public class DataElement
      */
     public Set<CategoryOptionCombo> getCategoryOptionCombos()
     {
-        return ObjectUtils.getAll( getCategoryCombos(), CategoryCombo::getOptionCombos );
+        return getCategoryCombos().stream()
+            .map(CategoryCombo::getOptionCombos)
+            .flatMap(Collection::stream)
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -279,7 +290,7 @@ public class DataElement
     public DataSet getDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        Collections.sort( list, DataSetFrequencyComparator.INSTANCE );
+        list.sort(DataSetFrequencyComparator.INSTANCE);
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -291,7 +302,7 @@ public class DataElement
     public DataSet getApprovalDataSet()
     {
         List<DataSet> list = new ArrayList<>( getDataSets() );
-        Collections.sort( list, DataSetApprovalFrequencyComparator.INSTANCE );
+        list.sort(DataSetApprovalFrequencyComparator.INSTANCE);
         return !list.isEmpty() ? list.get( 0 ) : null;
     }
 
@@ -303,7 +314,7 @@ public class DataElement
     public Set<DataSet> getDataSets()
     {
         return ImmutableSet.copyOf( dataSetElements.stream().map( DataSetElement::getDataSet ).filter(
-            dataSet -> dataSet != null ).collect( Collectors.toSet() ) );
+                Objects::nonNull).collect( Collectors.toSet() ) );
     }
 
     /**
@@ -532,6 +543,7 @@ public class DataElement
      *
      * @return true if this data element has an option set.
      */
+    @Override
     public boolean hasOptionSet()
     {
         return optionSet != null;
@@ -564,6 +576,7 @@ public class DataElement
     // Getters and setters
     // -------------------------------------------------------------------------
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
@@ -605,14 +618,14 @@ public class DataElement
     @JsonProperty( value = "categoryCombo" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
-    public CategoryCombo getDataElementCategoryCombo()
+    public CategoryCombo getCategoryCombo()
     {
-        return dataElementCategoryCombo;
+        return categoryCombo;
     }
 
-    public void setDataElementCategoryCombo( CategoryCombo dataElementCategoryCombo )
+    public void setCategoryCombo( CategoryCombo categoryCombo )
     {
-        this.dataElementCategoryCombo = dataElementCategoryCombo;
+        this.categoryCombo = categoryCombo;
     }
 
     @JsonProperty
@@ -679,6 +692,7 @@ public class DataElement
         this.zeroIsSignificant = zeroIsSignificant;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OptionSet getOptionSet()
@@ -726,5 +740,17 @@ public class DataElement
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFieldMask()
+    {
+        return fieldMask;
+    }
+
+    public void setFieldMask( String fieldMask )
+    {
+        this.fieldMask = fieldMask;
     }
 }

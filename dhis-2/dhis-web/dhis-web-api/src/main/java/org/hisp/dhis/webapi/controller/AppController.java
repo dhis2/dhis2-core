@@ -28,8 +28,21 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -41,7 +54,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -52,19 +64,15 @@ import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -75,9 +83,10 @@ import java.util.regex.Pattern;
 public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
-
     public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
 
+    private static final Log log = LogFactory.getLog( AppController.class );
+    
     @Autowired
     private AppManager appManager;
 
@@ -175,14 +184,18 @@ public class AppController
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
+        
+        log.debug( String.format( "App page name: '%s'", pageName ) );
 
-        // Special handling for manifest.webapp
+        // Handling of 'manifest.webapp'
         if ( "manifest.webapp".equals( pageName ) )
         {
             // If request was for manifest.webapp, check for * and replace with host
             if ( "*".equals( application.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
+                
+                log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
 
                 application.getActivities().getDhis().setHref( contextPath );
             }
@@ -190,11 +203,9 @@ public class AppController
             DefaultRenderService.getJsonMapper()
                 .writeValue( response.getOutputStream(), application );
         }
-
         // Any other page
         else
         {
-
             // Retrieve file
             Resource resource = appManager.getAppResource( application, pageName );
 
@@ -204,13 +215,16 @@ public class AppController
                 return;
             }
 
+            String filename = resource.getFilename();            
+            log.debug( String.format( "App filename: '%s'", filename ) );
+            
             if ( new ServletWebRequest( request, response ).checkNotModified( resource.lastModified() ) )
             {
                 response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
                 return;
             }
 
-            String mimeType = request.getSession().getServletContext().getMimeType( resource.getFilename() );
+            String mimeType = request.getSession().getServletContext().getMimeType( filename );
 
             if ( mimeType != null )
             {

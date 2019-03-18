@@ -21,12 +21,7 @@
 
     <property name="number" column="indicatornumber" />
 
-    <!-- Object Translation -->
-    <set name="translations" table="indicatortypetranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="indicatortypeid" foreign-key="fk_objecttranslation_indicatortypeid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
+    <property name="translations" type="jblTranslations"/>
 
   </class>
 

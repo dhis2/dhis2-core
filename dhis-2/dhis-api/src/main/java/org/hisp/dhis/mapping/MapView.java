@@ -43,14 +43,17 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -86,25 +89,24 @@ public class MapView
     public static final ImmutableList<String> DATA_LAYERS = ImmutableList.<String>builder().add(
         LAYER_THEMATIC1, LAYER_THEMATIC2, LAYER_THEMATIC3, LAYER_THEMATIC4 ).build();
 
-    /**
-     * Program. Required.
-     */
     private Program program;
 
-    /**
-     * Program stage.
-     */
     private ProgramStage programStage;
 
-    /**
-     * Start date.
-     */
     private Date startDate;
 
-    /**
-     * End date.
-     */
     private Date endDate;
+    
+    /**
+     * Tracked entity instance layer.
+     */
+    private TrackedEntityType trackedEntityType;
+    
+    private ProgramStatus programStatus;
+    
+    private Boolean followUp;
+    
+    private OrganisationUnitSelectionMode organisationUnitSelectionMode;
 
     /**
      * Dimensions to use as columns.
@@ -340,6 +342,54 @@ public class MapView
     public void setEndDate( Date endDate )
     {
         this.endDate = endDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackedEntityType getTrackedEntityType()
+    {
+        return trackedEntityType;
+    }
+
+    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        this.trackedEntityType = trackedEntityType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
+    }
+
+    public void setProgramStatus( ProgramStatus programStatus )
+    {
+        this.programStatus = programStatus;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getFollowUp()
+    {
+        return followUp;
+    }
+
+    public void setFollowUp( Boolean followUp )
+    {
+        this.followUp = followUp;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitSelectionMode getOrganisationUnitSelectionMode()
+    {
+        return organisationUnitSelectionMode;
+    }
+
+    public void setOrganisationUnitSelectionMode( OrganisationUnitSelectionMode organisationUnitSelectionMode )
+    {
+        this.organisationUnitSelectionMode = organisationUnitSelectionMode;
     }
 
     @JsonProperty

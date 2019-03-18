@@ -358,5 +358,17 @@ public class BaseNotificationMessageRendererTest
         {
             return Sets.newHashSet( DeliveryChannel.values() );
         }
+
+        @Override
+        public Boolean getNotifyParentOrganisationUnitOnly()
+        {
+            return false;
+        }
+
+        @Override
+        public Boolean getNotifyUsersInHierarchyOnly()
+        {
+            return false;
+        }
     }
 }

@@ -28,7 +28,16 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Sets;
+import static org.hisp.dhis.commons.util.TextUtils.LN;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,21 +45,24 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.commons.util.TextUtils.LN;
+import com.google.api.client.util.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -62,11 +74,8 @@ public class DefaultMessageService
     private static final Log log = LogFactory.getLog( DefaultMessageService.class );
 
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
-
     private static final String COMPLETE_TEMPLATE = "completeness_message";
-
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
-
     private static final String MESSAGE_PATH = "/dhis-web-messaging/readMessage.action";
 
     // -------------------------------------------------------------------------
@@ -125,56 +134,89 @@ public class DefaultMessageService
         log.info( "Found the following message senders: " + messageSenders );
     }
 
+    private DhisConfigurationProvider configurationProvider;
+
+    @Autowired
+    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    {
+        this.configurationProvider = configurationProvider;
+    }
+
     // -------------------------------------------------------------------------
     // MessageService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public MessageConversationParams.Builder createPrivateMessage( Collection<User> receivers, String subject,
-        String text, String metaData )
+    public long sendTicketMessage( String subject, String text, String metaData )
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        return new MessageConversationParams.Builder( receivers, currentUser, subject, text, MessageType.PRIVATE )
-            .withMetaData( metaData );
-    }
-
-    @Override
-    public MessageConversationParams.Builder createTicketMessage( String subject, String text, String metaData )
-    {
-        User currentUser = currentUserService.getCurrentUser();
-        Set<User> receivers = getFeedbackRecipients();
-
-        return new MessageConversationParams.Builder( receivers, currentUser, subject, text, MessageType.TICKET )
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( getFeedbackRecipients() )
+            .withSender( currentUser )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.TICKET )
             .withMetaData( metaData )
-            .withStatus( MessageConversationStatus.OPEN );
+            .withStatus( MessageConversationStatus.OPEN ).build();
+        
+        return sendMessage( params );        
     }
 
     @Override
-    public MessageConversationParams.Builder createSystemMessage( String subject, String text )
+    public long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments )
     {
-        return new MessageConversationParams.Builder( getFeedbackRecipients(), null, subject, text,
-            MessageType.SYSTEM );
+        User currentUser = currentUserService.getCurrentUser();
+
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( recipients )
+            .withSender( currentUser )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.PRIVATE )
+            .withMetaData( metaData )
+            .withAttachments( attachments ).build();
+        
+        return sendMessage( params );
+    }
+    
+    @Override
+    public long sendSystemMessage( Set<User> recipients, String subject, String text )
+    {
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( recipients )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.SYSTEM ).build();
+        
+        return sendMessage( params );
     }
 
     @Override
-    public MessageConversationParams.Builder createValidationResultMessage( Collection<User> receivers, String subject,
-        String text )
+    public long sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority )
     {
-        return new MessageConversationParams.Builder( receivers, null, subject, text, MessageType.VALIDATION_RESULT );
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( recipients )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.VALIDATION_RESULT )
+            .withStatus( MessageConversationStatus.OPEN )
+            .withPriority( priority ).build();
+
+        return sendMessage( params );
     }
-
+    
     @Override
-    public int sendMessage( MessageConversationParams params )
+    public long sendMessage( MessageConversationParams params )
     {
-
-        // Create MessageConversation based on params
         MessageConversation conversation = params.createMessageConversation();
+        long id = saveMessageConversation( conversation );
 
-        // Initial message of the conversation
-        conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
+        Message message = new Message( params.getText(), params.getMetadata(), params.getSender() );
 
-        // Add UserMessages
+        message.setAttachments( params.getAttachments() );
+        conversation.addMessage( message );
+
         params.getRecipients().stream().filter( r -> !r.equals( params.getSender() ) )
             .forEach( ( recipient ) -> conversation.addUserMessage( new UserMessage( recipient, false ) ) );
 
@@ -183,21 +225,19 @@ public class DefaultMessageService
             conversation.addUserMessage( new UserMessage( params.getSender(), true ) );
         }
 
-        // Get footer for other messageSenders
         String footer = getMessageFooter( conversation );
 
-        // Send messages to users using the messageSenders
         invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
             params.getRecipients(), params.isForceNotification() );
 
-        return saveMessageConversation( conversation );
+        return id;
     }
 
     @Override
-    public int sendSystemErrorNotification( String subject, Throwable t )
+    public long sendSystemErrorNotification( String subject, Throwable t )
     {
         String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        String baseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
+        String baseUrl = configurationProvider.getServerBaseUrl();
 
         String text = new StringBuilder()
             .append( subject + LN + LN )
@@ -207,15 +247,23 @@ public class DefaultMessageService
             .append( "Message: " + t.getMessage() + LN + LN )
             .append( "Cause: " + DebugUtils.getStackTrace( t.getCause() ) ).toString();
 
-        return sendMessage( createSystemMessage( subject, text ).build() );
+        MessageConversationParams params = new MessageConversationParams.Builder()
+            .withRecipients( getFeedbackRecipients() )
+            .withSubject( subject )
+            .withText( text )
+            .withMessageType( MessageType.SYSTEM ).build();
+        
+        return sendMessage( params );
     }
 
     @Override
-    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal )
+    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments )
     {
         User sender = currentUserService.getCurrentUser();
 
         Message message = new Message( text, metaData, sender, internal );
+
+        message.setAttachments( attachments );
 
         conversation.markReplied( sender, message );
 
@@ -233,7 +281,7 @@ public class DefaultMessageService
     }
 
     @Override
-    public int sendCompletenessMessage( CompleteDataSetRegistration registration )
+    public long sendCompletenessMessage( CompleteDataSetRegistration registration )
     {
         DataSet dataSet = registration.getDataSet();
 
@@ -245,6 +293,12 @@ public class DefaultMessageService
         UserGroup userGroup = dataSet.getNotificationRecipients();
 
         User sender = currentUserService.getCurrentUser();
+
+        // data set completed through sms
+        if ( sender == null )
+        {
+            return 0;
+        }
 
         Set<User> recipients = new HashSet<>();
 
@@ -276,7 +330,7 @@ public class DefaultMessageService
 
         if ( !conversation.getUserMessages().isEmpty() )
         {
-            int id = saveMessageConversation( conversation );
+            long id = saveMessageConversation( conversation );
 
             invokeMessageSenders( COMPLETE_SUBJECT, text, null, sender,
                 new HashSet<>( conversation.getUsers() ), false );
@@ -288,7 +342,7 @@ public class DefaultMessageService
     }
 
     @Override
-    public int saveMessageConversation( MessageConversation conversation )
+    public long saveMessageConversation( MessageConversation conversation )
     {
         messageConversationStore.save( conversation );
         return conversation.getId();
@@ -301,7 +355,7 @@ public class DefaultMessageService
     }
 
     @Override
-    public MessageConversation getMessageConversation( int id )
+    public MessageConversation getMessageConversation( long id )
     {
         return messageConversationStore.get( id );
     }
@@ -353,20 +407,10 @@ public class DefaultMessageService
     }
 
     @Override
-    public List<MessageConversation> getMessageConversations( MessageConversationStatus status, boolean followUpOnly,
-        boolean unreadOnly, int first,
-        int max )
-    {
-        return messageConversationStore
-            .getMessageConversations( currentUserService.getCurrentUser(), status, followUpOnly,
-                unreadOnly, first, max );
-    }
-
-    @Override
-    public List<MessageConversation> getMessageConversations( User user, Collection<String> messageConversationUids )
+    public List<MessageConversation> getMessageConversations( User user, Collection<String> uid )
     {
         List<MessageConversation> conversations = messageConversationStore
-            .getMessageConversations( messageConversationUids );
+            .getMessageConversations( uid );
 
         // Set transient properties
 
@@ -377,20 +421,6 @@ public class DefaultMessageService
         }
 
         return conversations;
-    }
-
-    @Override
-    public int getMessageConversationCount()
-    {
-        return messageConversationStore.getMessageConversationCount( currentUserService.getCurrentUser(),
-            false, false );
-    }
-
-    @Override
-    public int getMessageConversationCount( boolean followUpOnly, boolean unreadOnly )
-    {
-        return messageConversationStore.getMessageConversationCount( currentUserService.getCurrentUser(),
-            followUpOnly, unreadOnly );
     }
 
     @Override
@@ -438,7 +468,7 @@ public class DefaultMessageService
         {
             log.debug( "Invoking message sender: " + messageSender.getClass().getSimpleName() );
 
-            messageSender.sendMessage( subject, text, footer, sender, new HashSet<>( users ), forceSend );
+            messageSender.sendMessageAsync( subject, text, footer, sender, new HashSet<>( users ), forceSend );
         }
     }
 
@@ -446,7 +476,7 @@ public class DefaultMessageService
     {
         HashMap<String, Object> values = new HashMap<>( 2 );
 
-        String baseUrl = systemSettingManager.getInstanceBaseUrl();
+        String baseUrl = configurationProvider.getServerBaseUrl();
 
         if ( baseUrl == null )
         {

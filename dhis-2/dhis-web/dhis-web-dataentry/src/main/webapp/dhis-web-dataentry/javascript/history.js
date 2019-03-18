@@ -181,7 +181,7 @@ function refreshChart()
     var periodId = $( '#selectedPeriodId' ).val();
 
     var source = '../api/charts/history/data.png?de=' + currentDataElementId + '&co='
-    	+ currentOptionComboId + '&pe=' + periodId + 
+    	+ currentOptionComboId + '&cp=' + currentAttributeOptionComboId + '&pe=' + periodId + 
     	'&ou=' + dhis2.de.currentOrganisationUnitId + '&r=' + Math.random();
 
     $( '#historyChart' ).attr( 'src', source );

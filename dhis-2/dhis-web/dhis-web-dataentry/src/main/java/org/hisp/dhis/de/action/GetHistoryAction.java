@@ -244,7 +244,14 @@ public class GetHistoryAction
     private Map<String, String> fileNames;
 
     public Map<String, String> getFileNames() { return fileNames; }
-
+    
+    private String attributeOptionComboId;
+    
+    public String getAttributeOptionComboId()
+    {
+        return attributeOptionComboId;
+    }
+    
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -301,6 +308,8 @@ public class GetHistoryAction
         minMaxInvalid = !dataElement.getValueType().isNumeric();
 
         commentOptionSet = dataElement.getCommentOptionSet();
+        
+        attributeOptionComboId = attributeOptionCombo.getUid();
 
         return SUCCESS;
     }

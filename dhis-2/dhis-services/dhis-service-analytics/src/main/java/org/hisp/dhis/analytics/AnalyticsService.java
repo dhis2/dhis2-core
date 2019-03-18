@@ -55,11 +55,11 @@ import java.util.Map;
  * <pre>
  * {@code
  * DataQueryParams params = new DataQueryParams();
- * 
+ *
  * params.setIndicators( indicators );
  * params.setPeriod( period );
  * params.setFilterOrganisationUnit( organisationUnit );
- * 
+ *
  * Grid grid = analyticsService.getAggregatedDataValues( params );
  * }
  * </pre>
@@ -84,21 +84,21 @@ import java.util.Map;
  *      .withOrganisationUnits( ouA, ouB )
  *      .withFilterPeriods( peA, peB )
  *      .build();
- * 
+ *
  * Map<String, Double> map = analyticsService.getAggregatedDataValueMapping( params );
  * }
  * </pre>
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface AnalyticsService
 {
     /**
-     * Generates aggregated values for the given query. 
-     * 
+     * Generates aggregated values for the given query.
+     *
      * If meta data is included in the query, the meta data map of the grid
      * will contain keys described in {@link AnalyticsMetaDataKey}.
-     * 
+     *
      * @param params the data query parameters.
      * @return aggregated data as a Grid object.
      */
@@ -109,32 +109,32 @@ public interface AnalyticsService
      * represent a table with dimensions used as columns and rows as specified
      * in columns and rows dimension arguments. If columns and rows are null or
      * empty, the normalized table will be returned.
-     * 
+     *
      * If meta data is included in the query, the meta data map of the grid
      * will contain keys described in {@link AnalyticsMetaDataKey}.
-     * 
+     *
      * @param params the data query parameters.
      * @param columns the identifiers of the dimensions to use as columns.
      * @param rows the identifiers of the dimensions to use as rows.
      * @return aggregated data as a Grid object.
      */
     Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows );
-    
+
     /**
      * Generates a raw data value grid for the given query. The grid will
-     * represent a table with denormalized raw data. This means that no 
+     * represent a table with denormalized raw data. This means that no
      * aggregation will be performed on the data, and dimensions specified
      * in the query will be present for each row.
-     * 
+     *
      * @param params the data query parameters.
      * @return raw data as a Grid object.
      */
     Grid getRawDataValues( DataQueryParams params );
-    
+
     /**
      * Generates a data value set for the given query. The query must contain
      * a data, period and organisation unit dimension.
-     * 
+     *
      * @param params the data query parameters.
      * @return a data value set representing aggregated data.
      */
@@ -143,17 +143,17 @@ public interface AnalyticsService
     /**
      * Generates an aggregated value grid for the given query based on the given
      * analytical object.
-     * 
+     *
      * @param object the analytical object.
      * @return aggregated data as a Grid object.
      */
     Grid getAggregatedDataValues( AnalyticalObject object );
-    
+
     /**
      * Generates a mapping where the key represents the dimensional item
      * identifiers concatenated by "-" and the value is the corresponding
      * aggregated data value based on the given DataQueryParams.
-     * 
+     *
      * @param params the DataQueryParams.
      * @return a mapping of dimensional items and aggregated data values.
      */
@@ -163,7 +163,7 @@ public interface AnalyticsService
      * Generates a mapping where the key represents the dimensional item
      * identifiers concatenated by "-" and the value is the corresponding
      * aggregated data value based on the given AnalyticalObject.
-     * 
+     *
      * @param object the BaseAnalyticalObject.
      * @return a mapping of dimensional items and aggregated data values.
      */

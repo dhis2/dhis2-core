@@ -28,10 +28,20 @@ package org.hisp.dhis.dxf2.gml;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Strings;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Maps;
-import org.apache.commons.io.IOUtils;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
+
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -40,8 +50,9 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.*;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
@@ -55,18 +66,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 import org.xml.sax.SAXParseException;
 
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.transform.stream.StreamSource;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * Import geospatial data from GML documents and merge into OrganisationUnits.
@@ -102,32 +106,47 @@ public class DefaultGmlImportService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private RenderService renderService;
 
-    @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
     private SchemaService schemaService;
 
-    @Autowired
     private MetadataImportService importService;
 
-    @Autowired
     private Notifier notifier;
 
-    @Autowired
     private MergeService mergeService;
 
     // -------------------------------------------------------------------------
     // GmlImportService implementation
     // -------------------------------------------------------------------------
 
+    @Autowired
+    public DefaultGmlImportService( RenderService renderService, IdentifiableObjectManager idObjectManager,
+        SchemaService schemaService, MetadataImportService importService, Notifier notifier, MergeService mergeService )
+    {
+        Preconditions.checkNotNull( renderService );
+        Preconditions.checkNotNull( idObjectManager );
+        Preconditions.checkNotNull( schemaService );
+        Preconditions.checkNotNull( importService );
+        Preconditions.checkNotNull( notifier );
+        Preconditions.checkNotNull( mergeService );
+
+        this.renderService = renderService;
+        this.idObjectManager = idObjectManager;
+        this.schemaService = schemaService;
+        this.importService = importService;
+        this.notifier = notifier;
+        this.mergeService = mergeService;
+    }
+
     @Transactional
     @Override
-    public void importGml( InputStream inputStream, MetadataImportParams importParams )
+    public ImportReport importGml( InputStream inputStream, MetadataImportParams importParams )
     {
+        ImportReport importReport = new ImportReport();
+
         if ( !importParams.getImportStrategy().isUpdate() )
         {
             importParams.setImportStrategy( ImportStrategy.UPDATE );
@@ -139,15 +158,30 @@ public class DefaultGmlImportService
         if ( preProcessed.isSuccess && preProcessed.metaData != null )
         {
             importParams.addMetadata( schemaService.getMetadataSchemas(), preProcessed.metaData );
-            importService.importMetadata( importParams );
+            importReport = importService.importMetadata( importParams );
         }
         else
         {
             Throwable throwable = preProcessed.throwable;
 
             notifier.notify( importParams.getId(), NotificationLevel.ERROR, createNotifierErrorMessage( throwable ), false );
+
+            importReport.setStatus( Status.ERROR );
+
+            ObjectReport objectReport = new ObjectReport( getClass(),  0 );
+
+            objectReport.addErrorReport( new ErrorReport( getClass(), new ErrorMessage( ErrorCode.E7010, createNotifierErrorMessage( throwable ) ) ) );
+
+            TypeReport typeReport = new TypeReport( getClass() );
+
+            typeReport.addObjectReport( objectReport );
+
+            importReport.addTypeReport( typeReport );
+
             log.error( "GML import failed: ", throwable );
         }
+
+        return importReport;
     }
 
     // -------------------------------------------------------------------------
@@ -156,21 +190,15 @@ public class DefaultGmlImportService
 
     private PreProcessingResult preProcessGml( InputStream inputStream )
     {
-        InputStream dxfStream = null;
-        Metadata metadata = null;
+        Metadata metadata;
 
-        try
+        try ( InputStream dxfStream = transformGml( inputStream ) )
         {
-            dxfStream = transformGml( inputStream );
             metadata = renderService.fromXml( dxfStream, Metadata.class );
         }
         catch ( IOException | TransformerException e )
         {
             return PreProcessingResult.failure( e );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( dxfStream );
         }
 
         Map<String, OrganisationUnit> uidMap = Maps.newHashMap(), codeMap = Maps.newHashMap(), nameMap = Maps.newHashMap();
@@ -201,7 +229,7 @@ public class DefaultGmlImportService
                 imported = nameMap.get( persisted.getName() );
             }
 
-            if ( imported == null || imported.getCoordinates() == null || imported.getFeatureType() == null )
+            if ( imported == null || imported.getGeometry() == null )
             {
                 continue; // Failed to dereference a persisted entity for this org unit or geo data incomplete/missing, therefore ignore
             }
@@ -284,14 +312,12 @@ public class DefaultGmlImportService
 
     private void mergeNonGeoData( OrganisationUnit source, OrganisationUnit target )
     {
-        String coordinates = target.getCoordinates();
-        FeatureType featureType = target.getFeatureType();
+        Geometry geometry = target.getGeometry();
 
         mergeService.merge( new MergeParams<>( source, target )
             .setMergeMode( MergeMode.MERGE ) );
 
-        target.setCoordinates( coordinates );
-        target.setFeatureType( featureType );
+        target.setGeometry( geometry );
 
         if ( source.getParent() != null )
         {

@@ -33,16 +33,18 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
+import org.springframework.util.Assert;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -60,73 +62,37 @@ public class ProgramIndicator
     public static final String KEY_ATTRIBUTE = "A";
     public static final String KEY_PROGRAM_VARIABLE = "V";
     public static final String KEY_CONSTANT = "C";
-
-    public static final String VAR_EVENT_DATE = "event_date";
-    public static final String VAR_EXECUTION_DATE = "execution_date";
-    public static final String VAR_DUE_DATE = "due_date";
-    public static final String VAR_ENROLLMENT_DATE = "enrollment_date";
-    public static final String VAR_INCIDENT_DATE = "incident_date";
-    public static final String VAR_ENROLLMENT_STATUS = "enrollment_status";
-    public static final String VAR_CURRENT_DATE = "current_date";
-    public static final String VAR_VALUE_COUNT = "value_count";
-    public static final String VAR_ZERO_POS_VALUE_COUNT = "zero_pos_value_count";
-    public static final String VAR_EVENT_COUNT = "event_count";
-    public static final String VAR_ENROLLMENT_COUNT = "enrollment_count";
-    public static final String VAR_TEI_COUNT = "tei_count";
-    public static final String VAR_COMPLETED_DATE = "completed_date";
-    public static final String VAR_PROGRAM_STAGE_NAME = "program_stage_name";
-    public static final String VAR_PROGRAM_STAGE_ID = "program_stage_id";
-    public static final String VAR_ANALYTICS_PERIOD_START = "analytics_period_start";
-    public static final String VAR_ANALYTICS_PERIOD_END = "analytics_period_end";
     
     public static final String EXPRESSION_PREFIX_REGEXP = KEY_DATAELEMENT + "|" + KEY_ATTRIBUTE + "|" + KEY_PROGRAM_VARIABLE + "|" + KEY_CONSTANT;
     public static final String EXPRESSION_REGEXP = "(" + EXPRESSION_PREFIX_REGEXP + ")\\{([\\w\\_]+)" + SEPARATOR_ID + "?(\\w*)\\}";
-    public static final String SQL_FUNC_REGEXP = "d2:(.+?)\\((.*?)\\)";
+    public static final String SQL_FUNC_ARG_REGEXP = " *(([\"\\w/\\*\\+\\-\\_\\:%\\.\\<\\>\\= \\#\\{\\}]+)|('[^']*'))";
+    public static final String SQL_FUNC_REGEXP = "d2:(?<func>.+?)\\((?<args>" + SQL_FUNC_ARG_REGEXP + "*( *," + SQL_FUNC_ARG_REGEXP + ")* *)\\)";
     public static final String ARGS_SPLIT = ",";
     public static final String ATTRIBUTE_REGEX = KEY_ATTRIBUTE + "\\{(\\w{11})\\}";
     public static final String DATAELEMENT_REGEX = KEY_DATAELEMENT + "\\{(\\w{11})" + SEPARATOR_ID + "(\\w{11})\\}";
     public static final String VARIABLE_REGEX = KEY_PROGRAM_VARIABLE + "\\{([\\w\\_]+)}";
     public static final String PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX = KEY_DATAELEMENT + "\\{(\\w{11}" + SEPARATOR_ID + "\\w{11})\\}";
-    public static final String VALUECOUNT_REGEX = "V\\{(" + VAR_VALUE_COUNT + "|" + VAR_ZERO_POS_VALUE_COUNT + ")\\}";
     public static final String EQUALSEMPTY = " *== *'' *";
     public static final String EQUALSZERO = " *== *0 *";
-    public static final String EXPRESSION_EQUALSZEROOREMPTY_REGEX = EXPRESSION_REGEXP + "(" + EQUALSEMPTY + "|" + EQUALSZERO + ")?";
+    public static final String EXPRESSION_EQUALS_ZERO_OR_EMPTY_REGEX = EXPRESSION_REGEXP + "(" + EQUALSEMPTY + "|" + EQUALSZERO + ")?";
 
     public static final Pattern EXPRESSION_PATTERN = Pattern.compile( EXPRESSION_REGEXP );
-    public static final Pattern EXPRESSION_EQUALSZEROOREMPTY_PATTERN = Pattern.compile( EXPRESSION_EQUALSZEROOREMPTY_REGEX );
+    public static final Pattern EXPRESSION_EQUALSZEROOREMPTY_PATTERN = Pattern.compile(EXPRESSION_EQUALS_ZERO_OR_EMPTY_REGEX);
     public static final Pattern SQL_FUNC_PATTERN = Pattern.compile( SQL_FUNC_REGEXP );
     public static final Pattern DATAELEMENT_PATTERN = Pattern.compile( DATAELEMENT_REGEX );
     public static final Pattern PROGRAMSTAGE_DATAELEMENT_GROUP_PATTERN = Pattern.compile( PROGRAMSTAGE_DATAELEMENT_GROUP_REGEX );
     public static final Pattern ATTRIBUTE_PATTERN = Pattern.compile( ATTRIBUTE_REGEX );
     public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_REGEX );
-    public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( VALUECOUNT_REGEX );
 
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
     public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
     public static final String FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE = "filter_not_evaluating_to_true_or_false";
     public static final String UNKNOWN_VARIABLE = "unknown_variable";
-    
-    private static final Map<String, String> VARIABLE_COLUMNNAME_MAP = ImmutableMap.<String, String>builder().
-        put( ProgramIndicator.VAR_EVENT_DATE, "executiondate" ).
-        put( ProgramIndicator.VAR_EXECUTION_DATE, "executiondate" ).
-        put( ProgramIndicator.VAR_DUE_DATE, "duedate" ).
-        put( ProgramIndicator.VAR_ENROLLMENT_DATE, "enrollmentdate" ).
-        put( ProgramIndicator.VAR_INCIDENT_DATE, "incidentdate" ).
-        put( ProgramIndicator.VAR_ENROLLMENT_STATUS, "enrollmentstatus" ).
-        put( ProgramIndicator.VAR_EVENT_COUNT, "psi" ).
-        put( ProgramIndicator.VAR_ENROLLMENT_COUNT, "pi" ).
-        put( ProgramIndicator.VAR_TEI_COUNT, "tei" ).
-        put( ProgramIndicator.VAR_COMPLETED_DATE, "completeddate" ).
-        put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "ps" ).
-        put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "ps" ).build();
 
     private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
-    private static final Set<AnalyticsPeriodBoundary> defaultErollmentTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
-        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
-        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
     
     private Program program;
 
@@ -173,6 +139,11 @@ public class ProgramIndicator
         return decimals != null && decimals >= 0;
     }
 
+    public boolean hasZeroDecimals()
+    {
+        return decimals != null && decimals == 0;
+    }
+
     /**
      * Returns aggregation type, if not exists returns AVERAGE.
      */
@@ -217,7 +188,7 @@ public class ProgramIndicator
      * @param expression the program indicator expression.
      * @return a set of column names
      */
-    public static Set<String> getVariableColumnNames( String expression, AnalyticsType analyticsType )
+    public static Set<String> getVariableColumnNames( String expression )
     {
         Set<String> requiredColumns = new HashSet<String>();
         
@@ -244,7 +215,7 @@ public class ProgramIndicator
      */
     public static String getVariableColumnName( String var ) 
     {
-        return VARIABLE_COLUMNNAME_MAP.containsKey( var ) ? VARIABLE_COLUMNNAME_MAP.get( var ) : null;
+        return ProgramIndicatorVariable.getColumnNameOrNull( var );
     }
 
     public void addProgramIndicatorGroup( ProgramIndicatorGroup group )
@@ -283,10 +254,9 @@ public class ProgramIndicator
      */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsType == AnalyticsType.EVENT && 
-            !this.analyticsPeriodBoundaries.equals( defaultEventTypeBoundaries ) ||
-            this.analyticsType == AnalyticsType.ENROLLMENT && 
-            !this.analyticsPeriodBoundaries.equals( defaultErollmentTypeBoundaries );
+        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
+            !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
+            this.analyticsType == AnalyticsType.ENROLLMENT );
     }
     
     /**
@@ -329,6 +299,48 @@ public class ProgramIndicator
         }
 
         return null;
+    }
+
+    /**
+     * Determines wether there exists any analytics period boundaries that has type "Event in program stage".
+     * @return true if any boundary exists with type  "Event in program stage"
+     */
+    public boolean hasEventDateCohortBoundary()
+    {
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.isEnrollmentHavingEventDateCohortBoundary() )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Returns any analytics period boundaries that has type "Event in program stage", organized as a map
+     * where the program stage is the key, and the list of boundaries for that program stage is the value.
+     */
+    public Map<String, Set<AnalyticsPeriodBoundary>> getEventDateCohortBoundaryByProgramStage()
+    {
+        Map<String, Set<AnalyticsPeriodBoundary>> map = new HashMap<>();
+        for ( AnalyticsPeriodBoundary boundary : analyticsPeriodBoundaries )
+        {
+            if ( boundary.isEnrollmentHavingEventDateCohortBoundary() )
+            {
+                Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_PROGRAM_STAGE_PATTERN.matcher( boundary.getBoundaryTarget() );
+                Assert.isTrue( matcher.find(), "Can not parse program stage pattern for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+                String programStage = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
+                Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+                if ( !map.containsKey( programStage ) )
+                {
+                    map.put( programStage, new HashSet<>() );
+                }
+                map.get( programStage ).add( boundary );
+            }
+        }
+        
+        return map;
     }
 
     // -------------------------------------------------------------------------

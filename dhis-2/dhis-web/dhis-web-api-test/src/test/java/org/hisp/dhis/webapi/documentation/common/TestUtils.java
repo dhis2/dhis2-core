@@ -30,10 +30,10 @@ package org.hisp.dhis.webapi.documentation.common;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.codehaus.jackson.JsonNode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.http.MediaType;
@@ -60,9 +60,9 @@ public class TestUtils
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        objectMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, false );
         objectMapper.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
         objectMapper.configure( SerializationFeature.WRAP_EXCEPTIONS, true );
+        objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
         objectMapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         objectMapper.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
@@ -129,7 +129,7 @@ public class TestUtils
 
     public static String getCreatedUid( String responseJson ) throws IOException
     {
-        org.codehaus.jackson.map.ObjectMapper mapper = new org.codehaus.jackson.map.ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( responseJson );
         return node.get( "response" ).get( "uid" ).asText();
     }

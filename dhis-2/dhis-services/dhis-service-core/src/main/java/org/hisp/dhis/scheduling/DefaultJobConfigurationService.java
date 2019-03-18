@@ -28,16 +28,26 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.scheduling.JobType.values;
@@ -49,6 +59,8 @@ import static org.hisp.dhis.scheduling.JobType.values;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
+    private Log log = LogFactory.getLog( DefaultJobConfigurationService.class );
+
     private IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
     public void setJobConfigurationStore( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
@@ -56,29 +68,51 @@ public class DefaultJobConfigurationService
         this.jobConfigurationStore = jobConfigurationStore;
     }
 
+    @Autowired
+    private SessionFactory sessionFactory;
+
     @Override
-    public int addJobConfiguration( JobConfiguration jobConfiguration )
+    public long addJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
+            if ( jobConfiguration.getJobParameters() == null )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+
             jobConfigurationStore.save( jobConfiguration );
         }
-        return jobConfiguration.getId( );
+        return jobConfiguration.getId();
     }
 
     @Override
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ));
+        jobConfigurations.forEach( jobConfiguration -> {
+
+            if ( jobConfiguration.getJobParameters() == null  )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+
+            jobConfigurationStore.save( jobConfiguration );
+        } );
     }
 
     @Override
-    public int updateJobConfiguration( JobConfiguration jobConfiguration )
+    public long updateJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            jobConfigurationStore.update( jobConfiguration );
+            if ( jobConfiguration.getJobParameters() == null )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+
+            sessionFactory.getCurrentSession().update( jobConfiguration );
         }
+
         return jobConfiguration.getId();
     }
 
@@ -98,7 +132,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
-    public JobConfiguration getJobConfiguration( int jobId )
+    public JobConfiguration getJobConfiguration( long jobId )
     {
         return jobConfigurationStore.get( jobId );
     }
@@ -126,7 +160,7 @@ public class DefaultJobConfigurationService
 
         for ( JobType jobType : values() )
         {
-            Map<String, Property> jobParameters = new LinkedHashMap<>( );
+            Map<String, Property> jobParameters = new LinkedHashMap<>();
 
             if ( !jobType.isConfigurable() )
             {
@@ -136,14 +170,14 @@ public class DefaultJobConfigurationService
             Class<?> clazz = jobType.getJobParameters();
             if ( clazz == null )
             {
-                propertyMap.put( jobType.name(), null );
+                propertyMap.put( jobType.name(), new LinkedHashMap<>() );
                 continue;
             }
 
             for ( Field field : clazz.getDeclaredFields() )
             {
                 if ( Arrays.stream( field.getAnnotations() )
-                    .anyMatch( f -> f.annotationType().getSimpleName().equals( "Property" ) ) )
+                    .anyMatch( f -> f instanceof JsonProperty ) )
                 {
                     Property property = new Property( Primitives.wrap( field.getType() ), null, null );
                     property.setName( field.getName() );
@@ -180,5 +214,24 @@ public class DefaultJobConfigurationService
             .set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
 
         return String.join( " ", fieldStrings );
+    }
+
+    private JobParameters getDefaultJobParameters( JobConfiguration jobConfiguration )
+    {
+        if ( jobConfiguration.getJobType().getJobParameters() == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return jobConfiguration.getJobType().getJobParameters().newInstance();
+        }
+        catch ( InstantiationException | IllegalAccessException ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+        }
+
+        return null;
     }
 }

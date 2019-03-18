@@ -133,8 +133,7 @@ public class DefaultResourceTableService
     public void generateOrganisationUnitStructures()
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitStructureResourceTable( 
-            null, statementBuilder.getColumnQuote(), 
-            organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels() ) );
+            null, organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels() ) );
     }
     
     @Override
@@ -150,8 +149,7 @@ public class DefaultResourceTableService
     public void generateCategoryOptionComboNames()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable( 
-            idObjectManager.getAllNoAcl( CategoryCombo.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getAllNoAcl( CategoryCombo.class ) ) );
     }
 
     @Override
@@ -159,8 +157,7 @@ public class DefaultResourceTableService
     public void generateDataElementGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new DataElementGroupSetResourceTable(
-            idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ) ) );
     }
 
     @Override
@@ -168,8 +165,7 @@ public class DefaultResourceTableService
     public void generateIndicatorGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new IndicatorGroupSetResourceTable(
-            idObjectManager.getAllNoAcl( IndicatorGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getAllNoAcl( IndicatorGroupSet.class ) ) );
     }
 
     @Override
@@ -178,7 +174,7 @@ public class DefaultResourceTableService
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            statementBuilder.supportsPartialIndexes(), organisationUnitService.getNumberOfOrganisationalLevels() ) );
     }
 
     @Override
@@ -187,8 +183,7 @@ public class DefaultResourceTableService
     {
         resourceTableStore.generateResourceTable( new CategoryResourceTable( 
             idObjectManager.getDataDimensionsNoAcl( Category.class ),
-            idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getDataDimensionsNoAcl( CategoryOptionGroupSet.class ) ) );
     }
 
     @Override
@@ -196,46 +191,47 @@ public class DefaultResourceTableService
     public void generateDataElementTable()
     {
         resourceTableStore.generateResourceTable( new DataElementResourceTable( 
-            idObjectManager.getAllNoAcl( DataElement.class ),
-            statementBuilder.getColumnQuote() ) );
+            idObjectManager.getAllNoAcl( DataElement.class ) ) );
     }
 
     @Override
     public void generateDatePeriodTable()
     {
-        resourceTableStore.generateResourceTable( new DatePeriodResourceTable( 
-            null, statementBuilder.getColumnQuote() ) );
+        resourceTableStore.generateResourceTable( new DatePeriodResourceTable( null ) );
     }
 
     @Override
     @Transactional
     public void generatePeriodTable()
     {
-        resourceTableStore.generateResourceTable( new PeriodResourceTable( 
-            periodService.getAllPeriods(), statementBuilder.getColumnQuote() ) );
+        resourceTableStore.generateResourceTable( new PeriodResourceTable( periodService.getAllPeriods() ) );
     }
 
     @Override
     @Transactional
     public void generateCategoryOptionComboTable()
     {
-        resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable(
-            null, statementBuilder.getColumnQuote() ) );            
+        resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable( null ) );            
+    }
+
+    @Override
+    public void generateDataApprovalRemapLevelTable()
+    {
+        resourceTableStore.generateResourceTable( new DataApprovalRemapLevelResourceTable( null ) );
     }
 
     @Override
     public void generateDataApprovalMinLevelTable()
     {
-        List<OrganisationUnitLevel> orgUnitLevels = Lists.newArrayList( 
+        List<OrganisationUnitLevel> orgUnitLevels = Lists.newArrayList(
             dataApprovalLevelService.getOrganisationUnitApprovalLevels() );
-        
+
         if ( orgUnitLevels.size() > 0 )
         {
-            resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( 
-                orgUnitLevels, statementBuilder.getColumnQuote() ) );
+            resourceTableStore.generateResourceTable( new DataApprovalMinLevelResourceTable( orgUnitLevels ) );
         }
     }
-    
+
     // -------------------------------------------------------------------------
     // SQL Views. Each view is created/dropped in separate transactions so that
     // process continues even if individual operations fail.

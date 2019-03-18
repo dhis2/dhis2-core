@@ -35,11 +35,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.ImmutableMap;
@@ -68,6 +71,20 @@ public class HibernateSqlViewStore
     public void setStatementBuilder( StatementBuilder statementBuilder )
     {
         this.statementBuilder = statementBuilder;
+    }
+    
+    private JdbcTemplate readOnlyJdbcTemplate;
+
+    public void setReadOnlyJdbcTemplate( JdbcTemplate readOnlyJdbcTemplate )
+    {
+        this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
+    }
+    
+    private SystemSettingManager systemSettingManager;
+    
+    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
     }
 
     // -------------------------------------------------------------------------
@@ -113,12 +130,14 @@ public class HibernateSqlViewStore
     @Override
     public void populateSqlViewGrid( Grid grid, String sql )
     {
-        SqlRowSet rs = jdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
+        
+        int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
-        log.info( "Get view SQL: " + sql );
+        log.debug( "Get view SQL: " + sql + ", max limit: " + maxLimit );
 
         grid.addHeaders( rs );
-        grid.addRows( rs );
+        grid.addRows( rs, maxLimit );
     }
 
     @Override

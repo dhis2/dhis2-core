@@ -28,10 +28,9 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -41,16 +40,15 @@ public class QueryFilter
 {
     public static final String OPTION_SEP = ";";
     
-    public static final Map<QueryOperator, String> OPERATOR_MAP = new HashMap<QueryOperator, String>() { {
-        put( QueryOperator.EQ, "=" );
-        put( QueryOperator.GT, ">" );
-        put( QueryOperator.GE, ">=" );
-        put( QueryOperator.LT, "<" );
-        put( QueryOperator.LE, "<=" );
-        put( QueryOperator.NE, "!=" );
-        put( QueryOperator.LIKE, "like" );
-        put( QueryOperator.IN, "in" );
-    } };
+    public static final ImmutableMap<QueryOperator, String> OPERATOR_MAP = ImmutableMap.<QueryOperator, String>builder()
+        .put( QueryOperator.EQ, "=" )
+        .put( QueryOperator.GT, ">" )
+        .put( QueryOperator.GE, ">=" )
+        .put( QueryOperator.LT, "<" )
+        .put( QueryOperator.LE, "<=" )
+        .put( QueryOperator.NE, "!=" )
+        .put( QueryOperator.LIKE, "like" )
+        .put( QueryOperator.IN, "in" ).build();
     
     protected QueryOperator operator;
 

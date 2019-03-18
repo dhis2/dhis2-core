@@ -1,0 +1,1 @@
+update program set accesslevel='OPEN' where accesslevel is NULL;

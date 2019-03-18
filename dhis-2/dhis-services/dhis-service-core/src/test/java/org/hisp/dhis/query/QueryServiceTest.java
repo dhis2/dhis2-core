@@ -40,6 +40,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.jfree.data.time.Year;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -619,6 +620,24 @@ public class QueryServiceTest
         Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.OR );
         query.add( Restrictions.eq( "id", "abcdefghijA" ) );
         query.add( Restrictions.eq( "dataElements.id", "does-not-exist" ) );
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 1, objects.size() );
+    }
+
+    @Test
+    @Ignore
+    public void testDisjunctionWithinQuery()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ), Junction.Type.AND );
+
+        query.add( Restrictions.eq( "dataElements.valueType", "NUMBER" ) );
+
+        Disjunction disjunction = query.addDisjunction();
+
+        disjunction.add( Restrictions.eq( "displayName", "deabcdefghA" ) );
+        disjunction.add( Restrictions.eq( "id", "deabcdefghA" ) );
+        disjunction.add( Restrictions.eq( "code", "deabcdefghA" ) );
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
         assertEquals( 1, objects.size() );

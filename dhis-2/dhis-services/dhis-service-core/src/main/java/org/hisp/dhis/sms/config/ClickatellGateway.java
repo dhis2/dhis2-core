@@ -47,25 +47,9 @@ import java.util.stream.Collectors;
 public class ClickatellGateway
     extends SmsGateway
 {
-    private static final String CONTENT_TYPE = "Content-Type";
-
-    private static final String ACCEPT = "Accept";
-
-    private static final String AUTHORIZATION = "Authorization";
-
-    private static final String PROTOCOL_VERSION = "X-Version";
-
-    private static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
-
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
-
-    @Override
-    public boolean accept( SmsGatewayConfig gatewayConfig )
-    {
-        return gatewayConfig != null && gatewayConfig instanceof ClickatellGatewayConfig;
-    }
 
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
@@ -73,6 +57,12 @@ public class ClickatellGateway
             .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
+    }
+
+    @Override
+    protected SmsGatewayConfig getGatewayConfigType()
+    {
+        return new ClickatellGatewayConfig();
     }
 
     @Override
@@ -103,10 +93,10 @@ public class ClickatellGateway
     private HttpHeaders getRequestHeaderParameters( ClickatellGatewayConfig clickatellConfiguration )
     {
         HttpHeaders headers = new HttpHeaders();
-        headers.set( CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
         headers.set( PROTOCOL_VERSION, "1" );
-        headers.set( AUTHORIZATION, clickatellConfiguration.getAuthToken() );
+        headers.set( HttpHeaders.AUTHORIZATION, clickatellConfiguration.getAuthToken() );
 
         return headers;
     }

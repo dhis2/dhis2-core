@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -49,14 +50,30 @@ public class TrackedEntityAttributeObjectBundleHook
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        /*
-         * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
-         */
+        // Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
+
         if ( object != null && object.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
         {
             TrackedEntityAttribute attr = (TrackedEntityAttribute) object;
 
+            if ( attr.isGenerated() && !attr.getValueType().equals( ValueType.TEXT ) )
+            {
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4010, "generated", attr.getValueType() ) );
+            }
+
             errorReports.addAll( textPatternValid( attr ) );
+
+            if ( attr.getFieldMask() != null )
+            {
+                try
+                {
+                    TextPatternParser.parse( "\"" + attr.getFieldMask() + "\"" );
+                }
+                catch ( TextPatternParser.TextPatternParsingException e )
+                {
+                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019, attr.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ));
+                }
+            }
 
         }
 

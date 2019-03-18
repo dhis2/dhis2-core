@@ -131,36 +131,8 @@ public class DocumentController
             // Request signing is not available, stream content back to client
             // ---------------------------------------------------------------------
 
-            InputStream inputStream = null;
-
-            try
+            try ( InputStream in = content.openStream() )
             {
-                inputStream = content.openStream();
-                IOUtils.copy( inputStream, response.getOutputStream() );
-            }
-            catch ( IOException e )
-            {
-                log.error( "Could not retrieve file.", e );
-                throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                    "There was an exception when trying to fetch the file from the storage backend. " +
-                        "Depending on the provider the root cause could be network or file system related." ) );
-            }
-            finally
-            {
-                IOUtils.closeQuietly( inputStream );
-            }
-        }
-        else
-        {
-            contextUtils.configureResponse( response, document.getContentType(), CacheStrategy.CACHE_TWO_WEEKS,
-                document.getUrl(),
-                document.getAttachment() == null ? false : document.getAttachment() );
-
-            InputStream in = null;
-
-            try
-            {
-                in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR );
                 IOUtils.copy( in, response.getOutputStream() );
             }
             catch ( IOException e )
@@ -170,11 +142,24 @@ public class DocumentController
                     "There was an exception when trying to fetch the file from the storage backend. " +
                         "Depending on the provider the root cause could be network or file system related." ) );
             }
-            finally
-            {
-                IOUtils.closeQuietly( in );
-            }
+        }
+        else
+        {
+            contextUtils.configureResponse( response, document.getContentType(), CacheStrategy.CACHE_TWO_WEEKS,
+                document.getUrl(),
+                document.getAttachment() == null ? false : document.getAttachment() );
 
+            try ( InputStream in = locationManager.getInputStream( document.getUrl(), DocumentService.DIR ) )
+            {
+                IOUtils.copy( in, response.getOutputStream() );
+            }
+            catch ( IOException e )
+            {
+                log.error( "Could not retrieve file.", e );
+                throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+                    "There was an exception when trying to fetch the file from the storage backend. " +
+                        "Depending on the provider the root cause could be network or file system related." ) );
+            }
         }
     }
 }

@@ -38,7 +38,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -52,7 +51,7 @@ public class OptionGroup
 {
     private Set<Option> members = new HashSet<>();
 
-    private String description;
+    private OptionSet optionSet;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -81,19 +80,6 @@ public class OptionGroup
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 1 )
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
     @JsonProperty( "options" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "options", namespace = DxfNamespaces.DXF_2_0 )
@@ -106,6 +92,19 @@ public class OptionGroup
     public void setMembers( Set<Option> members )
     {
         this.members = members;
+    }
+
+    @JsonProperty( "optionSet" )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( localName = "optionSet", namespace = DxfNamespaces.DXF_2_0 )
+    public OptionSet getOptionSet()
+    {
+        return optionSet;
+    }
+
+    public void setOptionSet( OptionSet optionSet )
+    {
+        this.optionSet = optionSet;
     }
 
     // -------------------------------------------------------------------------

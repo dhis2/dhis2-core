@@ -28,11 +28,21 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.csv.CsvFactory;
-import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Objects;
@@ -58,6 +68,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -66,18 +77,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import com.fasterxml.jackson.dataformat.csv.CsvFactory;
+import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -183,17 +188,22 @@ public class SystemController
         return rootNode;
     }
 
+    // -------------------------------------------------------------------------
+    // Tasks
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTasksJson( HttpServletResponse response )
         throws IOException
     {
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
     public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
         throws IOException
     {
@@ -205,12 +215,13 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
     {
         Map<String, LinkedList<Notification>> notifications = new HashMap<>();
@@ -221,6 +232,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
@@ -238,12 +250,17 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
 
         renderService.toJson( response.getOutputStream(), notifications );
     }
 
+    // -------------------------------------------------------------------------
+    // Tasks summary
+    // -------------------------------------------------------------------------
+
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -256,10 +273,11 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
     }
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -272,10 +290,10 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
     }
 
-    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
+    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
         HttpServletResponse response )
         throws IOException
@@ -288,6 +306,7 @@ public class SystemController
         }
 
         setNoStore( response );
+        response.setContentType( CONTENT_TYPE_JSON );
     }
 
     private void handleSummary( HttpServletResponse response, Object summary )
@@ -304,10 +323,12 @@ public class SystemController
         }
     }
 
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
-        "application/javascript" } )
-    public @ResponseBody
-    SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
+    // -------------------------------------------------------------------------
+    // Various
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
+    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request, HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
 
@@ -338,17 +359,12 @@ public class SystemController
         return rootNode;
     }
 
-    @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V26, DhisApiVersion.V27, DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30 } )
-    public @ResponseBody String pingLegacy()
-    {
-        return "pong";
-    }
-
     @RequestMapping( value = "/ping", method = RequestMethod.GET )
-    @ApiVersion( exclude = { DhisApiVersion.DEFAULT } )
-    public @ResponseBody String ping()
+    @ResponseStatus( HttpStatus.OK )
+    public @ResponseBody String ping( HttpServletResponse response )
     {
+        setNoStore( response );
+
         return "pong";
     }
 
@@ -370,19 +386,9 @@ public class SystemController
 
     private List<StyleObject> getFlagObjects()
     {
-        List<String> flags = systemSettingManager.getFlags();
-
         I18n i18n = i18nManager.getI18n();
-
-        List<StyleObject> list = Lists.newArrayList();
-
-        for ( String flag : flags )
-        {
-            String file = flag + ".png";
-
-            list.add( new StyleObject( i18n.getString( flag ), flag, file ) );
-        }
-
-        return list;
+        return systemSettingManager.getFlags().stream()
+            .map( flag -> new StyleObject( i18n.getString( flag ), flag, (flag + ".png") ) )
+            .collect( Collectors.toList() );
     }
 }

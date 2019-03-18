@@ -42,13 +42,13 @@ public interface IndicatorService
     // Indicator
     // -------------------------------------------------------------------------
 
-    int addIndicator( Indicator indicator );
+    long addIndicator( Indicator indicator );
 
     void updateIndicator( Indicator indicator );
 
     void deleteIndicator( Indicator indicator );
 
-    Indicator getIndicator( int id );
+    Indicator getIndicator( long id );
 
     Indicator getIndicator( String uid );
 
@@ -64,13 +64,13 @@ public interface IndicatorService
     // IndicatorType
     // -------------------------------------------------------------------------
 
-    int addIndicatorType( IndicatorType indicatorType );
+    long addIndicatorType( IndicatorType indicatorType );
 
     void updateIndicatorType( IndicatorType indicatorType );
 
     void deleteIndicatorType( IndicatorType indicatorType );
 
-    IndicatorType getIndicatorType( int id );
+    IndicatorType getIndicatorType( long id );
 
     IndicatorType getIndicatorType( String uid );
 
@@ -80,13 +80,13 @@ public interface IndicatorService
     // IndicatorGroup
     // -------------------------------------------------------------------------
 
-    int addIndicatorGroup( IndicatorGroup indicatorGroup );
+    long addIndicatorGroup( IndicatorGroup indicatorGroup );
 
     void updateIndicatorGroup( IndicatorGroup indicatorGroup );
 
     void deleteIndicatorGroup( IndicatorGroup indicatorGroup );
 
-    IndicatorGroup getIndicatorGroup( int id );
+    IndicatorGroup getIndicatorGroup( long id );
 
     IndicatorGroup getIndicatorGroup( String uid );
 
@@ -96,13 +96,13 @@ public interface IndicatorService
     // IndicatorGroupSet
     // -------------------------------------------------------------------------
 
-    int addIndicatorGroupSet( IndicatorGroupSet groupSet );
+    long addIndicatorGroupSet( IndicatorGroupSet groupSet );
 
     void updateIndicatorGroupSet( IndicatorGroupSet groupSet );
 
     void deleteIndicatorGroupSet( IndicatorGroupSet groupSet );
 
-    IndicatorGroupSet getIndicatorGroupSet( int id );
+    IndicatorGroupSet getIndicatorGroupSet( long id );
 
     IndicatorGroupSet getIndicatorGroupSet( String uid );
 

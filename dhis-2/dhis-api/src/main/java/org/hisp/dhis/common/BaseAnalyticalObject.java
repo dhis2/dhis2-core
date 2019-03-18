@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -55,7 +54,6 @@ import org.hisp.dhis.period.ConfigurablePeriod;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.period.comparator.AscendingPeriodComparator;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -98,6 +96,10 @@ public abstract class BaseAnalyticalObject
 
     protected List<Period> periods = new ArrayList<>();
 
+    private Date startDate;
+
+    private Date endDate;
+
     protected RelativePeriods relatives;
 
     protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
@@ -134,6 +136,10 @@ public abstract class BaseAnalyticalObject
 
     protected boolean completedOnly;
 
+    protected String timeField;
+
+    protected String orgUnitField;
+
     protected String title;
 
     protected String subtitle;
@@ -143,6 +149,8 @@ public abstract class BaseAnalyticalObject
     protected boolean hideSubtitle;
 
     protected Set<Interpretation> interpretations = new HashSet<>();
+
+    protected Set<String> subscribers = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Analytical properties
@@ -178,6 +186,7 @@ public abstract class BaseAnalyticalObject
     @Override
     public abstract void populateAnalyticalProperties();
 
+    @Override
     public boolean hasUserOrgUnit()
     {
         return userOrganisationUnit || userOrganisationUnitChildren || userOrganisationUnitGrandChildren;
@@ -237,6 +246,7 @@ public abstract class BaseAnalyticalObject
      *
      * @return true if a data dimension was added, false if not.
      */
+    @Override
     public boolean addDataDimensionItem( DimensionalItemObject object )
     {
         if ( object != null && DataDimensionItem.DATA_DIMENSION_CLASSES.contains( object.getClass() ) )
@@ -252,6 +262,7 @@ public abstract class BaseAnalyticalObject
      *
      * @return true if a data dimension was removed, false if not.
      */
+    @Override
     public boolean removeDataDimensionItem( DimensionalItemObject object )
     {
         if ( object != null && DataDimensionItem.DATA_DIMENSION_CLASSES.contains( object.getClass() ) )
@@ -267,6 +278,7 @@ public abstract class BaseAnalyticalObject
      *
      * @param dimension the dimension to add.
      */
+    @Override
     public void addDataElementGroupSetDimension( DataElementGroupSetDimension dimension )
     {
         dataElementGroupSetDimensions.add( dimension );
@@ -277,6 +289,7 @@ public abstract class BaseAnalyticalObject
      *
      * @param dimension the dimension to add.
      */
+    @Override
     public void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension )
     {
         organisationUnitGroupSetDimensions.add( dimension );
@@ -287,6 +300,7 @@ public abstract class BaseAnalyticalObject
      *
      * @param dimension the dimension to add.
      */
+    @Override
     public void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension )
     {
         categoryOptionGroupSetDimensions.add( dimension );
@@ -534,8 +548,6 @@ public abstract class BaseAnalyticalObject
                 }
             }
 
-            Collections.sort( periodList, new AscendingPeriodComparator() );
-
             return new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList );
         }
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
@@ -585,7 +597,7 @@ public abstract class BaseAnalyticalObject
         {
             return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() );
         }
-        else if ( DATA_COLLAPSED_DIM_ID.contains( dimension ) )
+        else if ( DATA_COLLAPSED_DIM_ID.equals( dimension ) )
         {
             return new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() );
         }
@@ -688,76 +700,6 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Sorts the keys in the given map by splitting on the '-' character and
-     * sorting the components alphabetically.
-     *
-     * @param valueMap the mapping of keys and values.
-     */
-    public static void sortKeys( Map<String, Object> valueMap )
-    {
-        Map<String, Object> map = new HashMap<>();
-
-        for ( String key : valueMap.keySet() )
-        {
-            String sortKey = sortKey( key );
-
-            if ( sortKey != null )
-            {
-                map.put( sortKey, valueMap.get( key ) );
-            }
-        }
-
-        valueMap.clear();
-        valueMap.putAll( map );
-    }
-
-    /**
-     * Sorts the given key by splitting on the '-' character and sorting the
-     * components alphabetically.
-     *
-     * @param key the mapping of keys and values.
-     */
-    public static String sortKey( String key )
-    {
-        if ( key != null )
-        {
-            String[] ids = key.split( DIMENSION_SEP );
-
-            Collections.sort( Arrays.asList( ids ) );
-
-            key = StringUtils.join( ids, DIMENSION_SEP );
-        }
-
-        return key;
-    }
-
-    /**
-     * Generates an identifier based on the given lists of {@link NameableObject}. Uses
-     * the identifiers for each nameable object, sorts them and writes them out as a key.
-     *
-     * @param column list of dimension items representing a column.
-     * @param row    list of dimension items representing a row.
-     * @return an identifier representing a column item and a row item.
-     */
-    public static String getIdentifier( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
-    {
-        List<String> ids = new ArrayList<>();
-
-        List<DimensionalItemObject> dimensions = new ArrayList<>();
-        dimensions.addAll( column != null ? column : new ArrayList<>() );
-        dimensions.addAll( row != null ? row : new ArrayList<>() );
-
-        for ( DimensionalItemObject item : dimensions )
-        {
-            ids.add( item.getDimensionItem() );
-        }
-
-        Collections.sort( ids );
-
-        return StringUtils.join( ids, DIMENSION_SEP );
-    }
-
-    /**
      * Returns meta-data mapping for this analytical object. Includes a identifier
      * to name mapping for dynamic dimensions.
      */
@@ -774,7 +716,7 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Clear or set to false all persistent dimensional (not option) properties for this object.
+     * Clear or set to false all persistent dimensional (not property) properties for this object.
      */
     public void clear()
     {
@@ -813,6 +755,7 @@ public abstract class BaseAnalyticalObject
         this.dataDimensionItems = dataDimensionItems;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseNameableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -827,6 +770,7 @@ public abstract class BaseAnalyticalObject
         this.organisationUnits = organisationUnits;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentUsing = JacksonPeriodSerializer.class )
     @JsonDeserialize( contentUsing = JacksonPeriodDeserializer.class )
@@ -840,6 +784,30 @@ public abstract class BaseAnalyticalObject
     public void setPeriods( List<Period> periods )
     {
         this.periods = periods;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getStartDate()
+    {
+        return startDate;
+    }
+
+    public void setStartDate( Date startDate )
+    {
+        this.startDate = startDate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getEndDate()
+    {
+        return endDate;
+    }
+
+    public void setEndDate( Date endDate )
+    {
+        this.endDate = endDate;
     }
 
     @JsonProperty( value = "relativePeriods" )
@@ -1056,6 +1024,7 @@ public abstract class BaseAnalyticalObject
         this.aggregationType = aggregationType;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCompletedOnly()
@@ -1068,6 +1037,33 @@ public abstract class BaseAnalyticalObject
         this.completedOnly = completedOnly;
     }
 
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getTimeField()
+    {
+        return timeField;
+    }
+
+    public void setTimeField( String timeField )
+    {
+        this.timeField = timeField;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrgUnitField()
+    {
+        return orgUnitField;
+    }
+
+    public void setOrgUnitField( String orgUnitField )
+    {
+        this.orgUnitField = orgUnitField;
+    }
+
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getTitle()
@@ -1116,6 +1112,7 @@ public abstract class BaseAnalyticalObject
         this.hideSubtitle = hideSubtitle;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
@@ -1213,5 +1210,51 @@ public abstract class BaseAnalyticalObject
     public void setParentGraphMap( Map<String, String> parentGraphMap )
     {
         this.parentGraphMap = parentGraphMap;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "subscribers", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "subscriber", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getSubscribers()
+    {
+        return subscribers;
+    }
+
+    public void setSubscribers( Set<String> subscribers )
+    {
+        this.subscribers = subscribers;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSubscribed()
+    {
+        User user = UserContext.getUser();
+
+        return user != null && subscribers != null ? subscribers.contains( user.getUid() ) : false;
+    }
+
+    @Override
+    public boolean subscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.add( user.getUid() );
+    }
+
+    @Override
+    public boolean unsubscribe( User user )
+    {
+        if ( this.subscribers == null )
+        {
+            this.subscribers = new HashSet<>();
+        }
+
+        return this.subscribers.remove( user.getUid() );
     }
 }

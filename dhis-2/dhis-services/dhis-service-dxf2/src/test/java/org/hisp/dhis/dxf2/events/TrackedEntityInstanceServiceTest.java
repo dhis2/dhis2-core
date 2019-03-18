@@ -31,10 +31,12 @@ package org.hisp.dhis.dxf2.events;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -47,7 +49,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -88,10 +93,10 @@ public class TrackedEntityInstanceServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
-        maleB = createTrackedEntityInstance( 'B', organisationUnitB );
-        femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
-        femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
+        maleA = createTrackedEntityInstance( organisationUnitA );
+        maleB = createTrackedEntityInstance( organisationUnitB );
+        femaleA = createTrackedEntityInstance( organisationUnitA );
+        femaleB = createTrackedEntityInstance( organisationUnitB );
 
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
@@ -136,7 +141,7 @@ public class TrackedEntityInstanceServiceTest
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         // person.setName( "UPDATED_NAME" );
 
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         // assertEquals( "UPDATED_NAME", personService.getTrackedEntityInstance( maleA.getUid() ).getName() );
@@ -168,8 +173,10 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testDeleteTrackedEntityInstances()
     {
-        List<String> uids = Lists.newArrayList( maleA.getUid(), maleB.getUid() );
-        trackedEntityInstanceService.deleteTrackedEntityInstances( uids );
+        List<TrackedEntityInstance> teis = Lists.newArrayList( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ), trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.DELETE );
+        trackedEntityInstanceService.deleteTrackedEntityInstances( teis, importOptions );
 
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );

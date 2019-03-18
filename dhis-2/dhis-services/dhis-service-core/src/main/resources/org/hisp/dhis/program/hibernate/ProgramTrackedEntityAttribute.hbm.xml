@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.ProgramTrackedEntityAttribute" table="program_attributes">
+    <class name="org.hisp.dhis.program.ProgramTrackedEntityAttribute" table="program_attributes">
 
     <id name="id" column="programtrackedentityattributeid">
       <generator class="native" />

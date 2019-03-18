@@ -28,13 +28,13 @@ package org.hisp.dhis.attribute.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.AttributeValueStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 
+import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
@@ -45,27 +45,31 @@ public class HibernateAttributeValueStore
     implements AttributeValueStore
 {
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAllByAttributes( List<Attribute> attributes )
     {
-        return getCriteria().add( Restrictions.in( "attribute", attributes ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> root.get( "attribtue" ).in( attributes ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAllByAttribute( Attribute attribute )
     {
-        return getCriteria().add( Restrictions.eq( "attribute", attribute ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "attribute" ), attribute ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<AttributeValue> getAllByAttributeAndValue( Attribute attribute, String value )
     {
-        return getCriteria()
-            .add( Restrictions.eq( "attribute", attribute ) )
-            .add( Restrictions.eq( "value", value ) )
-            .list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "attribute" ), attribute ) )
+            .addPredicate( root -> builder.equal( root.get( "value" ), value ) ) );
     }
 
     @Override

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" fill="#333" transform="translate(0,-284.3)">
+  <path id="rect884" d="m0 0v48h48v-48zm24.098 5.0234c1.6618 0.014287 3.2811 0.21308 4.873 0.55664-0.58993 1.8196-1.2836 3.7285-2.7031 5.8672-1.3104-0.61485-3.4669-0.35487-4.7773 0.056641-1.037-1.8534-1.844-3.1192-2.507-5.92 1.75-0.4003 3.452-0.5757 5.114-0.5606zm-5.7 1.1426 0.149 0.7988c0.21105 1.1636 1.1806 3.1001 2.9297 5.8398 0.84621 1.3255 1.541 2.464 1.541 2.5312 1e-8 0.17008-3.4777 5.1385-3.5938 5.1348-0.052625-0.002003-0.7135-0.95375-1.4707-2.1152-1.883-2.889-1.829-2.75-1.728-4.434 0.068-1.139 0.311-2.147 1.129-4.6095zm11.207 0 1.0586 3.2363c1.0597 3.241 1.3292 4.7075 1.0938 5.9629-5.3802 10.701-11.896 16.791-18.275 27.494-1.4571-1.6019-2.8573-3.6187-4.166-5.4629 6.4561-9.1416 11.248-15.848 17.295-24.695 1.5594-2.484 2.6354-4.6376 2.834-5.6816zm-0.99 17.004c3.3559 4.7494 6.7129 9.4984 10.068 14.248-1.5187 2.119-2.5728 3.6384-4.0566 5.5586-2.8202-3.9433-5.1071-7.5207-7.8691-11.521-0.97778-1.4356-1.7438-2.73-1.7012-2.8789 0.042506-0.14842 0.86051-1.4253 1.8184-2.8379z" fill-rule="evenodd" transform="matrix(.26458 0 0 .26458 0 284.3)"/>
+ </g>
+</svg>

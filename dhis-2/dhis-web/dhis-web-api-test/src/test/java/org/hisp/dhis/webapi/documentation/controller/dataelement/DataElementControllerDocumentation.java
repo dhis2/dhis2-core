@@ -36,7 +36,6 @@ import org.hisp.dhis.webapi.documentation.common.ResponseDocumentation;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 import org.junit.Test;
-import org.mockito.internal.matchers.GreaterThan;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.payload.FieldDescriptor;
@@ -94,14 +93,13 @@ public class DataElementControllerDocumentation
         DataElement de = createDataElement( 'A' );
         manager.save( de );
 
-        List<FieldDescriptor> fieldDescriptors = new ArrayList<>();
-        fieldDescriptors.addAll( ResponseDocumentation.pager() );
+        List<FieldDescriptor> fieldDescriptors = new ArrayList<>(ResponseDocumentation.pager());
         fieldDescriptors.add( fieldWithPath( "dataElements" ).description( "Data elements" ) );
 
         mvc.perform( get( "/dataElements?filter=name:like:DataElementA" )
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
-            .andExpect( jsonPath( "$.pager.total", new GreaterThan<Integer>( 0 ) ) )
+            .andExpect( jsonPath( "$.pager.total", org.hamcrest.Matchers.greaterThan( 0 ) ) )
             .andDo( documentPrettyPrint( "data-elements/filter",
                 responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) ) );
     }
@@ -116,7 +114,7 @@ public class DataElementControllerDocumentation
         mvc.perform( get( "/dataElements?filter=name:ilike:DataElementA" )
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
-            .andExpect( jsonPath( "$.pager.total", new GreaterThan<Integer>( 0 ) ) );
+            .andExpect( jsonPath( "$.pager.total", org.hamcrest.Matchers.greaterThan( 0 ) ) );
     }
 
     @Test
@@ -129,7 +127,7 @@ public class DataElementControllerDocumentation
         mvc.perform( get( "/dataElements?filter=name:eq:DataElementA" )
             .session( session )
             .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
-            .andExpect( jsonPath( "$.pager.total", new GreaterThan<Integer>( 0 ) ) );
+            .andExpect( jsonPath( "$.pager.total", org.hamcrest.Matchers.greaterThan( 0 ) ) );
     }
 
     @Test
@@ -139,8 +137,7 @@ public class DataElementControllerDocumentation
         DataElement de = createDataElement( 'A' );
         manager.save( de );
 
-        List<FieldDescriptor> fieldDescriptors = new ArrayList<>();
-        fieldDescriptors.addAll( ResponseDocumentation.pager() );
+        List<FieldDescriptor> fieldDescriptors = new ArrayList<>(ResponseDocumentation.pager());
         fieldDescriptors.add( fieldWithPath( "dataElements" ).description( "Data elements" ) );
 
         mvc.perform( get( "/dataElements?filter=name:eq:DataElementA&fields=id,name,valueType" )

@@ -40,11 +40,8 @@ import java.util.List;
 public interface AclService
 {
     String LIKE_READ_METADATA = "r%"; // TODO use r_______ ?
-
     String LIKE_WRITE_METADATA = "_w%"; // TODO use r_______ ?
-
     String LIKE_READ_DATA = "__r_____";
-
     String LIKE_WRITE_DATA = "___w____";
 
     /**
@@ -110,6 +107,18 @@ public interface AclService
      * @return Result of test
      */
     boolean canDataRead( User user, IdentifiableObject object );
+
+    /**
+     * Check if the given user has data or metadata permission over the given object
+     *
+     * Data-read permission is only considered if the given object's schema is 'DataShareable'.
+     * If not 'DataShareable', only metadata-read ACL is considered
+     *
+     * @param user User to check against
+     * @param object Object to check permission
+     * @return true, if use can access object
+     */
+    boolean canDataOrMetadataRead(User user, IdentifiableObject object);
 
     /**
      * Can user write to this object (create)
@@ -238,6 +247,12 @@ public interface AclService
      */
     <T extends IdentifiableObject> boolean defaultPublic( Class<T> klass );
 
+    /**
+     * Returns the class type corresponding to the given class type.
+     * 
+     * @param type the singular class type name.
+     * @return the class.
+     */
     Class<? extends IdentifiableObject> classForType( String type );
 
     /**
@@ -257,6 +272,13 @@ public interface AclService
      */
     <T extends IdentifiableObject> void resetSharing( T object, User user );
 
+    /**
+     * Clears all sharing information on the given object, and sets the owner to
+     * the given user.
+     * 
+     * @param object the object.
+     * @param user the user.
+     */
     <T extends IdentifiableObject> void clearSharing( T object, User user );
 
     /**

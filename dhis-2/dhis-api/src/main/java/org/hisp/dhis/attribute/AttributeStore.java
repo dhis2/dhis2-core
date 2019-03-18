@@ -29,12 +29,16 @@ package org.hisp.dhis.attribute;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
@@ -54,6 +58,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleGroup;
 
 import java.util.List;
 
@@ -91,6 +97,11 @@ public interface AttributeStore
         .put( SqlView.class, "sqlViewAttribute" )
         .put( Section.class, "sectionAttribute" )
         .put( CategoryOptionCombo.class, "categoryOptionComboAttribute" )
+        .put( CategoryOptionGroupSet.class, "categoryOptionGroupSetAttribute" )
+        .put( DataElementGroupSet.class, "dataElementGroupSetAttribute" )
+        .put( ValidationRule.class, "validationRuleAttribute" )
+        .put( ValidationRuleGroup.class, "validationRuleGroupAttribute" )
+        .put( Category.class, "categoryAttribute" )
         .build();
 
     /**

@@ -44,7 +44,7 @@ import java.util.Collection;
  * CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME property and a
  * corresponding DataElementCatoryOptionCombo which should be used for this
  * purpose.
- * 
+ *
  * @author Lars Helge Overland
  * @author Abyot Aselefew
  * @version $Id$
@@ -114,9 +114,9 @@ public class DataElementDefaultDimensionPopulator
 
         for ( DataElement dataElement : dataElements )
         {
-            if ( dataElement.getDataElementCategoryCombo() == null )
+            if ( dataElement.getCategoryCombo() == null )
             {
-                dataElement.setDataElementCategoryCombo( categoryCombo );
+                dataElement.setCategoryCombo( categoryCombo );
 
                 dataElementService.updateDataElement( dataElement );
             }

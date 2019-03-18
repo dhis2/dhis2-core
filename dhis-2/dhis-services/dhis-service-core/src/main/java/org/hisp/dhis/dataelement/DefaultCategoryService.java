@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.Category;
@@ -47,10 +46,12 @@ import org.hisp.dhis.category.CategoryOptionStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -60,7 +61,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -127,7 +127,7 @@ public class DefaultCategoryService
     }
 
     private CurrentUserService currentUserService;
-    
+
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
@@ -139,13 +139,13 @@ public class DefaultCategoryService
     {
         this.aclService = aclService;
     }
-        
+
     // -------------------------------------------------------------------------
     // Category
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategory( Category dataElementCategory )
+    public long addCategory( Category dataElementCategory )
     {
         categoryStore.save( dataElementCategory );
 
@@ -171,7 +171,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public Category getCategory( int id )
+    public Category getCategory( long id )
     {
         return categoryStore.get( id );
     }
@@ -231,7 +231,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategoryOption( CategoryOption dataElementCategoryOption )
+    public long addCategoryOption( CategoryOption dataElementCategoryOption )
     {
         categoryOptionStore.save( dataElementCategoryOption );
 
@@ -251,7 +251,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOption getCategoryOption( int id )
+    public CategoryOption getCategoryOption( long id )
     {
         return categoryOptionStore.get( id );
     }
@@ -311,7 +311,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategoryCombo( CategoryCombo dataElementCategoryCombo )
+    public long addCategoryCombo( CategoryCombo dataElementCategoryCombo )
     {
         categoryComboStore.save( dataElementCategoryCombo );
 
@@ -337,7 +337,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryCombo getCategoryCombo( int id )
+    public CategoryCombo getCategoryCombo( long id )
     {
         return categoryComboStore.get( id );
     }
@@ -413,7 +413,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
+    public long addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         categoryOptionComboStore.save( dataElementCategoryOptionCombo );
 
@@ -433,7 +433,14 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionCombo getCategoryOptionCombo( int id )
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
+    public void deleteCategoryOptionComboNoRollback( CategoryOptionCombo categoryOptionCombo )
+    {
+        categoryOptionComboStore.delete( categoryOptionCombo );
+    }
+
+    @Override
+    public CategoryOptionCombo getCategoryOptionCombo( long id )
     {
         return categoryOptionComboStore.get( id );
     }
@@ -448,21 +455,6 @@ public class DefaultCategoryService
     public CategoryOptionCombo getCategoryOptionComboByCode( String code )
     {
         return categoryOptionComboStore.getByCode( code );
-    }
-
-    @Override
-    public CategoryOptionCombo getCategoryOptionCombo(
-        Collection<CategoryOption> categoryOptions )
-    {
-        for ( CategoryOptionCombo categoryOptionCombo : getAllCategoryOptionCombos() )
-        {
-            if ( CollectionUtils.isEqualCollection( categoryOptions, categoryOptionCombo.getCategoryOptions() ) )
-            {
-                return categoryOptionCombo;
-            }
-        }
-
-        return null;
     }
 
     @Override
@@ -491,6 +483,9 @@ public class DefaultCategoryService
 
         addCategoryOption( categoryOption );
 
+        categoryOption.setPublicAccess( AccessStringHelper.CATEGORY_OPTION_DEFAULT );
+        updateCategoryOption( categoryOption );
+
         // ---------------------------------------------------------------------
         // Category
         // ---------------------------------------------------------------------
@@ -502,6 +497,9 @@ public class DefaultCategoryService
 
         category.addCategoryOption( categoryOption );
         addCategory( category );
+
+        category.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        updateCategory( category );
 
         // ---------------------------------------------------------------------
         // CategoryCombo
@@ -515,6 +513,9 @@ public class DefaultCategoryService
         categoryCombo.addCategory( category );
         addCategoryCombo( categoryCombo );
 
+        categoryCombo.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        updateCategoryCombo( categoryCombo );
+
         // ---------------------------------------------------------------------
         // CategoryOptionCombo
         // ---------------------------------------------------------------------
@@ -527,6 +528,9 @@ public class DefaultCategoryService
         categoryOptionCombo.addCategoryOption( categoryOption );
 
         addCategoryOptionCombo( categoryOptionCombo );
+
+        categoryOptionCombo.setPublicAccess( AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT );
+        updateCategoryOptionCombo( categoryOptionCombo );
 
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
         categoryOptionCombos.add( categoryOptionCombo );
@@ -605,94 +609,25 @@ public class DefaultCategoryService
         }
     }
 
-    @Override
-    public void addAndPruneOptionCombos( CategoryCombo categoryCombo )
-    {
-        if ( categoryCombo == null || !categoryCombo.isValid() )
-        {
-            log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );
-            return;
-        }
-
-        List<CategoryOptionCombo> generatedOptionCombos = categoryCombo.generateOptionCombosList();
-        Set<CategoryOptionCombo> persistedOptionCombos = Sets.newHashSet( categoryCombo.getOptionCombos() );
-
-        boolean modified = false;
-
-        for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
-        {
-            if ( !persistedOptionCombos.contains( optionCombo ) )
-            {
-                categoryCombo.getOptionCombos().add( optionCombo );
-                addCategoryOptionCombo( optionCombo );
-
-                log.info( "Added missing category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
-
-        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            CategoryOptionCombo optionCombo = iterator.next();
-
-            if ( !generatedOptionCombos.contains( optionCombo ) )
-            {
-                try
-                {
-                    deleteCategoryOptionCombo( optionCombo );
-                }
-                catch ( Exception ex )
-                {
-                    log.warn( "Could not delete category option combo: " + optionCombo );
-                    continue;
-                }
-
-                iterator.remove();
-                categoryCombo.getOptionCombos().remove( optionCombo );
-                deleteCategoryOptionCombo( optionCombo );
-
-                log.info( "Deleted obsolete category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
-
-        if ( modified )
-        {
-            updateCategoryCombo( categoryCombo );
-        }
-    }
-
-    @Override
-    public void addAndPruneAllOptionCombos()
-    {
-        List<CategoryCombo> categoryCombos = getAllCategoryCombos();
-
-        for ( CategoryCombo categoryCombo : categoryCombos )
-        {
-            addAndPruneOptionCombos( categoryCombo );
-        }
-    }
 
     @Override
     public CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
         CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, property, id );
-        
+
         if ( coc != null )
-        {            
+        {
             User user = currentUserService.getCurrentUser();
-            
+
             for ( CategoryOption categoryOption : coc.getCategoryOptions() )
-            {                
-                if ( !aclService.canRead( user, categoryOption ) )
+            {
+                if ( !aclService.canDataWrite( user, categoryOption ) )
                 {
                     return null;
                 }
             }
         }
-        
+
         return coc;
     }
 
@@ -720,14 +655,14 @@ public class DefaultCategoryService
         for ( DataElement dataElement : dataElements )
         {
             Set<CategoryCombo> categoryCombos = dataElement.getCategoryCombos();
-            
+
             boolean anyIsDefault = categoryCombos.stream().anyMatch( cc -> cc.isDefault() );
-            
+
             if ( includeTotals && !anyIsDefault )
             {
                 operands.add( new DataElementOperand( dataElement ) );
             }
-            
+
             for ( CategoryCombo categoryCombo : categoryCombos )
             {
                 operands.addAll( getOperands( dataElement, categoryCombo ) );
@@ -741,40 +676,40 @@ public class DefaultCategoryService
     public List<DataElementOperand> getOperands( DataSet dataSet, boolean includeTotals )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
-                
+
         for ( DataSetElement element : dataSet.getDataSetElements() )
         {
             CategoryCombo categoryCombo = element.getResolvedCategoryCombo();
-            
+
             if ( includeTotals && !categoryCombo.isDefault() )
             {
                 operands.add( new DataElementOperand( element.getDataElement() ) );
             }
-            
+
             operands.addAll( getOperands( element.getDataElement(), element.getResolvedCategoryCombo() ) );
         }
-        
+
         return operands;
     }
 
     private List<DataElementOperand> getOperands( DataElement dataElement, CategoryCombo categoryCombo )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
-        
+
         for ( CategoryOptionCombo categoryOptionCombo : categoryCombo.getSortedOptionCombos() )
         {
             operands.add( new DataElementOperand( dataElement, categoryOptionCombo ) );
         }
-        
+
         return operands;
     }
-    
+
     // -------------------------------------------------------------------------
     // CategoryOptionGroup
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveCategoryOptionGroup( CategoryOptionGroup group )
+    public long saveCategoryOptionGroup( CategoryOptionGroup group )
     {
         categoryOptionGroupStore.save( group );
 
@@ -788,7 +723,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionGroup getCategoryOptionGroup( int id )
+    public CategoryOptionGroup getCategoryOptionGroup( long id )
     {
         return categoryOptionGroupStore.get( id );
     }
@@ -842,7 +777,7 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveCategoryOptionGroupSet( CategoryOptionGroupSet group )
+    public long saveCategoryOptionGroupSet( CategoryOptionGroupSet group )
     {
         categoryOptionGroupSetStore.save( group );
 
@@ -856,7 +791,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    public CategoryOptionGroupSet getCategoryOptionGroupSet( int id )
+    public CategoryOptionGroupSet getCategoryOptionGroupSet( long id )
     {
         return categoryOptionGroupSetStore.get( id );
     }

@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
-import org.hisp.dhis.analytics.MetadataItem;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
@@ -64,79 +63,79 @@ public class EventAnalyticsServiceMetadataTest
     extends DhisSpringTest
 {
     private LegendSet lsA;
-    
+
     private Legend leA;
     private Legend leB;
     private Legend leC;
     private Legend leD;
-    
+
     private OptionSet osA;
-    
+
     private Option opA;
     private Option opB;
     private Option opC;
-    
+
     private DataElement deA;
     private DataElement deB;
     private DataElement deC;
     private DataElement deD;
     private DataElement deE;
     private DataElement deF;
-    
+
     private Period peA;
-    
+
     private OrganisationUnit ouA;
 
     private ProgramStage psA;
     private Program prA;
-    
+
     @Autowired
     private EventAnalyticsService eventAnalyticsService;
-    
+
     @Override
     public void setUpTest()
     {
         userService = (UserService) getBean( UserService.ID );
-        
+
         leA = createLegend( 'A', 0d, 10d );
         leB = createLegend( 'B', 11d, 20d );
         leC = createLegend( 'C', 21d, 30d );
         leD = createLegend( 'D', 31d, 40d );
-        
+
         lsA = createLegendSet( 'A' );
         lsA.setLegends( Sets.newHashSet( leA, leB, leC, leD ) );
-        
+
         opA = createOption( 'A' );
         opB = createOption( 'B' );
         opC = createOption( 'C' );
-        
+
         osA = createOptionSet( 'A' );
         osA.setOptions( Lists.newArrayList( opA, opB, opC ) );
-        
+
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deA.setLegendSets( Lists.newArrayList( lsA ) );
-        
+
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
         deB.setLegendSets( Lists.newArrayList( lsA ) );
-        
+
         deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.SUM );
-        
+
         deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.SUM );
-        
+
         deE = createDataElement( 'E', ValueType.TEXT, AggregationType.NONE );
         deE.setOptionSet( osA );
-        
+
         deF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
         deF.setOptionSet( osA );
-        
+
         peA = MonthlyPeriodType.getPeriodFromIsoString( "201701" );
-        
+
         ouA = createOrganisationUnit( 'A' );
 
         prA = createProgram( 'A' );
         psA = createProgramStage( 'A', prA );
         prA.getProgramStages().add( psA );
-        
+
         createAndInjectAdminUser( "ALL" );
     }
 
@@ -150,22 +149,22 @@ public class EventAnalyticsServiceMetadataTest
     {
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA ) );
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) );
-        
+
         QueryItem itemLegendSet = new QueryItem( deA, lsA, deA.getValueType(), deA.getAggregationType(), null );
 
         QueryItem itemLegendSetFilter = new QueryItem( deB, lsA, deB.getValueType(), deB.getAggregationType(), null );
         itemLegendSetFilter.addFilter( new QueryFilter( QueryOperator.IN, leA.getUid() + OPTION_SEP + leB.getUid() + OPTION_SEP + leC.getUid() ) );
-        
+
         QueryItem item = new QueryItem( deC, null, deC.getValueType(), deC.getAggregationType(), null );
-        
+
         QueryItem itemFilter = new QueryItem( deD, null, deD.getValueType(), deD.getAggregationType(), null );
         itemFilter.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
-        
+
         QueryItem itemOptionSet = new QueryItem( deE, null, deE.getValueType(), deE.getAggregationType(), osA );
-        
+
         QueryItem itemOptionSetFilter = new QueryItem( deF, null, deE.getValueType(), deE.getAggregationType(), osA );
         itemOptionSetFilter.addFilter( new QueryFilter( QueryOperator.IN, opA.getCode() + OPTION_SEP + opB.getCode() ) );
-                
+
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
             .addDimension( periods )
@@ -179,19 +178,18 @@ public class EventAnalyticsServiceMetadataTest
             .withSkipData( true )
             .withSkipMeta( false )
             .withDisplayProperty( DisplayProperty.NAME )
-            .withApiVersion( DhisApiVersion.V26 )
             .build();
-        
+
         Grid grid = eventAnalyticsService.getAggregatedEventData( params );
-        
+
         Map<String, Object> metadata = grid.getMetaData();
-        
+
         assertNotNull( metadata );
-        
+
         Map<String, Object> dimensionItems = (Map<String, Object>) metadata.get( AnalyticsMetaDataKey.DIMENSIONS.getKey() );
 
         assertNotNull( dimensionItems );
-        
+
         List<String> itemsLegendSet = (List<String>) dimensionItems.get( itemLegendSet.getItemId() );
         List<String> itemsLegendSetFilter = (List<String>) dimensionItems.get( itemLegendSetFilter.getItemId() );
         List<String> items = (List<String>) dimensionItems.get( item.getItemId() );
@@ -205,7 +203,7 @@ public class EventAnalyticsServiceMetadataTest
         assertNotNull( itemsFilter );
         assertNotNull( itemsOptionSet );
         assertNotNull( itemsOptionSetFilter );
-        
+
         assertEquals( 4, itemsLegendSet.size() );
         assertEquals( itemsLegendSet, Lists.newArrayList( leA.getUid(), leB.getUid(), leC.getUid(), leD.getUid() ) );
         assertEquals( 3, itemsLegendSetFilter.size() );
@@ -223,7 +221,7 @@ public class EventAnalyticsServiceMetadataTest
     {
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peA ) );
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA ) );
-        
+
         QueryItem qiA = new QueryItem( deA, deA.getLegendSet(), deA.getValueType(), deA.getAggregationType(), null );
         QueryItem qiB = new QueryItem( deE, null, deE.getValueType(), deE.getAggregationType(), deE.getOptionSet() );
 
@@ -239,33 +237,33 @@ public class EventAnalyticsServiceMetadataTest
             .build();
 
         Grid grid = eventAnalyticsService.getAggregatedEventData( params );
-        
+
         Map<String, Object> metadata = grid.getMetaData();
-        
+
         Map<String, MetadataItem> itemMap = (Map<String, MetadataItem>) metadata.get( AnalyticsMetaDataKey.ITEMS.getKey() );
 
         assertNotNull( itemMap.get( DimensionalObject.PERIOD_DIM_ID ) );
         assertNotNull( itemMap.get( DimensionalObject.ORGUNIT_DIM_ID ) );
-        
+
         for ( Legend legend : deA.getLegendSet().getLegends() )
         {
             assertNotNull( itemMap.get( legend.getUid() ) );
         }
-        
+
         for ( Option option : deE.getOptionSet().getOptions() )
         {
             assertNotNull( itemMap.get( option.getUid() ) );
         }
-        
+
         assertNotNull( itemMap.get( deA.getUid() ) );
         assertNotNull( itemMap.get( deE.getUid() ) );
     }
-    
+
     @Test
     public void testLegendSetSortedLegends()
     {
         List<Legend> legends = Lists.newArrayList( leA, leB, leC, leD );
-        
+
         assertEquals( legends, lsA.getSortedLegends() );
     }
 }

@@ -36,16 +36,23 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.InterpretableObject;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
@@ -56,6 +63,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.joda.time.DateTime;
 
@@ -220,9 +229,9 @@ public class DataSet
      * Render multi-organisationUnit forms either with OU vertically or horizontally.
      */
     private boolean renderHorizontally;
-    
+
     /**
-    * Property indicating whether all compulsory fields should be filled before completing 
+    * Property indicating whether all compulsory fields should be filled before completing
     * data set
     */
     private boolean compulsoryFieldsCompleteOnly;
@@ -392,6 +401,12 @@ public class DataSet
         compulsoryDataElementOperands.remove( dataElementOperand );
     }
 
+    public void assignWorkflow( DataApprovalWorkflow workflow )
+    {
+        workflow.getDataSets().add( this );
+        this.workflow = workflow;
+    }
+
     public boolean hasDataEntryForm()
     {
         return dataEntryForm != null && dataEntryForm.hasForm();
@@ -435,7 +450,9 @@ public class DataSet
      */
     public Set<DataElement> getDataElements()
     {
-        return ImmutableSet.copyOf( dataSetElements.stream().map( e -> e.getDataElement() ).collect( Collectors.toSet() ) );
+        return ImmutableSet.copyOf(
+                dataSetElements.stream().map(DataSetElement::getDataElement).collect( Collectors.toSet() )
+        );
     }
 
     public Set<DataElement> getDataElementsInSections()
@@ -506,8 +523,13 @@ public class DataSet
      * @param period the period to compare with.
      * @param now    the date indicating now, uses current date if null.
      */
-    public boolean isLocked( Period period, Date now )
+    public boolean isLocked( User user, Period period, Date now )
     {
+        if ( user != null && user.isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            return false;
+        }
+
         DateTime date = now != null ? new DateTime( now ) : new DateTime();
 
         return expiryDays != DataSet.NO_EXPIRY &&
@@ -527,7 +549,7 @@ public class DataSet
         return dataInputPeriods.isEmpty() || dataInputPeriods.stream()
             .map( dataInputPeriod -> dataInputPeriod.isPeriodAndDateValid( period, date ) )
             .reduce( ( a, b ) -> a || b )
-            .get();
+            .orElse( true );
     }
 
     // -------------------------------------------------------------------------
@@ -750,19 +772,10 @@ public class DataSet
 
     public void setWorkflow( DataApprovalWorkflow workflow )
     {
-        if ( this.workflow != null )
-        {
-            this.workflow.getDataSets().remove( this );
-        }
-
-        if ( workflow != null )
-        {
-            workflow.getDataSets().add( this );
-        }
-
         this.workflow = workflow;
     }
 
+    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "interpretations", namespace = DxfNamespaces.DXF_2_0 )
@@ -896,7 +909,7 @@ public class DataSet
     {
         this.formName = formName;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCompulsoryFieldsCompleteOnly()
@@ -907,6 +920,6 @@ public class DataSet
     public void setCompulsoryFieldsCompleteOnly( boolean compulsoryFieldsCompleteOnly )
     {
         this.compulsoryFieldsCompleteOnly = compulsoryFieldsCompleteOnly;
-    }    
-    
+    }
+
 }

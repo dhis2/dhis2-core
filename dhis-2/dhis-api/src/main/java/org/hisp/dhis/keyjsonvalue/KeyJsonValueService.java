@@ -82,7 +82,7 @@ public interface KeyJsonValueService
      * @param keyJsonValue the KeyJsonValue to be stored.
      * @return the id of the KeyJsonValue stored.
      */
-    int addKeyJsonValue( KeyJsonValue keyJsonValue );
+    long addKeyJsonValue( KeyJsonValue keyJsonValue );
 
     /**
      * Updates a KeyJsonValue.
@@ -125,4 +125,13 @@ public interface KeyJsonValueService
      * @param value the value object to update.
      */
     <T> void updateValue( String namespace, String key, T value );
+
+    /**
+     * Retrieves list of KeyJsonValue objects belonging to the specified namespace.
+     * 
+     * @param namespace the namespace where the key is associated
+     * @return list of matching KeyJsonValues
+     */
+    List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace );
+    
 }

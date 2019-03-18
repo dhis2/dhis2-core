@@ -72,7 +72,7 @@ public class ValidationRuleController
                 return null;
             }
 
-            return Lists.newArrayList( validationRuleService.getValidationRulesForDataElements( ds.getDataElements() ) );
+            return Lists.newArrayList( validationRuleService.getValidationRulesForDataSet( ds ) );
         }
 
         return super.getEntityList( metadata, options, filters, orders );

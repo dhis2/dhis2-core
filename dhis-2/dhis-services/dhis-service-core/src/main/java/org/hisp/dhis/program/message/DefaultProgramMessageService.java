@@ -149,7 +149,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    public ProgramMessage getProgramMessage( int id )
+    public ProgramMessage getProgramMessage( long id )
     {
         return programMessageStore.get( id );
     }
@@ -176,7 +176,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    public int saveProgramMessage( ProgramMessage programMessage )
+    public long saveProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.save( programMessage );
         return programMessage.getId();
@@ -228,7 +228,12 @@ public class DefaultProgramMessageService
             programInstance = params.getProgramStageInstance().getProgramInstance();
         }
 
-        programs = programService.getUserPrograms( user );
+        if ( programInstance == null )
+        {
+            throw new IllegalQueryException( "ProgramInstance or ProgramStageInstance has to be provided" );
+        }
+
+        programs = new HashSet<>( programService.getUserPrograms( user ) );
 
         if ( user != null && !programs.contains( programInstance.getProgram() ) )
         {
@@ -309,11 +314,11 @@ public class DefaultProgramMessageService
 
             if ( message.hasProgramInstance() )
             {
-                object = message.getProgramInstance();
+                object = message.getProgramInstance().getProgram();
             }
             else if( message.hasProgramStageInstance() )
             {
-                object = message.getProgramStageInstance();
+                object = message.getProgramStageInstance().getProgramStage();
             }
 
             if ( object != null )
@@ -334,9 +339,8 @@ public class DefaultProgramMessageService
     private void saveProgramMessages( List<ProgramMessage> messageBatch, BatchResponseStatus status )
     {
         messageBatch.parallelStream()
-            .filter( ProgramMessage::isStoreCopy )
             .map( pm -> setParameters( pm, status ) )
-            .map( this::saveProgramMessage );
+            .forEach( this::saveProgramMessage );
     }
 
     private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
@@ -383,9 +387,13 @@ public class DefaultProgramMessageService
 
         for ( DeliveryChannel channel : channels )
         {
-            strategies.stream()
-                .filter( st -> st.getDeliveryChannel().equals( channel ) )
-                .map( st -> st.setAttributes( message ) );
+            for( DeliveryChannelStrategy strategy : strategies )
+            {
+                if ( strategy.getDeliveryChannel().equals( channel ) )
+                {
+                    strategy.setAttributes( message );
+                }
+            }
         }
 
         return message;

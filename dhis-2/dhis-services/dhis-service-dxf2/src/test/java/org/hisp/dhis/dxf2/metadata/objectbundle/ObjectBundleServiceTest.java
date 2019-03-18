@@ -30,15 +30,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -527,8 +527,8 @@ public class ObjectBundleServiceTest
 
         for ( DataElement dataElement : dataElements )
         {
-            assertNotNull( dataElement.getDataElementCategoryCombo() );
-            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getDataElementCategoryCombo() );
+            assertNotNull( dataElement.getCategoryCombo() );
+            assertEquals( defaults.get( CategoryCombo.class ), dataElement.getCategoryCombo() );
         }
 
         assertFalse( dataSet.getSources().isEmpty() );
@@ -1141,7 +1141,8 @@ public class ObjectBundleServiceTest
         params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
-        assertTrue( objectBundleValidationService.validate( bundle ).getErrorReports().isEmpty() );
+        ObjectBundleValidationReport objectBundleValidationReport = objectBundleValidationService.validate( bundle );
+        assertTrue( objectBundleValidationReport.getErrorReports().isEmpty() );
         objectBundleService.commit( bundle );
 
         DataElement dataElementA = dataElementMap.get( "deabcdefghA" );
@@ -1520,7 +1521,7 @@ public class ObjectBundleServiceTest
 
         assertEquals( "CCCC", dataElement.getName() );
         assertEquals( "CCCC", dataElement.getShortName() );
-        assertNotNull( dataElement.getDataElementCategoryCombo() );
+        assertNotNull( dataElement.getCategoryCombo() );
     }
 
     @Test

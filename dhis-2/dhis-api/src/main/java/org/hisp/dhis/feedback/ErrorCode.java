@@ -73,6 +73,7 @@ public enum ErrorCode
     E4017( "RenderingType `{0}` is not supported for ValueType `{1}`"),
     E4018( "Property `{0}` must be set when property `{1}` is `{2}`"),
 
+
     /* TextPattern Errors */
     E4019( "Failed to parse pattern `{0}`. {1}"),
     E4020( "The value `{0}` does not conform to the attribute pattern `{1}`"),
@@ -80,6 +81,17 @@ public enum ErrorCode
     /* TextPattern for ID generation errors */
     E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
     E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
+
+    /* Tracker Relationship */
+    E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. "),
+    E4024( "Property `{0}` must be set when property `{1}` is `{2}`. "),
+    E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together."),
+    E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`."),
+
+    E4027( "Value `{0}` is not a valid for property `{1}`"),
+
+    /* Program Errors */
+    E6000( "Program `{0}` has more than one Program Instances"),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
@@ -99,6 +111,7 @@ public enum ErrorCode
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." );
+
 
     private String message;
 

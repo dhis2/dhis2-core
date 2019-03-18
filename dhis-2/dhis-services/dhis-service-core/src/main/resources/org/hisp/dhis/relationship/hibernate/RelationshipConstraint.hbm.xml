@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+        >
+
+<hibernate-mapping>
+    <class name="org.hisp.dhis.relationship.RelationshipConstraint" table="relationshipconstraint">
+        <cache usage="read-write"/>
+
+        <id name="id" column="relationshipconstraintid">
+            <generator class="native"/>
+        </id>
+
+        <property name="relationshipEntity" column="entity">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.relationship.RelationshipEntity</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
+                     column="trackedentitytypeid"
+                     foreign-key="fk_relationshipconstraint_trackedentitytype_trackedentitytypeid"/>
+
+        <many-to-one name="program" class="org.hisp.dhis.program.Program"
+                     column="programid"
+                     foreign-key="fk_relationshipconstraint_program_programid"/>
+
+        <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+                     column="programstageid"
+                     foreign-key="fk_relationshipconstraint_programstage_programstageid"/>
+    </class>
+
+</hibernate-mapping>

@@ -28,14 +28,34 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -43,18 +63,13 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Created by zubair@dhis2.org on 11.08.17.
@@ -64,12 +79,11 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 {
     private static final Log log = LogFactory.getLog( BaseSMSListener.class );
 
-    private static final String DEFAULT_PATTERN = "([\\w]+)\\s*\\=\\s*([\\w\\s ]+)\\s*(\\w|$)*\\s*";
+    private static final String DEFAULT_PATTERN =  "([^\\s|=]+)\\s*\\=\\s*([^|=]+)\\s*(\\=|$)*\\s*";
+    private static final String NO_SMS_CONFIG = "No sms configuration found";
 
     protected static final int INFO = 1;
-
     protected static final int WARNING = 2;
-
     protected static final int ERROR = 3;
 
     private static final ImmutableMap<Integer, Consumer<String>> LOGGER = new ImmutableMap.Builder<Integer, Consumer<String>>()
@@ -89,13 +103,13 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     private CategoryService dataElementCategoryService;
 
     @Autowired
-    private TrackedEntityDataValueService trackedEntityDataValueService;
-
-    @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private IncomingSmsService incomingSmsService;
@@ -103,16 +117,54 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
 
+    @Override
+    public boolean accept( IncomingSms sms )
+    {
+        if ( sms == null )
+        {
+            return false;
+        }
+
+        SMSCommand smsCommand = getSMSCommand( sms );
+
+        return smsCommand != null;
+    }
+
+    @Override
+    public void receive( IncomingSms sms )
+    {
+        SMSCommand smsCommand = getSMSCommand( sms );
+
+        Map<String, String> parsedMessage = this.parseMessageInput( sms, smsCommand );
+
+        if ( !hasCorrectFormat( sms, smsCommand ) || !validateInputValues( parsedMessage, smsCommand, sms ) )
+        {
+            return;
+        }
+
+        postProcess( sms, smsCommand, parsedMessage );
+    }
+
+    protected abstract void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage );
+
+    protected abstract SMSCommand getSMSCommand( IncomingSms sms );
+
     protected void sendFeedback( String message, String sender, int logType )
     {
         LOGGER.getOrDefault( logType, log::info ).accept( message );
 
-        smsSender.sendMessage( null, message, sender );
+        if( smsSender.isConfigured() )
+        {
+            smsSender.sendMessage( null, message, sender );
+            return;
+        }
+
+        LOGGER.getOrDefault( WARNING, log::info ).accept(  NO_SMS_CONFIG );
     }
 
     protected boolean hasCorrectFormat( IncomingSms sms, SMSCommand smsCommand )
     {
-        String regexp = getDefaultPattern();
+        String regexp = DEFAULT_PATTERN;
 
         if ( smsCommand.getSeparator() != null && !smsCommand.getSeparator().trim().isEmpty() )
         {
@@ -123,7 +175,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         Matcher matcher = pattern.matcher( sms.getText() );
 
-        if ( !matcher.matches() )
+        if ( !matcher.find() )
         {
             sendFeedback(
                 StringUtils.defaultIfEmpty( smsCommand.getWrongFormatMessage(), SMSCommand.WRONG_FORMAT_MESSAGE ),
@@ -136,8 +188,15 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
     protected Set<OrganisationUnit> getOrganisationUnits( IncomingSms sms )
     {
+        User user = getUser( sms );
+
+        if ( user == null )
+        {
+            return new HashSet<>();
+        }
+
         return SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
-            Collections.singleton( getUser( sms ) ) );
+            Collections.singleton( user ) ).get( user.getUid() );
     }
 
     protected User getUser( IncomingSms sms )
@@ -158,23 +217,23 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         if ( !hasMandatoryParameters( commandValuePairs.keySet(), smsCommand.getCodes() ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getDefaultMessage(), SMSCommand.PARAMETER_MISSING ),
-                    sms.getOriginator(), ERROR );
+                sms.getOriginator(), ERROR );
 
             return false;
         }
 
-        if ( !hasOrganisationUnit( sms, smsCommand ) )
+        if ( !hasOrganisationUnit( sms ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getNoUserMessage(), SMSCommand.NO_USER_MESSAGE ),
-                    sms.getOriginator(), 3 );
+                sms.getOriginator(), ERROR );
 
             return false;
         }
 
-        if ( hasMultipleOrganisationUnits( sms, smsCommand ) )
+        if ( hasMultipleOrganisationUnits( sms ) )
         {
             sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getMoreThanOneOrgUnitMessage(),
-                    SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ), sms.getOriginator(), ERROR );
+                SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE ), sms.getOriginator(), ERROR );
 
             return false;
         }
@@ -201,12 +260,14 @@ public abstract class BaseSMSListener implements IncomingSmsListener
             update( sms, SmsMessageStatus.FAILED, false );
 
             sendFeedback( "Multiple active program instances exists for program: " + smsCommand.getProgram().getUid(),
-                    sms.getOriginator(), ERROR );
+                sms.getOriginator(), ERROR );
 
             return;
         }
 
         ProgramInstance programInstance = programInstances.get( 0 );
+
+        String currentUserName = currentUserService.getCurrentUsername();
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( ous.iterator().next() );
@@ -215,31 +276,30 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         programStageInstance.setExecutionDate( sms.getSentDate() );
         programStageInstance.setDueDate( sms.getSentDate() );
         programStageInstance
-                .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
+            .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
         programStageInstance.setCompletedBy( "DHIS 2" );
+        programStageInstance.setStoredBy( currentUserName );
 
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-
+        Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSCode smsCode : smsCommand.getCodes() )
         {
-            TrackedEntityDataValue dataValue = new TrackedEntityDataValue();
-            dataValue.setAutoFields();
-            dataValue.setDataElement( smsCode.getDataElement() );
-            dataValue.setProgramStageInstance( programStageInstance );
-            dataValue.setValue( commandValuePairs.get( smsCode.getCode() ) );
+            EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(), commandValuePairs.get( smsCode.getCode() ), currentUserName );
+            eventDataValue.setAutoFields();
 
-            trackedEntityDataValueService.saveTrackedEntityDataValue( dataValue );
+            //Filter empty values out -> this is "adding/saving/creating", therefore, empty values are ignored
+            if ( !StringUtils.isEmpty( eventDataValue.getValue() ))
+            {
+                dataElementsAndEventDataValues.put( smsCode.getDataElement(), eventDataValue );
+            }
         }
+
+        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
 
         update( sms, SmsMessageStatus.PROCESSED, true );
 
-        sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getSuccessMessage(), getSuccessMessage() ),
-                sms.getOriginator(), INFO );
+        sendFeedback( StringUtils.defaultIfEmpty( smsCommand.getSuccessMessage(), SMSCommand.SUCCESS_MESSAGE ),
+            sms.getOriginator(), INFO );
     }
-
-    protected abstract String getDefaultPattern();
-
-    protected abstract String getSuccessMessage();
 
     protected  Map<String, String> parseMessageInput( IncomingSms sms, SMSCommand smsCommand )
     {
@@ -249,7 +309,7 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         if ( !StringUtils.isBlank( smsCommand.getSeparator() ) )
         {
-            String regex = "([\\w]+)\\s*\\"+ smsCommand.getSeparator().trim() +"\\s*([\\w\\s ]+)\\s*(\\w|$)*\\s*";
+            String regex = DEFAULT_PATTERN.replaceAll( "=", smsCommand.getSeparator() );
 
             pattern = Pattern.compile( regex );
         }
@@ -286,25 +346,21 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         return true;
     }
 
-    private boolean hasOrganisationUnit( IncomingSms sms, SMSCommand smsCommand )
+    private boolean hasOrganisationUnit( IncomingSms sms )
     {
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
-        if ( orgUnits == null || orgUnits.isEmpty() )
-        {
-            return false;
-        }
+        return !( orgUnits == null || orgUnits.isEmpty() );
 
-        return true;
     }
 
-    private boolean hasMultipleOrganisationUnits( IncomingSms sms, SMSCommand smsCommand )
+    private boolean hasMultipleOrganisationUnits( IncomingSms sms )
     {
-        if ( getOrganisationUnits( sms ).size() > 1 )
-        {
-            return true;
-        }
+        List<User> users = userService.getUsersByPhoneNumber( sms.getOriginator() );
 
-        return false;
+        Set<OrganisationUnit> organisationUnits = users.stream().flatMap( user -> user.getOrganisationUnits().stream() )
+            .collect( Collectors.toSet() );
+
+        return organisationUnits.size() > 1;
     }
 }

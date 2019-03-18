@@ -30,11 +30,12 @@ package org.hisp.dhis.security.acl;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -45,6 +46,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
@@ -741,6 +744,7 @@ public class AclServiceTest
         assertTrue( aclService.canUpdate( user1, dataElement ) );
         assertFalse( aclService.canDelete( user1, dataElement ) );
         assertTrue( aclService.canManage( user1, dataElement ) );
+        assertTrue( aclService.canDataOrMetadataRead( user1, dataElement ) );
 
         Access access = aclService.getAccess( dataElement, user2 );
         assertTrue( access.isRead() );
@@ -983,5 +987,125 @@ public class AclServiceTest
 
         List<ErrorReport> errorReports = aclService.verifySharing( dataElement, user2 );
         assertTrue( errorReports.isEmpty() );
+    }
+
+    @Test
+    public void testUserBCanUpdateReportTableWithAuthority()
+    {
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setName( "FavA" );
+        reportTable.setUser( userA );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( userA, reportTable ) );
+
+        manager.save( reportTable );
+
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setAutoFields();
+        userAuthorityGroup.setName( "UR" );
+
+        userAuthorityGroup.getAuthorities().add( "F_REPORTTABLE_PUBLIC_ADD" );
+        manager.save( userAuthorityGroup );
+
+        User userB = createUser( 'B' );
+        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        manager.save( userB );
+
+        reportTable.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
+        manager.update( reportTable );
+
+        assertTrue( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testUserBCanUpdateReportTableWithAuthorityNoUserAccess()
+    {
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setName( "FavA" );
+        reportTable.setUser( userA );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( userA, reportTable ) );
+
+        manager.save( reportTable );
+
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setAutoFields();
+        userAuthorityGroup.setName( "UR" );
+
+        userAuthorityGroup.getAuthorities().add( "F_REPORTTABLE_PUBLIC_ADD" );
+        manager.save( userAuthorityGroup );
+
+        User userB = createUser( 'B' );
+        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        manager.save( userB );
+
+        manager.update( reportTable );
+
+        assertFalse( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testUserBCanUpdateReportTableWithoutAuthority()
+    {
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        ReportTable reportTable = new ReportTable();
+        reportTable.setAutoFields();
+        reportTable.setName( "FavA" );
+        reportTable.setUser( userA );
+        reportTable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( userA, reportTable ) );
+
+        manager.save( reportTable );
+
+        User userB = createUser( 'B' );
+        manager.save( userB );
+
+        reportTable.getUserAccesses().add( new UserAccess( userB, AccessStringHelper.FULL ) );
+        manager.update( reportTable );
+
+        assertTrue( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testCanDataOrMetadataRead() 
+    {
+        User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
+        manager.save( user1 );
+
+        // non data shareable object //
+
+        CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
+        categoryOptionGroupSet.setAutoFields();
+        categoryOptionGroupSet.setName( "cogA" );
+
+        manager.save( categoryOptionGroupSet );
+
+        assertTrue( aclService.canDataOrMetadataRead( user1, categoryOptionGroupSet ) );
+
+        // data shareable object //
+
+        CategoryOption categoryOption = new CategoryOption();
+        categoryOption.setAutoFields();
+        categoryOption.setName( "coA");
+        categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
+        categoryOption.setUser( user1 );
+        categoryOption.setPublicAccess("rwrw----");
+
+        manager.save( categoryOption , false);
+
+        assertTrue( aclService.canDataOrMetadataRead( user1, categoryOption ) );
     }
 }

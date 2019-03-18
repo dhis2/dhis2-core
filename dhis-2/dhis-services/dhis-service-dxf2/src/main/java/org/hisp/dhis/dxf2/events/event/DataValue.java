@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -50,6 +51,8 @@ public class DataValue
     private Boolean providedElsewhere = false;
 
     private String storedBy;
+
+    private boolean skipSynchronization;
 
     public DataValue()
     {
@@ -133,6 +136,17 @@ public class DataValue
         this.storedBy = storedBy;
     }
 
+    @JsonIgnore
+    public boolean isSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
+
+    public void setSkipSynchronization( boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
+    }
+
     @Override
     public String toString()
     {
@@ -141,6 +155,7 @@ public class DataValue
             ", dataElement='" + dataElement + '\'' +
             ", providedElsewhere=" + providedElsewhere +
             ", storedBy='" + storedBy + '\'' +
+            ", skipSynchronization='" + skipSynchronization + '\'' +
             '}';
     }
 }

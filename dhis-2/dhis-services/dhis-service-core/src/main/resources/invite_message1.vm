@@ -1,3 +1,7 @@
+#if( $object.welcomeMessage )
+$object.welcomeMessage
+
+#end
 $object.i18n.getString( "email_invite_1_1st_paragraph_before_application_title" ) ${object.applicationTitle} $object.i18n.getString( "email_invite_1_1st_paragraph_after_application_title" )
 
 $object.i18n.getString( "email_invite_1_2nd_paragraph" )

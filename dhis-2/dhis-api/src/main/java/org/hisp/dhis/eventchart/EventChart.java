@@ -79,16 +79,6 @@ public class EventChart
     private ProgramStage programStage;
 
     /**
-     * Start date.
-     */
-    private Date startDate;
-
-    /**
-     * End date.
-     */
-    private Date endDate;
-
-    /**
      * Data element value dimension.
      */
     private DataElement dataElementValueDimension;
@@ -132,7 +122,7 @@ public class EventChart
      * The event status.
      */
     private EventStatus eventStatus;
-    
+
     // -------------------------------------------------------------------------
     // Analytical properties
     // -------------------------------------------------------------------------
@@ -257,32 +247,6 @@ public class EventChart
     public void setProgramStage( ProgramStage programStage )
     {
         this.programStage = programStage;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getStartDate()
-    {
-        return startDate;
-    }
-
-    public void setStartDate( Date startDate )
-    {
-        this.startDate = startDate;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
     }
 
     @JsonProperty

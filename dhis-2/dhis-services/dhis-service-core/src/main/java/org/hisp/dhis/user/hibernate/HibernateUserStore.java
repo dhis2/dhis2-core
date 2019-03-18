@@ -28,10 +28,11 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Query;
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -72,25 +73,32 @@ public class HibernateUserStore
     private Query getUserQuery( UserQueryParams params, boolean count )
     {
         SqlHelper hlp = new SqlHelper();
-        
+
         String hql = count ? "select count(distinct u) " : "select distinct u ";
-        
+
         hql +=
             "from User u " +
             "inner join u.userCredentials uc " +
             "left join u.groups g ";
 
-        if ( params.getOrganisationUnit() != null )
+        if ( !params.getOrganisationUnits().isEmpty() )
         {
             hql += "left join u.organisationUnits ou ";
 
-            if ( params.getIncludeOrgUnitChildren() )
+            if ( params.isIncludeOrgUnitChildren() )
             {
-                hql += hlp.whereAnd() + " ou.path like :organisationUnitUid ";
+                hql += hlp.whereAnd() + " (";
+
+                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                {
+                    hql += String.format( "ou.path like :ouUid%d or ", i );
+                }
+
+                hql = TextUtils.removeLastOr( hql ) + ")";
             }
             else
             {
-                hql += hlp.whereAnd() + " ou = :organisationUnit ";
+                hql += hlp.whereAnd() + " ou.id in (:ouIds) ";
             }
         }
 
@@ -112,17 +120,17 @@ public class HibernateUserStore
                 "or lower(u.surname) like :key " +
                 "or lower(uc.username) like :key) ";
         }
-        
+
         if ( params.getPhoneNumber() != null )
         {
             hql += hlp.whereAnd() + " u.phoneNumber = :phoneNumber ";
         }
-        
+
         if ( params.isCanManage() && params.getUser() != null )
         {
             hql += hlp.whereAnd() + " g.id in (:ids) ";
         }
-        
+
         if ( params.isAuthSubset() && params.getUser() != null )
         {
             hql += hlp.whereAnd() + " not exists (" +
@@ -132,9 +140,9 @@ public class HibernateUserStore
                 "where uc2.id = uc.id " +
                 "and a not in (:auths) ) ";
         }
-        
+
         // TODO handle users with no user roles
-        
+
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
             hql += hlp.whereAnd() + " not exists (" +
@@ -143,117 +151,120 @@ public class HibernateUserStore
                 "where uc3.id = uc.id " +
                 "and ag3.id in (:roles) ) ";
         }
-        
+
         if ( params.getLastLogin() != null )
         {
             hql += hlp.whereAnd() + " uc.lastLogin >= :lastLogin ";
         }
-        
+
         if ( params.getInactiveSince() != null )
         {
             hql += hlp.whereAnd() + " uc.lastLogin < :inactiveSince ";
         }
 
-        if ( params.getDaysPassedSincePasswordChange() != null )
+        if ( params.getPasswordLastUpdated() != null )
         {
-            hql += hlp.whereAnd() + " uc.passwordLastUpdated < :daysPassedSincePasswordChange ";
+            hql += hlp.whereAnd() + " uc.passwordLastUpdated < :passwordLastUpdated ";
         }
-        
+
         if ( params.isSelfRegistered() )
         {
             hql += hlp.whereAnd() + " uc.selfRegistered = true ";
         }
-        
+
         if ( UserInvitationStatus.ALL.equals( params.getInvitationStatus() ) )
         {
             hql += hlp.whereAnd() + " uc.invitation = true ";
         }
-        
+
         if ( UserInvitationStatus.EXPIRED.equals( params.getInvitationStatus() ) )
         {
             hql += hlp.whereAnd() + " uc.invitation = true " +
                 "and uc.restoreToken is not null " +
-                "and uc.restoreCode is not null " +
                 "and uc.restoreExpiry is not null " +
                 "and uc.restoreExpiry < current_timestamp() ";
         }
-        
+
         if ( !count )
         {
             hql += "order by u.surname, u.firstName";
         }
 
         Query query = sessionFactory.getCurrentSession().createQuery( hql );
-        
+
         if ( params.getQuery() != null )
         {
-            query.setString( "key", "%" + params.getQuery().toLowerCase() + "%" );
+            query.setParameter( "key", "%" + params.getQuery().toLowerCase() + "%" );
         }
-        
+
         if ( params.getPhoneNumber() != null )
         {
-            query.setString( "phoneNumber", params.getPhoneNumber() );
+            query.setParameter( "phoneNumber", params.getPhoneNumber() );
         }
-        
+
         if ( params.isCanManage() && params.getUser() != null )
         {
-            Collection<Integer> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
+            Collection<Long> managedGroups = IdentifiableObjectUtils.getIdentifiers( params.getUser().getManagedGroups() );
 
             query.setParameterList( "ids", managedGroups );
         }
 
         if ( params.getDisabled() != null )
         {
-            query.setBoolean( "disabled", params.getDisabled().booleanValue() );
+            query.setParameter( "disabled", params.getDisabled() );
         }
-        
+
         if ( params.isAuthSubset() && params.getUser() != null )
         {
             Set<String> auths = params.getUser().getUserCredentials().getAllAuthorities();
-            
+
             query.setParameterList( "auths", auths );
         }
-        
+
         if ( params.isDisjointRoles() && params.getUser() != null )
         {
-            Collection<Integer> roles = IdentifiableObjectUtils.getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
-            
+            Collection<Long> roles = IdentifiableObjectUtils.getIdentifiers( params.getUser().getUserCredentials().getUserAuthorityGroups() );
+
             query.setParameterList( "roles", roles );
         }
-        
+
         if ( params.getLastLogin() != null )
         {
-            query.setTimestamp( "lastLogin", params.getLastLogin() );
+            query.setParameter( "lastLogin", params.getLastLogin() );
         }
 
-        if ( params.getDaysPassedSincePasswordChange() != null )
+        if ( params.getPasswordLastUpdated() != null )
         {
-            query.setTimestamp( "daysPassedSincePasswordChange", params.getDaysPassedSincePasswordChange() );
+            query.setParameter( "passwordLastUpdated", params.getPasswordLastUpdated() );
         }
 
         if ( params.getInactiveSince() != null )
         {
-            query.setTimestamp( "inactiveSince", params.getInactiveSince() );
+            query.setParameter( "inactiveSince", params.getInactiveSince() );
         }
-        
-        if ( params.getOrganisationUnit() != null )
+
+        if ( !params.getOrganisationUnits().isEmpty() )
         {
-            if ( params.getIncludeOrgUnitChildren() )
+            if ( params.isIncludeOrgUnitChildren() )
             {
-                // Match self and all children of selv in the path column.
-                query.setString( "organisationUnitUid", "%/" + params.getOrganisationUnit().getUid() + "%" );
+                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                {
+                    query.setParameter( String.format( "ouUid%d", i ), "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                }
             }
             else
             {
-                query.setEntity( "organisationUnit", params.getOrganisationUnit() );
+                Collection<Long> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
+
+                query.setParameterList( "ouIds", ouIds );
             }
         }
-        
+
         if ( params.getFirst() != null )
         {
             query.setFirstResult( params.getFirst() );
         }
-        
+
         if ( params.getMax() != null )
         {
             query.setMaxResults( params.getMax() ).list();
@@ -265,7 +276,7 @@ public class HibernateUserStore
     @Override
     public int getUserCount()
     {
-        return ((Long) getQuery( "select count(*) from User" ).
-            uniqueResult()).intValue();
+        Query<Long> query = getTypedQuery( "select count(*) from User" );
+        return query.uniqueResult().intValue();
     }
 }

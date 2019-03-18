@@ -34,7 +34,7 @@ import java.util.function.Function;
 import java.util.Collection;
 
 /**
- * Map which allows storing a {@link Callable} and caches its return value on 
+ * Map which allows storing a {@link Callable} and caches its return value on
  * the first call to get(Object, Callable). Subsequent calls returns the cached value.
  *
  * @author Lars Helge Overland
@@ -47,9 +47,9 @@ public class CachingMap<K, V>
     // -------------------------------------------------------------------------
 
     private long cacheHitCount;
-    
+
     private long cacheMissCount;
-    
+
     private long cacheLoadCount;
 
     // -------------------------------------------------------------------------
@@ -72,13 +72,13 @@ public class CachingMap<K, V>
         {
             return null;
         }
-        
+
         V value = null;
-        
+
         if ( super.containsKey( key ) )
         {
             value = super.get( key );
-            
+
             cacheHitCount++;
         }
         else
@@ -86,9 +86,9 @@ public class CachingMap<K, V>
             try
             {
                 value = callable.call();
-                
+
                 super.put( key, value );
-                
+
                 cacheMissCount++;
             }
             catch ( Exception ex )
@@ -96,14 +96,14 @@ public class CachingMap<K, V>
                 throw new RuntimeException( ex );
             }
         }
-        
+
         return value;
     }
 
     /**
      * Returns the cached value if available or executes the {@link Callable} and returns
      * the value, which is also cached. If the value produced, the default value
-     * will be returned. Will not attempt to fetch values for null keys, to 
+     * will be returned. Will not attempt to fetch values for null keys, to
      * avoid potentially expensive and pointless operations.
      *
      * @param key the key.
@@ -114,14 +114,14 @@ public class CachingMap<K, V>
     public V get( K key, Callable<V> callable, V defaultValue )
     {
         V value = get( key, callable );
-        
+
         return value != null ? value : defaultValue;
     }
-    
+
     /**
      * Loads the cache with the given content. Entries for which the key is a
      * null reference are ignored.
-     * 
+     *
      * @param collection the content collection.
      * @param keyMapper the function to produce the cache key for a content item.
      * @return a reference to this caching map.
@@ -131,21 +131,21 @@ public class CachingMap<K, V>
         for ( V item : collection )
         {
             K key = keyMapper.apply( item );
-            
+
             if ( key != null )
             {
                 super.put( key, item );
-            }            
+            }
         }
-        
+
         cacheLoadCount++;
-        
+
         return this;
     }
 
     /**
      * Returns the number of cache hits from calling the {@code get} method.
-     * 
+     *
      * @return the number of cache hits.
      */
     public long getCacheHitCount()
@@ -155,18 +155,18 @@ public class CachingMap<K, V>
 
     /**
      * Returns the number of cache misses from calling the {@code get} method.
-     * 
+     *
      * @return the number of cache misses.
      */
     public long getCacheMissCount()
     {
         return cacheMissCount;
     }
-    
+
     /**
-     * Returns the ratio between cache hits and misses from calling the 
+     * Returns the ratio between cache hits and misses from calling the
      * {@code get} method.
-     * 
+     *
      * @return the cache hit versus miss ratio.
      */
     public double getCacheHitRatio()
@@ -176,24 +176,25 @@ public class CachingMap<K, V>
 
     /**
      * Returns the number of times the cache has been loaded.
-     * 
+     *
      * @return the number of times the cache has been loaded.
      */
     public long getCacheLoadCount()
     {
         return cacheLoadCount;
     }
-    
+
     /**
      * Indicates whether the cache has been loaded at least one time.
-     * 
+     *
      * @return true if the cache has been loaded at least one time.
      */
     public boolean isCacheLoaded()
     {
         return cacheLoadCount > 0;
     }
-    
+
+    @Override
     public String toString()
     {
         return "[" +
@@ -201,7 +202,7 @@ public class CachingMap<K, V>
             "Hit count: " + cacheHitCount + ", " +
             "Miss count: " + cacheMissCount + ", " +
             "Hit ratio: " + getCacheHitRatio() + ", " +
-            "Load count: " + cacheLoadCount + 
+            "Load count: " + cacheLoadCount +
             "]";
     }
 }

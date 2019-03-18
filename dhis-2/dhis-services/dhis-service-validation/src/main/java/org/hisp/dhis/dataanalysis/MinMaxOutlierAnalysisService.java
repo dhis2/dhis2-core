@@ -28,13 +28,17 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.filter.Filter;
-import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.jdbc.batchhandler.MinMaxDataElementBatchHandler;
@@ -42,13 +46,12 @@ import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.filter.DataElementValueTypesFilter;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
 
-import java.util.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -57,8 +60,6 @@ public class MinMaxOutlierAnalysisService
     implements MinMaxDataAnalysisService
 {
     private static final Log log = LogFactory.getLog( MinMaxOutlierAnalysisService.class );
-
-    private static final Filter<DataElement> DE_NUMERIC_FILTER = new DataElementValueTypesFilter( ValueType.NUMERIC_TYPES );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -93,10 +94,9 @@ public class MinMaxOutlierAnalysisService
     public List<DeflatedDataValue> analyse( Collection<OrganisationUnit> parents,
         Collection<DataElement> dataElements, Collection<Period> periods, Double stdDevFactor, Date from )
     {
-        Set<DataElement> elements = new HashSet<>( dataElements );
-
-        FilterUtils.filter( elements, DE_NUMERIC_FILTER );
-
+        Set<DataElement> elements = dataElements.stream()
+            .filter( de -> ValueType.NUMERIC_TYPES.contains( de.getValueType() ) )
+            .collect( Collectors.toSet() );
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
 
         for ( DataElement dataElement : elements )

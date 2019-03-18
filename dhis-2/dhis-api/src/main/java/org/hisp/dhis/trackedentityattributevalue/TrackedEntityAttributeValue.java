@@ -194,11 +194,17 @@ public class TrackedEntityAttributeValue
         return true;
     }
 
-    @Override
-    public String toString()
+
+    @Override public String toString()
     {
-        return "[Tracked attribute=" + attribute + ", entityInstance=" + entityInstance + ", value='" + getValue() +
-            "']";
+        return "TrackedEntityAttributeValue{" +
+            "attribute=" + attribute +
+            ", entityInstance=" + entityInstance.getUid() +
+            ", value='" + value + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", storedBy='" + storedBy + '\'' +
+            '}';
     }
 
     // -------------------------------------------------------------------------

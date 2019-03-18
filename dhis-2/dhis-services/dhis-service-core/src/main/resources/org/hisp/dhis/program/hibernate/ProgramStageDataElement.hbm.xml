@@ -28,10 +28,12 @@
     <property name="displayInReports" column="displayinreports" />
 
     <property name="allowFutureDate" column="allowfuturedate" />
-    
+
     <property name="renderOptionsAsRadio" column="renderoptionsasradio" />
 
     <property name="renderType" type="jbRenderType" column="rendertype" />
+
+    <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
 
   </class>
 

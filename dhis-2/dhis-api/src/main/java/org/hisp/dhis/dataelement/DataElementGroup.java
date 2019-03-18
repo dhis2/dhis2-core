@@ -117,7 +117,7 @@ public class DataElementGroup
      */
     public ValueType getValueType()
     {
-        return members != null && !members.isEmpty() ? members.iterator().next().getValueType() : null;
+        return hasMembers() ? members.iterator().next().getValueType() : null;
     }
 
     /**
@@ -126,7 +126,7 @@ public class DataElementGroup
      */
     public AggregationType getAggregationType()
     {
-        return members != null && !members.isEmpty() ? members.iterator().next().getAggregationType() : null;
+        return hasMembers() ? members.iterator().next().getAggregationType() : null;
     }
 
     /**
@@ -135,9 +135,25 @@ public class DataElementGroup
      */
     public PeriodType getPeriodType()
     {
-        return members != null && !members.isEmpty() ? members.iterator().next().getPeriodType() : null;
+        return hasMembers() ? members.iterator().next().getPeriodType() : null;
+    }
+    
+    /**
+     * Indicates whether this group has a period type.
+     */
+    public boolean hasPeriodType()
+    {
+        return getPeriodType() != null;
     }
 
+    /**
+     * Indicates whether this group has any members.
+     */
+    public boolean hasMembers()
+    {
+        return members != null && !members.isEmpty();
+    }
+    
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------

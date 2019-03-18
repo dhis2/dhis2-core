@@ -31,12 +31,9 @@ package org.hisp.dhis.dataentryform.hibernate;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormStore;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.hibernate.JpaQueryParameters;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.List;
 
 /**
  * @author Bharath Kumar
@@ -50,35 +47,13 @@ public class HibernateDataEntryFormStore
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public DataEntryForm getDataEntryFormByName( String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
 
-        Root<DataEntryForm> dataEntryForm = query.from( DataEntryForm.class );
-        query.select( dataEntryForm );
-        query.where( builder.like( dataEntryForm.get( "name" ), name ) );
+        JpaQueryParameters<DataEntryForm> parameters = new JpaQueryParameters<DataEntryForm>()
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
 
-        return ( DataEntryForm ) executeQuery( query ).getResultList().stream().findFirst().orElse( null );
-    }
-
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public List<DataEntryForm> listDistinctDataEntryFormByProgramStageIds( List<Integer> programStageIds )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery query = getCriteriaQuery();
-
-        Root<ProgramStage> programStage = query.from( ProgramStage.class );
-        query.select( programStage.get( "dataEntryForm" ) ).distinct( true );
-        query.where(
-            builder.and(
-                programStage.get( "id" ).in( programStageIds ),
-                builder.isNotNull( programStage.get( "dataEntryForm" ) )
-            )
-        );
-
-        return sessionFactory.getCurrentSession().createQuery( query ).list();
+        return getSingleResult( builder, parameters );
     }
 }

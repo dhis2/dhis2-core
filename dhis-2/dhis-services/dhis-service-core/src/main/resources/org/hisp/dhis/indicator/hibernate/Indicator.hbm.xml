@@ -27,6 +27,8 @@
 
     <property name="decimals" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <many-to-one name="indicatorType" class="org.hisp.dhis.indicator.IndicatorType" column="indicatortypeid"
       foreign-key="fk_indicator_indicatortypeid" not-null="true" />
 
@@ -88,13 +90,6 @@
       <cache usage="read-write" />
       <key column="indicatorid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="indicatortranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="indicatorid" foreign-key="fk_objecttranslation_indicatorid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>

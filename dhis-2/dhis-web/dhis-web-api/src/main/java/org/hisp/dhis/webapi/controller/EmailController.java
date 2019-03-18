@@ -59,10 +59,7 @@ import java.util.Set;
 public class EmailController
 {
     public static final String RESOURCE_PATH = "/email";
-
     private static final String SMTP_ERROR = "SMTP server not configured";
-
-    private static final String EMAIL_DISABLED = "Email message notifications disabled";
 
     //--------------------------------------------------------------------------
     // Dependencies
@@ -85,10 +82,7 @@ public class EmailController
     {
         checkEmailSettings();
 
-        String userEmail = currentUserService.getCurrentUser().getEmail();
-        boolean userEmailConfigured = userEmail != null && !userEmail.isEmpty();
-
-        if ( !userEmailConfigured )
+        if ( !currentUserService.getCurrentUser().hasEmail() )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Could not send test email, no email configured for current user" ) );
         }
@@ -99,7 +93,8 @@ public class EmailController
     }
 
     @RequestMapping( value = "/notification", method = RequestMethod.POST )
-    public void sendSystemNotificationEmail( @RequestBody Email email, HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+    public void sendSystemNotificationEmail( @RequestBody Email email,
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
 
@@ -118,8 +113,8 @@ public class EmailController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SEND_EMAIL')" )
     @RequestMapping( value = "/notification", method = RequestMethod.POST, produces = "application/json" )
     public void sendEmailNotification( @RequestParam Set<String> recipients, @RequestParam String message,
-                                       @RequestParam ( defaultValue = "DHIS 2" ) String subject,
-                                       HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
+        @RequestParam ( defaultValue = "DHIS 2" ) String subject,
+        HttpServletResponse response, HttpServletRequest request ) throws WebMessageException
     {
         checkEmailSettings();
 
@@ -144,17 +139,12 @@ public class EmailController
             webMessageService.send( WebMessageUtils.error( "Email sending failed" ), response, request );
         }
     }
-    
+
     private void checkEmailSettings() throws WebMessageException
     {
-        if ( !emailService.emailEnabled() )
-        {
-            throw new WebMessageException( WebMessageUtils.error( EMAIL_DISABLED ) );
-        }
-
         if ( !emailService.emailConfigured() )
         {
-            throw new WebMessageException( WebMessageUtils.error( SMTP_ERROR ) );
+            throw new WebMessageException( WebMessageUtils.conflict( SMTP_ERROR ) );
         }
     }
 }

@@ -28,8 +28,10 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -39,9 +41,9 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.render.ParseDateStdDeserializer;
-import org.hisp.dhis.render.WriteDateStdSerializer;
+import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -51,7 +53,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,10 +99,10 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
 
@@ -117,8 +118,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
-        JSON_MAPPER.registerModule( module );
-        XML_MAPPER.registerModule( module );
+        JSON_MAPPER.registerModules( module, new JtsModule(  ) );
+        XML_MAPPER.registerModules( module, new JtsModule(  ) );
     }
 
     // -------------------------------------------------------------------------
@@ -126,9 +127,57 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     // -------------------------------------------------------------------------
 
     @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+
+        return parseJsonTrackedEntityInstances( input );
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+
+        return parseXmlTrackedEntityInstances( input );
+    }
+
+    @Override
     public ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<TrackedEntityInstance> trackedEntityInstances = parseXmlTrackedEntityInstances( input );
+
+        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
+    }
+
+    @Override
+    public ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<TrackedEntityInstance> trackedEntityInstances = parseJsonTrackedEntityInstances( input );
+
+        return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
+    }
+
+    private List<TrackedEntityInstance> parseJsonTrackedEntityInstances ( String input ) throws IOException {
+        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "trackedEntityInstances" ) != null ) {
+            TrackedEntityInstances fromJson = fromJson( input, TrackedEntityInstances.class );
+            trackedEntityInstances.addAll( fromJson.getTrackedEntityInstances() );
+        }
+        else {
+            TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
+            trackedEntityInstances.add( fromJson );
+        }
+
+        return trackedEntityInstances;
+    }
+
+    private List<TrackedEntityInstance> parseXmlTrackedEntityInstances ( String input ) throws IOException {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
         try
@@ -142,36 +191,37 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
             trackedEntityInstances.add( fromXml );
         }
 
-        return addTrackedEntityInstanceList( trackedEntityInstances, importOptions );
-    }
-
-    @Override
-    public ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
-    {
-        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
-
-        try
-        {
-            TrackedEntityInstances fromJson = fromJson( input, TrackedEntityInstances.class );
-            trackedEntityInstances.addAll( fromJson.getTrackedEntityInstances() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
-            trackedEntityInstances.add( fromJson );
-        }
-
-        return addTrackedEntityInstanceList( trackedEntityInstances, importOptions );
+        return trackedEntityInstances;
     }
 
     private ImportSummaries addTrackedEntityInstanceList( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
         List<TrackedEntityInstance> create = new ArrayList<>();
         List<TrackedEntityInstance> update = new ArrayList<>();
-        List<String> delete = new ArrayList<>();
+        List<TrackedEntityInstance> delete = new ArrayList<>();
+
+        //TODO: Check whether relationships are modified during create/update/delete TEI logic. Decide whether logic below can be removed
+        List<Relationship> relationships = new ArrayList<>();
+        trackedEntityInstances.stream()
+            .filter( tei -> !tei.getRelationships().isEmpty() )
+            .forEach( tei ->
+            {
+                RelationshipItem item = new RelationshipItem();
+                item.setTrackedEntityInstance( tei );
+
+                tei.getRelationships().forEach( rel ->
+                {
+                    // Update from if it is empty. Current tei is then "from"
+                    if( rel.getFrom() == null )
+                    {
+                        rel.setFrom( item );
+                    }
+                    relationships.add( rel );
+                } );
+            } );
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -181,21 +231,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         {
             for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
             {
-                if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) )
-                {
-                    create.add( trackedEntityInstance );
-                }
-                else
-                {
-                    if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
-                    {
-                        create.add( trackedEntityInstance );
-                    }
-                    else
-                    {
-                        update.add( trackedEntityInstance );
-                    }
-                }
+                sortCreatesAndUpdates( trackedEntityInstance, create, update );
             }
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
@@ -204,12 +240,29 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         }
         else if ( importOptions.getImportStrategy().isDelete() )
         {
-            delete.addAll( trackedEntityInstances.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() ) );
+            delete.addAll( trackedEntityInstances );
+        }
+        else if ( importOptions.getImportStrategy().isSync() )
+        {
+            for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+            {
+                if ( trackedEntityInstance.isDeleted() )
+                {
+                    delete.add( trackedEntityInstance );
+                }
+                else
+                {
+                    sortCreatesAndUpdates( trackedEntityInstance, create, update );
+                }
+            }
         }
 
         importSummaries.addImportSummaries( addTrackedEntityInstances( create, importOptions ) );
         importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
-        importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete ) );
+        importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
+
+        //TODO: Created importSummaries don't contain correct href (TEI endpoint instead of relationships is used)
+        importSummaries.addImportSummaries( relationshipService.processRelationshipList( relationships, importOptions ));
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
@@ -219,25 +272,44 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         return importSummaries;
     }
 
+    private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
+    {
+        if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) )
+        {
+            create.add( trackedEntityInstance );
+        }
+        else
+        {
+            if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
+            {
+                create.add( trackedEntityInstance );
+            }
+            else
+            {
+                update.add( trackedEntityInstance );
+            }
+        }
+    }
+
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceXml( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ), true );
     }
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, importOptions );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ), true );
     }
 }

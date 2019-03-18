@@ -1,5 +1,31 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -27,31 +53,6 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.render.ParseDateStdDeserializer;
-import org.hisp.dhis.render.WriteDateStdSerializer;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StreamUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,10 +99,10 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
-        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        XML_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         XML_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         XML_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
-        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true );
+        JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         JSON_MAPPER.configure( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true );
         JSON_MAPPER.configure( DeserializationFeature.WRAP_EXCEPTIONS, true );
 
@@ -118,7 +119,10 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
         JSON_MAPPER.registerModule( module );
+        JSON_MAPPER.registerModule( new JtsModule() );
+        
         XML_MAPPER.registerModule( module );
+        XML_MAPPER.registerModule( new JtsModule() );
     }
 
     // -------------------------------------------------------------------------
@@ -126,52 +130,79 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    public List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+
+        return parseJsonEnrollments( input );
+    }
+
+    @Override
+    public List<Enrollment> getEnrollmentsXml( InputStream inputStream ) throws IOException
+    {
+        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+
+        return parseXmlEnrollments( input );
+    }
+
+    @Override
     public ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<Enrollment> enrollments = parseJsonEnrollments( input );
 
-        try
-        {
-            Enrollments fromJson = fromJson( input, Enrollments.class );
-            enrollments.addAll( fromJson.getEnrollments() );
-        }
-        catch ( JsonMappingException ex )
-        {
-            Enrollment fromJson = fromJson( input, Enrollment.class );
-            enrollments.add( fromJson );
-        }
-
-        return addEnrollmentList( enrollments, importOptions );
+        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
     }
 
     @Override
     public ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        List<Enrollment> enrollments = parseXmlEnrollments( input );
+
+        return addEnrollmentList( enrollments, updateImportOptions( importOptions ) );
+    }
+
+    private List<Enrollment> parseJsonEnrollments ( String input ) throws IOException {
         List<Enrollment> enrollments = new ArrayList<>();
 
-        try
-        {
+        JsonNode root = JSON_MAPPER.readTree( input );
+
+        if ( root.get( "enrollments" ) != null ) {
+            Enrollments fromJson = fromJson( input, Enrollments.class );
+            enrollments.addAll( fromJson.getEnrollments() );
+        }
+        else {
+            Enrollment fromJson = fromJson( input, Enrollment.class );
+            enrollments.add( fromJson );
+        }
+
+        return enrollments;
+    }
+
+    private List<Enrollment> parseXmlEnrollments ( String input ) throws IOException {
+        List<Enrollment> enrollments = new ArrayList<>();
+
+        try {
             Enrollments fromXml = fromXml( input, Enrollments.class );
             enrollments.addAll( fromXml.getEnrollments() );
         }
-        catch ( JsonMappingException ex )
-        {
+        catch ( JsonMappingException ex ) {
             Enrollment fromXml = fromXml( input, Enrollment.class );
             enrollments.add( fromXml );
         }
 
-        return addEnrollmentList( enrollments, importOptions );
+        return enrollments;
     }
 
     private ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
+        importOptions = updateImportOptions( importOptions );
 
         List<Enrollment> create = new ArrayList<>();
         List<Enrollment> update = new ArrayList<>();
-        List<String> delete = new ArrayList<>();
+        List<Enrollment> delete = new ArrayList<>();
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -181,21 +212,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         {
             for ( Enrollment enrollment : enrollments )
             {
-                if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
-                {
-                    create.add( enrollment );
-                }
-                else
-                {
-                    if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
-                    {
-                        create.add( enrollment );
-                    }
-                    else
-                    {
-                        update.add( enrollment );
-                    }
-                }
+                sortCreatesAndUpdates( enrollment, create, update );
             }
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
@@ -204,12 +221,26 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
         else if ( importOptions.getImportStrategy().isDelete() )
         {
-            delete.addAll( enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
+            delete.addAll( enrollments );
+        }
+        else if ( importOptions.getImportStrategy().isSync() )
+        {
+            for ( Enrollment enrollment : enrollments )
+            {
+                if ( enrollment.isDeleted() )
+                {
+                    delete.add( enrollment );
+                }
+                else
+                {
+                    sortCreatesAndUpdates( enrollment, create, update );
+                }
+            }
         }
 
         importSummaries.addImportSummaries( addEnrollments( create, importOptions, null, true ) );
-        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, null, true ) );
-        importSummaries.addImportSummaries( deleteEnrollments( delete ) );
+        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, true ) );
+        importSummaries.addImportSummaries( deleteEnrollments( delete, importOptions, true ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
@@ -217,6 +248,25 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
 
         return importSummaries;
+    }
+
+    private void sortCreatesAndUpdates( Enrollment enrollment, List<Enrollment> create, List<Enrollment> update )
+    {
+        if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
+        {
+            create.add( enrollment );
+        }
+        else
+        {
+            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            {
+                create.add( enrollment );
+            }
+            else
+            {
+                update.add( enrollment );
+            }
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -229,7 +279,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         Enrollment enrollment = fromJson( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
 
-        return updateEnrollment( enrollment, importOptions );
+        return updateEnrollment( enrollment, updateImportOptions( importOptions ) );
     }
 
     @Override
@@ -247,6 +297,6 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         Enrollment enrollment = fromXml( inputStream, Enrollment.class );
         enrollment.setEnrollment( id );
 
-        return updateEnrollment( enrollment, importOptions );
+        return updateEnrollment( enrollment, updateImportOptions( importOptions ) );
     }
 }

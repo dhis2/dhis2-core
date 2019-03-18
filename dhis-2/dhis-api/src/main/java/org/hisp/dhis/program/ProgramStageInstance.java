@@ -28,13 +28,16 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -72,17 +75,19 @@ public class ProgramStageInstance
 
     private List<TrackedEntityComment> comments = new ArrayList<>();
 
-    private Set<TrackedEntityDataValue> dataValues = new HashSet<>();
+    private Set<EventDataValue> eventDataValues = new HashSet<>();
+
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
     private EventStatus status = EventStatus.ACTIVE;
-
-    private Double longitude;
-
-    private Double latitude;
 
     private String completedBy;
 
     private Date completedDate;
+
+    private Date lastSynchronized = new Date( 0 );
+
+    private Geometry geometry;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -233,9 +238,10 @@ public class ProgramStageInstance
         this.completedDate = completedDate;
     }
 
-    public void setStatus( EventStatus status )
+    public ProgramStageInstance setStatus( EventStatus status )
     {
         this.status = status;
+        return this;
     }
 
     public List<MessageConversation> getMessageConversations()
@@ -248,26 +254,6 @@ public class ProgramStageInstance
         this.messageConversations = messageConversations;
     }
 
-    public Double getLongitude()
-    {
-        return longitude;
-    }
-
-    public void setLongitude( Double longitude )
-    {
-        this.longitude = longitude;
-    }
-
-    public Double getLatitude()
-    {
-        return latitude;
-    }
-
-    public void setLatitude( Double latitude )
-    {
-        this.latitude = latitude;
-    }
-
     public List<TrackedEntityComment> getComments()
     {
         return comments;
@@ -278,14 +264,14 @@ public class ProgramStageInstance
         this.comments = comments;
     }
 
-    public Set<TrackedEntityDataValue> getDataValues()
+    public Set<EventDataValue> getEventDataValues()
     {
-        return dataValues;
+        return eventDataValues;
     }
 
-    public void setDataValues( Set<TrackedEntityDataValue> dataValues )
+    public void setEventDataValues( Set<EventDataValue> eventDataValues )
     {
-        this.dataValues = dataValues;
+        this.eventDataValues = eventDataValues;
     }
 
     public EventStatus getStatus()
@@ -301,5 +287,55 @@ public class ProgramStageInstance
     public void setDeleted( boolean deleted )
     {
         this.deleted = deleted;
+    }
+
+    @JsonIgnore
+    public Date getLastSynchronized()
+    {
+        return lastSynchronized;
+    }
+
+    public void setLastSynchronized( Date lastSynchronized )
+    {
+        this.lastSynchronized = lastSynchronized;
+    }
+
+    public Set<RelationshipItem> getRelationshipItems()
+    {
+        return relationshipItems;
+    }
+
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
+    {
+        this.relationshipItems = relationshipItems;
+    }
+
+    public Geometry getGeometry()
+    {
+        return geometry;
+    }
+
+    public void setGeometry( Geometry geometry )
+    {
+        this.geometry = geometry;
+    }
+
+    @Override public String toString()
+    {
+        return "ProgramStageInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", name='" + name + '\'' +
+            ", created=" + created +
+            ", lastUpdated=" + lastUpdated +
+            ", displayName='" + displayName + '\'' +
+            ", programInstance=" + programInstance.getUid() +
+            ", programStage=" + programStage.getUid() +
+            ", deleted=" + deleted +
+            ", storedBy='" + storedBy + '\'' +
+            ", organisationUnit=" + organisationUnit.getUid() +
+            ", status=" + status +
+            ", lastSynchronized=" + lastSynchronized +
+            '}';
     }
 }

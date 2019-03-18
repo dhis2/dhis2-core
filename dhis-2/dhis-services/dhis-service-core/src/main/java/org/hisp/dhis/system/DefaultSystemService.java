@@ -29,10 +29,10 @@ package org.hisp.dhis.system;
  */
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
@@ -42,16 +42,17 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.hisp.dhis.logging.LogFormat;
+import org.hisp.dhis.logging.LogLevel;
+import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.File;
@@ -66,7 +67,7 @@ import java.util.Properties;
  * @author Lars Helge Overland
  */
 public class DefaultSystemService
-    implements SystemService
+    implements SystemService, InitializingBean
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
 
@@ -96,17 +97,16 @@ public class DefaultSystemService
      */
     private SystemInfo systemInfo = null;
 
-    @EventListener
-    public void initFixedInfo( ContextRefreshedEvent event )
+    @Override
+    public void afterPropertiesSet() throws Exception
     {
         systemInfo = getFixedSystemInfo();
 
         List<String> info = ImmutableList.<String>builder()
             .add( "Version: " + systemInfo.getVersion() )
-            .add( "revision: " + systemInfo.getRevision() )
-            .add( "build date: " + systemInfo.getBuildTime() )
-            .add( "database name: " + systemInfo.getDatabaseInfo().getName() )
-            .add( "database type: " + systemInfo.getDatabaseInfo().getType() )
+            .add( "Revision: " + systemInfo.getRevision() )
+            .add( "Build date: " + systemInfo.getBuildTime() )
+            .add( "Database name: " + systemInfo.getDatabaseInfo().getName() )
             .add( "Java version: " + systemInfo.getJavaVersion() )
             .build();
 
@@ -120,7 +120,7 @@ public class DefaultSystemService
     @Override
     public SystemInfo getSystemInfo()
     {
-        SystemInfo info = systemInfo.instance();
+        SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
 
         if ( info == null )
         {
@@ -131,9 +131,7 @@ public class DefaultSystemService
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
         Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        String instanceBaseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
-
-        Configuration config = configurationService.getConfiguration();
+        String instanceBaseUrl = dhisConfig.getServerBaseUrl();
 
         Date now = new Date();
 
@@ -143,12 +141,24 @@ public class DefaultSystemService
         info.setLastAnalyticsTableSuccess( lastAnalyticsTableSuccess );
         info.setIntervalSinceLastAnalyticsTableSuccess( DateUtils.getPrettyInterval( lastAnalyticsTableSuccess, now ) );
         info.setLastSystemMonitoringSuccess( lastSystemMonitoringSuccess );
-        info.setSystemId( config.getSystemId() );
         info.setLastAnalyticsTableRuntime( lastAnalyticsTableRuntime );
         info.setSystemName( systemName );
         info.setInstanceBaseUrl( instanceBaseUrl );
+        info.setEmailConfigured( systemSettingManager.emailConfigured() );
 
         setSystemMetadataVersionInfo( info );
+
+        info.setLogging( new LoggingConfig(
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE ),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_CONSOLE_FORMAT )).toUpperCase() ),
+            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE ),
+            ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_NAME )),
+            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_LEVEL )).toUpperCase() ),
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_FORMAT )).toUpperCase() )
+        ) );
 
         return info;
     }
@@ -156,6 +166,8 @@ public class DefaultSystemService
     private SystemInfo getFixedSystemInfo()
     {
         SystemInfo info = new SystemInfo();
+
+        Configuration config = configurationService.getConfiguration();
 
         // ---------------------------------------------------------------------
         // Version
@@ -165,12 +177,8 @@ public class DefaultSystemService
 
         if ( resource.isReadable() )
         {
-            InputStream in = null;
-
-            try
+            try ( InputStream in = resource.getInputStream() )
             {
-                in = resource.getInputStream();
-
                 Properties properties = new Properties();
 
                 properties.load( in );
@@ -188,10 +196,6 @@ public class DefaultSystemService
             catch ( IOException ex )
             {
                 // Do nothing
-            }
-            finally
-            {
-                IOUtils.closeQuietly( in );
             }
         }
 
@@ -213,10 +217,17 @@ public class DefaultSystemService
         }
 
         info.setFileStoreProvider( dhisConfig.getProperty( ConfigurationKey.FILESTORE_PROVIDER ) );
-        info.setCacheProvider( dhisConfig.getProperty( ConfigurationKey.CACHE_PROVIDER ) );
         info.setReadOnlyMode( dhisConfig.getProperty( ConfigurationKey.SYSTEM_READ_ONLY_MODE ) );
         info.setNodeId( dhisConfig.getProperty( ConfigurationKey.NODE_ID ) );
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
+        info.setSystemId( config.getSystemId() );
+        info.setClusterHostname( dhisConfig.getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
+        info.setRedisEnabled( Boolean.valueOf( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) ) );
+
+        if ( info.isRedisEnabled() )
+        {
+            info.setRedisHostname( dhisConfig.getProperty( ConfigurationKey.REDIS_HOST ) );
+        }
 
         // ---------------------------------------------------------------------
         // Database
@@ -233,27 +244,6 @@ public class DefaultSystemService
             Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" ),
             Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_LOG ), "on" )
         ) );
-
-        // ---------------------------------------------------------------------
-        // RabbitMQ
-        // ---------------------------------------------------------------------
-
-        RabbitMQ rabbitMQ = new RabbitMQ(
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_HOST ),
-            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PORT ) ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_USERNAME ),
-            dhisConfig.getProperty( ConfigurationKey.RABBITMQ_PASSWORD )
-        );
-
-        rabbitMQ.setExchange( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_EXCHANGE ) );
-        rabbitMQ.setAddresses( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_ADDRESSES ) );
-        rabbitMQ.setVirtualHost( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_VIRTUAL_HOST ) );
-        rabbitMQ.setConnectionTimeout( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.RABBITMQ_CONNECTION_TIMEOUT ) ) );
-
-        if ( rabbitMQ.isValid() )
-        {
-            info.setRabbitMQ( rabbitMQ );
-        }
 
         // ---------------------------------------------------------------------
         // System env variables and properties

@@ -28,11 +28,7 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,6 +36,9 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -52,32 +51,34 @@ public class HibernateProgramStore
     // Implemented methods
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<Program> getByType( ProgramType type )
     {
-        return getCriteria( Restrictions.eq( "programType", type ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+               .addPredicate( root ->  builder.equal( root.get( "programType" ), type )));
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<Program> get( OrganisationUnit organisationUnit )
     {
-        Criteria criteria = getCriteria();
-        criteria.createAlias( "organisationUnits", "orgunit" );
-        criteria.add( Restrictions.eq( "orgunit.id", organisationUnit.getId() ) );
-        return  criteria.list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.join( "organisationUnits" ).get( "id" ), organisationUnit.getId() ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Program> getByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
-        return getCriteria( Restrictions.eq( "trackedEntityType", trackedEntityType ) ).list();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "trackedEntityType" ), trackedEntityType ) ) );
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Program> getByDataEntryForm( DataEntryForm dataEntryForm )
     {
         if ( dataEntryForm == null )
@@ -87,6 +88,6 @@ public class HibernateProgramStore
 
         final String hql = "from Program p where p.dataEntryForm = :dataEntryForm";
 
-        return getQuery( hql ).setEntity( "dataEntryForm", dataEntryForm ).list();
+        return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
     }
 }

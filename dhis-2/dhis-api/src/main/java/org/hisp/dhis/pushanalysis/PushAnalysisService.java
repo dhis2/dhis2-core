@@ -32,6 +32,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -44,6 +45,12 @@ public interface PushAnalysisService
      * @return PushAnalysis
      */
     PushAnalysis getByUid( String uid );
+
+    /**
+     * Returns all PushAnalysis
+     * @return List of PushAnalysis
+     */
+    List<PushAnalysis> getAll();
 
     /**
      * Returns a String, consisting of HTML representing the PushAnalysis report.

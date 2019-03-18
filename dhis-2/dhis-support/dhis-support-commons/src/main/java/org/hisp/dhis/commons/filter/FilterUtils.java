@@ -33,7 +33,7 @@ import java.util.Iterator;
 
 /**
  * Utility class for collection filtering.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class FilterUtils
@@ -53,9 +53,9 @@ public class FilterUtils
         {
             return null;
         }
-        
+
         final Iterator<V> iterator = collection.iterator();
-        
+
         while ( iterator.hasNext() )
         {
             if ( !filter.retain( iterator.next() ) )
@@ -63,10 +63,10 @@ public class FilterUtils
                 iterator.remove();
             }
         }
-        
+
         return collection;
     }
-    
+
     /**
      * Filters the given collection using the given {@link Filter} retaining only
      * items which does NOT pass the filter evaluation.
@@ -83,9 +83,9 @@ public class FilterUtils
         {
             return null;
         }
-        
+
         final Iterator<V> iterator = collection.iterator();
-        
+
         while ( iterator.hasNext() )
         {
             if ( filter.retain( iterator.next() ) )
@@ -93,7 +93,7 @@ public class FilterUtils
                 iterator.remove();
             }
         }
-        
+
         return collection;
-    }    
+    }
 }

@@ -17,7 +17,7 @@
 
     <property name="name" column="name" not-null="true" unique="true" length="230" />
 
-    <property name="shortName" column="shortname" not-null="false" unique="true" length="50" />
+    <property name="shortName" column="shortname" not-null="true" unique="true" length="50" />
 
     <property name="description" type="text" />
 
@@ -46,7 +46,8 @@
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <list-index column="sort_order" base="0" />
-      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid" foreign-key="fk_trackedentityattribute_legendsetid"></many-to-many>
+      <many-to-many class="org.hisp.dhis.legend.LegendSet" column="legendsetid"
+        foreign-key="fk_trackedentityattribute_legendsetid"></many-to-many>
     </list>
 
     <property name="inherit" column="inherit" />
@@ -69,13 +70,19 @@
 
     <property name="pattern" />
 
-    <property name="textPattern" type="jbTextPattern" column="textpattern" not-null="false"/>
+    <property name="textPattern" type="jbTextPattern" column="textpattern" not-null="false" />
+
+    <property name="fieldMask" />
 
     <property name="style" type="jbObjectStyle" column="style" />
 
     <property name="orgunitScope" />
 
     <property name="programScope" />
+
+    <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
+
+    <property name="translations" type="jblTranslations"/>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User"
@@ -100,13 +107,6 @@
       <cache usage="read-write" />
       <key column="trackedentityattributeid" />
       <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
-    <!-- Object Translation -->
-    <set name="translations" table="trackedentityattributetranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="trackedentityattributeid" foreign-key="fk_objecttranslation_trackedentityattributeid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
     </set>
 
   </class>

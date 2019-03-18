@@ -38,8 +38,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface ProgramRuleActionStore
     extends IdentifiableObjectStore<ProgramRuleAction>
 {
-    String ID = ProgramRuleActionStore.class.getName();
-
     /**
      * Get programRuleAction by program
      *
@@ -47,4 +45,10 @@ public interface ProgramRuleActionStore
      * @return ProgramRuleActionVariable list
      */
     List<ProgramRuleAction> get( ProgramRule programRule );
+
+    List<ProgramRuleAction> getProgramActionsWithNoDataObject();
+
+    List<ProgramRuleAction> getProgramActionsWithNoNotification();
+
+    List<ProgramRuleAction> getMalFormedRuleActionsByType( ProgramRuleActionType type );
 }

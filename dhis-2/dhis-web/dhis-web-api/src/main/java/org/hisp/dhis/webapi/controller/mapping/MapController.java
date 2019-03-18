@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.mapping;
  */
 
 import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -36,18 +37,19 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendSetService;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -86,13 +88,10 @@ public class MapController
     private MappingService mappingService;
 
     @Autowired
-    private LegendSetService legendSetService;
-
-    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private IdentifiableObjectManager idObjectManager;
 
     @Autowired
     private ProgramService programService;
@@ -267,12 +266,12 @@ public class MapController
 
         if ( view.getLegendSet() != null )
         {
-            view.setLegendSet( legendSetService.getLegendSet( view.getLegendSet().getUid() ) );
+            view.setLegendSet( idObjectManager.get( LegendSet.class, view.getLegendSet().getUid() ) );
         }
 
         if ( view.getOrganisationUnitGroupSet() != null )
         {
-            view.setOrganisationUnitGroupSet( organisationUnitGroupService.getOrganisationUnitGroupSet( view.getOrganisationUnitGroupSet().getUid() ) );
+            view.setOrganisationUnitGroupSet( idObjectManager.get( OrganisationUnitGroupSet.class, view.getOrganisationUnitGroupSet().getUid() ) );
         }
 
         if ( view.getProgram() != null )
@@ -283,6 +282,11 @@ public class MapController
         if ( view.getProgramStage() != null )
         {
             view.setProgramStage( programStageService.getProgramStage( view.getProgramStage().getUid() ) );
+        }
+        
+        if ( view.getTrackedEntityType() != null )
+        {
+            view.setTrackedEntityType( idObjectManager.get( TrackedEntityType.class, view.getTrackedEntityType().getUid() ) );
         }
     }
 

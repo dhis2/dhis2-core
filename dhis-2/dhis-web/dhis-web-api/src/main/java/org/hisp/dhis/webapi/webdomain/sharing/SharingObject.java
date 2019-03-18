@@ -38,34 +38,27 @@ import java.util.List;
  */
 public class SharingObject
 {
-    @JsonProperty
     private String id;
 
-    @JsonProperty
     private String name;
 
-    @JsonProperty
     private String displayName;
 
-    @JsonProperty
     private String publicAccess;
 
-    @JsonProperty
     private boolean externalAccess;
 
-    @JsonProperty
     private SharingUser user = new SharingUser();
 
-    @JsonProperty
     private List<SharingUserGroupAccess> userGroupAccesses = new ArrayList<>();
 
-    @JsonProperty
     private List<SharingUserAccess> userAccesses = new ArrayList<>();
 
     public SharingObject()
     {
     }
 
+    @JsonProperty
     public String getId()
     {
         return id;
@@ -76,6 +69,7 @@ public class SharingObject
         this.id = id;
     }
 
+    @JsonProperty
     public String getName()
     {
         return name;
@@ -86,6 +80,7 @@ public class SharingObject
         this.name = name;
     }
 
+    @JsonProperty
     public String getDisplayName()
     {
         return displayName;
@@ -96,6 +91,7 @@ public class SharingObject
         this.displayName = displayName;
     }
 
+    @JsonProperty
     public String getPublicAccess()
     {
         return publicAccess;
@@ -106,16 +102,19 @@ public class SharingObject
         this.publicAccess = publicAccess;
     }
 
+    @JsonProperty( "externalAccess" )
     public boolean hasExternalAccess()
     {
         return externalAccess;
     }
 
+    @JsonProperty( "externalAccess" )
     public void setExternalAccess( boolean externalAccess )
     {
         this.externalAccess = externalAccess;
     }
 
+    @JsonProperty
     public SharingUser getUser()
     {
         return user;
@@ -126,6 +125,7 @@ public class SharingObject
         this.user = user;
     }
 
+    @JsonProperty
     public List<SharingUserGroupAccess> getUserGroupAccesses()
     {
         return userGroupAccesses;
@@ -136,6 +136,7 @@ public class SharingObject
         this.userGroupAccesses = userGroupAccesses;
     }
 
+    @JsonProperty
     public List<SharingUserAccess> getUserAccesses()
     {
         return userAccesses;

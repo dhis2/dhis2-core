@@ -41,10 +41,6 @@
           "status": "COMPLETED",
           "storedBy": "admin",
           "programStage": "EPEcjy3FWmI",
-          "coordinate": {
-            "latitude": "59.8",
-            "longitude": "10.9"
-          },
           "dataValues": [
             {
               "dataElement": "qrur9Dvnyt5",
@@ -63,10 +59,6 @@
           "status": "COMPLETED",
           "storedBy": "admin",
           "programStage": "EPEcjy3FWmI",
-          "coordinate": {
-            "latitude": "59.8",
-            "longitude": "10.9"
-          },
           "dataValues": [
             {
               "dataElement": "qrur9Dvnyt5",

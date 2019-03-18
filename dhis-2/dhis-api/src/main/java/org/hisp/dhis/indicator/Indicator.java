@@ -152,7 +152,17 @@ public class Indicator
     {
         return DimensionItemType.INDICATOR;
     }
-
+    
+    /**
+     * A denominator value of "1" implies that there is no denominator
+     * and that the indicator represents a sum.
+     */
+    @Override
+    public TotalAggregationType getTotalAggregationType()
+    {
+        return "1".equals( denominator ) ? TotalAggregationType.SUM : TotalAggregationType.AVERAGE;
+    }
+    
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

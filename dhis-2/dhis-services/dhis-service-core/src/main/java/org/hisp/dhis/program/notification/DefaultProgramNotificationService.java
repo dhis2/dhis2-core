@@ -28,12 +28,24 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.message.MessageType;
@@ -51,13 +63,11 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -66,6 +76,10 @@ public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
     private static final Log log = LogFactory.getLog( DefaultProgramNotificationService.class );
+
+    private static final Predicate<ProgramNotificationInstance> IS_SCHEDULED_BY_PROGRAM_RULE = pnt ->
+        Objects.nonNull( pnt ) && NotificationTrigger.PROGRAM_RULE.equals( pnt.getProgramNotificationTemplate().getNotificationTrigger() ) &&
+            pnt.getScheduledAt() != null && DateUtils.isToday( pnt.getScheduledAt() );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -148,6 +162,38 @@ public class DefaultProgramNotificationService
 
     @Transactional
     @Override
+    public void sendScheduledNotifications()
+    {
+        Clock clock = new Clock( log ).startClock()
+            .logTime( "Processing ProgramStageNotification messages scheduled by program rules" );
+
+        List<ProgramNotificationInstance> templates = identifiableObjectManager.getAll( ProgramNotificationInstance.class ).stream()
+            .filter( IS_SCHEDULED_BY_PROGRAM_RULE ).collect( Collectors.toList() );
+
+        if ( templates.isEmpty() )
+        {
+            return;
+        }
+
+        int totalMessageCount = 0;
+
+        List<MessageBatch> batches = templates.stream().filter( ProgramNotificationInstance::hasProgramInstance )
+            .map( t -> createProgramInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramInstance() ) ) )
+            .collect( Collectors.toList() );
+
+        batches.addAll( templates.stream().filter( ProgramNotificationInstance::hasProgramStageInstance )
+            .map( t -> createProgramStageInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramStageInstance() ) ) )
+            .collect( Collectors.toList() ) );
+
+        batches.stream().forEach( this::sendAll );
+
+        totalMessageCount = batches.stream().mapToInt( MessageBatch::messageCount ).sum();
+
+        clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
+    }
+
+    @Transactional
+    @Override
     public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
     {
         sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
@@ -210,6 +256,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance, NotificationTrigger trigger )
     {
+        if ( programStageInstance == null )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
 
         if ( templates.isEmpty() )
@@ -226,6 +277,11 @@ public class DefaultProgramNotificationService
 
     private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
     {
+        if ( programInstance == null  )
+        {
+            return;
+        }
+
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
 
         for ( ProgramNotificationTemplate template : templates )
@@ -288,8 +344,8 @@ public class DefaultProgramNotificationService
         NotificationMessage message = programStageNotificationRenderer.render( psi, template );
 
         return new ProgramMessage(
-                message.getSubject(), message.getMessage(), resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(),
-                psi ), template.getDeliveryChannels(), psi );
+            message.getSubject(), message.getMessage(), resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(),
+            psi ), Sets.newHashSet( template.getDeliveryChannels() ), psi );
     }
 
     private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
@@ -297,13 +353,13 @@ public class DefaultProgramNotificationService
         NotificationMessage message = programNotificationRenderer.render( programInstance, template );
 
         return new ProgramMessage(
-                message.getSubject(), message.getMessage(),
-                resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
-                template.getDeliveryChannels(), programInstance );
+            message.getSubject(), message.getMessage(),
+            resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
+            Sets.newHashSet( template.getDeliveryChannels() ), programInstance );
     }
 
     private Set<User> resolveDhisMessageRecipients(
-            ProgramNotificationTemplate template, @Nullable ProgramInstance programInstance, @Nullable ProgramStageInstance programStageInstance )
+        ProgramNotificationTemplate template, @Nullable ProgramInstance programInstance, @Nullable ProgramStageInstance programStageInstance )
     {
         if ( programInstance == null && programStageInstance == null )
         {
@@ -312,46 +368,66 @@ public class DefaultProgramNotificationService
 
         Set<User> recipients = Sets.newHashSet();
 
+        OrganisationUnit eventOrgUnit = programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
+
+        Set<OrganisationUnit> orgUnitInHierarchy = Sets.newHashSet();
+
         ProgramNotificationRecipient recipientType = template.getNotificationRecipient();
 
         if ( recipientType == ProgramNotificationRecipient.USER_GROUP )
         {
+            recipients = template.getRecipientUserGroup().getMembers();
+
+            final boolean limitToHierarchy = BooleanUtils.toBoolean( template.getNotifyUsersInHierarchyOnly() );
+
+            final boolean parentOrgUnitOnly = BooleanUtils.toBoolean( template.getNotifyParentOrganisationUnitOnly() );
+
+            if ( limitToHierarchy )
+            {
+                orgUnitInHierarchy.add( eventOrgUnit );
+                orgUnitInHierarchy.addAll( eventOrgUnit.getAncestors() );
+
+                recipients = recipients.stream().filter( r -> orgUnitInHierarchy.contains( r.getOrganisationUnit() ) ).collect( Collectors.toSet() );
+
+                return recipients;
+            }
+            else if ( parentOrgUnitOnly )
+            {
+                Set<User> parents = Sets.newHashSet();
+
+                recipients.stream().forEach( r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
+
+                return parents;
+            }
+
             recipients.addAll( template.getRecipientUserGroup().getMembers() );
         }
         else if ( recipientType == ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT )
         {
-
-            OrganisationUnit organisationUnit =
-                    programInstance != null ? programInstance.getOrganisationUnit() : programStageInstance.getOrganisationUnit();
-
-            recipients.addAll( organisationUnit.getUsers() );
-        }
-        else if ( recipientType == ProgramNotificationRecipient.PARENT_ORGANISATION_UNIT_OF_USERS_IN_GROUP )
-        {
-            template.getRecipientUserGroup().getMembers().forEach( user -> recipients.addAll( user.getOrganisationUnit().getParent().getUsers() ) );
+            recipients.addAll( eventOrgUnit.getUsers() );
         }
 
         return recipients;
     }
 
     private ProgramMessageRecipients resolveProgramNotificationRecipients(
-            ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramInstance programInstance )
+        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramInstance programInstance )
     {
         return resolveRecipients( template, organisationUnit, programInstance.getEntityInstance(), programInstance );
     }
 
     private ProgramMessageRecipients resolveProgramStageNotificationRecipients(
-            ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramStageInstance psi )
+        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramStageInstance psi )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
         if ( template.getNotificationRecipient() == ProgramNotificationRecipient.DATA_ELEMENT
-                && template.getRecipientDataElement() != null )
+            && template.getRecipientDataElement() != null )
         {
-            List<String> recipientList = psi.getDataValues().stream()
-                    .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement().getUid() ) )
-                    .map( TrackedEntityDataValue::getValue )
-                    .collect( Collectors.toList() );
+            List<String> recipientList = psi.getEventDataValues().stream()
+                .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement() ) )
+                .map( EventDataValue::getValue )
+                .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -373,7 +449,7 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveRecipients( ProgramNotificationTemplate template, OrganisationUnit ou,
-                                                        TrackedEntityInstance tei, ProgramInstance pi)
+        TrackedEntityInstance tei, ProgramInstance pi)
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -388,12 +464,12 @@ public class DefaultProgramNotificationService
             recipients.setTrackedEntityInstance( tei );
         }
         else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
-                && template.getRecipientProgramAttribute() != null )
+            && template.getRecipientProgramAttribute() != null )
         {
             List<String> recipientList = pi.getEntityInstance().getTrackedEntityAttributeValues().stream()
-                    .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
-                    .map( TrackedEntityAttributeValue::getPlainValue )
-                    .collect( Collectors.toList() );
+                .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
+                .map( TrackedEntityAttributeValue::getPlainValue )
+                .collect( Collectors.toList() );
 
             if ( template.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
             {
@@ -411,15 +487,15 @@ public class DefaultProgramNotificationService
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramInstance programInstance, final NotificationTrigger trigger )
     {
         return programInstance.getProgram().getNotificationTemplates().stream()
-                .filter( t -> t.getNotificationTrigger() == trigger )
-                .collect( Collectors.toSet() );
+            .filter( t -> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
     }
 
     private Set<ProgramNotificationTemplate> resolveTemplates( ProgramStageInstance programStageInstance, final NotificationTrigger trigger )
     {
         return programStageInstance.getProgramStage().getNotificationTemplates().stream()
-                .filter( t -> t.getNotificationTrigger() == trigger )
-                .collect( Collectors.toSet() );
+            .filter( t -> t.getNotificationTrigger() == trigger )
+            .collect( Collectors.toSet() );
     }
 
     private DhisMessage createDhisMessage( ProgramStageInstance psi, ProgramNotificationTemplate template )
@@ -446,11 +522,11 @@ public class DefaultProgramNotificationService
     private void sendDhisMessages( Set<DhisMessage> messages )
     {
         messages.forEach( m ->
-                messageService.sendMessage(
-                        new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
-                                .withForceNotification( true )
-                                .build()
-                )
+            messageService.sendMessage(
+                new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(), MessageType.SYSTEM )
+                    .withForceNotification( true )
+                    .build()
+            )
         );
     }
 

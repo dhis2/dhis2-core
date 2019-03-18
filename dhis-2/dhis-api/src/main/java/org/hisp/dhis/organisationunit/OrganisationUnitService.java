@@ -58,7 +58,7 @@ public interface OrganisationUnitService
      * @param organisationUnit the OrganisationUnit to add.
      * @return a generated unique id of the added OrganisationUnit.
      */
-    int addOrganisationUnit( OrganisationUnit organisationUnit );
+    long addOrganisationUnit( OrganisationUnit organisationUnit );
 
     /**
      * Updates an OrganisationUnit.
@@ -97,7 +97,7 @@ public interface OrganisationUnitService
      * @param id the id of the OrganisationUnit to return.
      * @return the OrganisationUnit with the given id, or null if no match.
      */
-    OrganisationUnit getOrganisationUnit( int id );
+    OrganisationUnit getOrganisationUnit( long id );
 
     /**
      * Returns the OrganisationUnit with the given UID.
@@ -138,7 +138,7 @@ public interface OrganisationUnitService
      * @param identifiers the collection of identifiers.
      * @return a list of OrganisationUnits.
      */
-    List<OrganisationUnit> getOrganisationUnits( Collection<Integer> identifiers );
+    List<OrganisationUnit> getOrganisationUnits( Collection<Long> identifiers );
 
     /**
      * Returns all OrganisationUnits with corresponding identifiers.
@@ -147,10 +147,10 @@ public interface OrganisationUnitService
      * @return a list of OrganisationUnits.
      */
     List<OrganisationUnit> getOrganisationUnitsByUid( Collection<String> uids );
-    
+
     /**
      * Returns a list of OrganisationUnits based on the given params.
-     * 
+     *
      * @param params the params.
      * @return a list of OrganisationUnits.
      */
@@ -215,7 +215,7 @@ public interface OrganisationUnitService
      * and all its children, or an empty list if no
      * OrganisationUnits match.
      */
-    List<OrganisationUnit> getOrganisationUnitWithChildren( int id );
+    List<OrganisationUnit> getOrganisationUnitWithChildren( long id );
 
     /**
      * Returns an OrganisationUnit and all its children.
@@ -227,7 +227,7 @@ public interface OrganisationUnitService
      * and all its children, or an empty list if no
      * OrganisationUnits match.
      */
-    List<OrganisationUnit> getOrganisationUnitWithChildren( int id, Integer maxLevels );
+    List<OrganisationUnit> getOrganisationUnitWithChildren( long id, Integer maxLevels );
 
     /**
      * Returns the OrganisationUnits and all their children.
@@ -312,12 +312,12 @@ public interface OrganisationUnitService
      * @return all OrganisationUnits which are not a member of any OrganisationUnitGroups.
      */
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
-    
+
     /**
      * Returns the count of OrganisationUnits which are part of the
-     * sub-hierarchy of the given parent OrganisationUnit and members of 
+     * sub-hierarchy of the given parent OrganisationUnit and members of
      * the given object based on the collection of the given collection name.
-     * 
+     *
      * @param parent the parent OrganisationUnit.
      * @param member the member object.
      * @param collectionName the name of the collection.
@@ -328,6 +328,16 @@ public interface OrganisationUnitService
     OrganisationUnitDataSetAssociationSet getOrganisationUnitDataSetAssociationSet( Integer maxlevels );
 
     List<OrganisationUnit> getOrganisationUnitsBetweenByName( String name, int first, int max );
+
+    /**
+     * Returns the level of the given org unit level. The level parameter string can either
+     * represent a numerical level, or a UID referring to an {@link OrganisationUnitLevel} object.
+     *
+     * @param level the level string, either a numeric level or UID.
+     * @return the level of the corresponding {@link OrganisationUnitLevel}, or null if not found
+     *          or if the parameter was invalid.
+     */
+    Integer getOrganisationUnitLevelByLevelOrUid( String level );
 
     /**
      * Retrieves all the org units within the distance from center location.
@@ -361,6 +371,16 @@ public interface OrganisationUnitService
      */
     boolean isInUserHierarchy( OrganisationUnit organisationUnit );
 
+    /**
+     * Equal to {@link OrganisationUnitService#isInUserHierarchy(OrganisationUnit)}
+     * except adds a caching layer on top. Use this method when performance is
+     * imperative and the risk of a stale result is tolerable.
+     *
+     * @param organisationUnit the organisation unit.
+     * @return true if the given organisation unit is part of the hierarchy.
+     */
+    boolean isInUserHierarchyCached( OrganisationUnit organisationUnit );
+
     boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit );
 
     /**
@@ -373,7 +393,7 @@ public interface OrganisationUnitService
      * @return true if the organisation unit with the given uid is part of the hierarchy.
      */
     boolean isInUserHierarchy( String uid, Set<OrganisationUnit> organisationUnits );
-    
+
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------
@@ -391,13 +411,13 @@ public interface OrganisationUnitService
      * @param organisationUnitId the child organisation unit identifier.
      * @param parentId           the parent organisation unit identifier.
      */
-    void updateOrganisationUnitParent( int organisationUnitId, int parentId );
+    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
 
     // -------------------------------------------------------------------------
     // OrganisationUnitLevel
     // -------------------------------------------------------------------------
 
-    int addOrganisationUnitLevel( OrganisationUnitLevel level );
+    long addOrganisationUnitLevel( OrganisationUnitLevel level );
 
     void updateOrganisationUnitLevel( OrganisationUnitLevel level );
 
@@ -405,7 +425,7 @@ public interface OrganisationUnitService
 
     void pruneOrganisationUnitLevels( Set<Integer> currentLevels );
 
-    OrganisationUnitLevel getOrganisationUnitLevel( int id );
+    OrganisationUnitLevel getOrganisationUnitLevel( long id );
 
     OrganisationUnitLevel getOrganisationUnitLevel( String uid );
 

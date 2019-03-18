@@ -53,6 +53,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -75,8 +76,8 @@ public class UserSettingController
     @Autowired
     private CurrentUserService currentUserService;
 
-    private static final Set<String> USER_SETTING_NAMES = Sets.newHashSet(
-        UserSettingKey.values() ).stream().map( UserSettingKey::getName ).collect( Collectors.toSet() );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
+        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
 
     // -------------------------------------------------------------------------
     // Resources
@@ -86,13 +87,27 @@ public class UserSettingController
     public Map<String, Serializable> getAllUserSettings(
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId
+        @RequestParam( value = "userId", required = false ) String userId,
+        @RequestParam( value = "key", required = false ) Set<String> keys
     )
         throws WebMessageException
     {
         User user = getUser( userId, username );
 
-        return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, useFallback );
+        if ( keys == null )
+        {
+            return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, useFallback );
+        }
+
+        Map<String, Serializable> result = new HashMap<>();
+
+        for ( String key : keys )
+        {
+            UserSettingKey userSettingKey = getUserSettingKey( key );
+            result.put( userSettingKey.getName(), userSettingService.getUserSetting( userSettingKey ) );
+        }
+
+        return result;
     }
 
     @GetMapping( value = "/{key}" )
@@ -107,9 +122,11 @@ public class UserSettingController
         UserSettingKey userSettingKey = getUserSettingKey( key );
         User user = getUser( userId, username );
 
-        return (String) userSettingService
-            .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey.getName() ), useFallback )
+        Serializable value = userSettingService
+            .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey ), useFallback )
             .get( key );
+
+        return String.valueOf( value );
     }
 
     @PostMapping( value = "/{key}" )
@@ -132,7 +149,7 @@ public class UserSettingController
             throw new WebMessageException( WebMessageUtils.conflict( "You need to specify a new value" ) );
         }
 
-        userSettingService.saveUserSetting( userSettingKey, newValue, user );
+        userSettingService.saveUserSetting( userSettingKey, UserSettingKey.getAsRealClass( key, newValue ), user );
 
         return WebMessageUtils.ok( "User setting saved" );
     }
@@ -197,7 +214,7 @@ public class UserSettingController
         }
         else
         {
-            user = userService.getUserCredentialsByUsername( username ).getUser();
+            user = userService.getUserCredentialsByUsername( username ).getUserInfo();
         }
 
         if ( user == null )

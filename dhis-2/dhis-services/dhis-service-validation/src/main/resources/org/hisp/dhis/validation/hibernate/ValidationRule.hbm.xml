@@ -21,6 +21,8 @@
 
     <property name="instruction" type="text" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <property name="importance" length="50">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.validation.Importance</param>
@@ -60,13 +62,6 @@
       <element column="organisationunitlevel" type="int" />
     </set>
 
-    <!-- Object Translation -->
-    <set name="translations" table="validationruletranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="validationruleid" foreign-key="fk_objecttranslation_validationruleid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
-
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_validationrule_userid" />
 
@@ -82,6 +77,14 @@
       <cache usage="read-write" />
       <key column="validationruleid" />
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
+    </set>
+
+    <!-- Dynamic attribute values -->
+
+    <set name="attributeValues" table="validationruleattributevalues" cascade="all-delete-orphan">
+      <cache usage="read-write" />
+      <key column="validationruleid" />
+      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
     </set>
 
   </class>

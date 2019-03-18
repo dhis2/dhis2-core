@@ -56,7 +56,7 @@ public class DefaultTrackedEntityInstanceFilterService
     // -------------------------------------------------------------------------
     
     @Override
-    public int add( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
+    public long add( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
     {        
         trackedEntityInstanceFilterStore.save( trackedEntityInstanceFilter );
         return trackedEntityInstanceFilter.getId();
@@ -75,7 +75,7 @@ public class DefaultTrackedEntityInstanceFilterService
     }
     
     @Override
-    public TrackedEntityInstanceFilter get( int id )
+    public TrackedEntityInstanceFilter get( long id )
     {
         return trackedEntityInstanceFilterStore.get( id );
     }

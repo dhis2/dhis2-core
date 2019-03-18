@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
-import static org.hisp.dhis.security.filter.CustomAuthenticationFilter.PARAM_MOBILE_VERSION;
 
 /**
  * @author mortenoh
@@ -111,14 +110,7 @@ public class MappedRedirectStrategy
 
         Device device = deviceResolver.resolveDevice( request );
 
-        String mobileVersion = (String) request.getAttribute( PARAM_MOBILE_VERSION );
-        mobileVersion = mobileVersion == null ? "desktop" : mobileVersion;
-
-        if ( (device.isMobile() || device.isTablet()) && mobileVersion.equals( "basic" ) )
-        {
-            url = getRootPath( request ) + "/light/index.action";
-        }
-        else if ( (device.isMobile() || device.isTablet()) && mobileVersion.equals( "desktop" ) )
+        if ( (device.isMobile() || device.isTablet()) )
         {
             url = getRootPath( request ) + "/";
         }

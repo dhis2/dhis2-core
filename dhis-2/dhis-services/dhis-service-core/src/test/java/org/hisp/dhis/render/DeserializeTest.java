@@ -28,7 +28,8 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.MoreObjects;
 
 import java.util.Date;
 
@@ -44,6 +45,10 @@ public class DeserializeTest
     private String c;
 
     private Date d;
+
+    public DeserializeTest()
+    {
+    }
 
     @JsonProperty
     public String getA()
@@ -87,5 +92,17 @@ public class DeserializeTest
     public void setD( Date d )
     {
         this.d = d;
+    }
+
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "a", a )
+            .add( "b", b )
+            .add( "c", c )
+            .add( "d", d )
+            .toString();
     }
 }

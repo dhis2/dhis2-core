@@ -28,7 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.message.MessageService;
@@ -36,7 +35,6 @@ import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
@@ -61,26 +59,20 @@ public class DhisMessageAlertListener
     private MessageService messageService;
 
     @Autowired
-    private IncomingSmsService incomingSmsService;
-
-    @Autowired
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
 
-    @Transactional
     @Override
-    public boolean accept( IncomingSms sms )
+    protected SMSCommand getSMSCommand( IncomingSms sms )
     {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.ALERT_PARSER ) != null;
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.ALERT_PARSER );
     }
 
-    @Transactional
     @Override
-    public void receive( IncomingSms sms )
+    protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
         String message = sms.getText();
-        SMSCommand smsCommand = smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.ALERT_PARSER );
+
         UserGroup userGroup = smsCommand.getUserGroup();
 
         if ( userGroup != null )
@@ -90,12 +82,12 @@ public class DhisMessageAlertListener
             if ( users != null && users.size() > 1 )
             {
                 String messageMoreThanOneUser = smsCommand.getMoreThanOneOrgUnitMessage();
-                
+
                 if ( messageMoreThanOneUser.trim().isEmpty() )
                 {
                     messageMoreThanOneUser = SMSCommand.MORE_THAN_ONE_ORGUNIT_MESSAGE;
                 }
-                
+
                 for ( Iterator<User> i = users.iterator(); i.hasNext(); )
                 {
                     User user = i.next();
@@ -105,7 +97,7 @@ public class DhisMessageAlertListener
                         messageMoreThanOneUser += ",";
                     }
                 }
-                
+
                 throw new SMSParserException( messageMoreThanOneUser );
             }
             else if ( users != null && users.size() == 1 )
@@ -134,30 +126,13 @@ public class DhisMessageAlertListener
                     Log.info( "No sms configuration found." );
                 }
 
-                sms.setStatus( SmsMessageStatus.PROCESSED );
-                sms.setParsed( true );
-
-                incomingSmsService.update( sms );
+                update( sms,  SmsMessageStatus.PROCESSED, true );
             }
             else if ( users == null || users.size() == 0 )
             {
                 throw new SMSParserException(
-                    "No user associated with this phone number. Please contact your supervisor." );
+                        "No user associated with this phone number. Please contact your supervisor." );
             }
         }
-    }
-
-    @Override
-    protected String getDefaultPattern()
-    {
-        // Not supported for AlertSMSListener
-        return StringUtils.EMPTY;
-    }
-
-    @Override
-    protected String getSuccessMessage()
-    {
-        // Not supported for AlertSMSListener
-        return StringUtils.EMPTY;
     }
 }

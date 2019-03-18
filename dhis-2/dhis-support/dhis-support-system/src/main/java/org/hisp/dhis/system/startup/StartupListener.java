@@ -68,12 +68,12 @@ public class StartupListener
 
         try
         {
-            startupRoutineExecutor.execute();            
+            startupRoutineExecutor.execute();
         }
         catch ( Exception ex )
         {
             log.error( DebugUtils.getStackTrace( ex ) );
-            
+
             throw new RuntimeException( "Failed to run startup routines: " + ex.getMessage(), ex );
         }
     }
@@ -82,7 +82,7 @@ public class StartupListener
     public void contextDestroyed( ServletContextEvent event )
     {
         Enumeration<Driver> drivers = DriverManager.getDrivers();
-        
+
         while ( drivers.hasMoreElements() )
         {
             Driver driver = drivers.nextElement();

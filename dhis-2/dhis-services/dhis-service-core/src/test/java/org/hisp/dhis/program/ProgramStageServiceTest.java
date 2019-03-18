@@ -28,17 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.util.HashSet;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Chau Thu Tran
@@ -80,8 +78,8 @@ public class ProgramStageServiceTest
     @Test
     public void testSaveProgramStage()
     {
-        int idA = programStageService.saveProgramStage( stageA );
-        int idB = programStageService.saveProgramStage( stageB );
+        long idA = programStageService.saveProgramStage( stageA );
+        long idB = programStageService.saveProgramStage( stageB );
 
         assertNotNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
@@ -90,8 +88,8 @@ public class ProgramStageServiceTest
     @Test
     public void testDeleteProgramStage()
     {
-        int idA = programStageService.saveProgramStage( stageA );
-        int idB = programStageService.saveProgramStage( stageB );
+        long idA = programStageService.saveProgramStage( stageA );
+        long idB = programStageService.saveProgramStage( stageB );
 
         assertNotNull( programStageService.getProgramStage( idA ) );
         assertNotNull( programStageService.getProgramStage( idB ) );
@@ -110,7 +108,7 @@ public class ProgramStageServiceTest
     @Test
     public void testUpdateProgramStage()
     {
-        int idA = programStageService.saveProgramStage( stageA );
+        long idA = programStageService.saveProgramStage( stageA );
 
         assertNotNull( programStageService.getProgramStage( idA ) );
 
@@ -123,8 +121,8 @@ public class ProgramStageServiceTest
     @Test
     public void testGetProgramStageById()
     {
-        int idA = programStageService.saveProgramStage( stageA );
-        int idB = programStageService.saveProgramStage( stageB );
+        long idA = programStageService.saveProgramStage( stageA );
+        long idB = programStageService.saveProgramStage( stageB );
 
         assertEquals( stageA, programStageService.getProgramStage( idA ) );
         assertEquals( stageB, programStageService.getProgramStage( idB ) );

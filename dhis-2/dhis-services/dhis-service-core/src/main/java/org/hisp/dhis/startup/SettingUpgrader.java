@@ -44,7 +44,7 @@ public class SettingUpgrader
         throws Exception
     {
         String startModule = (String) manager.getSystemSetting( SettingKey.START_MODULE );
-        
+
         if ( "dhis-web-dashboard-integration".equals( startModule ) )
         {
             manager.saveSystemSetting( SettingKey.START_MODULE, SettingKey.START_MODULE.getDefaultValue() );

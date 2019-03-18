@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.util.Objects;
+
 /**
  * @author Stian Sandvold
  */
@@ -96,5 +98,30 @@ public class TextPatternSegment
         {
             return String.format( "%s(%s)", method.name(), parameter );
         }
+    }
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        TextPatternSegment that = (TextPatternSegment) o;
+
+        return method == that.method &&
+            Objects.equals( parameter, that.parameter );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( method, parameter );
     }
 }

@@ -34,7 +34,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import org.hibernate.criterion.Restrictions;
+import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Lars Helge Overland
@@ -45,8 +45,10 @@ public class HibernateProgramTrackedEntityAttributeStore
 {
     public ProgramTrackedEntityAttribute get( Program program, TrackedEntityAttribute attribute )
     {
-        return (ProgramTrackedEntityAttribute) getCriteria( 
-            Restrictions.eq( "program", program ),
-            Restrictions.eq( "attribute", attribute ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
+            .addPredicate( root -> builder.equal( root.get( "attribute" ), attribute ) ) );
     }
 }

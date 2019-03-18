@@ -28,12 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
-import org.codehaus.jackson.JsonNode;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.translation.ObjectTranslation;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
@@ -70,7 +70,7 @@ public class TranslationWebApiTest
 
         String valueToCheck = "frenchTranslated";
 
-        dataElementA.getTranslations().add( new ObjectTranslation( locale.getLanguage(), TranslationProperty.NAME, valueToCheck ) );
+        dataElementA.getTranslations().add( new Translation( locale.getLanguage(), TranslationProperty.NAME, valueToCheck ) );
 
         mvc.perform( put( "/dataElements/" + dataElementA.getUid() + "/translations" )
             .session( session )

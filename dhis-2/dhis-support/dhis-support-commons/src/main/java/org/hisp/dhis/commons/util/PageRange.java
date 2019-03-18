@@ -33,7 +33,7 @@ import java.util.List;
 
 /**
  * Class which represents a range between two indexes.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class PageRange
@@ -42,34 +42,34 @@ public class PageRange
      * The current from index.
      */
     private int fromIndex = 0;
-    
+
     /**
      * The current to index.
      */
     private int toIndex = 0;
-    
+
     /**
      * Total number of values.
      */
     private int values;
-    
+
     /**
      * Size of pages.
      */
     private int pageSize;
-    
+
     protected PageRange()
     {
     }
-    
+
     public PageRange( int values )
     {
         this.values = values;
     }
-    
+
     /**
      * Sets page size.
-     * 
+     *
      * @param pageSize the page size.
      * @return this object.
      */
@@ -78,10 +78,10 @@ public class PageRange
         this.pageSize = pageSize;
         return this;
     }
-    
+
     /**
      * Sets number of pages.
-     * 
+     *
      * @param pages the number of pages.
      * @return this object.
      */
@@ -90,11 +90,11 @@ public class PageRange
         this.pageSize = (int) Math.ceil( (double) values / pages );
         return this;
     }
-    
+
     /**
      * Moves the range to the next page. Returns true if the range has another page,
      * false if not.
-     * 
+     *
      * @return true if range has another page, false if not.
      */
     public boolean nextPage()
@@ -103,30 +103,30 @@ public class PageRange
         {
             return false;
         }
-        
+
         if ( toIndex > 0 ) // Not first invocation
         {
             fromIndex += pageSize;
-        }            
-        
+        }
+
         toIndex = Math.min( ( fromIndex + pageSize ), values );
-        
+
         return true;
     }
 
     /**
      * Returns the number of pages in the list.
-     * 
+     *
      * @return number of pages.
      */
     public int pageCount()
-    {       
+    {
         int r = values / pageSize;
         int m = values % pageSize;
-        
+
         return m == 0 ? r : ( r + 1 );
     }
-    
+
     /**
      * Sets the current page position to the first page.
      */
@@ -135,10 +135,10 @@ public class PageRange
         fromIndex = 0;
         toIndex = 0;
     }
-    
+
     /**
      * Returns the current from index, which is closed / inclusive.
-     * 
+     *
      * @return the current from index.
      */
     public int getFromIndex()
@@ -148,7 +148,7 @@ public class PageRange
 
     /**
      * Returns the current to index, which is open / exclusive.
-     * 
+     *
      * @return the current to index.
      */
     public int getToIndex()
@@ -157,38 +157,38 @@ public class PageRange
         {
             throw new IllegalStateException( "nextPage() must be called before getToIndex()" );
         }
-        
+
         return toIndex;
     }
-    
+
     /**
      * Returns the page size.
-     * 
+     *
      * @return the page size.
      */
     public int getPageSize()
     {
         return pageSize;
     }
-    
+
     /**
      * Returns a list of all pages. Each item is an array where index 0 holds the
      * from index and index 1 holds the to index. Resets the page.
-     * 
+     *
      * @return a list of all pages.
      */
     public List<int[]> getPages()
     {
         List<int[]> pages = new ArrayList<>();
-        
+
         while ( nextPage() )
         {
             int[] range = { getFromIndex(), getToIndex() };
             pages.add( range );
         }
-        
+
         reset();
-        
+
         return pages;
     }
 }

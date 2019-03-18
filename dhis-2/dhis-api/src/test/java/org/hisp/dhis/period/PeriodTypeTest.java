@@ -28,10 +28,15 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import org.hisp.dhis.calendar.Calendar;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class PeriodTypeTest
 {
     @Test
@@ -86,7 +91,41 @@ public class PeriodTypeTest
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011April" ).getIso8601Duration(), "P1Y" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011July" ).getIso8601Duration(), "P1Y" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011Oct" ).getIso8601Duration(), "P1Y" );
-
     }
+    
+    @Test
+    public void testGetPeriodTypePeriods()
+    {
+        Calendar calendar = PeriodType.getCalendar();
+        
+        Period jan2018 = PeriodType.getPeriodFromIsoString( "201801" );
+        Period q12018 = PeriodType.getPeriodFromIsoString( "2018Q1" );
+        Period y2018 = PeriodType.getPeriodFromIsoString( "2018" );
+        Period fyApril2018 = PeriodType.getPeriodFromIsoString( "2018April" );
+        
+        int inxMonthly = PeriodType.PERIOD_TYPES.indexOf( new MonthlyPeriodType() );
+        int inxQuarterly = PeriodType.PERIOD_TYPES.indexOf( new QuarterlyPeriodType() );
+        int inxYearly = PeriodType.PERIOD_TYPES.indexOf( new YearlyPeriodType() );
+        int inxFinancialApril = PeriodType.PERIOD_TYPES.indexOf( new FinancialAprilPeriodType() );
+        
+        List<Period> periods = PeriodType.getPeriodTypePeriods( jan2018, calendar );
+        
+        assertEquals( jan2018, periods.get( inxMonthly ) );
+        assertEquals( q12018, periods.get( inxQuarterly ) );
+        assertEquals( y2018, periods.get( inxYearly ) );
+        
+        periods = PeriodType.getPeriodTypePeriods( y2018, calendar );
 
+        assertNull( periods.get( inxMonthly ) );
+        assertNull( periods.get( inxQuarterly ) );
+        assertEquals( y2018, periods.get( inxYearly ) );
+        assertNull( periods.get( inxFinancialApril ) );
+        
+        periods = PeriodType.getPeriodTypePeriods( fyApril2018, calendar );
+
+        assertNull( periods.get( inxMonthly ) );
+        assertNull( periods.get( inxQuarterly ) );
+        assertNull( periods.get( inxYearly ) );
+        assertEquals( fyApril2018, periods.get( inxFinancialApril ) );        
+    }
 }

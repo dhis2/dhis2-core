@@ -29,6 +29,8 @@
 
     <property name="title" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <list name="mapViews" table="mapmapviews" cascade="all">
       <cache usage="read-write" />
       <key column="mapid" foreign-key="fk_mapmapview_mapid" />
@@ -62,7 +64,9 @@
     </set>
 
     <property name="favorites" type="jbSet" />
-    
+
+    <property name="subscribers" type="jbSet" />
+
   </class>
 
 </hibernate-mapping>

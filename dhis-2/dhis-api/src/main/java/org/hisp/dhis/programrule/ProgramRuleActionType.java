@@ -49,12 +49,22 @@ public enum ProgramRuleActionType
     ERRORONCOMPLETE( "erroroncomplete" ),
     CREATEEVENT( "createevent" ),
     SETMANDATORYFIELD( "setmandatoryfield" ),
-    SENDMESSAGE( "sendmessage" );
+    SENDMESSAGE( "sendmessage" ),
+    SCHEDULEMESSAGE( "schedulemessage" ),
+    HIDEOPTION( "hideoption" ),
+    SHOWOPTIONGROUP( "showoptiongroup" ),
+    HIDEOPTIONGROUP( "hideoptiongroup" );
 
     final String value;
 
     private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE ).build(); // Actions having back end implementation
+        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
+
+    private static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>().add( HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION,
+        HIDEOPTIONGROUP, SHOWOPTIONGROUP ).build(); // Actions associated with DataElement Or TrackedEntityAttribute
+
+    private static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES =
+        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions associated with NotificationTemplate
 
     ProgramRuleActionType( String value )
     {
@@ -77,5 +87,20 @@ public enum ProgramRuleActionType
     public boolean isImplementable()
     {
         return IMPLEMENTED_ACTIONS.contains( this );
+    }
+
+    public static Set<ProgramRuleActionType> getImplementedActions()
+    {
+        return IMPLEMENTED_ACTIONS;
+    }
+
+    public static Set<ProgramRuleActionType> getDataLinkedTypes()
+    {
+        return DATA_LINKED_TYPES;
+    }
+
+    public static Set<ProgramRuleActionType> getNotificationLinkedTypes()
+    {
+        return NOTIFICATION_LINKED_TYPES;
     }
 }

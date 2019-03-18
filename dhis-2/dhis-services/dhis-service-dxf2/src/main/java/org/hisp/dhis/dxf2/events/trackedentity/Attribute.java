@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -55,6 +56,8 @@ public class Attribute
     private String value;
 
     private String storedBy;
+
+    private boolean skipSynchronization = false;
 
     public Attribute()
     {
@@ -168,6 +171,17 @@ public class Attribute
         this.storedBy = storedBy;
     }
 
+    @JsonIgnore
+    public Boolean isSkipSynchronization()
+    {
+        return skipSynchronization;
+    }
+
+    public void setSkipSynchronization( boolean skipSynchronization )
+    {
+        this.skipSynchronization = skipSynchronization;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -217,10 +231,15 @@ public class Attribute
         return result;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
-        return "Attribute{" + "displayName='" + displayName + '\'' + ", attribute='" + attribute + '\'' + ", type='"
-            + valueType + '\'' + ", code='" + code + '\'' + ", value='" + value + '\'' + '}';
+        return "Attribute{" +
+            "displayName='" + displayName + '\'' +
+            ", attribute='" + attribute + '\'' +
+            ", valueType=" + valueType +
+            ", code='" + code + '\'' +
+            ", value='" + value + '\'' +
+            ", skipSynchronization=" + skipSynchronization +
+            '}';
     }
 }

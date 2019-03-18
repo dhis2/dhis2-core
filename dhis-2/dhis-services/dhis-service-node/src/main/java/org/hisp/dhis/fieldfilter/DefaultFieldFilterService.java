@@ -58,11 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -153,6 +149,11 @@ public class DefaultFieldFilterService implements FieldFilterService
         collectionNode.setNamespace( rootSchema.getNamespace() );
 
         List<?> objects = params.getObjects();
+
+        if ( params.getSkipSharing() )
+        {
+            fields = Joiner.on( "," ).join( fieldParser.modifyFilter( params.getFields(),  SHARING_FIELDS ) );
+        }
 
         if ( params.getObjects().isEmpty() )
         {

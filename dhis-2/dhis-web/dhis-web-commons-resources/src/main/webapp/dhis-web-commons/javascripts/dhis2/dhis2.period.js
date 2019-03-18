@@ -222,10 +222,12 @@ dhis2.period.PeriodGenerator = function(calendar, format) {
   this.registerGenerator( dhis2.period.QuarterlyGenerator );
   this.registerGenerator( dhis2.period.SixMonthlyGenerator );
   this.registerGenerator( dhis2.period.SixMonthlyAprilGenerator );
+  this.registerGenerator( dhis2.period.SixMonthlyNovemberGenerator );
   this.registerGenerator( dhis2.period.YearlyGenerator );
   this.registerGenerator( dhis2.period.FinancialAprilGenerator );
   this.registerGenerator( dhis2.period.FinancialJulyGenerator );
   this.registerGenerator( dhis2.period.FinancialOctoberGenerator );
+  this.registerGenerator( dhis2.period.FinancialNovemberGenerator );
 };
 
 /**
@@ -435,6 +437,13 @@ dhis2.period.PeriodGenerator.prototype.financialApril = function(offset) {
 };
 
 /**
+ * Convenience method to get FinancialNov generator
+ */
+dhis2.period.PeriodGenerator.prototype.financialNov = function(offset) {
+  return this.get( 'FinancialNov' ).generatePeriods( offset );
+};
+
+/**
  * Out-of-place reversal of a list of periods
  *
  * @param {Array} periods Periods to reverse
@@ -488,7 +497,9 @@ dhis2.period.PeriodGenerator.prototype.getPeriodForTheDate = function(date, type
   var yearOffset = year - (new Date()).getFullYear();
   var offset = 0, eventDate, allPeriods, periodWithDate = null;
 
-  if ( type === 'FinancialOct' ) {
+  if ( type === 'FinancialNov' ) {
+	  offset = month <= 10 ? 4 : 5;
+  } else if ( type === 'FinancialOct' ) {
     offset = month <= 9 ? 4 : 5;
   } else if ( type === 'FinancialJuly' ) {
     offset = month <= 6 ? 4 : 5;
@@ -498,6 +509,8 @@ dhis2.period.PeriodGenerator.prototype.getPeriodForTheDate = function(date, type
     offset = -5;
   } else if ( type === 'SixMonthlyApril' ) {
     offset = month < 4 ? -1 : 0;
+  } else if ( type === 'SixMonthlyNov' ) {
+    offset = month < 11 ? -1 : 0;
   } else if ( (type === 'SixMonthly') || (type === 'Quarterly') || (type === 'BiMonthly') || (type === 'Monthly')
     || (type === 'Weekly') || (type === 'WeeklyWednesday') || (type === 'WeeklyThursday') || (type === 'WeeklySaturday') || (type === 'WeeklySunday')
     || (type === 'Daily') ) {
@@ -1244,6 +1257,65 @@ $.extend( dhis2.period.SixMonthlyAprilGenerator.prototype, {
 } );
 
 /**
+ * Implementation of dhis2.period.BaseGenerator that generates SixMonthlyNovember periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.BaseGenerator
+ * @see dhis2.period.BaseGenerator
+ */
+dhis2.period.SixMonthlyNovemberGenerator = function(calendar, format) {
+  dhis2.period.BaseGenerator.call( this, 'SixMonthlyNov', calendar, format );
+};
+
+dhis2.period.SixMonthlyNovemberGenerator.prototype = Object.create( dhis2.period.BaseGenerator.prototype );
+
+$.extend( dhis2.period.SixMonthlyNovemberGenerator.prototype, {
+  $generate: function(offset) {
+    var year = offset + this.calendar.today().year();
+    var periods = [];
+
+    var startDate = this.calendar.newDate( year, 11, 1 );
+    var endDate = this.calendar.newDate( startDate ).set( year + 1, 'y').set( 4, 'm' );    
+    endDate.set( endDate.daysInMonth( 4 ), 'd' );
+
+    var period = {};
+    period['startDate'] = startDate.formatDate( this.format );
+    period['endDate'] = endDate.formatDate( this.format );
+    period['name'] = getMonthTranslation( startDate.formatDate( "MM yyyy" ) ) + ' - ' + getMonthTranslation( endDate.formatDate( "MM yyyy" ) );// + ' ' + year;
+    period['id'] = 'SixMonthlyNov_' + period['startDate'];
+    period['iso'] = endDate.formatDate( "yyyy" ) + 'NovS1';   
+
+    period['_startDate'] = this.calendar.newDate( startDate );
+    period['_endDate'] = this.calendar.newDate( endDate );
+
+    periods.push( period );
+
+    startDate = this.calendar.newDate( year + 1, 5, 1 );
+    endDate = this.calendar.newDate( startDate ).set( startDate.year(), 'y' ).set( 10, 'm' );
+    endDate.set( endDate.daysInMonth( endDate.month() ), 'd' );
+
+    period = {};
+    period['startDate'] = startDate.formatDate( this.format );
+    period['endDate'] = endDate.formatDate( this.format );
+    period['name'] = startDate.formatDate( "MM yyyy" ) + ' - ' + endDate.formatDate( 'MM yyyy' );
+    period['id'] = 'SixMonthlyNov_' + period['startDate'];
+    period['iso'] = startDate.formatDate( "yyyy" ) + 'NovS2';
+
+    period['_startDate'] = this.calendar.newDate( startDate );
+    period['_endDate'] = this.calendar.newDate( endDate );
+
+    periods.push( period );
+
+    return periods;
+  },
+  $todayPlusPeriods: function(n) {
+    return this.calendar.today().add( n * 6, 'm' );
+  }
+} );
+
+/**
  * Implementation of dhis2.period.BaseGenerator that generates Yearly periods
  *
  * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
@@ -1328,8 +1400,10 @@ $.extend( dhis2.period.FinancialBaseGenerator.prototype, {
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = getMonthTranslation( startDate.formatDate( "MM" ) ) + ' ' + startDate.year() + ' - ' + getMonthTranslation( endDate.formatDate( "MM" ) ) + ' ' + endDate.year();
       period['id'] = 'Financial' + this.monthShortName + '_' + period['startDate'];
-      period['iso'] = startDate.formatDate( "yyyy" ) + this.monthShortName;
+      
+      var isoDate = this.name === 'FinancialNov' ? endDate.formatDate( "yyyy" ) : startDate.formatDate( "yyyy" );
 
+      period['iso'] = isoDate + this.monthShortName;
       period['_startDate'] = this.calendar.newDate( startDate );
       period['_endDate'] = this.calendar.newDate( endDate );
 
@@ -1391,6 +1465,22 @@ dhis2.period.FinancialOctoberGenerator = function(calendar, format) {
 };
 
 dhis2.period.FinancialOctoberGenerator.prototype = Object.create( dhis2.period.FinancialBaseGenerator.prototype );
+
+/**
+ * Implementation of dhis2.period.FinancialBaseGenerator that generates FinancialNovember periods
+ *
+ * @param {$.calendars.baseCalendar} calendar Calendar to use, this must come from $.calendars.instance(chronology).
+ * @param {String} format Date format to use for formatting, will default to ISO 8601
+ * @constructor
+ * @augments dhis2.period.FinancialBaseGenerator
+ * @see dhis2.period.BaseGenerator
+ * @see dhis2.period.FinancialBaseGenerator
+ */
+dhis2.period.FinancialNovemberGenerator = function(calendar, format) {
+  dhis2.period.FinancialBaseGenerator.call( this, 'FinancialNov', calendar, format, 11, 'Nov' );
+};
+
+dhis2.period.FinancialNovemberGenerator.prototype = Object.create( dhis2.period.FinancialBaseGenerator.prototype );
 
 /**
  * Convenience method to get DHIS2/HMIS months in a year

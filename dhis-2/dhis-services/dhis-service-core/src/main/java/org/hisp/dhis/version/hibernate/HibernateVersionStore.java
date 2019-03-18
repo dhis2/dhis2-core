@@ -28,10 +28,11 @@ package org.hisp.dhis.version.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.version.Version;
 import org.hisp.dhis.version.VersionStore;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 public class HibernateVersionStore
     extends HibernateGenericStore<Version>
@@ -40,6 +41,8 @@ public class HibernateVersionStore
     @Override
     public Version getVersionByKey( String key )
     {
-        return (Version) getCriteria( Restrictions.eq( "key", key ) ).uniqueResult();
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getSingleResult( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
     }
 }

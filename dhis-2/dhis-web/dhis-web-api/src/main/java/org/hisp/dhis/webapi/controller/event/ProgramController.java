@@ -57,7 +57,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -114,7 +113,7 @@ public class ProgramController
 
         if ( userFilter )
         {
-            Set<Program> programs = programService.getUserPrograms();
+            List<Program> programs = programService.getUserPrograms();
             entityList.retainAll( programs );
             metadata.setPager( null );
         }

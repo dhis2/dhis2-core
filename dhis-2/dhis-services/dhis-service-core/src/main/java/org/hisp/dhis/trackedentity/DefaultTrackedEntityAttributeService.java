@@ -28,7 +28,16 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -40,7 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -50,11 +58,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Abyot Asalefew
@@ -64,6 +68,9 @@ public class DefaultTrackedEntityAttributeService
     implements TrackedEntityAttributeService
 {
     private static final int VALUE_MAX_LENGTH = 50000;
+
+    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
+        ImageIO.getReaderFormatNames() ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -86,10 +93,10 @@ public class DefaultTrackedEntityAttributeService
 
     @Autowired
     private ApplicationContext applicationContext;
-    
+
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private AclService aclService;
 
@@ -110,13 +117,13 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public TrackedEntityAttribute getTrackedEntityAttribute( int id )
+    public TrackedEntityAttribute getTrackedEntityAttribute( long id )
     {
         return attributeStore.get( id );
     }
 
     @Override
-    public int addTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    public long addTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         attributeStore.save( attribute );
         return attribute.getId();
@@ -273,19 +280,33 @@ public class DefaultTrackedEntityAttributeService
 
         return null;
     }
-    
+
+    @Override
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
     {
+        return getAllUserReadableTrackedEntityAttributes( currentUserService.getCurrentUser() );
+    }
+
+    @Override
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user )
+    {
+        List<Program> programs = programService.getAllPrograms();
+        List<TrackedEntityType> trackedEntityTypes = trackedEntityTypeService.getAllTrackedEntityType();
+
+        return getAllUserReadableTrackedEntityAttributes( user, programs, trackedEntityTypes );
+    }
+
+    @Override
+    public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes( User user, List<Program> programs, List<TrackedEntityType> trackedEntityTypes )
+    {
         Set<TrackedEntityAttribute> attributes = new HashSet<>();
-        
-        User user = currentUserService.getCurrentUser();        
-        
-        attributes = programService.getAllPrograms().stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
-            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );                
-        
-        attributes.addAll( trackedEntityTypeService.getAllTrackedEntityType().stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
-            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );        
-        
+
+        attributes = programs.stream().filter( program -> aclService.canDataRead( user, program ) ).collect( Collectors.toList() )
+            .stream().map( Program::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+
+        attributes.addAll( trackedEntityTypes.stream().filter( trackedEntityType -> aclService.canDataRead( user, trackedEntityType ) ).collect( Collectors.toList() )
+            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() ) );
+
         return attributes;
     }
 
@@ -308,7 +329,7 @@ public class DefaultTrackedEntityAttributeService
         {
             return "Value '" + uid + "' is not the uid of a file";
         }
-        else if ( !ValueType.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
+        else if ( !VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
         {
             return "File resource with uid '" + uid + "' is not a valid image";
         }

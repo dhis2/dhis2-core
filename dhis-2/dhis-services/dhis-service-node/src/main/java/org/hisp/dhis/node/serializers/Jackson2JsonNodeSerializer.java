@@ -28,23 +28,26 @@ package org.hisp.dhis.node.serializers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.Lists;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.system.util.DateUtils;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,9 +65,9 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
     static
     {
         objectMapper.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-        objectMapper.configure( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, true );
         objectMapper.configure( SerializationFeature.WRAP_EXCEPTIONS, true );
         objectMapper.getFactory().enable( JsonGenerator.Feature.QUOTE_FIELD_NAMES );
+        objectMapper.registerModule( new JtsModule(  ) );
     }
 
     private JsonGenerator generator = null;
@@ -117,6 +120,13 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
         if ( Date.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
         {
             value = DateUtils.getIso8601NoTz( (Date) simpleNode.getValue() );
+        }
+
+        if ( Geometry.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
+        {
+            generator.writeFieldName( simpleNode.getName() );
+            generator.writeRawValue( objectMapper.writeValueAsString( value ) );
+            return;
         }
 
         if ( simpleNode.getParent().isCollection() )

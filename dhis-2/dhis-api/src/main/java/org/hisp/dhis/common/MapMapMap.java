@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Jim Grace
@@ -53,7 +54,7 @@ public class MapMapMap<S, T, U, V>
     {
         MapMap<T, U, V> map = this.get( key1 );
         map = map == null ? new MapMap<>() : map;
-        map.putAll( m );
+        map.putMap( m );
         this.put( key1, map );
     }
 
@@ -71,11 +72,11 @@ public class MapMapMap<S, T, U, V>
     }
 
     @SafeVarargs
-    public static <S, T, U, V> MapMapMap<S, T, U, V> asMapMapMap( final SimpleEntry<S, MapMap<T, U, V>>... entries )
+    public static <S, T, U, V> MapMapMap<S, T, U, V> ofEntries( Map.Entry<S, MapMap<T, U, V>>... entries )
     {
         MapMapMap<S, T, U, V> map = new MapMapMap<>();
 
-        for ( SimpleEntry<S, MapMap<T, U, V>> entry : entries )
+        for ( Map.Entry<S, MapMap<T, U, V>> entry : entries )
         {
             map.put( entry.getKey(), entry.getValue() );
         }

@@ -40,15 +40,7 @@
 
     <property name="comment" type="text" />
 
-    <property name="featureType" length="50">
-      <type name="org.hibernate.type.EnumType">
-        <param name="enumClass">org.hisp.dhis.organisationunit.FeatureType</param>
-        <param name="useNamed">true</param>
-        <param name="type">12</param>
-      </type>
-    </property>
-
-    <property name="coordinates" type="text" />
+    <property name="geometry" />
 
     <property name="url" />
 
@@ -92,12 +84,7 @@
 
     <property name="phoneNumber" length="150" />
 
-    <!-- Object Translation -->
-    <set name="translations" table="organisationunittranslations" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="organisationunitid" foreign-key="fk_objecttranslation_organisationunitid" />
-      <many-to-many class="org.hisp.dhis.translation.ObjectTranslation" column="objecttranslationid" unique="true" />
-    </set>
+    <property name="translations" type="jblTranslations"/>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_organisationunit_userid" />

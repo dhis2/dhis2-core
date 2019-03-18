@@ -28,24 +28,34 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisTest;
+import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.junit.Assert.assertEquals;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.mock.MockAnalyticsService;
+import org.hisp.dhis.category.CategoryManager;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -72,22 +82,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.junit.Assert.assertEquals;
+import com.google.common.collect.Sets;
 
 /**
  * Test the ability of predictions to access event data through analytics.
@@ -96,16 +96,13 @@ import static org.junit.Assert.assertEquals;
  */
 @Category( IntegrationTest.class )
 public class EventPredictionServiceTest
-    extends DhisTest
+    extends IntegrationTestBase
 {
     @Autowired
     private PredictorService predictorService;
 
     @Autowired
     private PredictionService predictionService;
-
-    @Autowired
-    private TrackedEntityDataValueService trackedEntityDataValueService;
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -152,6 +149,9 @@ public class EventPredictionServiceTest
     @Autowired
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private CategoryManager categoryManager;
+
     private CategoryOptionCombo defaultCombo;
 
     private OrganisationUnit orgUnitA;
@@ -165,10 +165,12 @@ public class EventPredictionServiceTest
     private DataElement predictorOutputA;
     private DataElement predictorOutputD;
     private DataElement predictorOutputI;
+    private DataElement predictorOutputT;
 
     private Predictor predictorA;
     private Predictor predictorD;
     private Predictor predictorI;
+    private Predictor predictorT;
 
     @Override
     public void setUpTest()
@@ -176,6 +178,8 @@ public class EventPredictionServiceTest
         final String DATA_ELEMENT_A_UID = "DataElemenA";
         final String DATA_ELEMENT_D_UID = "DataElemenD";
         final String DATA_ELEMENT_I_UID = "DataElemenI";
+        final String DATA_ELEMENT_E_UID = "DataElemenE";
+        final String DATA_ELEMENT_T_UID = "DataElemenT";
         final String DATA_ELEMENT_X_UID = "DataElemenX";
         final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
         final String PROGRAM_UID = "ProgramUidA";
@@ -187,6 +191,8 @@ public class EventPredictionServiceTest
         final String EXPRESSION_A = "SUM( A{" + PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM + "} )"; // A - ProgramTrackedEntityAttribute
         final String EXPRESSION_D = "SUM( D{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} )"; // D - ProgramDataElement
         final String EXPRESSION_I = "SUM( I{" + PROGRAM_INDICATOR_A_UID + "} + I{" + PROGRAM_INDICATOR_B_UID + "} )"; // I - ProgramIndicators
+        final String EXPRESSION_E = "SUM( #{" + DATA_ELEMENT_E_UID + "} )"; // E - Data element
+        final String EXPRESSION_T = EXPRESSION_A + " + " + EXPRESSION_E; // T - Two things, event and data elemeent
 
         final String EX_INDICATOR_A = "#{" + PROGRAM_DATA_ELEMENT_DIMENSION_ITEM + "} + 4"; // Program Indicator A expression
         final String EX_INDICATOR_B = "V{enrollment_count}"; // Program Indicator B expression
@@ -215,16 +221,22 @@ public class EventPredictionServiceTest
         predictorOutputA = createDataElement( 'A' );
         predictorOutputD = createDataElement( 'D' );
         predictorOutputI = createDataElement( 'I' );
+        predictorOutputT = createDataElement( 'T' );
+        DataElement dataElementE = createDataElement( 'E' );
         DataElement dataElementX = createDataElement( 'P', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
 
         predictorOutputA.setUid( DATA_ELEMENT_A_UID );
         predictorOutputD.setUid( DATA_ELEMENT_D_UID );
         predictorOutputI.setUid( DATA_ELEMENT_I_UID );
+        predictorOutputT.setUid( DATA_ELEMENT_T_UID );
+        dataElementE.setUid( DATA_ELEMENT_E_UID );
         dataElementX.setUid( DATA_ELEMENT_X_UID );
 
         dataElementService.addDataElement( predictorOutputA );
         dataElementService.addDataElement( predictorOutputD );
         dataElementService.addDataElement( predictorOutputI );
+        dataElementService.addDataElement( predictorOutputT );
+        dataElementService.addDataElement( dataElementE );
         dataElementService.addDataElement( dataElementX );
 
         TrackedEntityAttribute entityAttribute = createTrackedEntityAttribute( 'A' );
@@ -283,11 +295,12 @@ public class EventPredictionServiceTest
         programStageInstanceService.addProgramStageInstance( stageInstanceA );
         programStageInstanceService.addProgramStageInstance( stageInstanceB );
 
-        categoryService.addAndPruneAllOptionCombos();
+        categoryManager.addAndPruneAllOptionCombos();
 
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );
         Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicators" );
+        Expression expressionT = new Expression( EXPRESSION_T, "Two things" );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionD );
@@ -305,15 +318,12 @@ public class EventPredictionServiceTest
         predictorI = createPredictor( predictorOutputI, defaultCombo, "I", expressionI, null,
             periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
 
+        predictorT = createPredictor( predictorOutputT, defaultCombo, "T", expressionT, null,
+            periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
+
         predictorService.addPredictor( predictorA );
         predictorService.addPredictor( predictorD );
         predictorService.addPredictor( predictorI );
-
-        TrackedEntityDataValue dataValueA = new TrackedEntityDataValue( stageInstanceA, dataElementX, "4" );
-        TrackedEntityDataValue dataValueB = new TrackedEntityDataValue( stageInstanceB, dataElementX, "5" );
-
-        trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueA );
-        trackedEntityDataValueService.saveTrackedEntityDataValue( dataValueB );
 
         Map<String, Grid> itemGridMap = new HashMap<>();
         itemGridMap.put( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, newGrid( PROGRAM_TRACKED_ENTITY_ATTRIBUTE_DIMENSION_ITEM, 1.0, 1.0 ) );
@@ -328,6 +338,10 @@ public class EventPredictionServiceTest
 
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
         setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+
+        dataValueService.addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100" ) );
+        dataValueService.addDataValue( createDataValue( dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200" ) );
+        dataValueService.addDataValue( createDataValue( dataElementE, periodMay, orgUnitA, defaultCombo, defaultCombo, "300" ) );
     }
 
     @Override
@@ -363,7 +377,7 @@ public class EventPredictionServiceTest
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( VALUE_ID ) );
 
-        int month = 201703;
+        int month = Integer.valueOf( testYear + "03" );
 
         for ( double value : values )
         {
@@ -404,19 +418,26 @@ public class EventPredictionServiceTest
     @Test
     public void testPredictEvents()
     {
-        predictionService.predict( predictorA, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+        PredictionSummary summary = new PredictionSummary();
+
+        predictionService.predict( predictorA, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
         assertEquals("1", getDataValue( predictorOutputA, periodApr ) );
         assertEquals("2", getDataValue( predictorOutputA, periodMay ) );
 
-        predictionService.predict( predictorD, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+        predictionService.predict( predictorD, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
         assertEquals("4", getDataValue( predictorOutputD, periodApr ) );
         assertEquals("9", getDataValue( predictorOutputD, periodMay ) );
 
-        predictionService.predict( predictorI, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ) );
+        predictionService.predict( predictorI, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
 
         assertEquals("8", getDataValue( predictorOutputI, periodApr ) );
         assertEquals("17", getDataValue( predictorOutputI, periodMay ) );
+
+        predictionService.predict( predictorT, getDate( testYear, 4, 1 ), getDate( testYear, 5, 31 ), summary );
+
+        assertEquals("101", getDataValue( predictorOutputT, periodApr ) );
+        assertEquals("302", getDataValue( predictorOutputT, periodMay ) );
     }
 }

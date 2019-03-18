@@ -34,6 +34,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Jim Grace
@@ -52,7 +53,7 @@ public interface DataApprovalService
      * @param workflow the DataApprovalWorkflow to add.
      * @return a generated unique id of the added Workflow.
      */
-    int addWorkflow( DataApprovalWorkflow workflow );
+    long addWorkflow( DataApprovalWorkflow workflow );
 
     /**
      * Updates a DataApprovalWorkflow.
@@ -74,7 +75,7 @@ public interface DataApprovalService
      * @param id the id of the DataApprovalWorkflow to return.
      * @return the DataApprovalWorkflow with the given id, or null if no match.
      */
-    DataApprovalWorkflow getWorkflow( int id );
+    DataApprovalWorkflow getWorkflow( long id );
 
     /**
      * Returns a DataApprovalWorkflow.
@@ -144,19 +145,13 @@ public interface DataApprovalService
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns the data approval status for a given data set, period,
-     * organisation unit and attribute category combination.
-     * If attributeOptionCombo is null, the default option combo will be used.
-     * If data is approved at multiple levels, the lowest level is returned.
+     * Returns a map showing each data approval status for a list of
+     * data approval objects.
      *
-     * @param workflow workflow to check for approval.
-     * @param period Period to check for approval.
-     * @param organisationUnit OrganisationUnit to check for approval.
-     * @param attributeOptionCombo CategoryOptionCombo (if any) for approval.
-     * @return the data approval status.
+     * @param dataApprovalList the data approvals to check.
+     * @return the data approvals with status.
      */
-    DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
-        OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
+    Map<DataApproval, DataApprovalStatus> getDataApprovalStatuses( List<DataApproval> dataApprovalList );
 
     /**
      * Returns the data approval status and permissions for a given data set,
@@ -170,7 +165,7 @@ public interface DataApprovalService
      * @param attributeOptionCombo CategoryOptionCombo (if any) for approval.
      * @return the data approval status.
      */
-    DataApprovalStatus getDataApprovalStatusAndPermissions( DataApprovalWorkflow workflow, Period period,
+    DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**

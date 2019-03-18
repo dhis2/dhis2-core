@@ -29,7 +29,7 @@
     <property name="password" ref="ldapManagerPassword" />
   </bean>
 
-  <bean id="ldapAuthenticationProvider" class="org.springframework.security.ldap.authentication.LdapAuthenticationProvider">
+  <bean id="ldapAuthenticationProvider" class="org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider">
     <constructor-arg>
       <bean class="org.hisp.dhis.security.ldap.authentication.DhisBindAuthenticator">
         <constructor-arg ref="contextSource" />
@@ -105,6 +105,8 @@
   <!-- Security : Authentication providers -->
 
   <sec:authentication-manager alias="authenticationManager">
-    <sec:authentication-provider ref="twoFactorAuthenticationProvider" />
+    <sec:authentication-provider ref="twoFactorAuthenticationProvider"/>
+    <sec:authentication-provider user-service-ref="clientDetailsUserService" />
+    <sec:authentication-provider ref="ldapAuthenticationProvider" />
   </sec:authentication-manager>
 </beans>

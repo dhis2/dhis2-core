@@ -64,6 +64,7 @@ public abstract class AbstractNode implements Node
 
     protected Property property;
 
+
     protected AbstractNode( String name, NodeType nodeType )
     {
         this.name = name;

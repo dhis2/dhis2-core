@@ -49,6 +49,7 @@ public class MinValue
     }
 
     // nFunk's JEP run() method uses the raw Stack type
+    @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     public void run( Stack inStack )
         throws ParseException
@@ -60,15 +61,11 @@ public class MinValue
         Double min = null;
         for ( Double v : vals )
         {
-            if ( min == null )
-            {
-                min = v;
-            }
-            else if ( v < min )
+            if ( min == null || v < min )
             {
                 min = v;
             }
         }
-        inStack.push( new Double( min ) );
+        inStack.push( min );
     }
 }

@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -53,6 +53,7 @@ import java.util.Set;
 public class EventSearchParams
 {
     public static final String EVENT_ID = "event";
+    public static final String EVENT_ENROLLMENT_ID = "enrollment";
     public static final String EVENT_CREATED_ID = "created";
     public static final String EVENT_LAST_UPDATED_ID = "lastUpdated";
     public static final String EVENT_STORED_BY_ID = "storedBy";
@@ -69,6 +70,7 @@ public class EventSearchParams
     public static final String EVENT_PROGRAM_ID = "program";
     public static final String EVENT_ATTRIBUTE_OPTION_COMBO_ID = "attributeOptionCombo";
     public static final String EVENT_DELETED = "deleted";
+    public static final String EVENT_GEOMETRY = "geometry";
 
     public static final String PAGER_META_KEY = "pager";
 
@@ -123,6 +125,8 @@ public class EventSearchParams
 
     private boolean includeAttributes;
 
+    private boolean includeAllDataElements;
+
     private Set<String> events = new HashSet<>();
 
     /**
@@ -133,13 +137,20 @@ public class EventSearchParams
     /**
      * DataElements to be included in the response. Can be used to filter response.
      */
-    private List<QueryItem> dataElements = new ArrayList<>();
+    private Set<QueryItem> dataElements = new HashSet<>();
 
     private boolean includeDeleted;
 
     private Set<String> accessiblePrograms;
 
     private Set<String> accessibleProgramStages;
+
+    private boolean synchronizationQuery;
+
+    /**
+     * Indicates a point in the time used to decide the data that should not be synchronized
+     */
+    private Date skipChangedBefore;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -183,6 +194,16 @@ public class EventSearchParams
         this.skipPaging = false;
     }
 
+    public boolean hasProgram()
+    {
+    	return program != null;
+    }
+
+    public boolean hasProgramStage()
+    {
+    	return programStage != null;
+    }
+
     /**
      * Indicates whether this search params contain any filters.
      */
@@ -201,7 +222,7 @@ public class EventSearchParams
 
         for ( QueryItem de : dataElements )
         {
-            if ( items != null && !items.contains( de ) )
+            if ( !items.contains( de ) )
             {
                 items.add( de );
             }
@@ -431,6 +452,16 @@ public class EventSearchParams
         this.includeAttributes = includeAttributes;
     }
 
+    public boolean isIncludeAllDataElements()
+    {
+        return includeAllDataElements;
+    }
+
+    public void setIncludeAllDataElements( boolean includeAllDataElements )
+    {
+        this.includeAllDataElements = includeAllDataElements;
+    }
+
     public List<Order> getOrders()
     {
         return this.orders;
@@ -491,12 +522,12 @@ public class EventSearchParams
         return this.includeDeleted;
     }
 
-    public List<QueryItem> getDataElements()
+    public Set<QueryItem> getDataElements()
     {
         return dataElements;
     }
 
-    public void setDataElements( List<QueryItem> dataElements )
+    public void setDataElements( Set<QueryItem> dataElements )
     {
         this.dataElements = dataElements;
     }
@@ -524,5 +555,25 @@ public class EventSearchParams
     public boolean hasSecurityFilter()
     {
         return accessiblePrograms != null && accessibleProgramStages != null;
+    }
+
+    public boolean isSynchronizationQuery()
+    {
+        return synchronizationQuery;
+    }
+
+    public void setSynchronizationQuery( boolean synchronizationQuery )
+    {
+        this.synchronizationQuery = synchronizationQuery;
+    }
+
+    public Date getSkipChangedBefore()
+    {
+        return skipChangedBefore;
+    }
+
+    public void setSkipChangedBefore( Date skipChangedBefore )
+    {
+        this.skipChangedBefore = skipChangedBefore;
     }
 }

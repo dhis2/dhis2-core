@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +42,10 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
  * @author Lars Helge Overland
  */
 public class DimensionItem
+    implements Serializable
 {
     private String dimension;
-    
+
     private DimensionalItemObject item;
 
     // -------------------------------------------------------------------------
@@ -85,24 +87,24 @@ public class DimensionItem
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a string key for dimension items in the given list. The key is 
+     * Returns a string key for dimension items in the given list. The key is
      * a concatenation of the dimension items separated by the dimension separator.
      * If no items are given or items is null, an empty string is returned.
      */
     public static String asItemKey( List<DimensionItem> items )
     {
         StringBuilder builder = new StringBuilder();
-        
+
         if ( items != null && !items.isEmpty() )
         {
             for ( DimensionItem item : items )
             {
                 builder.append( item.getItem().getDimensionItem() ).append( DIMENSION_SEP );
             }
-            
+
             builder.deleteCharAt( builder.length() - 1 );
         }
-        
+
         return builder.toString();
     }
 
@@ -113,7 +115,7 @@ public class DimensionItem
     public static String[] getItemIdentifiers( List<DimensionItem> items )
     {
         List<String> itemUids = new ArrayList<>();
-        
+
         if ( items != null && !items.isEmpty() )
         {
             for ( DimensionItem item : items )
@@ -121,13 +123,13 @@ public class DimensionItem
                 itemUids.add( item != null ? item.getItem().getDimensionItem() : null );
             }
         }
-        
+
         return itemUids.toArray( CollectionUtils.STRING_ARR );
     }
 
     /**
      * Returns the period dimension item object from the given list of
-     * dimension items. If no items are given, items are null or there are no 
+     * dimension items. If no items are given, items are null or there are no
      * period dimension, null is returned.
      */
     public static DimensionalItemObject getPeriodItem( List<DimensionItem> items )
@@ -142,13 +144,13 @@ public class DimensionItem
                 }
             }
         }
-        
+
         return null;
     }
 
     /**
      * Returns the organisation unit dimension item object from the given list of
-     * dimension items. If no items are given, items are null or there are no 
+     * dimension items. If no items are given, items are null or there are no
      * period dimension, null is returned.
      */
     public static DimensionalItemObject getOrganisationUnitItem( List<DimensionItem> items )
@@ -163,10 +165,10 @@ public class DimensionItem
                 }
             }
         }
-        
+
         return null;
     }
-    
+
     // -------------------------------------------------------------------------
     // hashCode, equals and toString
     // -------------------------------------------------------------------------
@@ -188,19 +190,19 @@ public class DimensionItem
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( getClass() != object.getClass() )
         {
             return false;
         }
-        
+
         DimensionItem other = (DimensionItem) object;
-        
+
         if ( dimension == null )
         {
             if ( other.dimension != null )
@@ -212,7 +214,7 @@ public class DimensionItem
         {
             return false;
         }
-        
+
         if ( item == null )
         {
             if ( other.item != null )
@@ -224,7 +226,7 @@ public class DimensionItem
         {
             return false;
         }
-        
+
         return true;
     }
 

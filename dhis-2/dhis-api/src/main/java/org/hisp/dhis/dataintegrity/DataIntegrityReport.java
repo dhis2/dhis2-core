@@ -37,7 +37,11 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
 
 import java.util.ArrayList;
@@ -100,6 +104,24 @@ public class DataIntegrityReport
     private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions = new HashMap<>();
 
     private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoAction = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement = new HashMap<>();
+
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId = new HashMap<>();
+
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId = new HashMap<>();
 
     //-------------------------------------------------------------------------
     // Constructors
@@ -342,5 +364,95 @@ public class DataIntegrityReport
     public void setInvalidProgramIndicatorExpressions( Map<ProgramIndicator, String> invalidProgramIndicatorExpressions )
     {
         this.invalidProgramIndicatorExpressions = invalidProgramIndicatorExpressions;
+    }
+
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithoutCondition()
+    {
+        return programRulesWithoutCondition;
+    }
+
+    public void setProgramRulesWithoutCondition( Map<Program, Collection<ProgramRule>> programRulesWithoutCondition )
+    {
+        this.programRulesWithoutCondition = programRulesWithoutCondition;
+    }
+
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
+    {
+        return programRulesWithNoPriority;
+    }
+
+    public void setProgramRulesWithNoPriority( Map<Program, Collection<ProgramRule>> programRulesWithNoPriority )
+    {
+        this.programRulesWithNoPriority = programRulesWithNoPriority;
+    }
+
+    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
+    {
+        return programRulesWithNoAction;
+    }
+
+    public void setProgramRulesWithNoAction( Map<Program, Collection<ProgramRule>> programRulesWithNoAction )
+    {
+        this.programRulesWithNoAction = programRulesWithNoAction;
+    }
+
+    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
+    {
+        return programRuleVariablesWithNoDataElement;
+    }
+
+    public void setProgramRuleVariablesWithNoDataElement( Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement )
+    {
+        this.programRuleVariablesWithNoDataElement = programRuleVariablesWithNoDataElement;
+    }
+
+    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
+    {
+        return programRuleVariablesWithNoAttribute;
+    }
+
+    public void setProgramRuleVariablesWithNoAttribute( Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute )
+    {
+        this.programRuleVariablesWithNoAttribute = programRuleVariablesWithNoAttribute;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
+    {
+        return programRuleActionsWithNoDataObject;
+    }
+
+    public void setProgramRuleActionsWithNoDataObject( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject )
+    {
+        this.programRuleActionsWithNoDataObject = programRuleActionsWithNoDataObject;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotification()
+    {
+        return programRuleActionsWithNoNotification;
+    }
+
+    public void setProgramRuleActionsWithNoNotification( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification )
+    {
+        this.programRuleActionsWithNoNotification = programRuleActionsWithNoNotification;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
+    {
+        return programRuleActionsWithNoSectionId;
+    }
+
+    public void setProgramRuleActionsWithNoSectionId( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId )
+    {
+        this.programRuleActionsWithNoSectionId = programRuleActionsWithNoSectionId;
+    }
+
+    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoStageId()
+    {
+        return programRuleActionsWithNoStageId;
+    }
+
+    public void setProgramRuleActionsWithNoStageId( Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId )
+    {
+        this.programRuleActionsWithNoStageId = programRuleActionsWithNoStageId;
     }
 }

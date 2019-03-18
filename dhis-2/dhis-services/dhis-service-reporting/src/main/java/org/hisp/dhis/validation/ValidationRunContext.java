@@ -29,14 +29,20 @@ package org.hisp.dhis.validation;
  */
 
 import org.apache.commons.lang3.Validate;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -81,6 +87,16 @@ public class ValidationRunContext
     {
         validationResults = new ConcurrentLinkedQueue<>();
     }
+
+    // -------------------------------------------------------------------------
+    // Id-to-Object Caches
+    // -------------------------------------------------------------------------
+
+    private Map<Long, Period> periodIdMap = new ConcurrentHashMap<>();
+
+    private Map<Long, CategoryOptionCombo> aocIdMap = new ConcurrentHashMap<>();
+
+    private Map<String, CategoryOptionCombo> aocUidMap = new ConcurrentHashMap<>();
 
     // -------------------------------------------------------------------------
     // Getter methods
@@ -139,6 +155,21 @@ public class ValidationRunContext
     public Queue<ValidationResult> getValidationResults()
     {
         return validationResults;
+    }
+
+    public Map<Long, Period> getPeriodIdMap()
+    {
+        return periodIdMap;
+    }
+
+    public Map<Long, CategoryOptionCombo> getAocIdMap()
+    {
+        return aocIdMap;
+    }
+
+    public Map<String, CategoryOptionCombo> getAocUidMap()
+    {
+        return aocUidMap;
     }
 
     // -------------------------------------------------------------------------
@@ -207,6 +238,18 @@ public class ValidationRunContext
             Validate.notNull( this.context.constantMap, "Missing required property 'constantMap'" );
             Validate.notNull( this.context.orgUnits, "Missing required property 'orgUnits'" );
             Validate.notNull( this.context.defaultAttributeCombo, "Missing required property 'defaultAttributeCombo'" );
+
+            // Preload the caches:
+            context.aocIdMap.put( context.defaultAttributeCombo.getId(), context.defaultAttributeCombo );
+            context.aocUidMap.put( context.defaultAttributeCombo.getUid(), context.defaultAttributeCombo );
+
+            for ( PeriodTypeExtended periodTypeX : context.periodTypeXs )
+            {
+                for ( Period p : periodTypeX.getPeriods() )
+                {
+                    context.periodIdMap.putIfAbsent( p.getId(), p );
+                }
+            }
 
             return this.context;
         }

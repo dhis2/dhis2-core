@@ -28,6 +28,8 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
@@ -38,24 +40,25 @@ import static org.hisp.dhis.category.CategoryOptionCombo.DEFAULT_TOSTRING;
 /**
  * The purpose of this class is to avoid the overhead of creating objects
  * for associated objects, in order to reduce heap space usage during export.
- * 
+ *
  * @author Lars Helge Overland
  * @version $Id$
  */
+@JacksonXmlRootElement
 public class DeflatedDataValue
 {
-    private int dataElementId;
-    
-    private int periodId;
-    
-    private int sourceId;
+    private long dataElementId;
 
-    private int categoryOptionComboId;
+    private long periodId;
 
-    private int attributeOptionComboId;
+    private long sourceId;
+
+    private long categoryOptionComboId;
+
+    private long attributeOptionComboId;
 
     private String value;
-    
+
     private String storedBy;
 
     private Date created;
@@ -63,7 +66,7 @@ public class DeflatedDataValue
     private Date lastUpdated;
 
     private String comment;
-    
+
     private boolean followup;
 
     // -------------------------------------------------------------------------
@@ -71,25 +74,25 @@ public class DeflatedDataValue
     // -------------------------------------------------------------------------
 
     private int min;
-    
+
     private int max;
 
     private String dataElementName;
-    
+
     private Period period = new Period();
-    
+
     private String sourceName;
-    
+
     private String categoryOptionComboName;
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
     public DeflatedDataValue()
-    {   
+    {
     }
-    
+
     public DeflatedDataValue( DataValue dataValue )
     {
         this.dataElementId = dataValue.getDataElement().getId();
@@ -105,7 +108,7 @@ public class DeflatedDataValue
         this.followup = dataValue.isFollowup();
     }
 
-    public DeflatedDataValue ( Integer dataElementId, Integer periodId, Integer sourceId,
+    public DeflatedDataValue( Integer dataElementId, Integer periodId, Integer sourceId,
         Integer categoryOptionComboId, Integer attributeOptionComboId, String value,
         String storedBy, Date created, Date lastUpdated,
         String comment, boolean followup )
@@ -138,56 +141,62 @@ public class DeflatedDataValue
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getDataElementId()
+    @JsonProperty
+    public long getDataElementId()
     {
         return dataElementId;
     }
 
-    public void setDataElementId( int dataElementId )
+    public void setDataElementId( long dataElementId )
     {
         this.dataElementId = dataElementId;
     }
 
-    public int getPeriodId()
+    @JsonProperty
+    public long getPeriodId()
     {
         return periodId;
     }
 
-    public void setPeriodId( int periodId )
+    public void setPeriodId( long periodId )
     {
         this.periodId = periodId;
     }
 
-    public int getSourceId()
+    @JsonProperty
+    public long getSourceId()
     {
         return sourceId;
     }
 
-    public void setSourceId( int sourceId )
+    public void setSourceId( long sourceId )
     {
         this.sourceId = sourceId;
     }
 
-    public int getCategoryOptionComboId()
+    @JsonProperty
+    public long getCategoryOptionComboId()
     {
         return categoryOptionComboId;
     }
 
-    public void setCategoryOptionComboId( int categoryOptionComboId )
+    public void setCategoryOptionComboId( long categoryOptionComboId )
     {
         this.categoryOptionComboId = categoryOptionComboId;
     }
 
-    public int getAttributeOptionComboId()
+    @JsonProperty
+    public long getAttributeOptionComboId()
     {
         return attributeOptionComboId;
     }
 
-    public void setAttributeOptionComboId( int attributeOptionComboId )
+    public void setAttributeOptionComboId( long attributeOptionComboId )
     {
         this.attributeOptionComboId = attributeOptionComboId;
     }
 
+    @JsonProperty
     public String getValue()
     {
         return value;
@@ -228,6 +237,7 @@ public class DeflatedDataValue
         this.lastUpdated = lastUpdated;
     }
 
+    @JsonProperty
     public String getComment()
     {
         return comment;
@@ -238,6 +248,7 @@ public class DeflatedDataValue
         this.comment = comment;
     }
 
+    @JsonProperty
     public boolean isFollowup()
     {
         return followup;
@@ -248,6 +259,7 @@ public class DeflatedDataValue
         this.followup = followup;
     }
 
+    @JsonProperty
     public int getMin()
     {
         return min;
@@ -258,6 +270,7 @@ public class DeflatedDataValue
         this.min = min;
     }
 
+    @JsonProperty
     public int getMax()
     {
         return max;
@@ -268,6 +281,7 @@ public class DeflatedDataValue
         this.max = max;
     }
 
+    @JsonProperty
     public String getDataElementName()
     {
         return dataElementName;
@@ -278,6 +292,7 @@ public class DeflatedDataValue
         this.dataElementName = dataElementName;
     }
 
+    @JsonProperty
     public Period getPeriod()
     {
         return period;
@@ -288,6 +303,7 @@ public class DeflatedDataValue
         this.period = period;
     }
 
+    @JsonProperty
     public String getSourceName()
     {
         return sourceName;
@@ -298,6 +314,7 @@ public class DeflatedDataValue
         this.sourceName = sourceName;
     }
 
+    @JsonProperty
     public String getCategoryOptionComboName()
     {
         return categoryOptionComboName;
@@ -311,19 +328,21 @@ public class DeflatedDataValue
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-    
+
     public void setPeriod( String periodTypeName, Date startDate, Date endDate )
     {
         period.setPeriodType( PeriodType.getPeriodTypeByName( periodTypeName ) );
         period.setStartDate( startDate );
         period.setEndDate( endDate );
     }
-    
+
     public String getCategoryOptionComboNameParsed()
     {
-        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ? "" : categoryOptionComboName;
+        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ?
+            "" :
+            categoryOptionComboName;
     }
-    
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -333,12 +352,12 @@ public class DeflatedDataValue
     {
         final int prime = 31;
         int result = 1;
-        
-        result = prime * result + dataElementId;
-        result = prime * result + periodId;
-        result = prime * result + sourceId;
-        result = prime * result + categoryOptionComboId;
-        
+
+        result = prime * result + Long.hashCode( dataElementId );
+        result = prime * result + Long.hashCode( periodId );
+        result = prime * result + Long.hashCode( sourceId );
+        result = prime * result + Long.hashCode( categoryOptionComboId );
+
         return result;
     }
 
@@ -349,19 +368,19 @@ public class DeflatedDataValue
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( getClass() != object.getClass() )
         {
             return false;
         }
-        
+
         final DeflatedDataValue other = (DeflatedDataValue) object;
-        
+
         return dataElementId == other.dataElementId && periodId == other.periodId &&
             sourceId == other.sourceId && categoryOptionComboId == other.categoryOptionComboId;
     }

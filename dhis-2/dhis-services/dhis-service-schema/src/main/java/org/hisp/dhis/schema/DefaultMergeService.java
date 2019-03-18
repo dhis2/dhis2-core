@@ -61,9 +61,17 @@ public class DefaultMergeService implements MergeService
 
         for ( Property property : schema.getProperties() )
         {
-            if ( schema.isIdentifiableObject() && mergeParams.isSkipSharing() && isSharingProperty( property ) )
+            if ( schema.isIdentifiableObject() )
             {
-                continue;
+                if ( mergeParams.isSkipSharing() && isSharingProperty( property ) )
+                {
+                    continue;
+                }
+
+                if ( mergeParams.isSkipTranslation() && isTranslationProperty( property ) )
+                {
+                    continue;
+                }
             }
 
             // passwords should only be merged manually
@@ -108,11 +116,7 @@ public class DefaultMergeService implements MergeService
             {
                 Object sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
 
-                if ( mergeParams.getMergeMode().isReplace() )
-                {
-                    ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
-                }
-                else if ( mergeParams.getMergeMode().isMerge() && sourceObject != null )
+                if ( mergeParams.getMergeMode().isReplace() || ( mergeParams.getMergeMode().isMerge() && sourceObject != null ) )
                 {
                     ReflectionUtils.invokeMethod( target, property.getSetterMethod(), sourceObject );
                 }
@@ -142,5 +146,10 @@ public class DefaultMergeService implements MergeService
     private boolean isSharingProperty( Property property )
     {
         return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
+    }
+
+    private boolean isTranslationProperty( Property property )
+    {
+        return "translations".equals( property.getName() ) || "translations".equals( property.getCollectionName() );
     }
 }

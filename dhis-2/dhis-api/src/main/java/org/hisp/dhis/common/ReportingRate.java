@@ -110,6 +110,12 @@ public class ReportingRate
         return dataSet.getLegendSets();
     }
     
+    @Override
+    public TotalAggregationType getTotalAggregationType()
+    {
+        return TotalAggregationType.AVERAGE;
+    }
+    
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

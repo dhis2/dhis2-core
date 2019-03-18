@@ -50,7 +50,8 @@ public enum ValueTypeRenderingType
     TOGGLE,
     VALUE,
     SLIDER,
-    LINEAR_SCALE;
+    LINEAR_SCALE,
+    AUTOCOMPLETE;
 
     /**
      * RenderingTypes supported by OptionSet ValueTypes
@@ -71,4 +72,10 @@ public enum ValueTypeRenderingType
      */
     public static final ImmutableSet<ValueTypeRenderingType> NUMERIC_TYPES = ImmutableSet
         .of( DEFAULT, VALUE, SLIDER, LINEAR_SCALE, SPINNER );
+
+    /**
+     * RenderingTypes supported by textual valueTypes
+     */
+    public static final ImmutableSet<ValueTypeRenderingType> TEXT_TYPES = ImmutableSet
+        .of( DEFAULT, VALUE, AUTOCOMPLETE );
 }

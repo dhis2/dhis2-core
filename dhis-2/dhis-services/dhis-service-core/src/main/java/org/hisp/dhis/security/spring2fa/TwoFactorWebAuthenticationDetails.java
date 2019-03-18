@@ -48,7 +48,7 @@ public class TwoFactorWebAuthenticationDetails
 
     private String ip;
 
-    TwoFactorWebAuthenticationDetails( HttpServletRequest request )
+    public TwoFactorWebAuthenticationDetails( HttpServletRequest request )
     {
         super( request );
         code = request.getParameter( TWO_FACTOR_AUTHENTICATION_GETTER );

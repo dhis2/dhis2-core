@@ -58,7 +58,7 @@ public interface CategoryService
      * @param category the Category to add.
      * @return a generated unique id of the added Category.
      */
-    int addCategory( Category Category );
+    long addCategory( Category Category );
 
     /**
      * Updates a Category.
@@ -84,7 +84,7 @@ public interface CategoryService
      * @param id the id of the Category to return.
      * @return the Category with the given id, or null if no match.
      */
-    Category getCategory( int id );
+    Category getCategory( long id );
 
     /**
      * Returns a Category.
@@ -149,7 +149,7 @@ public interface CategoryService
      * @param dataElementCategoryOption the CategoryOption to add.
      * @return a generated unique id of the added CategoryOption.
      */
-    int addCategoryOption( CategoryOption dataElementCategoryOption );
+    long addCategoryOption( CategoryOption dataElementCategoryOption );
 
     /**
      * Updates a CategoryOption.
@@ -172,7 +172,7 @@ public interface CategoryService
      * @return the CategoryOption with the given id, or null if no
      * match.
      */
-    CategoryOption getCategoryOption( int id );
+    CategoryOption getCategoryOption( long id );
 
     /**
      * Returns a CategoryOption.
@@ -227,7 +227,7 @@ public interface CategoryService
      * @param dataElementCategoryCombo the CategoryCombo to add.
      * @return the generated identifier.
      */
-    int addCategoryCombo( CategoryCombo dataElementCategoryCombo );
+    long addCategoryCombo( CategoryCombo dataElementCategoryCombo );
 
     /**
      * Updates a CategoryCombo.
@@ -249,7 +249,7 @@ public interface CategoryService
      * @param id the identifier of the CategoryCombo to retrieve.
      * @return the CategoryCombo.
      */
-    CategoryCombo getCategoryCombo( int id );
+    CategoryCombo getCategoryCombo( long id );
 
     /**
      * Retrieves a CategoryCombo with the given uid.
@@ -320,7 +320,7 @@ public interface CategoryService
      *                                       to add.
      * @return the generated identifier.
      */
-    int addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
+    long addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
 
     /**
      * Updates a CategoryOptionCombo.
@@ -338,13 +338,15 @@ public interface CategoryService
      */
     void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
 
+    void deleteCategoryOptionComboNoRollback( CategoryOptionCombo categoryOptionCombo );
+
     /**
      * Retrieves the CategoryOptionCombo with the given identifier.
      *
      * @param id the identifier of the CategoryOptionCombo.
      * @return the CategoryOptionCombo.
      */
-    CategoryOptionCombo getCategoryOptionCombo( int id );
+    CategoryOptionCombo getCategoryOptionCombo( long id );
 
     /**
      * Retrieves the CategoryOptionCombo with the given uid.
@@ -361,15 +363,6 @@ public interface CategoryService
      * @return the CategoryOptionCombo.
      */
     CategoryOptionCombo getCategoryOptionComboByCode( String code );
-
-    /**
-     * Retrieves the CategoryOptionCombo with the given Collection of
-     * CategoryOptions.
-     *
-     * @param categoryOptions the collection of CategoryOptions.
-     */
-    CategoryOptionCombo getCategoryOptionCombo(
-        Collection<CategoryOption> categoryOptions );
 
     /**
      * Retrieves a CategoryOptionCombo.
@@ -427,22 +420,9 @@ public interface CategoryService
     void updateOptionCombos( CategoryCombo categoryCombo );
 
     /**
-     * Generates the complete set of category option combos for the given
-     * category combo. Removes obsolete category option combos.
-     *
-     * @param categoryCombo the CategoryCombo.
-     */
-    void addAndPruneOptionCombos( CategoryCombo categoryCombo );
-
-    /**
-     * Generates the complete set of category option combos for all category
-     * combos.
-     */
-    void addAndPruneAllOptionCombos();
-
-    /**
      * Returns the category option combo with the given uid. Respects access control
-     * by only returning objects which all category options are accessible.
+     * by only returning objects which the current user has {@code data write} access
+     * to.
      *
      * @param property the property.
      * @param id       the id.
@@ -489,11 +469,11 @@ public interface CategoryService
     // CategoryOptionGroup
     // -------------------------------------------------------------------------
 
-    int saveCategoryOptionGroup( CategoryOptionGroup group );
+    long saveCategoryOptionGroup( CategoryOptionGroup group );
 
     void updateCategoryOptionGroup( CategoryOptionGroup group );
 
-    CategoryOptionGroup getCategoryOptionGroup( int id );
+    CategoryOptionGroup getCategoryOptionGroup( long id );
 
     CategoryOptionGroup getCategoryOptionGroup( String uid );
 
@@ -516,11 +496,11 @@ public interface CategoryService
     // CategoryOptionGroupSet
     // -------------------------------------------------------------------------
 
-    int saveCategoryOptionGroupSet( CategoryOptionGroupSet group );
+    long saveCategoryOptionGroupSet( CategoryOptionGroupSet group );
 
     void updateCategoryOptionGroupSet( CategoryOptionGroupSet group );
 
-    CategoryOptionGroupSet getCategoryOptionGroupSet( int id );
+    CategoryOptionGroupSet getCategoryOptionGroupSet( long id );
 
     CategoryOptionGroupSet getCategoryOptionGroupSet( String uid );
 

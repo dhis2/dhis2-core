@@ -29,12 +29,17 @@ package org.hisp.dhis.scheduling;
  */
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.scheduling.parameters.*;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 
 /**
  * Enum describing the different jobs in the system.
  * Each job has a key, class, configurable status and possibly a map containing relative endpoints for possible parameters.
- *
+ * <p>
  * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch the correct job
  *
  * @author Henning Håkonsen
@@ -48,6 +53,7 @@ public enum JobType
         "skipTableTypes", "/api/analytics/tableTypes"
     ) ),
     DATA_SYNC( "dataSynchJob", true, null, null ),
+    PROGRAM_DATA_SYNC( "programDataSyncJob", true, null, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false, null, null ),
     META_DATA_SYNC( "metadataSyncJob", true, null, null ),
     SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),
@@ -63,7 +69,8 @@ public enum JobType
         "pushAnalysis", "/api/pushAnalysis"
     ) ),
     PREDICTOR( "predictorJob", true, PredictorJobParameters.class, ImmutableMap.of(
-        "predictors", "/api/predictors"
+        "predictors", "/api/predictors",
+        "predictorGroups", "/api/predictorGroups"
     ) ),
     DATA_SET_NOTIFICATION( "dataSetNotificationJob", false, null, null ),
     REMOVE_EXPIRED_RESERVED_VALUES( "removeExpiredReservedValuesJob", false, null, null ),
@@ -75,8 +82,13 @@ public enum JobType
     DATAVALUE_IMPORT( null, false, null, null ),
     ANALYTICSTABLE_UPDATE( null, false, null, null ),
     METADATA_IMPORT( null, false, null, null ),
+    GML_IMPORT( null, false, null, null ),
     DATAVALUE_IMPORT_INTERNAL( null, false, null, null ),
     EVENT_IMPORT( null, false, null, null ),
+    ENROLLMENT_IMPORT( null, false, null, null ),
+    TEI_IMPORT( null, false, null, null ),
+    LEADER_ELECTION( "leaderElectionJob", false, null, null ),
+    LEADER_RENEWAL( "leaderRenewalJob", false, null, null ),
     COMPLETE_DATA_SET_REGISTRATION_IMPORT( null, false, null, null );
 
     private final String key;

@@ -29,21 +29,28 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.common.Pager;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
+import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageConversationStatus;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.message.MessageType;
+import org.hisp.dhis.message.UserMessage;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
@@ -53,6 +60,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.MessageConversation;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -71,9 +79,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -97,6 +109,12 @@ public class MessageConversationController
 
     @Autowired
     private ConfigurationService configurationService;
+
+    @Autowired
+    private FileResourceUtils fileResourceUtils;
+
+    @Autowired
+    private FileResourceService fileResourceService;
 
     @Override
     protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
@@ -134,6 +152,18 @@ public class MessageConversationController
     }
 
     @Override
+    protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity )
+        throws Exception
+    {
+        if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
+        {
+            entity.setMessages( entity.getMessages().stream().filter( message -> !message.isInternal() ).collect(
+                Collectors.toList() ) );
+        }
+        super.postProcessEntity( entity );
+    }
+
+    @Override
     @SuppressWarnings( "unchecked" )
     protected List<org.hisp.dhis.message.MessageConversation> getEntityList( WebMetadata metadata, WebOptions options,
         List<String> filters, List<Order> orders ) throws QueryParserException
@@ -142,11 +172,12 @@ public class MessageConversationController
 
         if ( options.getOptions().containsKey( "query" ) )
         {
-            messageConversations = Lists.newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
+            messageConversations = Lists
+                .newArrayList( manager.filter( getEntityClass(), options.getOptions().get( "query" ) ) );
         }
         else
         {
-            messageConversations = new ArrayList<>( messageService.getMessageConversations() );
+            messageConversations = new ArrayList<>( messageService.getMessageConversations( ) );
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
@@ -154,7 +185,26 @@ public class MessageConversationController
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( messageConversations );
 
-        return (List<org.hisp.dhis.message.MessageConversation>) queryService.query( query );
+        messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( query );
+
+        if ( options.get( "queryString" ) != null )
+        {
+            String queryOperator = "token";
+            if ( options.get( "queryOperator" ) != null )
+            {
+                queryOperator = options.get( "queryOperator" );
+            }
+
+            List<String> queryFilter = Arrays.asList( "subject:" + queryOperator + ":" + options.get( "queryString" ),
+                "messages.text:" + queryOperator + ":" + options.get( "queryString" ),
+                "messages.sender.displayName:" + queryOperator + ":" + options.get( "queryString" ) );
+            Query subQuery = queryService
+                .getQueryFromUrl( getEntityClass(), queryFilter, Arrays.asList(), Junction.Type.OR );
+            subQuery.setObjects( messageConversations );
+            messageConversations = (List<org.hisp.dhis.message.MessageConversation>) queryService.query( subQuery );
+        }
+
+        return messageConversations;
     }
 
     //--------------------------------------------------------------------------
@@ -179,13 +229,10 @@ public class MessageConversationController
         postObject( response, request, messageConversation );
     }
 
-    private void postObject( HttpServletResponse response, HttpServletRequest request,
-        MessageConversation messageConversation )
+    private Set<User> getUsersToMessageConversation( MessageConversation messageConversation, Set<User> users )
         throws WebMessageException
     {
-        List<User> users = new ArrayList<>( messageConversation.getUsers() );
-        messageConversation.getUsers().clear();
-
+        Set<User> usersToMessageConversation = Sets.newHashSet();
         for ( OrganisationUnit ou : messageConversation.getOrganisationUnits() )
         {
             OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( ou.getUid() );
@@ -196,7 +243,7 @@ public class MessageConversationController
                     WebMessageUtils.conflict( "Organisation Unit does not exist: " + ou.getUid() ) );
             }
 
-            messageConversation.getUsers().addAll( organisationUnit.getUsers() );
+            usersToMessageConversation.addAll( organisationUnit.getUsers() );
         }
 
         for ( User u : users )
@@ -208,7 +255,7 @@ public class MessageConversationController
                 throw new WebMessageException( WebMessageUtils.conflict( "User does not exist: " + u.getUid() ) );
             }
 
-            messageConversation.getUsers().add( user );
+            usersToMessageConversation.add( user );
         }
 
         for ( UserGroup ug : messageConversation.getUserGroups() )
@@ -221,8 +268,20 @@ public class MessageConversationController
                     WebMessageUtils.notFound( "User Group does not exist: " + ug.getUid() ) );
             }
 
-            messageConversation.getUsers().addAll( userGroup.getMembers() );
+            usersToMessageConversation.addAll( userGroup.getMembers() );
         }
+
+        return usersToMessageConversation;
+    }
+
+    private void postObject( HttpServletResponse response, HttpServletRequest request,
+        MessageConversation messageConversation )
+        throws WebMessageException
+    {
+        Set<User> users = Sets.newHashSet( messageConversation.getUsers() );
+        messageConversation.getUsers().clear();
+
+        messageConversation.getUsers().addAll( getUsersToMessageConversation( messageConversation, users ) );
 
         if ( messageConversation.getUsers().isEmpty() )
         {
@@ -231,8 +290,29 @@ public class MessageConversationController
 
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        int id = messageService.sendMessage( messageService.createPrivateMessage( messageConversation.getUsers(),
-            messageConversation.getSubject(), messageConversation.getText(), metaData ).build() );
+        Set<FileResource> attachments = new HashSet<>(  );
+
+        for( FileResource fr : messageConversation.getAttachments() )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( fr.getUid() );
+
+            if ( fileResource == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' not found." ) );
+            }
+
+            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) || fileResource.isAssigned() )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fr.getUid() + "' is already used or not a valid attachment." ) );
+            }
+
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+            attachments.add( fileResource );
+        }
+
+        long id = messageService.sendPrivateMessage( messageConversation.getUsers(),
+            messageConversation.getSubject(), messageConversation.getText(), metaData, attachments );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );
 
@@ -248,8 +328,9 @@ public class MessageConversationController
     @RequestMapping( value = "/{uid}", method = RequestMethod.POST )
     public void postMessageConversationReply(
         @PathVariable( "uid" ) String uid,
+        @RequestBody String message,
         @RequestParam( value = "internal", defaultValue = "false" ) boolean internal,
-        @RequestBody String body,
+        @RequestParam( value = "attachments", required = false ) Set<String> attachments,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -267,11 +348,64 @@ public class MessageConversationController
             throw new AccessDeniedException( "Not authorized to send internal messages" );
         }
 
-        messageService.sendReply( conversation, body, metaData, internal );
+        Set<FileResource> fileResources = new HashSet<>(  );
+
+        if ( attachments == null )
+        {
+            attachments = new HashSet<>();
+        }
+
+        for( String fileResourceUid : attachments )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+
+            if ( fileResource == null )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' not found." ) );
+            }
+
+            if ( !fileResource.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ) || fileResource.isAssigned() )
+            {
+                throw new WebMessageException( WebMessageUtils.conflict( "Attachment '" + fileResourceUid + "' is already used or not a valid attachment." ) );
+            }
+
+            fileResource.setAssigned( true );
+            fileResourceService.updateFileResource( fileResource );
+
+            fileResources.add( fileResource );
+        }
+
+
+        messageService.sendReply( conversation, message, metaData, internal, fileResources );
 
         response
             .addHeader( "Location", MessageConversationSchemaDescriptor.API_ENDPOINT + "/" + conversation.getUid() );
         webMessageService.send( WebMessageUtils.created( "Message conversation created" ), response, request );
+    }
+
+
+    @RequestMapping( value = "/{uid}/recipients", method = RequestMethod.POST )
+    public void addRecipientsToMessageConversation( @PathVariable( "uid" ) String uid,
+        @RequestBody MessageConversation messageConversation, HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( uid );
+
+        if ( conversation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "Message conversation does not exist: " + uid ) );
+        }
+
+        Set<User> additionalUsers = getUsersToMessageConversation( messageConversation, messageConversation.getUsers() );
+
+        additionalUsers.forEach( user -> {
+            if ( !conversation.getUsers().contains( user ) )
+            {
+                conversation.addUserMessage( new UserMessage( user, false ) );
+            }
+        } );
+
+        messageService.updateMessageConversation( conversation );
     }
 
     //--------------------------------------------------------------------------
@@ -285,7 +419,7 @@ public class MessageConversationController
     {
         String metaData = MessageService.META_USER_AGENT + request.getHeader( ContextUtils.HEADER_USER_AGENT );
 
-        messageService.sendMessage( messageService.createTicketMessage( subject, body, metaData ).build() );
+        messageService.sendTicketMessage( subject, body, metaData );
 
         webMessageService.send( WebMessageUtils.created( "Feedback created" ), response, request );
     }
@@ -415,7 +549,7 @@ public class MessageConversationController
             return responseNode;
         }
 
-        if ( !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
+        if ( messageConversation.getMessageType() == MessageType.TICKET && !configurationService.isUserInFeedbackRecipientUserGroup( userToAssign ) )
         {
             response.setStatus( HttpServletResponse.SC_CONFLICT );
             responseNode.addChild( new SimpleNode( "message", "User provided is not a member of the system's feedback recipient group" ) );
@@ -424,7 +558,7 @@ public class MessageConversationController
 
         messageConversation.setAssignee( userToAssign );
         messageService.updateMessageConversation( messageConversation );
-        responseNode.addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned to ticket" ) );
+        responseNode.addChild( new SimpleNode( "message", "User " + userToAssign.getName() + " was assigned successfully" ) );
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
@@ -744,6 +878,40 @@ public class MessageConversationController
         return responseNode;
     }
 
+    @RequestMapping( value = "/{mcUid}/{msgUid}/attachments/{fileUid}", method = RequestMethod.GET )
+    public void getAttachment(
+        @PathVariable( value = "mcUid" ) String mcUid,
+        @PathVariable( value = "msgUid" ) String msgUid,
+        @PathVariable( value = "fileUid" ) String fileUid,
+        HttpServletResponse response )
+        throws WebMessageException
+    {
+        User user = currentUserService.getCurrentUser();
+
+        Message message = getMessage( mcUid, msgUid, user );
+
+        FileResource fr = fileResourceService.getFileResource( fileUid );
+
+        if ( message == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No message found with id '" + msgUid + "' for message conversation with id '" + mcUid + "'" ) );
+        }
+
+        boolean attachmentExists = message.getAttachments().stream().filter( att -> att.getUid().equals( fileUid ) ).count() == 1;
+
+        if ( fr == null || !attachmentExists )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( "No messageattachment found with id '" + fileUid + "'" ) );
+        }
+
+        if ( !fr.getDomain().equals( FileResourceDomain.MESSAGE_ATTACHMENT ))
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Invalid messageattachment." ) );
+        }
+
+        fileResourceUtils.configureFileResourceResponse( response, fr );
+    }
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
@@ -831,5 +999,40 @@ public class MessageConversationController
         response.setStatus( HttpServletResponse.SC_OK );
 
         return responseNode;
+    }
+
+    /* Returns the specified message after making sure the user has access to it */
+    private Message getMessage( String mcUid, String msgUid, User user )
+        throws WebMessageException
+    {
+        org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( mcUid );
+
+        if ( conversation == null )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message conversation with uid '%s'", mcUid ) ) );
+        }
+
+        if ( !canReadMessageConversation( user, conversation ) )
+        {
+            throw new AccessDeniedException( "Not authorized to access this conversation." );
+        }
+
+        List<Message> messages = conversation.getMessages().stream()
+            .filter( msg -> msg.getUid().equals( msgUid ) )
+            .collect( Collectors.toList() );
+
+        if ( messages.size() < 1 )
+        {
+            throw new WebMessageException( WebMessageUtils.notFound( String.format( "No message with uid '%s' in messageConversation '%s", msgUid, mcUid ) ) );
+        }
+
+        Message message = messages.get( 0 );
+
+        if ( message.isInternal() && !configurationService.isUserInFeedbackRecipientUserGroup( user ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Not authorized to access this message" ) );
+        }
+
+        return message;
     }
 }

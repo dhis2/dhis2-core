@@ -35,6 +35,9 @@ import org.hisp.dhis.category.CategoryService;
 import java.util.concurrent.ExecutionException;
 
 /**
+ * Retrieves the category option combination with the given identifier and
+ * id scheme. Checks that the current user has {@code data write} access.
+ *
  * @author Lars Helge Overland
  */
 public class CategoryOptionComboAclCallable

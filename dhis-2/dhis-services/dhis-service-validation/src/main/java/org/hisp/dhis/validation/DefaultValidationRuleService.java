@@ -29,8 +29,13 @@ package org.hisp.dhis.validation;
  */
 
 import com.google.common.collect.Sets;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,7 +43,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Margrethe Store
@@ -79,7 +83,7 @@ public class DefaultValidationRuleService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveValidationRule( ValidationRule validationRule )
+    public long saveValidationRule( ValidationRule validationRule )
     {
         validationRuleStore.save( validationRule );
 
@@ -99,7 +103,7 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public ValidationRule getValidationRule( int id )
+    public ValidationRule getValidationRule( long id )
     {
         return validationRuleStore.get( id );
     }
@@ -153,22 +157,38 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public Collection<ValidationRule> getValidationRulesForDataElements( Set<DataElement> dataElements )
+    public Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet )
     {
-        Set<ValidationRule> rulesForDataElements = new HashSet<>();
+        Set<String> elementsAndOptionCombos = new HashSet<>();
 
-        Set<String> deIds = dataElements.stream().map( DataElement::getUid ).collect( Collectors.toSet() );
-
-        for ( ValidationRule rule : getAllFormValidationRules() )
+        for ( DataSetElement dataSetElement : dataSet.getDataSetElements() )
         {
-            if ( !Sets.intersection( expressionService.getDataElementIdsInExpression( rule.getLeftSide().getExpression() ), deIds ).isEmpty() ||
-                !Sets.intersection( expressionService.getDataElementIdsInExpression( rule.getRightSide().getExpression() ), deIds ).isEmpty() )
+            DataElement dataElement = dataSetElement.getDataElement();
+
+            elementsAndOptionCombos.add( dataElement.getUid() );
+
+            CategoryCombo catCombo = dataSetElement.hasCategoryCombo()
+                ? dataSetElement.getCategoryCombo()
+                : dataElement.getCategoryCombo();
+
+            for ( CategoryOptionCombo optionCombo : catCombo.getOptionCombos() )
             {
-                rulesForDataElements.add( rule );
+                elementsAndOptionCombos.add( dataElement.getUid() + Expression.SEPARATOR + optionCombo.getUid() );
             }
         }
 
-        return rulesForDataElements;
+        Set<ValidationRule> rulesForDataSet = new HashSet<>();
+
+        for ( ValidationRule rule : getAllFormValidationRules() )
+        {
+            if ( !Sets.intersection( expressionService.getElementsAndOptionCombosInExpression( rule.getLeftSide().getExpression() ), elementsAndOptionCombos ).isEmpty() ||
+                !Sets.intersection( expressionService.getElementsAndOptionCombosInExpression( rule.getRightSide().getExpression() ), elementsAndOptionCombos ).isEmpty() )
+            {
+                rulesForDataSet.add( rule );
+            }
+        }
+
+        return rulesForDataSet;
     }
 
     @Override
@@ -185,13 +205,13 @@ public class DefaultValidationRuleService
     {
         return validationRuleStore.getValidationRulesWithNotificationTemplates();
     }
-    
+
     // -------------------------------------------------------------------------
     // ValidationRuleGroup CRUD operations
     // -------------------------------------------------------------------------
 
     @Override
-    public int addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
+    public long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
         validationRuleGroupStore.save( validationRuleGroup );
 
@@ -211,7 +231,7 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public ValidationRuleGroup getValidationRuleGroup( int id )
+    public ValidationRuleGroup getValidationRuleGroup( long id )
     {
         return validationRuleGroupStore.get( id );
     }

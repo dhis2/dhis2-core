@@ -43,14 +43,6 @@ import java.util.List;
 public interface AggregateAccessManager
 {
     /**
-     * Check if given User has DATA_WRITE access for given DataValue
-     * @param user
-     * @param dataValue
-     * @return List of errors
-     */
-    List<String> canWrite( User user, DataValue dataValue );
-
-    /**
      * Check if given User has DATA_READ access for given DataValue
      * @param user
      * @param dataValue
@@ -83,6 +75,16 @@ public interface AggregateAccessManager
     List<String> canWrite( User user, CategoryOptionCombo categoryOption );
 
     /**
+     * Check if given User has DATA_WRITE access for given CategoryOptionCombo,
+     * result is cached.
+     *
+     * @param user
+     * @param categoryOption
+     * @return List of errors
+     */
+    List<String> canWriteCached( User user, CategoryOptionCombo categoryOptionCombo );
+
+    /**
      * Check if given User has DATA_READ access for given CategoryOptionCombo
      * @param user
      * @param categoryOption
@@ -97,4 +99,5 @@ public interface AggregateAccessManager
      * @return List of errors
      */
     List<String> canWrite( User user, DataElementOperand dataElementOperand );
+
 }

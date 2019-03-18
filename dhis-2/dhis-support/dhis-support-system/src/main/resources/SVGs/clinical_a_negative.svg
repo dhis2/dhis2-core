@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg8" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" xmlns:osb="http://www.openswatchbook.org/uri/2009/osb" height="48" width="48" version="1.1" xmlns:cc="http://creativecommons.org/ns#" viewBox="0 0 12.7 12.7" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <title id="title4753">UIO-icon</title>
+ <metadata id="metadata5">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title>UIO-icon</dc:title>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Joaquín Urbano</dc:title>
+     </cc:Agent>
+    </dc:creator>
+    <dc:rights>
+     <cc:Agent>
+      <dc:title>GPL</dc:title>
+     </cc:Agent>
+    </dc:rights>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" transform="translate(0,-284.3)">
+  <path id="rect4831" d="m0 0v48h48v-48h-48zm20.523 5.8691h6.954c0.366 0 0.662 0.2955 0.662 0.6621v3.4629c0 0.3669-0.296 0.6619-0.662 0.6619h-0.26v1.252h0.017c0.25 0 0.45 0.202 0.45 0.451v24.801 0.842 0.451h-0.002c-0.002 1.315-0.704 2.528-1.842 3.186-1.14 0.658-2.544 0.658-3.684 0-1.137-0.658-1.838-1.872-1.84-3.186v-0.004-0.447-0.842-24.801c0-0.249 0.2-0.451 0.45-0.451h0.017v-1.252h-0.26c-0.366 0-0.662-0.295-0.662-0.6619v-3.4629c0-0.3665 0.296-0.6621 0.662-0.6621zm1.161 4.7869v1.701c0 0.25-0.2 0.45-0.45 0.45h-0.017v7.859h-0.004v16.684 0.636 0.338 0.004c0.001 0.994 0.532 1.913 1.392 2.41 0.863 0.498 1.925 0.498 2.788 0 0.861-0.497 1.391-1.415 1.392-2.41h0.002v-0.342-0.636-16.684h-0.004v-7.857h-3.623c-0.227 0-0.41-0.183-0.41-0.411v-0.08c0-0.227 0.183-0.41 0.41-0.41h3.156v-1.252h-4.632zm0.742 9.088h0.103 2.942 0.103 0.373v6.24 6.102 5.557 0.445 0.238h-0.002c-0.001 0.695-0.371 1.336-0.972 1.684-0.603 0.347-1.345 0.347-1.948 0-0.601-0.348-0.972-0.989-0.972-1.684v-0.002-0.234-0.445-5.557-0.004-0.236-0.446-5.416-6.24l0.373-0.002z" fill-rule="evenodd" fill-opacity=".99505" transform="matrix(.26458 0 0 .26458 0 284.3)" fill="#333"/>
+ </g>
+</svg>

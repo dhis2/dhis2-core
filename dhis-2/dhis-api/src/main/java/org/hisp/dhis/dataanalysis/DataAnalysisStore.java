@@ -28,9 +28,8 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -54,7 +53,7 @@ public interface DataAnalysisStore
      *
      * @param dataElement the DataElement.
      * @param parentPaths the parent OrganisationUnits' paths.
-     * @param from the from date for which to include data values.
+     * @param from        the from date for which to include data values.
      * @return a mapping between OrganisationUnit identifier and its standard deviation.
      */
     List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
@@ -63,37 +62,43 @@ public interface DataAnalysisStore
 
     /**
      * Generates a collection of data value violations of min-max predefined values.
-     * 
-     * @param dataElements the data elements.
+     *
+     * @param dataElements         the data elements.
      * @param categoryOptionCombos the category option combos.
-     * @param periods the periods.
-     * @param parents the parent OrganisationUnit units.
-     * @param limit the max limit of violations to return.
+     * @param periods              the periods.
+     * @param parents              the parent OrganisationUnit units.
+     * @param limit                the max limit of violations to return.
      * @return a list of data value violations.
      */
-    List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements, Collection<CategoryOptionCombo> categoryOptionCombos,
+    List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements,
+        Collection<CategoryOptionCombo> categoryOptionCombos,
         Collection<Period> periods, Collection<OrganisationUnit> parents, int limit );
-    
+
     /**
      * Returns a collection of DeflatedDataValues for the given input.
-     * 
-     * @param dataElement the DataElement.
+     *
+     * @param dataElement         the DataElement.
      * @param categoryOptionCombo the CategoryOptionCombo.
-     * @param periods the collection of Periods.
-     * @param lowerBoundMap the lower bound for the registered MinMaxDataElement.
-     * @param upperBoundMap the upper bound for the registered MinMaxDataElement.
+     * @param periods             the collection of Periods.
+     * @param lowerBoundMap       the lower bound for the registered MinMaxDataElement.
+     * @param upperBoundMap       the upper bound for the registered MinMaxDataElement.
      * @return a list of DeflatedDataValues.
      */
     List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap );
+        Collection<Period> periods, Map<Long, Integer> lowerBoundMap, Map<Long, Integer> upperBoundMap );
 
     /**
      * Returns a collection of DeflatedDataValues which are marked for followup and
      * whose source OrganisationUnit is equal or subordinate to the given OrganisationUnit.
      *
-     * @param organisationUnit the source OrganisationUnit.
-     * @param limit the maximum number of DeflatedDataValues to return.
+     * @param dataElements         the data elements.
+     * @param categoryOptionCombos the category option combos.
+     * @param periods              the periods.
+     * @param parents              the parent OrganisationUnit units.
+     * @param limit            the maximum number of DeflatedDataValues to return.
      * @return a list of DeflatedDataValues.
      */
-    List<DeflatedDataValue> getFollowupDataValues( OrganisationUnit organisationUnit, DataSet dataSet, int limit );
+    List<DeflatedDataValue> getFollowupDataValues( Collection<DataElement> dataElements,
+        Collection<CategoryOptionCombo> categoryOptionCombos, Collection<Period> periods,
+        Collection<OrganisationUnit> parents, int limit );
 }

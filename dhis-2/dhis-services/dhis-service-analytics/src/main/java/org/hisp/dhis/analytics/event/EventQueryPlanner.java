@@ -37,7 +37,7 @@ public interface EventQueryPlanner
 {
     /**
      * Plans the given parameters and returns a list of parameters.
-     * 
+     *
      * @param params the event query parameters.
      * @return a list of {@link EventQueryParams}.
      */
@@ -45,7 +45,7 @@ public interface EventQueryPlanner
 
     /**
      * Plans the given parameters and returns a list of parameters.
-     * 
+     *
      * @param params the event query parameters.
      * @return an {@link EventQueryParams}.
      */

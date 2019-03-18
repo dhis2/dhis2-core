@@ -28,14 +28,15 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.ConcurrentUtils;
-import org.springframework.scheduling.annotation.Async;
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
+
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.springframework.scheduling.annotation.Async;
 
 /**
  * @author Markus Bekken
@@ -61,81 +62,83 @@ public abstract class AbstractEventJdbcTableManager
     /**
      * Returns the database column type based on the given value type. For boolean
      * values, 1 means true, 0 means false and null means no value.
-     * 
+     *
      * @param valueType the value type to represent as database column type.
      */
-    protected String getColumnType( ValueType valueType )
+    protected ColumnDataType getColumnType( ValueType valueType )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) )
+        if ( valueType.isDecimal() )
         {
-            return statementBuilder.getDoubleColumnType();
+            return ColumnDataType.DOUBLE;
         }
-        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isInteger() )
         {
-            return "bigint";
+            return ColumnDataType.BIGINT;
         }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isBoolean() )
         {
-            return "integer";
+            return ColumnDataType.INTEGER;
         }
-        else if ( LocalDateTime.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isDate() )
         {
-            return "timestamp";
+            return ColumnDataType.TIMESTAMP;
         }
-        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
-            return "geometry(Point, 4326)";
+            return ColumnDataType.GEOMETRY_POINT;
         }
         else
         {
-            return "text";
+            return ColumnDataType.TEXT;
         }
     }
-    
+
     /**
      * Returns the select clause, potentially with a cast statement, based on the
      * given value type.
-     * 
+     *
      * @param valueType the value type to represent as database column type.
      */
-    protected String getSelectClause( ValueType valueType )
+    String getSelectClause( ValueType valueType, String columnName )
     {
-        if ( Double.class.equals( valueType.getJavaClass() ) )
+        if ( valueType.isDecimal() )
         {
-            return "cast(value as " + statementBuilder.getDoubleColumnType() + ")";
+            return "cast(" + columnName + " as " + statementBuilder.getDoubleColumnType() + ")";
         }
-        else if ( Integer.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isInteger() )
         {
-            return "cast(value as bigint)";
+            return "cast(" + columnName + " as bigint)";
         }
-        else if ( Boolean.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isBoolean() )
         {
-            return "case when value = 'true' then 1 when value = 'false' then 0 else null end";
+            return "case when " + columnName + " = 'true' then 1 when " + columnName + " = 'false' then 0 else null end";
         }
-        else if ( LocalDateTime.class.equals( valueType.getJavaClass() ) )
+        else if ( valueType.isDate() )
         {
-            return "cast(value as timestamp)";
+            return "cast(" + columnName + " as timestamp)";
         }
-        else if ( ValueType.COORDINATE == valueType && databaseInfo.isSpatialSupport() )
+        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
-            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || value || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
         else
         {
-            return "value";
+            return columnName;
         }
     }
-    
+
     @Override
     public String validState()
     {
-        boolean hasData = jdbcTemplate.queryForRowSet( "select dataelementid from trackedentitydatavalue limit 1" ).next();
-        
+        // Data values might be '{}' if there were some data values and all were later removed
+
+        boolean hasData = jdbcTemplate.queryForRowSet( "select programstageinstanceid from programstageinstance where eventdatavalues != '{}' limit 1;" ).next();
+
         if ( !hasData )
         {
             return "No events exist, not updating event analytics tables";
         }
-        
+
         return null;
     }
 }

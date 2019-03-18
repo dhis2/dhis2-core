@@ -29,9 +29,9 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Simple {@link OutboundSmsService sms service} storing the sms in a store and
@@ -77,7 +77,7 @@ public class DefaultOutboundSmsService
     }
 
     @Override
-    public int saveOutboundSms( OutboundSms sms )
+    public long saveOutboundSms( OutboundSms sms )
     {
         outboundSmsStore.saveOutboundSms( sms );
         return sms.getId();
@@ -91,7 +91,7 @@ public class DefaultOutboundSmsService
     }
 
     @Override
-    public OutboundSms getOutboundSms( int id )
+    public OutboundSms getOutboundSms( long id )
     {
         return outboundSmsStore.getOutboundSmsbyId( id );
     }

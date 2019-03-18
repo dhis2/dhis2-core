@@ -28,19 +28,18 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.vividsolutions.jts.geom.Geometry;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.Coordinate.CoordinateObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 import java.util.Date;
@@ -53,7 +52,6 @@ import java.util.Set;
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstance
     extends BaseIdentifiableObject
-    implements CoordinateObject
 {
     public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
 
@@ -63,11 +61,13 @@ public class TrackedEntityInstance
 
     private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
 
+    private Set<RelationshipItem> relationshipItems = new HashSet<>();
+
     private Set<ProgramInstance> programInstances = new HashSet<>();
 
-    private OrganisationUnit organisationUnit;
+    private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
-    private TrackedEntityInstance representative;
+    private OrganisationUnit organisationUnit;
 
     private TrackedEntityType trackedEntityType;
 
@@ -75,9 +75,9 @@ public class TrackedEntityInstance
 
     private Boolean deleted = false;
 
-    private FeatureType featureType = FeatureType.NONE;
+    private Geometry geometry;
 
-    private String coordinates;
+    private Date lastSynchronized = new Date( 0 );
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -184,16 +184,16 @@ public class TrackedEntityInstance
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getRepresentative()
+    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<TrackedEntityProgramOwner> getProgramOwners()
     {
-        return representative;
+        return programOwners;
     }
 
-    public void setRepresentative( TrackedEntityInstance representative )
+    public void setProgramOwners( Set<TrackedEntityProgramOwner> programOwners )
     {
-        this.representative = representative;
+        this.programOwners = programOwners;
     }
 
     @JsonProperty
@@ -233,46 +233,53 @@ public class TrackedEntityInstance
         this.deleted = deleted;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FeatureType getFeatureType()
+    @JsonIgnore
+    public Date getLastSynchronized()
     {
-        return featureType;
+        return lastSynchronized;
     }
 
-    @Override
-    public boolean hasFeatureType()
+    public void setLastSynchronized( Date lastSynchronized )
     {
-        return getFeatureType() != null;
-    }
-
-    public void setFeatureType( FeatureType featureType )
-    {
-        this.featureType = featureType;
+        this.lastSynchronized = lastSynchronized;
     }
 
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( PropertyType.GEOLOCATION )
-    public String getCoordinates()
+    public Set<RelationshipItem> getRelationshipItems()
     {
-        return coordinates;
+        return relationshipItems;
     }
 
-    @Override
-    public boolean hasCoordinates()
+    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
     {
-        return getCoordinates() != null;
+        this.relationshipItems = relationshipItems;
     }
 
-    @Override
-    public boolean hasDescendantsWithCoordinates()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Geometry getGeometry()
     {
-        return false;
+        return geometry;
     }
 
-    public void setCoordinates( String coordinates )
+    public void setGeometry( Geometry geometry )
     {
-        this.coordinates = coordinates;
+        this.geometry = geometry;
+    }
+
+    @Override public String toString()
+    {
+        return "TrackedEntityInstance{" +
+            "id=" + id +
+            ", uid='" + uid + '\'' +
+            ", name='" + name + '\'' +
+            ", organisationUnit=" + organisationUnit +
+            ", trackedEntityType=" + trackedEntityType +
+            ", inactive=" + inactive +
+            ", deleted=" + deleted +
+            ", lastSynchronized=" + lastSynchronized +
+            '}';
     }
 }
