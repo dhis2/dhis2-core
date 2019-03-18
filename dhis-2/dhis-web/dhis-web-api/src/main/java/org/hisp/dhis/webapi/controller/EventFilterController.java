@@ -39,7 +39,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 @RequestMapping( value = ProgramStageInstanceFilterSchemaDescriptor.API_ENDPOINT )
-public class ProgramStageInstanceFilterController
+public class EventFilterController
     extends AbstractCrudController<ProgramStageInstanceFilter>
 {
 }
