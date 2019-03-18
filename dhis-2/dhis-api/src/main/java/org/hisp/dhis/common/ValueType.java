@@ -168,4 +168,48 @@ public enum ValueType
     {
         return aggregateable;
     }
+
+    /**
+     * Returns a simplified value type. As an example, if the value type is
+     * any numeric type such as integer, percentage, then {@link ValueType#NUMBER}
+     * is returned. Can return any of:
+     *
+     * <ul>
+     * <li>{@link ValueType#NUMBER} for any numeric types.</li>
+     * <li>{@link ValueType#BOOLEAN} for any boolean types.</li>
+     * <li>{@link ValueType#DATE} for any date / time types.</li>
+     * <li>{@link ValueType#FILE_RESOURCE} for any file types.</li>
+     * <li>{@link ValueType#COORDINATE} for any geometry types.</li>
+     * <li>{@link ValueType#TEXT} for any textual types.</li>
+     * </ul>
+     *
+     * @return a simplified value type.
+     */
+    public ValueType asSimplifiedValueType()
+    {
+        if ( isNumeric() )
+        {
+            return ValueType.NUMBER;
+        }
+        else if ( isBoolean() )
+        {
+            return ValueType.BOOLEAN;
+        }
+        else if ( isDate() )
+        {
+            return ValueType.DATE;
+        }
+        else if ( isFile() )
+        {
+            return ValueType.FILE_RESOURCE;
+        }
+        else if ( isGeo() )
+        {
+            return ValueType.COORDINATE;
+        }
+        else
+        {
+            return ValueType.TEXT;
+        }
+    }
 }
