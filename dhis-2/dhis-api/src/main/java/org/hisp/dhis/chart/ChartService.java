@@ -56,7 +56,7 @@ public interface ChartService
     // JFreeChart
     // -------------------------------------------------------------------------
 
-    JFreeChart getJFreeChart( int id, I18nFormat format );
+    JFreeChart getJFreeChart( long id, I18nFormat format );
 
     JFreeChart getJFreeChart( BaseChart chart, I18nFormat format );
 
@@ -88,11 +88,11 @@ public interface ChartService
     // Chart CRUD
     // -------------------------------------------------------------------------
 
-    int addChart( Chart chart );
+    long addChart( Chart chart );
 
     void updateChart( Chart chart );
 
-    Chart getChart( int id );
+    Chart getChart( long id );
 
     Chart getChart( String uid );
     

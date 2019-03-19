@@ -91,30 +91,30 @@ public class OrganisationUnitHierarchyTest
         assertEquals( 6, hierarchy.getChildren( 1, group ).size() );
 
         assertEquals( 5, hierarchy.getChildren( 2, group ).size() );
-        assertTrue( hierarchy.getChildren( 2, group ).contains( 2 ) );
-        assertTrue( hierarchy.getChildren( 2, group ).contains( 4 ) );
-        assertTrue( hierarchy.getChildren( 2, group ).contains( 6 ) );
-        assertTrue( hierarchy.getChildren( 2, group ).contains( 10 ) );
-        assertTrue( hierarchy.getChildren( 2, group ).contains( 12 ) );
+        assertTrue( hierarchy.getChildren( 2, group ).contains( 2l ) );
+        assertTrue( hierarchy.getChildren( 2, group ).contains( 4l ) );
+        assertTrue( hierarchy.getChildren( 2, group ).contains( 6l ) );
+        assertTrue( hierarchy.getChildren( 2, group ).contains( 10l ) );
+        assertTrue( hierarchy.getChildren( 2, group ).contains( 12l ) );
 
         assertEquals( 1, hierarchy.getChildren( 3, group ).size() );
-        assertTrue( hierarchy.getChildren( 3, group ).contains( 8 ) );
+        assertTrue( hierarchy.getChildren( 3, group ).contains( 8l ) );
 
         assertEquals( 3, hierarchy.getChildren( 4, group ).size() );
-        assertTrue( hierarchy.getChildren( 4, group ).contains( 4 ) );
-        assertTrue( hierarchy.getChildren( 4, group ).contains( 10 ) );
-        assertTrue( hierarchy.getChildren( 4, group ).contains( 12 ) );
+        assertTrue( hierarchy.getChildren( 4, group ).contains( 4l ) );
+        assertTrue( hierarchy.getChildren( 4, group ).contains( 10l ) );
+        assertTrue( hierarchy.getChildren( 4, group ).contains( 12l ) );
 
         assertEquals( 0, hierarchy.getChildren( 11, group ).size() );
 
-        assertFalse( hierarchy.getChildren( 5, group ).contains( 10 ) );
-        assertFalse( hierarchy.getChildren( 3, group ).contains( 11 ) );
+        assertFalse( hierarchy.getChildren( 5, group ).contains( 10l ) );
+        assertFalse( hierarchy.getChildren( 3, group ).contains( 11l ) );
     }
 
     @Test
     public void testGetChildren()
     {
-        Set<Integer> parentIds = new HashSet<>();
+        Set<Long> parentIds = new HashSet<>();
 
         List<OrganisationUnitRelationship> relations = new ArrayList<>();
 
@@ -122,7 +122,7 @@ public class OrganisationUnitHierarchyTest
         int childMax = 4;
         int childId = 0;
 
-        for ( int parentId = 0; parentId < parentMax; parentId++ )
+        for ( long parentId = 0; parentId < parentMax; parentId++ )
         {
             parentIds.add( parentId );
 
@@ -134,7 +134,7 @@ public class OrganisationUnitHierarchyTest
 
         OrganisationUnitHierarchy hierarchy = new OrganisationUnitHierarchy( relations );
 
-        Set<Integer> children = hierarchy.getChildren( parentIds );
+        Set<Long> children = hierarchy.getChildren( parentIds );
 
         assertNotNull( children );
         assertEquals( (parentMax * childMax) + 1, children.size() );
@@ -165,12 +165,12 @@ public class OrganisationUnitHierarchyTest
     @Test
     public void testGetChildrenB()
     {
-        Map<Integer, Set<Integer>> relationships = new HashMap<>();
+        Map<Long, Set<Long>> relationships = new HashMap<>();
 
-        relationships.put( 1, getSet( 2, 3 ) );
-        relationships.put( 2, getSet( 4, 5, 6 ) );
-        relationships.put( 3, getSet( 7, 8, 9 ) );
-        relationships.put( 4, getSet( 10, 11, 12 ) );
+        relationships.put( 1l, getSet( 2l, 3l ) );
+        relationships.put( 2l, getSet( 4l, 5l, 6l ) );
+        relationships.put( 3l, getSet( 7l, 8l, 9l ) );
+        relationships.put( 4l, getSet( 10l, 11l, 12l ) );
 
         OrganisationUnitHierarchy hierarchy = new OrganisationUnitHierarchy( relationships );
 
@@ -182,36 +182,36 @@ public class OrganisationUnitHierarchyTest
         assertEquals( 12, hierarchy.getChildren( 1 ).size() );
 
         assertEquals( 7, hierarchy.getChildren( 2 ).size() );
-        assertTrue( hierarchy.getChildren( 2 ).contains( 2 ) );
-        assertTrue( hierarchy.getChildren( 2 ).contains( 4 ) );
-        assertTrue( hierarchy.getChildren( 2 ).contains( 5 ) );
-        assertTrue( hierarchy.getChildren( 2 ).contains( 6 ) );
-        assertTrue( hierarchy.getChildren( 2 ).contains( 10 ) );
-        assertTrue( hierarchy.getChildren( 2 ).contains( 11 ) );
-        assertTrue( hierarchy.getChildren( 2 ).contains( 12 ) );
+        assertTrue( hierarchy.getChildren( 2 ).contains( 2l ) );
+        assertTrue( hierarchy.getChildren( 2 ).contains( 4l ) );
+        assertTrue( hierarchy.getChildren( 2 ).contains( 5l ) );
+        assertTrue( hierarchy.getChildren( 2 ).contains( 6l ) );
+        assertTrue( hierarchy.getChildren( 2 ).contains( 10l ) );
+        assertTrue( hierarchy.getChildren( 2 ).contains( 11l ) );
+        assertTrue( hierarchy.getChildren( 2 ).contains( 12l ) );
 
         assertEquals( 4, hierarchy.getChildren( 3 ).size() );
-        assertTrue( hierarchy.getChildren( 3 ).contains( 3 ) );
-        assertTrue( hierarchy.getChildren( 3 ).contains( 7 ) );
-        assertTrue( hierarchy.getChildren( 3 ).contains( 8 ) );
-        assertTrue( hierarchy.getChildren( 3 ).contains( 9 ) );
+        assertTrue( hierarchy.getChildren( 3 ).contains( 3l ) );
+        assertTrue( hierarchy.getChildren( 3 ).contains( 7l ) );
+        assertTrue( hierarchy.getChildren( 3 ).contains( 8l ) );
+        assertTrue( hierarchy.getChildren( 3 ).contains( 9l ) );
 
         assertEquals( 4, hierarchy.getChildren( 4 ).size() );
-        assertTrue( hierarchy.getChildren( 4 ).contains( 4 ) );
-        assertTrue( hierarchy.getChildren( 4 ).contains( 10 ) );
-        assertTrue( hierarchy.getChildren( 4 ).contains( 11 ) );
-        assertTrue( hierarchy.getChildren( 4 ).contains( 12 ) );
+        assertTrue( hierarchy.getChildren( 4 ).contains( 4l ) );
+        assertTrue( hierarchy.getChildren( 4 ).contains( 10l ) );
+        assertTrue( hierarchy.getChildren( 4 ).contains( 11l ) );
+        assertTrue( hierarchy.getChildren( 4 ).contains( 12l ) );
 
         assertEquals( 1, hierarchy.getChildren( 11 ).size() );
-        assertTrue( hierarchy.getChildren( 11 ).contains( 11 ) );
+        assertTrue( hierarchy.getChildren( 11 ).contains( 11l ) );
 
-        assertFalse( hierarchy.getChildren( 2 ).contains( 3 ) );
-        assertFalse( hierarchy.getChildren( 2 ).contains( 8 ) );
+        assertFalse( hierarchy.getChildren( 2 ).contains( 3l ) );
+        assertFalse( hierarchy.getChildren( 2 ).contains( 8l ) );
     }
 
-    private Set<Integer> getSet( Integer... ints )
+    private Set<Long> getSet( Long... ints )
     {
-        Set<Integer> set = new HashSet<>();
+        Set<Long> set = new HashSet<>();
 
         Collections.addAll( set, ints );
 

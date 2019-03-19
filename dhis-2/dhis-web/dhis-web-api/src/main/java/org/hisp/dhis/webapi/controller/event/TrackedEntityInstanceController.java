@@ -742,8 +742,8 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
-    public void updateTrackedEntityInstanceXml( 
-        @PathVariable String id, 
+    public void updateTrackedEntityInstanceXml(
+        @PathVariable String id,
         @RequestParam( required = false ) String program,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -756,8 +756,8 @@ public class TrackedEntityInstanceController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void updateTrackedEntityInstanceJson( 
-        @PathVariable String id, 
+    public void updateTrackedEntityInstanceJson(
+        @PathVariable String id,
         @RequestParam( required = false ) String program,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException

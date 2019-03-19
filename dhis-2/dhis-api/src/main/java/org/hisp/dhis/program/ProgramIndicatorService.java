@@ -42,7 +42,7 @@ public interface ProgramIndicatorService
      * @param programIndicator The to ProgramIndicator add.
      * @return A generated unique id of the added {@link ProgramIndicator}.
      */
-    int addProgramIndicator( ProgramIndicator programIndicator );
+    long addProgramIndicator( ProgramIndicator programIndicator );
 
     /**
      * Updates a {@link ProgramIndicator}.
@@ -64,7 +64,7 @@ public interface ProgramIndicatorService
      * @param id the id of the ProgramIndicator to return.
      * @return the ProgramIndicator with the given id
      */
-    ProgramIndicator getProgramIndicator( int id );
+    ProgramIndicator getProgramIndicator( long id );
 
     /**
      * Returns a {@link ProgramIndicator} with a given name.
@@ -103,7 +103,6 @@ public interface ProgramIndicatorService
      * values for data elements and attributes.
      * 
      * @param expression the expression.
-     * @param analyticsType the {@link AnalyticsType}.
      * @param startDate the start date.
      * @param endDate the end date.
      * @return the SQL string.
@@ -114,7 +113,6 @@ public interface ProgramIndicatorService
      * Get the expression as an analytics SQL clause.
      * 
      * @param expression the expression.
-     * @param analyticsType the {@link AnalyticsType}.
      * @param ignoreMissingValues whether to ignore missing values for data elements and attributes.
      * @param startDate the start date.
      * @param endDate the end date.
@@ -155,13 +153,13 @@ public interface ProgramIndicatorService
     // ProgramIndicatorGroup
     // -------------------------------------------------------------------------
 
-    int addProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+    long addProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
 
     void updateProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
 
     void deleteProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
 
-    ProgramIndicatorGroup getProgramIndicatorGroup( int id );
+    ProgramIndicatorGroup getProgramIndicatorGroup( long id );
 
     ProgramIndicatorGroup getProgramIndicatorGroup( String uid );
 

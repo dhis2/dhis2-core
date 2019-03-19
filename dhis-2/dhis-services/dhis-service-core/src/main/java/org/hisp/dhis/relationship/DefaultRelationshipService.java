@@ -64,7 +64,7 @@ public class DefaultRelationshipService
     }
 
     @Override
-    public Relationship getRelationship( int id )
+    public Relationship getRelationship( long id )
     {
         return relationshipStore.get( id );
     }
@@ -76,7 +76,7 @@ public class DefaultRelationshipService
     }
 
     @Override
-    public int addRelationship( Relationship relationship )
+    public long addRelationship( Relationship relationship )
     {
         relationship.getFrom().setRelationship( relationship );
         relationship.getTo().setRelationship( relationship );

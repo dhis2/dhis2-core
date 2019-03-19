@@ -50,7 +50,6 @@ import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
-import static org.hisp.dhis.reporttable.ReportTable.IRT2D;
 import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
 
 import java.util.ArrayList;
@@ -249,7 +248,7 @@ public class DefaultAnalyticsService
         if ( dhisConfig.isAnalyticsCacheEnabled() )
         {
             final DataQueryParams query = DataQueryParams.newBuilder( params ).build();
-            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).get();
+            return queryCache.get( params.getKey(), key -> getAggregatedDataValueGridInternal( query ) ).orElseGet( () -> new ListGrid() );
         }
 
         return getAggregatedDataValueGridInternal( params );
@@ -730,6 +729,8 @@ public class DefaultAnalyticsService
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
+            int timeUnits = params.hasFilter( DimensionalObject.PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
+
             for ( Map.Entry<String, Double> entry : targetMap.entrySet() )
             {
                 List<String> dataRow = Lists.newArrayList( entry.getKey().split( DIMENSION_SEP ) );
@@ -745,7 +746,7 @@ public class DefaultAnalyticsService
 
                     PeriodType queryPt = filterPeriodType != null ? filterPeriodType : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
-                    target = target * queryPt.getPeriodSpan( dataSetPt );
+                    target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
 
                     // ---------------------------------------------------------
                     // Calculate reporting rate and replace data set with rate
@@ -982,15 +983,15 @@ public class DefaultAnalyticsService
 
         ReportTable reportTable = new ReportTable();
 
-        List<DimensionalItemObject[]> tableColumns = new ArrayList<>();
-        List<DimensionalItemObject[]> tableRows = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
 
         if ( columns != null )
         {
             for ( String dimension : columns )
             {
                 reportTable.getColumnDimensions().add( dimension );
-                tableColumns.add( params.getDimensionItemArrayExplodeCoc( dimension ) );
+                tableColumns.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
         }
 
@@ -999,14 +1000,14 @@ public class DefaultAnalyticsService
             for ( String dimension : rows )
             {
                 reportTable.getRowDimensions().add( dimension );
-                tableRows.add( params.getDimensionItemArrayExplodeCoc( dimension ) );
+                tableRows.add( params.getDimensionItemsExplodeCoc( dimension ) );
             }
         }
 
         reportTable
             .setGridTitle( IdentifiableObjectUtils.join( params.getFilterItems() ) )
-            .setGridColumns( new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations() )
-            .setGridRows( new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations() );
+            .setGridColumns( CombinationGenerator.newInstance( tableColumns ).getCombinations() )
+            .setGridRows( CombinationGenerator.newInstance( tableRows ).getCombinations() );
 
         addListIfEmpty( reportTable.getGridColumns() );
         addListIfEmpty( reportTable.getGridRows() );
@@ -1016,6 +1017,7 @@ public class DefaultAnalyticsService
         reportTable.setShowHierarchy( params.isShowHierarchy() );
 
         Map<String, Object> valueMap = AnalyticsUtils.getAggregatedDataValueMapping( grid );
+
         return reportTable.getGrid( new ListGrid( grid.getMetaData(), grid.getInternalMetaData() ), valueMap, params.getDisplayProperty(), false );
     }
 
@@ -1178,7 +1180,7 @@ public class DefaultAnalyticsService
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
             .withOptimalQueries( optimalQueries )
-            .withTableName( tableType.getTableName() )
+            .withTableType( tableType )
             .withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
@@ -1283,7 +1285,7 @@ public class DefaultAnalyticsService
         if ( !params.isSkipData() )
         {
             QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
-                .withTableName( AnalyticsTableType.DATA_VALUE.getTableName() ).build();
+                .withTableType( AnalyticsTableType.DATA_VALUE ).build();
 
             params = queryPlanner.withTableNameAndPartitions( params, plannerParams );
 

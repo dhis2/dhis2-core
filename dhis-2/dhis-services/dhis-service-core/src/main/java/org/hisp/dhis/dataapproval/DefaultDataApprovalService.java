@@ -137,7 +137,7 @@ public class DefaultDataApprovalService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addWorkflow( DataApprovalWorkflow workflow )
+    public long addWorkflow( DataApprovalWorkflow workflow )
     {
         workflowStore.save( workflow );
 
@@ -157,7 +157,7 @@ public class DefaultDataApprovalService
     }
 
     @Override
-    public DataApprovalWorkflow getWorkflow( int id )
+    public DataApprovalWorkflow getWorkflow( long id )
     {
         return workflowStore.get( id );
     }

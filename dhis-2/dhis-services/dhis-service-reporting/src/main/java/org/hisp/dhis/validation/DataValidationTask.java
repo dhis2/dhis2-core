@@ -113,16 +113,16 @@ public class DataValidationTask
 
     private OrganisationUnit orgUnit;       // Current organisation unit.
 
-    private int orgUnitId;                  // Current organisation unit id.
+    private long orgUnitId;                  // Current organisation unit id.
 
     private ValidationRuleExtended ruleX;   // Current rule extended.
 
     // Data for current period and all rules being evaluated:
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> dataMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Double> dataMap;
 
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> eventMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Double> eventMap;
 
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> slidingWindowEventMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Double> slidingWindowEventMap;
 
     public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService )
     {
@@ -363,7 +363,7 @@ public class DataValidationTask
         }
     }
 
-    private Period getPeriod( int id )
+    private Period getPeriod( long id )
     {
         Period p = context.getPeriodIdMap().get( id );
 
@@ -381,7 +381,7 @@ public class DataValidationTask
         return p;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( int id )
+    private CategoryOptionCombo getAttributeOptionCombo( long id )
     {
         CategoryOptionCombo aoc = context.getAocIdMap().get( id );
 
@@ -432,7 +432,7 @@ public class DataValidationTask
      * @return map of values.
      */
     private Map<String, Double> getExpressionValueMap( Expression expression,
-        MapMapMap<Integer, String, DimensionalItemObject, Double> valueMap )
+        MapMapMap<Long, String, DimensionalItemObject, Double> valueMap )
     {
         Map<String, Double> expressionValueMap = new HashMap<>();
 
@@ -498,7 +498,7 @@ public class DataValidationTask
 
         dataMap = new MapMapMap<>();
 
-        MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates = new MapMapMap<>();
+        MapMapMap<Long, String, DimensionalItemObject, Long> checkForDuplicates = new MapMapMap<>();
 
         for ( DeflatedDataValue dv : dataValues )
         {
@@ -506,7 +506,7 @@ public class DataValidationTask
             String deoIdKey = periodTypeX.getDeoIds( dv.getDataElementId(), dv.getCategoryOptionComboId() );
             DataElementOperand dataElementOperand = periodTypeX.getDataElementOperandIdMap().get( deoIdKey );
             Period p = getPeriod( dv.getPeriodId() );
-            int orgUnitId = dv.getSourceId();
+            long orgUnitId = dv.getSourceId();
             String attributeOptionComboUid = getAttributeOptionCombo( dv.getAttributeOptionComboId() ).getUid();
             String valueString = dv.getValue();
             Double value;
@@ -533,8 +533,8 @@ public class DataValidationTask
         }
     }
 
-    private void addValueToDataMap( int orgUnitId, String aocUid, DimensionalItemObject dimItemObject,
-        Double value, Period p, MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates )
+    private void addValueToDataMap( long orgUnitId, String aocUid, DimensionalItemObject dimItemObject,
+        Double value, Period p, MapMapMap<Long, String, DimensionalItemObject, Long> checkForDuplicates )
     {
         double existingValue = ObjectUtils.firstNonNull( dataMap.getValue( orgUnitId, aocUid, dimItemObject ), 0.0 );
 
@@ -564,7 +564,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventMap(
+    private MapMapMap<Long, String, DimensionalItemObject, Double> getEventMap(
         boolean hasAttributeOptions, Set<DimensionalItemObject> eventItems )
     {
         if ( eventItems.isEmpty() )
@@ -591,7 +591,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
+    private MapMapMap<Long, String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
         boolean hasAttributeOptions, Set<DimensionalItemObject> eventItems )
     {
         if ( eventItems.isEmpty() )
@@ -641,10 +641,10 @@ public class DataValidationTask
      * @param hasAttributeOptions whether the event data has attribute options.
      * @return event data.
      */
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventData(
+    private MapMapMap<Long, String, DimensionalItemObject, Double> getEventData(
         DataQueryParams params, boolean hasAttributeOptions )
     {
-        MapMapMap<Integer, String, DimensionalItemObject, Double> map = new MapMapMap<>();
+        MapMapMap<Long, String, DimensionalItemObject, Double> map = new MapMapMap<>();
 
         Grid grid = analyticsService.getAggregatedDataValues( params );
 

@@ -1,4 +1,16 @@
-package org.hisp.dhis.orgunitdistribution.jdbc;
+package org.hisp.dhis.analytics.orgunit.data;
+
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,55 +40,63 @@ package org.hisp.dhis.orgunitdistribution.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionManager;
-import org.hisp.dhis.orgunitdistribution.OrgUnitDistributionParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 /**
  * @author Lars Helge Overland
  */
-public class JdbcOrgUnitDistributionManager
-    implements OrgUnitDistributionManager
+public class JdbcOrgUnitAnalyticsManager
+    implements OrgUnitAnalyticsManager
 {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitDistributionParams params, Grid grid )
+    public Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params )
     {
-        String sql = getDistributionSql( params );
+        Map<String, Integer> dataMap = new HashMap<>();
+
+        List<String> columns = getMetadataColumns( params );
+
+        String sql = getQuerySql( params );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         while ( rowSet.next() )
         {
-            grid.addRow();
+            StringBuilder key = new StringBuilder();
 
-            for ( GridHeader header : grid.getMetadataHeaders() )
+            for ( String column : columns )
             {
-                grid.addValue( rowSet.getString( header.getName() ) );
+                key.append( rowSet.getString( column ) ).append( DIMENSION_SEP );
             }
 
-            grid.addValue( rowSet.getInt( "count" ) );
+            key.deleteCharAt( key.length() - 1 );
+
+            int value = rowSet.getInt( "count" );
+
+            dataMap.put( key.toString(), value );
         }
 
-        return grid;
+        return dataMap;
     }
 
-    private String getDistributionSql( OrgUnitDistributionParams params )
+    private List<String> getMetadataColumns( OrgUnitQueryParams params )
+    {
+        List<String> columns = Lists.newArrayList( "orgunit" );
+        params.getOrgUnitGroupSets().forEach( ougs -> columns.add( ougs.getUid() ) );
+        return columns;
+    }
+
+    private String getQuerySql( OrgUnitQueryParams params )
     {
         String levelCol = String.format( "ous.uidlevel%d", params.getOrgUnitLevel() );
 
@@ -89,8 +109,7 @@ public class JdbcOrgUnitDistributionManager
             .map( uid -> quote( "ougs", uid ) )
             .collect( Collectors.toList() );
 
-        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets ) + ", " +
-            "count(ougs.organisationunitid) as count " +
+        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets ) + ", count(ougs.organisationunitid) as count " +
             "from " + quote( "_orgunitstructure" ) + " ous " +
             "inner join " + quote( "_organisationunitgroupsetstructure" ) + " ougs on ous.organisationunitid = ougs.organisationunitid " +
             "where " + levelCol + " in (" + getQuotedCommaDelimitedString( orgUnits ) + ") " +

@@ -41,7 +41,7 @@ public interface ProgramRuleActionService
      * @param programRuleAction The to ProgramRuleAction add.
      * @return A generated unique id of the added {@link ProgramRuleAction}.
      */
-    int addProgramRuleAction( ProgramRuleAction programRuleAction );
+    long addProgramRuleAction( ProgramRuleAction programRuleAction );
 
     /**
      * Deletes a {@link ProgramRuleAction}
@@ -63,7 +63,7 @@ public interface ProgramRuleActionService
      * @param id the id of the ProgramRuleAction to return.
      * @return the ProgramRuleAction with the given id
      */
-    ProgramRuleAction getProgramRuleAction( int id );
+    ProgramRuleAction getProgramRuleAction( long id );
 
     /**
      * Returns all {@link ProgramRuleAction}.

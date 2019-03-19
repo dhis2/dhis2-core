@@ -91,7 +91,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     {
         this.jdbcTemplate = jdbcTemplate;
     }
-    
+
     private StatementBuilder statementBuilder;
 
     public void setStatementBuilder( StatementBuilder statementBuilder )
@@ -177,7 +177,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             .addPredicate( root -> builder.equal( root, dataValue ) )
             .addPredicate( root -> builder.equal( root.get( "deleted" ), true ) ) );
     }
-        
+
     // -------------------------------------------------------------------------
     // Collections of DataValues
     // -------------------------------------------------------------------------
@@ -192,7 +192,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         // HQL parameters
         // ---------------------------------------------------------------------
 
-        String hql = 
+        String hql =
             "select dv from DataValue dv " +
             "inner join dv.dataElement de " +
             "inner join dv.period pe " +
@@ -209,30 +209,30 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             hql += "and (pe.startDate >= :startDate and pe.endDate < :endDate) ";
         }
-        
+
         if ( params.isIncludeChildrenForOrganisationUnits() )
         {
             hql += "and (";
-            
+
             for ( OrganisationUnit unit : params.getOrganisationUnits() )
             {
                 hql += "ou.path like '" + unit.getPath() + "%' or ";
             }
-            
+
             hql = removeLastOr( hql );
-            
+
             hql += ") ";
         }
         else if ( !organisationUnits.isEmpty() )
         {
             hql += "and ou.id in (:orgUnits) ";
         }
-        
+
         if ( params.hasAttributeOptionCombos() )
         {
             hql += "and ao.id in (:attributeOptionCombos) ";
         }
-        
+
         if ( params.hasLastUpdated() )
         {
             hql += "and dv.lastUpdated >= :lastUpdated ";
@@ -256,7 +256,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
             Set<Period> periods = params.getPeriods().stream()
                 .map( p -> periodStore.reloadPeriod( p ) )
                 .collect( Collectors.toSet() );
-            
+
             query.setParameterList( "periods", getIdentifiers( periods ) );
         }
         else if ( params.hasStartEndDate() )
@@ -268,27 +268,27 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             query.setParameterList( "orgUnits", getIdentifiers( organisationUnits ) );
         }
-        
+
         if ( params.hasAttributeOptionCombos() )
         {
             query.setParameterList( "attributeOptionCombos", getIdentifiers( params.getAttributeOptionCombos() ) );
         }
-        
+
         if ( params.hasLastUpdated() )
         {
             query.setParameter( "lastUpdated", params.getLastUpdated() );
         }
-        
+
         if ( params.hasLimit() )
         {
             query.setMaxResults( params.getLimit() );
         }
-        
+
         // TODO last updated duration support
 
         return query.list();
     }
-    
+
     @Override
     public List<DataValue> getAllDataValues()
     {
@@ -355,12 +355,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         if ( params.hasDataElementOperands() )
         {
             List<DataElementOperand> queryDeos = getQueryDataElementOperands( params );
-            List<Integer> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() ).collect( Collectors.toList() );
-            List<Integer> cocIdList = queryDeos.stream()
+            List<Long> deIdList = queryDeos.stream().map( de -> de.getDataElement().getId() ).collect( Collectors.toList() );
+            List<Long> cocIdList = queryDeos.stream()
                 .map( de -> de.getCategoryOptionCombo() == null ? null : de.getCategoryOptionCombo().getId() )
                 .collect( Collectors.toList() );
 
-            sql += " join " + statementBuilder.literalIntIntTable( deIdList, cocIdList, "deo", "deid", "cocid" )
+            sql += " join " + statementBuilder.literalLongLongTable( deIdList, cocIdList, "deo", "deid", "cocid" )
                 + " on deo.deid = dv.dataelementid and (deo.cocid is null or deo.cocid = dv.categoryoptioncomboid)";
         }
         else if ( params.hasDataElements() )
@@ -404,11 +404,11 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         if ( params.isIncludeChildrenForOrganisationUnits() || params.isReturnParentForOrganisationUnits() )
         {
             List<OrganisationUnit> orgUnitList = new ArrayList<>( params.getOrganisationUnits() );
-            List<Integer> orgUnitIdList = orgUnitList.stream().map(  OrganisationUnit::getId ).collect( Collectors.toList() );
+            List<Long> orgUnitIdList = orgUnitList.stream().map(  OrganisationUnit::getId ).collect( Collectors.toList() );
             List<String> orgUnitPathList = orgUnitList.stream().map(  OrganisationUnit::getPath ).collect( Collectors.toList() );
 
             sql += " join organisationunit ou on ou.organisationunitid = dv.sourceid"
-                + " join " + statementBuilder.literalIntStringTable( orgUnitIdList, orgUnitPathList, "opath", "id", "path" )
+                + " join " + statementBuilder.literalLongStringTable( orgUnitIdList, orgUnitPathList, "opath", "id", "path" )
                 + " on ou.path like " + statementBuilder.concatenate( "opath.path", "'%'");
         }
         else if ( params.hasOrganisationUnits() )
@@ -502,12 +502,12 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         {
             predicateList.add( root -> builder.equal( root.get( "deleted" ), false ) );
         }
-        
+
         if ( startDate != null )
         {
             predicateList.add( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), startDate ) );
         }
-        
+
         if ( endDate != null )
         {
             predicateList.add( root -> builder.lessThanOrEqualTo( root.get( "lastUpdated" ), endDate ) );
@@ -549,7 +549,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 .map( de -> new DataElementOperand( de ) ).collect( Collectors.toSet() ) );
         }
 
-        Set<Integer> wildDataElementIds = deos.stream()
+        Set<Long> wildDataElementIds = deos.stream()
             .filter( deo -> deo.getCategoryOptionCombo() == null )
             .map( deo -> deo.getDataElement().getId() ).collect( Collectors.toSet() );
 

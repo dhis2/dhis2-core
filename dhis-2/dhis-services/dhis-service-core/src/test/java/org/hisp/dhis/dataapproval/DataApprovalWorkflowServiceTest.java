@@ -101,7 +101,7 @@ public class DataApprovalWorkflowServiceTest
     @Test
     public void testAddDataApprovalWorkflow() throws Exception
     {
-        int id = dataApprovalService.addWorkflow( workflowA );
+        long id = dataApprovalService.addWorkflow( workflowA );
 
         assertTrue( id != 0 );
 
@@ -120,7 +120,7 @@ public class DataApprovalWorkflowServiceTest
     @Test
     public void testUpdateDataApprovalWorkflow() throws Exception
     {
-        int id = dataApprovalService.addWorkflow( workflowA );
+        long id = dataApprovalService.addWorkflow( workflowA );
 
         DataApprovalWorkflow workflow = dataApprovalService.getWorkflow( id );
 
@@ -147,7 +147,7 @@ public class DataApprovalWorkflowServiceTest
     @Test
     public void testDeleteDataApprovalWorkflow() throws Exception
     {
-        int id = dataApprovalService.addWorkflow( workflowA );
+        long id = dataApprovalService.addWorkflow( workflowA );
 
         dataApprovalService.deleteWorkflow( workflowA );
 
@@ -163,9 +163,9 @@ public class DataApprovalWorkflowServiceTest
     @Test
     public void testGetDataApprovalWorkflow() throws Exception
     {
-        int idA = dataApprovalService.addWorkflow( workflowA );
-        int idB = dataApprovalService.addWorkflow( workflowB );
-        int idC = dataApprovalService.addWorkflow( workflowC );
+        long idA = dataApprovalService.addWorkflow( workflowA );
+        long idB = dataApprovalService.addWorkflow( workflowB );
+        long idC = dataApprovalService.addWorkflow( workflowC );
 
         assertEquals( workflowA, dataApprovalService.getWorkflow( idA ) );
         assertEquals( workflowB, dataApprovalService.getWorkflow( idB ) );

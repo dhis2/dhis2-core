@@ -48,7 +48,7 @@ public interface JobConfigurationService
      * @param jobConfiguration the job configuration to be added
      * @return id
      */
-    int addJobConfiguration( JobConfiguration jobConfiguration );
+    long addJobConfiguration( JobConfiguration jobConfiguration );
 
     /**
      * Add a collection of job configurations
@@ -63,7 +63,7 @@ public interface JobConfigurationService
      * @param jobConfiguration the job configuration to be added
      * @return id
      */
-    int updateJobConfiguration( JobConfiguration jobConfiguration );
+    long updateJobConfiguration( JobConfiguration jobConfiguration );
 
     /**
      * Delete a job configuration
@@ -78,7 +78,7 @@ public interface JobConfigurationService
      * @param jobId id for job configuration
      * @return Job configuration
      */
-    JobConfiguration getJobConfiguration( int jobId );
+    JobConfiguration getJobConfiguration( long jobId );
 
     /**
      * Get a job configuration for given uid

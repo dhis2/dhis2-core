@@ -248,8 +248,8 @@ public class ExpressionParserServiceTest
 
         categoryService.addCategoryCombo( categoryComboA );
 
-        categoryOptionComboA = createCategoryOptionCombo( 'A', categoryComboA, categoryOptionA );
-        categoryOptionComboB = createCategoryOptionCombo( 'B', categoryComboA, categoryOptionB );
+        categoryOptionComboA = createCategoryOptionCombo( categoryComboA, categoryOptionA );
+        categoryOptionComboB = createCategoryOptionCombo( categoryComboA, categoryOptionB );
 
         categoryOptionComboA.setUid( "catOptCombA" );
         categoryOptionComboB.setUid( "catOptCombB" );
@@ -546,7 +546,7 @@ public class ExpressionParserServiceTest
         {
             Double d = (double)value;
 
-            if ( d == (double) d.intValue() )
+            if ( d == d.intValue() )
             {
                 valueString = Integer.toString( d.intValue() );
             }

@@ -43,7 +43,7 @@ public interface VersionService
      * @param version Version object to add.
      * @return ID of the saved version object.
      */
-    int addVersion( Version version );
+    long addVersion( Version version );
 
     /**
      * @param version Version object to update.
@@ -70,7 +70,7 @@ public interface VersionService
      * @param id Get Version with this ID.
      * @return Version that matched ID, or null if there was no match.
      */
-    Version getVersion( int id );
+    Version getVersion( long id );
 
     /**
      * @param key Key to lookup the value with.

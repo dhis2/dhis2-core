@@ -117,13 +117,13 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public TrackedEntityAttribute getTrackedEntityAttribute( int id )
+    public TrackedEntityAttribute getTrackedEntityAttribute( long id )
     {
         return attributeStore.get( id );
     }
 
     @Override
-    public int addTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    public long addTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         attributeStore.save( attribute );
         return attribute.getId();

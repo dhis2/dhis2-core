@@ -311,7 +311,7 @@ public class MessageConversationController
             attachments.add( fileResource );
         }
 
-        int id = messageService.sendPrivateMessage( messageConversation.getUsers(),
+        long id = messageService.sendPrivateMessage( messageConversation.getUsers(),
             messageConversation.getSubject(), messageConversation.getText(), metaData, attachments );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );

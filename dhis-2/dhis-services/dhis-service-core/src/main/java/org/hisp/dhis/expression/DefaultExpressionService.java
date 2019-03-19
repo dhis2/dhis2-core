@@ -134,7 +134,7 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public int addExpression( Expression expression )
+    public long addExpression( Expression expression )
     {
         expressionStore.save( expression );
 
@@ -150,7 +150,7 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public Expression getExpression( int id )
+    public Expression getExpression( long id )
     {
         return expressionStore.get( id );
     }

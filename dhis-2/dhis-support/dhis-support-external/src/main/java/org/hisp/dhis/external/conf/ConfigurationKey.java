@@ -89,10 +89,6 @@ public enum ConfigurationKey
     LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
     LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
     LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
-    LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
-    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" ),
-    LOGGING_ADAPTER_KAFKA_FORMAT( "logging.kafka.format", "JSON" ),
-    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
     SERVER_BASE_URL( "server.base.url", "", false );

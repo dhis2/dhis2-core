@@ -93,7 +93,7 @@ public class DefaultProgramStageInstanceService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramStageInstance( ProgramStageInstance programStageInstance )
+    public long addProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         programStageInstance.setAutoFields();
         programStageInstanceStore.save( programStageInstance );
@@ -124,7 +124,7 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
-    public ProgramStageInstance getProgramStageInstance( int id )
+    public ProgramStageInstance getProgramStageInstance( long id )
     {
         return programStageInstanceStore.get( id );
     }

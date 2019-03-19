@@ -62,13 +62,13 @@ public class ReflectionUtils
      * @param object object to call getId() on.
      * @return The identifier.
      */
-    public static int getId( Object object )
+    public static long getId( Object object )
     {
         try
         {
             Method method = object.getClass().getMethod( "getId" );
 
-            return (Integer) method.invoke( object );
+            return (Long) method.invoke( object );
         }
         catch ( NoSuchMethodException ex )
         {

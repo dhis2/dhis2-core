@@ -107,8 +107,8 @@ public class DataSetCompletenessServiceTest
     private Period periodB;
     private Period periodC;
 
-    private int periodIdA;
-    private int periodIdC;
+    private long periodIdA;
+    private long periodIdC;
 
     private OrganisationUnit unitA;
     private OrganisationUnit unitB;
@@ -123,16 +123,16 @@ public class DataSetCompletenessServiceTest
     private OrganisationUnitGroup groupB;
     private OrganisationUnitGroup groupC;
 
-    private int unitIdA;
-    private int unitIdB;
-    private int unitIdC;
-    private Collection<Integer> unitIdsA;
+    private long unitIdA;
+    private long unitIdB;
+    private long unitIdC;
+    private Collection<Long> unitIdsA;
 
     private DataSet dataSetA;
     private DataSet dataSetB;
     private DataSet dataSetC;
 
-    private int dataSetIdA;
+    private long dataSetIdA;
 
     private DataElement dataElementA;
     private DataElement dataElementB;
@@ -144,7 +144,7 @@ public class DataSetCompletenessServiceTest
     private Date onTimeB;
     private Date tooLateB;
 
-    private Set<Integer> groupIds = new HashSet<>();
+    private Set<Long> groupIds = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Fixture

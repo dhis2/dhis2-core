@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +46,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -95,6 +97,9 @@ public class DefaultDataQueryServiceTest
     @Mock
     private I18nManager i18nManager;
 
+    @Mock
+    private I18n i18n;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -117,6 +122,9 @@ public class DefaultDataQueryServiceTest
             securityManager, systemSettingManager, aclService, currentUserService, i18nManager );
 
         rb = new RequestBuilder();
+
+        when(i18nManager.getI18n()).thenReturn(i18n);
+        when (i18n.getString( "LAST_12_MONTHS")).thenReturn("Last 12 months");
     }
 
     private void mockDimensionService()
@@ -127,13 +135,13 @@ public class DefaultDataQueryServiceTest
             .thenReturn( DATA_ELEMENT_2 );
         when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_3.getUid() ) )
             .thenReturn( DATA_ELEMENT_3 );
+
     }
 
     @Test
     @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
-
         mockDimensionService();
 
         when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
@@ -225,7 +233,8 @@ public class DefaultDataQueryServiceTest
         DimensionalObject dimension = params.getDimension( "dx" );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
 
-        BaseIdentifiableObject aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+        DimensionalKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+
         assertThat( aggregation.getUid(), is( indicatorGroup.getUid() ) );
         assertThat( aggregation.getCode(), is( indicatorGroup.getCode() ) );
         assertThat( aggregation.getName(), is( indicatorGroup.getName() ) );
@@ -301,7 +310,8 @@ public class DefaultDataQueryServiceTest
         DimensionalObject dimension = params.getDimension( "dx" );
         assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
 
-        BaseIdentifiableObject aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+        DimensionalKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+
         assertThat( aggregation.getUid(), is( dataElementGroup.getUid() ) );
         assertThat( aggregation.getCode(), is( dataElementGroup.getCode() ) );
         assertThat( aggregation.getName(), is( dataElementGroup.getName() ) );
@@ -355,6 +365,65 @@ public class DefaultDataQueryServiceTest
                 allOf( hasProperty( "name", is( dataElementGroup.getName() ) ),
                     hasProperty( "uid", is( dataElementGroup.getUid() ) ),
                     hasProperty( "code", is( dataElementGroup.getCode() ) ) ) ) );
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void convertAnalyticsRequestWithRelativePeriod()
+    {
+        mockDimensionService();
+        when (i18n.getString( "LAST_YEAR")).thenReturn("Last year");
+
+        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
+        rb.addPeDimension( PERIOD_DIMENSION );
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
+                .dimension( rb.getDimensionParams() ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+
+        DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
+        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf(
+                    hasProperty( "name", is( "Last year" ) ),
+                    hasProperty( "key", is( "LAST_YEAR" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
+                allOf(
+                    hasProperty( "name", is( "Last 12 months" ) ),
+                    hasProperty( "key", is( "LAST_12_MONTHS" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ) ) );
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void convertAnalyticsRequestWithRelativePeriodAsFilter()
+    {
+        mockDimensionService();
+        when (i18n.getString( "LAST_YEAR")).thenReturn("Last year");
+
+        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
+        rb.addPeDimension( PERIOD_DIMENSION );
+        rb.addFilter("pe", "QUARTERS_THIS_YEAR");
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
+                .dimension( rb.getDimensionParams() ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+
+        DimensionalObject dimension = params.getDimension(PERIOD_DIM_ID);
+        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf(
+                    hasProperty( "name", is( "Last year" ) ),
+                    hasProperty( "key", is( "LAST_YEAR" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ),
+                allOf(
+                    hasProperty( "name", is( "Last 12 months" ) ),
+                    hasProperty( "key", is( "LAST_12_MONTHS" ) ),
+                    hasProperty( "code", is( nullValue() ) ) ) ) );
     }
 
     @SuppressWarnings("unchecked")

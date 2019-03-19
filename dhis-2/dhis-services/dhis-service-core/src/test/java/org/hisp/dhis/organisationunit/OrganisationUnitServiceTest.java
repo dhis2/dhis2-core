@@ -63,7 +63,7 @@ public class OrganisationUnitServiceTest
     {
         OrganisationUnit organisationUnit1 = createOrganisationUnit( 'A' );
 
-        int id1 = organisationUnitService.addOrganisationUnit( organisationUnit1 );
+        long id1 = organisationUnitService.addOrganisationUnit( organisationUnit1 );
 
         assertNotNull( organisationUnitService.getOrganisationUnit( id1 ) );
 
@@ -71,7 +71,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnit organisationUnit2 = createOrganisationUnit( 'B', organisationUnit1 );
 
-        int id2 = organisationUnitService.addOrganisationUnit( organisationUnit2 );
+        long id2 = organisationUnitService.addOrganisationUnit( organisationUnit2 );
 
         assertTrue( organisationUnitService.getOrganisationUnit( id2 ).getParent().getId() == id1 );
 
@@ -89,7 +89,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
 
-        int id = organisationUnitService.addOrganisationUnit( organisationUnit );
+        long id = organisationUnitService.addOrganisationUnit( organisationUnit );
 
         organisationUnit.setName( updatedName );
         organisationUnit.setShortName( updatedShortName );
@@ -111,7 +111,7 @@ public class OrganisationUnitServiceTest
         OrganisationUnit unit3 = createOrganisationUnit( 'C', unit2 );
         OrganisationUnit unit4 = createOrganisationUnit( 'D' );
 
-        int id1 = organisationUnitService.addOrganisationUnit( unit1 );
+        long id1 = organisationUnitService.addOrganisationUnit( unit1 );
         unit1.getChildren().add( unit2 );
         organisationUnitService.addOrganisationUnit( unit2 );
         organisationUnitService.addOrganisationUnit( unit3 );
@@ -133,10 +133,10 @@ public class OrganisationUnitServiceTest
         OrganisationUnit unitD = createOrganisationUnit( 'D', unitB );
         OrganisationUnit unitE = createOrganisationUnit( 'E', unitC );
 
-        int idA = organisationUnitService.addOrganisationUnit( unitA );
-        int idB = organisationUnitService.addOrganisationUnit( unitB );
-        int idC = organisationUnitService.addOrganisationUnit( unitC );
-        int idD = organisationUnitService.addOrganisationUnit( unitD );
+        long idA = organisationUnitService.addOrganisationUnit( unitA );
+        long idB = organisationUnitService.addOrganisationUnit( unitB );
+        long idC = organisationUnitService.addOrganisationUnit( unitC );
+        long idD = organisationUnitService.addOrganisationUnit( unitD );
         organisationUnitService.addOrganisationUnit( unitE );
 
         List<OrganisationUnit> actualA = new ArrayList<>( organisationUnitService.getOrganisationUnitWithChildren( idA ) );
@@ -193,10 +193,10 @@ public class OrganisationUnitServiceTest
         unit3.getChildren().add( unit6 );
         unit3.getChildren().add( unit7 );
 
-        int id1 = organisationUnitService.addOrganisationUnit( unit1 );
-        int id2 = organisationUnitService.addOrganisationUnit( unit2 );
+        long id1 = organisationUnitService.addOrganisationUnit( unit1 );
+        long id2 = organisationUnitService.addOrganisationUnit( unit2 );
         organisationUnitService.addOrganisationUnit( unit3 );
-        int id4 = organisationUnitService.addOrganisationUnit( unit4 );
+        long id4 = organisationUnitService.addOrganisationUnit( unit4 );
         organisationUnitService.addOrganisationUnit( unit5 );
         organisationUnitService.addOrganisationUnit( unit6 );
         organisationUnitService.addOrganisationUnit( unit7 );
@@ -569,7 +569,7 @@ public class OrganisationUnitServiceTest
     {
         OrganisationUnitGroup organisationUnitGroup1 = new OrganisationUnitGroup( "OUGname" );
 
-        int id1 = organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
+        long id1 = organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
 
         // assert getOrganisationUnitGroup
         assertNotNull( organisationUnitGroupService.getOrganisationUnitGroup( id1 ) );
@@ -598,7 +598,7 @@ public class OrganisationUnitServiceTest
         organisationUnitService.addOrganisationUnit( organisationUnit1 );
         organisationUnitService.addOrganisationUnit( organisationUnit2 );
 
-        int ougid = organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup );
+        long ougid = organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup );
 
         assertTrue( organisationUnitGroupService.getOrganisationUnitGroup( ougid ).getMembers().size() == 2 );
 
@@ -623,7 +623,7 @@ public class OrganisationUnitServiceTest
         groups.add( group3 );
         groups.add( group4 );
 
-        ArrayList<Integer> groupIds = new ArrayList<>();
+        ArrayList<Long> groupIds = new ArrayList<>();
 
         for ( OrganisationUnitGroup group : groups )
         {
@@ -632,7 +632,7 @@ public class OrganisationUnitServiceTest
 
         List<OrganisationUnitGroup> fetchedGroups = organisationUnitGroupService.getAllOrganisationUnitGroups();
 
-        ArrayList<Integer> fetchedGroupIds = new ArrayList<>();
+        ArrayList<Long> fetchedGroupIds = new ArrayList<>();
 
         for ( OrganisationUnitGroup group : fetchedGroups )
         {
@@ -668,16 +668,16 @@ public class OrganisationUnitServiceTest
             new Date(), new Date(), "comment" );
 
         organisationUnitService.addOrganisationUnit( unit1 );
-        int id2 = organisationUnitService.addOrganisationUnit( unit2 );
+        long id2 = organisationUnitService.addOrganisationUnit( unit2 );
         organisationUnitService.addOrganisationUnit( unit3 );
-        int id4 = organisationUnitService.addOrganisationUnit( unit4 );
-        int id5 = organisationUnitService.addOrganisationUnit( unit5 );
-        int id6 = organisationUnitService.addOrganisationUnit( unit6 );
+        long id4 = organisationUnitService.addOrganisationUnit( unit4 );
+        long id5 = organisationUnitService.addOrganisationUnit( unit5 );
+        long id6 = organisationUnitService.addOrganisationUnit( unit6 );
 
         OrganisationUnitHierarchy hierarchy = organisationUnitService.getOrganisationUnitHierarchy();
 
         // retrieves children from hierarchyVersion ver_id and parentId id2
-        Collection<Integer> children1 = hierarchy.getChildren( unit2.getId() );
+        Collection<Long> children1 = hierarchy.getChildren( unit2.getId() );
 
         // assert 4, 5, 6 are children of 2
         assertEquals( 4, children1.size() );
@@ -687,13 +687,13 @@ public class OrganisationUnitServiceTest
         assertTrue( children1.contains( id6 ) );
 
         // retrieves children from hierarchyVersion ver_id and parentId id1
-        Collection<Integer> children2 = hierarchy.getChildren( unit1.getId() );
+        Collection<Long> children2 = hierarchy.getChildren( unit1.getId() );
 
         // assert the number of children
         assertTrue( children2.size() == 6 );
 
         // retrieves children from hierarchyVersion ver_id and parentId id5
-        Collection<Integer> children3 = hierarchy.getChildren( unit5.getId() );
+        Collection<Long> children3 = hierarchy.getChildren( unit5.getId() );
 
         // assert 6 is children of 5
         assertEquals( 2, children3.size() );
@@ -729,7 +729,7 @@ public class OrganisationUnitServiceTest
         organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup2 );
         organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup3 );
 
-        int id1 = organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSet1 );
+        long id1 = organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSet1 );
 
         // assert add
         assertNotNull( organisationUnitGroupService.getOrganisationUnitGroupSet( id1 ) );
@@ -750,7 +750,7 @@ public class OrganisationUnitServiceTest
         organisationUnitGroupSet2.setCompulsory( true );
         organisationUnitGroupSet2.getOrganisationUnitGroups().add( organisationUnitGroup4 );
 
-        int id2 = organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSet2 );
+        long id2 = organisationUnitGroupService.addOrganisationUnitGroupSet( organisationUnitGroupSet2 );
 
         // assert getAllOrderedName
         assertTrue( organisationUnitGroupService.getAllOrganisationUnitGroupSets().size() == 2 );
@@ -772,8 +772,8 @@ public class OrganisationUnitServiceTest
         OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
         OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
 
-        int idA = organisationUnitService.addOrganisationUnitLevel( levelA );
-        int idB = organisationUnitService.addOrganisationUnitLevel( levelB );
+        long idA = organisationUnitService.addOrganisationUnitLevel( levelA );
+        long idB = organisationUnitService.addOrganisationUnitLevel( levelB );
 
         assertEquals( levelA, organisationUnitService.getOrganisationUnitLevel( idA ) );
         assertEquals( levelB, organisationUnitService.getOrganisationUnitLevel( idB ) );
@@ -822,8 +822,8 @@ public class OrganisationUnitServiceTest
         OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
         OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
 
-        int idA = organisationUnitService.addOrganisationUnitLevel( levelA );
-        int idB = organisationUnitService.addOrganisationUnitLevel( levelB );
+        long idA = organisationUnitService.addOrganisationUnitLevel( levelA );
+        long idB = organisationUnitService.addOrganisationUnitLevel( levelB );
 
         assertNotNull( organisationUnitService.getOrganisationUnitLevel( idA ) );
         assertNotNull( organisationUnitService.getOrganisationUnitLevel( idB ) );

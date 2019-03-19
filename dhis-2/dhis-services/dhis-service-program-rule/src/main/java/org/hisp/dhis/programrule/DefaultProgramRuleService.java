@@ -57,7 +57,7 @@ public class DefaultProgramRuleService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRule( ProgramRule programRule )
+    public long addProgramRule( ProgramRule programRule )
     {
         programRuleStore.save( programRule );
         return programRule.getId();
@@ -76,7 +76,7 @@ public class DefaultProgramRuleService
     }
 
     @Override
-    public ProgramRule getProgramRule( int id )
+    public ProgramRule getProgramRule( long id )
     {
         return programRuleStore.get( id );
     }

@@ -86,9 +86,9 @@ public class SqlViewServiceTest
         SqlView sqlViewB = createSqlView( 'B', sqlB );
         SqlView sqlViewE = createSqlView( 'E', sqlE );
 
-        int idA = sqlViewService.saveSqlView( sqlViewA );
-        int idB = sqlViewService.saveSqlView( sqlViewB );
-        int idE = sqlViewService.saveSqlView( sqlViewE );
+        long idA = sqlViewService.saveSqlView( sqlViewA );
+        long idB = sqlViewService.saveSqlView( sqlViewB );
+        long idE = sqlViewService.saveSqlView( sqlViewE );
 
         sqlViewA = sqlViewService.getSqlView( idA );
         sqlViewB = sqlViewService.getSqlView( idB );
@@ -109,7 +109,7 @@ public class SqlViewServiceTest
     {
         SqlView sqlView = createSqlView( 'A', sqlA );
 
-        int id = sqlViewService.saveSqlView( sqlView );
+        long id = sqlViewService.saveSqlView( sqlView );
 
         sqlView = sqlViewService.getSqlView( id );
 
@@ -126,8 +126,8 @@ public class SqlViewServiceTest
         SqlView sqlViewA = createSqlView( 'A', sqlC );
         SqlView sqlViewB = createSqlView( 'B', sqlD );
 
-        int idA = sqlViewService.saveSqlView( sqlViewA );
-        int idB = sqlViewService.saveSqlView( sqlViewB );
+        long idA = sqlViewService.saveSqlView( sqlViewA );
+        long idB = sqlViewService.saveSqlView( sqlViewB );
 
         assertNotNull( sqlViewService.getSqlView( idA ) );
         assertNotNull( sqlViewService.getSqlView( idB ) );
@@ -149,8 +149,8 @@ public class SqlViewServiceTest
         SqlView sqlViewA = createSqlView( 'A', sqlA );
         SqlView sqlViewB = createSqlView( 'B', sqlB );
 
-        int idA = sqlViewService.saveSqlView( sqlViewA );
-        int idB = sqlViewService.saveSqlView( sqlViewB );
+        long idA = sqlViewService.saveSqlView( sqlViewA );
+        long idB = sqlViewService.saveSqlView( sqlViewB );
 
         assertEquals( sqlViewService.getSqlView( "SqlViewA" ).getId(), idA );
         assertEquals( sqlViewService.getSqlView( "SqlViewB" ).getId(), idB );

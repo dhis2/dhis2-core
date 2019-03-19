@@ -85,7 +85,7 @@ public interface DataAnalysisStore
      * @return a list of DeflatedDataValues.
      */
     List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap );
+        Collection<Period> periods, Map<Long, Integer> lowerBoundMap, Map<Long, Integer> upperBoundMap );
 
     /**
      * Returns a collection of DeflatedDataValues which are marked for followup and

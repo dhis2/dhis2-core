@@ -153,7 +153,7 @@ public interface ExpressionService
      * @param expression The Expression to add.
      * @return The generated identifier for this Expression.
      */
-    int addExpression( Expression expression );
+    long addExpression( Expression expression );
 
     /**
      * Updates an Expression.
@@ -175,7 +175,7 @@ public interface ExpressionService
      * @param id The identifier.
      * @return an Expression with the given identifier.
      */
-    Expression getExpression( int id );
+    Expression getExpression( long id );
 
     /**
      * Gets all Expressions.

@@ -61,7 +61,7 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase.
      * Take care not to cache user info which might change during runtime.
      */
-    private static Cache<String, Integer> USERNAME_ID_CACHE;
+    private static Cache<String, Long> USERNAME_ID_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -98,7 +98,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Integer userId = USERNAME_ID_CACHE.get( username, un -> getUserId( un ) );
+        Long userId = USERNAME_ID_CACHE.get( username, un -> getUserId( un ) );
 
         if ( userId == null )
         {
@@ -118,7 +118,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
+        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
 
         if ( userId == null )
         {
@@ -132,7 +132,7 @@ public class DefaultCurrentUserService
         return new UserInfo( userId, userDetails.getUsername(), authorities );
     }
 
-    private Integer getUserId( String username )
+    private Long getUserId( String username )
     {
         UserCredentials credentials = currentUserStore.getUserCredentialsByUsername( username );
 

@@ -118,7 +118,7 @@ public class ListMapTest
         
         List<DataElementGroup> groups = Lists.newArrayList( groupA, groupB, groupC, groupD, groupE, groupF );
                         
-        ListMap<DataElementGroupSet, Integer> map = ListMap.getListMap( groups, group -> group.getGroupSets().iterator().next(), group -> group.getId() );
+        ListMap<DataElementGroupSet, Long> map = ListMap.getListMap( groups, group -> group.getGroupSets().iterator().next(), group -> group.getId() );
         
         assertEquals( Lists.newArrayList( groupA.getId(), groupD.getId(), groupF.getId() ), map.get( groupSetA ) );
         assertEquals( Lists.newArrayList( groupB.getId(), groupE.getId() ), map.get( groupSetB ) );

@@ -92,7 +92,7 @@ public class DefaultDataSetService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addDataSet( DataSet dataSet )
+    public long addDataSet( DataSet dataSet )
     {
         dataSetStore.save( dataSet );
         return dataSet.getId();
@@ -111,7 +111,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    public DataSet getDataSet( int id )
+    public DataSet getDataSet( long id )
     {
         return dataSetStore.get( id );
     }
@@ -199,7 +199,7 @@ public class DefaultDataSetService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addLockException( LockException lockException )
+    public long addLockException( LockException lockException )
     {
         lockExceptionStore.save( lockException );
         return lockException.getId();
@@ -218,7 +218,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    public LockException getLockException( int id )
+    public LockException getLockException( long id )
     {
         return lockExceptionStore.get( id );
     }

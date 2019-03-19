@@ -55,12 +55,17 @@ public abstract class SmsGateway
 {
     private static final Log log = LogFactory.getLog( SmsGateway.class );
 
-    protected static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
-            HttpStatus.ACCEPTED, HttpStatus.CREATED );
+    protected static final String PROTOCOL_VERSION = "X-Version";
+    protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
+    protected static final String BASIC = " Basic ";
+
+    public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
+        HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
         .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
         .put( HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202 )
+        .put( HttpStatus.CREATED, GatewayResponse.RESULT_CODE_202 )
         .put( HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207 )
         .put( HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400 )
         .put( HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401 )
@@ -87,14 +92,22 @@ public abstract class SmsGateway
 
     public HttpStatus send( String urlTemplate, HttpEntity<?> request, Class<?> klass )
     {
-        ResponseEntity<?> response;
+        ResponseEntity<?> response = null;
         HttpStatus statusCode = null;
 
         try
         {
             response = restTemplate.exchange( urlTemplate, HttpMethod.POST, request, klass );
 
-            statusCode = response.getStatusCode();
+            if ( response != null )
+            {
+                statusCode = response.getStatusCode();
+            }
+            else
+            {
+                log.error( "Server response is null" );
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            }
         }
         catch ( HttpClientErrorException ex )
         {

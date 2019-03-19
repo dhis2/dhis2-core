@@ -51,7 +51,7 @@ import java.util.Date;
 public class ValidationResult
     implements Comparable<ValidationResult>
 {
-    private int id;
+    private long id;
 
     private Date created;
 
@@ -274,12 +274,12 @@ public class ValidationResult
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

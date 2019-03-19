@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -38,14 +39,15 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Locale;
 
@@ -70,8 +72,9 @@ public class MetadataExportController
     private UserSettingService userSettingService;
 
     @RequestMapping( value = "", method = RequestMethod.GET )
-    public @ResponseBody RootNode getMetadata(
-        @RequestParam( required = false, defaultValue = "false" ) boolean translate, @RequestParam( required = false ) String locale )
+    public ResponseEntity<RootNode> getMetadata(
+        @RequestParam( required = false, defaultValue = "false" ) boolean translate, @RequestParam( required = false ) String locale,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
     {
         if ( translate )
         {
@@ -81,8 +84,15 @@ public class MetadataExportController
 
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
+        RootNode rootNode = metadataExportService.getMetadataAsNode( params );
 
-        return metadataExportService.getMetadataAsNode( params );
+        HttpHeaders headers = new HttpHeaders();
+        if (download)
+        {
+            // triggers that corresponding message converter adds also a file name with a correct extension
+            headers.add( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
+        }
+        return new ResponseEntity<>( rootNode, headers, HttpStatus.OK );
     }
 
     private void setUserContext( User user, TranslateParams translateParams )

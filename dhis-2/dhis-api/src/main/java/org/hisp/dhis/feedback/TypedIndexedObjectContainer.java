@@ -1,7 +1,7 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,47 @@ package org.hisp.dhis.orgunitdistribution;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import org.hisp.dhis.common.IdentifiableObject;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * @author Lars Helge Overland
+ * {@link IndexedObjectContainer}s for each object type.
+ *
+ * @author Volker Schmidt
  */
-public class OrgUnitDistributionParams
+public class TypedIndexedObjectContainer implements ObjectIndexProvider
 {
-    private List<OrganisationUnit> orgUnits = new ArrayList<>();
+    private final Map<Class<? extends IdentifiableObject>, IndexedObjectContainer> typedIndexedObjectContainers = new HashMap<>();
 
-    private List<OrganisationUnitGroupSet> orgUnitGroupSets = new ArrayList<>();
-
-    public int getOrgUnitLevel()
+    /**
+     * Get the typed container for the specified object class.
+     *
+     * @param c the object class for which the container should be returned.
+     * @return the container (if it does not exists, the method creates a container).
+     */
+    @Nonnull
+    public IndexedObjectContainer getTypedContainer( @Nonnull Class<? extends IdentifiableObject> c )
     {
-        return !orgUnits.isEmpty() ? orgUnits.get( 0 ).getLevel() : 1; //TODO implement properly
+        return typedIndexedObjectContainers.computeIfAbsent( c, key -> new IndexedObjectContainer() );
     }
 
-    public List<OrganisationUnit> getOrgUnits()
+    @Nonnull
+    @Override
+    public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
     {
-        return orgUnits;
+        return getTypedContainer( object.getClass() ).mergeObjectIndex( object );
     }
 
-    public OrgUnitDistributionParams setOrgUnits( List<OrganisationUnit> orgUnits )
+    /**
+     * Adds an object to the corresponding indexed object container.
+     *
+     * @param identifiableObject the object that should be added to the container.
+     */
+    public void add( @Nonnull IdentifiableObject identifiableObject )
     {
-        this.orgUnits = orgUnits;
-        return this;
-    }
-
-    public List<OrganisationUnitGroupSet> getOrgUnitGroupSets()
-    {
-        return orgUnitGroupSets;
-    }
-
-    public OrgUnitDistributionParams setOrgUnitGroupSets( List<OrganisationUnitGroupSet> orgUnitGroupSets )
-    {
-        this.orgUnitGroupSets = orgUnitGroupSets;
-        return this;
+        getTypedContainer( identifiableObject.getClass() ).add( identifiableObject );
     }
 }

@@ -76,8 +76,8 @@ public class TrackedEntityInstanceFilterServiceTest
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
 
-        int idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
-        int idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+        long idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
 
         assertEquals( idA, trackedEntityInstanceFilterA.getId() );
         assertEquals( idB, trackedEntityInstanceFilterB.getId() );
@@ -127,7 +127,7 @@ public class TrackedEntityInstanceFilterServiceTest
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
 
-        int idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
 
         trackedEntityInstanceFilterA.setProgram( programB );
 
@@ -152,8 +152,8 @@ public class TrackedEntityInstanceFilterServiceTest
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
 
-        int idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
-        int idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+        long idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
 
         List<TrackedEntityInstanceFilter> trackedEntityInstanceFilters = trackedEntityInstanceFilterService.getAll();
 

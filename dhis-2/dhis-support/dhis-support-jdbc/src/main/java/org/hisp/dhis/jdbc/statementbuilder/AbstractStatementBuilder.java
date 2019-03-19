@@ -224,26 +224,26 @@ public abstract class AbstractStatementBuilder
      *      union select i3, 's3') table
      * </code>
      *
-     * @param intValues (non-empty) Integer values for the derived table
+     * @param longValues (non-empty) Integer values for the derived table
      * @param strValues (same size) String values for the derived table
      * @param table the desired table name alias
-     * @param intColumn the desired integer column name
+     * @param longColumn the desired integer column name
      * @param strColumn the desired string column name
      * @return the derived literal table
      */
     @Override
-    public String literalIntStringTable( List<Integer> intValues,
-        List<String> strValues, String table, String intColumn, String strColumn )
+    public String literalLongStringTable( List<Long> longValues,
+        List<String> strValues, String table, String longColumn, String strColumn )
     {
         StringBuilder sb = new StringBuilder();
 
         String before = "(select ";
-        String afterInt = " as " + intColumn + ", '";
+        String afterInt = " as " + longColumn + ", '";
         String afterStr = "' as " + strColumn;
 
-        for ( int i = 0; i < intValues.size(); i++ )
+        for ( int i = 0; i < longValues.size(); i++ )
         {
-            sb.append( before ).append( intValues.get( i ) ).append( afterInt )
+            sb.append( before ).append( longValues.get( i ) ).append( afterInt )
                 .append( strValues.get( i ) ).append( afterStr );
             before = " union select ";
             afterInt = ", '";
@@ -257,11 +257,11 @@ public abstract class AbstractStatementBuilder
      * Generates a derived table containing literals in two columns: integer
      * and integer.
      *
-     * @param int1Values (non-empty) 1st integer column values for the table
-     * @param int2Values (same size) 2nd integer column values for the table
+     * @param long1Values (non-empty) 1st integer column values for the table
+     * @param long2Values (same size) 2nd integer column values for the table
      * @param table the desired table name alias
-     * @param int1Column the desired 1st integer column name
-     * @param int2Column the desired 2nd integer column name
+     * @param long1Column the desired 1st integer column name
+     * @param long2Column the desired 2nd integer column name
      * @return the derived literal table
      *
      * The generic implementation, which works in all supported database
@@ -273,19 +273,19 @@ public abstract class AbstractStatementBuilder
      * </code>
      */
     @Override
-    public String literalIntIntTable( List<Integer> int1Values,
-        List<Integer> int2Values, String table, String int1Column, String int2Column )
+    public String literalLongLongTable( List<Long> long1Values,
+        List<Long> long2Values, String table, String long1Column, String long2Column )
     {
         StringBuilder sb = new StringBuilder();
 
         String before = "(select ";
-        String afterInt1 = " as " + int1Column + ", ";
-        String afterInt2 = " as " + int2Column;
+        String afterInt1 = " as " + long1Column + ", ";
+        String afterInt2 = " as " + long2Column;
 
-        for ( int i = 0; i < int1Values.size(); i++ )
+        for ( int i = 0; i < long1Values.size(); i++ )
         {
-            sb.append( before ).append( int1Values.get( i ) ).append( afterInt1 )
-                .append( int2Values.get( i ) ).append( afterInt2 );
+            sb.append( before ).append( long1Values.get( i ) ).append( afterInt1 )
+                .append( long2Values.get( i ) ).append( afterInt2 );
             before = " union select ";
             afterInt1 = ", ";
             afterInt2 = "";
@@ -368,7 +368,7 @@ public abstract class AbstractStatementBuilder
               
             for ( AnalyticsPeriodBoundary boundary : boundaries )
             {
-                sql += " and executiondate " + ( boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">" : "<" ) +
+                sql += " and executiondate " + ( boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() ? ">=" : "<" ) +
                     " cast( '" + format.format( boundary.getBoundaryDate( reportingStartDate, reportingEndDate ) ) + "' as date )";
             }
             

@@ -1,7 +1,7 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,42 @@ package org.hisp.dhis.orgunitdistribution;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.attribute.Attribute;
+import org.junit.Assert;
+import org.junit.Test;
 
-public interface OrgUnitDistributionServiceV2
+/**
+ * Unit tests for {@link IndexedObjectContainer}.
+ *
+ * @author Volker Schmidt
+ */
+public class IndexedObjectContainerTest
 {
-    /**
-     * Returns parameters for the given query.
-     *
-     * @param orgUnits the organisation unit string.
-     * @param orgUnitGroupSets the organisation unit group set string.
-     * @return a {@link OrgUnitDistributionParams}.
-     */
-    OrgUnitDistributionParams getParams( String orgUnits, String orgUnitGroupSets );
+    private final IndexedObjectContainer container = new IndexedObjectContainer();
 
-    /**
-     * Returns the org unit distribution for the given parameters.
-     *
-     * @param params the {@link OrgUnitDistributionParams}.
-     * @return a {@link Grid}.
-     */
-    Grid getOrgUnitDistribution( OrgUnitDistributionParams params );
+    @Test
+    public void merge()
+    {
+        final Attribute attribute1 = new Attribute();
+        final Attribute attribute2 = new Attribute();
+        final Attribute attribute3 = new Attribute();
 
-    /**
-     * Validates the given parameters. Throws an {@link IllegalQueryException}
-     * if invalid.
-     *
-     * @param params the {@link OrgUnitDistributionParams}.
-     * @throws IllegalQueryException if invalid.
-     */
-    void validate( OrgUnitDistributionParams params )
-        throws IllegalQueryException;
+        Assert.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
+        Assert.assertEquals( (Integer) 1, container.mergeObjectIndex( attribute2 ) );
+        Assert.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
+        Assert.assertEquals( (Integer) 2, container.mergeObjectIndex( attribute3 ) );
+    }
+
+    @Test
+    public void add()
+    {
+        final Attribute attribute1 = new Attribute();
+        final Attribute attribute2 = new Attribute();
+        final Attribute attribute3 = new Attribute();
+
+        Assert.assertEquals( (Integer) 0, container.add( attribute1 ) );
+        Assert.assertEquals( (Integer) 1, container.add( attribute2 ) );
+        Assert.assertEquals( (Integer) 0, container.add( attribute1 ) );
+        Assert.assertEquals( (Integer) 2, container.add( attribute3 ) );
+    }
 }

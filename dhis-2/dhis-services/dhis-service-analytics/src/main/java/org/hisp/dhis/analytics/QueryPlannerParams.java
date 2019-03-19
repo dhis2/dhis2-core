@@ -35,25 +35,25 @@ import java.util.function.Function;
 /**
  * Immutable class representing parameters for query planning. Should be
  * instantiated using the Builder class. Example usage:
- * 
+ *
  * <pre>
  * {@code
  * QueryPlannerParams params = QueryPlannerParams.newBuilder()
  *     .withOptimalQueries( 4 )
- *     .withTableName( "table_name" )
+ *     .withTableType( AnalyticsTableType.DATA_VALUE )
  *     .withTableSuffix( "table_suffix" )
  *     .build();
  * }
  * </pre>
- * 
+ *
  * @author Lars Helge Overland
  */
 public class QueryPlannerParams
 {
     private int optimalQueries;
-    
-    private String tableName;
-        
+
+    private AnalyticsTableType tableType;
+
     private List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -63,20 +63,20 @@ public class QueryPlannerParams
     private QueryPlannerParams()
     {
     }
-    
+
     public static Builder newBuilder()
     {
         return new Builder();
     }
-    
+
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the number of optimal queries for the planner to return for each 
+     * Returns the number of optimal queries for the planner to return for each
      * query group.
-     * 
+     *
      * @return number of optimal queries.
      */
     public int getOptimalQueries()
@@ -85,18 +85,28 @@ public class QueryPlannerParams
     }
 
     /**
+     * Returns the {@link AnalyticsTableType}.
+     *
+     * @return the {@link AnalyticsTableType}.
+     */
+    public AnalyticsTableType getTableType()
+    {
+        return tableType;
+    }
+
+    /**
      * Returns the base name of the analytics table.
-     * 
+     *
      * @return the base name of the analytics table.
      */
     public String getTableName()
     {
-        return tableName;
+        return tableType.getTableName();
     }
 
     /**
      * Returns additional query groupers to apply in planning.
-     * 
+     *
      * @return additional query groupers to apply in planning.
      */
     public List<Function<DataQueryParams, List<DataQueryParams>>> getQueryGroupers()
@@ -114,30 +124,30 @@ public class QueryPlannerParams
     public static class Builder
     {
         private QueryPlannerParams params;
-        
+
         private Builder()
         {
             params = new QueryPlannerParams();
         }
-        
+
         public Builder withOptimalQueries( int optimalQueries )
         {
             this.params.optimalQueries = optimalQueries;
             return this;
         }
-        
-        public Builder withTableName( String tableName )
+
+        public Builder withTableType( AnalyticsTableType tableType )
         {
-            this.params.tableName = tableName;
+            this.params.tableType = tableType;
             return this;
         }
-        
+
         public Builder withQueryGroupers( List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers )
         {
             this.params.queryGroupers = queryGroupers;
             return this;
         }
-                
+
         public QueryPlannerParams build()
         {
             return params;

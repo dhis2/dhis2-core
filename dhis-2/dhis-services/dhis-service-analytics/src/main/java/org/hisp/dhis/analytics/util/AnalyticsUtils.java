@@ -625,17 +625,16 @@ public class AnalyticsUtils
                         map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
                     }
                 }
-
-
             }
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
-            // Add additional items from the aggregation data
+
             if ( dimension.getDimensionalKeywords() != null )
             {
                 dimension.getDimensionalKeywords().getGroupBy()
-                    .forEach( b -> map.put( b.getUid(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
+                    .forEach( b -> map.put( b.getKey(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
             }
+
         }
 
         Program program = params.getProgram();
@@ -651,9 +650,9 @@ public class AnalyticsUtils
             }
             else
             {
-                for ( ProgramStage st : program.getProgramStages() )
+                for ( ProgramStage ps : program.getProgramStages() )
                 {
-                    map.put( st.getUid(), new MetadataItem( st.getDisplayName(), includeMetadataDetails ? st : null ) );
+                    map.put( ps.getUid(), new MetadataItem( ps.getDisplayName(), includeMetadataDetails ? ps : null ) );
                 }
             }
         }
@@ -806,13 +805,19 @@ public class AnalyticsUtils
             DECIMALS_NO_ROUNDING );
     }
 
+    /**
+     * Returns the base month of the year for the period type, zero-based.
+     *
+     * @param periodType the period type.
+     * @return the base month.
+     */
     public static Double getBaseMonth( PeriodType periodType )
     {
         if ( periodType instanceof FinancialPeriodType)
         {
             return (double) ((FinancialPeriodType) periodType).getBaseMonth();
         }
-        
+
         return 0D;
     }
 }

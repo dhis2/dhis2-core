@@ -107,7 +107,7 @@ public class DefaultDataEntryFormService
     // ------------------------------------------------------------------------
 
     @Override
-    public int addDataEntryForm( DataEntryForm dataEntryForm )
+    public long addDataEntryForm( DataEntryForm dataEntryForm )
     {
         dataEntryForm.setFormat( DataEntryForm.CURRENT_FORMAT );
         dataEntryFormStore.save( dataEntryForm );
@@ -127,7 +127,7 @@ public class DefaultDataEntryFormService
     }
 
     @Override
-    public DataEntryForm getDataEntryForm( int id )
+    public DataEntryForm getDataEntryForm( long id )
     {
         return dataEntryFormStore.get( id );
     }

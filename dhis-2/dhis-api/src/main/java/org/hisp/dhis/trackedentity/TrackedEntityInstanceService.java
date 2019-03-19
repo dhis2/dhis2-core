@@ -196,7 +196,7 @@ public interface TrackedEntityInstanceService
      * @param entityInstance The to TrackedEntityInstance add.
      * @return A generated unique id of the added {@link TrackedEntityInstance}.
      */
-    int addTrackedEntityInstance( TrackedEntityInstance entityInstance );
+    long addTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
      * Soft deletes a {@link TrackedEntityInstance}.
@@ -226,7 +226,7 @@ public interface TrackedEntityInstanceService
      * @param id the id of the TrackedEntityInstanceAttribute to return.
      * @return the TrackedEntityInstanceAttribute with the given id
      */
-    TrackedEntityInstance getTrackedEntityInstance( int id );
+    TrackedEntityInstance getTrackedEntityInstance( long id );
 
     /**
      * Returns the {@link TrackedEntityAttribute} with the given UID.
@@ -257,13 +257,10 @@ public interface TrackedEntityInstanceService
      * Register a new entityInstance
      *
      * @param entityInstance     TrackedEntityInstance
-     * @param representativeId   The uid of entityInstance who is representative
-     * @param relationshipTypeId The id of relationship type defined
      * @param attributeValues    Set of attribute values
      * @return The error code after registering entityInstance
      */
-    int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
-        Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
+    long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 }

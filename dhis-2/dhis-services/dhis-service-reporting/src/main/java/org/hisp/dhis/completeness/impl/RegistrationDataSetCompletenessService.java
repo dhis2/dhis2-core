@@ -40,19 +40,19 @@ public class RegistrationDataSetCompletenessService
     extends AbstractDataSetCompletenessService
 {
     @Override
-    public int getRegistrations( DataSet dataSet, Collection<Integer> relevantSources, Collection<Integer> periods )
+    public int getRegistrations( DataSet dataSet, Collection<Long> relevantSources, Collection<Long> periods )
     {
         return completenessStore.getCompleteDataSetRegistrations( dataSet, periods, relevantSources );
     }
 
     @Override
-    public int getRegistrationsOnTime( DataSet dataSet, Collection<Integer> relevantSources, Collection<Integer> periods )
+    public int getRegistrationsOnTime( DataSet dataSet, Collection<Long> relevantSources, Collection<Long> periods )
     {
         return completenessStore.getCompleteDataSetRegistrationsWithTimeliness( dataSet, periods, relevantSources );
     }
 
     @Override
-    public int getSources( DataSet dataSet, Collection<Integer> relevantSources, Period period )
+    public int getSources( DataSet dataSet, Collection<Long> relevantSources, Period period )
     {
         return relevantSources.size() * period.getPeriodSpan( dataSet.getPeriodType() );
     }

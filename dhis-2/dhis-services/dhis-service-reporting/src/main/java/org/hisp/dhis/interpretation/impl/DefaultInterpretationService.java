@@ -138,7 +138,7 @@ public class DefaultInterpretationService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveInterpretation( Interpretation interpretation )
+    public long saveInterpretation( Interpretation interpretation )
     {
         User user = currentUserService.getCurrentUser();
         
@@ -170,7 +170,7 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public Interpretation getInterpretation( int id )
+    public Interpretation getInterpretation( long id )
     {
         return interpretationStore.get( id );
     }
@@ -234,7 +234,7 @@ public class DefaultInterpretationService
         return interpretationStore.getAllOrderedLastUpdated( first, max );
     }
 
-    private int sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
     {
         I18n i18n = i18nManager.getI18n();
         String currentUsername = currentUserService.getCurrentUser().getUsername();
@@ -434,7 +434,7 @@ public class DefaultInterpretationService
     }
 
     @Transactional( isolation = Isolation.REPEATABLE_READ )
-    public boolean likeInterpretation( int id )
+    public boolean likeInterpretation( long id )
     {
         Interpretation interpretation = getInterpretation( id );
 
@@ -457,7 +457,7 @@ public class DefaultInterpretationService
     }
 
     @Transactional( isolation = Isolation.REPEATABLE_READ )
-    public boolean unlikeInterpretation( int id )
+    public boolean unlikeInterpretation( long id )
     {
         Interpretation interpretation = getInterpretation( id );
 
@@ -495,7 +495,7 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public Interpretation getInterpretationByChart( int id )
+    public Interpretation getInterpretationByChart( long id )
     {
         return interpretationStore.getByChartId( id );
     }

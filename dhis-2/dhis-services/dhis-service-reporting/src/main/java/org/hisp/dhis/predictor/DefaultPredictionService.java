@@ -713,12 +713,12 @@ public class DefaultPredictionService
 
         List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
 
-        Map<Integer, DataElement> dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
+        Map<Long, DataElement> dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
         Map<String, DataElementOperand> dataElementOperandLookup = dataElementOperands.stream().collect(
             Collectors.toMap( deo -> deo.getDataElement().getId() + "." + deo.getCategoryOptionCombo().getId(), deo -> deo ) );
-        Map<Integer, Period> periodLookup = periods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
-        Map<Integer, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, ou -> ou ) );
-        Map<Integer, CategoryOptionCombo> aocLookup = new HashMap<>();
+        Map<Long, Period> periodLookup = periods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
+        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, ou -> ou ) );
+        Map<Long, CategoryOptionCombo> aocLookup = new HashMap<>();
 
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> dataValues = new Map4<>();
 
@@ -911,7 +911,7 @@ public class DefaultPredictionService
             }
         }
 
-        Map<Integer, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, o -> o ) );
+        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, o -> o ) );
 
         for ( DeflatedDataValue oldValue : oldValues.values() )
         {
