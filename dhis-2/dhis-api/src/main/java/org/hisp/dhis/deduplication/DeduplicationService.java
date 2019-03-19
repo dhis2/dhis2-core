@@ -40,5 +40,11 @@ public interface DeduplicationService
 
         List<PotentialDuplicate> getAllPotentialDuplicates();
 
-        void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
+        void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
+
+        int countPotentialDuplciates( PotentialDuplicateQuery query );
+
+        boolean exists( PotentialDuplicate potentialDuplicate );
+
+        List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
 }

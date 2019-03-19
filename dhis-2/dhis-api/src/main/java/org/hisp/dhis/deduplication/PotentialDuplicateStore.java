@@ -30,7 +30,14 @@ package org.hisp.dhis.deduplication;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
+import java.util.List;
+
 public interface PotentialDuplicateStore
     extends IdentifiableObjectStore<PotentialDuplicate>
 {
+    int getCountByQuery( PotentialDuplicateQuery query );
+
+    List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
+
+    boolean exists( PotentialDuplicate potentialDuplicate );
 }

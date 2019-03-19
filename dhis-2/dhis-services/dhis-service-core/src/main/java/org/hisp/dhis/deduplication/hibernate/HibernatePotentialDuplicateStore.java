@@ -28,15 +28,60 @@ package org.hisp.dhis.deduplication.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 public class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate>
     implements PotentialDuplicateStore
 {
+
+    @Override
+    public int getCountByQuery( PotentialDuplicateQuery query )
+    {
+        if ( query.getTei() != null )
+        {
+            Query<Long> hibernateQuery = getTypedQuery(
+                "select count(*) from PotentialDuplicate pr where pr.teiA = '" + query.getTei() + "' or pr.teiB = '" +
+                    query.getTei() + "'");
+
+            return hibernateQuery.getSingleResult().intValue();
+        }
+        else
+        {
+            return getCount();
+        }
+    }
+
+    @Override
+    public List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query )
+    {
+        if ( query.getTei() != null )
+        {
+            Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
+                "from PotentialDuplicate pr where pr.teiA = '" + query.getTei() + "' or pr.teiB = '" + query.getTei() + "'" );
+
+            return hibernateQuery.getResultList();
+        }
+        else
+        {
+            return getAll();
+        }
+    }
+
+    @Override
+    public boolean exists( PotentialDuplicate potentialDuplicate )
+    {
+        Query<Long> hibernateQuery = getTypedQuery( "select count(*) from PotentialDuplicate pd " +
+            "where (pd.teiA = '" + potentialDuplicate.getTeiA() + "' and pd.teiB = '" + potentialDuplicate.getTeiB() + "') " +
+            "or (pd.teiA = '" + potentialDuplicate.getTeiB() + "' and pd.teiB = '" + potentialDuplicate.getTeiA() + "') " +
+            "or (pd.teiA = '" + potentialDuplicate.getTeiA() + "' and pd.teiB is null) ");
+
+        return hibernateQuery.getSingleResult() != 0;
+    }
 }
