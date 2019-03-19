@@ -729,6 +729,8 @@ public class DefaultAnalyticsService
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
+            int timeUnits = params.hasFilter( DimensionalObject.PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
+
             for ( Map.Entry<String, Double> entry : targetMap.entrySet() )
             {
                 List<String> dataRow = Lists.newArrayList( entry.getKey().split( DIMENSION_SEP ) );
@@ -744,7 +746,7 @@ public class DefaultAnalyticsService
 
                     PeriodType queryPt = filterPeriodType != null ? filterPeriodType : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
-                    target = target * queryPt.getPeriodSpan( dataSetPt );
+                    target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
 
                     // ---------------------------------------------------------
                     // Calculate reporting rate and replace data set with rate
