@@ -28,12 +28,15 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.jsmpp.bean.SubmitMultiResult;
+import org.jsmpp.util.DeliveryReceiptState;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -50,8 +53,28 @@ public class SMPPGateway extends SmsGateway
     @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        SMPPClient smppClient = getSMPPClient( gatewayConfig );
-        return null;
+        SMPPClient smppClient = createSMPPClient( gatewayConfig );
+
+        List<OutboundMessageResponse> messageResponses = new ArrayList<>();
+
+        if ( smppClient != null )
+        {
+            smppClient.start();
+            OutboundMessageResponse response = null;
+
+            for ( OutboundMessage message : batch.getMessages() )
+            {
+                response = send( smppClient, message.getText(), message.getRecipients() );
+                messageResponses.add( response );
+            }
+
+            smppClient.stop();
+            return messageResponses;
+        }
+
+        log.error( SESSION_ERROR );
+
+        return new ArrayList<>();
     }
 
     @Override
@@ -63,39 +86,55 @@ public class SMPPGateway extends SmsGateway
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
     {
-        SMPPClient smppClient = getSMPPClient( gatewayConfig );
+        SMPPClient smppClient = createSMPPClient( gatewayConfig );
 
         OutboundMessageResponse response = new OutboundMessageResponse();
-
-        String messageId = null;
+        response.setOk( false );
 
         if ( smppClient != null )
         {
-            smppClient.startSMPPSession();
+            smppClient.stop();
 
-            messageId = smppClient.send( text, StringUtils.join( recipients, "," ) );
+            response = send( smppClient, text, recipients );
 
-            if ( messageId != null )
-            {
-                response.setOk( true );
-                response.setDescription( messageId );
-            }
-            else
-            {
-                response.setOk( false );
-                response.setDescription( SENDING_FAILED );
-            }
+            smppClient.stop();
 
             return response;
         }
 
-        response.setOk( false );
+        log.error( SESSION_ERROR );
         response.setDescription( SESSION_ERROR );
-
         return response;
     }
 
-    private SMPPClient getSMPPClient( SmsGatewayConfig gatewayConfig )
+    private OutboundMessageResponse send( SMPPClient smppClient, String text, Set<String> recipients )
+    {
+        SubmitMultiResult result = null;
+        OutboundMessageResponse response = new OutboundMessageResponse();
+        response.setOk( false );
+
+        result = smppClient.send( text, recipients );
+
+        if ( result != null )
+        {
+            if ( result.getUnsuccessDeliveries() == null || result.getUnsuccessDeliveries().length == 0 )
+            {
+                log.info( "Message pushed to broker successfully" );
+                response.setOk( true );
+                response.setDescription( result.getMessageId() );
+                return  response;
+            }
+            else
+            {
+                log.error( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " +result.getMessageId() );
+            }
+        }
+
+        response.setDescription( SENDING_FAILED );
+        return response;
+    }
+
+    private SMPPClient createSMPPClient( SmsGatewayConfig gatewayConfig )
     {
         if ( gatewayConfig == null )
         {

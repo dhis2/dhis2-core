@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.jsmpp.InvalidResponseException;
 import org.jsmpp.PDUException;
+import org.jsmpp.bean.Address;
 import org.jsmpp.bean.Alphabet;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.ESMClass;
@@ -39,7 +40,9 @@ import org.jsmpp.bean.GeneralDataCoding;
 import org.jsmpp.bean.MessageClass;
 import org.jsmpp.bean.NumberingPlanIndicator;
 import org.jsmpp.bean.RegisteredDelivery;
+import org.jsmpp.bean.ReplaceIfPresentFlag;
 import org.jsmpp.bean.SMSCDeliveryReceipt;
+import org.jsmpp.bean.SubmitMultiResult;
 import org.jsmpp.bean.TypeOfNumber;
 import org.jsmpp.extra.NegativeResponseException;
 import org.jsmpp.extra.ResponseTimeoutException;
@@ -50,6 +53,7 @@ import org.jsmpp.util.TimeFormatter;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.Set;
 
 /**
  * @Author Zubair Asghar.
@@ -58,9 +62,7 @@ import java.util.Date;
 public class SMPPClient
 {
     private static final Log LOGGER = LogFactory.getLog( SMPPClient.class );
-
     private static final String SOURCE = "DHIS2";
-
     private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
 
     private SMPPGatewayConfig config;
@@ -72,20 +74,19 @@ public class SMPPClient
         this.config = smsGatewayConfig;
     }
 
-    public String send( String text, String recipient )
+    public SubmitMultiResult send( String text, Set<String> recipients )
     {
-        String messageId = null;
+        SubmitMultiResult result = null;
 
           if( session != null )
           {
             try
             {
-                messageId = session.submitShortMessage("cp", TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, SOURCE,
-                    TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, recipient, new ESMClass(), (byte)0, (byte)1,  TIME_FORMATTER.format( new Date() ), null,
-                    new RegisteredDelivery( SMSCDeliveryReceipt.DEFAULT ), (byte)0, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false ), (byte)0,
-                    text.getBytes());
+                result = session.submitMultiple( "cp", TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1, TIME_FORMATTER.format( new Date() ), null,
+                        new RegisteredDelivery( SMSCDeliveryReceipt.FAILURE ), ReplaceIfPresentFlag.REPLACE, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false ), (byte) 0,
+                        text.getBytes() );
 
-                LOGGER.info(String.format( "Messages submitted, result is %s", messageId ) );
+                LOGGER.info(String.format( "Messages submitted, result is %s", result.getMessageId() ) );
             }
             catch ( PDUException e )
             {
@@ -116,15 +117,19 @@ public class SMPPClient
         {
             LOGGER.error( "Session creation failed with SMPP broker." );
         }
+
+        return result;
+    }
+
+    public void stop()
+    {
         if( session != null )
         {
             session.unbindAndClose();
         }
-
-        return messageId;
     }
 
-    public SMPPSession startSMPPSession()
+    public void start()
     {
         session = new SMPPSession();
         String systemId = null;
@@ -133,14 +138,26 @@ public class SMPPClient
             systemId = session.connectAndBind( config.getHost(), config.getPort(), new BindParameter(BindType.BIND_TX, config.getSystemId(), config.getPassword(), config.getSystemType(),
                 TypeOfNumber.UNKNOWN, NumberingPlanIndicator.UNKNOWN, null ) );
 
-            LOGGER.info(String.format( "Connected with SMPP with system id %s", systemId ) );
+            LOGGER.info(String.format( "SMPP client connected with system id %s", systemId ) );
         }
         catch ( IOException e )
         {
-            LOGGER.error( "I/O error occured", e);
+            LOGGER.error( "I/O error occured", e );
             session = null;
         }
+    }
 
-        return session;
+    private Address[] getAddresses( Set<String> recipients )
+    {
+        Address[] addresses = new Address[recipients.size()];
+        int i = 0;
+
+        for( String number : recipients )
+        {
+            addresses[i] = new Address(TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, number );
+            i++;
+        }
+
+        return addresses;
     }
 }
