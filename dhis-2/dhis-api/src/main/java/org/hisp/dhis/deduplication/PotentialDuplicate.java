@@ -28,7 +28,6 @@ package org.hisp.dhis.deduplication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -39,7 +38,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 public class PotentialDuplicate
     extends BaseIdentifiableObject
 {
-
     /**
      * teiA represents the UID of a TrackedEntityInstance.
      * teiA is required.

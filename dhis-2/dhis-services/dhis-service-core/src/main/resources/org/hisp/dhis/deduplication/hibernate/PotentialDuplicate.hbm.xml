@@ -11,7 +11,9 @@
         <cache usage="read-write" />
 
         <id name="id" column="potentialduplicateid">
-            <generator class="native" />
+            <generator class="sequence">
+                <param name="sequence">potentialduplicatesequence</param>
+            </generator>
         </id>
 
 
@@ -24,7 +26,6 @@
         <property name="lastUpdated" type="timestamp" not-null="true" />
 
         <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
-
 
         <!-- Potential Duplicate Properties -->
 
