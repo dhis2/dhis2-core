@@ -46,11 +46,6 @@ public class EventQueryCriteria implements Serializable
     private static final long serialVersionUID = 1L;
     
     /**
-     * Property indicating the programstatus for the event filter.
-     */
-    private ProgramStatus programStatus;
-    
-    /**
      * Property indicating the followUp status of the enrollment.
      */
     private Boolean followUp;
@@ -169,18 +164,6 @@ public class EventQueryCriteria implements Serializable
     public void setEvents( Set<String> events )
     {
         this.events = events;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStatus getProgramStatus()
-    {
-        return programStatus;
-    }
-
-    public void setProgramStatus( ProgramStatus programStatus )
-    {
-        this.programStatus = programStatus;
     }
 
     @JsonProperty
