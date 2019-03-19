@@ -29,11 +29,11 @@ package org.hisp.dhis.parser;
  */
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.hisp.dhis.parser.generated.ExpressionBaseVisitor;
+import org.hisp.dhis.parser.antlr.ExpressionBaseVisitor;
 
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.generated.ExpressionParser.*;
+import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
 
 /**
  * Abstraction over the ANTLR-generated ExpressionBaseVisitor, to use in

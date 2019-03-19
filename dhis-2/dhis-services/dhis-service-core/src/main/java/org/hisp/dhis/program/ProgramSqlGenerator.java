@@ -37,7 +37,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.CommonSqlGenerator;
 import org.hisp.dhis.parser.InternalParserException;
 import org.hisp.dhis.parser.ParserExceptionWithoutContext;
-import org.hisp.dhis.parser.generated.ExpressionParser;
+import org.hisp.dhis.parser.antlr.ExpressionParser;
 import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.generated.ExpressionParser.*;
+import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
 
 /**
  * ANTLR parse tree visitor to translate a Program Indicator expression into SQL.

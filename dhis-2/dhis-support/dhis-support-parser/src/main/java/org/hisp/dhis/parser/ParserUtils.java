@@ -30,7 +30,7 @@ package org.hisp.dhis.parser;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.parser.generated.ExpressionParser;
+import org.hisp.dhis.parser.antlr.ExpressionParser;
 
 import java.util.Date;
 

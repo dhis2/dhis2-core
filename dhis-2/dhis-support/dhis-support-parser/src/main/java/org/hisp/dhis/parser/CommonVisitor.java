@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import static java.lang.Math.pow;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.generated.ExpressionParser.*;
+import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
 
 /**
  * Common resolution of expression operands and functions using the ANTLR4

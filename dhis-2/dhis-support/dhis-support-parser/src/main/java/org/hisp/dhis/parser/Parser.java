@@ -35,10 +35,10 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.hisp.dhis.parser.generated.ExpressionBaseListener;
-import org.hisp.dhis.parser.generated.ExpressionBaseVisitor;
-import org.hisp.dhis.parser.generated.ExpressionLexer;
-import org.hisp.dhis.parser.generated.ExpressionParser;
+import org.hisp.dhis.parser.antlr.ExpressionBaseListener;
+import org.hisp.dhis.parser.antlr.ExpressionBaseVisitor;
+import org.hisp.dhis.parser.antlr.ExpressionLexer;
+import org.hisp.dhis.parser.antlr.ExpressionParser;
 
 import java.util.concurrent.TimeUnit;
 

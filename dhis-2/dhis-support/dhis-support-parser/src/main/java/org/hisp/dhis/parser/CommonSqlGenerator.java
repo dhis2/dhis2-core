@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.generated.ExpressionParser.*;
+import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
 
 /**
  * Generates SQL for common expression operands and functions.
