@@ -34,6 +34,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.jsmpp.bean.SubmitMultiResult;
+import org.jsmpp.session.SMPPSession;
 import org.jsmpp.util.DeliveryReceiptState;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -66,18 +67,20 @@ public class SMPPGateway extends SmsGateway
 
         List<OutboundMessageResponse> messageResponses = new ArrayList<>();
 
+        SMPPSession session;
+
         if ( smppClient != null )
         {
-            smppClient.start( config );
+            session = smppClient.start( config );
             OutboundMessageResponse response = null;
 
             for ( OutboundMessage message : batch.getMessages() )
             {
-                response = send( message.getText(), message.getRecipients() );
+                response = send( message.getText(), message.getRecipients(), session );
                 messageResponses.add( response );
             }
 
-            smppClient.stop();
+            smppClient.stop( session );
             return messageResponses;
         }
 
@@ -100,13 +103,15 @@ public class SMPPGateway extends SmsGateway
         OutboundMessageResponse response = new OutboundMessageResponse();
         response.setOk( false );
 
+        SMPPSession session;
+
         if ( smppClient != null )
         {
-            smppClient.start( config );
+            session = smppClient.start( config );
 
-            response = send( text, recipients );
+            response = send( text, recipients, session );
 
-            smppClient.stop();
+            smppClient.stop( session );
 
             return response;
         }
@@ -116,13 +121,13 @@ public class SMPPGateway extends SmsGateway
         return response;
     }
 
-    private OutboundMessageResponse send( String text, Set<String> recipients )
+    private OutboundMessageResponse send( String text, Set<String> recipients, SMPPSession session )
     {
         SubmitMultiResult result = null;
         OutboundMessageResponse response = new OutboundMessageResponse();
         response.setOk( false );
 
-        result = smppClient.send( text, recipients );
+        result = smppClient.send( text, recipients, session );
 
         if ( result != null )
         {

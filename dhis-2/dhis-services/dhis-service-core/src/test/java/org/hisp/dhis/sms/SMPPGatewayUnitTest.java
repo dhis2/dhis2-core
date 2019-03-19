@@ -97,7 +97,7 @@ public class SMPPGatewayUnitTest extends DhisConvenienceTest
 
         multiResult = new SubmitMultiResult( MESSAGE_ID, unsuccessDeliveries );
 
-        when( smppClient.send( anyString(), anySet() ) ).thenReturn( multiResult );
+        when( smppClient.send( anyString(), anySet(), any() ) ).thenReturn( multiResult );
 
         OutboundMessageResponse response = subject.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), smppGatewayConfig );
 
@@ -116,7 +116,7 @@ public class SMPPGatewayUnitTest extends DhisConvenienceTest
 
         multiResult = new SubmitMultiResult( MESSAGE_ID, unsuccessDeliveries );
 
-        when( smppClient.send( anyString(), anySet() ) ).thenReturn( multiResult );
+        when( smppClient.send( anyString(), anySet(), any() ) ).thenReturn( multiResult );
 
         OutboundMessageResponse response = subject.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), smppGatewayConfig );
 

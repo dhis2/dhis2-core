@@ -95,11 +95,11 @@ public class SMPPGatewayTest extends DhisSpringTest
     @Test
     public void testFailedMessage()
     {
-/*        OutboundMessageResponse response;
+        OutboundMessageResponse response;
 
-        config.setPassword( "wrongPassword" );
+        config.setPassword( "wpswrd" );
         response = gateway.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), config );
 
-        assertFalse( response.isOk() );*/
+        assertFalse( response.isOk() );
     }
 }

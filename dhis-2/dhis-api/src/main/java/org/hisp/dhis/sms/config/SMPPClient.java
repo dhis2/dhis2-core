@@ -65,56 +65,46 @@ public class SMPPClient
     private static final String SOURCE = "DHIS2";
     private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
 
-    private SMPPSession session;
-
-    public SubmitMultiResult send( String text, Set<String> recipients )
+    public SubmitMultiResult send( String text, Set<String> recipients, SMPPSession session )
     {
         SubmitMultiResult result = null;
-
-          if( session != null )
-          {
-            try
-            {
-                result = session.submitMultiple( "cp", TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1, TIME_FORMATTER.format( new Date() ), null,
-                        new RegisteredDelivery( SMSCDeliveryReceipt.FAILURE ), ReplaceIfPresentFlag.REPLACE, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false ), (byte) 0,
-                        text.getBytes() );
-
-                LOGGER.info(String.format( "Messages submitted, result is %s", result.getMessageId() ) );
-            }
-            catch ( PDUException e )
-            {
-                LOGGER.error( "Invalid PDU parameter", e );
-            }
-            catch ( ResponseTimeoutException e )
-            {
-                LOGGER.error( "Response timeout", e );
-            }
-            catch ( InvalidResponseException e )
-            {
-                LOGGER.error("Receive invalid response", e );
-            }
-            catch ( NegativeResponseException e )
-            {
-                LOGGER.error( "Receive negative response", e );
-            }
-            catch ( IOException e )
-            {
-                LOGGER.error( "I/O error", e );
-            }
-            catch ( Exception e )
-            {
-                LOGGER.error( "Exception in submitting SMPP request", e );
-            }
-        }
-        else
+        try
         {
-            LOGGER.error( "Session creation failed with SMPP broker." );
+            result = session.submitMultiple( "cp", TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1, TIME_FORMATTER.format( new Date() ), null,
+                    new RegisteredDelivery( SMSCDeliveryReceipt.FAILURE ), ReplaceIfPresentFlag.REPLACE, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false ), (byte) 0,
+                    text.getBytes() );
+
+            LOGGER.info(String.format( "Messages submitted, result is %s", result.getMessageId() ) );
+        }
+        catch ( PDUException e )
+        {
+            LOGGER.error( "Invalid PDU parameter", e );
+        }
+        catch ( ResponseTimeoutException e )
+        {
+            LOGGER.error( "Response timeout", e );
+        }
+        catch ( InvalidResponseException e )
+        {
+            LOGGER.error("Receive invalid response", e );
+        }
+        catch ( NegativeResponseException e )
+        {
+            LOGGER.error( "Receive negative response", e );
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( "I/O error", e );
+        }
+        catch ( Exception e )
+        {
+            LOGGER.error( "Exception in submitting SMPP request", e );
         }
 
         return result;
     }
 
-    public void stop()
+    public void stop( SMPPSession session )
     {
         if( session != null )
         {
@@ -122,22 +112,29 @@ public class SMPPClient
         }
     }
 
-    public void start( SMPPGatewayConfig config )
+    public SMPPSession start( SMPPGatewayConfig config )
     {
-        session = new SMPPSession();
-        String systemId = null;
+        SMPPSession session;
+
         try
         {
-            systemId = session.connectAndBind( config.getHost(), config.getPort(), new BindParameter(BindType.BIND_TX, config.getSystemId(), config.getPassword(), config.getSystemType(),
-                TypeOfNumber.UNKNOWN, NumberingPlanIndicator.UNKNOWN, null ) );
+            session = new SMPPSession( config.getHost(), config.getPort(), getBindParameters( config ) );
 
-            LOGGER.info(String.format( "SMPP client connected with system id %s", systemId ) );
+            LOGGER.info( "SMPP client connected SMSC" );
+            return session;
         }
         catch ( IOException e )
         {
             LOGGER.error( "I/O error occured", e );
-            session = null;
         }
+
+        return null;
+    }
+
+    private BindParameter getBindParameters( SMPPGatewayConfig config )
+    {
+       return new BindParameter(BindType.BIND_TX, config.getSystemId(), config.getPassword(), config.getSystemType(),
+                TypeOfNumber.UNKNOWN, NumberingPlanIndicator.UNKNOWN, null );
     }
 
     private Address[] getAddresses( Set<String> recipients )
