@@ -28,78 +28,99 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.sms.config.SMPPClient;
 import org.hisp.dhis.sms.config.SMPPGateway;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
+import org.jsmpp.bean.Address;
+import org.jsmpp.bean.NumberingPlanIndicator;
+import org.jsmpp.bean.SubmitMultiResult;
+import org.jsmpp.bean.TypeOfNumber;
+import org.jsmpp.bean.UnsuccessDelivery;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.*;
-
-
-/**
- * To run this test, make sure that the SMSC is running on:
- * host:     localhost
- * port:     2775
- * user:     smppclient1
- * password: password
- */
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * @Author Zubair Asghar.
  */
-
-@Ignore( "Test to run manually" )
-public class SMPPGatewayTest extends DhisSpringTest
+public class SMPPGatewayUnitTest extends DhisConvenienceTest
 {
     private static final String SYSTEM_ID = "smppclient1";
     private static final String SYSTEM_TYPE = "cp";
     private static final String HOST = "localhost";
     private static final String PASSWORD = "password";
-    private static final int PORT = 2775;
-
+    private static final String MESSAGE_ID = "messageId";
     private static final String RECIPIENT = "4740332255";
     private static final String TEXT = "text through smpp";
     private static final String SUBJECT = "subject";
 
-    private SMPPGatewayConfig config;
+    private static final int PORT = 2775;
+    private static final int REJECTED = 7;
 
-    @Autowired
-    private SMPPGateway gateway;
+    private SMPPGatewayConfig smppGatewayConfig;
+    private SubmitMultiResult multiResult;
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
+    @Mock
+    private SMPPClient smppClient;
+
+    private SMPPGateway subject;
 
     @Before
     public void init()
     {
-        config = new SMPPGatewayConfig();
-        config.setUrlTemplate( HOST );
-        config.setPassword( PASSWORD );
-        config.setPort( PORT );
-        config.setSystemType( SYSTEM_TYPE );
-        config.setUsername( SYSTEM_ID );
+        subject = new SMPPGateway( smppClient );
+
+        smppGatewayConfig = new SMPPGatewayConfig();
+        smppGatewayConfig.setUrlTemplate( HOST );
+        smppGatewayConfig.setPassword( PASSWORD );
+        smppGatewayConfig.setPort( PORT );
+        smppGatewayConfig.setSystemType( SYSTEM_TYPE );
+        smppGatewayConfig.setUsername( SYSTEM_ID );
     }
 
     @Test
-    public void testSuccessfulMessage()
+    public void testSuccessMessage()
     {
-        OutboundMessageResponse response;
+        UnsuccessDelivery[] unsuccessDeliveries = null;
 
-        response = gateway.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), config );
+        multiResult = new SubmitMultiResult( MESSAGE_ID, unsuccessDeliveries );
+
+        when( smppClient.send( anyString(), anySet() ) ).thenReturn( multiResult );
+
+        OutboundMessageResponse response = subject.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), smppGatewayConfig );
 
         assertTrue( response.isOk() );
+        assertEquals( MESSAGE_ID, response.getDescription() );
     }
 
     @Test
     public void testFailedMessage()
     {
-/*        OutboundMessageResponse response;
+        UnsuccessDelivery failedDelivery = new UnsuccessDelivery( new Address( TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, "XXXXXX" ), REJECTED );
 
-        config.setPassword( "wrongPassword" );
-        response = gateway.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), config );
+        UnsuccessDelivery[] unsuccessDeliveries =new UnsuccessDelivery[1];
 
-        assertFalse( response.isOk() );*/
+        unsuccessDeliveries[0] = failedDelivery;
+
+        multiResult = new SubmitMultiResult( MESSAGE_ID, unsuccessDeliveries );
+
+        when( smppClient.send( anyString(), anySet() ) ).thenReturn( multiResult );
+
+        OutboundMessageResponse response = subject.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), smppGatewayConfig );
+
+        assertFalse( response.isOk() );
+        assertEquals( "REJECTD - messageId", response.getDescription() );
     }
 }

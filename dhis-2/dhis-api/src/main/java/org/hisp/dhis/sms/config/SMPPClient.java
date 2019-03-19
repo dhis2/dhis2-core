@@ -65,14 +65,7 @@ public class SMPPClient
     private static final String SOURCE = "DHIS2";
     private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
 
-    private SMPPGatewayConfig config;
-
     private SMPPSession session;
-
-    public SMPPClient( SMPPGatewayConfig smsGatewayConfig )
-    {
-        this.config = smsGatewayConfig;
-    }
 
     public SubmitMultiResult send( String text, Set<String> recipients )
     {
@@ -129,7 +122,7 @@ public class SMPPClient
         }
     }
 
-    public void start()
+    public void start( SMPPGatewayConfig config )
     {
         session = new SMPPSession();
         String systemId = null;

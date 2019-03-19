@@ -35,6 +35,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.jsmpp.bean.SubmitMultiResult;
 import org.jsmpp.util.DeliveryReceiptState;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,21 +51,29 @@ public class SMPPGateway extends SmsGateway
     private static final String SESSION_ERROR = "SMPP Session cannot be null";
     private static final String SENDING_FAILED = "SMS sending failed";
 
+    private final SMPPClient smppClient;
+
+    @Autowired
+    public SMPPGateway( SMPPClient smppClient )
+    {
+        this.smppClient = smppClient;
+    }
+
     @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        SMPPClient smppClient = createSMPPClient( gatewayConfig );
+        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
 
         List<OutboundMessageResponse> messageResponses = new ArrayList<>();
 
         if ( smppClient != null )
         {
-            smppClient.start();
+            smppClient.start( config );
             OutboundMessageResponse response = null;
 
             for ( OutboundMessage message : batch.getMessages() )
             {
-                response = send( smppClient, message.getText(), message.getRecipients() );
+                response = send( message.getText(), message.getRecipients() );
                 messageResponses.add( response );
             }
 
@@ -86,16 +95,16 @@ public class SMPPGateway extends SmsGateway
     @Override
     public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
     {
-        SMPPClient smppClient = createSMPPClient( gatewayConfig );
+        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
 
         OutboundMessageResponse response = new OutboundMessageResponse();
         response.setOk( false );
 
         if ( smppClient != null )
         {
-            smppClient.stop();
+            smppClient.start( config );
 
-            response = send( smppClient, text, recipients );
+            response = send( text, recipients );
 
             smppClient.stop();
 
@@ -107,7 +116,7 @@ public class SMPPGateway extends SmsGateway
         return response;
     }
 
-    private OutboundMessageResponse send( SMPPClient smppClient, String text, Set<String> recipients )
+    private OutboundMessageResponse send( String text, Set<String> recipients )
     {
         SubmitMultiResult result = null;
         OutboundMessageResponse response = new OutboundMessageResponse();
@@ -127,23 +136,12 @@ public class SMPPGateway extends SmsGateway
             else
             {
                 log.error( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " +result.getMessageId() );
+                response.setDescription( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " +result.getMessageId()  );
+                return response;
             }
         }
 
-        response.setDescription( SENDING_FAILED );
+        response.setDescription( SENDING_FAILED  );
         return response;
-    }
-
-    private SMPPClient createSMPPClient( SmsGatewayConfig gatewayConfig )
-    {
-        if ( gatewayConfig == null )
-        {
-            log.error( "Gateway cannot be null" );
-            return null;
-        }
-
-        SMPPGatewayConfig smppGatewayConfig = (SMPPGatewayConfig) gatewayConfig;
-
-        return new SMPPClient( smppGatewayConfig );
     }
 }
