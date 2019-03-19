@@ -274,9 +274,19 @@ public abstract class AbstractJdbcTableManager
      * Populates the given analytics table.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param table the analytics table to populate.
+     * @param partition the {@link AnalyticsTablePartition}.
      */
     protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
+
+    /**
+     * Indicates whether data was created or updated for the given time range since
+     * last successful "latest" table partition update.
+     *
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return true if updated data exists.
+     */
+    protected abstract boolean hasUpdatedLatestData( Date startDate, Date endDate );
 
     // -------------------------------------------------------------------------
     // Protected supportive methods
@@ -434,9 +444,13 @@ public abstract class AbstractJdbcTableManager
         Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate();
         Date startDate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, defaultDate );
         Date endDate = params.getStartTime();
-        table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
+        boolean hasUpdatedData = hasUpdatedLatestData( startDate, endDate );
 
-        log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+        if ( hasUpdatedData )
+        {
+            table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
+            log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+        }
 
         return table;
     }

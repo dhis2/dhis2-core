@@ -149,6 +149,19 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
+    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
+    {
+        String sql =
+            "select dv.dataelementid " +
+            "from datavalue dv " +
+            "where dv.lastupdated >= '" + getLongDateString( startDate ) + "' " +
+            "and dv.lastupdated < = '" + getLongDateString( endDate ) + "' " +
+            "limit 1";
+
+        return !jdbcTemplate.queryForList( sql ).isEmpty();
+    }
+
+    @Override
     public void preCreateTables( AnalyticsTableUpdateParams params )
     {
         if ( isApprovalEnabled( null ) )

@@ -108,6 +108,19 @@ public class JdbcCompletenessTableManager
     }
 
     @Override
+    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
+    {
+        String sql =
+            "select cdr.datasetid " +
+            "from completedatasetregistration cdr " +
+            "where cdr.lastupdated >= '" + getLongDateString( startDate ) + "' " +
+            "and cdr.lastupdated < = '" + getLongDateString( endDate ) + "' " +
+            "limit 1";
+
+        return !jdbcTemplate.queryForList( sql ).isEmpty();
+    }
+
+    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
