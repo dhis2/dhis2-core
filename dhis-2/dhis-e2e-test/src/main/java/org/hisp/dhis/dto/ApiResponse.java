@@ -63,6 +63,7 @@ import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -153,7 +154,28 @@ public class ApiResponse
 
     public boolean containsImportSummaries()
     {
-        return extractString( "response.responseType" ).equals( "ImportSummaries" ) ? true : false;
+        return StringUtils.equals( extractString( "response.responseType" ), "ImportSummaries" ) ||
+            StringUtils.equals( extractString( "responseType" ), "ImportSummaries" );
+    }
+
+    public List<ImportSummary> getImportSummaries()
+    {
+        if ( this.extract( "responseType" ) != null && this.extract( "responseType" ).equals( "ImportSummaries" ) )
+        {
+            return this.extractList( "importSummaries", ImportSummary.class );
+
+        }
+        return this.extractList( "response.importSummaries", ImportSummary.class );
+
+    }
+
+    public List<ImportSummary> getSuccessfulImportSummaries()
+    {
+        return getImportSummaries().stream()
+            .filter( is -> {
+                return is.getStatus() == "SUCCESS";
+            } )
+            .collect( Collectors.toList() );
     }
 
 }

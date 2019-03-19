@@ -63,17 +63,16 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
+import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.FileReaderUtils;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -136,7 +135,7 @@ public class MetadataImportTest
 
     @Test
     public void shouldImportUniqueMetadataAndReturnObjectReports()
-        throws IOException
+        throws Exception
     {
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
@@ -168,7 +167,7 @@ public class MetadataImportTest
 
     @Test
     public void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse()
-        throws IOException
+        throws Exception
     {
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
@@ -210,7 +209,7 @@ public class MetadataImportTest
 
     @Test
     public void shouldImportMetadataAsync()
-        throws IOException, InterruptedException
+        throws Exception
     {
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
@@ -237,17 +236,11 @@ public class MetadataImportTest
             .body( "response.name", equalTo( "metadataImport" ) )
             .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
 
-        String relative = response.extractString( "response.relativeNotifierEndpoint" ).replace( "api/", "" );
+        String taskId = response.extractString( "response.id" );
 
         // Validate that job was successful
 
-        boolean completed = false;
-        while ( !completed )
-        {
-            response = new RestApiActions( relative ).get();
-            response.validate().statusCode( 200 );
-            completed = response.extractList( "completed" ).contains( true );
-        }
+        response = new SystemActions().waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
 
         assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Start" ) ) );
         assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );

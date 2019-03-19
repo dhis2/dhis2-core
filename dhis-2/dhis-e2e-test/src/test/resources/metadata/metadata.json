@@ -106,14 +106,130 @@
       ]
     }
   ],
+  "programStages": [
+    {
+      "lastUpdated": "2019-02-28T11:39:49.125",
+      "id": "nlXNK4b7LVr",
+      "created": "2019-02-28T10:48:46.722",
+      "name": "First stage",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "minDaysFromStart": 1,
+      "program": {
+        "id": "f1AyMswryyQ"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    },
+    {
+      "lastUpdated": "2019-02-28T11:41:32.082",
+      "id": "jKLB23QZS4I",
+      "created": "2019-02-28T11:41:32.082",
+      "name": "TA Event_program",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "Zd2rkv8FsWq"
+      },
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [],
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    }
+  ],
   "programs": [
     {
-      "lastUpdated": "2019-02-05T13:46:19.312",
+      "lastUpdated": "2019-02-28T12:42:58.281",
+      "id": "Zd2rkv8FsWq",
+      "created": "2019-02-28T11:41:32.093",
+      "name": "TA Event_program",
+      "shortName": "TAEP",
+      "publicAccess": "rwrw----",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 4,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "r16njpPwUCb"
+        }
+      ],
+      "userGroupAccesses": [],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "jKLB23QZS4I"
+        }
+      ],
+      "userAccesses": []
+    },
+    {
+      "lastUpdated": "2019-02-28T12:42:58.283",
       "id": "f1AyMswryyQ",
       "created": "2019-02-05T13:46:19.312",
       "name": "TA Tracker_program",
       "shortName": "TA Tracker_program",
-      "publicAccess": "rw------",
+      "publicAccess": "rwrw----",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -122,7 +238,7 @@
       "onlyEnrollOnce": false,
       "programType": "WITH_REGISTRATION",
       "accessLevel": "OPEN",
-      "version": 0,
+      "version": 5,
       "maxTeiCountToReturn": 0,
       "selectIncidentDatesInFuture": false,
       "displayIncidentDate": true,
@@ -142,7 +258,11 @@
       "userGroupAccesses": [],
       "programSections": [],
       "attributeValues": [],
-      "programStages": [],
+      "programStages": [
+        {
+          "id": "nlXNK4b7LVr"
+        }
+      ],
       "userAccesses": []
     }
   ],
@@ -255,16 +375,6 @@
       },
       "attributeValues": [],
       "translations": []
-    },
-    {
-      "created": "2019-02-05T13:55:29.017",
-      "lastUpdated": "2019-02-05T13:55:29.073",
-      "name": "%string%",
-      "id": "%id%",
-      "shortName": "%string%",
-      "path": "%id%",
-      "featureType": "NONE",
-      "openingDate": "2018-10-31T00:00:00.000"
     }
   ],
   "categoryCombos": [
@@ -285,6 +395,134 @@
           "id": "GLevLNI9wkl"
         }
       ]
+    }
+  ],
+  "dataElements": [
+    {
+      "lastUpdated": "2019-02-28T12:52:29.860",
+      "id": "BuZ5LGNfGEU",
+      "created": "2019-02-28T12:49:47.868",
+      "name": "TA Age in years",
+      "shortName": "Age in years",
+      "aggregationType": "AVERAGE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-03-04T15:10:43.564",
+      "id": "mB2QHw1tU96",
+      "created": "2019-03-04T15:10:43.564",
+      "name": "TA Place of birth",
+      "shortName": "Place of birth",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "COORDINATE",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-03-04T14:57:24.360",
+      "id": "inc5BJvr4W5",
+      "created": "2019-03-04T14:57:24.360",
+      "name": "TA Comment",
+      "shortName": "Comment",
+      "aggregationType": "NONE",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "LONG_TEXT",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-03-04T14:56:05.469",
+      "id": "ILRgzHhzFkg",
+      "created": "2019-03-04T14:56:05.469",
+      "name": "TA Diabetes",
+      "shortName": "Diabetes",
+      "aggregationType": "COUNT",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "BOOLEAN",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-02-28T12:52:09.985",
+      "id": "ZrqtjjveTFc",
+      "created": "2019-02-28T12:49:23.981",
+      "name": "TA Gender",
+      "shortName": "Gender",
+      "aggregationType": "NONE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "TEXT",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-03-04T14:56:56.103",
+      "id": "z3Z4TD3oBCP",
+      "created": "2019-03-04T14:56:56.103",
+      "name": "Pregnant",
+      "shortName": "Pregnant",
+      "aggregationType": "SUM",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "TRUE_ONLY",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
     }
   ]
 }

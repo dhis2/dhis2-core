@@ -32,6 +32,8 @@ import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -58,4 +60,21 @@ public class EventActions
         return response;
     }
 
+    public ApiResponse softDelete( String eventId )
+    {
+        ApiResponse response = super.delete( eventId );
+
+        response.validate().statusCode( 200 );
+
+        return response;
+    }
+
+    public void softDelete( List<String> eventIds )
+    {
+        for ( String id : eventIds
+        )
+        {
+            softDelete( id );
+        }
+    }
 }

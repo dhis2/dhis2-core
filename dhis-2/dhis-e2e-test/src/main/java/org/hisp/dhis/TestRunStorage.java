@@ -56,7 +56,7 @@ public class TestRunStorage
     {
         if ( createdEntities == null )
         {
-            return new LinkedHashMap<>( );
+            return new LinkedHashMap<>();
         }
 
         return createdEntities;
@@ -78,6 +78,11 @@ public class TestRunStorage
 
     public static void removeEntity( final String resource, final String id )
     {
+        if ( createdEntities == null )
+        {
+            return;
+        }
+
         createdEntities.remove( id, resource );
     }
 
