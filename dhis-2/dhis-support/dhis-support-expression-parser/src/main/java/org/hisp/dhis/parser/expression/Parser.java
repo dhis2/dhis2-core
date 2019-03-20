@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser;
+package org.hisp.dhis.parser.expression;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -35,10 +35,10 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import org.hisp.dhis.parser.antlr.ExpressionBaseListener;
-import org.hisp.dhis.parser.antlr.ExpressionBaseVisitor;
-import org.hisp.dhis.parser.antlr.ExpressionLexer;
-import org.hisp.dhis.parser.antlr.ExpressionParser;
+import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
+import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
+import org.hisp.dhis.parser.expression.antlr.ExpressionLexer;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import java.util.concurrent.TimeUnit;
 

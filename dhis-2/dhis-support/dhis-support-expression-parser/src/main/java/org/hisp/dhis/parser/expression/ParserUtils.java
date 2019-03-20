@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser;
+package org.hisp.dhis.parser.expression;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,7 +30,7 @@ package org.hisp.dhis.parser;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.parser.antlr.ExpressionParser;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import java.util.Date;
 

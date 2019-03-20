@@ -30,8 +30,8 @@ package org.hisp.dhis.expression;
 
 import static org.hisp.dhis.common.DimensionItemType.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.*;
-import static org.hisp.dhis.parser.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.ParserUtils.castDouble;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.system.util.MathUtils.calculateExpression;
 
 import java.util.*;
@@ -61,9 +61,9 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.parser.AbstractVisitor;
-import org.hisp.dhis.parser.Parser;
-import org.hisp.dhis.parser.ParserException;
+import org.hisp.dhis.parser.expression.AbstractVisitor;
+import org.hisp.dhis.parser.expression.Parser;
+import org.hisp.dhis.parser.expression.ParserException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
 import org.hisp.dhis.system.util.ExpressionUtils;

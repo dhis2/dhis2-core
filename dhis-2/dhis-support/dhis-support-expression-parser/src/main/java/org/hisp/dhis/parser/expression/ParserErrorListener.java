@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser;
+package org.hisp.dhis.parser.expression;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,16 +28,23 @@ package org.hisp.dhis.parser;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+
 /**
- * Exception while parsing an expression.
+ * Listens to ANTLR parsing errors and throws them (instead of printing them
+ * on the console, which is ANTLR's default behaviour.)
  *
  * @author Jim Grace
  */
-public class ParserException
-    extends IllegalStateException
+public class ParserErrorListener
+    extends BaseErrorListener
 {
-    public ParserException( String message )
+    @Override
+    public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol,
+        int line, int charPositionInLine, String msg, RecognitionException e)
     {
-        super( message );
+        throw new ParserException( msg + " at character " + charPositionInLine );
     }
 }

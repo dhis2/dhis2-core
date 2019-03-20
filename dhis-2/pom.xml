@@ -442,7 +442,7 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-support-parser</artifactId>
+        <artifactId>dhis-support-expression-parser</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

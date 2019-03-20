@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser;
+package org.hisp.dhis.parser.expression;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
 
 import static java.lang.Math.pow;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
-import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
 
 /**
  * Common resolution of expression operands and functions using the ANTLR4

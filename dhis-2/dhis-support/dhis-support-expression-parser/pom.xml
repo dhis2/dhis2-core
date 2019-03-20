@@ -9,7 +9,7 @@
     <version>2.32-SNAPSHOT</version>
   </parent>
   
-  <artifactId>dhis-support-parser</artifactId>
+  <artifactId>dhis-support-expression-parser</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Parser Support</name>
   

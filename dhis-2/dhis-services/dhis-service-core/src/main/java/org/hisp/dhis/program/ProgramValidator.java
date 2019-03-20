@@ -34,9 +34,9 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.parser.CommonVisitor;
-import org.hisp.dhis.parser.InternalParserException;
-import org.hisp.dhis.parser.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.CommonVisitor;
+import org.hisp.dhis.parser.expression.InternalParserException;
+import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -49,8 +49,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
  * Visit the ANTLR parse tree for a program expression, using the ANTLR visitor

@@ -35,15 +35,15 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.parser.CommonVisitor;
-import org.hisp.dhis.parser.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.CommonVisitor;
+import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionItemType.*;
-import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
  * ANTLR4 visitor to find the expression items in an expression,

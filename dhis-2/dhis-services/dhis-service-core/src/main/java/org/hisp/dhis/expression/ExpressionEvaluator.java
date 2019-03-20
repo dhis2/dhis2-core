@@ -29,15 +29,15 @@ package org.hisp.dhis.expression;
  */
 
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.parser.CommonVisitor;
-import org.hisp.dhis.parser.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.CommonVisitor;
+import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
  * ANTLR parse tree visitor to compute an expression value, once the expression

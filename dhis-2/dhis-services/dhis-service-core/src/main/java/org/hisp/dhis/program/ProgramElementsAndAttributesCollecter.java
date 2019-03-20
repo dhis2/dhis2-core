@@ -28,14 +28,14 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.antlr.ExpressionBaseListener;
-import org.hisp.dhis.parser.antlr.ExpressionParser;
+import org.hisp.dhis.parser.expression.antlr.ExpressionBaseListener;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
  * Traverse the ANTLR4 parse tree for a program expression to collect the

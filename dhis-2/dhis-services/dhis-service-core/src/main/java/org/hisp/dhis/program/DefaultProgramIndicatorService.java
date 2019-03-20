@@ -29,8 +29,8 @@ package org.hisp.dhis.program;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.parser.ParserUtils.castClass;
-import static org.hisp.dhis.parser.ParserUtils.castString;
+import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
+import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 
 import java.util.*;
 
@@ -41,8 +41,8 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.parser.Parser;
-import org.hisp.dhis.parser.ParserException;
+import org.hisp.dhis.parser.expression.Parser;
+import org.hisp.dhis.parser.expression.ParserException;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Qualifier;

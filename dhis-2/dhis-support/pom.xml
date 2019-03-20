@@ -22,7 +22,7 @@
     <module>dhis-support-system</module>
     <module>dhis-support-jdbc</module>
     <module>dhis-support-amqp</module>
-    <module>dhis-support-parser</module>
+    <module>dhis-support-expression-parser</module>
   </modules>
 
   <properties>

@@ -1,4 +1,4 @@
-package org.hisp.dhis.parser;
+package org.hisp.dhis.parser.expression;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,11 +29,11 @@ package org.hisp.dhis.parser;
  */
 
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.hisp.dhis.parser.antlr.ExpressionBaseVisitor;
+import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
 
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
-import static org.hisp.dhis.parser.ParserUtils.*;
-import static org.hisp.dhis.parser.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
  * Abstraction over the ANTLR-generated ExpressionBaseVisitor, to use in
