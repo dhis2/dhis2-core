@@ -37,6 +37,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.user.UserGroup;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -68,7 +69,7 @@ public class PushAnalysis
     /**
      * PushAnalysis reports are sent to one or more userGroups
      */
-    private Set<UserGroup> recipientUserGroups;
+    private Set<UserGroup> recipientUserGroups = new HashSet<>();
 
     private boolean enabled;
 
