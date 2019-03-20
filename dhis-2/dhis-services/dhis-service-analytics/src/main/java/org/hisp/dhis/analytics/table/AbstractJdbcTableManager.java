@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Resource;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -447,13 +448,13 @@ public abstract class AbstractJdbcTableManager
         Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate();
         Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
-
-        Date startDate = Lists.newArrayList( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate ).stream()
+        Date lastAnyTableUpdate = Lists.newArrayList( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate ).stream()
             .filter( Objects::nonNull )
             .max( Date::compareTo ).get();
 
+        Date startDate = ObjectUtils.firstNonNull( lastFullTableUpdate, defaultDate );
         Date endDate = params.getStartTime();
-        boolean hasUpdatedData = hasUpdatedLatestData( startDate, endDate );
+        boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate );
 
         if ( hasUpdatedData )
         {
@@ -462,7 +463,7 @@ public abstract class AbstractJdbcTableManager
         }
         else
         {
-            log.info( String.format( "No updated latest data found with start: '%s' and end: '%s", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+            log.info( String.format( "No updated latest data found with start: '%s' and end: '%s", getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
         }
 
         return table;
