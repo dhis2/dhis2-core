@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.table;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -67,11 +68,15 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
+
+import com.google.common.base.Predicates;
+import com.google.common.collect.Lists;
 
 import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 
@@ -442,7 +447,13 @@ public abstract class AbstractJdbcTableManager
     {
         AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
         Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate();
-        Date startDate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, defaultDate );
+        Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+
+        Date startDate = Lists.newArrayList( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate ).stream()
+            .filter( Objects::nonNull )
+            .max( Date::compareTo ).get();
+
         Date endDate = params.getStartTime();
         boolean hasUpdatedData = hasUpdatedLatestData( startDate, endDate );
 

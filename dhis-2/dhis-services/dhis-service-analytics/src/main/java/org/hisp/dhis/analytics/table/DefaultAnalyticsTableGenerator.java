@@ -136,7 +136,12 @@ public class DefaultAnalyticsTableGenerator
             throw ex;
         }
 
-        if ( !params.isLatestUpdate() )
+        if ( params.isLatestUpdate() )
+        {
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE, params.getStartTime() );
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+        }
+        else
         {
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, params.getStartTime() );
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
