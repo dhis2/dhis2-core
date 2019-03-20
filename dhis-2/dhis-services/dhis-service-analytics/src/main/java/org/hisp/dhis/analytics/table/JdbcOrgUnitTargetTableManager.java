@@ -72,7 +72,9 @@ public class JdbcOrgUnitTargetTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        return Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
+        return params.isLatestUpdate() ?
+            Lists.newArrayList() :
+            Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
