@@ -38,6 +38,7 @@ import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -88,6 +89,8 @@ public class ProgramStageInstance
     private Date lastSynchronized = new Date( 0 );
 
     private Geometry geometry;
+
+    private User assignedUser;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -318,6 +321,16 @@ public class ProgramStageInstance
     public void setGeometry( Geometry geometry )
     {
         this.geometry = geometry;
+    }
+
+    public User getAssignedUser()
+    {
+        return assignedUser;
+    }
+
+    public void setAssignedUser( User assignedUser )
+    {
+        this.assignedUser = assignedUser;
     }
 
     @Override public String toString()
