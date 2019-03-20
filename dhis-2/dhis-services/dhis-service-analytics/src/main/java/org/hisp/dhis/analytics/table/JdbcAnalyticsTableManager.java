@@ -153,7 +153,7 @@ public class JdbcAnalyticsTableManager
             "select dv.dataelementid " +
             "from datavalue dv " +
             "where dv.lastupdated >= '" + getLongDateString( startDate ) + "' " +
-            "and dv.lastupdated < = '" + getLongDateString( endDate ) + "' " +
+            "and dv.lastupdated < '" + getLongDateString( endDate ) + "' " +
             "limit 1";
 
         return !jdbcTemplate.queryForList( sql ).isEmpty();

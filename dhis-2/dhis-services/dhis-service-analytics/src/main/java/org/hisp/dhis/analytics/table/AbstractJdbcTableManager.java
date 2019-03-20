@@ -451,6 +451,10 @@ public abstract class AbstractJdbcTableManager
             table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
             log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
         }
+        else
+        {
+            log.info( String.format( "No updated latest data found with start: '%s' and end: '%s", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+        }
 
         return table;
     }

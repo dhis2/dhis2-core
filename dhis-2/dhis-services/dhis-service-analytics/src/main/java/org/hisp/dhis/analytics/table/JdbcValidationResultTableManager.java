@@ -110,7 +110,7 @@ public class JdbcValidationResultTableManager
             "select vr.validationresultid " +
             "from validationresult vr " +
             "where vr.created >= '" + getLongDateString( startDate ) + "' " +
-            "and vr.created < = '" + getLongDateString( endDate ) + "' " +
+            "and vr.created < '" + getLongDateString( endDate ) + "' " +
             "limit 1";
 
         return !jdbcTemplate.queryForList( sql ).isEmpty();
