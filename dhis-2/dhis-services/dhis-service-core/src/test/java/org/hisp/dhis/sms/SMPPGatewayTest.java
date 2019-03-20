@@ -65,11 +65,11 @@ public class SMPPGatewayTest extends DhisSpringTest
     private static final String SYSTEM_TYPE = "cp";
     private static final String HOST = "localhost";
     private static final String PASSWORD = "password";
-    private static final int PORT = 2775;
-
     private static final String RECIPIENT = "4740332255";
     private static final String TEXT = "text through smpp";
     private static final String SUBJECT = "subject";
+
+    private static final int PORT = 2775;
 
     private SMPPGatewayConfig config;
 

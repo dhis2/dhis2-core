@@ -168,8 +168,8 @@ public class SMPPClient
         try
         {
             result = session.submitMultiple( "cp", TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1, TIME_FORMATTER.format( new Date() ), null,
-                    new RegisteredDelivery( SMSCDeliveryReceipt.FAILURE ), ReplaceIfPresentFlag.REPLACE, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false ), (byte) 0,
-                    text.getBytes() );
+                new RegisteredDelivery( SMSCDeliveryReceipt.FAILURE ), ReplaceIfPresentFlag.REPLACE, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false ), (byte) 0,
+                text.getBytes() );
 
             LOGGER.info( String.format( "Messages submitted, result is %s", result.getMessageId() ) );
         }

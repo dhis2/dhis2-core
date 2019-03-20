@@ -31,7 +31,6 @@ package org.hisp.dhis.sms;
 import static org.junit.Assert.*;
 
 import com.google.common.collect.Sets;
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPClient;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
@@ -55,7 +54,7 @@ import org.mockito.junit.MockitoRule;
  */
 
 @Ignore( "Test to run manually" )
-public class SMPPClientTest extends DhisConvenienceTest
+public class SMPPClientTest
 {
     private static final String SYSTEM_ID = "smppclient1";
     private static final String SYSTEM_TYPE = "cp";
