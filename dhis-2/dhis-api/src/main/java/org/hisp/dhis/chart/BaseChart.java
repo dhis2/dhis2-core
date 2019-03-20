@@ -77,7 +77,7 @@ public abstract class BaseChart
 
     protected boolean noSpaceBetweenColumns;
 
-    protected RegressionType regressionType;
+    protected RegressionType regressionType = RegressionType.NONE;
 
     protected Double targetLineValue;
 
@@ -89,7 +89,7 @@ public abstract class BaseChart
 
     protected boolean showData;
 
-    protected HideEmptyItemStrategy hideEmptyRowItems;
+    protected HideEmptyItemStrategy hideEmptyRowItems = HideEmptyItemStrategy.NONE;
 
     protected boolean percentStackedValues;
 
