@@ -52,7 +52,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
 public class MessageConversation
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
 {
     private static final int RECIPIENTS_MAX_DISPLAY = 25;
 
