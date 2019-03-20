@@ -106,6 +106,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -1254,7 +1255,7 @@ public abstract class AbstractEventService
             validateExpiryDays( event, program, programStageInstance );
         }
 
-        CategoryOptionCombo aoc = null;
+        CategoryOptionCombo aoc = programStageInstance.getAttributeOptionCombo();
 
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
             || event.getAttributeOptionCombo() != null )
@@ -1285,6 +1286,10 @@ public abstract class AbstractEventService
         {
             programStageInstance.setAttributeOptionCombo( aoc );
         }
+
+        Date eventDate = programStageInstance.getExecutionDate() != null ? programStageInstance.getExecutionDate() : programStageInstance.getDueDate();
+
+        validateAttributeOptionComboDate( aoc, eventDate );
 
         if ( event.getGeometry() != null )
         {
@@ -1381,6 +1386,10 @@ public abstract class AbstractEventService
         {
             executionDate = DateUtils.parseDate( event.getEventDate() );
         }
+
+        Date eventDate = executionDate != null ? executionDate : programStageInstance.getDueDate();
+
+        validateAttributeOptionComboDate( programStageInstance.getAttributeOptionCombo(), eventDate );
 
         if ( event.getStatus() == EventStatus.COMPLETED )
         {
@@ -1617,6 +1626,10 @@ public abstract class AbstractEventService
             importSummary.setStatus( ImportStatus.ERROR );
             return importSummary.incrementIgnored();
         }
+
+        Date eventDate = executionDate != null ? executionDate : dueDate;
+
+        validateAttributeOptionComboDate( aoc, eventDate );
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
 
@@ -1983,6 +1996,33 @@ public abstract class AbstractEventService
             log.warn( "Validation failed: " + violation );
 
             throw new IllegalQueryException( violation );
+        }
+    }
+
+    private void validateAttributeOptionComboDate( CategoryOptionCombo attributeOptionCombo, Date date )
+    {
+        I18nFormat i18nFormat = i18nManager.getI18nFormat();
+
+        if ( date == null )
+        {
+            throw new IllegalQueryException( "Event date can not be empty" );
+        }
+
+        for ( CategoryOption option : attributeOptionCombo.getCategoryOptions() )
+        {
+            if ( option.getStartDate() != null && date.compareTo( option.getStartDate() ) < 0 )
+            {
+                throw new IllegalQueryException( "Event date " + i18nFormat.formatDate( date )
+                    + " is before start date " + i18nFormat.formatDate( option.getStartDate() )
+                    + " for attributeOption '" + option.getName() + "'" );
+            }
+
+            if ( option.getEndDate() != null && date.compareTo( option.getEndDate() ) > 0 )
+            {
+                throw new IllegalQueryException( "Event date " + i18nFormat.formatDate( date )
+                    + " is after end date " + i18nFormat.formatDate( option.getEndDate() )
+                    + " for attributeOption '" + option.getName() + "'" );
+            }
         }
     }
 
