@@ -82,12 +82,16 @@ public class TrackerSynchronization
         }
 
         final Clock clock = new Clock( log ).startClock().logTime( "Starting Tracker program data synchronization job." );
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
+        queryParams.setSkipChangedBefore( skipChangedBefore );
 
         final int objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
+
+        log.info( "TrackedEntityInstances last changed before " + skipChangedBefore + " will not be synchronized." );
 
         if ( objectsToSynchronize == 0 )
         {

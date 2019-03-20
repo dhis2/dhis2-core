@@ -152,7 +152,7 @@ public class DefaultProgramRuleEntityMapperService
     @Override
     public List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables )
     {
-        return programRuleVariables.stream().map( this::toRuleVariable ).filter( Objects::nonNull ).collect( Collectors.toList() );
+        return programRuleVariables.stream().filter( Objects::nonNull ).map( this::toRuleVariable ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -179,7 +179,7 @@ public class DefaultProgramRuleEntityMapperService
              RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream()
                 .map( dv -> RuleDataValue.create( ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
-                .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
+                .collect( Collectors.toList() ), ps.getProgramStage().getName() != null ? ps.getProgramStage().getName() : "" ) ).collect( Collectors.toList() );
     }
 
     @Override
@@ -192,8 +192,8 @@ public class DefaultProgramRuleEntityMapperService
 
         return RuleEvent.create( psi.getUid(), psi.getProgramStage().getUid(), RuleEvent.Status.valueOf( psi.getStatus().toString() ), psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(),
          psi.getDueDate(), psi.getOrganisationUnit() != null ? psi.getOrganisationUnit().getUid() : "", psi.getDataValues().stream()
-            .map(dv -> RuleDataValue.create( psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
-            .collect( Collectors.toList() ), psi.getProgramStage().getName() );
+            .map( dv -> RuleDataValue.create( psi.getExecutionDate() != null ? psi.getExecutionDate() : psi.getDueDate(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
+            .collect( Collectors.toList() ), psi.getProgramStage().getName() != null ? psi.getProgramStage().getName() : "" );
     }
 
     @Override
@@ -204,7 +204,7 @@ public class DefaultProgramRuleEntityMapperService
             RuleEvent.Status.valueOf( ps.getStatus().toString() ), ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), ps.getDueDate(), ps.getOrganisationUnit() != null ? ps.getOrganisationUnit().getUid() : "",
                 ps.getDataValues().stream()
                 .map(dv -> RuleDataValue.create( ps.getExecutionDate() != null ? ps.getExecutionDate() : ps.getDueDate(), dv.getProgramStageInstance().getProgramStage().getUid(), dv.getDataElement().getUid(), dv.getValue() ) )
-                .collect( Collectors.toList() ), ps.getProgramStage().getName() ) ).collect( Collectors.toList() );
+                .collect( Collectors.toList() ), ps.getProgramStage().getName() != null ? ps.getProgramStage().getName() : "" ) ).collect( Collectors.toList() );
     }
 
     // ---------------------------------------------------------------------
@@ -231,7 +231,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.debug( "Invalid rule action" );
+            log.debug( "Invalid rule action in ProgramRule: " + programRule.getUid() );
 
             return null;
         }
@@ -255,7 +255,7 @@ public class DefaultProgramRuleEntityMapperService
         }
         catch ( Exception e )
         {
-            log.debug( "Invalid rule variable" );
+            log.debug( "Invalid ProgramRuleVariable: " + programRuleVariable.getUid() );
         }
 
         return ruleVariable;
@@ -300,7 +300,8 @@ public class DefaultProgramRuleEntityMapperService
             return programRuleAction.getContent();
         }
 
-        log.warn( String.format( "No location found for ProgramRuleAction: %s", programRuleAction.getUid() ) );
+        log.warn( String.format( "No location found for ProgramRuleAction: %s in ProgramRule: %s",
+            programRuleAction.getProgramRuleActionType(), programRuleAction.getProgramRule().getUid() ) );
 
         return StringUtils.EMPTY;
     }

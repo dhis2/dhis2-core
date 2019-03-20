@@ -70,9 +70,13 @@ public class ImportOptions
 
     private boolean skipNotifications;
 
+    private boolean skipAudit;
+
     private boolean datasetAllowsPeriods;
 
     private boolean strictPeriods;
+
+    private boolean strictDataElements;
 
     private boolean strictCategoryOptionCombos;
 
@@ -85,6 +89,8 @@ public class ImportOptions
     private boolean requireAttributeOptionCombo;
 
     private boolean skipPatternValidation;
+
+    private boolean ignoreEmptyCollection;
 
     private boolean force;
 
@@ -270,9 +276,23 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipAudit()
+    {
+        return skipAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictPeriods()
     {
         return strictPeriods;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isStrictDataElements()
+    {
+        return strictDataElements;
     }
 
     @JsonProperty
@@ -315,6 +335,13 @@ public class ImportOptions
     public boolean isSkipPatternValidation()
     {
         return skipPatternValidation;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isIgnoreEmptyCollection()
+    {
+        return ignoreEmptyCollection;
     }
 
     @JsonProperty
@@ -462,9 +489,20 @@ public class ImportOptions
         return this;
     }
 
+    public void setSkipAudit( boolean skipAudit )
+    {
+        this.skipAudit = skipAudit;
+    }
+
     public ImportOptions setStrictPeriods( boolean strictPeriods )
     {
         this.strictPeriods = strictPeriods;
+        return this;
+    }
+
+    public ImportOptions setStrictDataElements( boolean strictDataElements )
+    {
+        this.strictDataElements = strictDataElements;
         return this;
     }
 
@@ -501,6 +539,12 @@ public class ImportOptions
     public ImportOptions setSkipPatternValidation( boolean skipPatternValidation )
     {
         this.skipPatternValidation = skipPatternValidation;
+        return this;
+    }
+
+    public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
+    {
+        this.ignoreEmptyCollection = ignoreEmptyCollection;
         return this;
     }
 

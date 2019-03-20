@@ -190,6 +190,9 @@ public class InitTableAlteror
         executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN uid SET NOT NULL;" );
         executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN created SET NOT NULL;" );
         executeSql( "ALTER TABLE trackedentitycomment ALTER COLUMN lastupdated SET NOT NULL;" );
+
+        //Make sure there are no NULLs present in lastupdated column
+        executeSql( "UPDATE datavalue SET lastupdated = created WHERE lastupdated IS NULL" );
     }
 
     private void addGenerateUidFunction()

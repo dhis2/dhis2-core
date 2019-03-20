@@ -61,11 +61,12 @@ public class ProgramRuleEngine
     private static final String USER = "USER";
 
     private static final String REGEX = "d2:inOrgUnitGroup\\( *(([\\d/\\*\\+\\-%\\. ]+)|" +
-            "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
+        "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
     private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = Sets.newHashSet( ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE, ProgramRuleActionType.ASSIGN );
+    private static final Set<ProgramRuleActionType> PERMITTED_TYPES = Sets.newHashSet( ProgramRuleActionType.SENDMESSAGE, ProgramRuleActionType.SCHEDULEMESSAGE );
 
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -117,7 +118,7 @@ public class ProgramRuleEngine
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
@@ -159,7 +160,7 @@ public class ProgramRuleEngine
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
             
             ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
@@ -213,6 +214,15 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
+        List<ProgramRule> permittedRules = new ArrayList<>();
+
+        permittedRules = programRuleService.getImplementableProgramRules( program, PERMITTED_TYPES );
+
+        if ( permittedRules.isEmpty() )
+        {
+            return permittedRules;
+        }
+
         return programRuleService.getImplementableProgramRules( program, IMPLEMENTABLE_TYPES );
     }
 }

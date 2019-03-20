@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -154,13 +155,21 @@ public class DefaultSynchronizationManager
 
         final Date startTime = new Date();
         final Date lastSuccessTime = getLastDataSynchSuccessFallback();
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
 
-        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
+        log.info( "DataValues last changed before " + skipChangedBefore + " will not be synchronized." );
 
         if ( objectsToSynchronize == 0 )
         {
-            log.debug( "Skipping synch, no new or updated data values" );
-            return null;
+            SyncUtils.setLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_SYNC,
+                startTime );
+            log.debug( "Skipping data values push, no new or updated data values" );
+
+            ImportCount importCount = new ImportCount( 0, 0, 0, 0 );
+            return new ImportSummary( ImportStatus.SUCCESS, "No new or updated data values to push.", importCount );
         }
 
         log.info( "Values: " + objectsToSynchronize + " since last synchronization success: " + lastSuccessTime );
@@ -171,7 +180,7 @@ public class DefaultSynchronizationManager
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( HEADER_AUTHORIZATION, CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-            dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes() );
+            dataValueSetService.writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
@@ -231,15 +240,22 @@ public class DefaultSynchronizationManager
 
         final Date startTime = new Date();
         final Date lastSuccessTime = getLastEventSynchSuccessFallback();
-
-        int lastUpdatedEventsCount = eventService.getAnonymousEventValuesCountLastUpdatedAfter( lastSuccessTime );
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+        final int lastUpdatedEventsCount = eventService .getAnonymousEventValuesCountLastUpdatedAfter( lastUpdatedAfter );
 
         log.info( "Events: " + lastUpdatedEventsCount + " since last synch success: " + lastSuccessTime );
 
         if ( lastUpdatedEventsCount == 0 )
         {
-            log.info( "Skipping synch, no new or updated data values for events" );
-            return null;
+            SyncUtils.setLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_EVENT_DATA_SYNC, startTime );
+            log.info( "Skipping events push, no new or updated events" );
+
+            ImportCount importCount = new ImportCount( 0, 0, 0, 0 );
+            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "No new or updated events to push.",
+                importCount );
+            return new ImportSummaries().addImportSummary( importSummary );
         }
 
         String url = systemSettingManager.getSystemSetting(
