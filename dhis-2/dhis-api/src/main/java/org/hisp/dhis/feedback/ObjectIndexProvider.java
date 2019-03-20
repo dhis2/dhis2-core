@@ -1,9 +1,7 @@
-package org.hisp.dhis.analytics.orgunit;
-
-import java.util.Map;
+package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,46 +28,26 @@ import java.util.Map;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;;
+import org.hisp.dhis.common.IdentifiableObject;
 
-public interface OrgUnitAnalyticsService
+import javax.annotation.Nonnull;
+
+/**
+ * Provides a zero based index for an object. The zero based unique index
+ * may be unique based on a type.
+ *
+ * @author Volker Schmidt
+ */
+@FunctionalInterface
+public interface ObjectIndexProvider
 {
     /**
-     * Returns parameters for the given query.
+     * Returns the object index for the specified object. If the
+     * object has not yet an index, an index will be created.
      *
-     * @param orgUnits the organisation unit string.
-     * @param orgUnitGroupSets the organisation unit group set string.
-     * @param columns the organisation unit group set to place as columns,
-     *         implies rendering in table layout, can be null.
-     * @return a {@link OrgUnitQueryParams}.
+     * @param object the object for which an index should be returned.
+     * @return the index of the specified object.
      */
-    OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns );
-
-    /**
-     * Returns the org unit data for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Grid}.
-     */
-    Grid getOrgUnitData( OrgUnitQueryParams params );
-
-    /**
-     * Returns the org unit data as a map with the metadata as key and
-     * org unit count as value for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Map}.
-     */
-    Map<String, Object> getOrgUnitDataMap( OrgUnitQueryParams params );
-
-    /**
-     * Validates the given parameters. Throws an {@link IllegalQueryException}
-     * if invalid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @throws IllegalQueryException if invalid.
-     */
-    void validate( OrgUnitQueryParams params )
-        throws IllegalQueryException;
+    @Nonnull
+    Integer mergeObjectIndex( @Nonnull IdentifiableObject object );
 }

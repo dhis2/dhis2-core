@@ -1,7 +1,7 @@
-package org.hisp.dhis.analytics.orgunit;
+package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,42 @@ package org.hisp.dhis.analytics.orgunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
+import org.hisp.dhis.attribute.Attribute;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author Lars Helge Overland
+ * Unit tests for {@link IndexedObjectContainer}.
+ *
+ * @author Volker Schmidt
  */
-public interface OrgUnitAnalyticsManager
+public class IndexedObjectContainerTest
 {
-    /**
-     * Returns a data map with a composite metadata key and an org unit count
-     * as value for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     */
-    Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params );
+    private final IndexedObjectContainer container = new IndexedObjectContainer();
+
+    @Test
+    public void merge()
+    {
+        final Attribute attribute1 = new Attribute();
+        final Attribute attribute2 = new Attribute();
+        final Attribute attribute3 = new Attribute();
+
+        Assert.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
+        Assert.assertEquals( (Integer) 1, container.mergeObjectIndex( attribute2 ) );
+        Assert.assertEquals( (Integer) 0, container.mergeObjectIndex( attribute1 ) );
+        Assert.assertEquals( (Integer) 2, container.mergeObjectIndex( attribute3 ) );
+    }
+
+    @Test
+    public void add()
+    {
+        final Attribute attribute1 = new Attribute();
+        final Attribute attribute2 = new Attribute();
+        final Attribute attribute3 = new Attribute();
+
+        Assert.assertEquals( (Integer) 0, container.add( attribute1 ) );
+        Assert.assertEquals( (Integer) 1, container.add( attribute2 ) );
+        Assert.assertEquals( (Integer) 0, container.add( attribute1 ) );
+        Assert.assertEquals( (Integer) 2, container.add( attribute3 ) );
+    }
 }

@@ -1,9 +1,7 @@
-package org.hisp.dhis.analytics.orgunit;
-
-import java.util.Map;
+package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,46 +28,47 @@ import java.util.Map;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;;
+import org.hisp.dhis.common.IdentifiableObject;
 
-public interface OrgUnitAnalyticsService
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * {@link IndexedObjectContainer}s for each object type.
+ *
+ * @author Volker Schmidt
+ */
+public class TypedIndexedObjectContainer implements ObjectIndexProvider
 {
-    /**
-     * Returns parameters for the given query.
-     *
-     * @param orgUnits the organisation unit string.
-     * @param orgUnitGroupSets the organisation unit group set string.
-     * @param columns the organisation unit group set to place as columns,
-     *         implies rendering in table layout, can be null.
-     * @return a {@link OrgUnitQueryParams}.
-     */
-    OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns );
+    private final Map<Class<? extends IdentifiableObject>, IndexedObjectContainer> typedIndexedObjectContainers = new HashMap<>();
 
     /**
-     * Returns the org unit data for the given parameters.
+     * Get the typed container for the specified object class.
      *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Grid}.
+     * @param c the object class for which the container should be returned.
+     * @return the container (if it does not exists, the method creates a container).
      */
-    Grid getOrgUnitData( OrgUnitQueryParams params );
+    @Nonnull
+    public IndexedObjectContainer getTypedContainer( @Nonnull Class<? extends IdentifiableObject> c )
+    {
+        return typedIndexedObjectContainers.computeIfAbsent( c, key -> new IndexedObjectContainer() );
+    }
+
+    @Nonnull
+    @Override
+    public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
+    {
+        return getTypedContainer( object.getClass() ).mergeObjectIndex( object );
+    }
 
     /**
-     * Returns the org unit data as a map with the metadata as key and
-     * org unit count as value for the given parameters.
+     * Adds an object to the corresponding indexed object container.
      *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Map}.
+     * @param identifiableObject the object that should be added to the container.
      */
-    Map<String, Object> getOrgUnitDataMap( OrgUnitQueryParams params );
-
-    /**
-     * Validates the given parameters. Throws an {@link IllegalQueryException}
-     * if invalid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @throws IllegalQueryException if invalid.
-     */
-    void validate( OrgUnitQueryParams params )
-        throws IllegalQueryException;
+    public void add( @Nonnull IdentifiableObject identifiableObject )
+    {
+        getTypedContainer( identifiableObject.getClass() ).add( identifiableObject );
+    }
 }

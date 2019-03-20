@@ -112,18 +112,18 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     @Autowired
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
-        TrackedEntityAttributeService attributeService, ConstantService constantService,
-        StatementBuilder statementBuilder, @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore") IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
+        TrackedEntityAttributeService attributeService, ConstantService constantService, StatementBuilder statementBuilder,
+        @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore") IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
         I18nManager i18nManager )
     {
-        checkNotNull(programIndicatorStore);
-        checkNotNull(programStageService);
-        checkNotNull(dataElementService);
-        checkNotNull(attributeService);
-        checkNotNull(constantService);
-        checkNotNull(statementBuilder);
-        checkNotNull(programIndicatorGroupStore);
-        checkNotNull(i18nManager);
+        checkNotNull( programIndicatorStore );
+        checkNotNull( programStageService );
+        checkNotNull( dataElementService );
+        checkNotNull( attributeService );
+        checkNotNull( constantService );
+        checkNotNull( statementBuilder );
+        checkNotNull( programIndicatorGroupStore );
+        checkNotNull( i18nManager );
 
         this.programIndicatorStore = programIndicatorStore;
         this.programStageService = programStageService;
@@ -135,11 +135,11 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         this.i18nManager = i18nManager;
     }
 
-
     // -------------------------------------------------------------------------
     // ProgramIndicatorService implementation
     // -------------------------------------------------------------------------
 
+    @Override
     @Transactional
     public long addProgramIndicator( ProgramIndicator programIndicator )
     {
@@ -147,42 +147,49 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         return programIndicator.getId();
     }
 
+    @Override
     @Transactional
     public void updateProgramIndicator( ProgramIndicator programIndicator )
     {
         programIndicatorStore.update( programIndicator );
     }
 
+    @Override
     @Transactional
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
         programIndicatorStore.delete( programIndicator );
     }
 
+    @Override
     @Transactional
     public ProgramIndicator getProgramIndicator( long id )
     {
         return programIndicatorStore.get( id );
     }
 
+    @Override
     @Transactional
     public ProgramIndicator getProgramIndicator( String name )
     {
         return programIndicatorStore.getByName( name );
     }
 
+    @Override
     @Transactional
     public ProgramIndicator getProgramIndicatorByUid( String uid )
     {
         return programIndicatorStore.getByUid( uid );
     }
 
+    @Override
     @Transactional
     public List<ProgramIndicator> getAllProgramIndicators()
     {
         return programIndicatorStore.getAll();
     }
 
+    @Override
     @Transactional
     public String getExpressionDescription( String expression )
     {
@@ -252,11 +259,13 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         return description.toString();
     }
 
+    @Override
     public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
         return getAnalyticsSQl( expression, programIndicator, true, startDate, endDate );
     }
 
+    @Override
     public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues,
         Date startDate, Date endDate )
     {
@@ -425,6 +434,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         return TextUtils.appendTail( matcher, buffer );
     }
 
+    @Override
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
         Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType );
@@ -444,6 +454,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         return TextUtils.removeLastOr(sql.toString()).trim();
     }
 
+    @Override
     @Transactional
     public String expressionIsValid( String expression )
     {
@@ -463,6 +474,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         return ProgramIndicator.VALID;
     }
 
+    @Override
     @Transactional
     public String filterIsValid( String filter )
     {

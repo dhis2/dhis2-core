@@ -28,6 +28,27 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.YearlyPeriodType;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -39,112 +60,19 @@ import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.THIS_QUARTER;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-
-import com.google.common.collect.Sets;
-import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.expressionparser.ExpressionParserService;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.setting.SystemSettingManager;
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.springframework.core.env.Environment;
-
-import javax.validation.constraints.AssertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 /**
  * @author Luciano Fiandesio
  */
-@RunWith(MockitoJUnitRunner.Silent.class)
-public class AnalyticsServiceMetadataTest
+public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 {
-    @Mock
-    private AnalyticsManager analyticsManager;
-
-    @Mock
-    private RawAnalyticsManager rawAnalyticsManager;
-
-    @Mock
-    private AnalyticsSecurityManager securityManager;
-
-    @Mock
-    private QueryPlanner queryPlanner;
-
-    @Spy
-    private DefaultQueryValidator queryValidator;
-
-    @Mock
-    private ExpressionParserService expressionParserService;
-
-    @Mock
-    private ConstantService constantService;
-
-    @Mock
-    private OrganisationUnitService organisationUnitService;
-
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
-    @Mock
-    private EventAnalyticsService eventAnalyticsService;
-
-    @Mock
-    private DataQueryService dataQueryService;
-
-    @Mock
-    private DhisConfigurationProvider dhisConfig;
-
-    @Mock
-    private CacheProvider cacheProvider;
-
-    @Mock
-    private Environment environment;
-
-    private AnalyticsService target;
 
     @Before
     public void setUp()
     {
-        target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
-            queryValidator, expressionParserService, constantService, organisationUnitService, systemSettingManager,
-            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );
-
-        doNothing().when( queryValidator ).validateMaintenanceMode();
-        when(dhisConfig.getAnalyticsCacheExpiration()).thenReturn(0L);
-    }
-
-    private void initMock( DataQueryParams params )
-    {
-        when( securityManager.withDataApprovalConstraints( Mockito.any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( securityManager.withDimensionConstraints( any( DataQueryParams.class ) ) ).thenReturn( params );
-        when( queryPlanner.planQuery( any( DataQueryParams.class ), any( QueryPlannerParams.class ) ) ).thenReturn(
-            DataQueryGroups.newBuilder().withQueries( newArrayList( DataQueryParams.newBuilder().build() ) ).build() );
         Map<String, Object> aggregatedValues = new HashMap<>();
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )

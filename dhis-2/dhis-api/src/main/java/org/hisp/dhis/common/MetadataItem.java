@@ -157,13 +157,13 @@ public class MetadataItem
         if ( dimensionalItemObject instanceof DataElement )
         {
             DataElement dataElement = (DataElement) dimensionalItemObject;
-            this.valueType = dataElement.getValueType();
+            this.valueType = dataElement.getValueType().asSimplifiedValueType();
         }
 
         if ( dimensionalItemObject instanceof TrackedEntityAttribute )
         {
             TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
-            this.valueType = attribute.getValueType();
+            this.valueType = attribute.getValueType().asSimplifiedValueType();
         }
 
         // TODO introduce start/end date marker interface instead
