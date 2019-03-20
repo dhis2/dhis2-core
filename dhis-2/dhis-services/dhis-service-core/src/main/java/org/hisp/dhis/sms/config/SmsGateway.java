@@ -28,19 +28,23 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -78,6 +82,12 @@ public abstract class SmsGateway
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private SchedulingManager schedulingManager;
+
+    @Autowired
+    private SMSSendingCallback sendingCallback;
 
     protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
@@ -156,5 +166,25 @@ public abstract class SmsGateway
         status.setDescription( gatewayResponse.getResponseMessage() );
 
         return status;
+    }
+
+    protected List<OutboundMessageResponse> sendAsyncBatch( Callable<List<OutboundMessageResponse>> task )
+    {
+        ListenableFuture<List<OutboundMessageResponse>> sendingTask = schedulingManager.executeJob( task );
+
+        sendingTask.addCallback( sendingCallback.getBatchCallBack() );
+
+        return new ArrayList<>();
+    }
+
+    protected OutboundMessageResponse sendAsync( Callable<OutboundMessageResponse> task )
+    {
+        ListenableFuture<OutboundMessageResponse> sendingTask = schedulingManager.executeJob( task );
+
+        sendingTask.addCallback( sendingCallback.getCallBack() );
+
+        OutboundMessageResponse response = new OutboundMessageResponse();
+        response.setAsync( true );
+        return response;
     }
 }

@@ -30,6 +30,9 @@ package org.hisp.dhis.sms;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.outboundmessage.OutboundMessage;
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPGateway;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
@@ -38,8 +41,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.*;
+import java.util.ArrayList;
+import java.util.List;
 
+import static org.junit.Assert.*;
 
 /**
  * To run this test, make sure that the SMSC is running on:
@@ -93,13 +98,24 @@ public class SMPPGatewayTest extends DhisSpringTest
     }
 
     @Test
-    public void testFailedMessage()
+    public void testBulkMessage()
     {
-        OutboundMessageResponse response;
+        List<OutboundMessage> messages = new ArrayList<>();
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
+        messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
 
-        config.setPassword( "wpswrd" );
-        response = gateway.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), config );
+        OutboundMessageBatch batch = new OutboundMessageBatch( messages, DeliveryChannel.SMS );
 
-        assertFalse( response.isOk() );
+        List<OutboundMessageResponse> responses = gateway.sendBatch( batch, config );
+
+        assertNotNull( responses );
+        assertEquals( 8, responses.size() );
+
     }
 }

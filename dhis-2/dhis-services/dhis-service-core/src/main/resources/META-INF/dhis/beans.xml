@@ -1132,6 +1132,8 @@
     class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
 
   <!-- SMPP -->
+  <bean id="org.hisp.dhis.sms.config.SMSSendingCallback" class="org.hisp.dhis.sms.config.SMSSendingCallback" />
+
   <bean id="org.hisp.dhis.sms.config.SMPPGateway" class="org.hisp.dhis.sms.config.SMPPGateway" />
 
   <bean id="org.hisp.dhis.sms.config.SMPPClient" class="org.hisp.dhis.sms.config.SMPPClient" />

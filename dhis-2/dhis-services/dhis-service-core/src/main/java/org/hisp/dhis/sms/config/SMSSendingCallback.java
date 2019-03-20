@@ -28,45 +28,60 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.concurrent.ListenableFutureCallback;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * @Author Zubair Asghar.
  */
-public class SMPPGateway extends SmsGateway
+public class SMSSendingCallback
 {
-    private final SMPPClient smppClient;
+    private Log log = LogFactory.getLog( SMSSendingCallback.class );
 
-    @Autowired
-    public SMPPGateway( SMPPClient smppClient )
+    public ListenableFutureCallback<OutboundMessageResponse> getCallBack()
     {
-        this.smppClient = smppClient;
+        return new ListenableFutureCallback<OutboundMessageResponse>()
+        {
+            @Override
+            public void onFailure( Throwable ex )
+            {
+                log.error( "Message sending failed", ex );
+            }
+
+            @Override
+            public void onSuccess( OutboundMessageResponse result )
+            {
+                if ( result.isOk() )
+                {
+                    log.info( "Message sending successful: " + result.getDescription() );
+                }
+            }
+        };
     }
 
-    @Override
-    protected SmsGatewayConfig getGatewayConfigType()
+    public ListenableFutureCallback<List<OutboundMessageResponse>> getBatchCallBack()
     {
-        return new SMPPGatewayConfig();
-    }
+        return new ListenableFutureCallback<List<OutboundMessageResponse>>()
+        {
+            @Override
+            public void onFailure( Throwable ex )
+            {
+                log.error( "Message sending failed", ex );
+            }
 
-    @Override
-    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
-    {
-        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
+            @Override
+            public void onSuccess( List<OutboundMessageResponse> result )
+            {
+                long successful = result.stream().filter( OutboundMessageResponse::isOk ).count();
+                long failed = result.size() - successful;
 
-        return smppClient.send( text, recipients, config );
-    }
-
-    @Override
-    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
-    {
-        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
-
-        return smppClient.sendBatch( batch, config );
+                log.info( "Message sending status: Successful: " + successful + " Failed: " + failed );
+            }
+        };
     }
 }
