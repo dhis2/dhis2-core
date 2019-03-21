@@ -152,7 +152,8 @@ public class JdbcCompletenessTableManager
             "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
             "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and cdr.date is not null";
+            "and cdr.date is not null " +
+            "and cdr.completed = true";
 
         final String sql = insert + select;
 
