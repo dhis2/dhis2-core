@@ -9,9 +9,7 @@
     <cache usage="read-write" />
 
     <id name="id" column="programinstanceid">
-      <generator class="sequence">
-        <param name="sequence_name">programinstance_sequence</param>
-      </generator>
+      <generator class="native" />
     </id>
 
     <property name="uid" column="uid" unique="true" length="11" />
