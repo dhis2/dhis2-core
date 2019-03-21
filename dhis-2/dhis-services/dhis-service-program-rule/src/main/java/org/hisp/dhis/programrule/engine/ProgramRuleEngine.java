@@ -118,7 +118,7 @@ public class ProgramRuleEngine
             ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
@@ -162,7 +162,7 @@ public class ProgramRuleEngine
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.info( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
