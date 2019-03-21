@@ -1321,12 +1321,9 @@ public abstract class AbstractEventService
             }
         }
 
-        if ( event.getAssignedUser() != null )
+        if ( event.getAssignedUser() != null && programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
-            if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
-            {
-                programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
-            }
+            programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
         }
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
