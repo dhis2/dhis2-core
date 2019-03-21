@@ -32,7 +32,7 @@ import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.constant.ConstantService;
-import org.hisp.dhis.expressionparser.ExpressionParserService;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -71,7 +71,7 @@ public abstract class AnalyticsServiceBaseTest {
     private DefaultQueryValidator queryValidator;
 
     @Mock
-    private ExpressionParserService expressionParserService;
+    private ExpressionService expressionService;
 
     @Mock
     private ConstantService constantService;
@@ -103,7 +103,7 @@ public abstract class AnalyticsServiceBaseTest {
     public void baseSetUp()
     {
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
-                queryValidator, expressionParserService, constantService, organisationUnitService, systemSettingManager,
+                queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
                 eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );
 
         doNothing().when( queryValidator ).validateMaintenanceMode();

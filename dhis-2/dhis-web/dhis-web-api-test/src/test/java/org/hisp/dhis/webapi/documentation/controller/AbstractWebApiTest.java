@@ -326,8 +326,8 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             Constant constantA = createConstant( uniqueName, 7.0 );
             manager.save( constantA );
 
-            String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicatorVariable.VAR_ENROLLMENT_DATE.getVariableName() + "} - " + KEY_PROGRAM_VARIABLE + "{"
-                + ProgramIndicatorVariable.VAR_INCIDENT_DATE.getVariableName() + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+            String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "} - " + KEY_PROGRAM_VARIABLE + "{"
+                    + ProgramIndicator.VAR_INCIDENT_DATE + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
 
             return (T) createProgramIndicator( uniqueName, program, expressionA, null );
         }
