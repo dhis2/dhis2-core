@@ -126,6 +126,8 @@ public class ProgramStage
 
     private Boolean hideDueDate = false;
 
+    private Boolean enableUserAssignment = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -528,5 +530,17 @@ public class ProgramStage
     public void setFeatureType( FeatureType featureType )
     {
         this.featureType = featureType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isEnableUserAssignment()
+    {
+        return enableUserAssignment;
+    }
+
+    public void setEnableUserAssignment( Boolean enableUserAssignment )
+    {
+        this.enableUserAssignment = enableUserAssignment;
     }
 }
