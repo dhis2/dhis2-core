@@ -144,6 +144,10 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
+     * Removes data which was updated or deleted between the last successful analytics table update
+     * and the start of this analytics table update process, excluding data which was created during
+     * that time span.
+     *
      * Override in order to remove updated and deleted data for "latest" partition update.
      */
     @Override
@@ -527,7 +531,7 @@ public abstract class AbstractJdbcTableManager
 
         jdbcTemplate.execute( sql );
 
-        log.info( String.format( "%s done in: %s", logMessage, timer.stop().toString() ) );
+        log.info( String.format( "%s in: %s", logMessage, timer.stop().toString() ) );
     }
 
     // -------------------------------------------------------------------------

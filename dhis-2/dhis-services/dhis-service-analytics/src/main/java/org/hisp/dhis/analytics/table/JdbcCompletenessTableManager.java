@@ -124,7 +124,25 @@ public class JdbcCompletenessTableManager
     @Override
     public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
     {
-        //TODO
+        if ( !params.isLatestUpdate() )
+        {
+            return;
+        }
+
+        String sql =
+            "delete from " + getAnalyticsTableType().getTableName() + " ax " +
+            "where ax.id in (" +
+                "select (ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id " +
+                "from completedatasetregistration cdr " +
+                "inner join dataset ds on cdr.datasetid = ds.datasetid " +
+                "inner join _periodstructure ps on cdr.periodid = ps.periodid " +
+                "inner join organisationunit ou on cdr.sourceid = ou.organisationunitid " +
+                "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid = ao.categoryoptioncomboid " +
+                "where cdr.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
+                "and cdr.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
+                "and cdr.date < '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "')";
+
+        invokeTimeAndLog( sql, "Remove updated data values" );
     }
 
     @Override

@@ -118,6 +118,26 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
+    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    {
+        if ( !params.isLatestUpdate() )
+        {
+            return;
+        }
+
+        String sql =
+            "delete from " + getAnalyticsTableType().getTableName() + " ax " +
+            "where ax.id in (" +
+                "select vrs.id " +
+                "from validationresult vrs " +
+                "where vrs.created >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
+                "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
+                "and vrs.created < '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "')";
+
+        invokeTimeAndLog( sql, "Remove updated data values" );
+    }
+
+    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(

@@ -63,8 +63,6 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.timer.SystemTimer;
-import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
@@ -169,11 +167,6 @@ public class JdbcAnalyticsTableManager
         }
     }
 
-    /**
-     * Removes data which was updated or deleted between the last successful analytics table update
-     * and the start of this analytics table update process, excluding data which was created during
-     * that time span.
-     */
     @Override
     public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
     {
@@ -183,7 +176,7 @@ public class JdbcAnalyticsTableManager
         }
 
         String sql =
-            "delete from analytics ax " +
+            "delete from " + getAnalyticsTableType().getTableName() + " ax " +
             "where ax.id in (" +
                 "select (de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id " +
                 "from datavalue dv " +
@@ -196,13 +189,7 @@ public class JdbcAnalyticsTableManager
                 "and dv.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
                 "and dv.created < '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "')";
 
-        log.info( String.format( "Remove updated data SQL: '%s'", sql ) );
-
-        Timer timer = new SystemTimer().start();
-
-        jdbcTemplate.execute( sql );
-
-        log.info( String.format( "Removed updated and deleted data in %s", timer.stop().toString() ) );
+        invokeTimeAndLog( sql, "Remove updated data values" );
     }
 
     @Override
