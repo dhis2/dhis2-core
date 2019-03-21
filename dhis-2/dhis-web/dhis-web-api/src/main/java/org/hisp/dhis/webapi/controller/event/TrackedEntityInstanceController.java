@@ -39,7 +39,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -53,7 +52,6 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -870,26 +868,6 @@ public class TrackedEntityInstanceController
         return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/" + importSummary.getReference();
     }
 
-    private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
-    {
-
-        String idScheme = getParamValue( params, "idScheme" );
-
-        if ( idScheme != null )
-        {
-            idSchemes.setIdScheme( idScheme );
-        }
-
-        String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
-
-        if ( programStageInstanceIdScheme != null )
-        {
-            idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
-        }
-
-        return idSchemes;
-    }
-
     private List<String> getOrderParams( String order )
     {
         if ( order != null && !StringUtils.isEmpty( order ) )
@@ -898,10 +876,5 @@ public class TrackedEntityInstanceController
         }
 
         return null;
-    }
-
-    private String getParamValue( Map<String, List<String>> params, String key )
-    {
-        return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 }
