@@ -308,10 +308,10 @@ public class ProgramIndicatorServiceTest
 
         String expressionF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}";
         String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} > " +
-                KEY_ATTRIBUTE + "{" + atA.getUid() + "}";
+            KEY_ATTRIBUTE + "{" + atA.getUid() + "}";
         indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
         indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
-                AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
     }
 
     // -------------------------------------------------------------------------
@@ -447,14 +447,14 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsWithVariables()
     {
         String expected =
-                "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
-                        "coalesce(\"DataElmentB\"::numeric,0) + " +
-                        "nullif(cast((case when \"DataElmentA\" >= 0 then 1 else 0 end + case when \"DataElmentB\" >= 0 then 1 else 0 end) as double),0)";
+            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+            "coalesce(\"DataElmentB\"::numeric,0) + " +
+            "nullif(cast((case when \"DataElmentA\" >= 0 then 1 else 0 end + case when \"DataElmentB\" >= 0 then 1 else 0 end) as double),0)";
 
         String expression =
-                "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
-                        "#{ProgrmStagB.DataElmentB} + " +
-                        "V{zero_pos_value_count}";
+            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+            "#{ProgrmStagB.DataElmentB} + " +
+            "V{zero_pos_value_count}";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), true ) );
     }
@@ -472,14 +472,14 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsZingB()
     {
         String expected =
-                "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
-                        "coalesce(case when \"DataElmentB\" < 0 then 0 else \"DataElmentB\" end, 0) + " +
-                        "coalesce(case when \"DataElmentC\" < 0 then 0 else \"DataElmentC\" end, 0)";
+            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+            "coalesce(case when \"DataElmentB\" < 0 then 0 else \"DataElmentB\" end, 0) + " +
+            "coalesce(case when \"DataElmentC\" < 0 then 0 else \"DataElmentC\" end, 0)";
 
         String expression =
-                "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
-                        "d2:zing(#{ProgrmStagA.DataElmentB}) + " +
-                        "d2:zing(#{ProgrmStagA.DataElmentC})";
+            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+            "d2:zing(#{ProgrmStagA.DataElmentB}) + " +
+            "d2:zing(#{ProgrmStagA.DataElmentC})";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
@@ -500,10 +500,10 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsZpvc()
     {
         String expected =
-                "nullif(cast((" +
-                        "case when \"DataElmentA\" >= 0 then 1 else 0 end + " +
-                        "case when \"DataElmentB\" >= 0 then 1 else 0 end" +
-                        ") as double precision),0)";
+            "nullif(cast((" +
+            "case when \"DataElmentA\" >= 0 then 1 else 0 end + " +
+            "case when \"DataElmentB\" >= 0 then 1 else 0 end" +
+            ") as double precision),0)";
 
         String expression = "d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagA.DataElmentB})";
 
@@ -532,16 +532,16 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsComposite()
     {
         String expected =
-                "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
-                        "(cast(\"DataElmentC\" as date) - cast(\"DataElmentB\" as date)) + " +
-                        "case when (\"DataElmentD\" > 70) then 100 else 50 end + " +
-                        "case when (\"DataElmentE\" < 30) then 20 else 100 end";
+            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+            "(cast(\"DataElmentC\" as date) - cast(\"DataElmentB\" as date)) + " +
+            "case when (\"DataElmentD\" > 70) then 100 else 50 end + " +
+            "case when (\"DataElmentE\" < 30) then 20 else 100 end";
 
         String expression =
-                "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
-                        "d2:daysBetween(#{ProgrmStagA.DataElmentB},#{ProgrmStagA.DataElmentC}) + " +
-                        "d2:condition(\"#{ProgrmStagA.DataElmentD} > 70\",100,50) + " +
-                        "d2:condition('#{ProgrmStagA.DataElmentE} < 30',20,100)";
+            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+            "d2:daysBetween(#{ProgrmStagA.DataElmentB},#{ProgrmStagA.DataElmentC}) + " +
+            "d2:condition(\"#{ProgrmStagA.DataElmentD} > 70\",100,50) + " +
+            "d2:condition('#{ProgrmStagA.DataElmentE} < 30',20,100)";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
@@ -586,11 +586,11 @@ public class ProgramIndicatorServiceTest
     public void testIsZeroOrEmptyFilter()
     {
         String expected = "coalesce(\"DataElmentA\"::numeric,0) == 1 or " +
-                "(coalesce(\"DataElmentE\",'') == '' and " +
-                "coalesce(\"Attribute0A\"::numeric,0) == 0)";
+            "(coalesce(\"DataElmentE\",'') == '' and " +
+            "coalesce(\"Attribute0A\"::numeric,0) == 0)";
 
         String filter = "#{ProgrmStagA.DataElmentA} == 1 or " +
-                "(#{ProgrmStagA.DataElmentE}  == ''   and A{Attribute0A}== 0)";
+            "(#{ProgrmStagA.DataElmentE}  == ''   and A{Attribute0A}== 0)";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), new Date(), new Date(), true );
         assertEquals( expected, actual );
     }
@@ -599,10 +599,10 @@ public class ProgramIndicatorServiceTest
     public void testEnrollmentIndicatorWithEventBoundaryExpression()
     {
         String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B " +
-                "where analytics_event_" + indicatorF.getProgram().getUid() +
-                ".pi = ax.pi and \"DataElmentA\" is not null " +
-                "and executiondate < cast( '2018-03-11' as date ) and "+
-                "ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0)";
+            "where analytics_event_" + indicatorF.getProgram().getUid() +
+            ".pi = ax.pi and \"DataElmentA\" is not null " +
+            "and executiondate < cast( '2018-03-11' as date ) and "+
+            "ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0)";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
         String actual = programIndicatorService.getAnalyticsSql( indicatorF.getExpression(), indicatorF, reportingStartDate, reportingEndDate, true );
@@ -613,9 +613,9 @@ public class ProgramIndicatorServiceTest
     public void testEnrollmentIndicatorWithEventBoundaryFilter()
     {
         String expected = "(select \"DataElmentA\" from analytics_event_Program000B " +
-                "where analytics_event_" + indicatorF.getProgram().getUid() + ".pi " +
-                "= ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2018-03-11' as date ) and " +
-                "ps = 'ProgrmStagA' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
+            "where analytics_event_" + indicatorF.getProgram().getUid() + ".pi " +
+            "= ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2018-03-11' as date ) and " +
+            "ps = 'ProgrmStagA' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
         String actual = programIndicatorService.getAnalyticsSql( indicatorF.getFilter(), indicatorF, reportingStartDate, reportingEndDate, false );
@@ -626,10 +626,10 @@ public class ProgramIndicatorServiceTest
     public void testDateFunctions()
     {
         String expected = "(date_part('year',age(cast('2016-01-01' as date), cast(enrollmentdate as date)))) < 1 " +
-                "and (date_part('year',age(cast('2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
+            "and (date_part('year',age(cast('2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, V{analytics_period_start}) < 1 " +
-                "and d2:yearsBetween(V{enrollment_date}, V{analytics_period_end}) >= 1";
+            "and d2:yearsBetween(V{enrollment_date}, V{analytics_period_end}) >= 1";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, null, filter ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
@@ -638,13 +638,13 @@ public class ProgramIndicatorServiceTest
     public void testDateFunctionsWithProgramStageDateArguments()
     {
         String expected = "(date_part('year',age(cast((select executiondate from analytics_event_Program000A " +
-                "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' " +
-                "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1 and " +
-                "(date_part('month',age(cast((select executiondate from analytics_event_Program000A where " +
-                "analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagB' order " +
-                "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_Program000A " +
-                "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' order " +
-                "by executiondate desc limit 1 ) as date)))) > 10";
+            "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' " +
+            "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1 and " +
+            "(date_part('month',age(cast((select executiondate from analytics_event_Program000A where " +
+            "analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagB' order " +
+            "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_Program000A " +
+            "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' order " +
+            "by executiondate desc limit 1 ) as date)))) > 10";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:ProgrmStagA) < 1 " +
                 "and d2:monthsBetween(PS_EVENTDATE:ProgrmStagA, PS_EVENTDATE:ProgrmStagB) > 10";
@@ -655,8 +655,8 @@ public class ProgramIndicatorServiceTest
     public void testDateFunctionsWithprogramStageDateArgumentsAndBoundaries()
     {
         String expected = "(date_part('year',age(cast((select executiondate from analytics_event_" + programA.getUid() + " where analytics_event_" +
-                programA.getUid() + ".pi = ax.pi and executiondate is not null and executiondate < cast( '2017-01-01' as date ) and executiondate >= " +
-                "cast( '2016-01-01' as date ) and ps = '" + psA.getUid() + "' order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1";
+            programA.getUid() + ".pi = ax.pi and executiondate is not null and executiondate < cast( '2017-01-01' as date ) and executiondate >= " +
+            "cast( '2016-01-01' as date ) and ps = '" + psA.getUid() + "' order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:" + psA.getUid() + ") < 1";
         ProgramIndicator programIndicator = createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, filter, null );
@@ -713,7 +713,7 @@ public class ProgramIndicatorServiceTest
     public void testd2relationshipCountFilter()
     {
         String expected = "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join " +
-                "trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+            "trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
 
         String filter = "d2:relationshipCount()";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, filter, null ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
@@ -724,8 +724,8 @@ public class ProgramIndicatorServiceTest
     public void testd2relationshipCountForOneRelationshipTypeFilter()
     {
         String expected = "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and " +
-                "rt.uid = 'Zx7OEwPBUwD' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
-                "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
+            "rt.uid = 'Zx7OEwPBUwD' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
+            "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
 
         String filter = "d2:relationshipCount('Zx7OEwPBUwD')";
         String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, filter, null ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
