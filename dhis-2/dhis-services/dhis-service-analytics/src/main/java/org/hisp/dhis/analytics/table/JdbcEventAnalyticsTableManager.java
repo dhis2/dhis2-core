@@ -175,7 +175,7 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate is not null " +
             "and psi.deleted is false ";
 
-        populateAndLog( sql, tableName );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )

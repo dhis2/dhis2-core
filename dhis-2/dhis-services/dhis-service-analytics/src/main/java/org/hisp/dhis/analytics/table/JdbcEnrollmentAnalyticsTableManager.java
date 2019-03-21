@@ -139,7 +139,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "and pi.incidentdate is not null " +
             "and pi.deleted is false ";
 
-        populateAndLog( sql, tableName );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
