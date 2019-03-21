@@ -169,7 +169,7 @@ public interface ProgramIndicatorService
      * @param endDate the end date.
      * @return the SQL string.
      */
-    String getExpressionAnalyticsSql(ProgramIndicator programIndicator, Date startDate, Date endDate );
+    String getExpressionAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate );
 
     /**
      * Gets the program indicator filter as an analytics SQL clause.

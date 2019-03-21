@@ -391,25 +391,6 @@ public class EnrollmentController
         return enrollment;
     }
 
-    private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
-    {
-        String idScheme = getParamValue( params, "idScheme" );
-
-        if ( idScheme != null )
-        {
-            idSchemes.setIdScheme( idScheme );
-        }
-
-        String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
-
-        if ( programStageInstanceIdScheme != null )
-        {
-            idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
-        }
-
-        return idSchemes;
-    }
-
     private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
     {
         return ContextUtils.getContextPath( request ) + "/api/" + "enrollments" + "/" + importSummary.getReference();
