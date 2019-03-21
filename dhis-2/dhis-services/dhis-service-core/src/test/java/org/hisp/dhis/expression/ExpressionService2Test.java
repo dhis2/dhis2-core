@@ -78,7 +78,7 @@ import com.google.common.collect.Sets;
 public class ExpressionService2Test {
 
     @Mock
-    private HibernateGenericStore hibernateGenericStore;
+    private HibernateGenericStore<Expression> hibernateGenericStore;
     @Mock
     private DataElementService dataElementService;
     @Mock
@@ -158,8 +158,8 @@ public class ExpressionService2Test {
     @Before
     public void setUp()
     {
-        target = new DefaultExpressionService(hibernateGenericStore, dataElementService, constantService,
-                categoryService, organisationUnitGroupService, dimensionService, idObjectManager);
+        target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
+            categoryService, organisationUnitGroupService, dimensionService, idObjectManager );
         rnd = new BeanRandomizer();
 
         // SETUP FIXTURES
@@ -719,7 +719,6 @@ public class ExpressionService2Test {
     // -------------------------------------------------------------------------
 
     @Test
-    @SuppressWarnings("unchecked")
     public void verifyExpressionIsUpdated()
     {
         Expression expression = rnd.randomObject( Expression.class );
@@ -728,7 +727,6 @@ public class ExpressionService2Test {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void verifyExpressionIsDeleted()
     {
         Expression expression = rnd.randomObject( Expression.class );
@@ -737,15 +735,12 @@ public class ExpressionService2Test {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     public void verifyExpressionIsAdded()
     {
-
         Expression expression = rnd.randomObject( Expression.class );
         long id = target.addExpression( expression );
         assertThat( id, is( expression.getId() ) );
         verify( hibernateGenericStore ).save( expression );
-
     }
 
     @Test
@@ -755,7 +750,6 @@ public class ExpressionService2Test {
         List<Expression> expressions = target.getAllExpressions();
         assertThat( expressions, hasSize( 1 ) );
         verify( hibernateGenericStore ).getAll();
-
     }
 
     @Test

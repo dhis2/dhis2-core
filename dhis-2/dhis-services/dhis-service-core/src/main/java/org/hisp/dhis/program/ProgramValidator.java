@@ -120,8 +120,6 @@ public class ProgramValidator
     @Override
     public Object visitItem( ItemContext ctx )
     {
-        int type = ctx.it.getType();
-
         switch ( ctx.it.getType() )
         {
             case HASH_BRACE:

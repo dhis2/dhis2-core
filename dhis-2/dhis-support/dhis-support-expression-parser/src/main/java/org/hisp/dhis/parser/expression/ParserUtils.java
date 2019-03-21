@@ -28,8 +28,6 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import java.util.Date;
@@ -44,8 +42,6 @@ import static org.hisp.dhis.api.util.DateUtils.parseDate;
  */
 public class ParserUtils
 {
-    private static final Log log = LogFactory.getLog( ParserUtils.class );
-
     public final static double DOUBLE_VALUE_IF_NULL = 0.0;
 
     public final static boolean BOOLEAN_VALUE_IF_NULL = false;

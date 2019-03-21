@@ -77,10 +77,10 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
 
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
-                                           ProgramStageService programStageService, DataElementService dataElementService,
-                                           TrackedEntityAttributeService attributeService, ConstantService constantService, StatementBuilder statementBuilder,
-                                           @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore") IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
-                                           I18nManager i18nManager, RelationshipTypeService relationshipTypeService )
+        ProgramStageService programStageService, DataElementService dataElementService,
+        TrackedEntityAttributeService attributeService, ConstantService constantService, StatementBuilder statementBuilder,
+        @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore") IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
+        I18nManager i18nManager, RelationshipTypeService relationshipTypeService )
     {
         checkNotNull( programIndicatorStore );
         checkNotNull( programStageService );
