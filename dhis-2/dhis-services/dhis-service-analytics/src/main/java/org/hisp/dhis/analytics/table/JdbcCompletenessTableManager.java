@@ -130,7 +130,7 @@ public class JdbcCompletenessTableManager
         }
 
         String sql =
-            "delete from " + getAnalyticsTableType().getTableName() + " ax " +
+            "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
             "where ax.id in (" +
                 "select (ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id " +
                 "from completedatasetregistration cdr " +

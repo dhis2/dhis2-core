@@ -176,7 +176,7 @@ public class JdbcAnalyticsTableManager
         }
 
         String sql =
-            "delete from " + getAnalyticsTableType().getTableName() + " ax " +
+            "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
             "where ax.id in (" +
                 "select (de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id " +
                 "from datavalue dv " +

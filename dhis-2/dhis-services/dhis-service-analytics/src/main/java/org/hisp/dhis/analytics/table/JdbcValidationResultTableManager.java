@@ -126,13 +126,12 @@ public class JdbcValidationResultTableManager
         }
 
         String sql =
-            "delete from " + getAnalyticsTableType().getTableName() + " ax " +
+            "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
             "where ax.id in (" +
                 "select vrs.id " +
                 "from validationresult vrs " +
                 "where vrs.created >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
-                "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
-                "and vrs.created < '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "')";
+                "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "')";
 
         invokeTimeAndLog( sql, "Remove updated data values" );
     }
