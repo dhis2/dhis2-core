@@ -90,16 +90,17 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
                 // FILTERS (OU)
                 .withFilters( Collections.singletonList(
-                        new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                                new DimensionalKeywords(
-                                        Lists.newArrayList(
-                                                buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
-                                                buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
-                                ),
-                                ImmutableList.of(
-                                        new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
-                                ) ) )
+                    new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                        new DimensionalKeywords(
+                            Lists.newArrayList(
+                                buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
+                                buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
+                            ),
+                            ImmutableList.of(
+                                new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                                new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
+                        )
+                    ) )
                 )
                 .build();
 
@@ -129,22 +130,21 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
         indicatorGroup.setCode( "COD_1000" );
         indicatorGroup.setUid( "wjP19dkFeIk" );
         DataQueryParams params = DataQueryParams.newBuilder()
-                // DATA ELEMENTS
-                .withDimensions( Lists.newArrayList(
-                        new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                        new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
-                                "display name",
-                                new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
-                                Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
-                                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
-                .withFilters( Collections.singletonList(
-                        new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                                ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
-                                ) ) ) )
-                .withIgnoreLimit( true )
-                .withSkipData( true )
-                .build();
+            // DATA ELEMENTS
+            .withDimensions( Lists.newArrayList(
+                new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
+                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
+                    new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
+                        Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
+                            createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+            .withFilters( Collections.singletonList(
+                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                    ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                            new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
+                    ) ) ) )
+            .withIgnoreLimit( true )
+            .withSkipData( true )
+            .build();
 
         initMock(params);
 
