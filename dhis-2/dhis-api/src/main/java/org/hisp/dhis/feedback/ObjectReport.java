@@ -34,7 +34,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,6 +64,16 @@ public class ObjectReport
     private String displayName;
 
     private Map<ErrorCode, List<ErrorReport>> errorReportsByCode = new HashMap<>();
+
+    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider )
+    {
+        this( object, objectIndexProvider, null );
+    }
+
+    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider, @Nullable String uid )
+    {
+        this( object.getClass(), objectIndexProvider.mergeObjectIndex( object ), uid == null ? object.getUid() : uid );
+    }
 
     public ObjectReport( Class<?> klass, Integer index )
     {

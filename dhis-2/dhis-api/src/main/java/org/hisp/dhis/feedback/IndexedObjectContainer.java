@@ -1,9 +1,7 @@
-package org.hisp.dhis.analytics.orgunit;
-
-import java.util.Map;
+package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,46 +28,41 @@ import java.util.Map;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;;
+import org.hisp.dhis.common.IdentifiableObject;
 
-public interface OrgUnitAnalyticsService
+import javax.annotation.Nonnull;
+import java.util.IdentityHashMap;
+import java.util.Map;
+
+/**
+ * Container with objects where the index of the object can be retrieved by the
+ * object itself.
+ *
+ * @author Volker Schmidt
+ */
+public class IndexedObjectContainer implements ObjectIndexProvider
 {
-    /**
-     * Returns parameters for the given query.
-     *
-     * @param orgUnits the organisation unit string.
-     * @param orgUnitGroupSets the organisation unit group set string.
-     * @param columns the organisation unit group set to place as columns,
-     *         implies rendering in table layout, can be null.
-     * @return a {@link OrgUnitQueryParams}.
-     */
-    OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns );
+    private final Map<IdentifiableObject, Integer> objectsIndexMap = new IdentityHashMap<>();
+
+    @Nonnull
+    @Override
+    public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
+    {
+        return add( object );
+    }
 
     /**
-     * Returns the org unit data for the given parameters.
+     * Adds an object to the container of indexed objects. If the object has
+     * already an index assigned, that will not be changed.
      *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Grid}.
+     * @param object the object to which an index should be assigned.
+     * @return the resulting zero based index of the added object in the container.
      */
-    Grid getOrgUnitData( OrgUnitQueryParams params );
-
-    /**
-     * Returns the org unit data as a map with the metadata as key and
-     * org unit count as value for the given parameters.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a {@link Map}.
-     */
-    Map<String, Object> getOrgUnitDataMap( OrgUnitQueryParams params );
-
-    /**
-     * Validates the given parameters. Throws an {@link IllegalQueryException}
-     * if invalid.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @throws IllegalQueryException if invalid.
-     */
-    void validate( OrgUnitQueryParams params )
-        throws IllegalQueryException;
+    @Nonnull
+    protected Integer add( @Nonnull IdentifiableObject object )
+    {
+        final Integer newIndex = objectsIndexMap.size();
+        final Integer existingIndex = objectsIndexMap.putIfAbsent( object, newIndex );
+        return ( existingIndex == null ) ? newIndex : existingIndex;
+    }
 }
