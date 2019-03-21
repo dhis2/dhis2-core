@@ -167,7 +167,7 @@ public class JdbcValidationResultTableManager
 
         final String sql = insert + select;
 
-        populateAndLog( sql, tableName );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
     private List<Integer> getDataYears( Date earliest )
