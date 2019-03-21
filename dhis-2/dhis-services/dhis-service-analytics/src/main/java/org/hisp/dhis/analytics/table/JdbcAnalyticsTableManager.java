@@ -260,7 +260,7 @@ public class JdbcAnalyticsTableManager
             sql += "and " + whereClause;
         }
 
-        invokeTimeAndLog( sql, String.format( "Populate %s, %s", tableName, valueTypes ) );
+        invokeTimeAndLog( sql, String.format( "Populate %s %s", tableName, valueTypes ) );
     }
 
     /**
