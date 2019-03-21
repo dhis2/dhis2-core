@@ -1035,7 +1035,7 @@ public class DefaultAnalyticsService
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 3 );
+                grid.addNullValues( 5 );
             }
         }
     }
