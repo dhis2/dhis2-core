@@ -32,10 +32,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
+import org.hisp.dhis.analytics.util.GridRenderUtils;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
+import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -50,6 +54,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 /**
  * @author Lars Helge Overland
@@ -57,11 +62,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultOrgUnitAnalyticsService
     implements OrgUnitAnalyticsService
 {
+    private static final Log log = LogFactory.getLog( DefaultOrgUnitAnalyticsService.class );
+
     private IdentifiableObjectManager idObjectManager;
 
     private OrgUnitAnalyticsManager analyticsManager;
 
     private OrgUnitQueryPlanner queryPlanner;
+
+    //TODO Add outputIdScheme support
 
     @Autowired
     public DefaultOrgUnitAnalyticsService( IdentifiableObjectManager idObjectManager,
@@ -77,37 +86,60 @@ public class DefaultOrgUnitAnalyticsService
     }
 
     @Override
-    public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets )
+    public OrgUnitQueryParams getParams( String orgUnits, String orgUnitGroupSets, String columns )
     {
         List<String> ous = TextUtils.getOptions( orgUnits );
         List<String> ougs = TextUtils.getOptions( orgUnitGroupSets );
+        List<String> cols = TextUtils.getOptions( columns );
 
         return new OrgUnitQueryParams.Builder()
             .withOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
             .withOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) )
+            .withColumns( DimensionalObjectUtils.asDimensionalObjectList( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, cols ) ) )
             .build();
     }
 
     @Override
-    public Grid getOrgUnitDistribution( OrgUnitQueryParams params )
+    public Grid getOrgUnitData( OrgUnitQueryParams params )
     {
+        log.info( String.format( "Get org unit data for query: %s", params ) );
+
         validate( params );
 
-        List<OrgUnitQueryParams> queries = queryPlanner.planQuery( params );
+        return params.isTableLayout() ?
+            getOrgUnitDataTableLayout( params ) :
+            getOrgUnitDataNormalized( params );
+    }
 
-        //TODO add outputIdScheme support
-
+    private Grid getOrgUnitDataNormalized( OrgUnitQueryParams params )
+    {
         Grid grid = new ListGrid();
 
         addHeaders( params, grid );
         addMetadata( params, grid );
 
-        for ( OrgUnitQueryParams query : queries )
-        {
-            analyticsManager.getOrgUnitDistribution( query, grid );
-        }
+        getOrgUnitDataMap( params ).entrySet().forEach( entry -> {
+            grid.addRow()
+                .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                .addValue( entry.getValue() );
+            } );
 
         return grid;
+    }
+
+    private Grid getOrgUnitDataTableLayout( OrgUnitQueryParams params )
+    {
+        return GridRenderUtils.asGrid( params.getColumns(), params.getRows(), getOrgUnitDataMap( params ) );
+    }
+
+    @Override
+    public Map<String, Object> getOrgUnitDataMap( OrgUnitQueryParams params )
+    {
+        validate( params );
+
+        Map<String, Object> valueMap = new HashMap<>();
+        queryPlanner.planQuery( params ).forEach( query -> valueMap.putAll( analyticsManager.getOrgUnitData( query ) ) );
+        return valueMap;
     }
 
     @Override
