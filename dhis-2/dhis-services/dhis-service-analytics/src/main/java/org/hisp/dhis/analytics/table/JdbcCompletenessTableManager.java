@@ -121,6 +121,12 @@ public class JdbcCompletenessTableManager
     }
 
     @Override
+    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    {
+        //TODO
+    }
+
+    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
