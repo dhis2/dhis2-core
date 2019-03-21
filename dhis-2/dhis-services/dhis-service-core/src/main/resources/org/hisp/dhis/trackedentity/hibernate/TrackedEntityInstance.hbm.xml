@@ -8,9 +8,7 @@
   <class name="org.hisp.dhis.trackedentity.TrackedEntityInstance" table="trackedentityinstance">
 
     <id name="id" column="trackedentityinstanceid">
-      <generator class="sequence">
-        <param name="sequence_name">trackedentityinstance_sequence</param>
-      </generator>
+      <generator class="native" />
     </id>
     &identifiableProperties;
 
