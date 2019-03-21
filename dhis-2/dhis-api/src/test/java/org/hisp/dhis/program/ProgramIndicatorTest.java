@@ -29,12 +29,9 @@ package org.hisp.dhis.program;
  */
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import java.util.Set;
 import org.junit.Test;
-import com.google.common.collect.Sets;
 
 /**
 * @author Lars Helge Overland
