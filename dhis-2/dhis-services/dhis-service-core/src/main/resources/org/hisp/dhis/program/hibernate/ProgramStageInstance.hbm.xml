@@ -7,7 +7,9 @@
   <class name="org.hisp.dhis.program.ProgramStageInstance" table="programstageinstance">
 
     <id name="id" column="programstageinstanceid">
-      <generator class="native" />
+      <generator class="sequence">
+        <param name="sequence_name">programstageinstance_sequence</param>
+      </generator>
     </id>
 
     <property name="uid" column="uid" unique="true" length="11" />
