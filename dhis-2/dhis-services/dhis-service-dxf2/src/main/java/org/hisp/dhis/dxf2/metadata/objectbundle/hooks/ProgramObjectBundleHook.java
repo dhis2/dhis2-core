@@ -34,7 +34,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
@@ -97,7 +96,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         {
             errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
         }
-        
+
         return errors;
     }
 
@@ -114,7 +113,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         programStage.setUser( program.getUser() );
         sessionFactory.getCurrentSession().update( programStage );
     }
-    
+
     private void addProgramInstance( Program program )
     {
         if ( getProgramInstancesCount( program ) == 0 )
@@ -129,12 +128,12 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
             this.programInstanceService.addProgramInstance( pi );
         }
     }
-    
+
     private int getProgramInstancesCount( Program program )
     {
         return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
     }
-    
+
     private boolean isProgram( Object object )
     {
         return object instanceof Program;

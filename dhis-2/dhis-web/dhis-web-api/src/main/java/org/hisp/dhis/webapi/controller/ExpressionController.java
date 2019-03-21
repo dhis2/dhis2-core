@@ -78,7 +78,7 @@ public class ExpressionController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getExpressionDescription( expression ) );
+            message.setDescription( expressionService.getExpressionDescriptionRegEx( expression ) );
         }
 
         webMessageService.sendJson( message, response );
