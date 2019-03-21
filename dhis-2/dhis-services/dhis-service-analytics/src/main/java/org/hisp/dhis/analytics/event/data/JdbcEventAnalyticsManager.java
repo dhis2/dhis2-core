@@ -439,8 +439,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
-            String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(),
-                params.getProgramIndicator(), false, params.getEarliestStartDate(), params.getLatestEndDate() );
+            String filter = programIndicatorService.getFilterAnalyticsSql( params.getProgramIndicator(),
+                params.getEarliestStartDate(), params.getLatestEndDate() );
 
             String sqlFilter = ExpressionUtils.asSql( filter );
 
@@ -449,7 +449,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() )
         {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getAnalyticsType() );
+            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql(
+                params.getProgramIndicator().getExpression(), params.getProgramIndicator().getAnalyticsType() );
 
             if ( anyValueFilter != null )
             {

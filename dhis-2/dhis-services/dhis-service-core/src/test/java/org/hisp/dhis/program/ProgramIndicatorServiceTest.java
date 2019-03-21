@@ -1,5 +1,4 @@
 package org.hisp.dhis.program;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,85 +27,81 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hisp.dhis.program.ProgramIndicator.*;
-import static org.hisp.dhis.program.ProgramIndicatorVariable.*;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
+import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.Assert.assertFalse;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.api.util.DateUtils;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.i18n.I18n;
-import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.junit.Before;
-import org.junit.Rule;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
- * @author Luciano Fiandesio
  */
-public class ProgramIndicatorServiceTest extends DhisConvenienceTest
+public class ProgramIndicatorServiceTest
+        extends DhisSpringTest
 {
     private static final String COL_QUOTE = "\"";
 
-    private ProgramIndicatorService subject;
+    @Autowired
+    private ProgramIndicatorService programIndicatorService;
 
-    @Mock
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    private TrackedEntityInstanceService entityInstanceService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    @Mock
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
     private ProgramStageService programStageService;
 
-    @Mock
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
     private DataElementService dataElementService;
 
-    @Mock
+    @Autowired
+    private ProgramStageDataElementService programStageDataElementService;
+
+    @Autowired
+    private TrackedEntityAttributeValueService attributeValueService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
     private ConstantService constantService;
 
-    @Mock
-    private ProgramIndicatorStore programIndicatorStore;
+    private Date incidentDate;
 
-    @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    private PostgreSQLStatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-
-    @Mock
-    private IdentifiableObjectStore<ProgramIndicatorGroup> identifiableObjectStore;
-
-    @Mock
-    private I18nManager i18nManager;
-
-    @Mock
-    private I18n i18n;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private Date enrollmentDate;
 
     private ProgramStage psA;
 
@@ -116,9 +111,17 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
 
     private Program programB;
 
+    private ProgramInstance programInstance;
+
     private DataElement deA;
 
     private DataElement deB;
+
+    private DataElement deC;
+
+    private DataElement deD;
+
+    private DataElement deE;
 
     private TrackedEntityAttribute atA;
 
@@ -136,19 +139,9 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
 
     private ProgramIndicator indicatorF;
 
-    private ProgramIndicator indicatorG;
-
-    private Constant constantA;
-
-    @Before
+    @Override
     public void setUpTest()
     {
-
-        subject = new DefaultProgramIndicatorService(programIndicatorStore,
-                programStageService,
-                dataElementService,
-                trackedEntityAttributeService,
-                constantService, statementBuilder, identifiableObjectStore, i18nManager);
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
@@ -157,21 +150,28 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         // ---------------------------------------------------------------------
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnit );
+        programA.setUid( "Program000A" );
+        programService.addProgram( programA );
 
         psA = new ProgramStage( "StageA", programA );
-        psA.setUid( "EZq9VbPWgML");
         psA.setSortOrder( 1 );
+        psA.setUid( "ProgrmStagA" );
+        programStageService.saveProgramStage( psA );
 
         psB = new ProgramStage( "StageB", programA );
-        psB.setUid( "EZq9VbPWgMX");
         psB.setSortOrder( 2 );
+        psB.setUid( "ProgrmStagB" );
+        programStageService.saveProgramStage( psB );
 
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( psA );
         programStages.add( psB );
         programA.setProgramStages( programStages );
+        programService.updateProgram( programA );
 
         programB = createProgram( 'B', new HashSet<>(), organisationUnit );
+        programB.setUid( "Program000B" );
+        programService.addProgram( programB );
 
         // ---------------------------------------------------------------------
         // Program Stage DE
@@ -179,9 +179,67 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
 
         deA = createDataElement( 'A' );
         deA.setDomainType( DataElementDomain.TRACKER );
+        deA.setUid( "DataElmentA" );
 
         deB = createDataElement( 'B' );
         deB.setDomainType( DataElementDomain.TRACKER );
+        deB.setUid( "DataElmentB" );
+
+        deC = createDataElement( 'C' );
+        deC.setDomainType( DataElementDomain.TRACKER );
+        deC.setUid( "DataElmentC" );
+
+        deD = createDataElement( 'D' );
+        deD.setDomainType( DataElementDomain.TRACKER );
+        deD.setUid( "DataElmentD" );
+
+        deE = createDataElement( 'E' );
+        deE.setValueType( ValueType.TEXT );
+        deE.setDomainType( DataElementDomain.TRACKER );
+        deE.setUid( "DataElmentE" );
+
+        dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
+        dataElementService.addDataElement( deD );
+        dataElementService.addDataElement( deE );
+
+        ProgramStageDataElement stageDataElementA = new ProgramStageDataElement( psA, deA, false, 1 );
+        ProgramStageDataElement stageDataElementB = new ProgramStageDataElement( psA, deB, false, 2 );
+        ProgramStageDataElement stageDataElementC = new ProgramStageDataElement( psB, deA, false, 1 );
+        ProgramStageDataElement stageDataElementD = new ProgramStageDataElement( psB, deB, false, 2 );
+        ProgramStageDataElement stageDataElementE = new ProgramStageDataElement( psA, deC, false, 3 );
+        ProgramStageDataElement stageDataElementF = new ProgramStageDataElement( psA, deD, false, 4 );
+        ProgramStageDataElement stageDataElementG = new ProgramStageDataElement( psA, deE, false, 5 );
+
+        programStageDataElementService.addProgramStageDataElement( stageDataElementA );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementB );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementC );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementD );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementE );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementF );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementG );
+
+        // ---------------------------------------------------------------------
+        // TrackedEntityInstance & Enrollment
+        // ---------------------------------------------------------------------
+
+        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
+        entityInstanceService.addTrackedEntityInstance( entityInstance );
+
+        incidentDate = DateUtils.getMediumDate( "2014-10-22" );
+        enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
+
+        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+                incidentDate, organisationUnit );
+
+        incidentDate = DateUtils.getMediumDate( "2014-10-22" );
+        enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
+
+        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+                incidentDate, organisationUnit );
+
+        // TODO enroll twice?
 
         // ---------------------------------------------------------------------
         // TrackedEntityAttribute
@@ -190,18 +248,46 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         atA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         atB = createTrackedEntityAttribute( 'B', ValueType.NUMBER );
 
+        atA.setUid( "Attribute0A" );
+        atB.setUid( "Attribute0B" );
+
+        attributeService.addTrackedEntityAttribute( atA );
+        attributeService.addTrackedEntityAttribute( atB );
+
+        TrackedEntityAttributeValue attributeValueA = new TrackedEntityAttributeValue( atA, entityInstance, "1" );
+        TrackedEntityAttributeValue attributeValueB = new TrackedEntityAttributeValue( atB, entityInstance, "2" );
+
+        attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
+        attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
+
+        // ---------------------------------------------------------------------
+        // TrackedEntityDataValue
+        // ---------------------------------------------------------------------
+
+        ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
+                psA, enrollmentDate, incidentDate, organisationUnit );
+        ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
+                psB, enrollmentDate, incidentDate, organisationUnit );
+
+        Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+        programStageInstances.add( stageInstanceA );
+        programStageInstances.add( stageInstanceB );
+        programInstance.setProgramStageInstances( programStageInstances );
+        programInstance.setProgram( programA );
+
         // ---------------------------------------------------------------------
         // Constant
         // ---------------------------------------------------------------------
 
-        constantA = createConstant( 'A', 7.0 );
+        Constant constantA = createConstant( 'A', 7.0 );
+        constantService.saveConstant( constantA );
 
         // ---------------------------------------------------------------------
         // ProgramIndicator
         // ---------------------------------------------------------------------
 
-        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + VAR_ENROLLMENT_DATE.getVariableName() + "}, " + KEY_PROGRAM_VARIABLE + "{"
-                + VAR_INCIDENT_DATE.getVariableName() + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "}, " + KEY_PROGRAM_VARIABLE + "{"
+                + ProgramIndicator.VAR_INCIDENT_DATE + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
         indicatorA = createProgramIndicator( 'A', programA, expressionA, null );
         programA.getProgramIndicators().add( indicatorA );
 
@@ -211,12 +297,12 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         indicatorC = createProgramIndicator( 'C', programA, "0", null );
         programA.getProgramIndicators().add( indicatorC );
 
-        String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{" + VAR_INCIDENT_DATE.getVariableName() + "}";
+        String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_INCIDENT_DATE + "}";
         indicatorD = createProgramIndicator( 'D', programB, expressionD, null );
 
         String expressionE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_DATAELEMENT + "{"
-            + psB.getUid() + "." + deA.getUid() + "} - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} + " + KEY_ATTRIBUTE
-            + "{" + atB.getUid() + "}";
+                + psB.getUid() + "." + deA.getUid() + "} - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} + " + KEY_ATTRIBUTE
+                + "{" + atB.getUid() + "}";
         String filterE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} + " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
         indicatorE = createProgramIndicator( 'E', programB, expressionE, filterE );
 
@@ -226,12 +312,6 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
         indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
             AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
-
-        String expressionG = KEY_DATAELEMENT + getVariableExpression( VAR_TEI_COUNT );
-        String filterG = "d2:daysBetween(" + getVariableExpression(VAR_ENROLLMENT_DATE) + "," + getVariableExpression(VAR_EVENT_DATE) + ") > 90";
-        indicatorG = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionG, filterG );
-        indicatorG.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
-            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "monthly" ), -6) );
     }
 
     // -------------------------------------------------------------------------
@@ -241,41 +321,75 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     @Test
     public void testAddProgramIndicator()
     {
+        long idA = programIndicatorService.addProgramIndicator( indicatorA );
+        long idB = programIndicatorService.addProgramIndicator( indicatorB );
+        long idC = programIndicatorService.addProgramIndicator( indicatorC );
 
-        subject.addProgramIndicator( indicatorA );
-        verify( programIndicatorStore ).save( indicatorA );
-
-        subject.getProgramIndicator( 1 );
-        verify( programIndicatorStore ).get( 1 );
-
+        assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idC ) );
     }
 
     @Test
     public void testDeleteProgramIndicator()
     {
-        subject.deleteProgramIndicator( indicatorB );
-        verify( programIndicatorStore ).delete( indicatorB );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
+
+        assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
+
+        programIndicatorService.deleteProgramIndicator( indicatorB );
+
+        assertNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNotNull( programIndicatorService.getProgramIndicator( idB ) );
+
+        programIndicatorService.deleteProgramIndicator( indicatorA );
+
+        assertNull( programIndicatorService.getProgramIndicator( idA ) );
+        assertNull( programIndicatorService.getProgramIndicator( idB ) );
     }
 
     @Test
     public void testUpdateProgramIndicator()
     {
-        subject.updateProgramIndicator( indicatorB );
-        verify( programIndicatorStore ).update( indicatorB );
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+
+        assertNotNull( programIndicatorService.getProgramIndicator( idA ) );
+
+        indicatorB.setName( "B" );
+        programIndicatorService.updateProgramIndicator( indicatorB );
+
+        assertEquals( "B", programIndicatorService.getProgramIndicator( idA ).getName() );
+    }
+
+    @Test
+    public void testGetProgramIndicatorById()
+    {
+        long idA = programIndicatorService.addProgramIndicator( indicatorB );
+        long idB = programIndicatorService.addProgramIndicator( indicatorA );
+
+        assertEquals( indicatorB, programIndicatorService.getProgramIndicator( idA ) );
+        assertEquals( indicatorA, programIndicatorService.getProgramIndicator( idB ) );
     }
 
     @Test
     public void testGetProgramIndicatorByName()
     {
-        subject.getProgramIndicator( "IndicatorA" );
-        verify( programIndicatorStore ).getByName( "IndicatorA" );
+        programIndicatorService.addProgramIndicator( indicatorB );
+        programIndicatorService.addProgramIndicator( indicatorA );
+
+        assertEquals( "IndicatorA", programIndicatorService.getProgramIndicator( "IndicatorA" ).getName() );
+        assertEquals( "IndicatorB", programIndicatorService.getProgramIndicator( "IndicatorB" ).getName() );
     }
 
     @Test
     public void testGetAllProgramIndicators()
     {
-        subject.getAllProgramIndicators();
-        verify( programIndicatorStore ).getAll( );
+        programIndicatorService.addProgramIndicator( indicatorB );
+        programIndicatorService.addProgramIndicator( indicatorA );
+
+        assertTrue( equals( programIndicatorService.getAllProgramIndicators(), indicatorB, indicatorA ) );
     }
 
     // -------------------------------------------------------------------------
@@ -283,139 +397,91 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetExpressionDescriptionReturnsNullOnNullExpression()
+    public void testGetExpressionDescription()
     {
-        assertNull( subject.getExpressionDescription( null ) );
+        programIndicatorService.addProgramIndicator( indicatorB );
+        programIndicatorService.addProgramIndicator( indicatorA );
+
+        String description = programIndicatorService.getExpressionDescription( indicatorB.getExpression() );
+        assertEquals( "70", description );
+
+        description = programIndicatorService.getExpressionDescription( indicatorA.getExpression() );
+        assertEquals( "( d2:daysBetween(Enrollment date, Incident date) )  / ConstantA", description );
     }
-
-    @Test
-    public void testGetExpressionKeyDataElement()
-    {
-
-        when( programStageService.getProgramStage( "OXXcwl6aPCQ" ) ).thenReturn( createProgramStage( 'A', 1 ) );
-        when( dataElementService.getDataElement( "GCyeKSqlpdk" ) ).thenReturn( createDataElement( 'B' ) );
-
-        String expected = subject.getExpressionDescription( "#{OXXcwl6aPCQ.GCyeKSqlpdk}" );
-
-        assertThat( expected, is( "ProgramStageA.DataElementB" ) );
-    }
-
-    @Test
-    public void testGetExpressionKeyAttribute()
-    {
-        when( trackedEntityAttributeService.getTrackedEntityAttribute( "gAyeKSqlpdk" ) )
-                .thenReturn( createTrackedEntityAttribute( 'A' ) );
-
-        String expected = subject.getExpressionDescription( "A{gAyeKSqlpdk}" );
-
-        assertThat( expected, is( "AttributeA" ) );
-    }
-
-    @Test
-    public void testGetExpressionConstant()
-    {
-        when( constantService.getConstant( "Gfd3ppDfq8E" ) )
-                .thenReturn( createConstant( 'A' , 10.0) );
-
-        String expected = subject.getExpressionDescription( "C{Gfd3ppDfq8E}" );
-
-        assertThat( expected, is( "ConstantA" ) );
-    }
-
-    @Test
-    public void testGetExpressionVariable()
-    {
-        when(i18nManager.getI18n()).thenReturn(i18n);
-        when(i18n.getString("event_date")).thenReturn("Event Date");
-
-        String expected = subject.getExpressionDescription( "V{event_date}" );
-
-        assertThat( expected, is( "Event Date" ) );
-    }
-
 
     @Test
     public void testGetAnyValueExistsFilterEventAnalyticsSQl()
     {
-        String expected = "\"GCyeKSqlpdk\" is not null or \"gAyeKSqlpdk\" is not null";
-        String expression = "#{OXXcwl6aPCQ.GCyeKSqlpdk} - A{gAyeKSqlpdk}";
+        String expected = "\"DataElmentA\" is not null or \"Attribute0A\" is not null";
+        String expression = "#{ProgrmStagA.DataElmentA} - A{Attribute0A}";
 
-        assertEquals( expected, subject.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.EVENT ) );
+        assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.EVENT ) );
     }
 
     @Test
     public void testGetAnyValueExistsFilterEnrollmentAnalyticsSQl()
     {
-        String expected = "\"gAyeKSqlpdk\" is not null or \"OXXcwl6aPCQ_GCyeKSqlpdk\" is not null";
-        String expression = "#{OXXcwl6aPCQ.GCyeKSqlpdk} - A{gAyeKSqlpdk}";
+        String expected = "\"Attribute0A\" is not null or \"ProgrmStagA_DataElmentA\" is not null";
+        String expression = "#{ProgrmStagA.DataElmentA} - A{Attribute0A}";
 
-        assertEquals( expected, subject.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.ENROLLMENT ) );
+        assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.ENROLLMENT ) );
     }
 
     @Test
     public void testGetAnalyticsSQl()
     {
-        Date d1 = new Date();
-        Date d2 = new Date();
-
         String expected = "coalesce(\"" + deA.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid() + "\"::numeric,0) > 10";
 
-        String expression = "#{F3nQiJpaaSW." + deA.getUid() +"} + A{" + atA.getUid() + "} > 10";
-
-        assertEquals( expected, subject.getAnalyticsSQl( expression, indicatorE, d1, d2 ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), indicatorE, new Date(), new Date(), true ) );
     }
 
     @Test
     public void testGetAnalyticsSQlRespectMissingValues()
     {
-        Date d1 = new Date();
-        Date d2 = new Date();
-
         String expected = "\"" + deA.getUid() + "\" + \"" + atA.getUid() + "\" > 10";
-        String expression = "#{F3nQiJpaaSW." + deA.getUid() + "} + A{" + atA.getUid() + "} > 10";
 
-        assertEquals( expected, subject.getAnalyticsSQl( expression, indicatorE, false, d1, d2 ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), indicatorE, new Date(), new Date(), false ) );
     }
 
     @Test
     public void testGetAnalyticsWithVariables()
     {
-        String expression = "d2:zing(#{OXXcwl6aPCQ.EZq9VbPWgML}) + " + "#{OXXcwl6aPCQ.GCyeKSqlpdk} + "
-                + getVariableExpression( VAR_ZERO_POS_VALUE_COUNT );
+        String expected =
+            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+            "coalesce(\"DataElmentB\"::numeric,0) + " +
+            "nullif(cast((case when \"DataElmentA\" >= 0 then 1 else 0 end + case when \"DataElmentB\" >= 0 then 1 else 0 end) as double),0)";
 
-        String expected = "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + "
-                + "coalesce(\"GCyeKSqlpdk\"::numeric,0) + "
-                + "nullif(cast((case when \"EZq9VbPWgML\" >= 0 then 1 else 0 end + case when \"GCyeKSqlpdk\" >= 0 then 1 else 0 end) as double precision),0)";
+        String expression =
+            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+            "#{ProgrmStagB.DataElmentB} + " +
+            "V{zero_pos_value_count}";
 
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), true ) );
     }
 
     @Test
     public void testGetAnalyticsSqlWithFunctionsZingA()
     {
-        String col = COL_QUOTE + deA.getUid() + COL_QUOTE;
-        String expressionElement = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+        String expected = "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0)";
+        String expression = "d2:zing(#{ProgrmStagA.DataElmentA})";
 
-        String expected = "coalesce(case when " + col + " < 0 then 0 else " + col + " end, 0)";
-        String expression = "d2:zing(" + expressionElement + ")";
-
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
 
     @Test
     public void testGetAnalyticsSqlWithFunctionsZingB()
     {
         String expected =
-            "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + " +
-                "coalesce(case when \"GCyeKSqlpdk\" < 0 then 0 else \"GCyeKSqlpdk\" end, 0) + " +
-                "coalesce(case when \"hsCmEqBcU23\" < 0 then 0 else \"hsCmEqBcU23\" end, 0)";
+            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+            "coalesce(case when \"DataElmentB\" < 0 then 0 else \"DataElmentB\" end, 0) + " +
+            "coalesce(case when \"DataElmentC\" < 0 then 0 else \"DataElmentC\" end, 0)";
 
         String expression =
-            "d2:zing(#{OXXcwl6aPCQ.EZq9VbPWgML}) + " +
-                "d2:zing(#{OXXcwl6aPCQ.GCyeKSqlpdk}) + " +
-                "d2:zing(#{OXXcwl6aPCQ.hsCmEqBcU23})";
+            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+            "d2:zing(#{ProgrmStagA.DataElmentB}) + " +
+            "d2:zing(#{ProgrmStagA.DataElmentC})";
 
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
 
     @Test
@@ -427,7 +493,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         String expected = "coalesce(case when " + col + " >= 0 then 1 else 0 end, 0)";
         String expression = "d2:oizp(" + expressionElement + ")";
 
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
 
     @Test
@@ -435,199 +501,158 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
     {
         String expected =
             "nullif(cast((" +
-                "case when \"EZq9VbPWgML\" >= 0 then 1 else 0 end + " +
-                "case when \"GCyeKSqlpdk\" >= 0 then 1 else 0 end" +
-                ") as double precision),0)";
+            "case when \"DataElmentA\" >= 0 then 1 else 0 end + " +
+            "case when \"DataElmentB\" >= 0 then 1 else 0 end" +
+            ") as double precision),0)";
 
-        String expression = "d2:zpvc(#{OXXcwl6aPCQ.EZq9VbPWgML},#{OXXcwl6aPCQ.GCyeKSqlpdk})";
+        String expression = "d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagA.DataElmentB})";
 
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
 
     @Test
     public void testGetAnalyticsSqlWithFunctionsDaysBetween()
     {
-        String col1 = COL_QUOTE + deA.getUid() + COL_QUOTE;
-        String col2 = COL_QUOTE + deB.getUid() + COL_QUOTE;
-        String expressionElement1 = "#{" + psA.getUid() + "." + deA.getUid() + "}";
-        String expressionElement2 = "#{" + psB.getUid() + "." + deB.getUid() + "}";
+        String expected = "(cast(\"DataElmentB\" as date) - cast(\"DataElmentA\" as date))";
+        String expression = "d2:daysBetween(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})";
 
-
-        String expected = "(cast(" + col2 + " as date) - cast(" + col1 + " as date))";
-        String expression = "d2:daysBetween(" + expressionElement1 + "," + expressionElement2 + ")";
-
-
-        assertEquals( expected, subject.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), false, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
 
     @Test
     public void testGetAnalyticsSqlWithFunctionsCondition()
     {
-        String col1 = COL_QUOTE + deA.getUid() + COL_QUOTE;
-        String expressionElement = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+        String expected = "case when (\"DataElmentA\" > 3) then 10 else 5 end";
+        String expression = "d2:condition('#{ProgrmStagA.DataElmentA} > 3',10,5)";
 
-        String expected = "case when (" + col1 + " > 3) then 10 else 5 end";
-        String expression = "d2:condition('" + expressionElement + " > 3',10,5)";
-
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
 
     @Test
     public void testGetAnalyticsSqlWithFunctionsComposite()
     {
         String expected =
-            "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + " +
-                "(cast(\"kts5J79K9gA\" as date) - cast(\"GCyeKSqlpdk\" as date)) + " +
-                "case when (\"GCyeKSqlpdk\" > 70) then 100 else 50 end + " +
-                "case when (\"HihhUWBeg7I\" < 30) then 20 else 100 end";
+            "coalesce(case when \"DataElmentA\" < 0 then 0 else \"DataElmentA\" end, 0) + " +
+            "(cast(\"DataElmentC\" as date) - cast(\"DataElmentB\" as date)) + " +
+            "case when (\"DataElmentD\" > 70) then 100 else 50 end + " +
+            "case when (\"DataElmentE\" < 30) then 20 else 100 end";
 
         String expression =
-            "d2:zing(#{OXXcwl6aPCQ.EZq9VbPWgML}) + " +
-                "d2:daysBetween(#{OXXcwl6aPCQ.GCyeKSqlpdk},#{OXXcwl6aPCQ.kts5J79K9gA}) + " +
-                "d2:condition(\"#{OXXcwl6aPCQ.GCyeKSqlpdk} > 70\",100,50) + " +
-                "d2:condition('#{OXXcwl6aPCQ.HihhUWBeg7I} < 30',20,100)";
+            "d2:zing(#{ProgrmStagA.DataElmentA}) + " +
+            "d2:daysBetween(#{ProgrmStagA.DataElmentB},#{ProgrmStagA.DataElmentC}) + " +
+            "d2:condition(\"#{ProgrmStagA.DataElmentD} > 70\",100,50) + " +
+            "d2:condition('#{ProgrmStagA.DataElmentE} < 30',20,100)";
 
-        assertEquals( expected, subject.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), false, new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), false ) );
     }
 
     @Test( expected = IllegalStateException.class )
     public void testGetAnalyticsSqlWithFunctionsInvalid()
     {
-        String col = COL_QUOTE + deA.getUid() + COL_QUOTE;
-        String expressionElement = "#{" + psA.getUid() + "." + deA.getUid() + "}";
+        String expected = "case when \"DataElmentA\" >= 0 then 1 else \"DataElmentA\" end";
+        String expression = "d2:xyza(#{ProgrmStagA.DataElmentA})";
 
-        String expected = "case when " + col + " >= 0 then 1 else " + col + " end";
-        String expression = "d2:xyza(" + expressionElement + ")";
-
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), true ) );
     }
 
     @Test
     public void testGetAnalyticsSqlWithVariables()
     {
-        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (executiondate - enrollmentdate)";
-        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + getVariableExpression( VAR_EXECUTION_DATE ) + " - "
-            + getVariableExpression( VAR_ENROLLMENT_DATE ) + ")";
+        String expected = "coalesce(\"DataElmentA\"::numeric,0) + (executiondate - enrollmentdate)";
+        String expression = "#{ProgrmStagA.DataElmentA} + (V{execution_date} - V{enrollment_date})";
 
-        assertEquals( expected, getAnalyticsSQl( expression ) );
-    }
-
-    @Test
-    public void testVariableEventCreationDateIsParsed()
-    {
-        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + getVariableExpression( VAR_CREATION_DATE ) + ")";
-        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (created)";
-
-        assertEquals( expected, getAnalyticsSQl( expression ) );
-    }
-
-    @Test
-    public void testVariableEventSyncDateIsParsed()
-    {
-        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (" + getVariableExpression(VAR_SYNC_DATE) + ")";
-        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (lastupdated)";
-
-        assertEquals( expected, getAnalyticsSQl( expression ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date(), true ) );
     }
 
     @Test
     public void testIsEmptyFilter()
     {
-        String expected = "coalesce(\"EZq9VbPWgML\",'') == '' ";
-        String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == ''";
+        String expected = "coalesce(\"DataElmentE\",'') == ''";
+        String filter = "#{ProgrmStagA.DataElmentE} == ''";
 
-        assertEquals( expected, getAnalyticsSQl( filter ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, null, filter ), new Date(), new Date(), true ) );
     }
 
     @Test
     public void testIsZeroFilter()
     {
-        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) == 0 ";
-        String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == 0";
+        String expected = "coalesce(\"DataElmentA\"::numeric,0) == 0";
+        String filter = "#{ProgrmStagA.DataElmentA} == 0";
 
-        assertEquals( expected, subject.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), new Date(), new Date() ) );
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), new Date(), new Date(), true ) );
     }
 
     @Test
     public void testIsZeroOrEmptyFilter()
     {
-        String expected = "coalesce(\"GCyeKSqlpdk\"::numeric,0) == 1 or " +
-            "(coalesce(\"GCyeKSqlpdk\",'') == '' and " +
-            "coalesce(\"kts5J79K9gA\"::numeric,0) == 0 )";
+        String expected = "coalesce(\"DataElmentA\"::numeric,0) == 1 or " +
+            "(coalesce(\"DataElmentE\",'') == '' and " +
+            "coalesce(\"Attribute0A\"::numeric,0) == 0)";
 
-        String filter = "#{OXXcwl6aPCQ.GCyeKSqlpdk} == 1 or " +
-            "(#{OXXcwl6aPCQ.GCyeKSqlpdk}  == ''   and A{kts5J79K9gA}== 0)";
-        String actual = subject.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), true, new Date(), new Date() );
+        String filter = "#{ProgrmStagA.DataElmentA} == 1 or " +
+            "(#{ProgrmStagA.DataElmentE}  == ''   and A{Attribute0A}== 0)";
+        String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), new Date(), new Date(), true );
         assertEquals( expected, actual );
     }
 
     @Test
     public void testEnrollmentIndicatorWithEventBoundaryExpression()
     {
-        String expected = "coalesce((select \"" + deA.getUid() + "\" from analytics_event_" + programB.getUid() + " " +
+        String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B " +
             "where analytics_event_" + indicatorF.getProgram().getUid() +
-            ".pi = ax.pi and \"" + deA.getUid() + "\" is not null " +
+            ".pi = ax.pi and \"DataElmentA\" is not null " +
             "and executiondate < cast( '2018-03-11' as date ) and "+
-            "ps = '" + psA.getUid() + "' order by executiondate desc limit 1 )::numeric,0)";
-
+            "ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0)";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
-
-        String actual = subject.getAnalyticsSQl( indicatorF.getExpression(), indicatorF, true, reportingStartDate, reportingEndDate );
-
+        String actual = programIndicatorService.getAnalyticsSql( indicatorF.getExpression(), indicatorF, reportingStartDate, reportingEndDate, true );
         assertEquals( expected, actual );
     }
 
     @Test
     public void testEnrollmentIndicatorWithEventBoundaryFilter()
     {
-        String expected = "(select \"" + deA.getUid() + "\" from analytics_event_" + programB.getUid() + " " +
+        String expected = "(select \"DataElmentA\" from analytics_event_Program000B " +
             "where analytics_event_" + indicatorF.getProgram().getUid() + ".pi " +
-            "= ax.pi and \"" + deA.getUid() + "\" is not null and executiondate < cast( '2018-03-11' as date ) and " +
-            "ps = '" + psA.getUid() + "' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
+            "= ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2018-03-11' as date ) and " +
+            "ps = 'ProgrmStagA' order by executiondate desc limit 1 ) > \"" + atA.getUid() + "\"";
         Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
         Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
-        String actual = subject.getAnalyticsSQl( indicatorF.getFilter(), indicatorF, false, reportingStartDate, reportingEndDate );
+        String actual = programIndicatorService.getAnalyticsSql( indicatorF.getFilter(), indicatorF, reportingStartDate, reportingEndDate, false );
         assertEquals( expected, actual );
     }
 
     @Test
     public void testDateFunctions()
     {
-        String expected = "(date_part('year',age(cast( '2016-01-01' as date), cast(enrollmentdate as date)))) < 1 " +
-            "and (date_part('year',age(cast( '2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
+        String expected = "(date_part('year',age(cast('2016-01-01' as date), cast(enrollmentdate as date)))) < 1 " +
+            "and (date_part('year',age(cast('2016-12-31' as date), cast(enrollmentdate as date)))) >= 1";
 
         String filter = "d2:yearsBetween(V{enrollment_date}, V{analytics_period_start}) < 1 " +
             "and d2:yearsBetween(V{enrollment_date}, V{analytics_period_end}) >= 1";
-
-        String actual = subject.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
-
+        String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, null, filter ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
 
     @Test
     public void testDateFunctionsWithProgramStageDateArguments()
     {
-
-        String expected = "(date_part('year',age(cast((select executiondate from analytics_event_" + programA.getUid() + " " +
-            "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' " +
+        String expected = "(date_part('year',age(cast((select executiondate from analytics_event_Program000A " +
+            "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' " +
             "order by executiondate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1 and " +
-            "(date_part('month',age(cast((select executiondate from analytics_event_" + programA.getUid() +" where " +
-            "analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psB.getUid() + "' order " +
-            "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_" + programA.getUid() + " " +
-            "where analytics_event_" + programA.getUid() + ".pi = ax.pi and executiondate is not null and ps = '" + psA.getUid() + "' order " +
+            "(date_part('month',age(cast((select executiondate from analytics_event_Program000A where " +
+            "analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagB' order " +
+            "by executiondate desc limit 1 ) as date), cast((select executiondate from analytics_event_Program000A " +
+            "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and ps = 'ProgrmStagA' order " +
             "by executiondate desc limit 1 ) as date)))) > 10";
 
-        String filter = "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:" + psA.getUid() + ") < 1 " +
-            "and d2:monthsBetween(PS_EVENTDATE:" + psA.getUid() + ", PS_EVENTDATE:" + psB.getUid() + ") > 10";
-
-        String actual = subject.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
-
+        String filter = "d2:yearsBetween(V{enrollment_date}, PS_EVENTDATE:ProgrmStagA) < 1 " +
+                "and d2:monthsBetween(PS_EVENTDATE:ProgrmStagA, PS_EVENTDATE:ProgrmStagB) > 10";
+        String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', AnalyticsType.ENROLLMENT, programA, null, filter ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
-    
     @Test
-    public void testDateFunctionsWithProgramStageDateArgumentsAndBoundaries()
+    public void testDateFunctionsWithprogramStageDateArgumentsAndBoundaries()
     {
         String expected = "(date_part('year',age(cast((select executiondate from analytics_event_" + programA.getUid() + " where analytics_event_" +
             programA.getUid() + ".pi = ax.pi and executiondate is not null and executiondate < cast( '2017-01-01' as date ) and executiondate >= " +
@@ -642,58 +667,46 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
         boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
         programIndicator.setAnalyticsPeriodBoundaries( boundaries );
 
-        String actual = subject.getAnalyticsSQl( filter, programIndicator, true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
-
+        String actual = programIndicatorService.getAnalyticsSql( filter, programIndicator, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
 
     @Test
     public void testExpressionIsValid()
     {
-        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( createConstant( 'A', 10.0 ) );
+        programIndicatorService.addProgramIndicator( indicatorB );
+        programIndicatorService.addProgramIndicator( indicatorA );
+        programIndicatorService.addProgramIndicator( indicatorD );
 
-        assertEquals( ProgramIndicator.VALID, subject.expressionIsValid( indicatorB.getExpression() ) );
-        assertEquals( ProgramIndicator.VALID, subject.expressionIsValid( indicatorA.getExpression() ) );
-        assertEquals( ProgramIndicator.EXPRESSION_NOT_VALID, subject.expressionIsValid( indicatorD.getExpression() ) );
+        assertTrue( programIndicatorService.expressionIsValid( indicatorB.getExpression() ) );
+        assertTrue( programIndicatorService.expressionIsValid( indicatorA.getExpression() ) );
+        assertFalse( programIndicatorService.expressionIsValid( indicatorD.getExpression() ) );
     }
 
     @Test
     public void testExpressionWithFunctionIsValid()
     {
-        when( programStageService.getProgramStage( "EZq9VbPWgML" ) ).thenReturn( createProgramStage( 'A', 1 ) );
-        when( dataElementService.getDataElement( "deabcdefghA" ) ).thenReturn( createDataElement( 'B' ) );
-
         String exprA = "#{" + psA.getUid() + "." + deA.getUid() + "}";
         String exprB = "d2:zing(#{" + psA.getUid() + "." + deA.getUid() + "})";
         String exprC = "d2:condition('#{" + psA.getUid() + "." + deA.getUid() + "} > 10',2,1)";
 
-        assertEquals( ProgramIndicator.VALID, subject.expressionIsValid( exprA ) );
-        assertEquals( ProgramIndicator.VALID, subject.expressionIsValid( exprB ) );
-        assertEquals( ProgramIndicator.VALID, subject.expressionIsValid( exprC ) );
+        assertTrue( programIndicatorService.expressionIsValid( exprA ) );
+        assertTrue( programIndicatorService.expressionIsValid( exprB ) );
+        assertTrue( programIndicatorService.expressionIsValid( exprC ) );
     }
 
     @Test
     public void testFilterIsValid()
     {
-        when( programStageService.getProgramStage( "EZq9VbPWgML" ) ).thenReturn( createProgramStage( 'A', 1 ) );
-        when( dataElementService.getDataElement( "deabcdefghA" ) ).thenReturn( createDataElement( 'B' ) );
-
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
-        trackedEntityAttribute.setValueType( ValueType.BOOLEAN );
-
-        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
-                .thenReturn( trackedEntityAttribute );
-        when( trackedEntityAttributeService.getTrackedEntityAttribute( "invaliduid" ) ).thenReturn( null );
-
         String filterA = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}  - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
         String filterB = KEY_ATTRIBUTE + "{" + atA.getUid() + "} == " + KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "} - 5";
         String filterC = KEY_ATTRIBUTE + "{invaliduid} == 100";
         String filterD = KEY_ATTRIBUTE + "{" + atA.getUid() + "} + 200";
 
-        assertEquals( ProgramIndicator.VALID, subject.filterIsValid( filterA ) );
-        assertEquals( ProgramIndicator.VALID, subject.filterIsValid( filterB ) );
-        assertEquals( ProgramIndicator.INVALID_IDENTIFIERS_IN_EXPRESSION, subject.filterIsValid( filterC ) );
-        assertEquals( ProgramIndicator.FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE, subject.filterIsValid( filterD ) );
+        assertTrue( programIndicatorService.filterIsValid( filterA ) );
+        assertTrue( programIndicatorService.filterIsValid( filterB ) );
+        assertFalse( programIndicatorService.filterIsValid( filterC ) );
+        assertFalse( programIndicatorService.filterIsValid( filterD ) );
     }
 
     @Test
@@ -703,7 +716,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
             "trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
 
         String filter = "d2:relationshipCount()";
-        String actual = subject.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
+        String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, filter, null ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
     }
 
@@ -715,49 +728,7 @@ public class ProgramIndicatorServiceTest extends DhisConvenienceTest
             "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
 
         String filter = "d2:relationshipCount('Zx7OEwPBUwD')";
-        String actual = subject.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, filter, null ), true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
+        String actual = programIndicatorService.getAnalyticsSql( filter, createProgramIndicator( 'X', programA, filter, null ), DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ), true );
         assertEquals( expected, actual );
-    }
-
-    @Test
-    public void testEventDateEnrollment()
-    {
-        Date reportingStartDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 1).getTime();
-        Date reportingEndDate = new GregorianCalendar(2018, Calendar.FEBRUARY, 28).getTime();
-
-        String expectedFilter = "(cast((select executiondate from analytics_event_"
-            + indicatorG.getProgram().getUid() + " where analytics_event_"
-            + indicatorG.getProgram().getUid() + ".pi = ax.pi and executiondate"
-            + " is not null and executiondate < cast( '2017-09-01' as date ) "
-            + "order by executiondate desc limit 1 ) as date) - cast(enrollmentdate as date)) > 90";
-
-        
-        String actualFilter = subject.getAnalyticsSQl( indicatorG.getFilter(), indicatorG, false, reportingStartDate, reportingEndDate );
-        assertEquals( expectedFilter, actualFilter );
-    }
-
-    @Test
-    public void testIsVariableValid()
-    {
-        for ( ProgramIndicatorVariable piv : ProgramIndicatorVariable.values() )
-        {
-            if ( !piv.equals( VAR_UNDEFINED ) )
-            {
-                assertEquals( "Invalid expression: " + getVariableExpression( piv ), ProgramIndicator.VALID,
-                    subject.expressionIsValid( getVariableExpression( piv ) ) );
-            }
-        }
-    }
-
-    private String getAnalyticsSQl( String expression )
-    {
-        return subject.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ),
-            new Date(), new Date() );
-    }
-
-    private String getVariableExpression(ProgramIndicatorVariable varName )
-    {
-
-        return "V{" + varName.getVariableName() + "}";
     }
 }

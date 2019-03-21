@@ -38,6 +38,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,6 +108,11 @@ public class Event
     private int optionSize;
 
     private Geometry geometry;
+
+    private String assignedUser;
+
+    private String assignedUserUsername;
+
 
     public Event()
     {
@@ -467,6 +473,30 @@ public class Event
         this.geometry = geometry;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUser()
+    {
+        return assignedUser;
+    }
+
+    public void setAssignedUser( String user )
+    {
+        this.assignedUser = user;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUserUsername()
+    {
+        return assignedUserUsername;
+    }
+
+    public void setAssignedUserUsername( String assignedUserUsername )
+    {
+        this.assignedUserUsername = assignedUserUsername;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -505,5 +535,4 @@ public class Event
             ", deleted=" + deleted +
             '}';
     }
-   
 }

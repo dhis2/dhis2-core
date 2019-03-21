@@ -349,6 +349,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
 
+        if ( OptionSet.class.isInstance( object ) ) return handleOptionSet( metadata, (OptionSet) object );
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
         if ( CategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (CategoryCombo) object );
