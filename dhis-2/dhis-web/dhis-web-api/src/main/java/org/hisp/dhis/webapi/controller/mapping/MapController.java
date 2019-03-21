@@ -119,20 +119,6 @@ public class MapController
     //--------------------------------------------------------------------------
 
     @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    @ResponseStatus( HttpStatus.CREATED )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        Map map = deserializeJsonEntity( request, response );
-        map.getTranslations().clear();
-
-        mappingService.addMap( map );
-
-        response.addHeader( "Location", MapSchemaDescriptor.API_ENDPOINT + "/" + map.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Map created" ), response, request );
-    }
-
-    @Override
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception

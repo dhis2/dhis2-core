@@ -294,6 +294,8 @@ public abstract class AbstractEventService
 
     private Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
 
+    private CachingMap<String, User> userCache = new CachingMap<>();
+
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
@@ -460,6 +462,7 @@ public abstract class AbstractEventService
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), event.getOrgUnit() );
         TrackedEntityInstance entityInstance = getTrackedEntityInstance( event.getTrackedEntityInstance() );
         ProgramInstance programInstance = getProgramInstance( event.getEnrollment() );
+        User assignedUser = getUser( event.getAssignedUser() );
 
         if ( organisationUnit == null )
         {
@@ -591,7 +594,7 @@ public abstract class AbstractEventService
             return importSummary;
         }
 
-        return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, importOptions, bulkImport );
+        return saveEvent( program, programInstance, programStage, programStageInstance, organisationUnit, event, assignedUser, importOptions, bulkImport );
     }
 
     // -------------------------------------------------------------------------
@@ -880,6 +883,12 @@ public abstract class AbstractEventService
         {
             com.vividsolutions.jts.geom.Coordinate geometryCoordinate = event.getGeometry().getCoordinate();
             event.setCoordinate( new Coordinate( geometryCoordinate.x, geometryCoordinate.y ) );
+        }
+
+        if ( programStageInstance.getAssignedUser() != null )
+        {
+            event.setAssignedUser( programStageInstance.getAssignedUser().getUid() );
+            event.setAssignedUserUsername( programStageInstance.getAssignedUser().getUsername() );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -1317,6 +1326,11 @@ public abstract class AbstractEventService
             }
         }
 
+        if ( event.getAssignedUser() != null && programStageInstance.getProgramStage().isEnableUserAssignment() )
+        {
+            programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
+        }
+
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event, importOptions );
         eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
@@ -1489,6 +1503,7 @@ public abstract class AbstractEventService
         Collection<String> orgUnits = events.stream().map( Event::getOrgUnit ).collect( Collectors.toSet() );
         Collection<String> programIds = events.stream().map( Event::getProgram ).collect( Collectors.toSet() );
         Collection<String> eventIds = events.stream().map( Event::getEvent ).collect( Collectors.toList() );
+        Collection<String> userIds = events.stream().map( Event::getAssignedUser ).collect( Collectors.toSet() );
 
         if ( !orgUnits.isEmpty() )
         {
@@ -1537,6 +1552,14 @@ public abstract class AbstractEventService
                 .map( Event::getEnrollment ).collect( Collectors.toSet() ) )
             .forEach( tei -> programInstanceCache.put( tei.getUid(), tei ) );
         }
+
+        if ( !userIds.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( User.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", userIds ) );
+            queryService.query( query ).forEach( assignedUser -> userCache.put( assignedUser.getUid(), (User) assignedUser ) );
+        }
     }
 
     private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
@@ -1567,7 +1590,7 @@ public abstract class AbstractEventService
     }
 
     private ImportSummary saveEvent( Program program, ProgramInstance programInstance, ProgramStage programStage,
-        ProgramStageInstance programStageInstance, OrganisationUnit organisationUnit, Event event,
+        ProgramStageInstance programStageInstance, OrganisationUnit organisationUnit, Event event, User assignedUser,
         ImportOptions importOptions, boolean bulkSave )
     {
         Assert.notNull( program, "Program cannot be null" );
@@ -1631,6 +1654,14 @@ public abstract class AbstractEventService
 
         validateAttributeOptionComboDate( aoc, eventDate );
 
+        if ( event.getAssignedUser() != null )
+        {
+            if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+            {
+                programStageInstance.setAssignedUser( assignedUser );
+            }
+        }
+
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
 
         if ( !errors.isEmpty() )
@@ -1648,7 +1679,7 @@ public abstract class AbstractEventService
             {
                 programStageInstance = createProgramStageInstance( event, programStage, programInstance,
                     organisationUnit, dueDate, executionDate, event.getStatus().getValue(),
-                    completedBy, storedBy, event.getEvent(), aoc, importOptions, importSummary );
+                    completedBy, storedBy, event.getEvent(), aoc, assignedUser, importOptions, importSummary );
 
                 if ( program.isRegistration() )
                 {
@@ -1659,7 +1690,7 @@ public abstract class AbstractEventService
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
                     executionDate, event.getStatus().getValue(), completedBy,
-                    programStageInstance, aoc, importOptions, importSummary );
+                    programStageInstance, aoc, assignedUser, importOptions, importSummary );
             }
 
             updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
@@ -1710,7 +1741,7 @@ public abstract class AbstractEventService
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage,
         ProgramInstance programInstance, OrganisationUnit organisationUnit, Date dueDate, Date executionDate,
         int status, String completedBy, String storeBy, String programStageInstanceIdentifier,
-        CategoryOptionCombo aoc, ImportOptions importOptions, ImportSummary importSummary )
+        CategoryOptionCombo aoc, User assignedUser, ImportOptions importOptions, ImportSummary importSummary )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
 
@@ -1729,14 +1760,14 @@ public abstract class AbstractEventService
         programStageInstance.setStoredBy( storeBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-            status, completedBy, programStageInstance, aoc, importOptions, importSummary );
+            status, completedBy, programStageInstance, aoc, assignedUser, importOptions, importSummary );
 
         return programStageInstance;
     }
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
-        String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc,
+        String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc, User assignedUser,
         ImportOptions importOptions, ImportSummary importSummary )
     {
         programStageInstance.setProgramInstance( programInstance );
@@ -1746,6 +1777,7 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setGeometry( event.getGeometry() );
+        programStageInstance.setAssignedUser( assignedUser );
 
         updateDateFields( event, programStageInstance );
 
@@ -1866,6 +1898,24 @@ public abstract class AbstractEventService
         }
 
         return programInstance;
+    }
+
+    private User getUser( String uid )
+    {
+        if ( uid == null )
+        {
+            return null;
+        }
+
+        User user = userCache.get( uid );
+
+        if ( user == null )
+        {
+            user = userService.getUser( uid );
+            userCache.put( uid, user );
+        }
+
+        return user;
     }
 
     private TrackedEntityInstance getTrackedEntityInstance( String uid )

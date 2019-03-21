@@ -75,7 +75,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
     {
         Map<String, Object> aggregatedValues = new HashMap<>();
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
+                eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
     }
 
@@ -84,24 +84,25 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
     public void metadataContainsOuLevelData()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-            // PERIOD
-            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
-            // DATA ELEMENTS
-            .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
-            // FILTERS (OU)
-            .withFilters( Collections.singletonList(
+                // PERIOD
+                .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
+                // DATA ELEMENTS
+                .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
+                // FILTERS (OU)
+                .withFilters( Collections.singletonList(
                     new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    new DimensionalKeywords(
-                        Lists.newArrayList(
-                            buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
-                            buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
-                    ),
-                    ImmutableList.of(
-                        new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
-                ) ) )
-            )
-            .build();
+                        new DimensionalKeywords(
+                            Lists.newArrayList(
+                                buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
+                                buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
+                            ),
+                            ImmutableList.of(
+                                new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                                new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
+                        )
+                    ) )
+                )
+                .build();
 
         initMock(params);
 
@@ -132,11 +133,10 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // DATA ELEMENTS
             .withDimensions( Lists.newArrayList(
                 new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
-                "display name",
+                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
                     new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
-                Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
-                    createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+                        Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
+                            createDataElement( 'B', new CategoryCombo() ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
@@ -173,9 +173,9 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     new DimensionalKeywords(
                         Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ),
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                        ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
-            .build();
+                .build();
 
         initMock(params);
 
@@ -200,18 +200,17 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             // DATA ELEMENTS
             .withDimensions( Lists.newArrayList(
                 new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X,
-                    "display name",
-                    new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
+                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
+                new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
                     Lists.newArrayList(
                         createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ) ) ) )
-            .withFilters( Collections.singletonList(
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
-            .withIgnoreLimit( true )
-            .withSkipData( true )
-            .build();
+                .withFilters( Collections.singletonList(
+                    new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                        ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
+                .withIgnoreLimit( true )
+                .withSkipData( true )
+                .build();
 
         initMock(params);
 
