@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPClient;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
+import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -60,7 +61,7 @@ public class SMPPClientTest
     private static final String SYSTEM_TYPE = "cp";
     private static final String HOST = "localhost";
     private static final String PASSWORD = "password";
-    private static final String RECIPIENT = "4740332255";
+    private static final String RECIPIENT = "47XXXXXX";
     private static final String TEXT = "text through smpp";
 
     private static final int PORT = 2775;
@@ -85,6 +86,7 @@ public class SMPPClientTest
 
         assertTrue( response.isOk() );
         assertNotNull( response.getDescription() );
+        assertEquals( GatewayResponse.RESULT_CODE_0, response.getResponseObject() );
     }
 
     @Test
@@ -97,6 +99,7 @@ public class SMPPClientTest
 
         assertFalse( response.isOk() );
         assertEquals( "SMPP Session cannot be null", response.getDescription() );
+        assertEquals( GatewayResponse.SMPP_SESSION_FAILURE, response.getResponseObject() );
     }
 
     private SMPPGatewayConfig getSMPPConfigurations()

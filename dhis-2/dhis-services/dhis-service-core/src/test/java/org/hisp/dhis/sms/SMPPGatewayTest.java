@@ -36,6 +36,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPGateway;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
+import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -65,7 +66,7 @@ public class SMPPGatewayTest extends DhisSpringTest
     private static final String SYSTEM_TYPE = "cp";
     private static final String HOST = "localhost";
     private static final String PASSWORD = "password";
-    private static final String RECIPIENT = "4740332255";
+    private static final String RECIPIENT = "47XXXXXX";
     private static final String TEXT = "text through smpp";
     private static final String SUBJECT = "subject";
 
@@ -95,6 +96,7 @@ public class SMPPGatewayTest extends DhisSpringTest
         response = gateway.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), config );
 
         assertTrue( response.isOk() );
+        assertEquals( GatewayResponse.RESULT_CODE_0, response.getResponseObject() );
     }
 
     @Test
