@@ -391,9 +391,9 @@ public class ProgramValidator
         {
             DataElement dataElement = dataElementService.getDataElement( uid );
 
-            if ( attribute != null )
+            if ( dataElement != null )
             {
-                itemDescriptions.put( uid, attribute.getDisplayName() );
+                itemDescriptions.put( uid, dataElement.getDisplayName() );
             }
             else
             {
