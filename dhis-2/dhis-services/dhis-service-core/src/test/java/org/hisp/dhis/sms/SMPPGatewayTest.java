@@ -116,6 +116,6 @@ public class SMPPGatewayTest extends DhisSpringTest
 
         assertNotNull( responses );
         assertEquals( 8, responses.size() );
-
+        responses.forEach( r -> assertTrue( r.isOk() ) );
     }
 }

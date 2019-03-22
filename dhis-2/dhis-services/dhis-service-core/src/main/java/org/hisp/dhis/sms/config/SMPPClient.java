@@ -66,7 +66,7 @@ import java.util.Set;
  * @Author Zubair Asghar.
  */
 
-public class SMPPClient
+public class    SMPPClient
 {
     private static final Log LOGGER = LogFactory.getLog( SMPPClient.class );
     private static final String SOURCE = "DHIS2";
@@ -83,30 +83,10 @@ public class SMPPClient
             return new OutboundMessageResponse( SESSION_ERROR, null, false );
         }
 
-        OutboundMessageResponse response = new OutboundMessageResponse();
-
-        SubmitMultiResult result = send( session, text, recipients );
+        OutboundMessageResponse response = send( session, text, recipients );
 
         stop( session );
 
-        if ( result != null )
-        {
-            if ( result.getUnsuccessDeliveries() == null || result.getUnsuccessDeliveries().length == 0 )
-            {
-                LOGGER.info( "Message pushed to broker successfully" );
-                response.setOk( true );
-                response.setDescription( result.getMessageId() );
-                return  response;
-            }
-            else
-            {
-                LOGGER.error( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
-                response.setDescription( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
-                return response;
-            }
-        }
-
-        response.setDescription( SENDING_FAILED );
         return response;
     }
 
@@ -121,34 +101,9 @@ public class SMPPClient
 
         List<OutboundMessageResponse> responses = new ArrayList<>();
 
-        SubmitMultiResult result;
-
         for ( OutboundMessage message : batch.getMessages() )
         {
-            OutboundMessageResponse response = new OutboundMessageResponse();
-
-            result = send( session, message.getText(), message.getRecipients() );
-
-            if ( result != null )
-            {
-                if ( result.getUnsuccessDeliveries() == null || result.getUnsuccessDeliveries().length == 0 )
-                {
-                    LOGGER.info( "Message pushed to broker successfully" );
-                    response.setOk( true );
-                    response.setDescription( result.getMessageId() );
-                    responses.add( response );
-                    continue;
-                }
-                else
-                {
-                    LOGGER.error( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
-                    response.setDescription( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
-                }
-            }
-            else
-            {
-                response.setDescription( SENDING_FAILED );
-            }
+            OutboundMessageResponse response =  send( session, message.getText(), message.getRecipients() );
 
             responses.add( response );
         }
@@ -162,8 +117,9 @@ public class SMPPClient
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private SubmitMultiResult send( SMPPSession session, String text, Set<String> recipients )
+    private OutboundMessageResponse send( SMPPSession session, String text, Set<String> recipients )
     {
+        OutboundMessageResponse response = new OutboundMessageResponse();
         SubmitMultiResult result = null;
         try
         {
@@ -175,36 +131,49 @@ public class SMPPClient
         }
         catch ( PDUException e )
         {
-            LOGGER.error( "Invalid PDU parameter" );
-            DebugUtils.getStackTrace( e );
+            LOGGER.error( "Invalid PDU parameter", e );
         }
         catch ( ResponseTimeoutException e )
         {
-            LOGGER.error( "Response timeout" );
-            DebugUtils.getStackTrace( e );
+            LOGGER.error( "Response timeout", e );
         }
         catch ( InvalidResponseException e )
         {
-            LOGGER.error("Receive invalid response" );
-            DebugUtils.getStackTrace( e );
+            LOGGER.error( "Receive invalid response", e );
         }
         catch ( NegativeResponseException e )
         {
-            LOGGER.error( "Receive negative response" );
-            DebugUtils.getStackTrace( e );
+            LOGGER.error( "Receive negative response", e );
         }
         catch ( IOException e )
         {
-            LOGGER.error( "I/O error" );
-            DebugUtils.getStackTrace( e );
+            LOGGER.error( "I/O error", e );
         }
         catch ( Exception e )
         {
-            LOGGER.error( "Exception in submitting SMPP request" );
-            DebugUtils.getStackTrace( e );
+            LOGGER.error( "Exception in submitting SMPP request", e );
         }
 
-        return result;
+        if ( result != null )
+        {
+            if ( result.getUnsuccessDeliveries() == null || result.getUnsuccessDeliveries().length == 0 )
+            {
+                LOGGER.info( "Message pushed to broker successfully" );
+                response.setOk( true );
+                response.setDescription( result.getMessageId() );
+            }
+            else
+            {
+                LOGGER.error( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
+                response.setDescription( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
+            }
+        }
+        else
+        {
+            response.setDescription( SENDING_FAILED );
+        }
+
+        return response;
     }
 
     private void stop( SMPPSession session )
@@ -237,7 +206,7 @@ public class SMPPClient
 
     private BindParameter getBindParameters( SMPPGatewayConfig config )
     {
-       return new BindParameter(BindType.BIND_TX, config.getSystemId(), config.getPassword(), config.getSystemType(),
+       return new BindParameter( BindType.BIND_TX, config.getSystemId(), config.getPassword(), config.getSystemType(),
             TypeOfNumber.UNKNOWN, NumberingPlanIndicator.UNKNOWN, null );
     }
 
@@ -250,6 +219,7 @@ public class SMPPClient
         {
             addresses[i] = new Address(TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, number );
             i++;
+
         }
 
         return addresses;
