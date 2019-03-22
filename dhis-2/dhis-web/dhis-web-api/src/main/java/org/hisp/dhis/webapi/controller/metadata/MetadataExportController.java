@@ -41,8 +41,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -85,14 +83,7 @@ public class MetadataExportController
         MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
         metadataExportService.validate( params );
         RootNode rootNode = metadataExportService.getMetadataAsNode( params );
-
-        HttpHeaders headers = new HttpHeaders();
-        if (download)
-        {
-            // triggers that corresponding message converter adds also a file name with a correct extension
-            headers.add( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
-        }
-        return new ResponseEntity<>( rootNode, headers, HttpStatus.OK );
+        return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
     }
 
     private void setUserContext( User user, TranslateParams translateParams )
