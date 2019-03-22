@@ -103,13 +103,18 @@ public abstract class SmsGatewayConfig
         this.uid = uid;
     }
 
-    @JsonIgnore
-    public String getPassword()
+    public String getValuePassword()
     {
         return password;
     }
 
-    public void setPassword(String password)
+    @JsonProperty
+    public String getPassword()
+    {
+        return "";
+    }
+
+    public void setPassword( String password )
     {
         this.password = password;
     }
@@ -120,7 +125,7 @@ public abstract class SmsGatewayConfig
         return username;
     }
 
-    public void setUsername(String username)
+    public void setUsername( String username )
     {
         this.username = username;
     }
@@ -156,7 +161,6 @@ public abstract class SmsGatewayConfig
                 "uid='" + uid + '\'' +
                 ", name='" + name + '\'' +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", isDefault=" + isDefault +
                 ", urlTemplate='" + urlTemplate + '\'' +
                 '}';

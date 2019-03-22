@@ -85,7 +85,7 @@ public class BulkSmsHttpGateway
 
     private HttpHeaders getRequestHeaderParameters( BulkSmsGatewayConfig bulkSmsGatewayConfig )
     {
-        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" + bulkSmsGatewayConfig.getPassword().trim();
+        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" + bulkSmsGatewayConfig.getValuePassword().trim();
         String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
 
         HttpHeaders headers = new HttpHeaders();

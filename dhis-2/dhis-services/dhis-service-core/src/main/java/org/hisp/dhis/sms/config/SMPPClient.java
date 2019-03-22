@@ -34,6 +34,7 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.jsmpp.InvalidResponseException;
 import org.jsmpp.PDUException;
 import org.jsmpp.bean.Address;
@@ -80,10 +81,10 @@ public class SMPPClient
 
         if ( session == null )
         {
-            return new OutboundMessageResponse( SESSION_ERROR, null, false );
+            return new OutboundMessageResponse( SESSION_ERROR, GatewayResponse.SMPP_SESSION_FAILURE, false );
         }
 
-        OutboundMessageResponse response = send( session, text, recipients );
+        OutboundMessageResponse response = send( session, text, recipients, config );
 
         stop( session );
 
@@ -103,7 +104,7 @@ public class SMPPClient
 
         for ( OutboundMessage message : batch.getMessages() )
         {
-            OutboundMessageResponse response =  send( session, message.getText(), message.getRecipients() );
+            OutboundMessageResponse response =  send( session, message.getText(), message.getRecipients(), config );
 
             responses.add( response );
         }
@@ -117,14 +118,14 @@ public class SMPPClient
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private OutboundMessageResponse send( SMPPSession session, String text, Set<String> recipients )
+    private OutboundMessageResponse send( SMPPSession session, String text, Set<String> recipients, SMPPGatewayConfig config )
     {
         OutboundMessageResponse response = new OutboundMessageResponse();
         SubmitMultiResult result = null;
         try
         {
-            result = session.submitMultiple( "cp", TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1, TIME_FORMATTER.format( new Date() ), null,
-                new RegisteredDelivery( SMSCDeliveryReceipt.FAILURE ), ReplaceIfPresentFlag.REPLACE, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, false ), (byte) 0,
+            result = session.submitMultiple( config.getSystemType(), config.getTypeOfNumber(), config.getNumberPlanIndicator(), SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1, TIME_FORMATTER.format( new Date() ), null,
+                new RegisteredDelivery( SMSCDeliveryReceipt.SUCCESS_FAILURE ), ReplaceIfPresentFlag.DEFAULT, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, config.isCompressed() ), (byte) 0,
                 text.getBytes() );
 
             LOGGER.info( String.format( "Messages submitted, result is %s", result.getMessageId() ) );
@@ -161,16 +162,19 @@ public class SMPPClient
                 LOGGER.info( "Message pushed to broker successfully" );
                 response.setOk( true );
                 response.setDescription( result.getMessageId() );
+                response.setResponseObject( GatewayResponse.SUCCESS );
             }
             else
             {
                 LOGGER.error( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
                 response.setDescription( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
+                response.setResponseObject( GatewayResponse.FAILED );
             }
         }
         else
         {
             response.setDescription( SENDING_FAILED );
+            response.setResponseObject( GatewayResponse.FAILED );
         }
 
         return response;
@@ -190,7 +194,7 @@ public class SMPPClient
 
         try
         {
-            session = new SMPPSession( config.getHost(), config.getPort(), getBindParameters( config ) );
+            session = new SMPPSession( config.getUrlTemplate(), config.getPort(), getBindParameters( config ) );
 
             LOGGER.info( "SMPP client connected SMSC" );
             return session;
@@ -206,8 +210,8 @@ public class SMPPClient
 
     private BindParameter getBindParameters( SMPPGatewayConfig config )
     {
-       return new BindParameter( BindType.BIND_TX, config.getSystemId(), config.getPassword(), config.getSystemType(),
-            TypeOfNumber.UNKNOWN, NumberingPlanIndicator.UNKNOWN, null );
+       return new BindParameter( config.getBindType(), config.getUsername(), config.getValuePassword(), config.getSystemType(),
+            config.getTypeOfNumber(), config.getNumberPlanIndicator(), null );
     }
 
     private Address[] getAddresses( Set<String> recipients )

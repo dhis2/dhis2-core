@@ -29,6 +29,9 @@ package org.hisp.dhis.sms.config;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.jsmpp.bean.BindType;
+import org.jsmpp.bean.NumberingPlanIndicator;
+import org.jsmpp.bean.TypeOfNumber;
 
 /**
  * @Author Zubair Asghar.
@@ -36,13 +39,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class SMPPGatewayConfig extends SmsGatewayConfig
 {
     private String systemType;
+    private NumberingPlanIndicator numberPlanIndicator = NumberingPlanIndicator.UNKNOWN;
+    private TypeOfNumber typeOfNumber = TypeOfNumber.UNKNOWN;
+    private BindType bindType = BindType.BIND_TX;
     private int port;
-
-    @JsonProperty( value = "systemId" )
-    public String getSystemId()
-    {
-        return getUsername();
-    }
+    private boolean compressed;
 
     @JsonProperty
     public int getPort()
@@ -66,9 +67,47 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
         this.systemType = systemType;
     }
 
-    @JsonProperty( value = "host" )
-    public String getHost()
+    @JsonProperty
+    public NumberingPlanIndicator getNumberPlanIndicator()
     {
-        return getUrlTemplate();
+        return numberPlanIndicator;
+    }
+
+    public void setNumberPlanIndicator( NumberingPlanIndicator numberPlanIndicator )
+    {
+        this.numberPlanIndicator = numberPlanIndicator;
+    }
+
+    @JsonProperty
+    public TypeOfNumber getTypeOfNumber()
+    {
+        return typeOfNumber;
+    }
+
+    public void setTypeOfNumber( TypeOfNumber typeOfNumber )
+    {
+        this.typeOfNumber = typeOfNumber;
+    }
+
+    @JsonProperty
+    public BindType getBindType()
+    {
+        return bindType;
+    }
+
+    public void setBindType( BindType bindType )
+    {
+        this.bindType = bindType;
+    }
+
+    @JsonProperty
+    public boolean isCompressed()
+    {
+        return compressed;
+    }
+
+    public void setCompressed( boolean compressed )
+    {
+        this.compressed = compressed;
     }
 }
