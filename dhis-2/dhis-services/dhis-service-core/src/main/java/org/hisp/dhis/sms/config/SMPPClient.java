@@ -66,7 +66,7 @@ import java.util.Set;
  * @Author Zubair Asghar.
  */
 
-public class    SMPPClient
+public class SMPPClient
 {
     private static final Log LOGGER = LogFactory.getLog( SMPPClient.class );
     private static final String SOURCE = "DHIS2";
