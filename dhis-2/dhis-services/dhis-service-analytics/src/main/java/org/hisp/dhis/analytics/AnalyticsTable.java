@@ -72,7 +72,7 @@ public class AnalyticsTable
     // Constructors
     // -------------------------------------------------------------------------
 
-    protected AnalyticsTable()
+    public AnalyticsTable()
     {
     }
 

@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -79,7 +78,7 @@ public class JdbcValidationResultTableManager
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
         AnalyticsTable table = params.isLatestUpdate() ?
-            getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() ) :
+            new AnalyticsTable() :
             getAnalyticsTable( params, getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
@@ -107,33 +106,7 @@ public class JdbcValidationResultTableManager
     @Override
     protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
     {
-        String sql =
-            "select vr.validationresultid " +
-            "from validationresult vr " +
-            "where vr.created >= '" + getLongDateString( startDate ) + "' " +
-            "and vr.created < '" + getLongDateString( endDate ) + "' " +
-            "limit 1";
-
-        return !jdbcTemplate.queryForList( sql ).isEmpty();
-    }
-
-    @Override
-    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
-    {
-        if ( !params.isLatestUpdate() )
-        {
-            return;
-        }
-
-        String sql =
-            "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
-            "where ax.id in (" +
-                "select vrs.id " +
-                "from validationresult vrs " +
-                "where vrs.created >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
-                "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "')";
-
-        invokeTimeAndLog( sql, "Remove updated data values" );
+        return false;
     }
 
     @Override
@@ -209,8 +182,6 @@ public class JdbcValidationResultTableManager
     private List<AnalyticsTableColumn> getDimensionColumns()
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
-
-        columns.add( new AnalyticsTableColumn( quote( "id" ), ColumnDataType.BIGINT, "vrs.validationresultid" ) );
 
         List<OrganisationUnitGroupSet> orgUnitGroupSets =
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
