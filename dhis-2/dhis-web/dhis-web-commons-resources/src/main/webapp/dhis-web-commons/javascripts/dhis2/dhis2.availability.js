@@ -46,7 +46,7 @@ dhis2.availability._availableTimeoutHandler = -1;
 dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineInterval ) {
   onlineInterval = onlineInterval ? onlineInterval : 15000;
   offlineInterval = offlineInterval ? offlineInterval : 10000;
-  clearTimeout(dhis2.availability._availableTimeoutHandler);
+  dhis2.availability.stopAvailabilityCheck();
 
   function _checkAvailability() {
     $.ajax({
@@ -58,6 +58,7 @@ dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineIn
       timeout: 30000,
       dataType: "text",
       success: function ( data, textStatus, jqXHR ) {
+        dhis2.availability.stopAvailabilityCheck();
         if( !dhis2.availability._isAvailable ) {
           dhis2.availability._isAvailable = true;
           $(document).trigger("dhis2.online", [true]);
@@ -83,7 +84,7 @@ dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineIn
         if( dhis2.availability._isAvailable && !dhis2.availability._isLoggedIn ) {
           dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, onlineInterval);
         }
-        else {
+        else if ( !dhis2.availability._isAvailable )  {
           dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, offlineInterval);
         }
       }
@@ -119,6 +120,7 @@ dhis2.availability.syncCheckAvailability = function () {
     success: function ( data, textStatus, jqXHR ) {
       dhis2.availability._isAvailable = true;
       isLoggedIn = true;
+      dhis2.availability.stopAvailabilityCheck();
 
       if( isLoggedIn != dhis2.availability._isLoggedIn ) {
         dhis2.availability._isLoggedIn = isLoggedIn;
