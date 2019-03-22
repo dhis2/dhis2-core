@@ -30,7 +30,6 @@ package org.hisp.dhis.sms.config;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -39,7 +38,6 @@ import org.jsmpp.InvalidResponseException;
 import org.jsmpp.PDUException;
 import org.jsmpp.bean.Address;
 import org.jsmpp.bean.Alphabet;
-import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.ESMClass;
 import org.jsmpp.bean.GeneralDataCoding;
 import org.jsmpp.bean.MessageClass;
@@ -162,12 +160,14 @@ public class SMPPClient
                 LOGGER.info( "Message pushed to broker successfully" );
                 response.setOk( true );
                 response.setDescription( result.getMessageId() );
-                response.setResponseObject( GatewayResponse.SUCCESS );
+                response.setResponseObject( GatewayResponse.RESULT_CODE_0 );
             }
             else
             {
-                LOGGER.error( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
-                response.setDescription( DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId() );
+                String failureCause = DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId();
+
+                LOGGER.error( failureCause );
+                response.setDescription( failureCause );
                 response.setResponseObject( GatewayResponse.FAILED );
             }
         }
@@ -201,8 +201,7 @@ public class SMPPClient
         }
         catch ( IOException e )
         {
-            LOGGER.error( "I/O error occured" );
-            DebugUtils.getStackTrace( e );
+            LOGGER.error( "I/O error occured", e );
         }
 
         return null;
@@ -221,9 +220,8 @@ public class SMPPClient
 
         for( String number : recipients )
         {
-            addresses[i] = new Address(TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, number );
+            addresses[i] = new Address( TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, number );
             i++;
-
         }
 
         return addresses;

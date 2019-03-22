@@ -45,6 +45,20 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
     private int port;
     private boolean compressed;
 
+    @Override
+    @JsonProperty( value = "host" )
+    public String getUrlTemplate()
+    {
+        return super.getUrlTemplate();
+    }
+
+    @Override
+    @JsonProperty( value = "systemId" )
+    public String getUsername()
+    {
+        return super.getUsername();
+    }
+
     @JsonProperty
     public int getPort()
     {
