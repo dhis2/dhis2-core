@@ -232,6 +232,7 @@ public class JdbcEventAnalyticsTableManager
         for ( DataElement dataElement : program.getDataElements() )
         {
             ColumnDataType dataType = getColumnType( dataElement.getValueType() );
+
             // Assemble a regex dataClause with using jsonb #>> operator
             String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
 
