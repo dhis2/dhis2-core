@@ -176,7 +176,7 @@ public class SmsGatewayController
             webMessageService.send( WebMessageUtils.ok( "SAVED" ), response, request );
         }
         else
-          {
+        {
             webMessageService.send( WebMessageUtils.error( "FAILED" ), response, request );
         }
     }
