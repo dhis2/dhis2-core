@@ -89,6 +89,12 @@ public class CategoryOption
     // Logic
     // -------------------------------------------------------------------------
 
+    @JsonProperty( "isDefault" )
+    public boolean isDefault()
+    {
+        return DEFAULT_NAME.equals( name );
+    }
+
     /**
      * Returns a set of category option group sets which are associated with the
      * category option groups of this category option.

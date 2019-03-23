@@ -28,13 +28,13 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.system.util.MathUtils.getRounded;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Date;
 import java.util.List;
@@ -171,7 +171,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
 
                 String asClause = " as " + quote( in.getUid() );
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getExpressionAnalyticsSql( in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -316,7 +316,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addNullValues( 3 );
+                grid.addNullValues( 5 );
             }
         }
     }
@@ -348,8 +348,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
 
-            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(),
-                params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
+            String expression = programIndicatorService.getExpressionAnalyticsSql( params.getProgramIndicator(),
+                params.getEarliestStartDate(), params.getLatestEndDate() );
 
             return function + "(" + expression + ")";
         }
@@ -444,8 +444,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( item.isProgramIndicator() )
         {
             ProgramIndicator programIndicator = (ProgramIndicator)item.getItem();
-            return programIndicatorService.getAnalyticsSQl(
-                programIndicator.getExpression(), programIndicator, startDate, endDate );
+            return programIndicatorService.getExpressionAnalyticsSql( programIndicator, startDate, endDate );
         }
         else
         {

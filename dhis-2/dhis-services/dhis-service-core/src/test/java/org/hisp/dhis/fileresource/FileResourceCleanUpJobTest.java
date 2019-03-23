@@ -28,10 +28,17 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
+
+import java.util.Date;
+
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
@@ -49,17 +56,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
-
 /**
  * @author Kristian Wærstad
  */
 public class FileResourceCleanUpJobTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private FileResourceCleanUpJob cleanUpJob;
@@ -223,5 +224,10 @@ public class FileResourceCleanUpJobTest
 
         fileResourceService.updateFileResource( fileResource );
         return externalFileResource;
+    }
+
+    @Override public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

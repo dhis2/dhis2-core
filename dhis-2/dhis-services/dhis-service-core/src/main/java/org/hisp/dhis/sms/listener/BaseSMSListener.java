@@ -28,14 +28,34 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.annotation.Resource;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -43,19 +63,13 @@ import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Created by zubair@dhis2.org on 11.08.17.
@@ -89,13 +103,13 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     private CategoryService dataElementCategoryService;
 
     @Autowired
-    private TrackedEntityDataValueService trackedEntityDataValueService;
-
-    @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Autowired
     private IncomingSmsService incomingSmsService;
@@ -253,6 +267,8 @@ public abstract class BaseSMSListener implements IncomingSmsListener
 
         ProgramInstance programInstance = programInstances.get( 0 );
 
+        String currentUserName = currentUserService.getCurrentUsername();
+
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( ous.iterator().next() );
         programStageInstance.setProgramStage( smsCommand.getProgramStage() );
@@ -262,19 +278,22 @@ public abstract class BaseSMSListener implements IncomingSmsListener
         programStageInstance
             .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
         programStageInstance.setCompletedBy( "DHIS 2" );
+        programStageInstance.setStoredBy( currentUserName );
 
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-
+        Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSCode smsCode : smsCommand.getCodes() )
         {
-            TrackedEntityDataValue dataValue = new TrackedEntityDataValue();
-            dataValue.setAutoFields();
-            dataValue.setDataElement( smsCode.getDataElement() );
-            dataValue.setProgramStageInstance( programStageInstance );
-            dataValue.setValue( commandValuePairs.get( smsCode.getCode() ) );
+            EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(), commandValuePairs.get( smsCode.getCode() ), currentUserName );
+            eventDataValue.setAutoFields();
 
-            trackedEntityDataValueService.saveTrackedEntityDataValue( dataValue );
+            //Filter empty values out -> this is "adding/saving/creating", therefore, empty values are ignored
+            if ( !StringUtils.isEmpty( eventDataValue.getValue() ))
+            {
+                dataElementsAndEventDataValues.put( smsCode.getDataElement(), eventDataValue );
+            }
         }
+
+        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
 
         update( sms, SmsMessageStatus.PROCESSED, true );
 

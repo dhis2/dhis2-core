@@ -149,7 +149,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    public ProgramMessage getProgramMessage( int id )
+    public ProgramMessage getProgramMessage( long id )
     {
         return programMessageStore.get( id );
     }
@@ -176,7 +176,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    public int saveProgramMessage( ProgramMessage programMessage )
+    public long saveProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.save( programMessage );
         return programMessage.getId();

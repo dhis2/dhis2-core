@@ -28,12 +28,12 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpSession;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -52,25 +52,25 @@ public class ApiVersionInheritTypeTest extends DhisWebSpringTest
         mvc.perform( post( endpoint + "/abc" ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/26" + endpoint ).session( session ) )
+        mvc.perform( get( "/31" + endpoint ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( post( "/26" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( post( "/31" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isNotFound() );
 
-        mvc.perform( get( "/27" + endpoint ).session( session ) )
+        mvc.perform( get( "/32" + endpoint ).session( session ) )
             .andExpect( status().isOk() );
 
-        mvc.perform( get( "/27" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( get( "/32" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( put( "/27" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( put( "/32" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( delete( "/27" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( delete( "/32" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isMethodNotAllowed() );
 
-        mvc.perform( post( "/27" + endpoint + "/abc" ).session( session ) )
+        mvc.perform( post( "/32" + endpoint + "/abc" ).session( session ) )
             .andExpect( status().isOk() );
     }
 }

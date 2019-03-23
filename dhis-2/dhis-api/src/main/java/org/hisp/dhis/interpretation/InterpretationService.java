@@ -42,9 +42,9 @@ import java.util.Set;
  */
 public interface InterpretationService
 {
-    int saveInterpretation( Interpretation interpretation );
+    long saveInterpretation( Interpretation interpretation );
 
-    Interpretation getInterpretation( int id );
+    Interpretation getInterpretation( long id );
 
     Interpretation getInterpretation( String uid );
 
@@ -79,7 +79,7 @@ public interface InterpretationService
      * @return true if the current user had not already liked the
      *         interpretation.
      */
-    boolean likeInterpretation( int id );
+    boolean likeInterpretation( long id );
 
     /**
      * Removes a like from the given interpretation for the current user. This
@@ -89,7 +89,7 @@ public interface InterpretationService
      * @param id the interpretation id.
      * @return true if the current user had previously liked the interpretation.
      */
-    boolean unlikeInterpretation( int id );
+    boolean unlikeInterpretation( long id );
 
     int countMapInterpretations( Map map );
 
@@ -97,5 +97,5 @@ public interface InterpretationService
 
     int countReportTableInterpretations( ReportTable reportTable );
 
-    Interpretation getInterpretationByChart( int id );
+    Interpretation getInterpretationByChart( long id );
 }

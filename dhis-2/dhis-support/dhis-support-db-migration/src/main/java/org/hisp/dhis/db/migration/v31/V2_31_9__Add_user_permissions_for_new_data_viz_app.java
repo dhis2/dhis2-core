@@ -51,9 +51,9 @@ public class V2_31_9__Add_user_permissions_for_new_data_viz_app extends BaseJava
     {
         List<Integer> legacyDataVizRoleIds = new ArrayList<>();
         List<Integer> newDataVizRoleIds = new ArrayList<>();
-         try ( Statement statement = context.getConnection().createStatement() )
+        try ( Statement statement = context.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-visualizer'" ) )
         {
-            ResultSet rs = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-visualizer'" );
              while ( rs.next() )
             {
                 legacyDataVizRoleIds.add( rs.getInt( 1 ) );
@@ -64,9 +64,9 @@ public class V2_31_9__Add_user_permissions_for_new_data_viz_app extends BaseJava
             log.error( "Flyway java migration error", ex );
             throw new FlywayException( ex );
         }
-         try ( Statement statement = context.getConnection().createStatement() )
+        try ( Statement statement = context.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-data-visualizer'" ) )
         {
-            ResultSet rs = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-data-visualizer'" );
              while ( rs.next() )
             {
                 newDataVizRoleIds.add( rs.getInt( 1 ) );

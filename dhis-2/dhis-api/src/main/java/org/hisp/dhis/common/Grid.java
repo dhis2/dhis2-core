@@ -112,6 +112,11 @@ public interface Grid
     List<GridHeader> getVisibleHeaders();
 
     /**
+     * Returns all metadata headers.
+     */
+    List<GridHeader> getMetadataHeaders();
+
+    /**
      * Returns the index of the header with the given name.
      *
      * @param name the name of the grid header.

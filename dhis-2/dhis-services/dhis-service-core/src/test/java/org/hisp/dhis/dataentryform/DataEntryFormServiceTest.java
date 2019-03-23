@@ -112,7 +112,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
 
-        int dataEntryFormAid = dataEntryFormService.addDataEntryForm( dataEntryFormA );
+        long dataEntryFormAid = dataEntryFormService.addDataEntryForm( dataEntryFormA );
 
         dataEntryFormA = dataEntryFormService.getDataEntryForm( dataEntryFormAid );
 
@@ -129,7 +129,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormService.addDataEntryForm( dataEntryForm );
+        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
 
         dataEntryForm = dataEntryFormService.getDataEntryForm( id );
 
@@ -153,7 +153,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormService.addDataEntryForm( dataEntryForm );
+        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
 
         dataEntryForm = dataEntryFormService.getDataEntryForm( id );
 
@@ -173,7 +173,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormService.addDataEntryForm( dataEntryForm );
+        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
 
         dataEntryForm = dataEntryFormService.getDataEntryForm( id );
 

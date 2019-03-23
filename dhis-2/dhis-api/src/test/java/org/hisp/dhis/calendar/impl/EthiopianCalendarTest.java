@@ -146,6 +146,20 @@ public class EthiopianCalendarTest
         assertEquals( 2006, testDateTimeUnit.getYear() );
         assertEquals( 3, testDateTimeUnit.getMonth() );
         assertEquals( 9, testDateTimeUnit.getDay() );
+
+        dateTimeUnit = new DateTimeUnit( 2006, 3, 9 );
+
+        testDateTimeUnit = calendar.plusDays( dateTimeUnit, - 1 );
+        assertEquals( 2006, testDateTimeUnit.getYear() );
+        assertEquals( 3, testDateTimeUnit.getMonth() );
+        assertEquals( 8, testDateTimeUnit.getDay() );
+
+        dateTimeUnit = new DateTimeUnit( 2006, 1, 1 );
+
+        testDateTimeUnit = calendar.plusDays( dateTimeUnit, - 1 );
+        assertEquals( 2005, testDateTimeUnit.getYear() );
+        assertEquals( 12, testDateTimeUnit.getMonth() );
+        assertEquals( 30, testDateTimeUnit.getDay() );
     }
 
     @Test

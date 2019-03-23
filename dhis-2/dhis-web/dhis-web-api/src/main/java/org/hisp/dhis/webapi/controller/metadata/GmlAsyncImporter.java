@@ -30,18 +30,23 @@ package org.hisp.dhis.webapi.controller.metadata;
  *
  */
 
+import java.io.InputStream;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import java.io.InputStream;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -50,6 +55,8 @@ import java.io.InputStream;
 @Scope( "prototype" )
 public class GmlAsyncImporter extends SecurityContextRunnable
 {
+    private static final Log log = LogFactory.getLog( GmlAsyncImporter.class );
+
     @Autowired
     private GmlImportService gmlImportService;
 
@@ -58,6 +65,9 @@ public class GmlAsyncImporter extends SecurityContextRunnable
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private Notifier notifier;
 
     private MetadataImportParams params;
 
@@ -100,5 +110,12 @@ public class GmlAsyncImporter extends SecurityContextRunnable
     public void setInputStream( InputStream inputStream )
     {
         this.inputStream = inputStream;
+    }
+
+    @Override
+    public void handleError( Throwable ex )
+    {
+        log.error( DebugUtils.getStackTrace( ex ) );
+        notifier.notify( params.getId(), NotificationLevel.ERROR, "Process failed: " + ex.getMessage(), true );
     }
 }

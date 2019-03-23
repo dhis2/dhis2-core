@@ -67,8 +67,7 @@ import org.springframework.util.Assert;
  * @author Lars Helge Overland
  */
 public class DefaultDataQueryService
-    implements
-    DataQueryService
+    implements DataQueryService
 {
     private IdentifiableObjectManager idObjectManager;
 
@@ -92,7 +91,6 @@ public class DefaultDataQueryService
         AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager, AclService aclService,
         CurrentUserService currentUserService, I18nManager i18nManager )
     {
-
         checkNotNull( idObjectManager );
         checkNotNull( organisationUnitService );
         checkNotNull( dimensionService );
@@ -304,29 +302,32 @@ public class DefaultDataQueryService
 
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, buildCategoryOptionComboList(items, inputIdScheme) );
+            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, null, DISPLAY_NAME_CATEGORYOPTIONCOMBO, buildCategoryOptionComboList( items, inputIdScheme ) );
         }
 
         else if ( ATTRIBUTEOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, buildCategoryOptionComboList(items, inputIdScheme) );
+            return new BaseDimensionalObject( dimension, DimensionType.ATTRIBUTE_OPTION_COMBO, null, DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, buildCategoryOptionComboList( items, inputIdScheme ) );
         }
 
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
             Calendar calendar = PeriodType.getCalendar();
+            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
 
             List<Period> periods = new ArrayList<>();
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
-            Boolean queryContainsRelativePeriods = false;
+            boolean queryContainsRelativePeriods = false;
             for ( String isoPeriod : items )
             {
                 if ( RelativePeriodEnum.contains( isoPeriod ) )
                 {
                     queryContainsRelativePeriods = true;
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
+
+                    dimensionalKeywords.addGroupBy( isoPeriod, this.i18nManager.getI18n().getString( isoPeriod ) );
 
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod, relativePeriodDate, format, true, financialYearStart );
                     periods.addAll( relativePeriods );
@@ -364,7 +365,8 @@ public class DefaultDataQueryService
                 }
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD, asList( periods ) );
+            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, null, DISPLAY_NAME_PERIOD,
+                dimensionalKeywords, asList( periods ) );
         }
 
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
@@ -523,38 +525,23 @@ public class DefaultDataQueryService
         throw new IllegalQueryException( "Dimension identifier does not reference any dimension: " + dimension );
     }
 
-    private List<DimensionalItemObject> buildCategoryOptionComboList(List<String> items, IdScheme inputIdScheme) {
-
-
-        return items.stream().map(item -> idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, item))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
     @Override
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
-        List<OrganisationUnit> units = new ArrayList<>();
+        final List<OrganisationUnit> units = new ArrayList<>();
 
         User currentUser = securityManager.getCurrentUser( params );
 
         if ( userOrgUnit != null )
         {
-            List<String> ous = DimensionalObjectUtils.getItemsFromParam( userOrgUnit );
-
-            for ( String ou : ous )
-            {
-                OrganisationUnit unit = idObjectManager.get( OrganisationUnit.class, ou );
-
-                if ( unit != null )
-                {
-                    units.add( unit );
-                }
-            }
+            DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
+                .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
+                .filter( Objects::nonNull )
+                .forEach( ou -> units.add( ou ) );
         }
         else if ( currentUser != null && currentUser.hasOrganisationUnit() )
         {
-            units = currentUser.getSortedOrganisationUnits();
+            units.addAll( currentUser.getSortedOrganisationUnits() );
         }
 
         return units;
@@ -564,9 +551,16 @@ public class DefaultDataQueryService
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    private List<DimensionalItemObject> buildCategoryOptionComboList( List<String> items, IdScheme inputIdScheme )
+    {
+        return items.stream().map( item -> idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, item ) )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
+    }
+
     private List<DimensionalItemObject> getCanReadItems( User user, DimensionalObject object )
     {
-        return object.getItems().stream().filter( o -> aclService.canDataRead( user, o ) )
+        return object.getItems().stream().filter( o -> aclService.canDataOrMetadataRead( user, o ) )
             .collect( Collectors.toList() );
     }
 }

@@ -28,10 +28,30 @@ package org.hisp.dhis.dataapproval.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.dataapproval.DataApprovalState.ACCEPTED_HERE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_ABOVE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_HERE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVABLE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_ABOVE;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_READY;
+import static org.hisp.dhis.dataapproval.DataApprovalState.UNAPPROVED_WAITING;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -53,24 +73,11 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaBuilder;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dataapproval.DataApprovalState.*;
 
 /**
  * @author Jim Grace
@@ -91,13 +98,16 @@ public class HibernateDataApprovalStore
     @Autowired
     private CacheProvider cacheProvider;
 
+    @Autowired
+    private Environment env;
+
     @PostConstruct
     public void init()
     {
         IS_APPROVED_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "isDataApproved" )
             .expireAfterAccess( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+            .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------

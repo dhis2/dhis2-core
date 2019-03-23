@@ -47,7 +47,7 @@ public interface ProgramStageSectionService
      * @param programStageSection The to ProgramStageSection add.
      * @return A generated unique id of the added {@link ProgramStageSection}.
      */
-    int saveProgramStageSection( ProgramStageSection programStageSection );
+    long saveProgramStageSection( ProgramStageSection programStageSection );
 
     /**
      * Deletes a {@link ProgramStageSection}.
@@ -69,5 +69,5 @@ public interface ProgramStageSectionService
      * @param id the id of the ProgramStageSection to return.
      * @return the ProgramStageSection with the given id
      */
-    ProgramStageSection getProgramStageSection( int id );
+    ProgramStageSection getProgramStageSection( long id );
 }

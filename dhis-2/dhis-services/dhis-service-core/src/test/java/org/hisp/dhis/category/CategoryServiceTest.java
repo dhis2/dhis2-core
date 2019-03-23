@@ -107,9 +107,9 @@ public class CategoryServiceTest
         categoryB = createCategory( 'B', categoryOptionA, categoryOptionB, categoryOptionC );
         categoryC = createCategory( 'C', categoryOptionA, categoryOptionB, categoryOptionC );
 
-        int idA = categoryService.addCategory( categoryA );
-        int idB = categoryService.addCategory( categoryB );
-        int idC = categoryService.addCategory( categoryC );
+        long idA = categoryService.addCategory( categoryA );
+        long idB = categoryService.addCategory( categoryB );
+        long idC = categoryService.addCategory( categoryC );
 
         assertEquals( categoryA, categoryService.getCategory( idA ) );
         assertEquals( categoryB, categoryService.getCategory( idB ) );
@@ -127,9 +127,9 @@ public class CategoryServiceTest
         categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
         categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
 
-        int idA = categoryService.addCategory( categoryA );
-        int idB = categoryService.addCategory( categoryB );
-        int idC = categoryService.addCategory( categoryC );
+        long idA = categoryService.addCategory( categoryA );
+        long idB = categoryService.addCategory( categoryB );
+        long idC = categoryService.addCategory( categoryC );
 
         assertNotNull( categoryService.getCategory( idA ) );
         assertNotNull( categoryService.getCategory( idB ) );
@@ -182,9 +182,9 @@ public class CategoryServiceTest
         groupA.getMembers().add( categoryOptionB );
         groupB.getMembers().add( categoryOptionC );
 
-        int idA = categoryService.saveCategoryOptionGroup( groupA );
-        int idB = categoryService.saveCategoryOptionGroup( groupB );
-        int idC = categoryService.saveCategoryOptionGroup( groupC );
+        long idA = categoryService.saveCategoryOptionGroup( groupA );
+        long idB = categoryService.saveCategoryOptionGroup( groupB );
+        long idC = categoryService.saveCategoryOptionGroup( groupC );
 
         assertEquals( groupA, categoryService.getCategoryOptionGroup( idA ) );
         assertEquals( groupB, categoryService.getCategoryOptionGroup( idB ) );
@@ -222,9 +222,9 @@ public class CategoryServiceTest
         groupSetA.getMembers().add( groupB );
         groupSetB.getMembers().add( groupC );
 
-        int idA = categoryService.saveCategoryOptionGroupSet( groupSetA );
-        int idB = categoryService.saveCategoryOptionGroupSet( groupSetB );
-        int idC = categoryService.saveCategoryOptionGroupSet( groupSetC );
+        long idA = categoryService.saveCategoryOptionGroupSet( groupSetA );
+        long idB = categoryService.saveCategoryOptionGroupSet( groupSetB );
+        long idC = categoryService.saveCategoryOptionGroupSet( groupSetC );
 
         assertEquals( groupSetA, categoryService.getCategoryOptionGroupSet( idA ) );
         assertEquals( groupSetB, categoryService.getCategoryOptionGroupSet( idB ) );

@@ -71,6 +71,7 @@ public class DefaultQueryValidator
     // -------------------------------------------------------------------------
     // QueryValidator implementation
     // -------------------------------------------------------------------------
+
     @Override
     public void validate( DataQueryParams params )
         throws IllegalQueryException
@@ -83,8 +84,7 @@ public class DefaultQueryValidator
         }
 
         final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements()
-                .forEach(pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
+        params.getProgramDataElements().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
         final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
 
         if ( params.getDimensions().isEmpty() )

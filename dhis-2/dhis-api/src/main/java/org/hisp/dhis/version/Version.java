@@ -33,7 +33,7 @@ package org.hisp.dhis.version;
  */
 public class Version
 {
-    private int id;
+    private long id;
 
     private String key;
 
@@ -96,12 +96,12 @@ public class Version
     // Getter & Setter
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

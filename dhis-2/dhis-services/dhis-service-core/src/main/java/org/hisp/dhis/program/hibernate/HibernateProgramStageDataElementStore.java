@@ -28,13 +28,21 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
-
-import javax.persistence.criteria.CriteriaBuilder;
+import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
  * @author Viet Nguyen
@@ -51,5 +59,34 @@ public class HibernateProgramStageDataElementStore
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "programStage" ), programStage ) )
             .addPredicate( root -> builder.equal( root.get( "dataElement" ), dataElement ) ) );
+    }
+
+    @Override
+    public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue()
+    {
+        final String sql = "select ps.uid as ps_uid, de.uid as de_uid from programstagedataelement psde " +
+            "join programstage ps on psde.programstageid = ps.programstageid " +
+            "join dataelement de on psde.dataelementid = de.dataelementid " +
+            "where psde.programstageid in (select distinct ( programstageid ) from programstageinstance psi where psi.lastupdated > psi.lastsynchronized) " +
+            "and psde.skipsynchronization = true";
+
+        final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
+        jdbcTemplate.query( sql, new RowCallbackHandler()
+        {
+            @Override
+            public void processRow( ResultSet rs ) throws SQLException
+            {
+                String programStageUid = rs.getString( "ps_uid" );
+                String dataElementUid = rs.getString( "de_uid" );
+
+                if ( psdesWithSkipSync.get( programStageUid ) == null ) {
+                    psdesWithSkipSync.put( programStageUid, new HashSet<>() );
+                }
+
+                psdesWithSkipSync.get( programStageUid ).add( dataElementUid );
+            }
+        } );
+
+        return psdesWithSkipSync;
     }
 }

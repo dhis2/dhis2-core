@@ -1,3 +1,5 @@
+package org.hisp.dhis;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -26,16 +28,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis;
+import java.util.Properties;
 
+import org.hisp.dhis.container.DhisPostgisContainerProvider;
+import org.hisp.dhis.container.DhisPostgreSQLContainer;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgisContainerProvider;
-
-import java.util.Properties;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -52,7 +55,8 @@ public class IntegrationTestConfig
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        TestDhisConfigurationProvider dhisConfigurationProvider = new TestDhisConfigurationProvider();
+
+        PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
         JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
         Properties properties = new Properties();
@@ -70,16 +74,15 @@ public class IntegrationTestConfig
 
     private JdbcDatabaseContainer<?> initContainer()
     {
-        JdbcDatabaseContainer<?> postgisContainer = new PostgisContainerProvider()
-            .newInstance()
+        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider().newInstance())
+            .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
             .withDatabaseName( POSTGRES_DATABASE_NAME )
             .withUsername( POSTGRES_CREDENTIALS )
             .withPassword( POSTGRES_CREDENTIALS );
 
         postgisContainer.start();
 
-
-        log.info("Postgis container initialized: " + postgisContainer.getJdbcUrl());
+        log.info( String.format( "PostGIS container initialized: %s", postgisContainer.getJdbcUrl() ) );
 
         return postgisContainer;
     }

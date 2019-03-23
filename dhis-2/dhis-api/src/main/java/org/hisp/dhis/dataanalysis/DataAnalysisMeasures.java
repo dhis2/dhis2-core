@@ -37,9 +37,9 @@ package org.hisp.dhis.dataanalysis;
  */
 public class DataAnalysisMeasures
 {
-    private int orgUnitId;
+    private long orgUnitId;
 
-    private int categoryOptionComboId;
+    private long categoryOptionComboId;
 
     private double average;
 
@@ -62,12 +62,12 @@ public class DataAnalysisMeasures
     // Getters
     // -------------------------------------------------------------------------
 
-    public int getOrgUnitId()
+    public long getOrgUnitId()
     {
         return orgUnitId;
     }
 
-    public int getCategoryOptionComboId()
+    public long getCategoryOptionComboId()
     {
         return categoryOptionComboId;
     }

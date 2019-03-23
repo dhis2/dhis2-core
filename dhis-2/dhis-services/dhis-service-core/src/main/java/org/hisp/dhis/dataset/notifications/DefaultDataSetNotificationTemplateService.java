@@ -44,7 +44,7 @@ public class DefaultDataSetNotificationTemplateService
     private DataSetNotificationTemplateStore store;
 
     @Override
-    public DataSetNotificationTemplate get( int id )
+    public DataSetNotificationTemplate get( long id )
     {
         return store.get( id );
     }

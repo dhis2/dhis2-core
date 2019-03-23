@@ -28,8 +28,22 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -42,13 +56,18 @@ import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.Before;
@@ -56,12 +75,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.util.*;
+import com.google.api.client.util.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @Author Zubair Asghar.
@@ -73,12 +90,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String MESSAGE = "message";
     private static final String TEMPLATE_NAME = "message";
     private static final String OU_PHONE_NUMBER = "471000000";
-    private static final String DE_PHONE_NUMBER = "47200000";
     private static final String ATT_PHONE_NUMBER = "473000000";
     private static final String USERA_PHONE_NUMBER = "47400000";
     private static final String USERB_PHONE_NUMBER = "47500000";
     private static final String ATT_EMAIL = "attr@test.org";
-    private static final String DE_EMAIL = "de@test.org";
 
     @Mock
     private MessageService messageService;
@@ -130,8 +145,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private DataElement dataElement;
     private DataElement dataElementEmail;
-    private TrackedEntityDataValue dataValue;
-    private TrackedEntityDataValue dataValueEmail;
 
     private TrackedEntityAttribute trackedEntityAttribute;
     private TrackedEntityAttribute trackedEntityAttributeEmail;
@@ -166,7 +179,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         when( messageService.sendMessage( any() ) )
             .thenAnswer( invocation -> {
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 40;
+                return 40l;
             } );
 
         when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
@@ -461,7 +474,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         assertEquals( 0, sentProgramMessages.size() );
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -574,22 +587,11 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programInstance.setEntityInstance( tei );
 
         // ProgramStageInstance
-        ProgramStageInstance programStageInstance = createProgramStageInstance();
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setAutoFields();
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setOrganisationUnit( lvlTwoLeftLeft );
         programStageInstance.setProgramStage( programStage );
-        dataValue = new TrackedEntityDataValue();
-        dataValue.setAutoFields();
-        dataValue.setDataElement( dataElement );
-        dataValue.setValue( DE_PHONE_NUMBER );
-
-        dataValueEmail = new TrackedEntityDataValue();
-        dataValueEmail.setAutoFields();
-        dataValueEmail.setDataElement( dataElementEmail );
-        dataValueEmail.setValue( DE_EMAIL );
-
-        programStageInstance.getDataValues().add( dataValue );
 
         // lists returned by stubs
         programStageInstances.add( programStageInstance );

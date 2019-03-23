@@ -312,6 +312,11 @@ public class NepaliCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusMonths( DateTimeUnit dateTimeUnit, int months )
     {
+        if ( months < 0 )
+        {
+            return minusMonths( dateTimeUnit, Math.abs( months ) );
+        }
+
         DateTimeUnit result = new DateTimeUnit( dateTimeUnit );
 
         while ( months != 0 )
@@ -341,6 +346,11 @@ public class NepaliCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusDays( DateTimeUnit dateTimeUnit, int days )
     {
+        if ( days < 0 )
+        {
+            return minusDays( dateTimeUnit, Math.abs( days ) );
+        }
+        
         int curYear = dateTimeUnit.getYear();
         int curMonth = dateTimeUnit.getMonth();
         int curDay = dateTimeUnit.getDay();

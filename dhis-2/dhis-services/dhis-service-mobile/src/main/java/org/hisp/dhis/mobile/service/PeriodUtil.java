@@ -31,6 +31,7 @@ package org.hisp.dhis.mobile.service;
 import java.util.Calendar;
 import java.util.Vector;
 
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -39,7 +40,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.system.util.DateUtils;
 
 public class PeriodUtil
 {

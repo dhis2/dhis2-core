@@ -1,5 +1,7 @@
 package org.hisp.dhis.email;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.MoreObjects;
 
 /*
@@ -47,15 +49,11 @@ public class EmailConfiguration
 
     private boolean tls;
 
-    protected EmailConfiguration()
-    {
-    }
-
     public EmailConfiguration( String hostName, String username, String password, String from, int port, boolean tls )
     {
-        this.hostName = hostName;
-        this.username = username;
-        this.password = password;
+        this.hostName = StringUtils.trimToNull( hostName );
+        this.username = StringUtils.trimToNull( username );
+        this.password = StringUtils.trimToNull( password );
         this.from = from;
         this.port = port;
         this.tls = tls;

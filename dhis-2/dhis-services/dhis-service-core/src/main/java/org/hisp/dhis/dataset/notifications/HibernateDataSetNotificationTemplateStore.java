@@ -50,7 +50,7 @@ public class HibernateDataSetNotificationTemplateStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "dataSetNotificationTrigger" ), trigger ) )
-            .addPredicate( root -> builder.equal( root.join( "dataSets" ).get( "id" ), dataSet.getId() ) ));
+            .addPredicate( root -> builder.equal( root.join( "dataSets" ).get( "id" ), dataSet.getId() ) ) );
     }
 
     @Override

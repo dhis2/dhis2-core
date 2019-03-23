@@ -29,23 +29,22 @@ package org.hisp.dhis.calendar.impl;
  */
 
 
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.exception.InvalidCalendarParametersException;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
-import org.hisp.dhis.calendar.exception.InvalidCalendarParametersException;
-
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
@@ -183,6 +182,19 @@ public class PersianCalendarTest
         assertEquals( 12, testDateTimeUnit.getMonth() );
         assertEquals( 30, testDateTimeUnit.getDay() );
 
+        dateTimeUnit = new DateTimeUnit( 1403, 12, 30 );
+
+        testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
+        assertEquals( 1403, testDateTimeUnit.getYear() );
+        assertEquals( 12, testDateTimeUnit.getMonth() );
+        assertEquals( 29, testDateTimeUnit.getDay() );
+
+        dateTimeUnit = new DateTimeUnit( 1371, 1, 1 );
+
+        testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
+        assertEquals( 1370, testDateTimeUnit.getYear() );
+        assertEquals( 12, testDateTimeUnit.getMonth() );
+        assertEquals( 30, testDateTimeUnit.getDay() );
     }
 
     @Test
@@ -207,6 +219,12 @@ public class PersianCalendarTest
         assertEquals( 5, testDateTimeUnit.getMonth() );
         assertEquals( 20, testDateTimeUnit.getDay() );
 
+        dateTimeUnit = new DateTimeUnit( 1382, 1, 20 );
+
+        testDateTimeUnit = calendar.plusMonths( dateTimeUnit, -4 );
+        assertEquals( 1381, testDateTimeUnit.getYear() );
+        assertEquals( 9, testDateTimeUnit.getMonth() );
+        assertEquals( 20, testDateTimeUnit.getDay() );
     }
 
     @Test

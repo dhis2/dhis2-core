@@ -28,18 +28,18 @@ package org.hisp.dhis.webapi.controller.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
+
+import java.io.IOException;
+import java.util.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitByLevelComparator;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -54,20 +54,12 @@ import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -165,7 +157,7 @@ public class OrganisationUnitController
         // Collection member count in hierarchy handling
         // ---------------------------------------------------------------------
 
-        IdentifiableObject member = null;
+        IdentifiableObject member;
 
         if ( memberObject != null && memberCollection != null && (member = manager.get( memberObject )) != null )
         {
@@ -297,21 +289,12 @@ public class OrganisationUnitController
         generator.close();
     }
 
-    public void writeFeature( JsonGenerator generator, OrganisationUnit organisationUnit,
-        boolean includeProperties, User user ) throws IOException
+    private void writeFeature(JsonGenerator generator, OrganisationUnit organisationUnit,
+                              boolean includeProperties, User user) throws IOException
     {
-        if ( organisationUnit.getFeatureType() == null || organisationUnit.getCoordinates() == null )
+        if ( organisationUnit.getGeometry() == null )
         {
             return;
-        }
-
-        FeatureType featureType = organisationUnit.getFeatureType();
-
-        // If featureType is anything other than Point, just assume MultiPolygon
-
-        if ( !(featureType == FeatureType.POINT) )
-        {
-            featureType = FeatureType.MULTI_POLYGON;
         }
 
         generator.writeStartObject();
@@ -320,10 +303,11 @@ public class OrganisationUnitController
         generator.writeStringField( "id", organisationUnit.getUid() );
 
         generator.writeObjectFieldStart( "geometry" );
-        generator.writeObjectField( "type", featureType.value() );
+        generator.writeObjectField( "type",
+            FeatureType.getTypeFromName( organisationUnit.getGeometry().getGeometryType() ) );
 
         generator.writeFieldName( "coordinates" );
-        generator.writeRawValue( organisationUnit.getCoordinates() );
+        generator.writeRawValue( getCoordinatesFromGeometry( organisationUnit.getGeometry() ) );
 
         generator.writeEndObject();
 

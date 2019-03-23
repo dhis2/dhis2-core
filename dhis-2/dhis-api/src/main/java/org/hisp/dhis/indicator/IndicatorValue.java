@@ -40,10 +40,10 @@ public class IndicatorValue
     
     private double denominatorValue;
 
-    private int factor;
-    
-    private double annualizationFactor;
-    
+    private int multiplier;
+
+    private int divisor;
+
     public IndicatorValue()
     {
     }
@@ -57,26 +57,17 @@ public class IndicatorValue
      */
     public double getValue()
     {
-        return getNumeratorFactorValue() / denominatorValue;
+        return ( numeratorValue * multiplier ) / ( denominatorValue * divisor );
     }
 
     /**
-     * Returns the product of the indicator numerator value, factor and 
-     * annualization factor.
+     * Returns the ratio of the multiplier and divisor.
      */
-    public double getNumeratorFactorValue()
+    public double getFactor()
     {
-        return numeratorValue * factor * annualizationFactor;
+        return ( (double) multiplier ) / ( (double) divisor );
     }
-    
-    /**
-     * Returns the product of the factor and the annualization factor.
-     */
-    public double getFactorAnnualizedValue()
-    {
-        return factor * annualizationFactor;
-    }
-    
+
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
@@ -102,26 +93,26 @@ public class IndicatorValue
         this.denominatorValue = denominatorValue;
         return this;
     }
-    
-    public int getFactor()
+
+    public int getMultiplier()
     {
-        return factor;
+        return multiplier;
     }
 
-    public IndicatorValue setFactor( int factor )
+    public IndicatorValue setMultiplier( int multiplier )
     {
-        this.factor = factor;
+        this.multiplier = multiplier;
         return this;
     }
 
-    public double getAnnualizationFactor()
+    public int getDivisor()
     {
-        return annualizationFactor;
+        return divisor;
     }
 
-    public IndicatorValue setAnnualizationFactor( double annualizationFactor )
+    public IndicatorValue setDivisor( int divisor )
     {
-        this.annualizationFactor = annualizationFactor;
+        this.divisor = divisor;
         return this;
     }
 }

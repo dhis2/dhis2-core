@@ -137,7 +137,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
 
     @Override
-    public void createOrUpdateTrackedEntityProgramOwner( int teiUid, int programUid, int orgUnitUid )
+    public void createOrUpdateTrackedEntityProgramOwner( long teiUid, long programUid, long orgUnitUid )
     {
         TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
         Program program = programService.getProgram( programUid );
@@ -246,7 +246,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
 
     @Override
-    public void createTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId )
+    public void createTrackedEntityProgramOwner( long teiId, long programId, long orgUnitId )
     {
         TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
         if ( entityInstance == null )
@@ -267,7 +267,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
 
     @Override
-    public void updateTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId )
+    public void updateTrackedEntityProgramOwner( long teiId, long programId, long orgUnitId )
     {
         TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( teiId,
             programId );
@@ -284,7 +284,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
 
     @Override
-    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( int teiId, int programId )
+    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId )
     {
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( teiId, programId );
     }
@@ -302,13 +302,13 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
 
     @Override
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds )
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds )
     {
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds );
     }
 
     @Override
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds, Program program )
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds, Program program )
     {
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds, program.getId() );
     }

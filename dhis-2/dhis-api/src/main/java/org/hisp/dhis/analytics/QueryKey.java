@@ -107,7 +107,7 @@ public class QueryKey
     public String build()
     {
         String key = StringUtils.join( keyComponents, SEPARATOR );
-        return DigestUtils.shaHex( key );
+        return DigestUtils.sha1Hex( key );
     }
 
     /**

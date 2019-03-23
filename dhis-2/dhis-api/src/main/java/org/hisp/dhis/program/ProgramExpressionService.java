@@ -29,10 +29,8 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * An Expression is the expression of e.g. a validation rule of a program. It
@@ -61,7 +59,7 @@ public interface ProgramExpressionService
      * @param programExpression The to ProgramExpression add.
      * @return A generated unique id of the added {@link ProgramExpression}.
      */
-    int addProgramExpression( ProgramExpression programExpression );
+    long addProgramExpression( ProgramExpression programExpression );
 
     /**
      * Updates an {@link ProgramExpression}.
@@ -83,20 +81,7 @@ public interface ProgramExpressionService
      * @param id the id of the ProgramExpression to return.
      * @return the ProgramExpression with the given id
      */
-    ProgramExpression getProgramExpression( int id );
-
-    /**
-     * Get value of program expression
-     *
-     * @param programExpression         {@link ProgramExpression}
-     * @param programStageInstance      The {@link ProgramStageInstance} associate
-     *                                  with this expression
-     * @param trackedEntityDataValueMap TrackedEntityDataValue<The id of {@link DataElement}
-     *                                  , {@link TrackedEntityDataValue} >
-     * @return The expression value
-     */
-    String getProgramExpressionValue( ProgramExpression programExpression, ProgramStageInstance programStageInstance,
-        Map<String, String> trackedEntityDataValueMap );
+    ProgramExpression getProgramExpression( long id );
 
     /**
      * Get the description of a program expression

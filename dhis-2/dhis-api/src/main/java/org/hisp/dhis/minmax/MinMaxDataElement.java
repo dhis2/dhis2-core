@@ -50,7 +50,7 @@ public class MinMaxDataElement
      */
     private static final long serialVersionUID = 1557460368163701333L;
 
-    private int id;
+    private long id;
 
     private OrganisationUnit source;
 
@@ -135,12 +135,12 @@ public class MinMaxDataElement
     // Setters and getters
     // ------------------------------------------------------------------------- 
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

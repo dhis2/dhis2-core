@@ -28,10 +28,11 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * @author markusbekken
@@ -56,7 +57,7 @@ public class DefaultProgramRuleVariableService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
+    public long addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.save( programRuleVariable );
         return programRuleVariable.getId();
@@ -75,7 +76,7 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
-    public ProgramRuleVariable getProgramRuleVariable( int id )
+    public ProgramRuleVariable getProgramRuleVariable( long id )
     {
         return programRuleVariableStore.get( id );
     }
@@ -90,5 +91,25 @@ public class DefaultProgramRuleVariableService
     public List<ProgramRuleVariable> getProgramRuleVariable( Program program )
     {
         return programRuleVariableStore.get( program );
+    }
+
+    @Override
+    public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
+    {
+        List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );
+
+        return !ruleVariables.isEmpty();
+    }
+
+    @Override
+    public List<ProgramRuleVariable> getVariablesWithNoDataElement()
+    {
+        return programRuleVariableStore.getVariablesWithNoDataElement();
+    }
+
+    @Override
+    public List<ProgramRuleVariable> getVariablesWithNoAttribute()
+    {
+        return programRuleVariableStore.getVariablesWithNoAttribute();
     }
 }

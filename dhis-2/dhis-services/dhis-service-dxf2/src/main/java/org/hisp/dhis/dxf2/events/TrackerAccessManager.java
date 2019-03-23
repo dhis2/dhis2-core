@@ -29,12 +29,12 @@ package org.hisp.dhis.dxf2.events;
  */
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
 
 import java.util.List;
@@ -64,9 +64,25 @@ public interface TrackerAccessManager
 
     List<String> canWrite( User user, Relationship relationship );
 
-    List<String> canRead( User user, TrackedEntityDataValue dataValue );
+    /**
+     * Checks the sharing read access to EventDataValue
+     *
+     * @param user User validated for write access
+     * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
+     * @param dataElement DataElement of EventDataValue
+     * @return Empty list if read access allowed, list of errors otherwise.
+     */
+    List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement );
 
-    List<String> canWrite( User user, TrackedEntityDataValue dataValue );
+    /**
+     * Checks the sharing write access to EventDataValue
+     *
+     * @param user User validated for write access
+     * @param programStageInstance ProgramStageInstance under which the EventDataValue belongs
+     * @param dataElement DataElement of EventDataValue
+     * @return Empty list if write access allowed, list of errors otherwise.
+     */
+    List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement );
 
     List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
 

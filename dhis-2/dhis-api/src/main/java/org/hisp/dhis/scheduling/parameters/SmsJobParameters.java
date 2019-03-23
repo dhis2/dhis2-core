@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -46,7 +47,7 @@ public class SmsJobParameters
     private String smsSubject;
 
     @JsonProperty
-    private List<String> recipientsList;
+    private List<String> recipientsList = new ArrayList<>();
 
     @JsonProperty
     private String message;

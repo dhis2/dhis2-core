@@ -41,9 +41,9 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.render.ParseDateStdDeserializer;
-import org.hisp.dhis.render.WriteDateStdSerializer;
+import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -296,20 +296,20 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceXml( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromXml( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ), true );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ), true );
     }
 
     @Override
-    public ImportSummary updateTrackedEntityInstanceJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         TrackedEntityInstance trackedEntityInstance = fromJson( inputStream, TrackedEntityInstance.class );
         trackedEntityInstance.setTrackedEntityInstance( id );
 
-        return updateTrackedEntityInstance( trackedEntityInstance, updateImportOptions( importOptions ), true );
+        return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ), true );
     }
 }

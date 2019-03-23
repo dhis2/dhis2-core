@@ -28,21 +28,21 @@ package org.hisp.dhis.deletedobject;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class DeletedObjectServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private DeletedObjectService deletedObjectService;
@@ -103,5 +103,10 @@ public class DeletedObjectServiceTest
         assertEquals( 5, deletedObjectService.countDeletedObjects() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
         assertEquals( 2, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );
+    }
+
+    @Override public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

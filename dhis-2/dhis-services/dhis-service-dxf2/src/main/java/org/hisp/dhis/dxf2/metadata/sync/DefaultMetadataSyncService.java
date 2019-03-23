@@ -28,6 +28,9 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -43,8 +46,7 @@ import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.Map;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Performs the meta data sync related tasks in service layer.
@@ -56,17 +58,29 @@ public class DefaultMetadataSyncService
 {
     private static final Log log = LogFactory.getLog( DefaultMetadataSyncService.class );
 
-    @Autowired
     private MetadataVersionDelegate metadataVersionDelegate;
 
-    @Autowired
     private MetadataVersionService metadataVersionService;
 
-    @Autowired
     private MetadataSyncDelegate metadataSyncDelegate;
 
-    @Autowired
     private MetadataSyncImportHandler metadataSyncImportHandler;
+
+    @Autowired
+    public DefaultMetadataSyncService( MetadataVersionDelegate metadataVersionDelegate,
+        MetadataVersionService metadataVersionService, MetadataSyncDelegate metadataSyncDelegate,
+        MetadataSyncImportHandler metadataSyncImportHandler )
+    {
+        checkNotNull(metadataVersionDelegate);
+        checkNotNull(metadataVersionService);
+        checkNotNull(metadataSyncDelegate);
+        checkNotNull(metadataSyncImportHandler);
+
+        this.metadataVersionDelegate = metadataVersionDelegate;
+        this.metadataVersionService = metadataVersionService;
+        this.metadataSyncDelegate = metadataSyncDelegate;
+        this.metadataSyncImportHandler = metadataSyncImportHandler;
+    }
 
     @Override
     public MetadataSyncParams getParamsFromMap( Map<String, List<String>> parameters )

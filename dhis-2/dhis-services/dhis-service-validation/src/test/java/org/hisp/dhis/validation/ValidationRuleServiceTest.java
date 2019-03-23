@@ -241,7 +241,7 @@ public class ValidationRuleServiceTest
     @Test
     public void testSaveValidationRule()
     {
-        int id = validationRuleService.saveValidationRule( validationRuleA );
+        long id = validationRuleService.saveValidationRule( validationRuleA );
 
         validationRuleA = validationRuleService.getValidationRule( id );
 
@@ -256,7 +256,7 @@ public class ValidationRuleServiceTest
     @Test
     public void testUpdateValidationRule()
     {
-        int id = validationRuleService.saveValidationRule( validationRuleA );
+        long id = validationRuleService.saveValidationRule( validationRuleA );
         validationRuleA = validationRuleService.getValidationRuleByName( "ValidationRuleA" );
 
         assertEquals( "ValidationRuleA", validationRuleA.getName() );
@@ -279,8 +279,8 @@ public class ValidationRuleServiceTest
     @Test
     public void testDeleteValidationRule()
     {
-        int idA = validationRuleService.saveValidationRule( validationRuleA );
-        int idB = validationRuleService.saveValidationRule( validationRuleB );
+        long idA = validationRuleService.saveValidationRule( validationRuleA );
+        long idB = validationRuleService.saveValidationRule( validationRuleB );
 
         assertNotNull( validationRuleService.getValidationRule( idA ) );
         assertNotNull( validationRuleService.getValidationRule( idB ) );
@@ -330,7 +330,7 @@ public class ValidationRuleServiceTest
     @Test
     public void testGetValidationRuleByName()
     {
-        int id = validationRuleService.saveValidationRule( validationRuleA );
+        long id = validationRuleService.saveValidationRule( validationRuleA );
         validationRuleService.saveValidationRule( validationRuleB );
 
         ValidationRule rule = validationRuleService.getValidationRuleByName( "ValidationRuleA" );
@@ -363,8 +363,8 @@ public class ValidationRuleServiceTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleService.addValidationRuleGroup( groupA );
-        int idB = validationRuleService.addValidationRuleGroup( groupB );
+        long idA = validationRuleService.addValidationRuleGroup( groupA );
+        long idB = validationRuleService.addValidationRuleGroup( groupB );
 
         assertEquals( groupA, validationRuleService.getValidationRuleGroup( idA ) );
         assertEquals( groupB, validationRuleService.getValidationRuleGroup( idB ) );
@@ -390,8 +390,8 @@ public class ValidationRuleServiceTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleService.addValidationRuleGroup( groupA );
-        int idB = validationRuleService.addValidationRuleGroup( groupB );
+        long idA = validationRuleService.addValidationRuleGroup( groupA );
+        long idB = validationRuleService.addValidationRuleGroup( groupB );
 
         assertEquals( groupA, validationRuleService.getValidationRuleGroup( idA ) );
         assertEquals( groupB, validationRuleService.getValidationRuleGroup( idB ) );
@@ -426,8 +426,8 @@ public class ValidationRuleServiceTest
         groupA.setMembers( rules );
         groupB.setMembers( rules );
 
-        int idA = validationRuleService.addValidationRuleGroup( groupA );
-        int idB = validationRuleService.addValidationRuleGroup( groupB );
+        long idA = validationRuleService.addValidationRuleGroup( groupA );
+        long idB = validationRuleService.addValidationRuleGroup( groupB );
 
         assertNotNull( validationRuleService.getValidationRuleGroup( idA ) );
         assertNotNull( validationRuleService.getValidationRuleGroup( idB ) );

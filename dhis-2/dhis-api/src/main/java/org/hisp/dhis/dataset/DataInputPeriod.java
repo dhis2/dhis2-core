@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
@@ -182,6 +183,16 @@ public class DataInputPeriod implements EmbeddedObject
             .append( openingDate, that.openingDate )
             .append( closingDate, that.closingDate )
             .isEquals();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return new HashCodeBuilder()
+            .append( period )
+            .append( openingDate )
+            .append( closingDate )
+            .hashCode();
     }
 
     @Override

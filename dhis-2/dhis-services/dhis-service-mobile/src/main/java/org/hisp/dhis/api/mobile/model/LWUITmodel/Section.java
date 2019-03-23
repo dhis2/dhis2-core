@@ -72,7 +72,7 @@ public class Section
     public void serialize( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( getName() );
 
         if ( dataElementIds == null )
@@ -93,7 +93,7 @@ public class Section
     public void deSerialize( DataInputStream dint )
         throws IOException
     {
-        this.setId( dint.readInt() );
+        this.setId( dint.readLong() );
         this.setName( dint.readUTF() );
 
         int numbOfDataElement = dint.readInt();

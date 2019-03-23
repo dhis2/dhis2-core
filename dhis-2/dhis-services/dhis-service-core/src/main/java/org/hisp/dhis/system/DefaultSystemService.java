@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
@@ -47,7 +48,6 @@ import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -131,7 +131,7 @@ public class DefaultSystemService
         String lastAnalyticsTableRuntime = (String) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
         Date lastSystemMonitoringSuccess = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
         String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        String instanceBaseUrl = (String) systemSettingManager.getSystemSetting( SettingKey.INSTANCE_BASE_URL );
+        String instanceBaseUrl = dhisConfig.getServerBaseUrl();
 
         Date now = new Date();
 
@@ -157,11 +157,7 @@ public class DefaultSystemService
             (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE ),
             ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_NAME )),
             LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_LEVEL )).toUpperCase() ),
-            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_FORMAT )).toUpperCase() ),
-            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA ),
-            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_LEVEL )).toUpperCase() ),
-            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_FORMAT )).toUpperCase() ),
-            ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_TOPIC ))
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_FORMAT )).toUpperCase() )
         ) );
 
         return info;

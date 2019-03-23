@@ -49,6 +49,7 @@ public class MaxValue
     }
 
     // nFunk's JEP run() method uses the raw Stack type
+    @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     public void run( Stack inStack )
         throws ParseException
@@ -58,7 +59,7 @@ public class MaxValue
         Object param = inStack.pop();
         List<Double> vals = CustomFunctions.checkVector( param );
         Double max = null;
-        
+
         for ( Double v : vals )
         {
             if ( max == null || v > max )
@@ -66,7 +67,7 @@ public class MaxValue
                 max = v;
             }
         }
-        
-        inStack.push( new Double( max ) );
+
+        inStack.push( max );
     }
 }

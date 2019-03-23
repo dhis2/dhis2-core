@@ -77,6 +77,11 @@ public class GenericGatewayParameter
         return classified ? "" : value;
     }
 
+    public String getValueForKey()
+    {
+        return value;
+    }
+
     public void setValue( String value )
     {
         this.value = value;

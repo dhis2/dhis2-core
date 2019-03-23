@@ -39,17 +39,17 @@ public class Model
 {
     private String clientVersion;
 
-    private int id;
+    private long id;
 
     private String name;
 
     @XmlAttribute
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -79,7 +79,7 @@ public class Model
     public void serialize( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.id );
+        dout.writeLong( this.id );
         dout.writeUTF( this.name );
     }
 
@@ -87,7 +87,7 @@ public class Model
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
     {
-        this.id = dataInputStream.readInt();
+        this.id = dataInputStream.readLong();
         this.name = dataInputStream.readUTF();
     }
 
@@ -95,7 +95,7 @@ public class Model
     public void serializeVersion2_8( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.id );
+        dout.writeLong( this.id );
         dout.writeUTF( this.name );
     }
 
@@ -103,7 +103,7 @@ public class Model
     public void serializeVersion2_9( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.id );
+        dout.writeLong( this.id );
         dout.writeUTF( this.name );
     }
 

@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentitydatavalue.hibernate;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -113,15 +112,6 @@ public class HibernateTrackedEntityDataValueAuditStore
         query = getTrackedEntityDataValueAuditCriteria(dataElements, programStageInstances, auditType, builder, query, root );
 
         return sessionFactory.getCurrentSession().createQuery( query ).getSingleResult().intValue();
-    }
-
-    @Override
-    public void deleteTrackedEntityDataValueAudits( ProgramStageInstance programStageInstance )
-    {
-        Session session = sessionFactory.getCurrentSession();
-        Query query = session.createQuery( "delete TrackedEntityDataValueAudit where programStageInstance = :programStageInstance" );
-        query.setParameter( "programStageInstance", programStageInstance );
-        query.executeUpdate();
     }
 
     private CriteriaQuery getTrackedEntityDataValueAuditCriteria( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances,

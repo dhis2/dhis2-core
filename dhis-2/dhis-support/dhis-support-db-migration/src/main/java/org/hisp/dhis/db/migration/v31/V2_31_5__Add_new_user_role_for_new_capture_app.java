@@ -54,10 +54,9 @@ public class V2_31_5__Add_new_user_role_for_new_capture_app extends BaseJavaMigr
         List<Integer> legacyRoleIds = new ArrayList<>();
         List<Integer> newRoleIds = new ArrayList<>();
 
-        try ( Statement statement = context.getConnection().createStatement() )
+        try ( Statement statement = context.getConnection().createStatement();
+            ResultSet legacyUserRole = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-event-capture'" ) )
         {
-            ResultSet legacyUserRole = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-event-capture'" );
-
             while ( legacyUserRole.next() )
             {
                 legacyRoleIds.add( legacyUserRole.getInt( 1 ) );
@@ -69,10 +68,9 @@ public class V2_31_5__Add_new_user_role_for_new_capture_app extends BaseJavaMigr
             throw new FlywayException( ex );
         }
 
-        try ( Statement statement = context.getConnection().createStatement() )
+        try ( Statement statement = context.getConnection().createStatement();
+            ResultSet newUserRole = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-capture'" ) )
         {
-            ResultSet newUserRole = statement.executeQuery( "select userroleid from userroleauthorities where authority='M_dhis-web-capture'" );
-
             while ( newUserRole.next() )
             {
                 newRoleIds.add( newUserRole.getInt( 1 ) );

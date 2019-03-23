@@ -71,9 +71,9 @@ public class EventReportServiceTest
         erC.setProgram( prA );
         erC.setDataType( EventDataType.AGGREGATED_VALUES );
 
-        int idA = eventReportService.saveEventReport( erA );
-        int idB = eventReportService.saveEventReport( erB );
-        int idC = eventReportService.saveEventReport( erC );
+        long idA = eventReportService.saveEventReport( erA );
+        long idB = eventReportService.saveEventReport( erB );
+        long idC = eventReportService.saveEventReport( erC );
 
         assertEquals( "erA", eventReportService.getEventReport( idA ).getName() );
         assertEquals( "erB", eventReportService.getEventReport( idB ).getName() );
@@ -93,9 +93,9 @@ public class EventReportServiceTest
         erC.setProgram( prA );
         erC.setDataType( EventDataType.AGGREGATED_VALUES );
 
-        int idA = eventReportService.saveEventReport( erA );
-        int idB = eventReportService.saveEventReport( erB );
-        int idC = eventReportService.saveEventReport( erC );
+        long idA = eventReportService.saveEventReport( erA );
+        long idB = eventReportService.saveEventReport( erB );
+        long idC = eventReportService.saveEventReport( erC );
 
         assertNotNull( eventReportService.getEventReport( idA ) );
         assertNotNull( eventReportService.getEventReport( idB ) );

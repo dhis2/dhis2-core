@@ -47,10 +47,12 @@ public enum DateUnitType
     QUARTERLY( QuarterlyPeriodType.NAME, "\\b(\\d{4})Q(\\d)\\b" ),
     SIX_MONTHLY( SixMonthlyPeriodType.NAME, "\\b(\\d{4})S(\\d)\\b" ),
     SIX_MONTHLY_APRIL( SixMonthlyAprilPeriodType.NAME, "\\b(\\d{4})AprilS(\\d)\\b" ),
+    SIX_MONTHLY_NOVEMBER( SixMonthlyNovemberPeriodType.NAME, "\\b(\\d{4})NovS(\\d)\\b" ),
     YEARLY( YearlyPeriodType.NAME, "\\b(\\d{4})\\b" ),
     FINANCIAL_APRIL( FinancialAprilPeriodType.NAME, "\\b(\\d{4})April\\b" ),
     FINANCIAL_JULY( FinancialJulyPeriodType.NAME, "\\b(\\d{4})July\\b" ),
-    FINANCIAL_OCTOBER( FinancialOctoberPeriodType.NAME, "\\b(\\d{4})Oct\\b" );
+    FINANCIAL_OCTOBER( FinancialOctoberPeriodType.NAME, "\\b(\\d{4})Oct\\b" ),
+    FINANCIAL_NOVEMBER( FinancialNovemberPeriodType.NAME, "\\b(\\d{4})Nov\\b" );
 
     private final String name;
 

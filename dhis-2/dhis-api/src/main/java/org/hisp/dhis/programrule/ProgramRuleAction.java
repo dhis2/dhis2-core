@@ -192,7 +192,7 @@ public class ProgramRuleAction
         DataElement dataElement, TrackedEntityAttribute attribute,
         ProgramStageSection programStageSection, ProgramStage programStage,
         ProgramIndicator programIndicator, String location, String content, String data,
-        Option option, OptionGroup optionGroup)
+        Option option, OptionGroup optionGroup )
     {
         this.name = name;
         this.programRule = programRule;

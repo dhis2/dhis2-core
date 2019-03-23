@@ -28,6 +28,22 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
+import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
+import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
+
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -36,29 +52,6 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.render.ParseDateStdDeserializer;
-import org.hisp.dhis.render.WriteDateStdSerializer;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.util.Clock;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StreamUtils;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of EventService that uses Jackson for serialization and
@@ -70,8 +63,6 @@ import java.util.stream.Collectors;
 @Transactional
 public class JacksonEventService extends AbstractEventService
 {
-    private static final Log log = LogFactory.getLog( JacksonEventService.class );
-
     // -------------------------------------------------------------------------
     // EventService Impl
     // -------------------------------------------------------------------------
@@ -125,7 +116,7 @@ public class JacksonEventService extends AbstractEventService
     @Override
     public List<Event> getEventsXml( InputStream inputStream ) throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
 
         return parseXmlEvents( input );
     }
@@ -133,7 +124,7 @@ public class JacksonEventService extends AbstractEventService
     @Override
     public List<Event> getEventsJson( InputStream inputStream ) throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
 
         return parseJsonEvents( input );
     }
@@ -147,10 +138,10 @@ public class JacksonEventService extends AbstractEventService
     @Override
     public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
         List<Event> events = parseXmlEvents( input );
 
-        return addEvents( events, jobId, updateImportOptions( importOptions ) );
+        return processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
     @Override
@@ -162,25 +153,28 @@ public class JacksonEventService extends AbstractEventService
     @Override
     public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
     {
-        String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
+        String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
         List<Event> events = parseJsonEvents( input );
 
-        return addEvents( events, jobId, updateImportOptions( importOptions ) );
+        return processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private List<Event> parseXmlEvents( String input ) throws IOException
+    private List<Event> parseXmlEvents( String input )
+        throws IOException
     {
         List<Event> events = new ArrayList<>();
 
-        try {
+        try
+        {
             Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
-        catch ( JsonMappingException ex ) {
+        catch ( JsonMappingException ex )
+        {
             Event single = fromXml( input, Event.class );
             events.add( single );
         }
@@ -188,110 +182,24 @@ public class JacksonEventService extends AbstractEventService
         return events;
     }
 
-    private List<Event> parseJsonEvents( String input ) throws IOException
+    private List<Event> parseJsonEvents( String input )
+        throws IOException
     {
         List<Event> events = new ArrayList<>();
 
         JsonNode root = JSON_MAPPER.readTree( input );
 
-        if ( root.get( "events" ) != null ) {
-                Events multiple = fromJson( input, Events.class );
-                events.addAll( multiple.getEvents() );
+        if ( root.get( "events" ) != null )
+        {
+            Events multiple = fromJson( input, Events.class );
+            events.addAll( multiple.getEvents() );
         }
-        else {
+        else
+        {
             Event single = fromJson( input, Event.class );
             events.add( single );
         }
 
         return events;
-    }
-
-    private ImportSummaries addEvents( List<Event> events, JobConfiguration jobId, ImportOptions importOptions )
-    {
-        ImportSummaries importSummaries = new ImportSummaries();
-        importOptions = updateImportOptions( importOptions );
-
-        notifier.clear( jobId ).notify( jobId, "Importing events" );
-        Clock clock = new Clock( log ).startClock();
-
-        List<Event> create = new ArrayList<>();
-        List<Event> update = new ArrayList<>();
-        List<String> delete = new ArrayList<>();
-
-        if ( importOptions.getImportStrategy().isCreate() )
-        {
-            create.addAll( events );
-        }
-        else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
-        {
-            for ( Event event : events )
-            {
-                sortCreatesAndUpdates( event, create, update );
-            }
-        }
-        else if ( importOptions.getImportStrategy().isUpdate() )
-        {
-            update.addAll( events );
-        }
-        else if ( importOptions.getImportStrategy().isDelete() )
-        {
-            delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
-        }
-        else if ( importOptions.getImportStrategy().isSync() )
-        {
-            for ( Event event : events )
-            {
-                if ( event.isDeleted() )
-                {
-                    delete.add( event.getEvent() );
-                }
-                else
-                {
-                    sortCreatesAndUpdates( event, create, update );
-                }
-            }
-        }
-
-        importSummaries.addImportSummaries( addEvents( create, importOptions, true ) );
-        importSummaries.addImportSummaries( updateEvents( update, importOptions, false, true ) );
-        importSummaries.addImportSummaries( deleteEvents( delete, true ) );
-
-        if ( jobId != null )
-        {
-            notifier.notify( jobId, NotificationLevel.INFO, "Import done. Completed in " + clock.time() + ".", true ).
-                addJobSummary( jobId, importSummaries, ImportSummaries.class );
-        }
-        else
-        {
-            clock.logTime( "Import done" );
-        }
-
-        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
-        {
-            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
-        }
-
-        return importSummaries;
-    }
-
-    private void sortCreatesAndUpdates( Event event, List<Event> create, List<Event> update )
-    {
-        if ( StringUtils.isEmpty( event.getEvent() ) )
-        {
-            create.add( event );
-        }
-        else
-        {
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getEvent() );
-
-            if ( programStageInstance == null )
-            {
-                create.add( event );
-            }
-            else
-            {
-                update.add( event );
-            }
-        }
     }
 }

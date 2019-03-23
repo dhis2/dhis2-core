@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -143,6 +144,12 @@ public class DataElementOperand
         return DimensionItemType.DATA_ELEMENT_OPERAND;
     }
 
+    @Override
+    public AggregationType getAggregationType()
+    {
+        return dataElement.getAggregationType();
+    }
+
     // -------------------------------------------------------------------------
     // IdentifiableObject
     // -------------------------------------------------------------------------
@@ -213,12 +220,12 @@ public class DataElementOperand
         }
         else if ( hasNonDefaultAttributeOptionCombo() )
         {
-            name += SPACE + SYMBOL_WILDCARD;
+            shortName += SPACE + SYMBOL_WILDCARD;
         }
 
         if ( hasNonDefaultAttributeOptionCombo() )
         {
-            name += SPACE + attributeOptionCombo.getName();
+            shortName += SPACE + attributeOptionCombo.getName();
         }
 
         return shortName;

@@ -60,6 +60,18 @@
     <constructor-arg name="compression" value="ZIP" />
   </bean>
 
+  <bean id="csvMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter">
+    <constructor-arg name="compression" value="NONE" />
+  </bean>
+
+  <bean id="csvMessageConverterGZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter">
+    <constructor-arg name="compression" value="GZIP" />
+  </bean>
+
+  <bean id="csvMessageConverterZIP" class="org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter">
+    <constructor-arg name="compression" value="ZIP" />
+  </bean>
+
   <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter" />
 
   <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter" />
@@ -86,6 +98,8 @@
         <ref bean="xmlMessageConverterZIP" />
         <ref bean="jsonPMessageConverter" />
         <ref bean="csvMessageConverter" />
+        <ref bean="csvMessageConverterGZIP" />
+        <ref bean="csvMessageConverterZIP" />
         <ref bean="pdfMessageConverter" />
         <ref bean="excelMessageConverter" />
         <ref bean="stringHttpMessageConverter" />
@@ -124,6 +138,8 @@
         <ref bean="xmlMessageConverterZIP" />
         <ref bean="jsonPMessageConverter" />
         <ref bean="csvMessageConverter" />
+        <ref bean="csvMessageConverterGZIP" />
+        <ref bean="csvMessageConverterZIP" />
         <ref bean="pdfMessageConverter" />
         <ref bean="excelMessageConverter" />
         <ref bean="stringHttpMessageConverter" />
@@ -199,6 +215,7 @@
         <entry key="xlsx" value="application/vnd.ms-excel" />
         <entry key="csv" value="application/csv" />
         <entry key="csv.gz" value="application/csv+gzip" />
+        <entry key="csv.zip" value="application/csv+zip" />
         <entry key="geojson" value="application/json+geojson" />
       </map>
     </constructor-arg>

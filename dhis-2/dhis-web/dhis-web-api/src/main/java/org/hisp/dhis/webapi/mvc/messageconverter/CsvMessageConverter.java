@@ -29,59 +29,44 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  */
 
 import com.google.common.collect.ImmutableList;
+import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import javax.annotation.Nonnull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class CsvMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class CsvMessageConverter extends AbstractRootNodeMessageConverter
 {
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
         .add( new MediaType( "application", "csv" ) )
         .add( new MediaType( "text", "csv" ) )
         .build();
 
-    @Autowired
-    private NodeService nodeService;
+    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+        .add( new MediaType( "application", "csv+gzip" ) )
+        .build();
 
-    public CsvMessageConverter()
-    {
-        setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-    }
+    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
+        .add( new MediaType( "application", "csv+zip" ) )
+        .build();
 
-    @Override
-    protected boolean supports( Class<?> clazz )
+    public CsvMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
     {
-        return RootNode.class.equals( clazz );
-    }
-
-    @Override
-    protected boolean canRead( MediaType mediaType )
-    {
-        return false;
-    }
-
-    @Override
-    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
-    {
-        return null;
-    }
-
-    @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
-    {
-        nodeService.serialize( rootNode, "application/csv", outputMessage.getBody() );
+        super( nodeService, "application/csv", "csv", compression );
+        switch ( getCompression() )
+        {
+            case NONE:
+                setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+                break;
+            case GZIP:
+                setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
+                break;
+            case ZIP:
+                setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
+        }
     }
 }

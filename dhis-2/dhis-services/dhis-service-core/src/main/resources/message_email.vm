@@ -8,5 +8,6 @@
     #if ($object.phoneNumber)${object.phoneNumber}<br> #end
     <br>
     $!{object.footer}
+    $!{object.serverBaseUrl}
   </body>
 </html>

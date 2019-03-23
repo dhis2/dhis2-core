@@ -49,8 +49,10 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.version.VersionService;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -67,14 +69,16 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private static final Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
-        .expireAfterWrite( 3, TimeUnit.HOURS )
-        .initialCapacity( 1000 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+    private static Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    private Environment env;
+
+    public void setEnv(Environment env) {
+        this.env = env;
+    }
 
     private OrganisationUnitStore organisationUnitStore;
 
@@ -118,12 +122,22 @@ public class DefaultOrganisationUnitService
         this.configurationService = configurationService;
     }
 
+    @PostConstruct
+    public void init()
+    {
+
+        IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
+                .expireAfterWrite( 3, TimeUnit.HOURS )
+                .initialCapacity( 1000 )
+                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+    }
+
     // -------------------------------------------------------------------------
     // OrganisationUnit
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnit( OrganisationUnit organisationUnit )
+    public long addOrganisationUnit( OrganisationUnit organisationUnit )
     {
         organisationUnitStore.save( organisationUnit );
         User user = currentUserService.getCurrentUser();
@@ -179,7 +193,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public OrganisationUnit getOrganisationUnit( int id )
+    public OrganisationUnit getOrganisationUnit( long id )
     {
         return organisationUnitStore.get( id );
     }
@@ -197,7 +211,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnits( Collection<Integer> identifiers )
+    public List<OrganisationUnit> getOrganisationUnits( Collection<Long> identifiers )
     {
         return organisationUnitStore.getById( identifiers );
     }
@@ -278,19 +292,19 @@ public class DefaultOrganisationUnitService
     {
         OrganisationUnit unit = getOrganisationUnit( uid );
 
-        int id = unit != null ? unit.getId() : -1;
+        long id = unit != null ? unit.getId() : -1;
 
         return getOrganisationUnitWithChildren( id, maxLevels );
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitWithChildren( int id )
+    public List<OrganisationUnit> getOrganisationUnitWithChildren( long id )
     {
         return getOrganisationUnitWithChildren( id, null );
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitWithChildren( int id, Integer maxLevels )
+    public List<OrganisationUnit> getOrganisationUnitWithChildren( long id, Integer maxLevels )
     {
         OrganisationUnit organisationUnit = getOrganisationUnit( id );
 
@@ -452,7 +466,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public void updateOrganisationUnitParent( int organisationUnitId, int parentId )
+    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
     {
         organisationUnitStore.updateOrganisationUnitParent( organisationUnitId, parentId );
     }
@@ -462,7 +476,7 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
+    public long addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
     {
         organisationUnitLevelStore.save( organisationUnitLevel );
         return organisationUnitLevel.getId();
@@ -505,7 +519,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public OrganisationUnitLevel getOrganisationUnitLevel( int id )
+    public OrganisationUnitLevel getOrganisationUnitLevel( long id )
     {
         return organisationUnitLevelStore.get( id );
     }
@@ -698,7 +712,7 @@ public class DefaultOrganisationUnitService
                 OrganisationUnit orgunit = iter.next();
 
                 double distancebetween = GeoUtils.getDistanceBetweenTwoPoints( centerPoint,
-                    ValidationUtils.getCoordinatePoint2D( orgunit.getCoordinates() ) );
+                    ValidationUtils.getCoordinatePoint2D( GeoUtils.getCoordinatesFromGeometry( orgunit.getGeometry()) ) );
 
                 if ( distancebetween > distance )
                 {

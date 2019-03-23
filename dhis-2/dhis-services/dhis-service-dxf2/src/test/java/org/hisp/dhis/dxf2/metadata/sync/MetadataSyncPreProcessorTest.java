@@ -28,6 +28,20 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -54,20 +68,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author aamerm
@@ -115,8 +115,8 @@ public class MetadataSyncPreProcessorTest
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
 
-        metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
-        verify( synchronizationManager, times( 1 ) ).executeDataPush();
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext );
+        verify( synchronizationManager, times( 1 ) ).executeDataValuePush();
     }
 
     @Test( expected = MetadataSyncServiceException.class )
@@ -129,9 +129,9 @@ public class MetadataSyncPreProcessorTest
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         doThrow( MetadataSyncServiceException.class )
             .when( metadataSyncPreProcessor )
-            .handleAggregateDataPush( mockRetryContext );
+            .handleDataValuePush( mockRetryContext );
 
-        metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext );
     }
 
     @Test
@@ -142,10 +142,10 @@ public class MetadataSyncPreProcessorTest
         expectedSummary.setStatus( ImportStatus.SUCCESS );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        doNothing().when( metadataSyncPreProcessor ).handleAggregateDataPush( mockRetryContext );
+        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext );
 
-        metadataSyncPreProcessor.handleAggregateDataPush( mockRetryContext );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleAggregateDataPush( mockRetryContext );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext );
     }
 
     @Test

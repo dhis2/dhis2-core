@@ -28,10 +28,17 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
@@ -42,16 +49,10 @@ import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
-import org.hisp.dhis.system.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
@@ -126,7 +127,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUser( User user )
+    public long addUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
 
@@ -158,7 +159,7 @@ public class DefaultUserService
     }
 
     @Override
-    public User getUser( int userId )
+    public User getUser( long userId )
     {
         return userStore.get( userId );
     }
@@ -365,7 +366,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         userAuthorityGroupStore.save( userAuthorityGroup );
         return userAuthorityGroup.getId();
@@ -390,7 +391,7 @@ public class DefaultUserService
     }
 
     @Override
-    public UserAuthorityGroup getUserAuthorityGroup( int id )
+    public UserAuthorityGroup getUserAuthorityGroup( long id )
     {
         return userAuthorityGroupStore.get( id );
     }
@@ -446,7 +447,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUserCredentials( UserCredentials userCredentials )
+    public long addUserCredentials( UserCredentials userCredentials )
     {
         userCredentialsStore.save( userCredentials );
         return userCredentials.getId();

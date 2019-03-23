@@ -38,7 +38,7 @@ import java.io.Serializable;
 public class SystemSetting
     implements Serializable
 {
-    private int id;
+    private long id;
 
     private String name;
 
@@ -65,12 +65,12 @@ public class SystemSetting
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

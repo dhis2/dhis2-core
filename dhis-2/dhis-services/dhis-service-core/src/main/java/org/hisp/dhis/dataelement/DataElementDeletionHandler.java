@@ -121,12 +121,11 @@ public class DataElementDeletionHandler
         {
             for ( LegendSet ls : element.getLegendSets() )
             {
-                if( legendSet.equals( ls ) )
+                if ( legendSet.equals( ls ) )
                 {
                     element.getLegendSets().remove( ls );
                     idObjectManager.updateNoAcl( element );
                 }
-
             }
         }
     }

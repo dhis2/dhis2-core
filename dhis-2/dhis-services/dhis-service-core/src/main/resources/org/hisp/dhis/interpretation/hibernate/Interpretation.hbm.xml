@@ -6,6 +6,8 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.interpretation.Interpretation" table="interpretation">
 
+    <cache usage="read-write" />
+    
     <id name="id" column="interpretationid">
       <generator class="native" />
     </id>
@@ -43,6 +45,7 @@
     <property name="created" not-null="true" type="timestamp" />
 
     <list name="comments" table="interpretation_comments" cascade="all,delete-orphan">
+      <cache usage="read-write" />
       <key column="interpretationid" foreign-key="fk_interpretation_comments_interpretationid" />
       <list-index column="sort_order" base="1" />
       <many-to-many class="org.hisp.dhis.interpretation.InterpretationComment" column="interpretationcommentid"
@@ -52,6 +55,7 @@
     <property name="likes" />
 
     <set name="likedBy" table="intepretation_likedby">
+      <cache usage="read-write" />
       <key column="interpretationid" foreign-key="fk_interpretation_likedby_interpretationid" />
       <many-to-many class="org.hisp.dhis.user.User" column="userid"
         foreign-key="fk_intepretation_likedby_userid" />
@@ -63,6 +67,7 @@
     <property name="publicAccess" length="8" />
 
     <set name="userGroupAccesses" table="interpretationusergroupaccesses" cascade="all-delete-orphan">
+      <cache usage="read-write" />
       <key column="interpretationid" />
       <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
     </set>

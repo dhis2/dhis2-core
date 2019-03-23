@@ -68,7 +68,7 @@ public class BaseIdentifiableObject
     /**
      * The database internal identifier for this Object.
      */
-    protected int id;
+    protected long id;
 
     /**
      * The Unique Identifier for this Object.
@@ -164,7 +164,7 @@ public class BaseIdentifiableObject
     {
     }
 
-    public BaseIdentifiableObject( int id, String uid, String name )
+    public BaseIdentifiableObject( long id, String uid, String name )
     {
         this.id = id;
         this.uid = uid;
@@ -213,12 +213,12 @@ public class BaseIdentifiableObject
 
     @Override
     @JsonIgnore
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

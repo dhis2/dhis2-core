@@ -56,7 +56,7 @@ public class DefaultVersionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addVersion( Version version )
+    public long addVersion( Version version )
     {
         versionStore.save( version );
         return version.getId();
@@ -98,7 +98,7 @@ public class DefaultVersionService
     }
 
     @Override
-    public Version getVersion( int id )
+    public Version getVersion( long id )
     {
         return versionStore.get( id );
     }

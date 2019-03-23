@@ -34,6 +34,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -59,5 +61,23 @@ public class NepaliCalendarTest
     {
         Assert.assertEquals( new DateTimeUnit( 2071, 1, 1, false ), calendar.fromIso( new DateTimeUnit( 2014, 4, 14, true ) ) );
         Assert.assertEquals( new DateTimeUnit( 2071, 1, 1, false ), calendar.fromIso( 2014, 4, 14 ) );
+    }
+
+    @Test
+    public void testPlusDays()
+    {
+        DateTimeUnit dateTimeUnit = new DateTimeUnit( 2014, 12, 30 );
+
+        DateTimeUnit testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
+        assertEquals( 2014, testDateTimeUnit.getYear() );
+        assertEquals( 12, testDateTimeUnit.getMonth() );
+        assertEquals( 29, testDateTimeUnit.getDay() );
+
+        dateTimeUnit = new DateTimeUnit( 2014, 1, 1 );
+
+        testDateTimeUnit = calendar.plusDays( dateTimeUnit, - 1 );
+        assertEquals( 2013, testDateTimeUnit.getYear() );
+        assertEquals( 12, testDateTimeUnit.getMonth() );
+        assertEquals( 30, testDateTimeUnit.getDay() );
     }
 }

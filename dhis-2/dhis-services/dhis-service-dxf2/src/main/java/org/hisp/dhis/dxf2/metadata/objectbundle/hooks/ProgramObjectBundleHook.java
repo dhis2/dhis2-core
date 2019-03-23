@@ -29,13 +29,27 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hibernate.Session;
+import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.program.ProgramStatus;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,10 +57,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
+    private final ProgramInstanceService programInstanceService;
+
+    public ProgramObjectBundleHook( ProgramInstanceService programInstanceService )
+    {
+        this.programInstanceService = programInstanceService;
+    }
+
     @Override
     public void postCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !isProgram( object ) )
         {
             return;
         }
@@ -54,6 +75,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         Session session = sessionFactory.getCurrentSession();
 
         syncSharingForEventProgram( session, (Program) object );
+
+        addProgramInstance( (Program) object );
 
         updateProgramStage( session, (Program) object );
     }
@@ -61,7 +84,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !isProgram( object ) )
         {
             return;
         }
@@ -71,10 +94,29 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         syncSharingForEventProgram( session, (Program) object );
     }
 
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( !isProgram( object ) )
+        {
+            return errors;
+        }
+
+        Program program = (Program) object;
+
+        if ( program.getId() != 0 && getProgramInstancesCount( program ) > 1 )
+        {
+            errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
+        }
+
+        return errors;
+    }
+
     private void syncSharingForEventProgram( Session session, Program program )
     {
-        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
-            || program.getProgramStages().isEmpty() )
+        if ( ProgramType.WITHOUT_REGISTRATION != program.getProgramType() || program.getProgramStages().isEmpty() )
         {
             return;
         }
@@ -86,7 +128,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         session.update( programStage );
     }
 
-    private void updateProgramStage( Session session, Program program )
+    private void updateProgramStage(Session session, Program program )
     {
         if ( program.getProgramStages().isEmpty() )
         {
@@ -94,10 +136,35 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         }
 
         program.getProgramStages().stream()
-            .forEach( ps -> {
-                if ( ps.getProgram() == null )  ps.setProgram( program );
-            });
+                .forEach( ps -> {
+                    if ( ps.getProgram() == null )  ps.setProgram( program );
+                });
 
         session.update( program );
+    }
+
+    private void addProgramInstance( Program program )
+    {
+        if ( getProgramInstancesCount( program ) == 0 )
+        {
+            ProgramInstance pi = new ProgramInstance();
+            pi.setEnrollmentDate( new Date() );
+            pi.setIncidentDate( new Date() );
+            pi.setProgram( program );
+            pi.setStatus( ProgramStatus.ACTIVE );
+            pi.setStoredBy( "system-process" );
+
+            this.programInstanceService.addProgramInstance( pi );
+        }
+    }
+
+    private int getProgramInstancesCount( Program program )
+    {
+        return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
+    }
+
+    private boolean isProgram( Object object )
+    {
+        return object instanceof Program;
     }
 }

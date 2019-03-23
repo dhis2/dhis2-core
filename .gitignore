@@ -19,6 +19,8 @@ nbactions.xml
 *.ipr
 *.ids
 *.iws
+*.interp
+*.tokens
 overlays/
 ./dhis-2/atlassian-ide-plugin.xml
 ./atlassian-ide-plugin.xml

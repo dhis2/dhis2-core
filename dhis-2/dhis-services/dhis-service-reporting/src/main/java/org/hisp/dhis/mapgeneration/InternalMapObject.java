@@ -28,9 +28,6 @@ package org.hisp.dhis.mapgeneration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
@@ -39,12 +36,10 @@ import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
-import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import java.awt.*;
-import java.io.IOException;
 
 /**
  * An internal representation of a map object (feature) in a map layer.
@@ -145,50 +140,12 @@ public class InternalMapObject
      */
     public void buildGeometryForOrganisationUnit( OrganisationUnit orgUnit )
     {
-        // The final GeoTools primitive
-        Geometry primitive = null;
-
-        // The DHIS coordinates as string
-        String coords = orgUnit.getCoordinates();
-
-        // The json root that is parsed from the coordinate string
-        JsonNode root = null;
-
-        // Create a parser for the json and parse it into root
-        try ( JsonParser parser = new ObjectMapper().getFactory().createParser( coords ) )
-        {
-            root = parser.readValueAsTree();
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to parse JSON", ex );
-        }
-
-        // Use the factory to build the correct type based on the feature type
-        // Polygon is treated similarly as MultiPolygon        
-        if ( orgUnit.getFeatureType() == FeatureType.POINT )
-        {
-            primitive = GeoToolsPrimitiveFromJsonFactory.createPointFromJson( root );
-        }
-        else if ( orgUnit.getFeatureType() == FeatureType.POLYGON )
-        {
-            primitive = GeoToolsPrimitiveFromJsonFactory.createMultiPolygonFromJson( root );
-        }
-        else if ( orgUnit.getFeatureType() == FeatureType.MULTI_POLYGON )
-        {
-            primitive = GeoToolsPrimitiveFromJsonFactory.createMultiPolygonFromJson( root );
-        }
-        else
-        {
-            throw new RuntimeException( "Not sure what to do with the feature type '" + orgUnit.getFeatureType() + "'" );
-        }
-
-        this.geometry = primitive;
+        this.geometry = orgUnit.getGeometry();
     }
 
     public Style getStyle()
     {
-        Style style = null;
+        Style style;
 
         if ( geometry instanceof Point )
         {
@@ -219,7 +176,7 @@ public class InternalMapObject
      */
     public SimpleFeatureType getFeatureType()
     {
-        String type = "";
+        String type;
 
         if ( geometry instanceof Point )
         {

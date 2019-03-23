@@ -30,11 +30,9 @@ package org.hisp.dhis.fileresource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**

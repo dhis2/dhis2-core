@@ -83,7 +83,7 @@ public class DefaultValidationRuleService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveValidationRule( ValidationRule validationRule )
+    public long saveValidationRule( ValidationRule validationRule )
     {
         validationRuleStore.save( validationRule );
 
@@ -103,7 +103,7 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public ValidationRule getValidationRule( int id )
+    public ValidationRule getValidationRule( long id )
     {
         return validationRuleStore.get( id );
     }
@@ -211,7 +211,7 @@ public class DefaultValidationRuleService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
+    public long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
         validationRuleGroupStore.save( validationRuleGroup );
 
@@ -231,7 +231,7 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public ValidationRuleGroup getValidationRuleGroup( int id )
+    public ValidationRuleGroup getValidationRuleGroup( long id )
     {
         return validationRuleGroupStore.get( id );
     }

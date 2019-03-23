@@ -47,9 +47,10 @@ public class MockJob
         {
             Thread.sleep( 10000 );
         }
-        catch ( InterruptedException e )
+        catch ( InterruptedException ex )
         {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            ex.printStackTrace();
         }
     }
 

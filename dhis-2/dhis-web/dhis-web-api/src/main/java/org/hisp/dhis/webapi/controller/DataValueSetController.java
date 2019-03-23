@@ -300,8 +300,8 @@ public class DataValueSetController
             ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
             summary.setImportOptions( importOptions );
 
-            response.setContentType( CONTENT_TYPE_XML );
-            renderService.toXml( response.getOutputStream(), summary );
+            response.setContentType( CONTENT_TYPE_JSON );
+            renderService.toJson( response.getOutputStream(), summary );
         }
     }
 

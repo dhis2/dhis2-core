@@ -58,9 +58,9 @@ public class ProgramNotificationTemplate
 
     private String messageTemplate;
 
-    private NotificationTrigger notificationTrigger;
+    private NotificationTrigger notificationTrigger = NotificationTrigger.COMPLETION;
 
-    private ProgramNotificationRecipient notificationRecipient;
+    private ProgramNotificationRecipient notificationRecipient = ProgramNotificationRecipient.USER_GROUP;
 
     private Set<DeliveryChannel> deliveryChannels = Sets.newHashSet();
 

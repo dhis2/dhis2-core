@@ -57,7 +57,7 @@ public class DefaultProgramRuleService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRule( ProgramRule programRule )
+    public long addProgramRule( ProgramRule programRule )
     {
         programRuleStore.save( programRule );
         return programRule.getId();
@@ -76,7 +76,7 @@ public class DefaultProgramRuleService
     }
 
     @Override
-    public ProgramRule getProgramRule( int id )
+    public ProgramRule getProgramRule( long id )
     {
         return programRuleStore.get( id );
     }
@@ -115,5 +115,23 @@ public class DefaultProgramRuleService
     public List<ProgramRule> getProgramRules( Program program, String key )
     {
         return programRuleStore.get( program, key );
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoPriority()
+    {
+        return programRuleStore.getProgramRulesWithNoPriority();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoCondition()
+    {
+        return programRuleStore.getProgramRulesWithNoCondition();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoAction()
+    {
+        return programRuleStore.getProgramRulesWithNoAction();
     }
 }

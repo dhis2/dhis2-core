@@ -102,8 +102,8 @@ public class DefaultMetadataVersionServiceTest
     @Test
     public void testShouldAddVersions()
     {
-        int idA = versionService.addVersion( versionA );
-        int idB = versionService.addVersion( versionB );
+        long idA = versionService.addVersion( versionA );
+        long idB = versionService.addVersion( versionB );
 
         assertTrue( idA >= 0 );
         assertTrue( idB >= 0 );
@@ -115,7 +115,7 @@ public class DefaultMetadataVersionServiceTest
     @Test
     public void testShouldDeleteAVersion()
     {
-        int id = versionService.addVersion( versionA );
+        long id = versionService.addVersion( versionA );
 
         versionService.deleteVersion( versionA );
 
@@ -125,7 +125,7 @@ public class DefaultMetadataVersionServiceTest
     @Test
     public void testShouldGetVersionsBasedOnIdOrName()
     {
-        int idA = versionService.addVersion( versionA );
+        long idA = versionService.addVersion( versionA );
 
         assertTrue( compareVersionsUtil( versionA, versionService.getVersionById( idA ) ) );
 

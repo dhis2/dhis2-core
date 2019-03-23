@@ -29,13 +29,15 @@ package org.hisp.dhis.program;
  */
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
- * TODO do we need this service given cascade all on 
+ * TODO do we need this service given cascade all on
  * program stage -> program stage data element?
- * 
+ *
  * @author Viet Nguyen
  */
 public interface ProgramStageDataElementService
@@ -80,4 +82,11 @@ public interface ProgramStageDataElementService
      * collection if there are no ProgramStageDataElements.
      */
     List<ProgramStageDataElement> getAllProgramStageDataElements();
+
+    /**
+     * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements) that have skipSynchronization flag set to true
+     *
+     * @return Map<String, Set<String>>
+     */
+    Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 }

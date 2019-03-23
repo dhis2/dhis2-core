@@ -28,12 +28,9 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvReader;
-import com.google.common.collect.Sets;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.core.io.ClassPathResource;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.core.io.ClassPathResource;
+
+import com.csvreader.CsvReader;
+import com.google.common.collect.Sets;
 
 /**
  * @author Henning Haakonsen
@@ -92,7 +95,7 @@ public class AnalyticsTestUtils
 
         reader.readRecord(); // Ignore first row
         ArrayList<String[]> lines = new ArrayList<>();
-        
+
         while ( reader.readRecord() )
         {
             String[] values = reader.getValues();
@@ -112,17 +115,17 @@ public class AnalyticsTestUtils
     public static void assertResultGrid( Grid aggregatedResultData, Map<String, Double> keyValue )
     {
         assertNotNull( aggregatedResultData );
-        
+
         for ( int i = 0; i < aggregatedResultData.getRows().size(); i++ )
         {
             int numberOfDimensions = aggregatedResultData.getRows().get( 0 ).size() - 1;
 
             StringBuilder key = new StringBuilder();
-            
+
             for ( int j = 0; j < numberOfDimensions; j++ )
             {
                 key.append( aggregatedResultData.getValue( i, j ).toString() );
-                
+
                 if ( j != numberOfDimensions - 1 )
                 {
                     key.append( "-" );

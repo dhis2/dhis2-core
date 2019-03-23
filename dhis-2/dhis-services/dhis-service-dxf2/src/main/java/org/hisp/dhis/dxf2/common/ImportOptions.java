@@ -70,10 +70,12 @@ public class ImportOptions
 
     private boolean skipNotifications;
 
+    private boolean skipAudit;
+
     private boolean datasetAllowsPeriods;
 
     private boolean strictPeriods;
-    
+
     private boolean strictDataElements;
 
     private boolean strictCategoryOptionCombos;
@@ -87,10 +89,12 @@ public class ImportOptions
     private boolean requireAttributeOptionCombo;
 
     private boolean skipPatternValidation;
-    
+
     private boolean ignoreEmptyCollection;
 
     private boolean force;
+
+    private boolean firstRowIsHeader = true;
 
     private String filename;
 
@@ -135,6 +139,7 @@ public class ImportOptions
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
         options.ignoreEmptyCollection = this.ignoreEmptyCollection;
+        options.firstRowIsHeader = this.firstRowIsHeader;
 
         return options;
     }
@@ -276,11 +281,18 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipAudit()
+    {
+        return skipAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictPeriods()
     {
         return strictPeriods;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictDataElements()
@@ -329,7 +341,7 @@ public class ImportOptions
     {
         return skipPatternValidation;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isIgnoreEmptyCollection()
@@ -356,6 +368,13 @@ public class ImportOptions
     public NotificationLevel getNotificationLevel()
     {
         return notificationLevel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isFirstRowIsHeader()
+    {
+        return firstRowIsHeader;
     }
 
     //--------------------------------------------------------------------------
@@ -482,12 +501,17 @@ public class ImportOptions
         return this;
     }
 
+    public void setSkipAudit( boolean skipAudit )
+    {
+        this.skipAudit = skipAudit;
+    }
+
     public ImportOptions setStrictPeriods( boolean strictPeriods )
     {
         this.strictPeriods = strictPeriods;
         return this;
     }
-    
+
     public ImportOptions setStrictDataElements( boolean strictDataElements )
     {
         this.strictDataElements = strictDataElements;
@@ -529,7 +553,7 @@ public class ImportOptions
         this.skipPatternValidation = skipPatternValidation;
         return this;
     }
-    
+
     public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
     {
         this.ignoreEmptyCollection = ignoreEmptyCollection;
@@ -551,6 +575,12 @@ public class ImportOptions
     public ImportOptions setNotificationLevel( NotificationLevel notificationLevel )
     {
         this.notificationLevel = notificationLevel;
+        return this;
+    }
+
+    public ImportOptions setFirstRowIsHeader( boolean firstRowIsHeader )
+    {
+        this.firstRowIsHeader = firstRowIsHeader;
         return this;
     }
 
@@ -577,6 +607,7 @@ public class ImportOptions
             .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
             .add( "force", force )
+            .add( "firstRowIsHeader", firstRowIsHeader )
             .toString();
     }
 }

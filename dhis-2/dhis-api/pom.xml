@@ -136,7 +136,6 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>20041127.091804</version>
     </dependency>
     <dependency>
       <groupId>com.vividsolutions</groupId>
@@ -151,6 +150,10 @@
       <groupId>io.github.benas</groupId>
       <artifactId>random-beans</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-geojson</artifactId>
     </dependency>
   </dependencies>
 

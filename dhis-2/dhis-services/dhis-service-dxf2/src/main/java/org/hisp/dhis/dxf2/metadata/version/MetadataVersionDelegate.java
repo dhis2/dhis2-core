@@ -28,6 +28,12 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
@@ -44,11 +50,7 @@ import org.hisp.dhis.system.util.HttpUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Handling remote calls for metadata version.
@@ -59,17 +61,29 @@ public class MetadataVersionDelegate
 {
     private static final Log log = LogFactory.getLog( MetadataVersionDelegate.class );
 
-    @Autowired
     private DefaultMetadataSystemSettingService metadataSystemSettingService;
 
-    @Autowired
     private SynchronizationManager synchronizationManager;
 
-    @Autowired
     private RenderService renderService;
 
-    @Autowired
     private MetadataVersionService metadataVersionService;
+
+    @Autowired
+    public MetadataVersionDelegate( DefaultMetadataSystemSettingService metadataSystemSettingService,
+        SynchronizationManager synchronizationManager, RenderService renderService,
+        MetadataVersionService metadataVersionService )
+    {
+        checkNotNull(metadataSystemSettingService);
+        checkNotNull(synchronizationManager);
+        checkNotNull(renderService);
+        checkNotNull(metadataVersionService);
+
+        this.metadataSystemSettingService = metadataSystemSettingService;
+        this.synchronizationManager = synchronizationManager;
+        this.renderService = renderService;
+        this.metadataVersionService = metadataVersionService;
+    }
 
     private int VERSION_TIMEOUT = 120000;
 

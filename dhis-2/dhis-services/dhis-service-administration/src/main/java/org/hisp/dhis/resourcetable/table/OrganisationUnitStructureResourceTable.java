@@ -111,7 +111,7 @@ public class OrganisationUnitStructureResourceTable
                 values.add( unit.getUid() );
                 values.add( level );
 
-                Map<Integer, Integer> identifiers = new HashMap<>();
+                Map<Integer, Long> identifiers = new HashMap<>();
                 Map<Integer, String> uids = new HashMap<>();
                 Map<Integer, String> names = new HashMap<>();
 

@@ -28,22 +28,25 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
-
 /**
  * @author Kristian Nordal
  */
 public class DataElementServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private DataElementService dataElementService;
@@ -59,9 +62,9 @@ public class DataElementServiceTest
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
 
-        int idA = dataElementService.addDataElement( dataElementA );
-        int idB = dataElementService.addDataElement( dataElementB );
-        int idC = dataElementService.addDataElement( dataElementC );
+        long idA = dataElementService.addDataElement( dataElementA );
+        long idB = dataElementService.addDataElement( dataElementB );
+        long idC = dataElementService.addDataElement( dataElementC );
 
         assertNotNull( dataElementA.getUid() );
         assertNotNull( dataElementB.getUid() );
@@ -92,7 +95,7 @@ public class DataElementServiceTest
     {
         DataElement dataElementA = createDataElement( 'A' );
 
-        int idA = dataElementService.addDataElement( dataElementA );
+        long idA = dataElementService.addDataElement( dataElementA );
         assertNotNull( dataElementA.getUid() );
         assertNotNull( dataElementA.getLastUpdated() );
 
@@ -114,10 +117,10 @@ public class DataElementServiceTest
         DataElement dataElementC = createDataElement( 'C' );
         DataElement dataElementD = createDataElement( 'D' );
 
-        int idA = dataElementService.addDataElement( dataElementA );
-        int idB = dataElementService.addDataElement( dataElementB );
-        int idC = dataElementService.addDataElement( dataElementC );
-        int idD = dataElementService.addDataElement( dataElementD );
+        long idA = dataElementService.addDataElement( dataElementA );
+        long idB = dataElementService.addDataElement( dataElementB );
+        long idC = dataElementService.addDataElement( dataElementC );
+        long idD = dataElementService.addDataElement( dataElementD );
 
         assertNotNull( dataElementService.getDataElement( idA ) );
         assertNotNull( dataElementService.getDataElement( idB ) );
@@ -157,8 +160,8 @@ public class DataElementServiceTest
         dataElementB.setCode( "codeB" );
         dataElementC.setCode( "codeC" );
 
-        int idA = dataElementService.addDataElement( dataElementA );
-        int idB = dataElementService.addDataElement( dataElementB );
+        long idA = dataElementService.addDataElement( dataElementA );
+        long idB = dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
 
         dataElementA = dataElementService.getDataElementByCode( "codeA" );
@@ -243,9 +246,9 @@ public class DataElementServiceTest
         DataElementGroup dataElementGroupB = new DataElementGroup( "DataElementGroupB" );
         DataElementGroup dataElementGroupC = new DataElementGroup( "DataElementGroupC" );
 
-        int idA = dataElementService.addDataElementGroup( dataElementGroupA );
-        int idB = dataElementService.addDataElementGroup( dataElementGroupB );
-        int idC = dataElementService.addDataElementGroup( dataElementGroupC );
+        long idA = dataElementService.addDataElementGroup( dataElementGroupA );
+        long idB = dataElementService.addDataElementGroup( dataElementGroupB );
+        long idC = dataElementService.addDataElementGroup( dataElementGroupC );
 
         dataElementGroupA = dataElementService.getDataElementGroup( idA );
         assertNotNull( dataElementGroupA );
@@ -270,9 +273,9 @@ public class DataElementServiceTest
         DataElementGroup dataElementGroupB = new DataElementGroup( "DataElementGroupB" );
         DataElementGroup dataElementGroupC = new DataElementGroup( "DataElementGroupC" );
 
-        int idA = dataElementService.addDataElementGroup( dataElementGroupA );
-        int idB = dataElementService.addDataElementGroup( dataElementGroupB );
-        int idC = dataElementService.addDataElementGroup( dataElementGroupC );
+        long idA = dataElementService.addDataElementGroup( dataElementGroupA );
+        long idB = dataElementService.addDataElementGroup( dataElementGroupB );
+        long idC = dataElementService.addDataElementGroup( dataElementGroupC );
 
         dataElementGroupA = dataElementService.getDataElementGroup( idA );
         assertNotNull( dataElementGroupA );
@@ -306,10 +309,10 @@ public class DataElementServiceTest
         DataElementGroup dataElementGroupC = new DataElementGroup( "DataElementGroupC" );
         DataElementGroup dataElementGroupD = new DataElementGroup( "DataElementGroupD" );
 
-        int idA = dataElementService.addDataElementGroup( dataElementGroupA );
-        int idB = dataElementService.addDataElementGroup( dataElementGroupB );
-        int idC = dataElementService.addDataElementGroup( dataElementGroupC );
-        int idD = dataElementService.addDataElementGroup( dataElementGroupD );
+        long idA = dataElementService.addDataElementGroup( dataElementGroupA );
+        long idB = dataElementService.addDataElementGroup( dataElementGroupB );
+        long idC = dataElementService.addDataElementGroup( dataElementGroupC );
+        long idD = dataElementService.addDataElementGroup( dataElementGroupD );
 
         assertNotNull( dataElementService.getDataElementGroup( idA ) );
         assertNotNull( dataElementService.getDataElementGroup( idB ) );
@@ -346,8 +349,8 @@ public class DataElementServiceTest
     {
         DataElementGroup dataElementGroupA = new DataElementGroup( "DataElementGroupA" );
         DataElementGroup dataElementGroupB = new DataElementGroup( "DataElementGroupB" );
-        int idA = dataElementService.addDataElementGroup( dataElementGroupA );
-        int idB = dataElementService.addDataElementGroup( dataElementGroupB );
+        long idA = dataElementService.addDataElementGroup( dataElementGroupA );
+        long idB = dataElementService.addDataElementGroup( dataElementGroupB );
 
         assertNotNull( dataElementService.getDataElementGroup( idA ) );
         assertNotNull( dataElementService.getDataElementGroup( idB ) );
@@ -404,9 +407,14 @@ public class DataElementServiceTest
     {
         DataElement de = createDataElement( 'A', ValueType.URL, AggregationType.SUM );
 
-        int id = dataElementService.addDataElement( de );
+        long id = dataElementService.addDataElement( de );
 
         assertNotNull( dataElementService.getDataElement( id ) );
 
+    }
+
+    @Override public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

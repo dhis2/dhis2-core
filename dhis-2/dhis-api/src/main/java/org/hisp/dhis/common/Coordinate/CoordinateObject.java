@@ -30,6 +30,8 @@ package org.hisp.dhis.common.Coordinate;
 
 import org.hisp.dhis.organisationunit.FeatureType;
 
+import com.vividsolutions.jts.geom.Geometry;
+
 /**
  * @author Henning Håkonsen
  */
@@ -37,11 +39,14 @@ public interface CoordinateObject
 {
     FeatureType getFeatureType();
 
-    boolean hasFeatureType();
-
     String getCoordinates();
 
     boolean hasCoordinates();
 
     boolean hasDescendantsWithCoordinates();
+
+    default String extractCoordinates( Geometry geometry )
+    {
+        return CoordinateUtils.getCoordinatesFromGeometry( geometry );
+    }
 }

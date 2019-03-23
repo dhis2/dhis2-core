@@ -51,7 +51,7 @@ public interface UserKeyJsonValueService
      * @param userKeyJsonValue the UserKeyJsonValue to be stored
      * @return the id of the UserKeyJsonValue stored
      */
-    int addUserKeyJsonValue( UserKeyJsonValue userKeyJsonValue );
+    long addUserKeyJsonValue( UserKeyJsonValue userKeyJsonValue );
 
     /**
      * Updates a UserKeyJsonValue

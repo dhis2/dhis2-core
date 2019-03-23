@@ -28,12 +28,16 @@ package org.hisp.dhis.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
@@ -47,17 +51,14 @@ import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -196,13 +197,13 @@ public class DefaultPatchService implements PatchService
 
         if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
         {
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
-            Collection sourceCollection = (Collection) ( (Collection) sourceValue ).stream()
+            Collection<Object> sourceCollection = ( (Collection<Object>) sourceValue ).stream()
                 .filter( Objects::nonNull )
                 .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
-            Collection targetCollection =  ( Collection ) ( (Collection) targetValue ).stream()
+            Collection<Object> targetCollection = ((Collection<Object>) targetValue).stream()
                 .filter( Objects::nonNull )
                 .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
@@ -223,7 +224,7 @@ public class DefaultPatchService implements PatchService
                 mutations.add( new Mutation( path, addCollection ) );
             }
 
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
             delCollection.addAll( sourceCollection );
 
             if ( !delCollection.isEmpty() )
@@ -233,10 +234,10 @@ public class DefaultPatchService implements PatchService
         }
         else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
         {
-            List sourceCollection = new ArrayList( (Collection) sourceValue );
-            Collection targetCollection = (Collection) targetValue;
+            List<Object> sourceCollection = new ArrayList<>( (Collection<Object>) sourceValue );
+            Collection<Object> targetCollection = (Collection<Object>) targetValue;
 
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
             for ( Object o : targetCollection )
             {
@@ -255,7 +256,7 @@ public class DefaultPatchService implements PatchService
                 mutations.add( new Mutation( path, addCollection ) );
             }
 
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
             delCollection.addAll( sourceCollection );
 
             if ( !delCollection.isEmpty() )
@@ -288,7 +289,6 @@ public class DefaultPatchService implements PatchService
         return mutations;
     }
 
-    @SuppressWarnings( "unchecked" )
     private List<Mutation> calculateMutations( String path, JsonNode node )
     {
         List<Mutation> mutations = new ArrayList<>();
@@ -305,7 +305,7 @@ public class DefaultPatchService implements PatchService
 
                 break;
             case ARRAY:
-                Collection identifiers = new ArrayList<>();
+                Collection<Object> identifiers = new ArrayList<>();
 
                 for ( JsonNode jsonNode : node )
                 {
@@ -395,8 +395,8 @@ public class DefaultPatchService implements PatchService
 
         if ( property.isCollection() )
         {
-            Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-            Collection sourceCollection = Collection.class.isInstance( value ) ? (Collection) value : Lists.newArrayList( value );
+            Collection<Object> collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+            Collection<Object> sourceCollection = Collection.class.isInstance( value ) ? (Collection<Object>) value : Lists.newArrayList( value );
 
             if ( collection == null )
             {

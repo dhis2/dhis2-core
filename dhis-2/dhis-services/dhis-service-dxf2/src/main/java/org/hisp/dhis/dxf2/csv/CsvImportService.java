@@ -38,6 +38,6 @@ import java.io.InputStream;
  */
 public interface CsvImportService
 {
-    Metadata fromCsv( InputStream input, CsvImportClass importClass )
+    Metadata fromCsv( InputStream input, CsvImportOptions options )
         throws IOException;
 }

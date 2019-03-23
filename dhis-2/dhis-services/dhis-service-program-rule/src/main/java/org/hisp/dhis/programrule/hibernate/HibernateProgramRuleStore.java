@@ -68,7 +68,7 @@ public class HibernateProgramRuleStore
     @Override
     public List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types )
     {
-        return getQuery( "FROM ProgramRule pr " + "JOIN FETCH pr.programRuleActions pra  WHERE pr.program = :programId AND pra.programRuleActionType IN (:implementableTypes)" )
+        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes )" )
             .setParameter( "programId", program )
             .setParameter( "implementableTypes", types )
             .getResultList();
@@ -83,5 +83,29 @@ public class HibernateProgramRuleStore
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
             .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), key, JpaQueryUtils.StringSearchMode.ANYWHERE ) )
             .addOrder( root -> builder.asc( root.get( "name" ) ) ) );
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoCondition()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.isNull( root.get( "condition" ) ) ) );
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoPriority()
+    {
+        return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
+            .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
+            .getResultList();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesWithNoAction()
+    {
+        return getQuery( "FROM ProgramRule pr WHERE pr.programRuleActions IS EMPTY" )
+            .getResultList();
     }
 }

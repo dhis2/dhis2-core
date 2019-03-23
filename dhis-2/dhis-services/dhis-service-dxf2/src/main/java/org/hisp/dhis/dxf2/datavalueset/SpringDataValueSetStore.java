@@ -28,9 +28,20 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.csvreader.CsvWriter;
+import static org.hisp.dhis.api.util.DateUtils.getLongGmtDateString;
+import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+
+import java.io.OutputStream;
+import java.io.Writer;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Date;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -39,22 +50,12 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Date;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.system.util.DateUtils.getLongGmtDateString;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import com.csvreader.CsvWriter;
 
 /**
  * @author Lars Helge Overland
@@ -106,54 +107,46 @@ public class SpringDataValueSetStore
     @Override
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
     {
-        String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
-        String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
-        String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
-
         DataValueSet dataValueSet = new StreamingJsonDataValueSet( outputStream );
 
-        final String sql =
-            "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
-            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
-            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
-            "from datavalue dv " +
-            "join dataelement de on (dv.dataelementid=de.dataelementid) " +
-            "join period pe on (dv.periodid=pe.periodid) " +
-            "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
-            "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
-            "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
-            "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
-            "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "'";
+        final String sql = buildDataValueSql( lastUpdated, idSchemes );
 
         writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page )
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
+        int page )
+    {
+        DataValueSet dataValueSet = new StreamingJsonDataValueSet( outputStream );
+
+        final int offset = (page - 1) * pageSize;
+        final String sql = buildDataValueSql( lastUpdated, idSchemes ) +
+            "order by pe.startdate asc, dv.created asc, deid asc limit " + pageSize + " offset " + offset;
+
+        writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
+    }
+
+    private String buildDataValueSql( Date lastUpdated, IdSchemes idSchemes )
     {
         String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
         String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
-        DataValueSet dataValueSet = new StreamingJsonDataValueSet( outputStream );
-
-        int offset = (page - 1) * pageSize;
-
         final String sql =
             "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, " +
-            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
-            "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
-            "from datavalue dv " +
-            "join dataelement de on (dv.dataelementid=de.dataelementid) " +
-            "join period pe on (dv.periodid=pe.periodid) " +
-            "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
-            "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
-            "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
-            "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
-            "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' " +
-            "order by pe.startdate asc, dv.created asc, deid asc limit " + pageSize + " offset " + offset;
+                "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
+                "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
+                "from datavalue dv " +
+                "join dataelement de on (dv.dataelementid=de.dataelementid) " +
+                "join period pe on (dv.periodid=pe.periodid) " +
+                "join periodtype pt on (pe.periodtypeid=pt.periodtypeid) " +
+                "join organisationunit ou on (dv.sourceid=ou.organisationunitid) " +
+                "join categoryoptioncombo coc on (dv.categoryoptioncomboid=coc.categoryoptioncomboid) " +
+                "join categoryoptioncombo aoc on (dv.attributeoptioncomboid=aoc.categoryoptioncomboid) " +
+                "where dv.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
 
-        writeDataValueSet( sql, new DataExportParams(), null, dataValueSet );
+        return sql;
     }
 
     private void writeDataValueSet( String sql, DataExportParams params, Date completeDate, final DataValueSet dataValueSet )

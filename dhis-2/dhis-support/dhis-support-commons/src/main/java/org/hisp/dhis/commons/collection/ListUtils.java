@@ -346,4 +346,23 @@ public class ListUtils
         Collections.sort( list, comparator );
         return list;
     }
+
+    /**
+     * Creates a new list based on the given items.
+     *
+     * @param items the items.
+     * @return a list.
+     */
+    @SafeVarargs
+    public static <T> List<T> newList( T... items )
+    {
+        List<T> list = new ArrayList<>();
+
+        for ( T item : items )
+        {
+            list.add( item );
+        }
+
+        return list;
+    }
 }

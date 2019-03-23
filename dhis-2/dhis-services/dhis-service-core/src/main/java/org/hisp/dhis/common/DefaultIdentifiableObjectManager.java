@@ -51,8 +51,10 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -82,11 +84,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private static final Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 2, TimeUnit.HOURS )
-        .initialCapacity( 4 )
-        .maximumSize( SystemUtils.isTestRun() ? 0 : 10 )
-        .build();
+    private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
     @Autowired
     private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
@@ -102,6 +100,19 @@ public class DefaultIdentifiableObjectManager
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    private Environment env;
+
+    @PostConstruct
+    public void init()
+    {
+        DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .initialCapacity( 4 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10 )
+            .build();
+    }
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
@@ -223,7 +234,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( Class<T> clazz, int id )
+    public <T extends IdentifiableObject> T get( Class<T> clazz, long id )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -485,7 +496,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Integer> ids )
+    public <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -716,7 +727,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Integer> identifiers )
+    public <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Long> identifiers )
     {
         IdentifiableObjectStore<T> store = (IdentifiableObjectStore<T>) getIdentifiableObjectStore( clazz );
 
@@ -793,7 +804,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    public IdentifiableObject getObject( int id, String simpleClassName )
+    public IdentifiableObject getObject( long id, String simpleClassName )
     {
         for ( IdentifiableObjectStore<? extends IdentifiableObject> objectStore : identifiableObjectStores )
         {

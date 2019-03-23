@@ -56,7 +56,7 @@ public class DefaultLegendSetService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addLegendSet( LegendSet legend )
+    public long addLegendSet( LegendSet legend )
     {
         legendSetStore.save( legend );
 
@@ -70,7 +70,7 @@ public class DefaultLegendSetService
     }
 
     @Override
-    public LegendSet getLegendSet( int id )
+    public LegendSet getLegendSet( long id )
     {
         return legendSetStore.get( id );
     }
