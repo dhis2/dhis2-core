@@ -79,6 +79,7 @@ public class HibernateReservedValueStore
             );
 
             rv.setCreated( reservedValue.getCreated() );
+            rv.setId( reservedValue.getId() );
 
             batchHandler.addObject( rv );
             toAdd.add( rv );

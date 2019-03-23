@@ -134,4 +134,10 @@ public class ValidationResultBatchHandler
     {
         return null;
     }
+    
+    @Override
+    public String getIdSequenceName()
+    {
+        return "validationresult_sequence";
+    }
 }

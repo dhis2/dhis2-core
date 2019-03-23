@@ -143,4 +143,10 @@ public class DataValueAuditBatchHandler
         
         return dva;
     }
+    
+    @Override
+    public String getIdSequenceName()
+    {
+        return "datavalueaudit_sequence";
+    }
 }
