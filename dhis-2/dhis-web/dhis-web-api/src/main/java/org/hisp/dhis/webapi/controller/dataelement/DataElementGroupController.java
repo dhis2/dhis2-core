@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller.dataelement;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -42,16 +42,17 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DataElementGroupSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -153,7 +154,7 @@ public class DataElementGroupController
     }
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDataElementGroupWithDependencies( @PathVariable( "uid" ) String dataElementGroupId, HttpServletResponse response )
+    public ResponseEntity<RootNode> getDataElementGroupWithDependencies( @PathVariable( "uid" ) String dataElementGroupId, @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException, IOException
     {
         DataElementGroup dataElementGroup = dataElementService.getDataElementGroup( dataElementGroupId );
@@ -163,6 +164,6 @@ public class DataElementGroupController
             throw new WebMessageException( WebMessageUtils.notFound( "DataElementGroup not found for uid: " + dataElementGroupId ) );
         }
 
-        return exportService.getMetadataWithDependenciesAsNode( dataElementGroup );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataElementGroup, download );
     }
 }

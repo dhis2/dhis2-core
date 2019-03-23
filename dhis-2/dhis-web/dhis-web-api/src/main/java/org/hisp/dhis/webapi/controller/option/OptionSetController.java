@@ -36,12 +36,14 @@ import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.descriptors.OptionSetSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -60,7 +62,7 @@ public class OptionSetController
     private MetadataExportService metadataExportService;
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response ) throws WebMessageException
+    public ResponseEntity<RootNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response, @RequestParam( required = false, defaultValue = "false" ) boolean download ) throws WebMessageException
     {
         OptionSet optionSet = optionService.getOptionSet( pvUid );
 
@@ -69,6 +71,6 @@ public class OptionSetController
             throw new WebMessageException( WebMessageUtils.notFound( "OptionSet not found for uid: " + pvUid ) );
         }
 
-        return metadataExportService.getMetadataWithDependenciesAsNode( optionSet );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, optionSet, download );
     }
 }
