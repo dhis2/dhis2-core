@@ -44,7 +44,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.api.util.DateUtils;
-import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -167,7 +166,7 @@ public abstract class AbstractTrackedEntityInstanceService
     protected Notifier notifier;
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
-    
+
     private final CachingMap<String, Program> programCache = new CachingMap<>();
 
     private final CachingMap<String, TrackedEntityType> trackedEntityCache = new CachingMap<>();
@@ -214,7 +213,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 }
 
                 dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-                
+
             }
         }
         else
@@ -516,7 +515,7 @@ public abstract class AbstractTrackedEntityInstanceService
     }
 
     @Override
-    public ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, String programId, 
+    public ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, String programId,
         ImportOptions importOptions, boolean singleUpdate )
     {
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
@@ -532,7 +531,7 @@ public abstract class AbstractTrackedEntityInstanceService
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoEntityInstance );
         OrganisationUnit organisationUnit = getOrganisationUnit( new IdSchemes(), dtoEntityInstance.getOrgUnit() );
         Program program = getProgram( new IdSchemes(), programId );
-        
+
 
         if ( daoEntityInstance == null || !errors.isEmpty() || organisationUnit == null || !importConflicts.isEmpty() )
         {
@@ -871,7 +870,7 @@ public abstract class AbstractTrackedEntityInstanceService
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, Program program, User user )
     {
         Map<String, TrackedEntityAttributeValue> teiAttributeToValueMap = getTeiAttributeValueMap( trackedEntityAttributeValueService.getTrackedEntityAttributeValues( daoEntityInstance ) );
-        
+
         Set<String> incomingAttributes = new HashSet<>();
 
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
@@ -880,7 +879,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 user == null ? "[Unknown]" : user.getUsername() );
 
             TrackedEntityAttributeValue existingAttributeValue = teiAttributeToValueMap.get( dtoAttribute.getAttribute() );
-            
+
             incomingAttributes.add( dtoAttribute.getAttribute() );
 
             if ( existingAttributeValue != null ) // value exists
@@ -908,13 +907,13 @@ public abstract class AbstractTrackedEntityInstanceService
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( newAttributeValue );
             }
         }
-        
+
         if ( program != null )
         {
             for( TrackedEntityAttribute att : program.getTrackedEntityAttributes() )
             {
                 TrackedEntityAttributeValue attVal = teiAttributeToValueMap.get( att.getUid() );
-                
+
                 if ( attVal != null && !incomingAttributes.contains( att.getUid() ) )
                 {
                     trackedEntityAttributeValueService.deleteTrackedEntityAttributeValue( attVal );
@@ -954,14 +953,14 @@ public abstract class AbstractTrackedEntityInstanceService
         return organisationUnitCache
             .get( id, () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
     }
-    
+
     private Program getProgram( IdSchemes idSchemes, String id )
     {
         if ( id == null )
         {
             return null;
         }
-        
+
         return programCache
             .get( id, () -> manager.getObject( Program.class, idSchemes.getProgramIdScheme(), id ) );
     }

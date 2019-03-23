@@ -76,7 +76,8 @@ public class HibernateDatabaseInfoProvider
 
         boolean spatialSupport = false;
 
-        // Check if postgis is installed. If not, fail startup.
+        // Check if postgis is installed, fail startup if not
+
         if ( !SystemUtils.isTestRun(environment.getActiveProfiles()) )
         {
             spatialSupport = isSpatialSupport();

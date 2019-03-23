@@ -110,7 +110,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-import org.hisp.dhis.expressionparser.ExpressionParserService;
+import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
@@ -156,7 +156,7 @@ public class DefaultAnalyticsService
 
     private QueryValidator queryValidator;
 
-    private ExpressionParserService expressionParserService;
+    private ExpressionService expressionService;
 
     private ConstantService constantService;
 
@@ -195,7 +195,7 @@ public class DefaultAnalyticsService
     @Autowired
     public DefaultAnalyticsService( AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
         AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
-        ExpressionParserService expressionParserService, ConstantService constantService,
+        ConstantService constantService, ExpressionService expressionService,
         OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
         EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
         DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider, Environment environment)
@@ -205,8 +205,8 @@ public class DefaultAnalyticsService
         checkNotNull( securityManager );
         checkNotNull( queryPlanner );
         checkNotNull( queryValidator );
-        checkNotNull( expressionParserService );
         checkNotNull( constantService );
+        checkNotNull( expressionService );
         checkNotNull( organisationUnitService );
         checkNotNull( systemSettingManager );
         checkNotNull( eventAnalyticsService );
@@ -220,8 +220,8 @@ public class DefaultAnalyticsService
         this.securityManager = securityManager;
         this.queryPlanner = queryPlanner;
         this.queryValidator = queryValidator;
-        this.expressionParserService = expressionParserService;
         this.constantService = constantService;
+        this.expressionService = expressionService;
         this.organisationUnitService = organisationUnitService;
         this.systemSettingManager = systemSettingManager;
         this.eventAnalyticsService = eventAnalyticsService;
@@ -512,7 +512,7 @@ public class DefaultAnalyticsService
 
                     Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null ? permutationOrgUnitTargetMap.get( ou ) : null;
 
-                    IndicatorValue value = expressionParserService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
+                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
 
                     if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {
@@ -729,6 +729,8 @@ public class DefaultAnalyticsService
             Map<String, PeriodType> dsPtMap = params.getDataSetPeriodTypeMap();
             PeriodType filterPeriodType = params.getFilterPeriodType();
 
+            int timeUnits = params.hasFilter( DimensionalObject.PERIOD_DIM_ID ) ? params.getFilterPeriods().size() : 1;
+
             for ( Map.Entry<String, Double> entry : targetMap.entrySet() )
             {
                 List<String> dataRow = Lists.newArrayList( entry.getKey().split( DIMENSION_SEP ) );
@@ -744,7 +746,7 @@ public class DefaultAnalyticsService
 
                     PeriodType queryPt = filterPeriodType != null ? filterPeriodType : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
-                    target = target * queryPt.getPeriodSpan( dataSetPt );
+                    target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
 
                     // ---------------------------------------------------------
                     // Calculate reporting rate and replace data set with rate
@@ -1058,7 +1060,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Map<String, Integer>> getOrgUnitTargetMap( DataQueryParams params, Collection<Indicator> indicators )
     {
-        Set<OrganisationUnitGroup> orgUnitGroups = expressionParserService.getIndicatorOrgUnitGroups( indicators );
+        Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getIndicatorOrgUnitGroups( indicators );
 
         if ( orgUnitGroups.isEmpty() )
         {
@@ -1322,7 +1324,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        List<DimensionalItemObject> items = Lists.newArrayList( expressionParserService.getIndicatorDimensionalItemObjects( indicators ) );
+        List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( indicators ) );
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 

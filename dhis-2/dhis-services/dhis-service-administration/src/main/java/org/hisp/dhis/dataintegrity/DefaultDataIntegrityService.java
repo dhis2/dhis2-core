@@ -125,7 +125,8 @@ public class DefaultDataIntegrityService
         OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
         ValidationRuleService validationRuleService, ExpressionService expressionService,
         DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
-        ProgramIndicatorService programIndicatorService, ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
+        ProgramIndicatorService programIndicatorService,
+        ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
         ProgramRuleActionService programRuleActionService )
     {
         checkNotNull( i18nManager );
@@ -661,7 +662,7 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidExpressions;
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
+            .filter( pi -> ! programIndicatorService.expressionIsValid( pi.getExpression() ) )
             .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression ) );
 
         return invalidExpressions;
@@ -673,7 +674,7 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidFilters;
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
+            .filter( pi -> ! programIndicatorService.filterIsValid( pi.getFilter() ) )
             .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter ) );
 
         return invalidFilters;
