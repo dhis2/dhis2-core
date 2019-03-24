@@ -28,40 +28,35 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.Session;
-import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.*;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.program.ProgramStatus;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
     private final ProgramInstanceService programInstanceService;
 
-    public ProgramObjectBundleHook( ProgramInstanceService programInstanceService )
+    private final ProgramService programService;
+
+    private final ProgramStageService programStageService;
+
+    public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
+                                    ProgramStageService programStageService )
     {
         this.programInstanceService = programInstanceService;
+        this.programStageService = programStageService;
+        this.programService = programService;
     }
 
     @Override
@@ -72,13 +67,11 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        Session session = sessionFactory.getCurrentSession();
-
-        syncSharingForEventProgram( session, (Program) object );
+        syncSharingForEventProgram( (Program) object );
 
         addProgramInstance( (Program) object );
 
-        updateProgramStage( session, (Program) object );
+        updateProgramStage( (Program) object );
     }
 
     @Override
@@ -89,9 +82,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
             return;
         }
 
-        Session session = sessionFactory.getCurrentSession();
-
-        syncSharingForEventProgram( session, (Program) object );
+        syncSharingForEventProgram( (Program) object );
     }
 
     @Override
@@ -114,7 +105,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         return errors;
     }
 
-    private void syncSharingForEventProgram( Session session, Program program )
+    private void syncSharingForEventProgram( Program program )
     {
         if ( ProgramType.WITHOUT_REGISTRATION != program.getProgramType() || program.getProgramStages().isEmpty() )
         {
@@ -125,22 +116,27 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         AccessStringHelper.copySharing( program, programStage );
 
         programStage.setUser( program.getUser() );
-        session.update( programStage );
+        programStageService.updateProgramStage( programStage );
     }
 
-    private void updateProgramStage(Session session, Program program )
+    private void updateProgramStage( Program program )
     {
         if ( program.getProgramStages().isEmpty() )
         {
             return;
         }
 
-        program.getProgramStages().stream()
-                .forEach( ps -> {
-                    if ( ps.getProgram() == null )  ps.setProgram( program );
-                });
+        program.getProgramStages().stream().forEach( ps -> {
 
-        session.update( program );
+            if ( Objects.isNull( ps.getProgram() ) )
+            {
+                ps.setProgram( program );
+            }
+
+            programStageService.saveProgramStage( ps );
+        });
+
+        programService.updateProgram( program );
     }
 
     private void addProgramInstance( Program program )
