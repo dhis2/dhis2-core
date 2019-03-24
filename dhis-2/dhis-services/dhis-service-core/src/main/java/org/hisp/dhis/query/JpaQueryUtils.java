@@ -2,7 +2,7 @@ package org.hisp.dhis.query;
 
 /*
  *
- *  Copyright (c) 2004-2018, University of Oslo
+ *  Copyright (c) 2004-2019, University of Oslo
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,11 @@ package org.hisp.dhis.query;
  *
  */
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.schema.Property;
 import org.springframework.context.i18n.LocaleContextHolder;
 
+import javax.annotation.Nullable;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Order;
@@ -40,7 +42,9 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -180,5 +184,36 @@ public class JpaQueryUtils
             default:
                 throw new QueryParserException( "Query operator is not supported : " + operator );
         }
+    }
+
+    /**
+     * Creates the query language order expression without the leading <code>ORDER BY</code>.
+     *
+     * @param orders the orders that should be created to a string.
+     * @return the string order expression or <code>null</code> if none should be used.
+     */
+    @Nullable
+    public static String createOrderExpression( @Nullable List<org.hisp.dhis.query.Order> orders )
+    {
+        if ( orders == null )
+        {
+            return null;
+        }
+        return StringUtils.defaultIfEmpty( orders.stream().filter( o -> o.isPersisted() ).map( o -> {
+            final StringBuilder sb = new StringBuilder();
+            final boolean ignoreCase = o.isIgnoreCase() && String.class == o.getProperty().getKlass();
+            if ( ignoreCase )
+            {
+                sb.append( "lower(" );
+            }
+            sb.append( o.getProperty().getName() );
+            if ( ignoreCase )
+            {
+                sb.append( ")" );
+            }
+            sb.append( ' ' );
+            sb.append( o.isAscending() ? "asc" : "desc" );
+            return sb.toString();
+        } ).collect( Collectors.joining( "," ) ), null );
     }
 }

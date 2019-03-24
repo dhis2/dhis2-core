@@ -32,6 +32,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Date;
 import java.util.Objects;
 
@@ -202,6 +203,21 @@ public class Order
             && Objects.equals( this.property, other.property );
     }
 
+    /**
+     * @return the order string (e.g. <code>name:iasc</code>).
+     */
+    @Nonnull
+    public String toOrderString()
+    {
+        final StringBuilder sb = new StringBuilder( property.getName() );
+        sb.append( ':' );
+        if ( isIgnoreCase() )
+        {
+            sb.append( 'i' );
+        }
+        sb.append( isAscending() ? "asc" : "desc" );
+        return sb.toString();
+    }
 
     @Override
     public String toString()

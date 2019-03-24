@@ -62,6 +62,7 @@ public class OrderTest
         object2 = new TestObject();
         PropertyDescriptor propertyDescriptor = PropertyUtils.getPropertyDescriptor( object1, "value" );
         valueProperty = new Property( String.class, propertyDescriptor.getReadMethod(), propertyDescriptor.getWriteMethod() );
+        valueProperty.setName( "value" );
         orderAsc = new Order( valueProperty, Direction.ASCENDING );
         orderDesc = new Order( valueProperty, Direction.DESCENDING );
     }
@@ -107,6 +108,30 @@ public class OrderTest
         object1.setValue( "Test1" );
         object2.setValue( "Test2" );
         Assert.assertThat( orderAsc.compare( object1, object2 ), lessThan( 0 ) );
+    }
+
+    @Test
+    public void toOrderStringAsc()
+    {
+        Assert.assertEquals( "value:asc", Order.from( "asc", valueProperty ).toOrderString() );
+    }
+
+    @Test
+    public void toOrderStringDesc()
+    {
+        Assert.assertEquals( "value:desc", Order.from( "desc", valueProperty ).toOrderString() );
+    }
+
+    @Test
+    public void toOrderStringIAsc()
+    {
+        Assert.assertEquals( "value:iasc", Order.from( "iasc", valueProperty ).toOrderString() );
+    }
+
+    @Test
+    public void toOrderStringIDesc()
+    {
+        Assert.assertEquals( "value:idesc", Order.from( "idesc", valueProperty ).toOrderString() );
     }
 
     public static class TestObject
