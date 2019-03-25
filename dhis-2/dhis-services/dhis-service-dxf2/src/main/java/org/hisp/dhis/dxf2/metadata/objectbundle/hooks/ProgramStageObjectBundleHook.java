@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,85 +28,57 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.program.*;
-import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
 
 import java.util.Objects;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class ProgramObjectBundleHook extends AbstractObjectBundleHook
+public class ProgramStageObjectBundleHook
+        extends AbstractObjectBundleHook
 {
-
-    private final ProgramService programService;
-
     private final ProgramStageService programStageService;
 
-    public ProgramObjectBundleHook( ProgramService programService, ProgramStageService programStageService )
+    private final ProgramStageSectionService programStageSectionService;
+
+    public ProgramStageObjectBundleHook( ProgramStageService programStageService, ProgramStageSectionService programStageSectionService )
     {
-        this.programService = programService;
+        this.programStageSectionService = programStageSectionService;
         this.programStageService = programStageService;
     }
 
     @Override
-    public void postCreate( IdentifiableObject object, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void postCreate( T object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !ProgramStage.class.isInstance( object ) )
         {
             return;
         }
 
-        Program program = ( Program ) object;
-        syncSharingForEventProgram( program );
-        updateProgramStage( program );
+        ProgramStage programStage = ( ProgramStage ) object;
+
+        updateProgramStageSections( programStage );
     }
 
-    @Override
-    public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
+    private void updateProgramStageSections( ProgramStage programStage )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( programStage.getProgramStageSections().isEmpty() )
         {
             return;
         }
 
-        syncSharingForEventProgram( (Program) object );
-    }
-
-    private void syncSharingForEventProgram( Program program )
-    {
-        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
-            || program.getProgramStages().isEmpty() )
-        {
-            return;
-        }
-
-        ProgramStage programStage = program.getProgramStages().iterator().next();
-        AccessStringHelper.copySharing( program, programStage );
-
-        programStage.setUser( program.getUser() );
-        sessionFactory.getCurrentSession().update( programStage );
-    }
-
-    private void updateProgramStage( Program program )
-    {
-        if ( program.getProgramStages().isEmpty() )
-        {
-            return;
-        }
-
-        program.getProgramStages().forEach( ps -> {
-
-            if ( Objects.isNull( ps.getProgram() ) )
+        programStage.getProgramStageSections().forEach( pss -> {
+            if ( Objects.isNull( pss.getProgramStage() ) )
             {
-                ps.setProgram( program );
+                pss.setProgramStage( programStage );
             }
 
-            programStageService.saveProgramStage( ps );
+            programStageSectionService.saveProgramStageSection( pss );
         });
 
-        programService.updateProgram( program );
+        programStageService.saveProgramStage( programStage );
     }
 }
