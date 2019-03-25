@@ -44,6 +44,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -277,6 +278,22 @@ public class ObjectBundle implements ObjectIndexProvider
     public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
     {
         return typedIndexedObjectContainer.mergeObjectIndex( object );
+    }
+
+    /**
+     * Returns if the object bundle container contains the specified object.
+     *
+     * @param object the object that should be checked.
+     * @return <code>true</code> if this object container contains the specified object,
+     * <code>false</code> otherwise.
+     */
+    public boolean containsObject( @Nullable IdentifiableObject object )
+    {
+        if ( object == null )
+        {
+            return false;
+        }
+        return typedIndexedObjectContainer.containsObject( object );
     }
 
     private void addObject( IdentifiableObject object )

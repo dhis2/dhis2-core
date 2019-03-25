@@ -1,4 +1,4 @@
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,50 +28,39 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
-
-import javax.annotation.Nonnull;
-import java.util.IdentityHashMap;
-import java.util.Map;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 
 /**
- * Container with objects where the index of the object can be retrieved by the
- * object itself.
- *
  * @author Volker Schmidt
  */
-public class IndexedObjectContainer implements ObjectIndexProvider
+public class OptionObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    private final Map<IdentifiableObject, Integer> objectsIndexMap = new IdentityHashMap<>();
+    private static final Log log = LogFactory.getLog( OptionObjectBundleHook.class );
 
-    @Nonnull
     @Override
-    public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        return add( object );
-    }
+        if ( !( object instanceof Option ) )
+        {
+            return;
+        }
 
-    /**
-     * @param object the identifiable object that should be checked.
-     * @return <code>true</code> if the object is included in the container, <code>false</code> otherwise.
-     */
-    public boolean containsObject( @Nonnull IdentifiableObject object )
-    {
-        return objectsIndexMap.containsKey( object );
-    }
-
-    /**
-     * Adds an object to the container of indexed objects. If the object has
-     * already an index assigned, that will not be changed.
-     *
-     * @param object the object to which an index should be assigned.
-     * @return the resulting zero based index of the added object in the container.
-     */
-    @Nonnull
-    protected Integer add( @Nonnull IdentifiableObject object )
-    {
-        final Integer newIndex = objectsIndexMap.size();
-        final Integer existingIndex = objectsIndexMap.putIfAbsent( object, newIndex );
-        return ( existingIndex == null ) ? newIndex : existingIndex;
+        final Option option = (Option) object;
+        // if the bundle contains also the option set there is no need to add the option here
+        // (will be done automatically later and option set may contain raw value already)
+        if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
+        {
+            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+            if ( optionSet != null )
+            {
+                optionSet.addOption( option );
+            }
+        }
     }
 }
