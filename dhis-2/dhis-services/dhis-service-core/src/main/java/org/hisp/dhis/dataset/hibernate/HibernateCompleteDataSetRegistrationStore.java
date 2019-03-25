@@ -42,7 +42,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -118,41 +117,6 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
         return getList( getCriteriaBuilder(), newJpaParameters() );
-    }
-
-    @Override
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
-        Collection<DataSet> dataSets, Collection<OrganisationUnit> sources, Collection<Period> periods )
-    {
-        for ( Period period : periods )
-        {
-            period = periodStore.reloadPeriod( period );
-        }
-
-        return getList( getCriteriaBuilder(), newJpaParameters()
-            .addPredicate( root -> root.get( "dataSet" ).in( dataSets ) )
-            .addPredicate( root -> root.get( "source" ).in( sources ) )
-            .addPredicate( root -> root.get( "period" ).in( periods ) ) );
-    }
-
-    @Override
-    public List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
-        DataSet dataSet, Collection<OrganisationUnit> sources, Period period, Date deadline )
-    {
-        Period storedPeriod = periodStore.reloadPeriod( period );
-
-        if ( storedPeriod == null )
-        {
-            return null;
-        }
-
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) )
-            .addPredicate( root -> root.get( "source" ).in( sources ) )
-            .addPredicate( root -> builder.equal( root.get( "period" ), period ) )
-            .addPredicate( root -> builder.lessThanOrEqualTo( root.get( "date" ), deadline ) ) );
     }
 
     @Override
