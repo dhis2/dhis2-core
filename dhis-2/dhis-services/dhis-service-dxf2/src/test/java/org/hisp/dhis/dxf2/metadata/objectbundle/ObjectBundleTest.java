@@ -103,4 +103,16 @@ public class ObjectBundleTest
         Assert.assertEquals( (Integer) 1, objectBundle.mergeObjectIndex( category2 ) );
         Assert.assertEquals( (Integer) 0, objectBundle.mergeObjectIndex( category1 ) );
     }
+
+    @Test
+    public void containsObject()
+    {
+        Assert.assertTrue( objectBundle.containsObject( attribute2 ) );
+    }
+
+    @Test
+    public void containsObjectNot()
+    {
+        Assert.assertFalse( objectBundle.containsObject( new Attribute() ) );
+    }
 }

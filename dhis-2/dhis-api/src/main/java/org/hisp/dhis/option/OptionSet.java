@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,7 +87,29 @@ public class OptionSet
 
     public void addOption( Option option )
     {
-        this.options.add( option );
+        if ( option.getSortOrder() == null )
+        {
+            this.options.add( option );
+        }
+        else
+        {
+            boolean added = false;
+            final int size = this.options.size();
+            for ( int i = 0; i < size; i++ )
+            {
+                Option thisOption = this.options.get( i );
+                if ( thisOption.getSortOrder() == null || thisOption.getSortOrder() > option.getSortOrder() )
+                {
+                    this.options.add( i, option );
+                    added = true;
+                    break;
+                }
+            }
+            if ( !added )
+            {
+                this.options.add( option );
+            }
+        }
         option.setOptionSet( this );
     }
 
@@ -132,9 +154,9 @@ public class OptionSet
 
     public Map<String, String> getOptionCodePropertyMap( IdScheme idScheme )
     {
-        return options.stream().collect( Collectors.toMap( Option::getCode, o -> o.getPropertyValue( idScheme ) ) );        
+        return options.stream().collect( Collectors.toMap( Option::getCode, o -> o.getPropertyValue( idScheme ) ) );
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
