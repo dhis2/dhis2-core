@@ -65,17 +65,17 @@ public class PeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = 
-            "create table " + getTempTableName() + 
+        String sql =
+            "create table " + getTempTableName() +
             " (periodid integer not null primary key, iso varchar(15) not null, daysno integer not null, startdate date not null, enddate date not null, year integer not null";
-        
+
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
             sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
         }
-        
+
         sql += ")";
-        
+
         return sql;
     }
 
@@ -91,9 +91,9 @@ public class PeriodResourceTable
         Calendar calendar = PeriodType.getCalendar();
 
         List<Object[]> batchArgs = new ArrayList<>();
-        
+
         Set<String> uniqueIsoDates = new HashSet<>();
-        
+
         for ( Period period : objects )
         {
             if ( period != null && period.isValid() )
@@ -107,7 +107,7 @@ public class PeriodResourceTable
                     log.warn( "Duplicate ISO date for period, ignoring: " + period + ", ISO date: " + isoDate );
                     continue;
                 }
-                
+
                 List<Object> values = new ArrayList<>();
 
                 values.add( period.getId() );
@@ -116,7 +116,7 @@ public class PeriodResourceTable
                 values.add( period.getStartDate() );
                 values.add( period.getEndDate() );
                 values.add( year );
-                
+
                 for ( Period pe : PeriodType.getPeriodTypePeriods( period, calendar ) )
                 {
                     values.add( pe != null ? IdentifiableObjectUtils.getLocalPeriodIdentifier( pe, calendar ) : null );
@@ -133,9 +133,9 @@ public class PeriodResourceTable
     public List<String> getCreateIndexStatements()
     {
         String name = "in_periodstructure_iso_" + getRandomSuffix();
-        
+
         String sql = "create unique index " + name + " on " + getTempTableName() + "(iso)";
-        
+
         return Lists.newArrayList( sql );
     }
 }
