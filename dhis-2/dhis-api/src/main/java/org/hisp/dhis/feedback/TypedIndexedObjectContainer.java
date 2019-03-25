@@ -63,6 +63,16 @@ public class TypedIndexedObjectContainer implements ObjectIndexProvider
     }
 
     /**
+     * @param object the identifiable object that should be checked.
+     * @return <code>true</code> if the object is included in the container, <code>false</code> otherwise.
+     */
+    public boolean containsObject( @Nonnull IdentifiableObject object )
+    {
+        final IndexedObjectContainer indexedObjectContainer = typedIndexedObjectContainers.get( object.getClass() );
+        return indexedObjectContainer != null && indexedObjectContainer.containsObject( object );
+    }
+
+    /**
      * Adds an object to the corresponding indexed object container.
      *
      * @param identifiableObject the object that should be added to the container.
