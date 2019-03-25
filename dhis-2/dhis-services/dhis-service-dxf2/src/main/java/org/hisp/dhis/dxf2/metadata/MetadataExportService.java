@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.node.types.RootNode;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +73,8 @@ public interface MetadataExportService
     MetadataExportParams getParamsFromMap( Map<String, List<String>> parameters );
 
     /**
-     * Exports an object including a set of selected dependencies.
+     * Exports an object including a set of selected dependencies. Only a subset of the
+     * specified export parameters are used for the metadata with dependencies export.
      *
      * @param object Object to export including dependencies
      * @return Original object + selected set of dependencies
@@ -80,12 +82,14 @@ public interface MetadataExportService
     Map<Class<? extends IdentifiableObject>, Set<IdentifiableObject>> getMetadataWithDependencies( IdentifiableObject object );
 
     /**
-     * Exports an object including a set of selected dependencies as RootNode.
+     * Exports an object including a set of selected dependencies as RootNode. Only a subset
+     * of the specified export parameters are used for the metadata with dependencies export.
      *
      * @param object Object to export including dependencies
+     * @param params Parameters that affect the export.
      * @return Original object + selected set of dependencies, exported as RootNode
      */
-    RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object );
+    RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params );
 
 
 }

@@ -79,6 +79,14 @@ public interface DimensionService
     DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem );
 
     /**
+     * Gets a dimension item object from a dimension item id.
+     *
+     * @param dimensionalItemId the dimension item identifier.
+     * @return a dimensional item object.
+     */
+    DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId dimensionalItemId );
+
+    /**
      * Gets a set of dimension item objects from their ids.
      *
      * @param itemIds a set of ids of the dimension item objects to get.
