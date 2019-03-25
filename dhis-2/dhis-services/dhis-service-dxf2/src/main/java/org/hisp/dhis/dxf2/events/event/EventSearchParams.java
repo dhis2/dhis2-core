@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -40,8 +41,12 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
+
+import com.google.api.client.util.Sets;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -90,6 +95,10 @@ public class EventSearchParams
     private OrganisationUnit orgUnit;
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
+    
+    private AssignedUserSelectionMode assignedUserSelectionMode;
+    
+    private Set<String> assignedUsers;
 
     private TrackedEntityInstance trackedEntityInstance;
 
@@ -310,6 +319,26 @@ public class EventSearchParams
     public void setOrgUnitSelectionMode( OrganisationUnitSelectionMode orgUnitSelectionMode )
     {
         this.orgUnitSelectionMode = orgUnitSelectionMode;
+    }
+    
+    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    {
+        return assignedUserSelectionMode;
+    }
+
+    public void setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
+    {
+        this.assignedUserSelectionMode = assignedUserSelectionMode;
+    }
+
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
+    }
+
+    public void setAssignedUsers( Set<String> assignedUsers )
+    {
+        this.assignedUsers = assignedUsers;
     }
 
     public TrackedEntityInstance getTrackedEntityInstance()
@@ -575,5 +604,19 @@ public class EventSearchParams
     public void setSkipChangedBefore( Date skipChangedBefore )
     {
         this.skipChangedBefore = skipChangedBefore;
+    }
+
+    public void updateAssignedUserBasedOnSelectionMode( User currentUser )
+    {
+        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && currentUser != null )
+        {
+            this.assignedUsers = Collections.singleton( currentUser.getUid() );
+            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
+        }
+    }
+
+    public boolean hasAssignedUsers()
+    {
+        return AssignedUserSelectionMode.PROVIDED.equals( this.assignedUserSelectionMode ) && this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
 }
