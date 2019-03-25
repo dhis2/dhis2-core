@@ -29,11 +29,10 @@ package org.hisp.dhis.importexport.action.datavalue;
  */
 
 import com.opensymphony.xwork2.Action;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.oust.manager.SelectionTreeManager;
@@ -41,7 +40,6 @@ import org.hisp.dhis.util.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.http.HttpServletResponse;
-
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashSet;
@@ -108,7 +106,7 @@ public class ExportDataValueAction
     }
 
     private String compression;
-    
+
     public void setCompression( String compression )
     {
         this.compression = compression;
@@ -157,14 +155,15 @@ public class ExportDataValueAction
 
         DataExportParams params = dataValueSetService.getFromUrl( selectedDataSets, null, null,
             getMediumDate( startDate ), getMediumDate( endDate ), orgUnits, true, null, null, false, null, null, null, idSchemes );
-        
+
         boolean isCompression = compression == null || COMPRESSION_ZIP.equals( compression );
 
         if ( FORMAT_CSV.equals( exportFormat ) )
         {
-            ContextUtils.configureResponse( response, CONTENT_TYPE_CSV, true, getFileName( EXTENSION_CSV_ZIP ), true );
+            ContextUtils.configureResponse( response, CONTENT_TYPE_CSV, true,
+                getFileName( isCompression ? EXTENSION_CSV_ZIP : EXTENSION_CSV ), true );
 
-            dataValueSetService.writeDataValueSetCsv( params, new OutputStreamWriter( getZipOut( out, getFileName( EXTENSION_CSV ) ) ) );
+            dataValueSetService.writeDataValueSetCsv( params, new OutputStreamWriter( isCompression ? getZipOut( out, getFileName( EXTENSION_CSV ) ) : out ) );
         }
         else if ( FORMAT_JSON.equals( exportFormat ) )
         {
