@@ -3,6 +3,7 @@ services:
   db:
     restart: always
     image: mdillon/postgis:10-alpine
+    command: postgres -c max_locks_per_transaction=100
     environment:
       POSTGRES_USER: dhis
       POSTGRES_DB: dhis2
