@@ -30,10 +30,10 @@ package org.hisp.dhis.programstagefilter;
 import java.io.Serializable;
 import java.util.Set;
 
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -55,6 +55,15 @@ public class EventQueryCriteria implements Serializable
      */
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
     
+    /**
+     * Property indicating the assigned user selection mode for the event filter.
+     */
+    private AssignedUserSelectionMode assignedUserSelectionMode;
+    
+    /**
+     * Property which contains the required assigned user ids to be used in the event filter.
+     */
+    private Set<String> assignedUsers;
     /**
      * Property indicating a specific tei to be used in the event filter.
      */
@@ -249,5 +258,31 @@ public class EventQueryCriteria implements Serializable
     {
         this.fields = fields;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    {
+        return assignedUserSelectionMode;
+    }
+
+    public void setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
+    {
+        this.assignedUserSelectionMode = assignedUserSelectionMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
+    }
+
+    public void setAssignedUsers( Set<String> assignedUsers )
+    {
+        this.assignedUsers = assignedUsers;
+    }
+    
+    
 
 }
