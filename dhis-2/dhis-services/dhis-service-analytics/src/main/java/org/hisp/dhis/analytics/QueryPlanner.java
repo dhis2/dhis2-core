@@ -74,10 +74,6 @@ public interface QueryPlanner
     DataQueryParams withTableNameAndPartitions( DataQueryParams params, QueryPlannerParams plannerParams );
     
     /**
-<<<<<<< HEAD
-     * If organisation units appear as dimensions; groups the given query into 
-     * sub queries based on the level of the organisation units. Sets the organisation 
-=======
      * Sets partitions on the given query
      *
      * @param params the data query parameters
@@ -88,7 +84,6 @@ public interface QueryPlanner
     /**
      * If organisation units appear as dimensions; groups the given query into
      * sub queries based on the level of the organisation units. Sets the organisation
->>>>>>> 138f3ff5d... assign partitions to analytics query params
      * unit level on each query. If organisation units appear as filter; replaces
      * the organisation unit filter with one filter for each level. Sets the dimension
      * names and filter names respectively.
