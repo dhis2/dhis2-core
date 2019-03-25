@@ -1912,7 +1912,14 @@ public abstract class AbstractEventService
 
         sendProgramNotification( programStageInstance, importOptions );
 
-        importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.ERROR );
+
+        if ( importSummary.getConflicts().size() > 0 ) {
+            importSummary.setStatus( ImportStatus.ERROR );
+        }
+        else {
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.incrementImported();
+        }
 
         return importSummary;
     }
