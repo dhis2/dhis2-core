@@ -35,6 +35,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -79,6 +80,7 @@ public class UsersRemovalTests
     }
 
     @Test
+    @Disabled
     //jira issue 5573
     public void shouldRemoveWhenUserWasGrantedAccessToMetadata()
     {
