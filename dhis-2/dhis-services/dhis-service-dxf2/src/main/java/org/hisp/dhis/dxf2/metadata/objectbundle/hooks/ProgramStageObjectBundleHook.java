@@ -1,7 +1,7 @@
-package org.hisp.dhis.hibernate.jsonb.type;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,46 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hibernate.Session;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.program.ProgramStage;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Henning Håkonsen
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-@SuppressWarnings("rawtypes")
-public class JsonJobParametersType extends JsonBinaryType
+@Transactional
+public class ProgramStageObjectBundleHook
+    extends AbstractObjectBundleHook
 {
     @Override
-    public void setParameterValues( Properties parameters )
+    public <T extends IdentifiableObject> void postCreate( T object, ObjectBundle bundle )
     {
-        final String clazz = (String) parameters.get( "clazz" );
-
-        if ( clazz == null )
+        if ( !ProgramStage.class.isInstance( object ) )
         {
-            throw new IllegalArgumentException(
-                String.format( "Required parameter '%s' is not configured", "clazz" ) );
+            return;
         }
 
-        try
-        {
-            init( classForName( clazz ) );
-        }
-        catch ( ClassNotFoundException e )
-        {
-            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
-        }
+        ProgramStage programStage = ( ProgramStage ) object;
+
+        Session session = sessionFactory.getCurrentSession();
+
+        updateProgramStageSections( session, programStage );
     }
 
-    protected void init( Class<?> klass )
+    private void updateProgramStageSections( Session session, ProgramStage programStage )
     {
-        ObjectMapper MAPPER = new ObjectMapper();
-        MAPPER.enableDefaultTyping();
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        if ( programStage.getProgramStageSections().isEmpty() )
+        {
+            return;
+        }
 
-        returnedClass = klass;
-        reader = MAPPER.readerFor( klass );
-        writer = MAPPER.writerFor( klass );
+        programStage.getProgramStageSections().stream()
+            .forEach( pss -> {
+                if ( pss.getProgramStage() == null ) pss.setProgramStage( programStage );
+            });
+
+        session.update( programStage );
     }
 }
