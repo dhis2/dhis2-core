@@ -48,7 +48,7 @@ public class JsonBinaryPlainStringType extends JsonBinaryType
 {
 
     @Override
-    public Class returnedClass()
+    public Class<?> returnedClass()
     {
         return String.class;
     }

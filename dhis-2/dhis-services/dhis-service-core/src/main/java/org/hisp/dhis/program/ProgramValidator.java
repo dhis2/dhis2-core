@@ -419,7 +419,7 @@ public class ProgramValidator
         }
     }
 
-    private void validateSubexprssion( String subExpression, Class clazz )
+    private void validateSubexprssion( String subExpression, Class<?> clazz )
     {
         programIndicatorService.validate( subExpression, clazz, itemDescriptions );
     }

@@ -200,7 +200,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     }
 
     @Override
-    public void validate( String expression, Class clazz, Map<String, String> itemDescriptions )
+    public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
         ProgramValidator programExpressionValidator = new ProgramValidator(
             this, constantService, programStageService,
@@ -320,7 +320,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private String getDescription( String expression, Class clazz )
+    private String getDescription( String expression, Class<?> clazz )
     {
         Map<String, String> itemDescriptions = new HashMap<>();
 
@@ -336,7 +336,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
         return description;
     }
 
-    private boolean isValid( String expression, Class clazz )
+    private boolean isValid( String expression, Class<?> clazz )
     {
         if ( expression != null )
         {
