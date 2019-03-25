@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -113,7 +114,7 @@ public interface UserService
 
     /**
      * Checks if the given user represents the last user with ALL authority.
-     * 
+     *
      * @param userCredentials the user.
      * @return true if the given user represents the last user with ALL authority.
      */
@@ -121,7 +122,7 @@ public interface UserService
 
     /**
      * Checks if the given user role represents the last role with ALL authority.
-     * 
+     *
      * @param userAuthorityGroup the user role.
      * @return true if the given user role represents the last role with ALL authority.
      */
@@ -129,11 +130,23 @@ public interface UserService
 
     /**
      * Returns a list of users based on the given query parameters.
+     * The default order of last name and first name will be applied.
      *
      * @param params the user query parameters.
      * @return a List of users.
      */
     List<User> getUsers( UserQueryParams params );
+
+    /**
+     * Returns a list of users based on the given query parameters.
+     * If the specified list of orders are empty, default order of
+     * last name and first name will be applied.
+     *
+     * @param params the user query parameters.
+     * @param orders the already validated order strings (e.g. email:asc).
+     * @return a List of users.
+     */
+    List<User> getUsers( UserQueryParams params, @Nullable List<String> orders );
 
     /**
      * Returns the number of users based on the given query parameters.
@@ -360,7 +373,7 @@ public interface UserService
 
     /**
      * Returns list of active users whose credentials are expiring with in few days.
-     * 
+     *
      * @return list of active users whose credentials are expiring with in few days.
      */
     List<User> getExpiringUsers();

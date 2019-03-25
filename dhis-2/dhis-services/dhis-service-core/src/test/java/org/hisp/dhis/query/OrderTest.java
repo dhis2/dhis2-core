@@ -36,8 +36,6 @@ import org.junit.Test;
 
 import java.beans.PropertyDescriptor;
 
-import static org.hamcrest.Matchers.lessThan;
-
 /**
  * Unit tests for {@link Order}.
  *
@@ -107,7 +105,7 @@ public class OrderTest
     {
         object1.setValue( "Test1" );
         object2.setValue( "Test2" );
-        Assert.assertThat( orderAsc.compare( object1, object2 ), lessThan( 0 ) );
+        Assert.assertTrue( orderAsc.compare( object1, object2 ) < 0 );
     }
 
     @Test
