@@ -57,6 +57,7 @@ import org.jsmpp.util.TimeFormatter;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -67,11 +68,13 @@ import java.util.Set;
 
 public class SMPPClient
 {
-    private static final Log LOGGER = LogFactory.getLog( SMPPClient.class );
+    private static final Log log = LogFactory.getLog( SMPPClient.class );
+
     private static final String SOURCE = "DHIS2";
-    private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
     private static final String SENDING_FAILED = "SMS sending failed";
     private static final String SESSION_ERROR = "SMPP Session cannot be null";
+
+    private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
 
     public OutboundMessageResponse send( String text, Set<String> recipients, SMPPGatewayConfig config )
     {
@@ -95,7 +98,7 @@ public class SMPPClient
 
         if ( session == null )
         {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         List<OutboundMessageResponse> responses = new ArrayList<>();
@@ -126,38 +129,38 @@ public class SMPPClient
                 new RegisteredDelivery( SMSCDeliveryReceipt.SUCCESS_FAILURE ), ReplaceIfPresentFlag.DEFAULT, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, config.isCompressed() ), (byte) 0,
                 text.getBytes() );
 
-            LOGGER.info( String.format( "Messages submitted, result is %s", result.getMessageId() ) );
+            log.info( String.format( "Messages submitted, result is %s", result.getMessageId() ) );
         }
         catch ( PDUException e )
         {
-            LOGGER.error( "Invalid PDU parameter", e );
+            log.error( "Invalid PDU parameter", e );
         }
         catch ( ResponseTimeoutException e )
         {
-            LOGGER.error( "Response timeout", e );
+            log.error( "Response timeout", e );
         }
         catch ( InvalidResponseException e )
         {
-            LOGGER.error( "Receive invalid response", e );
+            log.error( "Receive invalid response", e );
         }
         catch ( NegativeResponseException e )
         {
-            LOGGER.error( "Receive negative response", e );
+            log.error( "Receive negative response", e );
         }
         catch ( IOException e )
         {
-            LOGGER.error( "I/O error", e );
+            log.error( "I/O error", e );
         }
         catch ( Exception e )
         {
-            LOGGER.error( "Exception in submitting SMPP request", e );
+            log.error( "Exception in submitting SMPP request", e );
         }
 
         if ( result != null )
         {
             if ( result.getUnsuccessDeliveries() == null || result.getUnsuccessDeliveries().length == 0 )
             {
-                LOGGER.info( "Message pushed to broker successfully" );
+                log.info( "Message pushed to broker successfully" );
                 response.setOk( true );
                 response.setDescription( result.getMessageId() );
                 response.setResponseObject( GatewayResponse.RESULT_CODE_0 );
@@ -166,7 +169,7 @@ public class SMPPClient
             {
                 String failureCause = DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId();
 
-                LOGGER.error( failureCause );
+                log.error( failureCause );
                 response.setDescription( failureCause );
                 response.setResponseObject( GatewayResponse.FAILED );
             }
@@ -190,18 +193,16 @@ public class SMPPClient
 
     private SMPPSession start( SMPPGatewayConfig config )
     {
-        SMPPSession session;
-
         try
         {
-            session = new SMPPSession( config.getUrlTemplate(), config.getPort(), getBindParameters( config ) );
+            SMPPSession session = new SMPPSession( config.getUrlTemplate(), config.getPort(), getBindParameters( config ) );
 
-            LOGGER.info( "SMPP client connected SMSC" );
+            log.info( "SMPP client connected SMSC" );
             return session;
         }
         catch ( IOException e )
         {
-            LOGGER.error( "I/O error occured", e );
+            log.error( "I/O error occured", e );
         }
 
         return null;
@@ -209,7 +210,7 @@ public class SMPPClient
 
     private BindParameter getBindParameters( SMPPGatewayConfig config )
     {
-       return new BindParameter( config.getBindType(), config.getUsername(), config.getValuePassword(), config.getSystemType(),
+       return new BindParameter( config.getBindType(), config.getUsername(), config.getPassword(), config.getSystemType(),
             config.getTypeOfNumber(), config.getNumberPlanIndicator(), null );
     }
 

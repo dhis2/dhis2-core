@@ -41,7 +41,7 @@ import java.util.List;
  */
 public class SMSSendingCallback
 {
-    private Log log = LogFactory.getLog( SMSSendingCallback.class );
+    private static final Log log = LogFactory.getLog( SMSSendingCallback.class );
 
     public ListenableFutureCallback<OutboundMessageResponse> getCallBack()
     {
@@ -59,6 +59,10 @@ public class SMSSendingCallback
                 if ( result.isOk() )
                 {
                     log.info( "Message sending successful: " + result.getDescription() );
+                }
+                else
+                {
+                    log.error( "Message sending failed: " + result.getDescription() );
                 }
             }
         };

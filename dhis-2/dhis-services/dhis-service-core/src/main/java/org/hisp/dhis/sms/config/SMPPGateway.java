@@ -49,9 +49,9 @@ public class SMPPGateway extends SmsGateway
     }
 
     @Override
-    protected SmsGatewayConfig getGatewayConfigType()
+    public boolean accept( SmsGatewayConfig gatewayConfig )
     {
-        return new SMPPGatewayConfig();
+        return gatewayConfig instanceof SMPPGatewayConfig;
     }
 
     @Override

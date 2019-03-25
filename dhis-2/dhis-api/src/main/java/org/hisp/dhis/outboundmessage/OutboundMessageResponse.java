@@ -51,17 +51,14 @@ public class OutboundMessageResponse
 
     public OutboundMessageResponse()
     {
-        this.ok = false;
-        this.async = false;
     }
 
     public OutboundMessageResponse( boolean async )
     {
         this.async = async;
-        this.ok = false;
     }
 
-    public OutboundMessageResponse(String description, Enum<?> response, boolean ok )
+    public OutboundMessageResponse( String description, Enum<?> response, boolean ok )
     {
         this.ok = ok;
         this.responseObject = response;

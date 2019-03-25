@@ -53,17 +53,17 @@ public class BulkSmsHttpGateway
     // -------------------------------------------------------------------------
 
     @Override
+    public boolean accept( SmsGatewayConfig gatewayConfig )
+    {
+        return gatewayConfig instanceof BulkSmsGatewayConfig;
+    }
+
+    @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
         return smsBatch.getMessages().stream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
-    }
-
-    @Override
-    protected SmsGatewayConfig getGatewayConfigType()
-    {
-        return new BulkSmsGatewayConfig();
     }
 
     @Override
@@ -85,7 +85,7 @@ public class BulkSmsHttpGateway
 
     private HttpHeaders getRequestHeaderParameters( BulkSmsGatewayConfig bulkSmsGatewayConfig )
     {
-        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" + bulkSmsGatewayConfig.getValuePassword().trim();
+        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" + bulkSmsGatewayConfig.getPassword().trim();
         String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
 
         HttpHeaders headers = new HttpHeaders();

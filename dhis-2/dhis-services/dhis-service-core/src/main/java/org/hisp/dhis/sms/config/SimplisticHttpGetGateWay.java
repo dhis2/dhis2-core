@@ -92,18 +92,18 @@ public class SimplisticHttpGetGateWay
     // -------------------------------------------------------------------------
 
     @Override
+    public boolean accept( SmsGatewayConfig gatewayConfig )
+    {
+        return gatewayConfig instanceof GenericHttpGatewayConfig;
+    }
+
+    @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
             .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
             .collect( Collectors.toList() );
-    }
-
-    @Override
-    protected SmsGatewayConfig getGatewayConfigType()
-    {
-        return new GenericHttpGatewayConfig();
     }
 
     @Override

@@ -103,17 +103,13 @@ public abstract class SmsGatewayConfig
         this.uid = uid;
     }
 
-    public String getValuePassword()
+    @JsonIgnore
+    public String getPassword()
     {
         return password;
     }
 
     @JsonProperty
-    public String getPassword()
-    {
-        return "";
-    }
-
     public void setPassword( String password )
     {
         this.password = password;
