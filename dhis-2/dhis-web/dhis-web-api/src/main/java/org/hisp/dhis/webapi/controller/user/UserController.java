@@ -85,6 +85,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -160,8 +161,10 @@ public class UserController
             params.setMax( pager.getPageSize() );
         }
 
-        List<User> users = userService.getUsers( params );
+        List<User> users = userService.getUsers( params,
+            ( orders == null ) ? null : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() ) );
 
+        // keep the memory query on the result
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
