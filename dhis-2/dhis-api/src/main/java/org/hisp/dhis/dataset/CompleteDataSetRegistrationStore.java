@@ -32,7 +32,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -84,31 +83,6 @@ public interface CompleteDataSetRegistrationStore
      * @return a list of CompleteDataSetRegistrations.
      */
     List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations();
-
-    /**
-     * Retrieves a list of CompleteDataSetRegistrations for the given Collection
-     * of DataSets, Sources and Periods.
-     *
-     * @param dataSets the Collection of DataSets.
-     * @param sources the Collection of Sources.
-     * @param periods the Collection of Periods.
-     * @return a list of CompleteDataSetRegistrations.
-     */
-    List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
-        Collection<DataSet> dataSets, Collection<OrganisationUnit> sources, Collection<Period> periods );
-
-    /**
-     * Retrieves a list of CompleteDataSetRegistrations for the given DataSet,
-     * Collection of Sources, Period and Date.
-     *
-     * @param dataSet the DataSet.
-     * @param sources the Collection of Sources.
-     * @param period the Period.
-     * @param deadline the Date that the registration must be made before in order to be defined as "on time"
-     * @return a list of CompleteDataSetRegistrations.
-     */
-    List<CompleteDataSetRegistration> getCompleteDataSetRegistrations(
-        DataSet dataSet, Collection<OrganisationUnit> sources, Period period, Date deadline );
 
     /**
      * Deletes the CompleteDataSetRegistrations associated with the given DataSet.
