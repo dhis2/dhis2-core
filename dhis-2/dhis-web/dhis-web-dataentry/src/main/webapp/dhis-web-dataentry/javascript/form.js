@@ -1072,13 +1072,11 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
 dhis2.de.fetchDataSets = function( ou )
 {
     var def = $.Deferred();
+    var fieldsParam = encodeURIComponent('id,dataSets[id],children[id,dataSets[id]]');
 
     $.ajax({
         type: 'GET',
-        url: '../api/organisationUnits/' + ou,
-        data: {
-            fields: encodeURIComponent('id,dataSets[id],children[id,dataSets[id]]')
-        }
+        url: '../api/organisationUnits/' + ou + '?fields=' + fieldsParam
     }).done(function(data) {
         dhis2.de._updateDataSets(data);
 

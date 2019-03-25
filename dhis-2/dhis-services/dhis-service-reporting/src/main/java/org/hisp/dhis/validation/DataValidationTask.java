@@ -463,7 +463,7 @@ public class DataValidationTask
                 values.putAll( nonAocValues );
             }
 
-            Double value = expressionService.getExpressionValue( expression, values,
+            Double value = expressionService.getExpressionValueRegEx( expression, values,
                 context.getConstantMap(), null, period.getDaysInPeriod() );
 
             if ( MathUtils.isValidDouble( value ) )

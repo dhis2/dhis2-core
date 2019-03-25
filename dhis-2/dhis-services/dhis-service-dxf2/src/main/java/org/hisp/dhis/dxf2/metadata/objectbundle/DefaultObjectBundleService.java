@@ -241,7 +241,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         {
             IdentifiableObject object = objects.get( idx );
 
-            ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+            ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 
@@ -340,7 +340,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             IdentifiableObject object = objects.get( idx );
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
-            ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+            ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 
@@ -444,7 +444,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         for ( int idx = 0; idx < persistedObjects.size(); idx++ )
         {
             IdentifiableObject object = persistedObjects.get( idx );
-            ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+            ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 
