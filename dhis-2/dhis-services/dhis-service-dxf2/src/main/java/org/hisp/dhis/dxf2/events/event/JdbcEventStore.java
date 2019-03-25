@@ -793,6 +793,11 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
         }
+        
+        if ( params.hasAssignedUsers() )
+        {
+            sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
+        }
 
         if ( !params.isIncludeDeleted() )
         {
@@ -825,7 +830,8 @@ public class JdbcEventStore
             + "inner join program p on p.programid = pi.programid "
             + "inner join programstage ps on ps.programstageid = psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-            + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid ";
+            + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
+            + "left join users au on (psi.assigneduserid=au.userid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -980,6 +986,11 @@ public class JdbcEventStore
         if ( params.getEvents() != null && !params.getEvents().isEmpty() && !params.hasFilters() )
         {
             sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
+        }
+        
+        if ( params.hasAssignedUsers() )
+        {
+            sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
         }
 
         return sql;

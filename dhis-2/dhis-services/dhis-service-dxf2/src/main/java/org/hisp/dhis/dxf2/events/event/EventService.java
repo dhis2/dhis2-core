@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -67,8 +68,8 @@ public interface EventService
         Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
         Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes,
         Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
-        List<String> gridOrders, boolean includeAttributes, Set<String> events, Set<String> filters,
-        Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
+        List<String> gridOrders, boolean includeAttributes, Set<String> events, AssignedUserSelectionMode assignedUserMode, 
+        Set<String> assignedUserIds, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
