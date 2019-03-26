@@ -61,7 +61,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
 {
     private static final Log log = LogFactory.getLog( NodePropertyIntrospectorService.class );
 
-    public Property setPropertyIfCollection( Property property, Field field, Class klass )
+    public Property setPropertyIfCollection( Property property, Field field, Class<?> klass )
     {
         property.setCollection( true );
         property.setCollectionName( field.getName() );

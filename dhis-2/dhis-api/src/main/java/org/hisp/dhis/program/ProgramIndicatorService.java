@@ -158,7 +158,7 @@ public interface ProgramIndicatorService
      * @param clazz the class to check the expression's value against.
      * @param itemDescriptions map of item descriptions (to add to).
      */
-    void validate( String expression, Class clazz, Map<String, String> itemDescriptions );
+    void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions );
 
     /**
      * Gets the program indicator expression as an analytics SQL clause.
