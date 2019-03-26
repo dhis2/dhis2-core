@@ -50,7 +50,7 @@ public class FinancialOctoberPeriodType
     public static final String NAME = "FinancialOct";
 
     @Override
-    protected int getBaseMonth()
+    public int getBaseMonth()
     {
         return Calendar.OCTOBER;
     }
