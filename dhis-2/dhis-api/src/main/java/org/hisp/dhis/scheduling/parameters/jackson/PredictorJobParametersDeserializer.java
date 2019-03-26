@@ -1,4 +1,4 @@
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,60 +28,19 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.jackson.PushAnalysisJobParametersDeserializer;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 
-import java.util.Optional;
-
-/**
- * @author Henning Håkonsen
- */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-@JsonDeserialize( using = PushAnalysisJobParametersDeserializer.class )
-public class PushAnalysisJobParameters
-    implements JobParameters
+public class PredictorJobParametersDeserializer extends AbstractJobParametersDeserializer<PredictorJobParameters>
 {
-    private static final long serialVersionUID = -1848833906375595488L;
-
-    private String pushAnalysis;
-
-    public PushAnalysisJobParameters()
+    public PredictorJobParametersDeserializer()
     {
+        super( PredictorJobParameters.class, CustomJobParameters.class );
     }
 
-    public PushAnalysisJobParameters( String pushAnalysis )
+    @JsonDeserialize
+    public static class CustomJobParameters extends PredictorJobParameters
     {
-        this.pushAnalysis = pushAnalysis;
-    }
-
-    @JsonProperty( required = true )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPushAnalysis()
-    {
-        return pushAnalysis;
-    }
-
-    public void setPushAnalysis( String pushAnalysis )
-    {
-        this.pushAnalysis = pushAnalysis;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( pushAnalysis == null )
-        {
-            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ));
-        }
-
-        return Optional.empty();
     }
 
 }
