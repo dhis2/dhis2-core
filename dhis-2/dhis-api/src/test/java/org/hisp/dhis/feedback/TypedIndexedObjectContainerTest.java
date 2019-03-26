@@ -110,4 +110,40 @@ public class TypedIndexedObjectContainerTest
         Assert.assertEquals( (Integer) 0, container.mergeObjectIndex( category1 ) );
         Assert.assertEquals( (Integer) 1, container.mergeObjectIndex( category2 ) );
     }
+
+    @Test
+    public void containsObjectNoType()
+    {
+        final Category category1 = new Category();
+        final Category category2 = new Category();
+
+        container.add( category1 );
+        container.add( category2 );
+
+        Assert.assertFalse( container.containsObject( new Attribute() ) );
+    }
+
+    @Test
+    public void containsObjectNot()
+    {
+        final Category category1 = new Category();
+        final Category category2 = new Category();
+
+        container.add( category1 );
+        container.add( category2 );
+
+        Assert.assertFalse( container.containsObject( new Category() ) );
+    }
+
+    @Test
+    public void containsObject()
+    {
+        final Category category1 = new Category();
+        final Category category2 = new Category();
+
+        container.add( category1 );
+        container.add( category2 );
+
+        Assert.assertTrue( container.containsObject( category1 ) );
+    }
 }

@@ -263,7 +263,7 @@ public abstract class AbstractJdbcTableManager
      * Populates the given analytics table.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param table the analytics table to populate.
+     * @param partition the {@link AnalyticsTablePartition} to populate.
      */
     protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
 

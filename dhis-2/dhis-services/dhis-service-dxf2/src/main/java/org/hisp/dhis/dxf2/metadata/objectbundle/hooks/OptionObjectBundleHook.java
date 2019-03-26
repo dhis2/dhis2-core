@@ -1,7 +1,7 @@
-package org.hisp.dhis.hibernate.jsonb.type;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,39 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 
 /**
- * @author Henning Håkonsen
+ * @author Volker Schmidt
  */
-@SuppressWarnings("rawtypes")
-public class JsonJobParametersType extends JsonBinaryType
+public class OptionObjectBundleHook
+    extends AbstractObjectBundleHook
 {
+    private static final Log log = LogFactory.getLog( OptionObjectBundleHook.class );
+
     @Override
-    public void setParameterValues( Properties parameters )
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        final String clazz = (String) parameters.get( "clazz" );
-
-        if ( clazz == null )
+        if ( !( object instanceof Option ) )
         {
-            throw new IllegalArgumentException(
-                String.format( "Required parameter '%s' is not configured", "clazz" ) );
+            return;
         }
 
-        try
+        final Option option = (Option) object;
+        // if the bundle contains also the option set there is no need to add the option here
+        // (will be done automatically later and option set may contain raw value already)
+        if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
         {
-            init( classForName( clazz ) );
+            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+            if ( optionSet != null )
+            {
+                optionSet.addOption( option );
+            }
         }
-        catch ( ClassNotFoundException e )
-        {
-            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
-        }
-    }
-
-    protected void init( Class<?> klass )
-    {
-        ObjectMapper MAPPER = new ObjectMapper();
-        MAPPER.enableDefaultTyping();
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-
-        returnedClass = klass;
-        reader = MAPPER.readerFor( klass );
-        writer = MAPPER.writerFor( klass );
     }
 }

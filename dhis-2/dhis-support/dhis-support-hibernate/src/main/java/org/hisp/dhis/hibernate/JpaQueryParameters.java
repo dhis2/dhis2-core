@@ -68,7 +68,7 @@ public class JpaQueryParameters<T> implements Serializable
 
     private List<Function<Root<T>, Expression<Long>>> countExpressions = new ArrayList<>();
 
-    protected Class clazz;
+    protected Class<?> clazz;
 
     private boolean withSharing = false;
 
