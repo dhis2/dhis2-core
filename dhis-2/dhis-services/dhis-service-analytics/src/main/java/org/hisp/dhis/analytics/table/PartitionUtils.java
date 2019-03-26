@@ -199,8 +199,11 @@ public class PartitionUtils
     {
         Set<Integer> years = new HashSet<>();
 
-        int startYear = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
-        int endYear = PeriodType.getCalendar().fromIso( period.getEndDate() ).getYear();
+        //int startYear = PeriodType.getCalendar().fromIso( period.getStartDate() ).getYear();
+        //int endYear = PeriodType.getCalendar().fromIso( period.getEndDate() ).getYear();
+        
+        int startYear = DateTimeUnit.fromJdkDate( period.getStartDate() ).getYear();
+        int endYear = DateTimeUnit.fromJdkDate( period.getEndDate() ).getYear();
 
         while ( startYear <= endYear )
         {
