@@ -723,6 +723,15 @@ public abstract class PeriodType
         return getDateWithOffset( dateTimeUnit, offset, calendar ).toJdkDate();
     }
 
+    /**
+     * Returns true if the period spans more than one calendar year.
+     * @return true if the period spans more than one calendar year.
+     */
+    public boolean spansMultipleCalendarYears()
+    {
+        return false;
+    }
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
