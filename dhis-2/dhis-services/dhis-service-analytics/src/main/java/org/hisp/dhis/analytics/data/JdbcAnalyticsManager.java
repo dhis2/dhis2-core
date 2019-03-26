@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -204,7 +205,21 @@ public class JdbcAnalyticsManager
                 {
                     String[] keyCopy = keyArray.clone();
                     keyCopy[periodIndex] = ((Period) period).getIsoDate();
-                    dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                    String replacementKey = TextUtils.toString( keyCopy, DIMENSION_SEP );
+
+                    if ( dataValueMap.containsKey( replacementKey )
+                            && ((Period) period).getPeriodType().spansMultipleCalendarYears() )
+                    {
+                        Object weightedAverage = AnalyticsUtils.calculateYearlyWeightedAverage(
+                                (Double) dataValueMap.get( replacementKey ), (Double) value,
+                                AnalyticsUtils.getBaseMonth( ((Period) period).getPeriodType() ) );
+
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), weightedAverage );
+                    }
+                    else
+                    {
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                    }
                 }
 
                 dataValueMap.remove( key );
