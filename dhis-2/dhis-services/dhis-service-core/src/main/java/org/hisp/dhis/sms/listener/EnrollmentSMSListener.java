@@ -89,12 +89,12 @@ public class EnrollmentSMSListener extends NewSMSListener {
             // TODO: Should we throw an error here or continue as is?
         }
 
-        entityInstance.setTrackedEntityAttributeValues(attributeValues);
-
         if (existsOnServer) {
+            entityInstance.setTrackedEntityAttributeValues(attributeValues);
             teiService.updateTrackedEntityInstance(entityInstance);
         } else {
-            teiService.addTrackedEntityInstance(entityInstance);
+        	teiService.createTrackedEntityInstance( entityInstance,
+                    null, null, attributeValues );
         }
 
         TrackedEntityInstance tei = teiService.getTrackedEntityInstance(teiUID);
