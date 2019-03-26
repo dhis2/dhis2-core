@@ -45,6 +45,10 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.FinancialAprilPeriodType;
+import org.hisp.dhis.period.FinancialJulyPeriodType;
+import org.hisp.dhis.period.FinancialOctoberPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -526,7 +530,26 @@ public class AnalyticsUtilsTest
         de.setDimensionItemType( DimensionItemType.DATA_ELEMENT );
         de.setValueType( ValueType.TEXT );
                 
-        assertEquals( new Integer( 5 ), AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
+        assertEquals(5, AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
         assertEquals( "Male", AnalyticsUtils.getIntegerOrValue( "Male", de ) );
+    }
+
+    @Test
+    public void testCalculateYearlyWeightedAverage()
+    {
+        double avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, 20D, 9D );
+        assertEquals( 17.5, avg, 0 );
+
+        avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, -20D, 9D );
+        assertEquals( -12.5, avg, 0);
+    }
+
+    @Test
+    public void testGetBaseMonth()
+    {
+        assertEquals( 3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0 );
+        assertEquals( 6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0 );
+        assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType() ), 0 );
+        assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
     }
 }
