@@ -57,12 +57,6 @@ public class SmsConfiguration
 
     public SmsConfiguration()
     {
-        this.gateways = new ArrayList<>();
-    }
-
-    public SmsConfiguration( boolean enabled )
-    {
-        this.gateways = new ArrayList<>();
     }
 
     // -------------------------------------------------------------------------
@@ -73,7 +67,8 @@ public class SmsConfiguration
     @XmlElementWrapper( name = "gateways" )
     @XmlElements( { @XmlElement( name = "bulksms", type = BulkSmsGatewayConfig.class ),
         @XmlElement( name = "clickatell", type = ClickatellGatewayConfig.class ),
-        @XmlElement( name = "http", type = GenericHttpGatewayConfig.class ) })
+        @XmlElement( name = "http", type = GenericHttpGatewayConfig.class ),
+        @XmlElement( name = "smpp", type = SMPPGatewayConfig.class ) } )
     public List<SmsGatewayConfig> getGateways()
     {
         return gateways;

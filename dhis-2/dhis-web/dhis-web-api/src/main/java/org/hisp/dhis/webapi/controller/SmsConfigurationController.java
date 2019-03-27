@@ -65,14 +65,7 @@ public class SmsConfigurationController
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody SmsConfiguration getSmsConfiguration()
     {
-        SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
-
-        if ( smsConfiguration == null )
-        {
-            smsConfiguration = new SmsConfiguration();
-        }
-
-        return smsConfiguration;
+        return smsConfigurationManager.getSmsConfiguration();
     }
 
     @RequestMapping( value = "test", method = RequestMethod.GET )

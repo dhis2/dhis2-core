@@ -28,10 +28,14 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.IOException;
 
 /**
  * Manages the {@link SmsConfiguration} for the instance.
@@ -42,28 +46,40 @@ public class DefaultSmsConfigurationManager
     @Autowired
     private SystemSettingManager systemSettingManager;
 
+    @Autowired
+    private RenderService renderService;
+
     @Override
     public SmsConfiguration getSmsConfiguration()
     {
-        return (SmsConfiguration) systemSettingManager.getSystemSetting( SettingKey.SMS_CONFIG );
+        String jsonConfig =  (String) systemSettingManager.getSystemSetting( SettingKey.SMS_CONFIG );
+
+        try
+        {
+            return renderService.fromJson( jsonConfig, SmsConfiguration.class );
+        }
+        catch ( IOException e )
+        {
+            DebugUtils.getStackTrace( e );
+        }
+
+        return new SmsConfiguration();
     }
 
     @Override
     public void updateSmsConfiguration( SmsConfiguration config )
     {
-        systemSettingManager.saveSystemSetting( SettingKey.SMS_CONFIG, config );
+        String jsonConfig = renderService.toJsonAsString( config );
+
+        systemSettingManager.saveSystemSetting( SettingKey.SMS_CONFIG, jsonConfig );
     }
 
     @Override
     public SmsGatewayConfig checkInstanceOfGateway( Class<?> clazz )
     {
-        if ( getSmsConfiguration() == null )
-        {
-            SmsConfiguration smsConfig = new SmsConfiguration( true );
-            updateSmsConfiguration( smsConfig );
-        }
+        SmsConfiguration configuration = getSmsConfiguration();
 
-        for ( SmsGatewayConfig gateway : getSmsConfiguration().getGateways() )
+        for ( SmsGatewayConfig gateway : configuration.getGateways() )
         {
             if ( gateway.getClass().equals( clazz ) )
             {

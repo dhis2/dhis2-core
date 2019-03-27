@@ -1,5 +1,6 @@
 package org.hisp.dhis.sms.config;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /*
@@ -38,9 +39,25 @@ public class ClickatellGatewayConfig
 {
     private static final long serialVersionUID = -4286107769356591957L;
 
+    public static final String TYPE_NAME = "clickatell";
+
     private String authToken;
 
-    @JsonProperty( value = "authtoken" )
+    // For backward compatibility
+    public ClickatellGatewayConfig()
+    {
+    }
+
+    @JsonCreator
+    public ClickatellGatewayConfig( @JsonProperty( "name" ) String name, @JsonProperty( value = "username", defaultValue = "" ) String username,
+                                    @JsonProperty( value = "password", defaultValue = "" ) String password,
+                                    @JsonProperty( "urlTemplate" ) String urlTemplate, @JsonProperty( value = "authToken" ) String authToken )
+    {
+        super( name, username, password, false, urlTemplate );
+        this.authToken = authToken;
+    }
+
+    @JsonProperty
     public String getAuthToken()
     {
         return authToken;

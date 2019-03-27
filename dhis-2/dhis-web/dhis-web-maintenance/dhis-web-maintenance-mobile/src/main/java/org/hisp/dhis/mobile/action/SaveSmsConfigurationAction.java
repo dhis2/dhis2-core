@@ -57,11 +57,6 @@ public class SaveSmsConfigurationAction
     {
         SmsConfiguration smsConfig = smsConfigurationManager.getSmsConfiguration();
 
-        if ( smsConfig == null )
-        {
-            smsConfig = new SmsConfiguration( true );
-        }
-
         smsConfigurationManager.updateSmsConfiguration( smsConfig );
 
         return SUCCESS;

@@ -30,6 +30,7 @@ package org.hisp.dhis.sms.config;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
 
@@ -37,6 +38,8 @@ public class GenericHttpGatewayConfig
     extends SmsGatewayConfig
 {
     private static final long serialVersionUID = 6340853488475760213L;
+
+    public static final String TYPE_NAME = "http";
 
     private String messageParameter;
 
@@ -46,7 +49,25 @@ public class GenericHttpGatewayConfig
     
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
 
-    @JsonProperty( value = "parameters" )
+    // For backward compatibility
+    public GenericHttpGatewayConfig()
+    {
+        super();
+    }
+
+    @JsonCreator
+    public GenericHttpGatewayConfig( @JsonProperty( "name" ) String name, @JsonProperty( "username" ) String username, @JsonProperty( value = "password", required = true ) String password,
+                                     @JsonProperty( "urlTemplate" ) String urlTemplate, @JsonProperty( "messageParameter" ) String messageParameter,
+                                     @JsonProperty( "recipientParameter" ) String recipientParameter, @JsonProperty( "useGet" ) boolean useGet, @JsonProperty( "parameters" ) List<GenericGatewayParameter> parameters )
+    {
+        super( name, username, password, false, urlTemplate );
+        this.messageParameter = messageParameter;
+        this.recipientParameter = recipientParameter;
+        this.useGet = useGet;
+        this.parameters = parameters;
+    }
+
+    @JsonProperty
     public List<GenericGatewayParameter> getParameters()
     {
         return parameters;
@@ -57,7 +78,7 @@ public class GenericHttpGatewayConfig
         this.parameters = parameters;
     }
 
-    @JsonProperty( value = "messageParameter" )
+    @JsonProperty
     public String getMessageParameter()
     {
         return messageParameter;
@@ -68,7 +89,7 @@ public class GenericHttpGatewayConfig
         this.messageParameter = messageParameter;
     }
 
-    @JsonProperty( value = "recipientParameter" )
+    @JsonProperty
     public String getRecipientParameter()
     {
         return recipientParameter;
@@ -79,7 +100,7 @@ public class GenericHttpGatewayConfig
         this.recipientParameter = recipientParameter;
     }
 
-    @JsonProperty( value = "useGet" )
+    @JsonProperty
     public boolean isUseGet()
     {
         return useGet;
