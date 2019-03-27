@@ -6,6 +6,7 @@ import org.hisp.dhis.scheduling.JobParameters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -94,8 +95,8 @@ public class SmsJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
-        return null;
+        return Optional.empty();
     }
 }

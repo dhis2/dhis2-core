@@ -33,6 +33,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
+import java.util.Optional;
+
 /**
  * @author Henning Håkonsen
  */
@@ -59,13 +61,13 @@ public class PushAnalysisJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
         if ( pushAnalysis == null )
         {
-            return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ));
         }
 
-        return null;
+        return Optional.empty();
     }
 }

@@ -580,12 +580,6 @@ public class UserController
      */
     private ImportReport createUser( User user, User currentUser ) throws Exception
     {
-        user.getUserCredentials().getCogsDimensionConstraints().addAll(
-            currentUser.getUserCredentials().getCogsDimensionConstraints() );
-
-        user.getUserCredentials().getCatDimensionConstraints().addAll(
-            currentUser.getUserCredentials().getCatDimensionConstraints() );
-
         MetadataImportParams importParams = new MetadataImportParams()
             .setImportReportMode( ImportReportMode.FULL )
             .setImportStrategy( ImportStrategy.CREATE )
