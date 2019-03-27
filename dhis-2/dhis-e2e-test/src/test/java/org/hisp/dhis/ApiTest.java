@@ -66,7 +66,7 @@ public abstract class ApiTest
         RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
 
         requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
+        requestSpecification.addFilter( new SessionFilter() );
 
         return requestSpecification.build();
     }
