@@ -627,7 +627,7 @@ public class JdbcEventStore
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join users auc on (psi.assigneduserid=au.userid) "
+            + "left join users auc on (psi.assigneduserid=auc.userid) "
             + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
