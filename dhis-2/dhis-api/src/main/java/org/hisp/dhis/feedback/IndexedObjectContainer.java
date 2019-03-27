@@ -52,6 +52,15 @@ public class IndexedObjectContainer implements ObjectIndexProvider
     }
 
     /**
+     * @param object the identifiable object that should be checked.
+     * @return <code>true</code> if the object is included in the container, <code>false</code> otherwise.
+     */
+    public boolean containsObject( @Nonnull IdentifiableObject object )
+    {
+        return objectsIndexMap.containsKey( object );
+    }
+
+    /**
      * Adds an object to the container of indexed objects. If the object has
      * already an index assigned, that will not be changed.
      *

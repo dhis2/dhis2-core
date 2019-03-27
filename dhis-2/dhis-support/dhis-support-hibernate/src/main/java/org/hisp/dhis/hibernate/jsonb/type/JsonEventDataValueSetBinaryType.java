@@ -52,7 +52,7 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType
     }
 
     @Override
-    protected void init( Class klass )
+    protected void init( Class<?> klass )
     {
         returnedClass = klass;
         reader = MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
