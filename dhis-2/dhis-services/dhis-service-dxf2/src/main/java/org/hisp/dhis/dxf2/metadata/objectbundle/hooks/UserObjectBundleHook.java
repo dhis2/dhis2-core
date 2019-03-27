@@ -61,7 +61,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
     private FileResourceService fileResourceService;
 
     @Autowired
-    CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
@@ -92,11 +92,14 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
         User currentUser = currentUserService.getCurrentUser();
 
-        user.getUserCredentials().getCogsDimensionConstraints().addAll(
-            currentUser.getUserCredentials().getCogsDimensionConstraints() );
+        if ( currentUser != null )
+        {
+            user.getUserCredentials().getCogsDimensionConstraints().addAll(
+                currentUser.getUserCredentials().getCogsDimensionConstraints() );
 
-        user.getUserCredentials().getCatDimensionConstraints().addAll(
-            currentUser.getUserCredentials().getCatDimensionConstraints() );
+            user.getUserCredentials().getCatDimensionConstraints().addAll(
+                currentUser.getUserCredentials().getCatDimensionConstraints() );
+        }
 
         bundle.putExtras( user, "uc", user.getUserCredentials() );
         user.setUserCredentials( null );
