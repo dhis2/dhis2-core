@@ -832,7 +832,8 @@ public class JdbcEventStore
             + "inner join programstage ps on ps.programstageid = psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
             + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
-            + "left join users au on (psi.assigneduserid=au.userid) ";
+            + "left join users auc on (psi.assigneduserid=auc.userid) "
+            + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
