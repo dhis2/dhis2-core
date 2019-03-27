@@ -10,6 +10,7 @@ services:
       POSTGRES_PASSOWRD: dhis
 
   e2e-test-web:
+    image: dhis2/dhis2-core:dev-latest
     build:
       dockerfile: Dockerfile
       context: ../..
