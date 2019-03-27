@@ -628,7 +628,7 @@ public class JdbcEventStore
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
             + "left join users auc on (psi.assigneduserid=au.userid) "
-            + "left join userinfo ua on (auc.userid=au.userinfoid) ";
+            + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
