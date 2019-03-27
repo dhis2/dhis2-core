@@ -43,8 +43,6 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
-import com.google.api.client.util.Sets;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -617,6 +615,6 @@ public class EventSearchParams
 
     public boolean hasAssignedUsers()
     {
-        return AssignedUserSelectionMode.PROVIDED.equals( this.assignedUserSelectionMode ) && this.assignedUsers != null && !this.assignedUsers.isEmpty();
+        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
 }
