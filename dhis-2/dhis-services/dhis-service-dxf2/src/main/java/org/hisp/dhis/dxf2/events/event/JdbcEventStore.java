@@ -591,7 +591,7 @@ public class JdbcEventStore
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
             + "psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
-            + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, au.username as user_assigned_username, "
+            + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, auc.username as user_assigned_username, "
             + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, ";
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
@@ -627,7 +627,8 @@ public class JdbcEventStore
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join users au on (psi.assigneduserid=au.userid) ";
+            + "left join users auc on (psi.assigneduserid=au.userid) "
+            + "left join userinfo ua on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
