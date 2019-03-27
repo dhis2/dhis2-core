@@ -2086,7 +2086,7 @@ function registerCompleteDataSet()
 		return false;
     }
 	
-	dhis2.de.validate( true, function() 
+	dhis2.de.validate( completedStatus, true, function() 
     {
         var params = dhis2.de.storageManager.getCurrentCompleteDataSetParams();
 
@@ -2262,7 +2262,7 @@ dhis2.de.validateCompulsoryDataElements = function ()
  *        if validation is successful.
  * @param successCallback the function to execute if validation is successful.                                  
  */
-dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
+dhis2.de.validate = function( completeUncomplete, ignoreValidationSuccess, successCallback )
 {
 	var compulsoryCombinationsValid = dhis2.de.validateCompulsoryCombinations();
 
@@ -2272,12 +2272,26 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
 	
 	if ( !compulsoryCombinationsValid || !compulsoryDataElementsValid )
 	{
-    	var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
-        	'<p class="bold">' + i18n_all_values_for_data_element_must_be_filled + '</p>';
+        if( !compulsoryDataElementsValid && !compulsoryFieldsCompleteOnly )
+        {
+            if( completeUncomplete )
+            {
+                setHeaderDelayMessage( i18n_complete_compulsory_notification );
+            }
+            else
+            {
+                setHeaderDelayMessage( i18n_uncomplete_notification );
+            }
+        }
+        else
+        {
+            var html = '<h3>' + i18n_validation_result + ' &nbsp;<img src="../images/warning_small.png"></h3>' +
+        	'<p class="bold">' + i18n_missing_compulsory_dataelements + '</p>';
 		
-    	dhis2.de.displayValidationDialog( html, 300 );
+            dhis2.de.displayValidationDialog( html, 300 );
 	
-		return false;
+            return false;
+        }
 	}
 
 	// Check for validation rules and whether complete is only allowed if valid
