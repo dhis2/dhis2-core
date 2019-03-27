@@ -31,6 +31,7 @@ package org.hisp.dhis;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.cookie.CookieFilter;
+import io.restassured.filter.session.SessionFilter;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.specification.RequestSpecification;
