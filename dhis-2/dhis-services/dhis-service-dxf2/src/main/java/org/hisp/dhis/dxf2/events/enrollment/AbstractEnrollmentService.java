@@ -228,7 +228,7 @@ public abstract class AbstractEnrollmentService
             if ( programInstance != null && programInstance.getEntityInstance() != null
                 && trackerAccessManager.canRead( user, programInstance, false ).isEmpty() )
             {
-                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE ) );
+                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE , true ) );
             }
         }
 
@@ -245,21 +245,21 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance )
     {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE );
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE, false );
     }
 
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params );
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
     }
 
     @Override
-    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params, boolean skipOwnershipCheck )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
-        List<String> errors = trackerAccessManager.canRead( user, programInstance, false );
+        List<String> errors = trackerAccessManager.canRead( user, programInstance, skipOwnershipCheck );
 
         if ( !errors.isEmpty() )
         {
