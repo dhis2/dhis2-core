@@ -2099,7 +2099,7 @@ function registerCompleteDataSet()
 		return false;
     }
 	
-	dhis2.de.validate( completedStatus, true, function() 
+	dhis2.de.validate( true, true, function() 
     {
         var params = dhis2.de.storageManager.getCurrentCompleteDataSetParams();
 
