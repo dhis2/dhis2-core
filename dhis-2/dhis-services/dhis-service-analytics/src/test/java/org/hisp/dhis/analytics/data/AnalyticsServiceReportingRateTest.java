@@ -113,7 +113,6 @@ public class AnalyticsServiceReportingRateTest
     @Test
     public void verifyNullValueIsZeroForReportingRate()
     {
-
         double expectedReports = 100D;
         DataSet dataSetA = createDataSet( 'A' );
         ReportingRate reportingRateA = new ReportingRate( dataSetA );
@@ -135,10 +134,7 @@ public class AnalyticsServiceReportingRateTest
         initMock( params );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO
-                                                                                                                        // VALUES
-                                                                                                                        // RETURNED
-
+            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO VALUES
         Map<String, Object> reportingRate = new HashMap<>();
         reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
 
