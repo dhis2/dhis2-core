@@ -346,6 +346,7 @@ public class DataApprovalServiceTest
         dataSetC.addOrganisationUnit( organisationUnitA );
         dataSetC.addOrganisationUnit( organisationUnitB );
         dataSetC.addOrganisationUnit( organisationUnitC );
+        dataSetC.addOrganisationUnit( organisationUnitD );
 
         dataSetD.addOrganisationUnit( organisationUnitA );
         dataSetD.addOrganisationUnit( organisationUnitB );
@@ -866,6 +867,22 @@ public class DataApprovalServiceTest
 
     @Test
     @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testGetDataApprovalStateAboveUserOrgUnitLevel()
+    {
+        Set<OrganisationUnit> units = newHashSet( organisationUnitD );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE );
+        userService.addUser( currentUserService.getCurrentUser() );
+        setCurrentUserServiceDependencies( currentUserService );
+
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow12, periodA, organisationUnitD, defaultOptionCombo) );
+
+        dataApprovalStore.addDataApproval( new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, new Date(), userA ) );
+
+        assertEquals( "APPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow12, periodA, organisationUnitD, defaultOptionCombo) );
+    }
+
+    @Test
     public void testGetDataApprovalStateOrgUnitAssignments()
     {
         Set<OrganisationUnit> units = newHashSet( organisationUnitA );
