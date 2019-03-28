@@ -739,7 +739,7 @@ public class DefaultAnalyticsService
                 Double target = entry.getValue();
                 Double actual = ObjectUtils.firstNonNull( dataMap.get( entry.getKey() ), 0d );
 
-                if ( target != null && ( actual != null || metric == EXPECTED_REPORTS ) )
+                if ( target != null )
                 {
                     // ---------------------------------------------------------
                     // Multiply target value by number of periods in time span
