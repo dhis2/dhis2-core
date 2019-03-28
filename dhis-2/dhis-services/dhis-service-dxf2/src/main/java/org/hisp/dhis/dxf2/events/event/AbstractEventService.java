@@ -1337,11 +1337,13 @@ public abstract class AbstractEventService
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
         updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
 
-        if ( importSummary.getConflicts().size() > 0 ) {
+        if ( importSummary.getConflicts().size() > 0 )
+        {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.incrementIgnored();
         }
-        else {
+        else
+        {
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.incrementUpdated();
         }
