@@ -56,7 +56,6 @@ import java.util.stream.Collectors;
 /**
  * @author Chau Thu Tran
  */
-@Transactional
 public class DefaultUserService
     implements UserService
 {
@@ -126,6 +125,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public int addUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
@@ -136,6 +136,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional
     public void updateUser( User user )
     {
         userStore.update( user );
@@ -144,6 +145,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional
     public void deleteUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );
@@ -152,30 +154,35 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsers()
     {
         return userStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User getUser( int userId )
     {
         return userStore.get( userId );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User getUser( String uid )
     {
         return userStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsers( Collection<String> uids )
     {
         return userStore.getByUid( uids );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
         UserQueryParams params = new UserQueryParams();
@@ -187,6 +194,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsers( UserQueryParams params )
     {
         handleUserQueryParams( params );
@@ -200,6 +208,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getUserCount( UserQueryParams params )
     {
         handleUserQueryParams( params );
@@ -213,6 +222,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getUserCount()
     {
         return userStore.getUserCount();
@@ -248,7 +258,7 @@ public class DefaultUserService
         }
     }
 
-    public boolean validateUserQueryParams( UserQueryParams params )
+    private boolean validateUserQueryParams(UserQueryParams params)
     {
         if ( params.isCanManage() && (params.getUser() == null || !params.getUser().hasManagedGroups()) )
         {
