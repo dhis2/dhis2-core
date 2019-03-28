@@ -1,7 +1,7 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,20 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.ErrorReport;
-
-import java.io.Serializable;
-import java.util.Optional;
-
 /**
- * Interface for job specific parameters. Serializable so that we can store the object in the database.
+ * Marker interface marking the class as a proper metadata object
+ * (not data, not embedded object, etc) and specifies that the system itself
+ * creates a predefined set of metadata objects of this type.
  *
- * @author Henning Håkonsen
+ * @author Volker Schmidt
  */
-public interface JobParameters
-    extends Serializable
+public interface SystemDefaultMetadataObject extends MetadataObject
 {
-    Optional<ErrorReport> validate();
+    /**
+     * Checks if this metadata object is a system default metadata object.
+     *
+     * @return <code>true</code> if this metadata object is a system default
+     * metadata object, <code>false</code> if it is user generated.
+     */
+    boolean isDefault();
 }

@@ -1,7 +1,7 @@
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,39 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.feedback.ErrorReport;
-
-import java.io.Serializable;
-import java.util.Optional;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 
 /**
- * Interface for job specific parameters. Serializable so that we can store the object in the database.
- *
- * @author Henning Håkonsen
+ * @author Volker Schmidt
  */
-public interface JobParameters
-    extends Serializable
+public class OptionObjectBundleHook
+    extends AbstractObjectBundleHook
 {
-    Optional<ErrorReport> validate();
+    private static final Log log = LogFactory.getLog( OptionObjectBundleHook.class );
+
+    @Override
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    {
+        if ( !( object instanceof Option ) )
+        {
+            return;
+        }
+
+        final Option option = (Option) object;
+        // if the bundle contains also the option set there is no need to add the option here
+        // (will be done automatically later and option set may contain raw value already)
+        if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
+        {
+            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
+            if ( optionSet != null )
+            {
+                optionSet.addOption( option );
+            }
+        }
+    }
 }
