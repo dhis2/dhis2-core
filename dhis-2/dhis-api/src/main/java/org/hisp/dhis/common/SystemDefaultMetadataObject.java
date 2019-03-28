@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.common;
+package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,71 +28,20 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.query.Order;
-import org.hisp.dhis.query.QueryUtils;
-import org.hisp.dhis.schema.Schema;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Marker interface marking the class as a proper metadata object
+ * (not data, not embedded object, etc) and specifies that the system itself
+ * creates a predefined set of metadata objects of this type.
+ *
+ * @author Volker Schmidt
  */
-public class OrderParams
+public interface SystemDefaultMetadataObject extends MetadataObject
 {
-    private Set<String> order = new HashSet<>();
-
-    public OrderParams()
-    {
-    }
-
-    public OrderParams( Set<String> order )
-    {
-        this.order = order;
-    }
-
-    public void setOrder( Set<String> order )
-    {
-        this.order = order;
-    }
-
-    public List<Order> getOrders( Schema schema )
-    {
-        return QueryUtils.convertOrderStrings( order, schema );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( order );
-    }
-
-    @Override
-    public boolean equals( Object obj )
-    {
-        if ( this == obj )
-        {
-            return true;
-        }
-
-        if ( obj == null || getClass() != obj.getClass() )
-        {
-            return false;
-        }
-
-        final OrderParams other = (OrderParams) obj;
-
-        return Objects.equals( this.order, other.order );
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "order", order )
-            .toString();
-    }
+    /**
+     * Checks if this metadata object is a system default metadata object.
+     *
+     * @return <code>true</code> if this metadata object is a system default
+     * metadata object, <code>false</code> if it is user generated.
+     */
+    boolean isDefault();
 }

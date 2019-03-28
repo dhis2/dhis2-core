@@ -28,13 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -52,7 +46,13 @@ import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.joda.time.DateTime;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Chau Thu Tran
@@ -190,6 +190,12 @@ public class DefaultUserService
     @Override
     public List<User> getUsers( UserQueryParams params )
     {
+        return getUsers( params, null );
+    }
+
+    @Override
+    public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
+    {
         handleUserQueryParams( params );
 
         if ( !validateUserQueryParams( params ) )
@@ -197,7 +203,7 @@ public class DefaultUserService
             return Lists.newArrayList();
         }
 
-        return userStore.getUsers( params );
+        return userStore.getUsers( params, orders );
     }
 
     @Override
@@ -242,7 +248,7 @@ public class DefaultUserService
             cal.add( Calendar.MONTH, (params.getInactiveMonths() * -1) );
             params.setInactiveSince( cal.getTime() );
         }
-        
+
         if ( params.isUserOrgUnits() && params.hasUser() )
         {
             params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
@@ -579,7 +585,7 @@ public class DefaultUserService
         }
 
         // Validate user role
-        
+
         boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
         List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials().getUserAuthorityGroups().stream().map( r -> r.getUid() ).collect( Collectors.toList() ) );
@@ -593,7 +599,7 @@ public class DefaultUserService
         } );
 
         // Validate user group
-        
+
         boolean canAdd = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_USER_ADD );
 
         if ( canAdd )

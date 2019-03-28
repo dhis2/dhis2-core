@@ -273,7 +273,7 @@ public class HibernateDataApprovalStore
 
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
 
-        List<DataApprovalLevel> userApprovalLevels = dataApprovalLevelService.getUserDataApprovalLevels( user, workflow );
+        List<DataApprovalLevel> userApprovalLevels = dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( user, workflow );
 
         Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
 
