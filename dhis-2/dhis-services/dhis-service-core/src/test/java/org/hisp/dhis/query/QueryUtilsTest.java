@@ -28,22 +28,70 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertSame;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class QueryUtilsTest
 {
+    private Schema schema;
+
+    @Before
+    public void setUp() throws Exception
+    {
+        schema = new Schema( Attribute.class, "attribute", "attributes" );
+
+        Property property = new Property( String.class );
+        property.setName( "value1" );
+        property.setSimple( true );
+        schema.addProperty( property );
+
+        property = new Property( String.class );
+        property.setName( "value2" );
+        property.setSimple( false );
+        schema.addProperty( property );
+
+        property = new Property( String.class );
+        property.setName( "value3" );
+        property.setSimple( true );
+        schema.addProperty( property );
+
+        property = new Property( Integer.class );
+        property.setName( "value4" );
+        property.setSimple( true );
+        schema.addProperty( property );
+
+        property = new Property( String.class );
+        property.setName( "value5" );
+        property.setSimple( true );
+        schema.addProperty( property );
+
+        property = new Property( String.class );
+        property.setName( "value6" );
+        property.setSimple( true );
+        schema.addProperty( property );
+
+        property = new Property( String.class );
+        property.setName( "value7" );
+        property.setSimple( true );
+        schema.addProperty( property );
+    }
+
     @Test
     public void testParseValidEnum()
     {
@@ -146,5 +194,24 @@ public class QueryUtilsTest
         assertEquals( "in (1,2,3)", QueryUtils.parseFilterOperator( "in", "[1,2,3]") );
 
         assertEquals( "is not null", QueryUtils.parseFilterOperator( "!null",  null) );
+    }
+
+    @Test
+    public void testConvertOrderStringsNull()
+    {
+        Assert.assertEquals( Collections.emptyList(), QueryUtils.convertOrderStrings( null, schema ) );
+    }
+
+    @Test
+    public void testConvertOrderStrings()
+    {
+        List<Order> orders = QueryUtils.convertOrderStrings(
+            Arrays.asList( "value1:asc", "value2:asc", "value3:iasc", "value4:desc", "value5:idesc", "value6:xdesc", "value7" ), schema );
+        Assert.assertEquals( 5, orders.size() );
+        Assert.assertEquals( orders.get( 0 ), Order.from( "asc", schema.getProperty( "value1" ) ) );
+        Assert.assertEquals( orders.get( 1 ), Order.from( "iasc", schema.getProperty( "value3" ) ) );
+        Assert.assertEquals( orders.get( 2 ), Order.from( "desc", schema.getProperty( "value4" ) ) );
+        Assert.assertEquals( orders.get( 3 ), Order.from( "idesc", schema.getProperty( "value5" ) ) );
+        Assert.assertEquals( orders.get( 4 ), Order.from( "asc", schema.getProperty( "value7" ) ) );
     }
 }
