@@ -200,24 +200,31 @@ public class JpaQueryUtils
         {
             return null;
         }
+
         return StringUtils.defaultIfEmpty( orders.stream().filter( org.hisp.dhis.query.Order::isPersisted ).map( o -> {
             final StringBuilder sb = new StringBuilder();
             final boolean ignoreCase = isIgnoreCase( o );
+
             if ( ignoreCase )
             {
                 sb.append( "lower(" );
             }
+
             if ( alias != null )
             {
                 sb.append( alias ).append( '.' );
             }
+
             sb.append( o.getProperty().getName() );
+
             if ( ignoreCase )
             {
                 sb.append( ")" );
             }
+
             sb.append( ' ' );
             sb.append( o.isAscending() ? "asc" : "desc" );
+
             return sb.toString();
         } ).collect( Collectors.joining( "," ) ), null );
     }
@@ -238,13 +245,17 @@ public class JpaQueryUtils
         {
             return null;
         }
+
         return StringUtils.defaultIfEmpty( orders.stream().filter( o -> o.isPersisted() && isIgnoreCase( o ) ).map( o -> {
             final StringBuilder sb = new StringBuilder( "lower(" );
+
             if ( alias != null )
             {
                 sb.append( alias ).append( '.' );
             }
+
             sb.append( o.getProperty().getName() ).append( ')' );
+
             return sb.toString();
         } ).collect( Collectors.joining( "," ) ), null );
     }
