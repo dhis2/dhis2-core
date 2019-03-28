@@ -226,7 +226,7 @@ public abstract class AbstractEnrollmentService
         for ( ProgramInstance programInstance : programInstances )
         {
             if ( programInstance != null && programInstance.getEntityInstance() != null
-                && trackerAccessManager.canRead( user, programInstance ).isEmpty() )
+                && trackerAccessManager.canRead( user, programInstance, false ).isEmpty() )
             {
                 enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE ) );
             }
@@ -259,7 +259,7 @@ public abstract class AbstractEnrollmentService
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
-        List<String> errors = trackerAccessManager.canRead( user, programInstance );
+        List<String> errors = trackerAccessManager.canRead( user, programInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -338,9 +338,9 @@ public abstract class AbstractEnrollmentService
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted()) && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
+                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted()) && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
                 {
-                    enrollment.getEvents().add( eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery() ) );
+                    enrollment.getEvents().add( eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true ) );
                 }
             }
         }
@@ -456,7 +456,7 @@ public abstract class AbstractEnrollmentService
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
-            new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ) );
+            new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ), false );
 
         if ( !errors.isEmpty() )
         {
@@ -644,7 +644,7 @@ public abstract class AbstractEnrollmentService
         }
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programInstance );
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programInstance, false );
 
         if ( programInstance == null )
         {
@@ -1239,7 +1239,7 @@ public abstract class AbstractEnrollmentService
             importConflicts.add( new ImportConflict( pi.getUid(), "Enrollment " + pi.getUid() + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, pi );
+        List<String> errors = trackerAccessManager.canWrite( user, pi, false );
 
         if ( !errors.isEmpty() )
         {

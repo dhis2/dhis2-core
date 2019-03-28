@@ -69,7 +69,7 @@ public interface EventService
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
-    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery );
+    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery, boolean skipOwnershipCheck );
 
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
