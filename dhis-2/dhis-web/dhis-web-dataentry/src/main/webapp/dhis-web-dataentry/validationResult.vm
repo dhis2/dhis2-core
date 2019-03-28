@@ -84,7 +84,7 @@
         #set( $mark = false )
         #foreach( $operand in $operands )
         <tr>
-        	<td style="height:32px"#alternate( $mark )>$encoder.htmlEncode( $operand.prettyName )</td>
+        	<td style="height:32px"#alternate( $mark )>$encoder.htmlEncode( $operand.name )</td>
         </tr>
         #if( $mark )
             #set( $mark = false )
