@@ -254,13 +254,13 @@ public class TableAlteror
         updateProgramStageSectionDataElements();
 
         executeSql( "update trackedentityinstance set createdatclient=created where createdatclient is null" );
-        executeSql( "update trackedentityinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+        executeSql( "update trackedentityinstance set lastupdatedatclient=lastupdated where lastupdatedatclient is null" );
 
         executeSql( "update programinstance set createdatclient=created where createdatclient is null" );
-        executeSql( "update programinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+        executeSql( "update programinstance set lastupdatedatclient=lastupdated where lastupdatedatclient is null" );
 
         executeSql( "update programstageinstance set createdatclient=created where createdatclient is null" );
-        executeSql( "update programstageinstance set lastUpdatedAtAtClient=lastupdated where createdatclient is null" );
+        executeSql( "update programstageinstance set lastupdatedatclient=lastupdated where lastupdatedatclient is null" );
         
         executeSql( "UPDATE trackedentitytype SET minattributesrequiredtosearch=1 where minattributesrequiredtosearch is null" );
         executeSql( "UPDATE trackedentitytype SET maxteicounttoreturn=0 where maxteicounttoreturn is null" );
