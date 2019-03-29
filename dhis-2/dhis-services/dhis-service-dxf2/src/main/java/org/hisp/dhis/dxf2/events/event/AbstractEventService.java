@@ -1315,8 +1315,13 @@ public abstract class AbstractEventService
         }
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );        
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );        
-        updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );        
+        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+
+        if ( !importOptions.isSkipLastUpdated() )
+        {
+            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+        }
+
         sendProgramNotification( programStageInstance, importOptions );
 
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(

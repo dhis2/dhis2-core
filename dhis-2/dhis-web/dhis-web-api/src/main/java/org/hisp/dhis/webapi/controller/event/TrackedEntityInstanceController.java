@@ -659,6 +659,7 @@ public class TrackedEntityInstanceController
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         importOptions.setStrategy( strategy );
+        importOptions.setSkipLastUpdated( true );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         if ( !importOptions.isAsync() )
@@ -702,6 +703,7 @@ public class TrackedEntityInstanceController
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
     {
         importOptions.setStrategy( strategy );
+        importOptions.setSkipLastUpdated( true );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         if ( !importOptions.isAsync() )
