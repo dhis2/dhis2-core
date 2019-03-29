@@ -117,7 +117,7 @@ public abstract class AbstractTrackedEntityInstanceService
     protected RelationshipService _relationshipService;
 
     @Autowired
-    org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
+    private org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService;
 
     @Autowired
     protected TrackedEntityAttributeValueService trackedEntityAttributeValueService;
