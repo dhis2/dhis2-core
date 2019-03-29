@@ -1335,7 +1335,11 @@ public abstract class AbstractEventService
         preheatDataElementsCache( event, importOptions );
         eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
-        updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+
+        if ( !importOptions.isSkipLastUpdated() )
+        {
+            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+        }
 
         if ( importSummary.getConflicts().size() > 0 ) {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -1693,7 +1697,10 @@ public abstract class AbstractEventService
                     programStageInstance, aoc, assignedUser, importOptions, importSummary );
             }
 
-            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
+            if ( !importOptions.isSkipLastUpdated() )
+            {
+                updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
+            }
 
             importSummary.setReference( programStageInstance.getUid() );
         }
