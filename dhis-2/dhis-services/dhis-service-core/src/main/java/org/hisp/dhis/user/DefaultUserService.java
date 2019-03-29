@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditLogUtil;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -57,7 +58,6 @@ import java.util.stream.Collectors;
 /**
  * @author Chau Thu Tran
  */
-@Transactional
 public class DefaultUserService
     implements UserService
 {
@@ -127,6 +127,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_CREATE );
@@ -137,6 +138,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional
     public void updateUser( User user )
     {
         userStore.update( user );
@@ -145,6 +147,8 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional
+
     public void deleteUser( User user )
     {
         AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE );
@@ -153,30 +157,35 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsers()
     {
         return userStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User getUser( long userId )
     {
         return userStore.get( userId );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User getUser( String uid )
     {
         return userStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsers( Collection<String> uids )
     {
         return userStore.getByUid( uids );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAllUsersBetweenByName( String name, int first, int max )
     {
         UserQueryParams params = new UserQueryParams();
@@ -188,12 +197,14 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsers( UserQueryParams params )
     {
         return getUsers( params, null );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
         handleUserQueryParams( params );
@@ -207,6 +218,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getUserCount( UserQueryParams params )
     {
         handleUserQueryParams( params );
@@ -220,6 +232,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getUserCount()
     {
         return userStore.getUserCount();
@@ -255,7 +268,7 @@ public class DefaultUserService
         }
     }
 
-    public boolean validateUserQueryParams( UserQueryParams params )
+    private boolean validateUserQueryParams(UserQueryParams params)
     {
         if ( params.isCanManage() && (params.getUser() == null || !params.getUser().hasManagedGroups()) )
         {
@@ -279,6 +292,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getUsersByPhoneNumber( String phoneNumber )
     {
         UserQueryParams params = new UserQueryParams();
@@ -287,6 +301,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isLastSuperUser( UserCredentials userCredentials )
     {
         if ( !userCredentials.isSuper() )
@@ -308,6 +323,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup )
     {
         Collection<UserAuthorityGroup> groups = userAuthorityGroupStore.getAll();
@@ -324,12 +340,14 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean canAddOrUpdateUser( Collection<String> userGroups )
     {
         return canAddOrUpdateUser( userGroups, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean canAddOrUpdateUser( Collection<String> userGroups, User currentUser )
     {
         if ( currentUser == null )
@@ -372,6 +390,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         userAuthorityGroupStore.save( userAuthorityGroup );
@@ -379,66 +398,77 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional
     public void updateUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         userAuthorityGroupStore.update( userAuthorityGroup );
     }
 
     @Override
+    @Transactional
     public void deleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         userAuthorityGroupStore.delete( userAuthorityGroup );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserAuthorityGroup> getAllUserAuthorityGroups()
     {
         return userAuthorityGroupStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserAuthorityGroup getUserAuthorityGroup( long id )
     {
         return userAuthorityGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserAuthorityGroup getUserAuthorityGroup( String uid )
     {
         return userAuthorityGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserAuthorityGroup getUserAuthorityGroupByName( String name )
     {
         return userAuthorityGroupStore.getByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserAuthorityGroup> getUserRolesByUid( Collection<String> uids )
     {
         return userAuthorityGroupStore.getByUid( uids );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserAuthorityGroup> getUserRolesBetween( int first, int max )
     {
         return userAuthorityGroupStore.getAllOrderedName( first, max );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserAuthorityGroup> getUserRolesBetweenByName( String name, int first, int max )
     {
         return userAuthorityGroupStore.getAllLikeName( name, first, max );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
         return userAuthorityGroupStore.countDataSetUserAuthorityGroups( dataSet );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void canIssueFilter( Collection<UserAuthorityGroup> userRoles )
     {
         User user = currentUserService.getCurrentUser();
@@ -453,6 +483,7 @@ public class DefaultUserService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addUserCredentials( UserCredentials userCredentials )
     {
         userCredentialsStore.save( userCredentials );
@@ -460,24 +491,28 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional
     public void updateUserCredentials( UserCredentials userCredentials )
     {
         userCredentialsStore.update( userCredentials );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserCredentials> getAllUserCredentials()
     {
         return userCredentialsStore.getAll();
     }
 
     @Override
+    @Transactional
     public void encodeAndSetPassword( User user, String rawPassword )
     {
         encodeAndSetPassword( user.getUserCredentials(), rawPassword );
     }
 
     @Override
+    @Transactional
     public void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword )
     {
         if ( StringUtils.isEmpty( rawPassword ) && !userCredentials.isExternalAuth() )
@@ -507,24 +542,28 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         return userCredentialsStore.getUserCredentialsByUsername( username );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByOpenId( String openId )
     {
         return userCredentialsStore.getUserCredentialsByOpenId( openId );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserCredentials getUserCredentialsByLdapId( String ldapId )
     {
         return userCredentialsStore.getUserCredentialsByLdapId( ldapId );
     }
 
     @Override
+    @Transactional
     public void setLastLogin( String username )
     {
         UserCredentials credentials = getUserCredentialsByUsername( username );
@@ -537,6 +576,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getActiveUsersCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -546,6 +586,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getActiveUsersCount( Date since )
     {
         UserQueryParams params = new UserQueryParams();
@@ -555,6 +596,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean credentialsNonExpired( UserCredentials credentials )
     {
         int credentialsExpires = systemSettingManager.credentialsExpires();
@@ -575,6 +617,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ErrorReport> validateUser( User user, User currentUser )
     {
         List<ErrorReport> errors = new ArrayList<>();
@@ -588,7 +631,8 @@ public class DefaultUserService
 
         boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
-        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials().getUserAuthorityGroups().stream().map( r -> r.getUid() ).collect( Collectors.toList() ) );
+        List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials()
+            .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
         roles.forEach( ur ->
         {
@@ -627,6 +671,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getExpiringUsers()
     {
         int daysBeforePasswordChangeRequired = (Integer) systemSettingManager.getSystemSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
@@ -640,6 +685,8 @@ public class DefaultUserService
         return userStore.getExpiringUsers( userQueryParams );
     }
 
+    @Override
+    @Transactional
     public void set2FA( User user, Boolean twoFa )
     {
         user.getUserCredentials().setTwoFA( twoFa );

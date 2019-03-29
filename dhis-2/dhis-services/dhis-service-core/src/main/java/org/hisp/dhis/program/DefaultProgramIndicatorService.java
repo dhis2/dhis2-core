@@ -132,28 +132,28 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicator( long id )
     {
         return programIndicatorStore.get( id );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicator( String name )
     {
         return programIndicatorStore.getByName( name );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicatorByUid( String uid )
     {
         return programIndicatorStore.getByUid( uid );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ProgramIndicator> getAllProgramIndicators()
     {
         return programIndicatorStore.getAll();
@@ -165,41 +165,42 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     @Deprecated public String getUntypedDescription( String expression )
     {
         return getDescription( expression, null );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public String getExpressionDescription( String expression )
     {
         return getDescription( expression, Double.class );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public String getFilterDescription( String expression )
     {
         return getDescription( expression, Boolean.class );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean expressionIsValid( String expression )
     {
         return isValid( expression, Double.class );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean filterIsValid( String filter )
     {
         return isValid( filter, Boolean.class );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
         ProgramValidator programExpressionValidator = new ProgramValidator(
@@ -211,18 +212,21 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getExpressionAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
         return getAnalyticsSql( programIndicator.getExpression(), programIndicator, startDate, endDate, true );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getFilterAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
         return getAnalyticsSql( programIndicator.getFilter(), programIndicator, startDate, endDate, false );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, boolean ignoreMissingValues )
     {
         if ( expression == null )
@@ -241,6 +245,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
         if ( expression == null )
@@ -299,18 +304,21 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramIndicatorGroup getProgramIndicatorGroup( long id )
     {
         return programIndicatorGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramIndicatorGroup getProgramIndicatorGroup( String uid )
     {
         return programIndicatorGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramIndicatorGroup> getAllProgramIndicatorGroups()
     {
         return programIndicatorGroupStore.getAll();
