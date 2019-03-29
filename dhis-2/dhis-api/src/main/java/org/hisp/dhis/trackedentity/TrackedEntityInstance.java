@@ -105,7 +105,10 @@ public class TrackedEntityInstance
             createdAtClient = created;
         }
 
-        lastUpdatedAtClient = lastUpdated;
+        if ( lastUpdatedAtClient == null )
+        {
+            lastUpdatedAtClient = lastUpdated;
+        }
     }
 
     // -------------------------------------------------------------------------

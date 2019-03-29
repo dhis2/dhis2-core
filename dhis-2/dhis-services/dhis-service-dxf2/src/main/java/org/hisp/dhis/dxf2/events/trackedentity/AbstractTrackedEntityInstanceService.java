@@ -406,12 +406,6 @@ public abstract class AbstractTrackedEntityInstanceService
         teiService.addTrackedEntityInstance( daoEntityInstance );
 
         updateAttributeValues( dtoEntityInstance, daoEntityInstance, null, importOptions.getUser() );
-        updateDateFields( dtoEntityInstance, daoEntityInstance );
-
-        daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
-        daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
-
-        teiService.updateTrackedEntityInstance( daoEntityInstance );
 
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
@@ -654,6 +648,11 @@ public abstract class AbstractTrackedEntityInstanceService
         daoEntityInstance.setTrackedEntityType( trackedEntityType );
         daoEntityInstance.setUid( CodeGenerator.isValidUid( dtoEntityInstance.getTrackedEntityInstance() ) ?
                 dtoEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
+
+        updateDateFields( dtoEntityInstance, daoEntityInstance );
+
+        daoEntityInstance.setFeatureType( dtoEntityInstance.getFeatureType() );
+        daoEntityInstance.setCoordinates( dtoEntityInstance.getCoordinates() );
 
         return daoEntityInstance;
     }
@@ -1051,8 +1050,6 @@ public abstract class AbstractTrackedEntityInstanceService
     private void updateDateFields( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance )
     {
-        daoEntityInstance.setAutoFields();
-
         Date createdAtClient = DateUtils.parseDate( dtoEntityInstance.getCreatedAtClient() );
 
         if ( createdAtClient != null )
@@ -1066,6 +1063,8 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             daoEntityInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
+
+        daoEntityInstance.setAutoFields();
     }
 
     private String getStoredBy( Attribute attributeValue, ImportSummary importSummary, String fallbackUsername )
