@@ -136,8 +136,6 @@ public class Metadata
 
     private List<UserGroup> userGroups = new ArrayList<>();
 
-    private List<MessageConversation> messageConversations = new ArrayList<>();
-
     private List<Interpretation> interpretations = new ArrayList<>();
 
     private List<Option> options = new ArrayList<>();
@@ -372,19 +370,6 @@ public class Metadata
     public void setUserGroups( List<UserGroup> userGroups )
     {
         this.userGroups = userGroups;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<MessageConversation> getMessageConversations()
-    {
-        return messageConversations;
-    }
-
-    public void setMessageConversations( List<MessageConversation> messageConversations )
-    {
-        this.messageConversations = messageConversations;
     }
 
     @JsonProperty
@@ -1179,7 +1164,6 @@ public class Metadata
             ", users=" + users +
             ", userRoles=" + userRoles +
             ", userGroups=" + userGroups +
-            ", messageConversations=" + messageConversations +
             ", interpretations=" + interpretations +
             ", optionSets=" + optionSets +
             ", categories=" + categories +

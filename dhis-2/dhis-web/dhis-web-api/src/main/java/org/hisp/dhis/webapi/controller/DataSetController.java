@@ -31,13 +31,13 @@ package org.hisp.dhis.webapi.controller;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
@@ -63,6 +63,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FormUtils;
 import org.hisp.dhis.webapi.view.ClassPathUriResolver;
@@ -71,6 +72,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -428,8 +430,8 @@ public class DataSetController
     }
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response )
-        throws WebMessageException, IOException
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException
     {
         DataSet dataSet = dataSetService.getDataSet( pvUid );
 
@@ -438,7 +440,7 @@ public class DataSetController
             throw new WebMessageException( WebMessageUtils.notFound( "DataSet not found for uid: " + pvUid ) );
         }
 
-        return exportService.getMetadataWithDependenciesAsNode( dataSet );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataSet, download );
     }
 
     /**

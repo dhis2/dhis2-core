@@ -37,6 +37,7 @@ import org.hisp.dhis.scheduling.JobParameters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -128,7 +129,7 @@ public class MonitoringJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
         // No need to validate relatePeriods, since it will fail in the controller if invalid.
 
@@ -140,10 +141,10 @@ public class MonitoringJobParameters
 
         if ( invalidUIDs.size() > 0 )
         {
-            return new ErrorReport( this.getClass(), ErrorCode.E4014, invalidUIDs.get( 0 ),
-                "validationRuleGroups" );
+            return Optional.of(  new ErrorReport( this.getClass(), ErrorCode.E4014, invalidUIDs.get( 0 ),
+                "validationRuleGroups" ));
         }
 
-        return null;
+        return Optional.empty();
     }
 }

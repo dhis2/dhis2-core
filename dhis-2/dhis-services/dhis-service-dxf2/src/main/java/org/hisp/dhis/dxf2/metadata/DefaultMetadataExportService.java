@@ -99,6 +99,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -349,6 +350,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
 
+        if ( OptionSet.class.isInstance( object ) ) return handleOptionSet( metadata, (OptionSet) object );
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
         if ( CategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (CategoryCombo) object );
@@ -358,7 +360,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object )
+    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
@@ -367,8 +369,10 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            rootNode.addChild( fieldFilterService.toCollectionNode( klass, new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
-                Lists.newArrayList( ":owner" ) ) ) );
+            FieldFilterParams fieldFilterParams = new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
+                Lists.newArrayList( ":owner" ) );
+            fieldFilterParams.setSkipSharing( params.getSkipSharing() );
+            rootNode.addChild( fieldFilterService.toCollectionNode( klass, fieldFilterParams ) );
         }
 
         return rootNode;

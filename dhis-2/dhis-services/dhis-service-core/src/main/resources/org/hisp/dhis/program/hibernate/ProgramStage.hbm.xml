@@ -94,6 +94,8 @@
       </type>
     </property>
 
+    <property name="enableUserAssignment" column="enableuserassignment" />
+
     <many-to-one name="periodType" lazy="false" class="org.hisp.dhis.period.PeriodType" column="periodtypeid"
       foreign-key="fk_programstage_periodtypeid" />
 

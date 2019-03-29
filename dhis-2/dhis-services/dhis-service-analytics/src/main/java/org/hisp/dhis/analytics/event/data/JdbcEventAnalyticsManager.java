@@ -98,7 +98,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "longitude", "latitude", "ouname", "oucode" );
+        List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "ST_AsGeoJSON(psigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
 
@@ -186,7 +186,7 @@ public class JdbcEventAnalyticsManager
 
         sql += getWhereClause( params );
 
-        sql += "group by ST_SnapToGrid(ST_Transform(" + quotedClusterField + ", 3785), " + params.getClusterSize() + ") ";
+        sql += "group by ST_SnapToGrid(ST_Transform(ST_SetSRID(ST_Centroid(" + quotedClusterField + "), 4326), 3785), " + params.getClusterSize() + ") ";
 
         log.debug( String.format( "Analytics event cluster SQL: %s", sql ) );
 
@@ -439,8 +439,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
-            String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(),
-                params.getProgramIndicator(), false, params.getEarliestStartDate(), params.getLatestEndDate() );
+            String filter = programIndicatorService.getFilterAnalyticsSql( params.getProgramIndicator(),
+                params.getEarliestStartDate(), params.getLatestEndDate() );
 
             String sqlFilter = ExpressionUtils.asSql( filter );
 
@@ -449,7 +449,8 @@ public class JdbcEventAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() )
         {
-            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql( params.getProgramIndicator().getExpression(), params.getProgramIndicator().getAnalyticsType() );
+            String anyValueFilter = programIndicatorService.getAnyValueExistsClauseAnalyticsSql(
+                params.getProgramIndicator().getExpression(), params.getProgramIndicator().getAnalyticsType() );
 
             if ( anyValueFilter != null )
             {

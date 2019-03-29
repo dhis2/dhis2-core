@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import com.google.common.base.MoreObjects;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
+import javax.annotation.Nonnull;
 import java.util.Date;
 import java.util.Objects;
 
@@ -88,9 +89,20 @@ public class Order
         Object o1 = ReflectionUtils.invokeMethod( lside, property.getGetterMethod() );
         Object o2 = ReflectionUtils.invokeMethod( rside, property.getGetterMethod() );
 
-        if ( o1 == null || o2 == null )
+        if ( o1 == o2 )
         {
             return 0;
+        }
+
+        // for null values use the same order like PostgreSQL in order to have same effect like DB ordering
+        // (NULLs are greater than other values)
+        if ( o1 == null || o2 == null )
+        {
+            if ( o1 == null )
+            {
+                return isAscending() ? 1 : -1;
+            }
+            return isAscending() ? -1 : 1;
         }
 
         if ( String.class.isInstance( o1 ) && String.class.isInstance( o2 ) )
@@ -191,6 +203,21 @@ public class Order
             && Objects.equals( this.property, other.property );
     }
 
+    /**
+     * @return the order string (e.g. <code>name:iasc</code>).
+     */
+    @Nonnull
+    public String toOrderString()
+    {
+        final StringBuilder sb = new StringBuilder( property.getName() );
+        sb.append( ':' );
+        if ( isIgnoreCase() )
+        {
+            sb.append( 'i' );
+        }
+        sb.append( isAscending() ? "asc" : "desc" );
+        return sb.toString();
+    }
 
     @Override
     public String toString()
