@@ -36,8 +36,8 @@ COPY . /src
 
 # TODO: We should be able to achieve much faster incremental builds and cached dependencies using
 #   a wrapper build script and intelligent Docker layer caching, but for now just naively build everything
-RUN mvn clean install -T1C -f /src/dhis-2/pom.xml -DskipTests
-RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests
+RUN mvn clean install -T1C -f /src/dhis-2/pom.xml -DskipTests -q
+RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests -q
 
 ##########
 # BUILD STAGE 2

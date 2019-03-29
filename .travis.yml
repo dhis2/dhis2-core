@@ -23,6 +23,13 @@ jobs:
       script: 
         - mvn clean install -Pintegration -f ./dhis-2/pom.xml
         
+    - name: api
+      script:
+        - cd dhis-2/dhis-e2e-test
+        - docker-compose up -d --build 
+        - mvn test -DbaseUrl=http://localhost:8070/api
+        - docker-compose down
+        
 branches:
   only:
   - master
