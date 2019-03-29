@@ -39,6 +39,7 @@ import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -70,6 +71,7 @@ public class DefaultReservedValueService
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
+    @Transactional(readOnly = true)
     public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
         Date expires )
         throws ReserveValueException, TextPatternService.TextPatternGenerationException
@@ -159,12 +161,14 @@ public class DefaultReservedValueService
     }
 
     @Override
+    @Transactional
     public boolean useReservedValue( TextPattern textPattern, String value )
     {
         return reservedValueStore.useReservedValue( textPattern.getOwnerUid(), value );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isReserved( TextPattern textPattern, String value )
     {
         return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value );

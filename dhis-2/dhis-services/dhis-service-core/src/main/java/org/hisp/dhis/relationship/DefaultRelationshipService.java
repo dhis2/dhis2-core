@@ -37,7 +37,7 @@ import java.util.List;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
+
 public class DefaultRelationshipService
     implements RelationshipService
 {
@@ -57,24 +57,28 @@ public class DefaultRelationshipService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteRelationship( Relationship relationship )
     {
         relationshipStore.delete( relationship );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Relationship getRelationship( int id )
     {
         return relationshipStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsForTrackedEntityInstance( TrackedEntityInstance instance )
     {
         return relationshipStore.getForTrackedEntityInstance( instance );
     }
 
     @Override
+    @Transactional
     public int addRelationship( Relationship relationship )
     {
         relationshipStore.save( relationship );
@@ -82,18 +86,21 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional
     public void updateRelationship( Relationship relationship )
     {
         relationshipStore.update( relationship );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Relationship getRelationship( TrackedEntityInstance instanceA, TrackedEntityInstance instanceB, RelationshipType relationshipType )
     {
         return relationshipStore.get( instanceA, instanceB, relationshipType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationships( TrackedEntityInstance entityInstanceA,
         RelationshipType relationshipType )
     {
