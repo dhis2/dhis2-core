@@ -42,11 +42,9 @@ public class GenericHttpGatewayConfig
 
     private String recipientParameter;
 
-    private String payloadTemplate;
+    private String dataTemplate;
 
     private boolean useGet;
-
-    private boolean sendAsUrlParameter = true;
 
     private ContentType contentType = ContentType.FORM_URL_ENCODED;
 
@@ -97,14 +95,14 @@ public class GenericHttpGatewayConfig
     }
 
     @JsonProperty
-    public String getPayloadTemplate()
+    public String getDataTemplate()
     {
-        return payloadTemplate;
+        return dataTemplate;
     }
 
-    public void setPayloadTemplate( String payloadTemplate )
+    public void setDataTemplate( String dataTemplate )
     {
-        this.payloadTemplate = payloadTemplate;
+        this.dataTemplate = dataTemplate;
     }
 
     @JsonProperty
@@ -116,16 +114,5 @@ public class GenericHttpGatewayConfig
     public void setContentType( ContentType contentType )
     {
         this.contentType = contentType;
-    }
-
-    @JsonProperty
-    public boolean isSendAsUrlParameter()
-    {
-        return sendAsUrlParameter;
-    }
-
-    public void setSendAsUrlParameter( boolean sendAsUrlParameter )
-    {
-        this.sendAsUrlParameter = sendAsUrlParameter;
     }
 }

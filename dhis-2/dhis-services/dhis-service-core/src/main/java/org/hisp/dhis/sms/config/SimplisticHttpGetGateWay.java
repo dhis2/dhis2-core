@@ -53,8 +53,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 public class SimplisticHttpGetGateWay
     extends SmsGateway
 {
-    private static final String APPLICATION_FORM_URL_ENCODED = "application/x-www-form-urlencoded";
-    private static final Set<String> TEMPLATE_SUPPORTED_TYPES = Sets.newHashSet( "application/json", "application/xml" );
+    private static final Set<ContentType> TEMPLATE_SUPPORTED_TYPES = Sets.newHashSet( ContentType.APPLICATION_JSON, ContentType.APPLICATION_XML );
+    private static final ContentType URL_SUPPORTED_TYPE = ContentType.FORM_URL_ENCODED;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -80,7 +80,7 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        String contentType = genericConfig.getContentType().getValue();
+        ContentType contentType = genericConfig.getContentType();
         String data = null;
 
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
@@ -88,28 +88,20 @@ public class SimplisticHttpGetGateWay
         HttpEntity<String> requestEntity = null;
         HttpHeaders headers;
 
-        if ( genericConfig.isSendAsUrlParameter() )
-        {
-            uriBuilder = buildUrl( uriBuilder, genericConfig, text, recipients );
-        }
-        else
-        {
-            if ( contentType.equals( APPLICATION_FORM_URL_ENCODED ) )
-            {
-                data = encodeUrlParameters( genericConfig, text, recipients );
-            }
-            else
-            {
-                if ( TEMPLATE_SUPPORTED_TYPES.contains( contentType ) )
-                {
-                    data = draftTemplate( genericConfig, text, recipients );
-                }
-            }
 
-            headers = createHttpHeaders( genericConfig );
-
-            requestEntity = new HttpEntity<>( data, headers );
+        if ( contentType.equals( URL_SUPPORTED_TYPE ) )
+        {
+            data = encodeUrlParameters( genericConfig, text, recipients );
         }
+        else if ( TEMPLATE_SUPPORTED_TYPES.contains( contentType ) )
+        {
+            data = draftTemplate( genericConfig, text, recipients );
+        }
+
+        headers = createHttpHeaders( genericConfig );
+
+        requestEntity = new HttpEntity<>( data, headers );
+
 
         URI url = uriBuilder.build().encode().toUri();
 
@@ -150,14 +142,14 @@ public class SimplisticHttpGetGateWay
 
         StrSubstitutor strSubstitutor = new StrSubstitutor( substitutes );
 
-        return strSubstitutor.replace( config.getPayloadTemplate() );
+        return strSubstitutor.replace( config.getDataTemplate() );
     }
 
     private String encodeUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         Map<String, String> requestParams = getUrlParameters( config.getParameters() );
-        requestParams.put(config.getMessageParameter(), text );
-        requestParams.put(config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+        requestParams.put( config.getMessageParameter(), text );
+        requestParams.put( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
         return requestParams.entrySet().stream()
             .map( v -> v.getKey() + "=" + encodeValue( v.getValue() ) )
@@ -179,19 +171,6 @@ public class SimplisticHttpGetGateWay
         }
 
         return value;
-    }
-
-    private UriComponentsBuilder buildUrl(  UriComponentsBuilder uriBuilder, GenericHttpGatewayConfig config, String text, Set<String> recipients )
-    {
-        uriBuilder.queryParam( config.getMessageParameter(), text );
-        uriBuilder.queryParam( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
-
-        for ( Map.Entry<String, String> entry : getUrlParameters( config.getParameters() ).entrySet() )
-        {
-            uriBuilder.queryParam( entry.getKey(), entry.getValue() );
-        }
-
-        return uriBuilder;
     }
 
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
