@@ -1100,6 +1100,7 @@ public abstract class AbstractTrackedEntityInstanceService
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
+            importOptions.setSkipLastUpdated( true );
         }
 
         if ( importOptions.getUser() == null )
