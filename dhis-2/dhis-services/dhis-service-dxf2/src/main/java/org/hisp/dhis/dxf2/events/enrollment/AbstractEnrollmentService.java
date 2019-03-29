@@ -83,6 +83,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -164,6 +165,7 @@ public abstract class AbstractEnrollmentService
     // READ
     // -------------------------------------------------------------------------
 
+    @Transactional(readOnly = true)
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
@@ -194,6 +196,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
@@ -212,6 +215,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( String id )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
@@ -219,18 +223,21 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( ProgramInstance programInstance )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, params );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
         Enrollment enrollment = new Enrollment();
@@ -332,6 +339,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         if ( importOptions == null )
@@ -363,12 +371,14 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
     {
         return addEnrollment( enrollment, importOptions, currentUserService.getCurrentUser(), null );
     }
 
     @Override
+    @Transactional
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
     {
         String storedBy = enrollment.getStoredBy() != null && enrollment.getStoredBy().length() < 31 ?
@@ -512,6 +522,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         User user = currentUserService.getCurrentUser();
@@ -538,12 +549,14 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions )
     {
         return updateEnrollment( enrollment, importOptions, currentUserService.getCurrentUser(), null );
     }
 
     @Override
+    @Transactional
     public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, User user, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
     {
         if ( importOptions == null )
@@ -658,6 +671,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummary updateEnrollmentForNote( Enrollment enrollment )
     {
         if ( enrollment == null || enrollment.getEnrollment() == null )
@@ -687,6 +701,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummary deleteEnrollment( String uid )
     {
         User user = currentUserService.getCurrentUser();
@@ -709,6 +724,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummaries deleteEnrollments( List<String> uids )
     {
         ImportSummaries importSummaries = new ImportSummaries();
@@ -730,6 +746,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public void cancelEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
@@ -738,6 +755,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public void completeEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
@@ -746,6 +764,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public void incompleteEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );

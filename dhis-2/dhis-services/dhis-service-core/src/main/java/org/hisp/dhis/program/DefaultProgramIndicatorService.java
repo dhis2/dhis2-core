@@ -180,31 +180,31 @@ public class DefaultProgramIndicatorService
         programIndicatorStore.delete( programIndicator );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicator( int id )
     {
         return programIndicatorStore.get( id );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicator( String name )
     {
         return programIndicatorStore.getByName( name );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicatorByUid( String uid )
     {
         return programIndicatorStore.getByUid( uid );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ProgramIndicator> getAllProgramIndicators()
     {
         return programIndicatorStore.getAll();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public String getExpressionDescription( String expression )
     {
         if ( expression == null )
@@ -273,11 +273,15 @@ public class DefaultProgramIndicatorService
         return description.toString();
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
         return getAnalyticsSQl( expression, programIndicator, true, startDate, endDate );
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues,
         Date startDate, Date endDate )
     {
@@ -290,7 +294,7 @@ public class DefaultProgramIndicatorService
 
         sqlExpression = getSubstitutedVariablesForAnalyticsSql( sqlExpression, programIndicator, startDate, endDate );
 
-        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, false, programIndicator, startDate, endDate );
+        sqlExpression = getSubstitutedFunctionsAnalyticsSql( sqlExpression, programIndicator, startDate, endDate );
 
         sqlExpression = getSubstitutedElementsAnalyticsSql( sqlExpression, ignoreMissingValues, programIndicator, startDate,
             endDate );
@@ -298,7 +302,7 @@ public class DefaultProgramIndicatorService
         return sqlExpression;
     }
 
-    private String getSubstitutedFunctionsAnalyticsSql( String expression, boolean ignoreMissingValues,
+    private String getSubstitutedFunctionsAnalyticsSql( String expression,
         ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate )
     {
         if ( expression == null )
@@ -455,6 +459,8 @@ public class DefaultProgramIndicatorService
         }
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
         Set<String> uids = ProgramIndicator.getDataElementAndAttributeIdentifiers( expression, analyticsType );
@@ -474,7 +480,7 @@ public class DefaultProgramIndicatorService
         return TextUtils.removeLastOr( sql ).trim();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public String expressionIsValid( String expression )
     {
         String expr = getSubstitutedExpression( expression );
@@ -493,7 +499,7 @@ public class DefaultProgramIndicatorService
         return ProgramIndicator.VALID;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public String filterIsValid( String filter )
     {
         String expr = getSubstitutedExpression( filter );
@@ -717,18 +723,21 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramIndicatorGroup getProgramIndicatorGroup( int id )
     {
         return programIndicatorGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramIndicatorGroup getProgramIndicatorGroup( String uid )
     {
         return programIndicatorGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramIndicatorGroup> getAllProgramIndicatorGroups()
     {
         return programIndicatorGroupStore.getAll();
