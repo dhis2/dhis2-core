@@ -2018,7 +2018,7 @@ public abstract class AbstractEventService
                     + " for attributeOption '" + option.getName() + "'" );
             }
 
-             if ( option.getEndDate() != null && date.compareTo( option.getEndDate() ) > 0 )
+            if ( option.getEndDate() != null && date.compareTo( option.getEndDate() ) > 0 )
             {
                 throw new IllegalQueryException( "Event date " + i18nFormat.formatDate( date )
                     + " is after end date " + i18nFormat.formatDate( option.getEndDate() )
