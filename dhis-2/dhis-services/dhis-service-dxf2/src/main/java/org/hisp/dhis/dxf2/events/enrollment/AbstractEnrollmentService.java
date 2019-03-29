@@ -93,6 +93,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -186,6 +187,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
@@ -216,6 +218,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
     {
         List<Enrollment> enrollments = new ArrayList<>();
@@ -234,6 +237,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( String id )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
@@ -241,18 +245,21 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( ProgramInstance programInstance )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
         return getEnrollment( currentUserService.getCurrentUser(), programInstance, params );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
         Enrollment enrollment = new Enrollment();
@@ -343,12 +350,14 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
         return addEnrollments( enrollments, importOptions, null, clearSession );
     }
 
     @Override
+    @Transactional
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, JobConfiguration jobId )
     {
         notifier.clear( jobId ).notify( jobId, "Importing enrollments" );
@@ -374,6 +383,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
@@ -400,12 +410,14 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
     {
         return addEnrollment( enrollment, importOptions, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
     {
         importOptions = updateImportOptions( importOptions );
@@ -589,6 +601,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
@@ -615,6 +628,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions )
     {
         importOptions = updateImportOptions( importOptions );
@@ -719,6 +733,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummary updateEnrollmentForNote( Enrollment enrollment )
     {
         if ( enrollment == null || enrollment.getEnrollment() == null )
@@ -748,6 +763,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummary deleteEnrollment( String uid )
     {
         return deleteEnrollment( uid, null, null );
@@ -802,6 +818,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
@@ -824,6 +841,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public void cancelEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
@@ -832,6 +850,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public void completeEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
@@ -840,6 +859,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
+    @Transactional
     public void incompleteEnrollment( String uid )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
@@ -1201,7 +1221,7 @@ public abstract class AbstractEnrollmentService
         return importOptions;
     }
 
-    protected void reloadUser( ImportOptions importOptions )
+    private void reloadUser(ImportOptions importOptions)
     {
         if ( importOptions == null || importOptions.getUser() == null )
         {

@@ -44,6 +44,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -155,6 +156,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void transferOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation, boolean createIfNotExists )
     {
         Program program = programService.getProgram( programUid );
@@ -164,6 +166,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional
     public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit, boolean skipAccessValidation,
         boolean createIfNotExists )
     {
@@ -197,6 +200,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional
     public void assignOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation, boolean overwriteIfExists )
     {
         Program program = programService.getProgram( programUid );
@@ -206,6 +210,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional
     public void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit, boolean skipAccessValidation,
         boolean overwriteIfExists )
     {
@@ -239,6 +244,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional
     public void grantTemporaryOwnership( String teiUid, String programUid, User user, String reason )
     {
         TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
@@ -247,13 +253,14 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional
     public void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user, String reason )
     {
         if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
         {
             return;
         }
-        if ( user != null && program.isProtected() )
+        if (program.isProtected())
         {
             programTempOwnershipAuditService
                 .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
@@ -262,6 +269,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
     {
         if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
@@ -281,6 +289,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean hasAccess( User user, String teiUid, String programUid )
     {
         Program program = programService.getProgram( programUid );
@@ -296,14 +305,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * Generates a unique key for the tei-program-user combination to be put
      * into cache.
      * 
-     * @param teiUid
-     * @param programUid
-     * @param username
      * @return A unique cache key
      */
     private String tempAccessKey( String teiUid, String programUid, String username )
     {
-        return new StringBuilder().append( username ).append( COLON ).append( programUid ).append( COLON ).append( teiUid ).toString();
+        return username + COLON + programUid + COLON + teiUid;
     }
 
     /**
@@ -316,7 +322,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      */
     private OrganisationUnit getOwner( TrackedEntityInstance entityInstance, Program program )
     {
-        OrganisationUnit ou = null;
+        OrganisationUnit ou;
         TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner( entityInstance.getId(),
             program.getId() );
         if ( trackedEntityProgramOwner == null )
@@ -366,8 +372,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * Ownership check can be skipped if the user is super user or if the
      * program is without registration.
      * 
-     * @param user
-     * @param program
      * @return true if ownership check can be skipped
      */
     private boolean canSkipOwnershipCheck( User user, Program program )
