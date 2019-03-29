@@ -38,7 +38,6 @@ import java.util.List;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultRelationshipService
     implements RelationshipService
 {
@@ -58,24 +57,28 @@ public class DefaultRelationshipService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteRelationship( Relationship relationship )
     {
         relationshipStore.delete( relationship );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Relationship getRelationship( int id )
     {
         return relationshipStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean relationshipExists( String uid )
     {
         return relationshipStore.getByUid( uid ) != null;
     }
 
     @Override
+    @Transactional
     public int addRelationship( Relationship relationship )
     {
         relationship.getFrom().setRelationship( relationship );
@@ -86,6 +89,7 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional
     public void updateRelationship( Relationship relationship )
     {
         relationship.getFrom().setRelationship( relationship );
@@ -94,12 +98,14 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Relationship getRelationship( String uid )
     {
         return relationshipStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
         boolean skipAccessValidation )
     {
@@ -107,12 +113,14 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramInstance( pi );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         boolean skipAccessValidation )
     {
