@@ -43,7 +43,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +58,7 @@ import java.util.List;
  */
 @JacksonXmlRootElement( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
 public class Category
-    extends BaseDimensionalObject implements MetadataObject
+    extends BaseDimensionalObject implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -149,6 +149,7 @@ public class Category
         return null;
     }
 
+    @Override
     public boolean isDefault()
     {
         return DEFAULT_NAME.equals( name );
