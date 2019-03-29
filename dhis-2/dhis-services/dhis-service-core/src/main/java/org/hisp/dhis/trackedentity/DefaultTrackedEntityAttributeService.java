@@ -51,7 +51,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -59,7 +58,6 @@ import java.util.stream.Collectors;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultTrackedEntityAttributeService
     implements TrackedEntityAttributeService
 {
@@ -98,24 +96,28 @@ public class DefaultTrackedEntityAttributeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         attributeStore.delete( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttribute> getAllTrackedEntityAttributes()
     {
         return attributeStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityAttribute getTrackedEntityAttribute( int id )
     {
         return attributeStore.get( id );
     }
 
     @Override
+    @Transactional
     public int addTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         attributeStore.save( attribute );
@@ -123,36 +125,42 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         attributeStore.update( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityAttribute getTrackedEntityAttributeByName( String name )
     {
         return attributeStore.getByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityAttribute getTrackedEntityAttributeByShortName( String shortName )
     {
         return attributeStore.getByShortName( shortName );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityAttribute getTrackedEntityAttributeByCode( String code )
     {
         return attributeStore.getByShortName( code );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityAttribute getTrackedEntityAttribute( String uid )
     {
         return attributeStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
         boolean displayOnVisitSchedule )
     {
@@ -160,12 +168,14 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram()
     {
         return attributeStore.getDisplayInListNoProgram();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String validateScope( TrackedEntityAttribute trackedEntityAttribute,
         String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit, Program program )
     {
@@ -214,7 +224,7 @@ public class DefaultTrackedEntityAttributeService
 
         // TODO re-factor to avoid circular dependency
 
-        TrackedEntityInstanceService trackedEntityInstanceService = (TrackedEntityInstanceService) applicationContext.getBean( TrackedEntityInstanceService.class );
+        TrackedEntityInstanceService trackedEntityInstanceService = applicationContext.getBean( TrackedEntityInstanceService.class );
 
         Grid instances = trackedEntityInstanceService.getTrackedEntityInstancesGrid( params );
 
@@ -230,6 +240,7 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value )
     {
         Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required" );
@@ -285,10 +296,12 @@ public class DefaultTrackedEntityAttributeService
 
         return null;
     }
-    
+
+    @Override
+    @Transactional(readOnly = true)
     public Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes()
     {
-        Set<TrackedEntityAttribute> attributes = new HashSet<>();
+        Set<TrackedEntityAttribute> attributes;
         
         User user = currentUserService.getCurrentUser();        
         
@@ -306,9 +319,10 @@ public class DefaultTrackedEntityAttributeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttribute> getAllSystemWideUniqueTrackedEntityAttributes()
     {
-        return getAllTrackedEntityAttributes().stream().filter( ta -> ta.isSystemWideUnique() )
+        return getAllTrackedEntityAttributes().stream().filter(TrackedEntityAttribute::isSystemWideUnique)
             .collect( Collectors.toList() );
     }
 

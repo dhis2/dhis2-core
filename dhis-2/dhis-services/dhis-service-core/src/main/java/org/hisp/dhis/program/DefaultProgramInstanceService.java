@@ -60,7 +60,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
 {
@@ -102,6 +101,7 @@ public class DefaultProgramInstanceService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public int addProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.save( programInstance );
@@ -109,12 +109,14 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
         deleteProgramInstance( programInstance, false );
     }
 
     @Override
+    @Transactional
     public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
     {
         if ( forceDelete )
@@ -130,30 +132,35 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramInstance getProgramInstance( int id )
     {
         return programInstanceStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramInstance getProgramInstance( String id )
     {
         return programInstanceStore.getByUid( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean programInstanceExists( String uid )
     {
         return programInstanceStore.exists( uid );
     }
 
     @Override
+    @Transactional
     public void updateProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.update( programInstance );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
         Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted )
     {
@@ -215,6 +222,7 @@ public class DefaultProgramInstanceService
 
     // TODO consider security
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
@@ -229,8 +237,7 @@ public class DefaultProgramInstanceService
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
         {
-            Set<OrganisationUnit> organisationUnits = new HashSet<>();
-            organisationUnits.addAll( params.getOrganisationUnits() );
+            Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
 
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
@@ -249,6 +256,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
@@ -263,8 +271,7 @@ public class DefaultProgramInstanceService
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
         {
-            Set<OrganisationUnit> organisationUnits = new HashSet<>();
-            organisationUnits.addAll( params.getOrganisationUnits() );
+            Set<OrganisationUnit> organisationUnits = new HashSet<>(params.getOrganisationUnits());
 
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
@@ -280,12 +287,14 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void decideAccess( ProgramInstanceQueryParams params )
     {
         // TODO Check access for current user
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validate( ProgramInstanceQueryParams params ) throws IllegalQueryException
     {
         String violation = null;
@@ -341,24 +350,28 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( Program program )
     {
         return programInstanceStore.get( program );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status )
     {
         return programInstanceStore.get( program, status );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
         return programInstanceStore.get( entityInstance, program, status );
     }
 
     @Override
+    @Transactional
     public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
@@ -367,6 +380,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,
         Program program, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
@@ -424,6 +438,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance )
     {
         Set<ProgramStageInstance> programStageInstances = new HashSet<>( programInstance.getProgramStageInstances() );
@@ -444,6 +459,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void completeProgramInstanceStatus( ProgramInstance programInstance )
     {
         // ---------------------------------------------------------------------
@@ -466,6 +482,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void cancelProgramInstanceStatus( ProgramInstance programInstance )
     {
         // ---------------------------------------------------------------------
@@ -506,6 +523,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void incompleteProgramInstanceStatus( ProgramInstance programInstance )
     {
         Program program = programInstance.getProgram();
