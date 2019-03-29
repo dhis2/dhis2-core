@@ -35,9 +35,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.option.OptionSet;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,8 +54,6 @@ public class AttributeValue
      */
     private static final long serialVersionUID = -6625127769248931066L;
 
-    private long id;
-
     /**
      * The date this object was created.
      */
@@ -63,9 +64,15 @@ public class AttributeValue
      */
     private Date lastUpdated;
 
-    private Attribute attribute;
+    private String attribute;
 
     private String value;
+
+    private String valueType;
+
+    private Integer sortOrder;
+
+    private String optionSet;
 
     public AttributeValue()
     {
@@ -78,7 +85,7 @@ public class AttributeValue
         this.value = value;
     }
 
-    public AttributeValue( String value, Attribute attribute )
+    public AttributeValue( String value, String attribute )
     {
         this( value );
         this.attribute = attribute;
@@ -102,27 +109,19 @@ public class AttributeValue
 
         AttributeValue that = (AttributeValue) o;
 
-        if ( id != that.id ) return false;
-        if ( attribute != null ? !attribute.equals( that.attribute ) : that.attribute != null ) return false;
-        if ( value != null ? !value.equals( that.value ) : that.value != null ) return false;
-
-        return true;
+        return Objects.equals( this.attribute, that.attribute ) && Objects.equals( this.value, that.value );
     }
 
     @Override
     public int hashCode()
     {
-        int result = Long.hashCode( id );
-        result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        return result;
+        return Objects.hash( attribute, value );
     }
 
     @Override public String toString()
     {
         return "AttributeValue{" +
             "class=" + getClass() +
-            ", id=" + id +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             ", attribute=" + attribute +
@@ -130,20 +129,7 @@ public class AttributeValue
             '}';
     }
 
-
-    @JsonIgnore
-    public long getId()
-    {
-        return id;
-    }
-
-    public void setId( long id )
-    {
-        this.id = id;
-    }
-
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     public Date getCreated()
     {
         return created;
@@ -155,7 +141,6 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     public Date getLastUpdated()
     {
         return lastUpdated;
@@ -167,20 +152,17 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Attribute getAttribute()
+    public String getAttribute()
     {
         return attribute;
     }
 
-    public void setAttribute( Attribute attribute )
+    public void setAttribute( String attribute )
     {
         this.attribute = attribute;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getValue()
     {
         return value;
@@ -191,13 +173,27 @@ public class AttributeValue
         this.value = value;
     }
 
-    public boolean isUnique()
-    {
-        return attribute != null && attribute.isUnique();
+    public String getValueType() {
+        return valueType;
     }
 
-    public boolean isMandatory()
-    {
-        return attribute != null && attribute.isMandatory();
+    public void setValueType(String valueType) {
+        this.valueType = valueType;
+    }
+
+    public Integer getSortOrder() {
+        return sortOrder;
+    }
+
+    public void setSortOrder(Integer sortOrder) {
+        this.sortOrder = sortOrder;
+    }
+
+    public String getOptionSet() {
+        return optionSet;
+    }
+
+    public void setOptionSet(String optionSet) {
+        this.optionSet = optionSet;
     }
 }
