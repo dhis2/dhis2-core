@@ -15,7 +15,7 @@ services:
       dockerfile: Dockerfile
       context: ../..
     volumes:
-      - ./config/dhis2_home:/DHIS2_home
+      - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     depends_on:
       - db
     ports:
