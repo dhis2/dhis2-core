@@ -37,6 +37,7 @@ import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
@@ -48,6 +49,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -125,7 +128,10 @@ public class SimplisticHttpGetGateWay
 
             String data = encodedUrlParameters( genericConfig, text, recipients );
 
-            HttpEntity<String> requestEntity = new HttpEntity<>( data, null );
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.put( "Content-type", Collections.singletonList( genericConfig.getContentType() ) );
+
+            HttpEntity<String> requestEntity = new HttpEntity<>( data, httpHeaders );
 
             responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
@@ -195,6 +201,7 @@ public class SimplisticHttpGetGateWay
             return status;
         }
 
+        log.info( responseEntity.getBody() );
         return wrapHttpStatus( responseEntity.getStatusCode() );
     }
 }

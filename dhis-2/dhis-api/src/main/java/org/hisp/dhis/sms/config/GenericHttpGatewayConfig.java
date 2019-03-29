@@ -42,6 +42,8 @@ public class GenericHttpGatewayConfig
 
     private String recipientParameter;
 
+    private String contentType = "application/x-www-form-urlencoded";
+
     private boolean useGet;
 
     private List<GenericGatewayParameter> parameters = Lists.newArrayList();
@@ -116,5 +118,16 @@ public class GenericHttpGatewayConfig
     public void setUseGet( boolean useGet )
     {
         this.useGet = useGet;
+    }
+
+    @JsonProperty
+    public String getContentType()
+    {
+        return contentType;
+    }
+
+    public void setContentType( String contentType )
+    {
+        this.contentType = contentType;
     }
 }
