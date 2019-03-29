@@ -12,8 +12,8 @@ before_install:
 
 matrix: 
   include:
-    -env:PROFILE=default
-    -env:PROFILE=integration
+    -env: PROFILE=default
+    -env: PROFILE=integration
   
 script: 
   - mvn clean install -DskipTests=false -P${PROFILE}
