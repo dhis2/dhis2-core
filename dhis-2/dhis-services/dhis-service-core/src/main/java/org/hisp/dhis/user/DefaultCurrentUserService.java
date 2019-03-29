@@ -77,7 +77,7 @@ public class DefaultCurrentUserService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -87,7 +87,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Integer userId = USERNAME_ID_CACHE.get( username, un -> getUserId( un ) );
+        Integer userId = USERNAME_ID_CACHE.get( username, this::getUserId);
 
         if ( userId == null )
         {
@@ -98,6 +98,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserInfo getCurrentUserInfo()
     {
         UserDetails userDetails = getCurrentUserDetails();
@@ -129,7 +130,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean currentUserIsSuper()
     {
         User user = getCurrentUser();
@@ -138,7 +139,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
@@ -147,7 +148,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();
