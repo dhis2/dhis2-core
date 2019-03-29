@@ -137,6 +137,7 @@ public class ImportOptions
         options.force = this.force;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
+        options.skipLastUpdated = this.skipLastUpdated;
 
         return options;
     }
