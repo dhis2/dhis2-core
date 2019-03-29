@@ -7,16 +7,22 @@ addons:
   apt:
     packages:
     - oracle-java8-installer
+
 before_install:
 - rm ~/.m2/settings.xml
-
-matrix: 
-  include:
-    -env: PROFILE=default
-    -env: PROFILE=integration
   
-script: 
-  - mvn clean install -DskipTests=false -P${PROFILE}
+jobs: 
+  include:
+    - stage: tests 
+      name: unit
+      script: 
+        - mvn clean install -DskipTests=false -q --update-snapshots -f ./dhis-2/pom.xml
+        - mvn clean install -DskipTests=false -q --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        
+    - name: integration
+      script: 
+        - mvn clean install -Pintegration -f ./dhis-2/pom.xml
+        
 branches:
   only:
   - master
