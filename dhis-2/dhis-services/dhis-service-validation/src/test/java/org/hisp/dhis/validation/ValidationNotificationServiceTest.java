@@ -126,7 +126,7 @@ public class ValidationNotificationServiceTest
 
     /**
      * We mock the sending of messages to write to a local List (which we can inspect).
-     * Also, the renderer is replaced with a mock which returns a static specialCharRule/message-pair.
+     * Also, the renderer is replaced with a mock which returns a static subject/message-pair.
      */
     @Before
     public void initTest()
