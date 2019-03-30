@@ -1771,8 +1771,11 @@ public abstract class AbstractEventService
                     executionDate, event.getStatus().getValue(), completedBy,
                     programStageInstance, aoc, importOptions );
             }
-            
-            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
+
+            if ( !importOptions.isSkipLastUpdated() )
+            {
+                updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
+            }
 
             importSummary.setReference( programStageInstance.getUid() );
         }
