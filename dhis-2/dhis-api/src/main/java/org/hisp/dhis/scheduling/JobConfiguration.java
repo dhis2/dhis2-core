@@ -37,7 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
@@ -70,7 +70,7 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( converter = JobConfigurationSanitizer.class )
 public class JobConfiguration
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
     private String cronExpression;
 
