@@ -79,6 +79,7 @@ public abstract class AbstractJobParametersDeserializer<T extends JobParameters>
     {
         final ObjectCodec oc = p.getCodec();
         final JsonNode jsonNode;
+
         if ( oc instanceof XmlMapper )
         {
             jsonNode = createJsonNode( p, ctxt );
@@ -96,30 +97,37 @@ public abstract class AbstractJobParametersDeserializer<T extends JobParameters>
     protected JsonNode createJsonNode( @Nonnull JsonParser p, @Nonnull DeserializationContext ctxt ) throws IOException
     {
         JsonToken t = p.getCurrentToken();
+
         if ( t == null )
         {
             t = p.nextToken();
+
             if ( t == null )
             {
                 ctxt.handleUnexpectedToken( _valueClass, p );
             }
         }
+
         if ( t != JsonToken.START_OBJECT )
         {
             ctxt.handleUnexpectedToken( _valueClass, p );
         }
+
         t = p.nextToken();
 
         ObjectNode result = JsonNodeFactory.instance.objectNode();
+
         do
         {
             if ( t != JsonToken.FIELD_NAME )
             {
                 ctxt.handleUnexpectedToken( _valueClass, p );
             }
+
             final String fieldName = p.getValueAsString();
 
             t = p.nextToken();
+
             if ( t == JsonToken.VALUE_STRING )
             {
                 if ( arrayFieldNames.contains( fieldName ) )
@@ -139,9 +147,11 @@ public abstract class AbstractJobParametersDeserializer<T extends JobParameters>
             {
                 ctxt.handleUnexpectedToken( _valueClass, p );
             }
+
             t = p.nextToken();
         }
         while ( t != null && t != JsonToken.END_OBJECT );
+
         return result;
     }
 
@@ -149,29 +159,36 @@ public abstract class AbstractJobParametersDeserializer<T extends JobParameters>
     protected JsonNode createArrayNode( @Nonnull JsonParser p, @Nonnull DeserializationContext ctxt ) throws IOException
     {
         JsonToken t = p.getCurrentToken();
+
         if ( t != JsonToken.START_OBJECT )
         {
             ctxt.handleUnexpectedToken( _valueClass, p );
         }
+
         t = p.nextToken();
 
         ArrayNode result = JsonNodeFactory.instance.arrayNode();
+
         do
         {
             if ( t != JsonToken.FIELD_NAME )
             {
                 ctxt.handleUnexpectedToken( _valueClass, p );
             }
+
             t = p.nextToken();
+
             if ( t != JsonToken.VALUE_STRING )
             {
                 ctxt.handleUnexpectedToken( _valueClass, p );
             }
+
             result.add( p.getValueAsString() );
 
             t = p.nextToken();
         }
         while ( t != null && t != JsonToken.END_OBJECT );
+
         return result;
     }
 }
