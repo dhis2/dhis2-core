@@ -127,7 +127,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program )
+    public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -149,7 +149,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
         }
         
-        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
+        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
             errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
@@ -158,7 +158,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program )
+    public List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -180,7 +180,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no data write access to tracked entity: " + trackedEntityType.getUid() );
         }
 
-        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
+        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
         {
             errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
@@ -189,7 +189,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, ProgramInstance programInstance )
+    public List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -213,7 +213,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -234,7 +234,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, ProgramInstance programInstance )
+    public List<String> canWrite( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -258,7 +258,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            if ( !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -279,7 +279,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, ProgramStageInstance programStageInstance )
+    public List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -315,7 +315,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
+            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -338,7 +338,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, ProgramStageInstance programStageInstance )
+    public List<String> canWrite( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -389,7 +389,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
 
-            if ( !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
+            if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, programStageInstance.getProgramInstance().getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -425,12 +425,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         to = relationship.getTo();
 
         errors.addAll( canRead( user, from.getTrackedEntityInstance() ) );
-        errors.addAll( canRead( user, from.getProgramInstance() ) );
-        errors.addAll( canRead( user, from.getProgramStageInstance() ) );
+        errors.addAll( canRead( user, from.getProgramInstance(), false ) );
+        errors.addAll( canRead( user, from.getProgramStageInstance(), false ) );
 
         errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
-        errors.addAll( canRead( user, to.getProgramInstance() ) );
-        errors.addAll( canRead( user, to.getProgramStageInstance() ) );
+        errors.addAll( canRead( user, to.getProgramInstance(), false ) );
+        errors.addAll( canRead( user, to.getProgramStageInstance(), false ) );
 
         return errors;
     }
@@ -460,18 +460,18 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         to = relationship.getTo();
 
         errors.addAll( canWrite( user, from.getTrackedEntityInstance() ) );
-        errors.addAll( canWrite( user, from.getProgramInstance() ) );
-        errors.addAll( canWrite( user, from.getProgramStageInstance() ) );
+        errors.addAll( canWrite( user, from.getProgramInstance(), false) );
+        errors.addAll( canWrite( user, from.getProgramStageInstance(), false ) );
 
         errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
-        errors.addAll( canRead( user, to.getProgramInstance() ) );
-        errors.addAll( canRead( user, to.getProgramStageInstance() ) );
+        errors.addAll( canRead( user, to.getProgramInstance(), false ) );
+        errors.addAll( canRead( user, to.getProgramStageInstance(), false ) );
 
         return errors;
     }
 
     @Override
-    public List<String> canRead( User user, TrackedEntityDataValue dataValue )
+    public List<String> canRead( User user, TrackedEntityDataValue dataValue, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -480,7 +480,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        errors.addAll( canRead( user, dataValue.getProgramStageInstance() ) );
+        errors.addAll( canRead( user, dataValue.getProgramStageInstance(), skipOwnershipCheck ) );
 
         DataElement dataElement = dataValue.getDataElement();
 
@@ -493,7 +493,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, TrackedEntityDataValue dataValue )
+    public List<String> canWrite( User user, TrackedEntityDataValue dataValue, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
@@ -502,7 +502,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return errors;
         }
 
-        errors.addAll( canWrite( user, dataValue.getProgramStageInstance() ) );
+        errors.addAll( canWrite( user, dataValue.getProgramStageInstance(), skipOwnershipCheck ) );
 
         DataElement dataElement = dataValue.getDataElement();
 
