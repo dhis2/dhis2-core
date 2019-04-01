@@ -33,7 +33,7 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 import java.util.Date;
 
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
-import static org.hisp.dhis.api.util.DateUtils.parseDate;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
 /**
  * Utilities for ANTLR parsing

@@ -75,11 +75,10 @@ public class DefaultAggregateAccessManager
     @PostConstruct
     public void init()
     {
-
         CAN_DATA_WRITE_COC_CACHE = Caffeine.newBuilder()
-                .expireAfterWrite( 3, TimeUnit.HOURS )
-                .initialCapacity( 1000 )
-                .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .initialCapacity( 1000 )
+            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
     }
 
     @Override

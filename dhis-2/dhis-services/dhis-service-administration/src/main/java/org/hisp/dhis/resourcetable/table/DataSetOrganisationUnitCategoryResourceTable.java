@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -43,6 +42,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.Lists;
 
@@ -53,7 +53,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
     extends ResourceTable<DataSet>
 {
     private CategoryOptionCombo defaultOptionCombo;
-    
+
     public DataSetOrganisationUnitCategoryResourceTable( List<DataSet> objects, CategoryOptionCombo defaultOptionCombo )
     {
         this.objects = objects;
@@ -69,7 +69,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        return "create table " + getTempTableName() + " " + 
+        return "create table " + getTempTableName() + " " +
             "(datasetid integer not null, organisationunitid integer not null, " +
             "attributeoptioncomboid integer not null, costartdate date, coenddate date)";
     }
@@ -82,9 +82,9 @@ public class DataSetOrganisationUnitCategoryResourceTable
 
     /**
      * Iterate over data sets and associated organisation units. If data set
-     * has a category combination and the organisation unit has category options, 
-     * find the intersection of the category option combinations linked to the 
-     * organisation unit through its category options, and the category option 
+     * has a category combination and the organisation unit has category options,
+     * find the intersection of the category option combinations linked to the
+     * organisation unit through its category options, and the category option
      * combinations linked to the data set through its category combination. If
      * not, use the default category option combo.
      */
@@ -92,11 +92,11 @@ public class DataSetOrganisationUnitCategoryResourceTable
     public Optional<List<Object[]>> getPopulateTempTableContent()
     {
         List<Object[]> batchArgs = new ArrayList<>();
-        
+
         for ( DataSet dataSet : objects )
         {
             CategoryCombo categoryCombo = dataSet.getCategoryCombo();
-            
+
             for ( OrganisationUnit orgUnit : dataSet.getSources() )
             {
                 if ( !categoryCombo.isDefault() )
@@ -104,18 +104,18 @@ public class DataSetOrganisationUnitCategoryResourceTable
                     if ( orgUnit.hasCategoryOptions() )
                     {
                         Set<CategoryOption> orgUnitOptions = orgUnit.getCategoryOptions();
-                        
+
                         for ( CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
                         {
                             Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
-                            
+
                             if ( orgUnitOptions.containsAll( optionComboOptions ) )
                             {
                                 Date startDate = DateUtils.min( optionComboOptions.stream().map( co -> co.getStartDate() ).collect( Collectors.toSet() ) );
                                 Date endDate = DateUtils.max( optionComboOptions.stream().map( co -> co.getEndDate() ).collect( Collectors.toSet() ) );
-                                
+
                                 List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), optionCombo.getId(), startDate, endDate );
-                                
+
                                 batchArgs.add( values.toArray() );
                             }
                         }
@@ -124,21 +124,21 @@ public class DataSetOrganisationUnitCategoryResourceTable
                 else
                 {
                     List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), defaultOptionCombo.getId(), null, null );
-                    
+
                     batchArgs.add( values.toArray() );
                 }
             }
         }
-        
+
         return Optional.of( batchArgs );
     }
 
     @Override
     public List<String> getCreateIndexStatements()
     {
-        String sql = "create unique index in_" + getTableName() + "_" + getRandomSuffix() + " on " + 
+        String sql = "create unique index in_" + getTableName() + "_" + getRandomSuffix() + " on " +
             getTempTableName() + "(datasetid, organisationunitid, attributeoptioncomboid)";
-        
+
         return Lists.newArrayList( sql );
     }
 }
