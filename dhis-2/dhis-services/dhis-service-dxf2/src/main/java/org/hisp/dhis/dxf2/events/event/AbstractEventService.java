@@ -1092,9 +1092,9 @@ public abstract class AbstractEventService
         }
         
         if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
-            && (assignedUserSelectionMode.equals( AssignedUserSelectionMode.CURRENT ) || assignedUserSelectionMode.equals( AssignedUserSelectionMode.NONE )) )
+            && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
         {
-            throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is CURRENT or NONE" );
+            throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
 
         params.setProgram( pr );

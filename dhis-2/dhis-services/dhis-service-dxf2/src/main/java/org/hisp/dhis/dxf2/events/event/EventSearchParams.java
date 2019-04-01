@@ -622,4 +622,9 @@ public class EventSearchParams
     {
         return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
     }
+    
+    public boolean isIncludeOnlyAssigned()
+    {
+        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
+    }
 }
