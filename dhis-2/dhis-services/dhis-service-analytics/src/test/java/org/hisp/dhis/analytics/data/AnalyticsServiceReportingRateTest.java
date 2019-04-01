@@ -44,12 +44,15 @@ import java.util.stream.Stream;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
+public class AnalyticsServiceReportingRateTest
+    extends
+    AnalyticsServiceBaseTest
 {
 
     @Test
@@ -72,7 +75,7 @@ public class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
             x -> periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, x, 1, 0, 0 ).toDate() ) ) );
 
         OrganisationUnit ou = new OrganisationUnit( "aaaa" );
-        
+
         DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
             // DATA ELEMENTS
             .withDataElements( newArrayList( reportingRateA, reportingRateB, reportingRateC ) ).withIgnoreLimit( true )
@@ -100,23 +103,101 @@ public class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
         Grid grid = target.getAggregatedDataValues( params );
 
         assertEquals( expectedReports * timeUnit,
-            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.EXPECTED_REPORTS ) ), 0 );
-        assertEquals( 50D, getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ), 0 );
-        assertEquals( 500D, getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.ACTUAL_REPORTS ) ), 0 );
+            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.EXPECTED_REPORTS ) ).get(), 0 );
+        assertEquals( 50D,
+            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(), 0 );
+        assertEquals( 500D,
+            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.ACTUAL_REPORTS ) ).get(), 0 );
     }
 
-    private double getValueFromGrid(List<List<Object>> rows, String key )
+    @Test
+    public void verifyNullValueIsZeroForReportingRate()
+    {
+        double expectedReports = 100D;
+        DataSet dataSetA = createDataSet( 'A' );
+        ReportingRate reportingRateA = new ReportingRate( dataSetA );
+        reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
+
+        List<DimensionalItemObject> periods = new ArrayList<>();
+        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() ) );
+
+        OrganisationUnit ou = new OrganisationUnit( "aaaa" );
+
+        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
+            // DATA ELEMENTS
+            .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
+            // FILTERS (OU)
+            .withFilters(
+                Collections.singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+            .build();
+
+        initMock( params );
+
+        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
+            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) ).thenReturn( CompletableFuture.completedFuture( null ) ); // NO VALUES
+        Map<String, Object> reportingRate = new HashMap<>();
+        reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
+
+        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
+            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
+                .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
+
+        Grid grid = target.getAggregatedDataValues( params );
+
+        assertEquals( 0D,
+            getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) ).get(), 0 );
+    }
+
+    @Test
+    public void verifyNullTargetIsNullForReportingRate()
+    {
+        DataSet dataSetA = createDataSet( 'A' );
+        ReportingRate reportingRateA = new ReportingRate( dataSetA );
+        reportingRateA.setMetric( ReportingRateMetric.REPORTING_RATE );
+
+        List<DimensionalItemObject> periods = new ArrayList<>();
+        periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() ) );
+
+        OrganisationUnit ou = new OrganisationUnit( "aaaa" );
+
+        DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnit( ou )
+            // DATA ELEMENTS
+            .withDataElements( newArrayList( reportingRateA ) ).withIgnoreLimit( true )
+            // FILTERS (OU)
+            .withFilters(
+                Collections.singletonList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ) ) )
+            .build();
+
+        initMock( params );
+        Map<String, Object> actualReports = new HashMap<>();
+        actualReports.put( dataSetA.getUid() + "-" + ou.getUid(), 500D );
+
+        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
+            eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
+                .thenReturn( CompletableFuture.completedFuture( actualReports ) );
+
+        when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
+            eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
+                .thenReturn( CompletableFuture.completedFuture( null ) ); // NO TARGET RETURNED
+
+        Grid grid = target.getAggregatedDataValues( params );
+
+        assertNull( getValueFromGrid( grid.getRows(), makeKey( dataSetA, ReportingRateMetric.REPORTING_RATE ) )
+            .orElse( null ) );
+    }
+
+    private Optional<Double> getValueFromGrid( List<List<Object>> rows, String key )
     {
         for ( List<Object> row : rows )
         {
             if ( row.get( 0 ).equals( key ) )
             {
-                return (Double) row.get( 2 );
+                return Optional.of( (Double) row.get( 2 ) );
             }
         }
-        return 0;
+        return Optional.empty();
     }
-    
+
     private String makeKey( DataSet dataSet, ReportingRateMetric reportingRateMetric )
     {
         return dataSet.getUid() + "." + reportingRateMetric.name();

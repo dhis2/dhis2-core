@@ -46,6 +46,7 @@ dhis2.availability._availableTimeoutHandler = -1;
 dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineInterval ) {
   onlineInterval = onlineInterval ? onlineInterval : 15000;
   offlineInterval = offlineInterval ? offlineInterval : 10000;
+  dhis2.availability.stopAvailabilityCheck();
 
   function _checkAvailability() {
     $.ajax({
@@ -57,35 +58,40 @@ dhis2.availability.startAvailabilityCheck = function ( onlineInterval, offlineIn
       timeout: 30000,
       dataType: "text",
       success: function ( data, textStatus, jqXHR ) {
+        dhis2.availability.stopAvailabilityCheck();
         if( !dhis2.availability._isAvailable ) {
           dhis2.availability._isAvailable = true;
           $(document).trigger("dhis2.online", [true]);
         }
         dhis2.availability._isLoggedIn = true;
+
       },
       error: function ( jqXHR, textStatus, errorThrown ) {
         if( jqXHR.status == 401 ) {
+          // server online but not logged in
           $(document).trigger("dhis2.online", [false]);
+          dhis2.availability._isAvailable = true;
         }
         else if( dhis2.availability._isAvailable ) {
+          // server offline
           dhis2.availability._isAvailable = false;
           $(document).trigger("dhis2.offline");
         }
+
         dhis2.availability._isLoggedIn = false;
       },
       complete: function () {
-        if( dhis2.availability._isAvailable ) {
+        if( dhis2.availability._isAvailable && !dhis2.availability._isLoggedIn ) {
           dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, onlineInterval);
         }
-        else {
+        else if ( !dhis2.availability._isAvailable )  {
           dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, offlineInterval);
         }
       }
     });
   }
 
-  // use 500ms for initial check
-  setTimeout(_checkAvailability, 500);
+  dhis2.availability._availableTimeoutHandler = setTimeout(_checkAvailability, 500 );
 };
 
 /**
@@ -114,6 +120,7 @@ dhis2.availability.syncCheckAvailability = function () {
     success: function ( data, textStatus, jqXHR ) {
       dhis2.availability._isAvailable = true;
       isLoggedIn = true;
+      dhis2.availability.stopAvailabilityCheck();
 
       if( isLoggedIn != dhis2.availability._isLoggedIn ) {
         dhis2.availability._isLoggedIn = isLoggedIn;
@@ -125,6 +132,7 @@ dhis2.availability.syncCheckAvailability = function () {
         dhis2.availability._isAvailable = false;
         dhis2.availability._isLoggedIn = -1;
         $(document).trigger("dhis2.offline");
+        dhis2.availability.startAvailabilityCheck();
       }
     }
   });

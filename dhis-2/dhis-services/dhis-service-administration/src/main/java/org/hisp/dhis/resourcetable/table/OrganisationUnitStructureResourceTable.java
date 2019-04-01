@@ -51,10 +51,10 @@ public class OrganisationUnitStructureResourceTable
     extends ResourceTable<OrganisationUnit>
 {
     private OrganisationUnitService organisationUnitService; // Nasty
-    
+
     private int organisationUnitLevels;
-    
-    public OrganisationUnitStructureResourceTable( List<OrganisationUnit> objects, 
+
+    public OrganisationUnitStructureResourceTable( List<OrganisationUnit> objects,
         OrganisationUnitService organisationUnitService, int organisationUnitLevels )
     {
         super( objects );
@@ -67,22 +67,22 @@ public class OrganisationUnitStructureResourceTable
     {
         return ResourceTableType.ORG_UNIT_STRUCTURE;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
         StringBuilder sql = new StringBuilder();
-        
+
         sql.append( "create table " ).append( getTempTableName() ).
             append( " (organisationunitid integer not null primary key, organisationunituid character(11), level integer" );
-        
+
         for ( int k = 1 ; k <= organisationUnitLevels; k++ )
         {
             sql.append( ", " ).append( quote( "idlevel" + k ) ).append (" integer, " )
                 .append( quote( "uidlevel" + k ) ).append( " character(11), " )
                 .append( quote( "namelevel" + k ) ).append( " text" );
         }
-        
+
         return sql.append( ");" ).toString();
     }
 
@@ -134,7 +134,7 @@ public class OrganisationUnitStructureResourceTable
                 batchArgs.add( values.toArray() );
             }
         }
-        
+
         return Optional.of( batchArgs );
     }
 
@@ -142,9 +142,9 @@ public class OrganisationUnitStructureResourceTable
     public List<String> getCreateIndexStatements()
     {
         String name = "in_orgunitstructure_organisationunituid_" + getRandomSuffix();
-        
+
         String sql = "create unique index " + name + " on " + getTempTableName() + "(organisationunituid)";
-        
+
         return Lists.newArrayList( sql );
     }
 }
