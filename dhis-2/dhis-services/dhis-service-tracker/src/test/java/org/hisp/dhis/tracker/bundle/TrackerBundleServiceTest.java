@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
@@ -37,6 +38,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderFormat;
@@ -53,8 +56,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -83,6 +85,9 @@ public class TrackerBundleServiceTest
     @Autowired
     private ProgramStageInstanceStore programStageInstanceStore;
 
+    @Autowired
+    private IdentifiableObjectManager manager;
+
     @Override
     protected void setUpTest() throws IOException
     {
@@ -107,5 +112,11 @@ public class TrackerBundleServiceTest
     @Test
     public void testVerifyMetadata() throws IOException
     {
+        Program program = manager.get( Program.class, "E8o1E9tAppy" );
+        OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, "QfUVllTs6cS" );
+
+        assertNotNull( program );
+        assertNotNull( organisationUnit );
+        assertFalse( program.getProgramStages().isEmpty() );
     }
 }
