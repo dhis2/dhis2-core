@@ -1,15 +1,15 @@
-ALTER TABLE relationshiptype
-  ADD COLUMN bidirectional BOOLEAN;
+alter table relationshiptype
+  add column bidirectional boolean;
 
-ALTER TABLE relationshiptype
-  ADD COLUMN fromToName CHARACTER VARYING(255);
+alter table relationshiptype
+  add column fromToName character varying(255);
 
-ALTER TABLE relationshiptype
-  ADD COLUMN toFromName CHARACTER VARYING(255);
+alter table relationshiptype
+  add column toFromName character varying(255);
 
-UPDATE relationshiptype SET fromToName = name;
+update relationshiptype set fromToName = name where fromToName is null;
 
-UPDATE relationshiptype SET bidirectional = false;
+update relationshiptype set bidirectional = false where bidirectional is null;
 
-ALTER TABLE relationshiptype
-ALTER COLUMN bidirectional SET NOT NULL;
+alter table relationshiptype
+alter column bidirectional set not null;
