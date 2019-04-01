@@ -479,7 +479,10 @@ public class HibernateGenericStore<T>
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue )
     {
-        List<AttributeValue> values = getAttributeValueByAttribute( attributeValue.getAttribute() );
+        Attribute attribute = getSession().get( Attribute.class, attributeValue.getAttribute() );
+
+        List<AttributeValue> values = getAttributeValueByAttribute( attribute );
+
         return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ));
     }
 
