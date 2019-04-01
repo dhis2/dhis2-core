@@ -53,12 +53,12 @@ public class EventQueryCriteria implements Serializable
     /**
      * Property indicating the OU selection mode for the event filter
      */
-    private OrganisationUnitSelectionMode orgUnitSelectionMode;
+    private OrganisationUnitSelectionMode ouMode;
     
     /**
      * Property indicating the assigned user selection mode for the event filter.
      */
-    private AssignedUserSelectionMode assignedUserSelectionMode;
+    private AssignedUserSelectionMode assignedUserMode;
     
     /**
      * Property which contains the required assigned user ids to be used in the event filter.
@@ -97,7 +97,7 @@ public class EventQueryCriteria implements Serializable
     /**
      * Property indicating which event status types to filter
      */
-    private EventStatus eventStatus;
+    private EventStatus status;
 
     /**
      * Property to filter events based on event created dates
@@ -117,14 +117,14 @@ public class EventQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventStatus getEventStatus()
+    public EventStatus getStatus()
     {
-        return eventStatus;
+        return status;
     }
 
-    public void setEventStatus( EventStatus eventStatus )
+    public void setStatus( EventStatus status )
     {
-        this.eventStatus = eventStatus;
+        this.status = status;
     }
 
     @JsonProperty
@@ -189,14 +189,14 @@ public class EventQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnitSelectionMode getOrgUnitSelectionMode()
+    public OrganisationUnitSelectionMode getOuMode()
     {
-        return orgUnitSelectionMode;
+        return ouMode;
     }
 
-    public void setOrgUnitSelectionMode( OrganisationUnitSelectionMode orgUnitSelectionMode )
+    public void setOuMode( OrganisationUnitSelectionMode ouMode )
     {
-        this.orgUnitSelectionMode = orgUnitSelectionMode;
+        this.ouMode = ouMode;
     }
 
     @JsonProperty
@@ -261,14 +261,14 @@ public class EventQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    public AssignedUserSelectionMode getAssignedUserMode()
     {
-        return assignedUserSelectionMode;
+        return assignedUserMode;
     }
 
-    public void setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
+    public void setAssignedUserMode( AssignedUserSelectionMode assignedUserMode )
     {
-        this.assignedUserSelectionMode = assignedUserSelectionMode;
+        this.assignedUserMode = assignedUserMode;
     }
 
     @JsonProperty
