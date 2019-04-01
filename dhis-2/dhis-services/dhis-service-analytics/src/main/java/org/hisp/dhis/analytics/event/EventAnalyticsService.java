@@ -46,6 +46,7 @@ public interface EventAnalyticsService
     String ITEM_EVENT = "psi";
     String ITEM_PROGRAM_STAGE = "ps";
     String ITEM_EVENT_DATE = "eventdate";
+    String ITEM_GEOMETRY = "geometry";
     String ITEM_LONGITUDE = "longitude";
     String ITEM_LATITUDE = "latitude";
     String ITEM_ORG_UNIT_NAME = "ouname";

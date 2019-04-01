@@ -28,9 +28,10 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 /**
  * @author Nguyen Hong Duc
@@ -42,15 +43,27 @@ public interface UserStore
 
     /**
      * Returns a list of users based on the given query parameters.
-     * 
+     *
+     *
      * @param params the user query parameters.
      * @return a List of users.
      */
     List<User> getUsers( UserQueryParams params );
 
     /**
+     * Returns a list of users based on the given query parameters.
+     * If the specified list of orders are empty, default order of
+     * last name and first name will be applied.
+     *
+     * @param params the user query parameters.
+     * @param orders the already validated order strings (e.g. email:asc).
+     * @return a List of users.
+     */
+    List<User> getUsers( UserQueryParams params, @Nullable List<String> orders );
+
+    /**
      * Returns the number of users based on the given query parameters.
-     * 
+     *
      * @param params the user query parameters.
      * @return number of users.
      */

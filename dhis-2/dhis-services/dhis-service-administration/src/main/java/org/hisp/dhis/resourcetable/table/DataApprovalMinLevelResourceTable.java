@@ -65,15 +65,15 @@ public class DataApprovalMinLevelResourceTable
             "attributeoptioncomboid integer not null, " +
             "minlevel integer not null, " +
             "primary key (workflowid,periodid,attributeoptioncomboid,organisationunitid))";
-        
+
         return sql;
     }
 
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql = 
-            "insert into " + getTempTableName() + 
+        String sql =
+            "insert into " + getTempTableName() +
             " (workflowid,periodid,organisationunitid,attributeoptioncomboid,minlevel) " +
             "select da.workflowid, da.periodid, da.organisationunitid, da.attributeoptioncomboid, dal.level as minlevel " +
             "from dataapproval da " +
@@ -87,14 +87,14 @@ public class DataApprovalMinLevelResourceTable
                     "and da.attributeoptioncomboid=da2.attributeoptioncomboid " +
                     "and dal.level > dal2.level " +
                     "and ( ";
-        
+
         for ( OrganisationUnitLevel level : objects )
         {
             sql += "ous.idlevel" + level.getLevel() + " = da2.organisationunitid or ";
         }
-        
+
         sql = TextUtils.removeLastOr( sql ) + ") )";
-        
+
         return Optional.of( sql );
     }
 
@@ -107,6 +107,6 @@ public class DataApprovalMinLevelResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();        
+        return Lists.newArrayList();
     }
 }

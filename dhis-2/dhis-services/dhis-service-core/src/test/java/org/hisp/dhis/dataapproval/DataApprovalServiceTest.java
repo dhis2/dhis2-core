@@ -347,6 +347,7 @@ public class DataApprovalServiceTest
         dataSetC.addOrganisationUnit( organisationUnitA );
         dataSetC.addOrganisationUnit( organisationUnitB );
         dataSetC.addOrganisationUnit( organisationUnitC );
+        dataSetC.addOrganisationUnit( organisationUnitD );
 
         dataSetD.addOrganisationUnit( organisationUnitA );
         dataSetD.addOrganisationUnit( organisationUnitB );
@@ -860,6 +861,22 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+    }
+
+    @Test
+    public void testGetDataApprovalStateAboveUserOrgUnitLevel()
+    {
+        Set<OrganisationUnit> units = newHashSet( organisationUnitD );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE );
+        userService.addUser( currentUserService.getCurrentUser() );
+        setCurrentUserServiceDependencies( currentUserService );
+
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow12, periodA, organisationUnitD, defaultOptionCombo) );
+
+        dataApprovalStore.addDataApproval( new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, new Date(), userA ) );
+
+        assertEquals( "APPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow12, periodA, organisationUnitD, defaultOptionCombo) );
     }
 
     @Test

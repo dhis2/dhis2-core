@@ -42,7 +42,7 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import java.util.Date;
@@ -55,7 +55,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOptionCombo
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -196,6 +196,7 @@ public class CategoryOptionCombo
         categoryOptions.clear();
     }
 
+    @Override
     public boolean isDefault()
     {
         return categoryCombo != null && DEFAULT_NAME.equals( categoryCombo.getName() );
