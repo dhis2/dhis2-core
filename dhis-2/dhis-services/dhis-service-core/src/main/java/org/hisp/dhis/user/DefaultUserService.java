@@ -32,7 +32,6 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -44,6 +43,7 @@ import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.transaction.annotation.Transactional;
 

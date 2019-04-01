@@ -42,7 +42,6 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -51,6 +50,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
