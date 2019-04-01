@@ -55,7 +55,7 @@ public class DatePeriodResourceTable
     {
         super( objects );
     }
-    
+
     @Override
     public ResourceTableType getTableType()
     {
@@ -66,15 +66,15 @@ public class DatePeriodResourceTable
     public String getCreateTempTableStatement()
     {
         String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key, year integer not null";
-        
+
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
             sql += ", " + quote( periodType.getName().toLowerCase() ) + " varchar(15)";
         }
-        
+
         sql += ")";
-        
-        return sql;        
+
+        return sql;
     }
 
     @Override
@@ -92,7 +92,7 @@ public class DatePeriodResourceTable
 
         Date startDate = new Cal( 1975, 1, 1, true ).time(); //TODO
         Date endDate = new Cal( 2025, 1, 1, true ).time();
-        
+
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
         List<Date> days = new UniqueArrayList<>( dailyPeriods.stream().map( Period::getStartDate ).collect( Collectors.toList() ) );
@@ -104,7 +104,7 @@ public class DatePeriodResourceTable
             List<Object> values = new ArrayList<>();
 
             final int year = PeriodType.getCalendar().fromIso( day ).getYear();
-            
+
             values.add( day );
             values.add( year );
 
@@ -131,7 +131,7 @@ public class DatePeriodResourceTable
             String sql = "create index " + indexName + " on " + getTempTableName() + "(" + quote( colName ) + ")";
             indexes.add( sql );
         }
-        
+
         return indexes;
     }
 }

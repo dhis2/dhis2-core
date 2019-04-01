@@ -28,19 +28,33 @@ package org.hisp.dhis.user.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.query.Order;
+import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Nguyen Hong Duc
@@ -49,32 +63,78 @@ public class HibernateUserStore
     extends HibernateIdentifiableObjectStore<User>
     implements UserStore
 {
-    @Override
-    @SuppressWarnings("unchecked")
-    public List<User> getUsers( UserQueryParams params )
+    private final SchemaService schemaService;
+
+    public HibernateUserStore( @Nonnull @Autowired SchemaService schemaService )
     {
-        return getUserQuery( params, false ).list();
+        this.schemaService = schemaService;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
+    {
+        return extractUserQueryUsers( getUserQuery( params, orders, false ).list() );
+    }
+
+    @Override
+    public List<User> getUsers( UserQueryParams params )
+    {
+        return getUsers( params, null );
+    }
+
+    @Override
     public List<User> getExpiringUsers( UserQueryParams params )
     {
-        return getUserQuery( params, false ).list();
+        return extractUserQueryUsers( getUserQuery( params, null, false ).list() );
     }
 
     @Override
     public int getUserCount( UserQueryParams params )
     {
-        Long count = (Long) getUserQuery( params, true ).uniqueResult();
+        Long count = (Long) getUserQuery( params, null, true ).uniqueResult();
         return count != null ? count.intValue() : 0;
     }
 
-    private Query getUserQuery( UserQueryParams params, boolean count )
+    @Nonnull
+    private List<User> extractUserQueryUsers( @Nonnull List<?> result )
+    {
+        if ( result.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        final List<User> users = new ArrayList<>( result.size() );
+        for ( Object o : result )
+        {
+            if ( o instanceof User )
+            {
+                users.add( (User) o );
+            }
+            else if ( o.getClass().isArray() )
+            {
+                users.add( (User) ( (Object[]) o )[0] );
+            }
+        }
+        return users;
+    }
+
+    private Query getUserQuery( UserQueryParams params, List<String> orders, boolean count )
     {
         SqlHelper hlp = new SqlHelper();
 
-        String hql = count ? "select count(distinct u) " : "select distinct u ";
+        List<Order> convertedOrder = null;
+        String hql;
+        if ( count )
+        {
+            hql = "select count(distinct u) ";
+        }
+        else
+        {
+            Schema userSchema = schemaService.getSchema( User.class );
+            convertedOrder = QueryUtils.convertOrderStrings( orders, userSchema );
+
+            hql = Stream.of( "select distinct u", JpaQueryUtils.createSelectOrderExpression( convertedOrder, "u" ) ).filter( Objects::nonNull ).collect( Collectors.joining( "," ) );
+            hql += " ";
+        }
 
         hql +=
             "from User u " +
@@ -187,7 +247,8 @@ public class HibernateUserStore
 
         if ( !count )
         {
-            hql += "order by u.surname, u.firstName";
+            String orderExpression = JpaQueryUtils.createOrderExpression( convertedOrder, "u" );
+            hql += "order by " + StringUtils.defaultString( orderExpression, "u.surname, u.firstName" );
         }
 
         Query query = sessionFactory.getCurrentSession().createQuery( hql );
