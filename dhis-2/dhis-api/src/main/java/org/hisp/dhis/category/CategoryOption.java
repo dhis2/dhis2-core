@@ -39,8 +39,8 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -53,7 +53,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOption
-    extends BaseDimensionalItemObject implements MetadataObject
+    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -90,6 +90,7 @@ public class CategoryOption
     // -------------------------------------------------------------------------
 
     @JsonProperty( "isDefault" )
+    @Override
     public boolean isDefault()
     {
         return DEFAULT_NAME.equals( name );

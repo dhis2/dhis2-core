@@ -66,4 +66,28 @@ public class IndexedObjectContainerTest
         Assert.assertEquals( (Integer) 0, container.add( attribute1 ) );
         Assert.assertEquals( (Integer) 2, container.add( attribute3 ) );
     }
+
+    @Test
+    public void containsObject()
+    {
+        final Attribute attribute1 = new Attribute();
+        final Attribute attribute2 = new Attribute();
+
+        container.add( attribute1 );
+        container.add( attribute2 );
+
+        Assert.assertTrue( container.containsObject( attribute2 ) );
+    }
+
+    @Test
+    public void containsObjectNot()
+    {
+        final Attribute attribute1 = new Attribute();
+        final Attribute attribute2 = new Attribute();
+
+        container.add( attribute1 );
+        container.add( attribute2 );
+
+        Assert.assertFalse( container.containsObject( new Attribute() ) );
+    }
 }
