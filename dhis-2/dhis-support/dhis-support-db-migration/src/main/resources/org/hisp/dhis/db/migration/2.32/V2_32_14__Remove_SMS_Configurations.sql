@@ -1,0 +1,1 @@
+DELETE from dhis."public".systemsetting WHERE name='keySmsSetting';
