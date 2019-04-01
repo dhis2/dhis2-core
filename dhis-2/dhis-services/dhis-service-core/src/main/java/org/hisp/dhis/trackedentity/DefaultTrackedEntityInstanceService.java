@@ -933,7 +933,7 @@ public class DefaultTrackedEntityInstanceService
 
     private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
-        Set<OrganisationUnit> localOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+        Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
         Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
