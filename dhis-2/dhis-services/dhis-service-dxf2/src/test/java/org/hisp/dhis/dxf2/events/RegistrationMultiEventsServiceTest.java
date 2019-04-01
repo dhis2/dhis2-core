@@ -128,10 +128,10 @@ public class RegistrationMultiEventsServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
-        maleB = createTrackedEntityInstance( 'B', organisationUnitB );
-        femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
-        femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
+        maleA = createTrackedEntityInstance( organisationUnitA );
+        maleB = createTrackedEntityInstance( organisationUnitB );
+        femaleA = createTrackedEntityInstance( organisationUnitA );
+        femaleB = createTrackedEntityInstance( organisationUnitB );
 
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
@@ -250,7 +250,7 @@ public class RegistrationMultiEventsServiceTest
     {
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.CREATE );
-        
+
         Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -282,7 +282,7 @@ public class RegistrationMultiEventsServiceTest
         event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
         importSummary = eventService.addEvent( event, importOptions, false );
-        
+
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
 
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );

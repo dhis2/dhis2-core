@@ -61,7 +61,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 @SuppressWarnings("rawtypes")
 public class JsonBinaryType implements UserType, ParameterizedType
 {
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static
     {
@@ -80,7 +80,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     ObjectReader reader;
 
-    Class returnedClass;
+    Class<?> returnedClass;
 
     @Override
     public int[] sqlTypes()
@@ -89,7 +89,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
     }
 
     @Override
-    public Class returnedClass()
+    public Class<?> returnedClass()
     {
         return returnedClass;
     }
@@ -203,14 +203,14 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    protected void init( Class klass )
+    protected void init( Class<?> klass )
     {
         returnedClass = klass;
         reader = MAPPER.readerFor( klass );
         writer = MAPPER.writerFor( klass );
     }
 
-    static Class classForName( String name ) throws ClassNotFoundException
+    static Class<?> classForName( String name ) throws ClassNotFoundException
     {
         try
         {

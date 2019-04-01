@@ -45,4 +45,10 @@ public interface ProgramRuleActionStore
      * @return ProgramRuleActionVariable list
      */
     List<ProgramRuleAction> get( ProgramRule programRule );
+
+    List<ProgramRuleAction> getProgramActionsWithNoDataObject();
+
+    List<ProgramRuleAction> getProgramActionsWithNoNotification();
+
+    List<ProgramRuleAction> getMalFormedRuleActionsByType( ProgramRuleActionType type );
 }

@@ -72,7 +72,7 @@ public class DefaultDocumentService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveDocument( Document document )
+    public long saveDocument( Document document )
     {
         documentStore.save( document );
 
@@ -80,7 +80,7 @@ public class DefaultDocumentService
     }
 
     @Override
-    public Document getDocument( int id )
+    public Document getDocument( long id )
     {
         return documentStore.get( id );
     }

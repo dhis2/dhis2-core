@@ -86,7 +86,7 @@ public class DefaultSqlViewService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveSqlView( SqlView sqlView )
+    public long saveSqlView( SqlView sqlView )
     {
         sqlViewStore.save( sqlView );
 
@@ -123,7 +123,7 @@ public class DefaultSqlViewService
     }
 
     @Override
-    public SqlView getSqlView( int viewId )
+    public SqlView getSqlView( long viewId )
     {
         return sqlViewStore.get( viewId );
     }

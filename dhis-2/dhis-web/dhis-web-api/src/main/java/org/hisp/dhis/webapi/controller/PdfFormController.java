@@ -47,7 +47,6 @@ import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 import org.hisp.dhis.dxf2.pdfform.PdfFormFontSettings;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
@@ -88,9 +87,6 @@ public class PdfFormController
 
     @Autowired
     private DataSetService dataSetService;
-
-    @Autowired
-    private ProgramStageService programStageService;
 
     @Autowired
     private I18nManager i18nManager;

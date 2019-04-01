@@ -45,7 +45,7 @@ public interface ProgramRuleVariableService
      * @param programRuleVariable The to ProgramRuleVariable add.
      * @return A generated unique id of the added {@link ProgramRuleVariable}.
      */
-    int addProgramRuleVariable( ProgramRuleVariable programRuleVariable );
+    long addProgramRuleVariable( ProgramRuleVariable programRuleVariable );
 
     /**
      * Deletes a {@link ProgramRuleVariable}
@@ -67,7 +67,7 @@ public interface ProgramRuleVariableService
      * @param id the id of the ProgramRuleVariable to return.
      * @return the ProgramRuleVariable with the given id
      */
-    ProgramRuleVariable getProgramRuleVariable( int id );
+    ProgramRuleVariable getProgramRuleVariable( long id );
 
     /**
      * Returns all {@link ProgramRuleVariable}.
@@ -92,4 +92,16 @@ public interface ProgramRuleVariableService
      * @return true if dataElement is associated with any ProgramRuleVariable, false otherwise.
      */
     boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement );
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link DataElement}.
+     */
+    List<ProgramRuleVariable> getVariablesWithNoDataElement();
+
+    /**
+     *
+     * @return all ProgramRuleVariables which are linked to {@link org.hisp.dhis.trackedentity.TrackedEntityAttribute}
+     */
+    List<ProgramRuleVariable> getVariablesWithNoAttribute();
 }

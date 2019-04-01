@@ -53,7 +53,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class InputUtils
 {
-    private static Cache<String, Integer> ATTR_OPTION_COMBO_ID_CACHE;
+    private static Cache<String, Long> ATTR_OPTION_COMBO_ID_CACHE;
 
     @Autowired
     private CategoryService categoryService;
@@ -67,11 +67,10 @@ public class InputUtils
     @PostConstruct
     public void init()
     {
-
         ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
-                .expireAfterWrite( 3, TimeUnit.HOURS )
-                .initialCapacity( 1000 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .initialCapacity( 1000 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
     }
 
     /**
@@ -90,7 +89,7 @@ public class InputUtils
     {
         String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
 
-        Integer id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
+        Long id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
 
         if ( id != null )
         {

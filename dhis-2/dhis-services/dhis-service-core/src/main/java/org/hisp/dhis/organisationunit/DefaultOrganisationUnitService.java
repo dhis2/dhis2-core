@@ -74,9 +74,11 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     private Environment env;
 
-    public void setEnv(Environment env) {
+    public void setEnv( Environment env )
+    {
         this.env = env;
     }
 
@@ -125,11 +127,10 @@ public class DefaultOrganisationUnitService
     @PostConstruct
     public void init()
     {
-
         IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
-                .expireAfterWrite( 3, TimeUnit.HOURS )
-                .initialCapacity( 1000 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .initialCapacity( 1000 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -137,7 +138,7 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnit( OrganisationUnit organisationUnit )
+    public long addOrganisationUnit( OrganisationUnit organisationUnit )
     {
         organisationUnitStore.save( organisationUnit );
         User user = currentUserService.getCurrentUser();
@@ -193,7 +194,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public OrganisationUnit getOrganisationUnit( int id )
+    public OrganisationUnit getOrganisationUnit( long id )
     {
         return organisationUnitStore.get( id );
     }
@@ -211,7 +212,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnits( Collection<Integer> identifiers )
+    public List<OrganisationUnit> getOrganisationUnits( Collection<Long> identifiers )
     {
         return organisationUnitStore.getById( identifiers );
     }
@@ -292,19 +293,19 @@ public class DefaultOrganisationUnitService
     {
         OrganisationUnit unit = getOrganisationUnit( uid );
 
-        int id = unit != null ? unit.getId() : -1;
+        long id = unit != null ? unit.getId() : -1;
 
         return getOrganisationUnitWithChildren( id, maxLevels );
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitWithChildren( int id )
+    public List<OrganisationUnit> getOrganisationUnitWithChildren( long id )
     {
         return getOrganisationUnitWithChildren( id, null );
     }
 
     @Override
-    public List<OrganisationUnit> getOrganisationUnitWithChildren( int id, Integer maxLevels )
+    public List<OrganisationUnit> getOrganisationUnitWithChildren( long id, Integer maxLevels )
     {
         OrganisationUnit organisationUnit = getOrganisationUnit( id );
 
@@ -466,7 +467,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public void updateOrganisationUnitParent( int organisationUnitId, int parentId )
+    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
     {
         organisationUnitStore.updateOrganisationUnitParent( organisationUnitId, parentId );
     }
@@ -476,7 +477,7 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
+    public long addOrganisationUnitLevel( OrganisationUnitLevel organisationUnitLevel )
     {
         organisationUnitLevelStore.save( organisationUnitLevel );
         return organisationUnitLevel.getId();
@@ -519,7 +520,7 @@ public class DefaultOrganisationUnitService
     }
 
     @Override
-    public OrganisationUnitLevel getOrganisationUnitLevel( int id )
+    public OrganisationUnitLevel getOrganisationUnitLevel( long id )
     {
         return organisationUnitLevelStore.get( id );
     }

@@ -147,6 +147,11 @@ public class EventSearchParams
 
     private boolean synchronizationQuery;
 
+    /**
+     * Indicates a point in the time used to decide the data that should not be synchronized
+     */
+    private Date skipChangedBefore;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -188,12 +193,12 @@ public class EventSearchParams
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
     }
-    
+
     public boolean hasProgram()
     {
     	return program != null;
     }
-    
+
     public boolean hasProgramStage()
     {
     	return programStage != null;
@@ -560,5 +565,15 @@ public class EventSearchParams
     public void setSynchronizationQuery( boolean synchronizationQuery )
     {
         this.synchronizationQuery = synchronizationQuery;
+    }
+
+    public Date getSkipChangedBefore()
+    {
+        return skipChangedBefore;
+    }
+
+    public void setSkipChangedBefore( Date skipChangedBefore )
+    {
+        this.skipChangedBefore = skipChangedBefore;
     }
 }

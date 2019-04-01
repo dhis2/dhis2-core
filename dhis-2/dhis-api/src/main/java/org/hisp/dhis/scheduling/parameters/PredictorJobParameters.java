@@ -32,7 +32,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Henning Håkonsen
@@ -49,10 +51,10 @@ public class PredictorJobParameters
     private int relativeEnd;
 
     @JsonProperty
-    private List<String> predictors;
+    private List<String> predictors = new ArrayList<>();
 
     @JsonProperty
-    private List<String> predictorGroups;
+    private List<String> predictorGroups = new ArrayList<>();
 
     public PredictorJobParameters()
     {
@@ -107,8 +109,8 @@ public class PredictorJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
-        return null;
+        return Optional.empty();
     }
 }

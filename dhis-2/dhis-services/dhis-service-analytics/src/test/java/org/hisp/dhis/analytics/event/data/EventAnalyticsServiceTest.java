@@ -181,9 +181,9 @@ public class EventAnalyticsServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         idObjectManager.save( trackedEntityType );
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', ouA );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( ouA );
         maleA.setUid( "person1234A" );
-        org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance( 'B', ouB );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB = createTrackedEntityInstance( ouB );
         femaleB.setUid( "person1234B" );
 
         maleA.setTrackedEntityType( trackedEntityType );
@@ -252,7 +252,7 @@ public class EventAnalyticsServiceTest
     // -------------------------------------------------------------------------
     // Internal Logic
     // -------------------------------------------------------------------------
-    
+
     private void parseEventData( List<String[]> lines )
     {
         String storedBy = "johndoe";

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -46,7 +48,7 @@ public class SmsJobParameters
     private String smsSubject;
 
     @JsonProperty
-    private List<String> recipientsList;
+    private List<String> recipientsList = new ArrayList<>();
 
     @JsonProperty
     private String message;
@@ -93,8 +95,8 @@ public class SmsJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
-        return null;
+        return Optional.empty();
     }
 }

@@ -41,8 +41,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 public class TrackedEntityComment
     extends BaseIdentifiableObject
 {
-    private int id;
-
     private String commentText;
 
     private String creator;
@@ -64,16 +62,6 @@ public class TrackedEntityComment
     // -------------------------------------------------------------------------
     // Getters/Setters
     // -------------------------------------------------------------------------
-
-    public int getId()
-    {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

@@ -188,8 +188,11 @@ public class DefaultDataSourceManager
         try
         {
             Connection conn = dataSource.getConnection();
-            Statement stmt = conn.createStatement();
-            stmt.executeQuery( "select 'connection_test' as connection_test;" );
+
+            try ( Statement stmt = conn.createStatement() )
+            {
+                stmt.executeQuery( "select 'connection_test' as connection_test;" );
+            }
 
             log.info( String.format( "Connection test successful for read replica: '%s'", dataSource.getJdbcUrl() ) );
         }

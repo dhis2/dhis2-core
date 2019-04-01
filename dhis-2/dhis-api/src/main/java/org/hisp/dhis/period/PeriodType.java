@@ -32,6 +32,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -48,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -115,29 +117,25 @@ public abstract class PeriodType
     /**
      * All period types enumerated in descending order according to frequency.
      */
-    public static final List<PeriodType> PERIOD_TYPES = new ArrayList<PeriodType>()
-    {
-        {
-            add( new DailyPeriodType() );
-            add( new WeeklyPeriodType() );
-            add( new WeeklyWednesdayPeriodType() );
-            add( new WeeklyThursdayPeriodType() );
-            add( new WeeklySaturdayPeriodType() );
-            add( new WeeklySundayPeriodType() );
-            add( new BiWeeklyPeriodType() );
-            add( new MonthlyPeriodType() );
-            add( new BiMonthlyPeriodType() );
-            add( new QuarterlyPeriodType() );
-            add( new SixMonthlyPeriodType() );
-            add( new SixMonthlyAprilPeriodType() );
-            add( new SixMonthlyNovemberPeriodType() );
-            add( new YearlyPeriodType() );
-            add( new FinancialAprilPeriodType() );
-            add( new FinancialJulyPeriodType() );
-            add( new FinancialOctoberPeriodType() );
-            add( new FinancialNovemberPeriodType() );
-        }
-    };
+    public static final List<PeriodType> PERIOD_TYPES = Lists.newArrayList(
+        new DailyPeriodType(),
+        new WeeklyPeriodType(),
+        new WeeklyWednesdayPeriodType(),
+        new WeeklyThursdayPeriodType(),
+        new WeeklySaturdayPeriodType(),
+        new WeeklySundayPeriodType(),
+        new BiWeeklyPeriodType(),
+        new MonthlyPeriodType(),
+        new BiMonthlyPeriodType(),
+        new QuarterlyPeriodType(),
+        new SixMonthlyPeriodType(),
+        new SixMonthlyAprilPeriodType(),
+        new SixMonthlyNovemberPeriodType(),
+        new YearlyPeriodType(),
+        new FinancialAprilPeriodType(),
+        new FinancialJulyPeriodType(),
+        new FinancialOctoberPeriodType(),
+        new FinancialNovemberPeriodType() );
 
     public static final Map<String, DayOfWeek> MAP_WEEK_TYPE = ImmutableMap.of(
         WeeklySundayPeriodType.NAME, DayOfWeek.SUNDAY,
@@ -146,15 +144,7 @@ public abstract class PeriodType
         WeeklySaturdayPeriodType.NAME, DayOfWeek.SATURDAY,
         WeeklyPeriodType.NAME, DayOfWeek.MONDAY );
 
-    private static final Map<String, PeriodType> PERIOD_TYPE_MAP = new HashMap<String, PeriodType>()
-    {
-        {
-            for ( PeriodType periodType : PERIOD_TYPES )
-            {
-                put( periodType.getName(), periodType );
-            }
-        }
-    };
+    private static final Map<String, PeriodType> PERIOD_TYPE_MAP = Maps.uniqueIndex( PERIOD_TYPES, pt -> pt.getName() );
 
     /**
      * Returns an immutable list of all available PeriodTypes in their natural order.
@@ -209,11 +199,11 @@ public abstract class PeriodType
 
         return PERIOD_TYPES.get( index );
     }
-    
+
     /**
      * Returns a list of periods for each of the available period types defined by
      * {@link PeriodType#PERIOD_TYPES} in matching order relative to the given period.
-     * 
+     *
      * @param period the period.
      * @param calendar the calendar.
      * @return a list of periods.
@@ -221,9 +211,9 @@ public abstract class PeriodType
     public static List<Period> getPeriodTypePeriods( Period period, org.hisp.dhis.calendar.Calendar calendar )
     {
         List<Period> periods = new ArrayList<>();
-        
+
         PeriodType periodType = period.getPeriodType();
-        
+
         for ( PeriodType type : PeriodType.PERIOD_TYPES )
         {
             if ( periodType.getFrequencyOrder() < type.getFrequencyOrder() || periodType.equals( type ) )
@@ -626,7 +616,7 @@ public abstract class PeriodType
 
         return createPeriod( dateWithOffset, calendar );
     }
-    
+
     /**
      * Returns a Period which is the previous of the given Period. Only valid
      * Periods are returned. If the given Period is of different PeriodType than
@@ -678,7 +668,7 @@ public abstract class PeriodType
     {
         DateTimeUnit dateWithOffset = getDateWithOffset( createLocalDateUnitInstance( period.getStartDate(), calendar ),
             -1, calendar );
-        
+
         return createPeriod( dateWithOffset, calendar );
     }
 
@@ -697,7 +687,7 @@ public abstract class PeriodType
 
         return createPeriod( calendar );
     }
-    
+
     /**
      * Offsets the input date with the provided number of periods within the current period type.
      * If the offset number is positive, the date is offset into later periods. When the offset is
@@ -708,9 +698,9 @@ public abstract class PeriodType
      * @return a new date object that has been offset from the original date passed into the function.
      */
     protected abstract DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar );
-    
+
     /**
-    * Offsets the input date with the provided number of periods within the current period type.
+     * Offsets the input date with the provided number of periods within the current period type.
      * If the offset number is positive, the date is offset into later periods. When the offset is
      * negative, the date is offset into earlier periods.
      * @param date for where to start the offset.
@@ -723,6 +713,15 @@ public abstract class PeriodType
         org.hisp.dhis.calendar.Calendar calendar = getCalendar();
         DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date, calendar );
         return getDateWithOffset( dateTimeUnit, offset, calendar ).toJdkDate();
+    }
+
+    /**
+     * Returns true if the period spans more than one calendar year.
+     * @return true if the period spans more than one calendar year.
+     */
+    public boolean spansMultipleCalendarYears()
+    {
+        return false;
     }
 
     // -------------------------------------------------------------------------

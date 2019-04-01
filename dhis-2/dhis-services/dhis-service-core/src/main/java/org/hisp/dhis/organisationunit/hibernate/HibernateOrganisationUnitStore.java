@@ -296,7 +296,7 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public void updateOrganisationUnitParent( int organisationUnitId, int parentId )
+    public void updateOrganisationUnitParent( long organisationUnitId, long parentId )
     {
         Timestamp now = new Timestamp( new Date().getTime() );
 

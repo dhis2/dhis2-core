@@ -36,13 +36,12 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.api.util.DateUtils;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
+import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
 import org.hisp.dhis.dxf2.sync.EventSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationResult;
@@ -69,6 +68,7 @@ public class MetadataSyncPreProcessor
     private final TrackerSynchronization trackerSync;
     private final EventSynchronization eventSync;
     private final DataValueSynchronization dataValueSync;
+    private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
 
     @Autowired
     public MetadataSyncPreProcessor(
@@ -77,7 +77,8 @@ public class MetadataSyncPreProcessor
         MetadataVersionDelegate metadataVersionDelegate,
         TrackerSynchronization trackerSync,
         EventSynchronization eventSync,
-        DataValueSynchronization dataValueSync )
+        DataValueSynchronization dataValueSync,
+        CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync )
     {
         this.systemSettingManager = systemSettingManager;
         this.metadataVersionService = metadataVersionService;
@@ -85,6 +86,7 @@ public class MetadataSyncPreProcessor
         this.trackerSync = trackerSync;
         this.eventSync = eventSync;
         this.dataValueSync = dataValueSync;
+        this.completeDataSetRegistrationSync = completeDataSetRegistrationSync;
     }
 
 
@@ -93,7 +95,7 @@ public class MetadataSyncPreProcessor
         systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
     }
 
-    public void handleAggregateDataPush( MetadataRetryContext context )
+    public void handleDataValuePush( MetadataRetryContext context )
     {
         SynchronizationResult dataValuesSynchronizationResult = dataValueSync.syncDataValuesData();
 
@@ -221,24 +223,6 @@ public class MetadataSyncPreProcessor
     // Private Methods
     //----------------------------------------------------------------------------------------
 
-    // TODO remove?
-
-    private void handleAggregateImportSummary( ImportSummary importSummary, MetadataRetryContext context )
-    {
-        if ( importSummary != null )
-        {
-            ImportStatus status = importSummary.getStatus();
-
-            if ( ImportStatus.ERROR.equals( status ) || ImportStatus.WARNING.equals( status ) )
-            {
-                log.error( "Import Summary description: " + importSummary.getDescription() );
-                context.updateRetryContext( MetadataSyncJob.DATA_PUSH_SUMMARY, importSummary.getDescription(), null, null );
-                throw new MetadataSyncServiceException( "The Data Push was not successful. " );
-            }
-        }
-
-    }
-
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )
     {
         Collection<Date> dateCollection = new ArrayList<Date>();
@@ -261,8 +245,8 @@ public class MetadataSyncPreProcessor
         return null;
     }
 
-    public void handleDataSetCompletenessPush( MetadataRetryContext context ) {
-        SynchronizationResult completenessSynchronizationResult = dataValueSync.syncCompleteness();
+    public void handleCompleteDataSetRegistrationDataPush( MetadataRetryContext context ) {
+        SynchronizationResult completenessSynchronizationResult = completeDataSetRegistrationSync.syncCompleteDataSetRegistrationData();
 
         if ( completenessSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {

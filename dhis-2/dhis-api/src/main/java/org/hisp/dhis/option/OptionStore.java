@@ -40,6 +40,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface OptionStore 
     extends IdentifiableObjectStore<Option>
 {
-    List<Option> getOptions( int optionSetId, String key, Integer max  );
+    List<Option> getOptions( long optionSetId, String key, Integer max  );
 }
 

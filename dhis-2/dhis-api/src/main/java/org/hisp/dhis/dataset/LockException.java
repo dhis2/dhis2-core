@@ -43,7 +43,7 @@ import org.hisp.dhis.period.Period;
 @JacksonXmlRootElement( localName = "lockException", namespace = DxfNamespaces.DXF_2_0 )
 public class LockException
 {
-    private int id;
+    private long id;
 
     private Period period;
 
@@ -74,12 +74,12 @@ public class LockException
         return dataSet.getName() + " (" + organisationUnit.getName() + ", " + period.getName() + ")";
     }
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

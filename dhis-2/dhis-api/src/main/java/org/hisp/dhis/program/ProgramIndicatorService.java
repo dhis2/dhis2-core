@@ -30,19 +30,25 @@ package org.hisp.dhis.program;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Chau Thu Tran
+ * @author Jim Grace
  */
 public interface ProgramIndicatorService
 {
+    // -------------------------------------------------------------------------
+    // ProgramIndicator CRUD
+    // -------------------------------------------------------------------------
+
     /**
      * Adds a {@link ProgramIndicator}.
      *
      * @param programIndicator The to ProgramIndicator add.
      * @return A generated unique id of the added {@link ProgramIndicator}.
      */
-    int addProgramIndicator( ProgramIndicator programIndicator );
+    long addProgramIndicator( ProgramIndicator programIndicator );
 
     /**
      * Updates a {@link ProgramIndicator}.
@@ -64,7 +70,7 @@ public interface ProgramIndicatorService
      * @param id the id of the ProgramIndicator to return.
      * @return the ProgramIndicator with the given id
      */
-    ProgramIndicator getProgramIndicator( int id );
+    ProgramIndicator getProgramIndicator( long id );
 
     /**
      * Returns a {@link ProgramIndicator} with a given name.
@@ -90,78 +96,124 @@ public interface ProgramIndicatorService
      */
     List<ProgramIndicator> getAllProgramIndicators();
 
+    // -------------------------------------------------------------------------
+    // ProgramIndicator logic
+    // -------------------------------------------------------------------------
+
     /**
-     * Get description of an indicator expression.
+     * Get the description of any program indicator expression (expression or
+     * filter).
      *
-     * @param expression An expression string
+     * @Depreicated Does not do type-checking on the expression.
+     * Use getExpressionDescriptionRegEx or getFilterDescription instead.
+     *
+     * @param expression A program indicator expression or filter string
+     * @return The description
+     */
+    @Deprecated String getUntypedDescription( String expression );
+
+    /**
+     * Gets a program indicator expression description (must evaluate to a
+     * Double).
+     *
+     * @param expression A program indicator expression string
      * @return The description
      */
     String getExpressionDescription( String expression );
 
     /**
-     * Get the expression as an analytics SQL clause. Ignores missing numeric
-     * values for data elements and attributes.
-     * 
-     * @param expression the expression.
-     * @param analyticsType the {@link AnalyticsType}.
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return the SQL string.
+     * Gets a program indicator expression filter (must evaluate to a
+     * Boolean).
+     *
+     * @param expression A program indicator expression or filter string
+     * @return The description
      */
-    String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate );
-    
+    String getFilterDescription( String expression );
+
     /**
-     * Get the expression as an analytics SQL clause.
-     * 
-     * @param expression the expression.
-     * @param analyticsType the {@link AnalyticsType}.
-     * @param ignoreMissingValues whether to ignore missing values for data elements and attributes.
+     * Indicates whether the given program indicator expression is valid.
+     *
+     * @param expression the expression to evaluate.
+     * @return whether the expression is valid.
+     */
+    boolean expressionIsValid( String expression );
+
+    /**
+     * Indicates whether the given program indicator filter is valid.
+     *
+     * @param filter the filter to evaluate.
+     * @return whether the filter is valid.
+     */
+    boolean filterIsValid( String filter );
+
+    /**
+     * Validates that an expression returns a value from a class.
+     * Also collects descriptions of individual items, so that an
+     * expression description may be formed if the caller desires.
+     * <p/>
+     * This method is made public so that the parser validation routines
+     * can use it to validate quoted sub-expressions.
+     *
+     * @param expression the expression to validate.
+     * @param clazz the class to check the expression's value against.
+     * @param itemDescriptions map of item descriptions (to add to).
+     */
+    void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions );
+
+    /**
+     * Gets the program indicator expression as an analytics SQL clause.
+     * Ignores missing numeric values for data elements and attributes.
+     *
+     * @param programIndicator the program indicator to evaluate.
      * @param startDate the start date.
      * @param endDate the end date.
      * @return the SQL string.
      */
-    String getAnalyticsSQl( String expression, ProgramIndicator programIndicator, boolean ignoreMissingValues, Date startDate, Date endDate );
-    
+    String getExpressionAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate );
+
+    /**
+     * Gets the program indicator filter as an analytics SQL clause.
+     * Does not ignore missing numeric values for data elements and attributes.
+     *
+     * @param programIndicator the program indicator to evaluate.
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return the SQL string.
+     */
+    String getFilterAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate );
+
+    /**
+     * Gets the the analytics SQL clause of an expression.
+     * Does not ignore missing numeric values for data elements and attributes.
+     *
+     * @param expression the expression.
+     * @param programIndicator the program indicator to evaluate.
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return the SQL string.
+     */
+    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, boolean ignoreMissingValues );
+
     /**
      * Returns a SQL clause which matches any value for the data elements and
      * attributes in the given expression.
-     * 
+     *
      * @param expression the expression.
      * @return the SQL string.
      */
     String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType );
 
-    /**
-     * Indicates whether the given program indicator expression is valid.
-     * 
-     * @param expression an expression string.
-     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
-     *         {@link ProgramIndicator#EXPRESSION_NOT_VALID},
-     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
-     */
-    String expressionIsValid( String expression );
-
-    /**
-     * Indicates whether the given program indicator expression is valid.
-     * 
-     * @param filter a filter string.
-     * @return the string {@link ProgramIndicator#VALID} if valid, if not any of
-     *         {@link ProgramIndicator#FILTER_NOT_EVALUATING_TO_TRUE_OR_FALSE},
-     *         {@link ProgramIndicator#INVALID_IDENTIFIERS_IN_EXPRESSION}.
-     */
-    String filterIsValid( String filter );
-    
     // -------------------------------------------------------------------------
     // ProgramIndicatorGroup
     // -------------------------------------------------------------------------
 
-    int addProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
+    long addProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
 
     void updateProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
 
     void deleteProgramIndicatorGroup( ProgramIndicatorGroup ProgramIndicatorGroup );
 
-    ProgramIndicatorGroup getProgramIndicatorGroup( int id );
+    ProgramIndicatorGroup getProgramIndicatorGroup( long id );
 
     ProgramIndicatorGroup getProgramIndicatorGroup( String uid );
 

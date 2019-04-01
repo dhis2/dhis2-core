@@ -55,7 +55,7 @@ public class DefaultProgramRuleActionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRuleAction( ProgramRuleAction programRuleAction )
+    public long addProgramRuleAction( ProgramRuleAction programRuleAction )
     {
         programRuleActionStore.save( programRuleAction );
 
@@ -75,7 +75,7 @@ public class DefaultProgramRuleActionService
     }
 
     @Override
-    public ProgramRuleAction getProgramRuleAction( int id )
+    public ProgramRuleAction getProgramRuleAction( long id )
     {
         return programRuleActionStore.get( id );
     }
@@ -90,5 +90,29 @@ public class DefaultProgramRuleActionService
     public List<ProgramRuleAction> getProgramRuleAction( ProgramRule programRule )
     {
         return programRuleActionStore.get( programRule );
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramActionsWithNoLinkToDataObject()
+    {
+        return programRuleActionStore.getProgramActionsWithNoDataObject();
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramActionsWithNoLinkToNotification()
+    {
+        return programRuleActionStore.getProgramActionsWithNoNotification();
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId()
+    {
+        return programRuleActionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDESECTION );
+    }
+
+    @Override
+    public List<ProgramRuleAction> getProgramRuleActionsWithNoStageId()
+    {
+        return programRuleActionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDEPROGRAMSTAGE );
     }
 }

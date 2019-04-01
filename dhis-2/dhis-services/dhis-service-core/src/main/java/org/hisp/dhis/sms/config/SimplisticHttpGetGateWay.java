@@ -55,7 +55,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * This gateway is simplistic in that it can't evaluate the response from the
  * provider, being most suitable as an example gateway. For production use a
  * more robust gateway should be used implemented for the specific provider.
- * 
+ *
  * <p>
  * The gateway adds the following keys to the parameters:
  * <ul>
@@ -63,7 +63,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  * <li>message</li>
  * <li>sender - if available in the message</li>
  * </ul>
- * 
+ *
  * An example usage with bulksms.com would be this template:<br/>
  * http://bulksms.vsms.net:5567/eapi/submission/send_sms/2/2.0?username={
  * username
@@ -146,7 +146,7 @@ public class SimplisticHttpGetGateWay
     {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
-        for ( Map.Entry entry : getUrlParameters( config.getParameters() ).entrySet() )
+        for ( Map.Entry<String, String> entry : getUrlParameters( config.getParameters() ).entrySet() )
         {
             uriBuilder.queryParam( entry.getKey().toString(), entry.getValue().toString() );
         }

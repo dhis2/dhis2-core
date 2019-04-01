@@ -94,22 +94,17 @@ public class DefaultAclService implements AclService
         Schema schema = schemaService.getSchema( klass );
         return schema != null && schema.isDataShareable();
     }
-
+    
     @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
-
+        
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
             if ( object instanceof CategoryOptionCombo )
@@ -117,7 +112,7 @@ public class DefaultAclService implements AclService
                 return checkOptionComboSharingPermission( user, object, Permission.READ );
             }
 
-            if ( !schema.isShareable() || object.getUser() == null || object.getPublicAccess() == null || checkUser( user, object )
+            if ( !schema.isShareable() || object.getPublicAccess() == null || checkUser( user, object )
                 || checkSharingPermission( user, object, Permission.READ ) )
             {
                 return true;
@@ -134,18 +129,10 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataRead( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
-        {
-            return true;
-        }
+        if ( readWriteCommonCheck( user, object ) ) return true;
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
-
+        
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
         {
             if ( object instanceof CategoryOptionCombo )
@@ -154,7 +141,7 @@ public class DefaultAclService implements AclService
             }
 
             if ( schema.isDataShareable() &&
-                (checkSharingPermission( user, object, Permission.DATA_READ )
+                ( checkSharingPermission( user, object, Permission.DATA_READ )
                     || checkSharingPermission( user, object, Permission.DATA_WRITE )) )
             {
                 return true;
@@ -165,19 +152,22 @@ public class DefaultAclService implements AclService
     }
 
     @Override
+    public boolean canDataOrMetadataRead( User user, IdentifiableObject object )
+    {
+        Schema schema = schemaService.getSchema( object.getClass() );
+
+        return schema.isDataShareable() ? canDataRead( user, object ) : canRead( user, object );
+    }
+
+    @Override
     public boolean canWrite( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.CREATE );
 
@@ -194,16 +184,7 @@ public class DefaultAclService implements AclService
                 return checkOptionComboSharingPermission( user, object, Permission.WRITE );
             }
 
-            if ( !schema.isShareable() )
-            {
-                return true;
-            }
-
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
-            {
-                return true;
-            }
+            return writeCommonCheck(schema, user, object);
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object ) )
         {
@@ -216,17 +197,12 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDataWrite( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
 
@@ -249,17 +225,12 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canUpdate( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
 
@@ -272,16 +243,7 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            if ( !schema.isShareable() )
-            {
-                return true;
-            }
-
-            if ( checkSharingAccess( user, object ) &&
-                (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
-            {
-                return true;
-            }
+            return writeCommonCheck( schema, user, object );
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object )
             && (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE )) )
@@ -295,17 +257,12 @@ public class DefaultAclService implements AclService
     @Override
     public boolean canDelete( User user, IdentifiableObject object )
     {
-        if ( object == null || haveOverrideAuthority( user ) )
+        if ( readWriteCommonCheck( user, object ) )
         {
             return true;
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-
-        if ( schema == null )
-        {
-            return true;
-        }
 
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DELETE );
 
@@ -688,7 +645,7 @@ public class DefaultAclService implements AclService
 
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            /**
+            /*
              * Is the user allowed to read this object through group access? 
              *
              */
@@ -701,7 +658,7 @@ public class DefaultAclService implements AclService
 
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
-            /**
+            /*
              * Is the user allowed to read to this object through user access? 
              *
              */
@@ -724,7 +681,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        List<Integer> accessibleOptions = new ArrayList<>();
+        List<Long> accessibleOptions = new ArrayList<>();
 
         for ( CategoryOption option : optionCombo.getCategoryOptions() )
         {
@@ -735,5 +692,26 @@ public class DefaultAclService implements AclService
         }
 
         return accessibleOptions.size() == optionCombo.getCategoryOptions().size();
+    }
+
+    private boolean readWriteCommonCheck(User user, IdentifiableObject object )
+    {
+        if ( object == null || haveOverrideAuthority( user ) )
+        {
+            return true;
+        }
+
+        return schemaService.getSchema( object.getClass() ) == null;
+    }
+
+    private boolean writeCommonCheck(Schema schema, User user, IdentifiableObject object ) 
+    {
+        if ( !schema.isShareable() )
+        {
+            return true;
+        }
+
+        return checkSharingAccess(user, object) &&
+            ( checkUser(user, object) || checkSharingPermission( user, object, Permission.WRITE ) );
     }
 }

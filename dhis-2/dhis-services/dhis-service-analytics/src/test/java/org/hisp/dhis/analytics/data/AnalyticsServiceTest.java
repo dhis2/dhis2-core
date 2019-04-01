@@ -346,9 +346,9 @@ public class AnalyticsServiceTest
         CategoryCombo categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
 
-        CategoryOptionCombo optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        CategoryOptionCombo optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
-        CategoryOptionCombo optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
+        CategoryOptionCombo optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
+        CategoryOptionCombo optionComboB = createCategoryOptionCombo( categoryComboA, optionB );
+        CategoryOptionCombo optionComboC = createCategoryOptionCombo( categoryComboA, optionA, optionB );
 
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );

@@ -38,11 +38,11 @@ import org.hisp.dhis.common.AnalyticalObjectService;
 public interface EventChartService
     extends AnalyticalObjectService<EventChart>
 {
-    int saveEventChart( EventChart eventChart );
+    long saveEventChart( EventChart eventChart );
     
     void updateEventChart( EventChart eventChart );
     
-    EventChart getEventChart( int id );
+    EventChart getEventChart( long id );
     
     EventChart getEventChart( String uid );
     

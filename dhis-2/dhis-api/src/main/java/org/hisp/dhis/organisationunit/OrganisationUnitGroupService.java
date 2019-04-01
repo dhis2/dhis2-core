@@ -52,7 +52,7 @@ public interface OrganisationUnitGroupService
      * @param organisationUnitGroup the OrganisationUnitGroup to add.
      * @return a generated unique id of the added OrganisationUnitGroup.
      */
-    int addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup );
+    long addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup );
 
     /**
      * Updates an OrganisationUnitGroup.
@@ -74,7 +74,7 @@ public interface OrganisationUnitGroupService
      * @param id the id of the OrganisationUnitGroup.
      * @return the OrganisationGroup with the given id, or null if no match.
      */
-    OrganisationUnitGroup getOrganisationUnitGroup( int id );
+    OrganisationUnitGroup getOrganisationUnitGroup( long id );
 
     /**
      * Returns the OrganisationUnitGroup with the given UID.
@@ -109,7 +109,7 @@ public interface OrganisationUnitGroupService
      * @param organisationUnitGroupSet the OrganisationUnitGroupSet to add.
      * @return the generated unique id of the added OrganisationUnitGroupSet.
      */
-    int addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet );
+    long addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet );
 
     /**
      * Updates an OrganisationUnitGroupSet.
@@ -132,7 +132,7 @@ public interface OrganisationUnitGroupService
      * @return the OrganisationUnitGroupSet with the given id, or null if no
      *         match.
      */
-    OrganisationUnitGroupSet getOrganisationUnitGroupSet( int id );
+    OrganisationUnitGroupSet getOrganisationUnitGroupSet( long id );
 
     /**
      * Returns an OrganisationUnitGroupSet.

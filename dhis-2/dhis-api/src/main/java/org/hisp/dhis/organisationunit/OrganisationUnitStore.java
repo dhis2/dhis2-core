@@ -139,7 +139,7 @@ public interface OrganisationUnitStore
      * @param organisationUnitId the child organisation unit identifier.
      * @param parentId           the parent organisation unit identifier.
      */
-    void updateOrganisationUnitParent( int organisationUnitId, int parentId );
+    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
 
     void updatePaths();
 

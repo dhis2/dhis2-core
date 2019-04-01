@@ -88,7 +88,7 @@ public class DefaultKeyJsonValueService
     }
    
     @Override
-    public int addKeyJsonValue( KeyJsonValue keyJsonValue )
+    public long addKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         keyJsonValueStore.save( keyJsonValue );
 

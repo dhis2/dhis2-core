@@ -69,7 +69,7 @@ public interface TrackedEntityProgramOwnerService
      * @param programId The program Id
      * @param orgUnitId The organisation units Id
      */
-    void createTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId );
+    void createTrackedEntityProgramOwner( long teiId, long programId, long orgUnitId );
 
     /**
      * Update the owner ou for a tracked entity instance for the given program.
@@ -79,7 +79,7 @@ public interface TrackedEntityProgramOwnerService
      * @param programId The program Id
      * @param orgUnitId The organisation Unit Id
      */
-    void updateTrackedEntityProgramOwner( int teiId, int programId, int orgUnitId );
+    void updateTrackedEntityProgramOwner( long teiId, long programId, long orgUnitId );
 
     /**
      * Get the program owner details for a tracked entity instance.
@@ -88,7 +88,7 @@ public interface TrackedEntityProgramOwnerService
      * @param programId The program Id
      * @return The TrackedEntityProgramOwner object
      */
-    TrackedEntityProgramOwner getTrackedEntityProgramOwner( int teiId, int programId );
+    TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId );
 
     /**
      * Get the program owner details for a tracked entity instance.
@@ -105,7 +105,7 @@ public interface TrackedEntityProgramOwnerService
      * @param teiIds The list of tei Ids
      * @return The  list of TrackedEntityProgramOwner details
      */
-    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds );
+    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds );
 
     /**
      * Get the program owner details for a list of teiIds for a specific program
@@ -114,7 +114,7 @@ public interface TrackedEntityProgramOwnerService
      * @param program The program
      * @return The  list of TrackedEntityProgramOwner details
      */
-    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Integer> teiIds, Program program );
+    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds, Program program );
 
     /**
      * Assign an orgUnit as the owner for a tracked entity instance for the
@@ -134,7 +134,7 @@ public interface TrackedEntityProgramOwnerService
      * @param programUid
      * @param orgUnitUid
      */
-    void createOrUpdateTrackedEntityProgramOwner( int teiUid, int programUid, int orgUnitUid );
+    void createOrUpdateTrackedEntityProgramOwner( long teiUid, long programUid, long orgUnitUid );
 
     /**
      * Assign an orgUnit as the owner for a tracked entity instance for the

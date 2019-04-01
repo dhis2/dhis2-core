@@ -30,31 +30,54 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
+    private final ProgramInstanceService programInstanceService;
+
+    private final ProgramService programService;
+
+    private final ProgramStageService programStageService;
+
+    public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
+                                    ProgramStageService programStageService )
+    {
+        this.programInstanceService = programInstanceService;
+        this.programStageService = programStageService;
+        this.programService = programService;
+    }
+
     @Override
     public void postCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !isProgram( object ) )
         {
             return;
         }
 
         syncSharingForEventProgram( (Program) object );
+
+        addProgramInstance( (Program) object );
+
+        updateProgramStage( (Program) object );
     }
 
     @Override
     public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !isProgram( object ) )
         {
             return;
         }
@@ -62,10 +85,29 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         syncSharingForEventProgram( (Program) object );
     }
 
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( !isProgram( object ) )
+        {
+            return errors;
+        }
+
+        Program program = (Program) object;
+
+        if ( program.getId() != 0 && getProgramInstancesCount( program ) > 1 )
+        {
+            errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
+        }
+
+        return errors;
+    }
+
     private void syncSharingForEventProgram( Program program )
     {
-        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
-            || program.getProgramStages().isEmpty() )
+        if ( ProgramType.WITHOUT_REGISTRATION != program.getProgramType() || program.getProgramStages().isEmpty() )
         {
             return;
         }
@@ -74,6 +116,51 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         AccessStringHelper.copySharing( program, programStage );
 
         programStage.setUser( program.getUser() );
-        sessionFactory.getCurrentSession().update( programStage );
+        programStageService.updateProgramStage( programStage );
+    }
+
+    private void updateProgramStage( Program program )
+    {
+        if ( program.getProgramStages().isEmpty() )
+        {
+            return;
+        }
+
+        program.getProgramStages().stream().forEach( ps -> {
+
+            if ( Objects.isNull( ps.getProgram() ) )
+            {
+                ps.setProgram( program );
+            }
+
+            programStageService.saveProgramStage( ps );
+        });
+
+        programService.updateProgram( program );
+    }
+
+    private void addProgramInstance( Program program )
+    {
+        if ( getProgramInstancesCount( program ) == 0 )
+        {
+            ProgramInstance pi = new ProgramInstance();
+            pi.setEnrollmentDate( new Date() );
+            pi.setIncidentDate( new Date() );
+            pi.setProgram( program );
+            pi.setStatus( ProgramStatus.ACTIVE );
+            pi.setStoredBy( "system-process" );
+
+            this.programInstanceService.addProgramInstance( pi );
+        }
+    }
+
+    private int getProgramInstancesCount( Program program )
+    {
+        return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
+    }
+
+    private boolean isProgram( Object object )
+    {
+        return object instanceof Program;
     }
 }

@@ -52,7 +52,7 @@ public interface ValidationRuleService
      * @param validationRule the ValidationRule to save.
      * @return the generated unique identifier for the ValidationRule.
      */
-    int saveValidationRule( ValidationRule validationRule );
+    long saveValidationRule( ValidationRule validationRule );
 
     /**
      * Update a ValidationRule to the database.
@@ -74,7 +74,7 @@ public interface ValidationRuleService
      * @param id the unique identifier of the ValidationRule.
      * @return the ValidationRule or null if it doesn't exist.
      */
-    ValidationRule getValidationRule( int id );
+    ValidationRule getValidationRule( long id );
 
     /**
      * Get ValidationRule with the given uid.
@@ -140,7 +140,7 @@ public interface ValidationRuleService
      * @param validationRuleGroup the ValidationRuleGroup to add.
      * @return the generated unique identifier for the ValidationRuleGroup.
      */
-    int addValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
+    long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
 
     /**
      * Delete a ValidationRuleGroup with the given identifiers from the database.
@@ -162,7 +162,7 @@ public interface ValidationRuleService
      * @param id the unique identifier of the ValidationRuleGroup.
      * @return the ValidationRuleGroup or null if it doesn't exist.
      */
-    ValidationRuleGroup getValidationRuleGroup( int id );
+    ValidationRuleGroup getValidationRuleGroup( long id );
 
     /**
      * Get ValidationRuleGroup with the given uid.

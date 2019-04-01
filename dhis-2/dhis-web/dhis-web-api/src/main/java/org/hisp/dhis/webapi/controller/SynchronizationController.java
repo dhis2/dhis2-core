@@ -74,7 +74,7 @@ public class SynchronizationController
     public void execute( HttpServletResponse response )
         throws IOException
     {
-        ImportSummary summary = synchronizationManager.executeDataPush();
+        ImportSummary summary = synchronizationManager.executeDataValuePush();
 
         response.setContentType( CONTENT_TYPE_JSON );
         renderService.toJson( response.getOutputStream(), summary );

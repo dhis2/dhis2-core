@@ -80,7 +80,7 @@ public class HibernateDataElementStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "zeroIsSignificant" ), zeroIsSignificant ) )
-            .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) ));
+            .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) ) );
     }
 
     @Override

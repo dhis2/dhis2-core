@@ -31,6 +31,7 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Date;
@@ -116,11 +117,20 @@ public class ProgramInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
-    
+
     /**
      * Indicates whether to include soft-deleted enrollments
      */
-    private boolean includeDeleted;    
+    private boolean includeDeleted;
+
+    // -------------------------------------------------------------------------
+    // Transient properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * Current user for query.
+     */
+    private transient User user;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -422,7 +432,7 @@ public class ProgramInstanceQueryParams
         this.skipPaging = skipPaging;
         return this;
     }
-    
+
     public boolean isIncludeDeleted()
     {
         return includeDeleted;
@@ -431,6 +441,17 @@ public class ProgramInstanceQueryParams
     public ProgramInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
     {
         this.includeDeleted = includeDeleted;
+        return this;
+    }
+
+    public User getUser()
+    {
+        return user;
+    }
+
+    public ProgramInstanceQueryParams setUser( User user )
+    {
+        this.user = user;
         return this;
     }
 }

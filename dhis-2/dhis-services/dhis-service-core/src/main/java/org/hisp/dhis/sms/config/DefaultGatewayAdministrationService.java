@@ -56,8 +56,13 @@ public class DefaultGatewayAdministrationService
     // Dependencies
     // -------------------------------------------------------------------------
 
+    private final SmsConfigurationManager smsConfigurationManager;
+
     @Autowired
-    private SmsConfigurationManager smsConfigurationManager;
+    public DefaultGatewayAdministrationService( SmsConfigurationManager smsConfigurationManager )
+    {
+        this.smsConfigurationManager = smsConfigurationManager;
+    }
 
     // -------------------------------------------------------------------------
     // GatewayAdministrationService implementation
@@ -190,7 +195,14 @@ public class DefaultGatewayAdministrationService
     @Override
     public void updateGateway( SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig )
     {
+        if ( persisted == null || updatedConfig == null )
+        {
+            log.warn( "Gateway configurations cannot be null" );
+            return;
+        }
+
         updatedConfig.setUid( persisted.getUid() );
+        updatedConfig.setDefault( persisted.isDefault() );
 
         SmsConfiguration configuration = getSmsConfiguration();
 
@@ -305,6 +317,11 @@ public class DefaultGatewayAdministrationService
     @Override
     public Class<? extends SmsGatewayConfig> getGatewayType( SmsGatewayConfig config )
     {
+        if ( config == null )
+        {
+            return null;
+        }
+
         SmsConfiguration configuration = getSmsConfiguration();
 
         for ( SmsGatewayConfig gatewayConfig : configuration.getGateways() )
@@ -362,7 +379,9 @@ public class DefaultGatewayAdministrationService
 
         if ( gatewayList == null || gatewayList.isEmpty() )
         {
-            log.info( "Gateway configuration not found" );
+            log.info( "No Gateway configuration not found" );
+
+            loadGatewayConfigurationMap( smsConfiguration );
             return;
         }
 

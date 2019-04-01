@@ -74,9 +74,9 @@ public class CategoryOptionServiceTest
         categoryOptionB = new CategoryOption( "CategoryOptionB" );
         categoryOptionC = new CategoryOption( "CategoryOptionC" );
         
-        int idA = categoryService.addCategoryOption( categoryOptionA );
-        int idB = categoryService.addCategoryOption( categoryOptionB );
-        int idC = categoryService.addCategoryOption( categoryOptionC );
+        long idA = categoryService.addCategoryOption( categoryOptionA );
+        long idB = categoryService.addCategoryOption( categoryOptionB );
+        long idC = categoryService.addCategoryOption( categoryOptionC );
         
         assertEquals( categoryOptionA, categoryService.getCategoryOption( idA ) );
         assertEquals( categoryOptionB, categoryService.getCategoryOption( idB ) );
@@ -90,9 +90,9 @@ public class CategoryOptionServiceTest
         categoryOptionB = new CategoryOption( "CategoryOptionB" );
         categoryOptionC = new CategoryOption( "CategoryOptionC" );
 
-        int idA = categoryService.addCategoryOption( categoryOptionA );
-        int idB = categoryService.addCategoryOption( categoryOptionB );
-        int idC = categoryService.addCategoryOption( categoryOptionC );
+        long idA = categoryService.addCategoryOption( categoryOptionA );
+        long idB = categoryService.addCategoryOption( categoryOptionB );
+        long idC = categoryService.addCategoryOption( categoryOptionC );
         
         assertNotNull( categoryService.getCategoryOption( idA ) );
         assertNotNull( categoryService.getCategoryOption( idB ) );

@@ -143,7 +143,7 @@ public class PostgreSQLStatementBuilder
     public String getAddPrimaryKeyToExistingTable( String table, String column )
     {
         return
-            "alter table " + table + " add column " + column + " integer;" +
+            "alter table " + table + " add column " + column + " bigint;" +
             "update " + table + " set " + column + " = nextval('hibernate_sequence') where " + column + " is null;" +
             "alter table " + table + " alter column " + column + " set not null;" +
             "alter table " + table + " add primary key(" + column + ");";
@@ -185,7 +185,7 @@ public class PostgreSQLStatementBuilder
     }
 
     /**
-     * Generates a derived table containing literals in two columns: integer
+     * Generates a derived table containing literals in two columns: long
      * and string.
      *
      * The generic implementation, which works in all supported database
@@ -194,41 +194,41 @@ public class PostgreSQLStatementBuilder
      *     (values (i1, 's1'),(i2, 's2'),(i3, 's3')) table (intColumn, strColumn)
      * </code>
      *
-     * @param intValues (non-empty) Integer values for the derived table
+     * @param longValues (non-empty) long values for the derived table
      * @param strValues (same size) String values for the derived table
      * @param table the desired table name alias
-     * @param intColumn the desired integer column name
+     * @param longColumn the desired long column name
      * @param strColumn the desired string column name
      * @return the derived literal table
      */
     @Override
-    public String literalIntStringTable( List<Integer> intValues,
-        List<String> strValues, String table, String intColumn, String strColumn )
+    public String literalLongStringTable( List<Long> longValues,
+        List<String> strValues, String table, String longColumn, String strColumn )
     {
         StringBuilder sb = new StringBuilder( "(values " );
 
-        for ( int i = 0; i < intValues.size(); i++ )
+        for ( int i = 0; i < longValues.size(); i++ )
         {
-            sb.append( "(" ).append( intValues.get( i ) ).append( ", '" )
+            sb.append( "(" ).append( longValues.get( i ) ).append( ", '" )
                 .append( strValues.get( i ) ).append( "')," );
         }
 
         return sb.deleteCharAt(sb.length()-1) // Remove the final ','.
             .append( ") " ).append( table )
-            .append( " (" ).append( intColumn ).append( ", " )
+            .append( " (" ).append( longColumn ).append( ", " )
             .append( strColumn ).append( ")" )
             .toString();
     }
 
     /**
-     * Generates a derived table containing literals in two columns: integer
-     * and integer.
+     * Generates a derived table containing literals in two columns: long
+     * and long.
      *
-     * @param int1Values (non-empty) 1st integer column values for the table
-     * @param int2Values (same size) 2nd integer column values for the table
+     * @param long1Values (non-empty) 1st long column values for the table
+     * @param long2Values (same size) 2nd long column values for the table
      * @param table the desired table name alias
-     * @param int1Column the desired 1st integer column name
-     * @param int2Column the desired 2nd integer column name
+     * @param long1Column the desired 1st long column name
+     * @param long2Column the desired 2nd long column name
      * @return the derived literal table
      *
      * The generic implementation, which works in all supported database
@@ -238,21 +238,21 @@ public class PostgreSQLStatementBuilder
      * </code>
      */
     @Override
-    public String literalIntIntTable( List<Integer> int1Values,
-        List<Integer> int2Values, String table, String int1Column, String int2Column )
+    public String literalLongLongTable( List<Long> long1Values,
+        List<Long> long2Values, String table, String long1Column, String long2Column )
     {
         StringBuilder sb = new StringBuilder("(values ");
 
-        for ( int i = 0; i < int1Values.size(); i++ )
+        for ( int i = 0; i < long1Values.size(); i++ )
         {
-            sb.append( "(" ).append( int1Values.get( i ) ).append( ", ")
-                .append( int2Values.get( i ) ).append( ")," );
+            sb.append( "(" ).append( long1Values.get( i ) ).append( ", ")
+                .append( long2Values.get( i ) ).append( ")," );
         }
 
         return sb.deleteCharAt(sb.length()-1) // Remove the final ','.
             .append( ") " ).append( table )
-            .append( " (" ).append( int1Column ).append( ", " )
-            .append( int2Column ).append( ")" )
+            .append( " (" ).append( long1Column ).append( ", " )
+            .append( long2Column ).append( ")" )
             .toString();
     }
 

@@ -35,7 +35,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditQueryParams;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -46,7 +45,6 @@ import java.util.function.Function;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
 public class HibernateProgramTempOwnershipAuditStore
     extends HibernateGenericStore<ProgramTempOwnershipAudit>
@@ -59,6 +57,7 @@ public class HibernateProgramTempOwnershipAuditStore
 
     private SessionFactory sessionFactory;
 
+    @Override
     public void setSessionFactory( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;

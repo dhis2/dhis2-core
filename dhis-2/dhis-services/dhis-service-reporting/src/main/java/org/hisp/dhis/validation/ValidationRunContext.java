@@ -92,9 +92,9 @@ public class ValidationRunContext
     // Id-to-Object Caches
     // -------------------------------------------------------------------------
 
-    private Map<Integer, Period> periodIdMap = new ConcurrentHashMap<>();
+    private Map<Long, Period> periodIdMap = new ConcurrentHashMap<>();
 
-    private Map<Integer, CategoryOptionCombo> aocIdMap = new ConcurrentHashMap<>();
+    private Map<Long, CategoryOptionCombo> aocIdMap = new ConcurrentHashMap<>();
 
     private Map<String, CategoryOptionCombo> aocUidMap = new ConcurrentHashMap<>();
 
@@ -157,12 +157,12 @@ public class ValidationRunContext
         return validationResults;
     }
 
-    public Map<Integer, Period> getPeriodIdMap()
+    public Map<Long, Period> getPeriodIdMap()
     {
         return periodIdMap;
     }
 
-    public Map<Integer, CategoryOptionCombo> getAocIdMap()
+    public Map<Long, CategoryOptionCombo> getAocIdMap()
     {
         return aocIdMap;
     }

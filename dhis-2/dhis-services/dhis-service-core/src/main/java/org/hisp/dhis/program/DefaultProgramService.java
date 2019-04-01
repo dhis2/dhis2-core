@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultProgramService
     implements ProgramService
 {
@@ -83,73 +82,85 @@ public class DefaultProgramService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgram( Program program )
+    @Transactional
+    public long addProgram( Program program )
     {
         programStore.save( program );
         return program.getId();
     }
 
     @Override
+    @Transactional
     public void updateProgram( Program program )
     {
         programStore.update( program );
     }
 
     @Override
+    @Transactional
     public void deleteProgram( Program program )
     {
         programStore.delete( program );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Program> getAllPrograms()
     {
         return programStore.getAll();
     }
 
     @Override
-    public Program getProgram( int id )
+    @Transactional(readOnly = true)
+    public Program getProgram( long id )
     {
         return programStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Program> getPrograms( OrganisationUnit organisationUnit )
     {
         return programStore.get( organisationUnit );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Program> getPrograms( ProgramType type )
     {
         return programStore.getByType( type );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Program getProgram( String uid )
     {
         return programStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Program> getProgramsByTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         return programStore.getByTrackedEntityType( trackedEntityType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Program> getProgramsByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return programStore.getByDataEntryForm( dataEntryForm );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Program> getUserPrograms()
     {
         return getUserPrograms( currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Program> getUserPrograms( User user )
     {
         if ( user == null || user.isSuper() )
@@ -161,12 +172,14 @@ public class DefaultProgramService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Set<Program> getUserPrograms( ProgramType programType )
     {
         return getUserPrograms().stream().filter( p -> p.getProgramType() == programType ).collect( Collectors.toSet() );
     }
 
     @Override
+    @Transactional
     public void mergeWithCurrentUserOrganisationUnits( Program program, Collection<OrganisationUnit> mergeOrganisationUnits )
     {
         Set<OrganisationUnit> selectedOrgUnits = Sets.newHashSet( program.getOrganisationUnits() );
@@ -190,6 +203,7 @@ public class DefaultProgramService
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramDataElementDimensionItem> getGeneratedProgramDataElements( String programUid )
     {
         Program program = getProgram( programUid );

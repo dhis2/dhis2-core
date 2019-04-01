@@ -130,7 +130,7 @@ public class CategoryOptionComboStoreTest
         categoryOptionComboA.setCategoryOptions( categoryOptions );        
         
         categoryOptionComboStore.save( categoryOptionComboA );
-        int id = categoryOptionComboA.getId();
+        long id = categoryOptionComboA.getId();
 
         categoryOptionComboA = categoryOptionComboStore.get( id );
         
@@ -150,7 +150,7 @@ public class CategoryOptionComboStoreTest
         categoryOptionComboA.setCategoryOptions( categoryOptions );        
         
         categoryOptionComboStore.save( categoryOptionComboA );
-        int id = categoryOptionComboA.getId();
+        long id = categoryOptionComboA.getId();
 
         assertNotNull( categoryOptionComboStore.get( id ) );
         assertEquals( categoryComboA, categoryOptionComboA.getCategoryCombo() );
@@ -185,11 +185,11 @@ public class CategoryOptionComboStoreTest
         categoryOptionComboC.setCategoryOptions( categoryOptions );
 
         categoryOptionComboStore.save( categoryOptionComboA );
-        int idA = categoryOptionComboA.getId();
+        long idA = categoryOptionComboA.getId();
         categoryOptionComboStore.save( categoryOptionComboB );
-        int idB = categoryOptionComboB.getId();
+        long idB = categoryOptionComboB.getId();
         categoryOptionComboStore.save( categoryOptionComboC );
-        int idC = categoryOptionComboC.getId();
+        long idC = categoryOptionComboC.getId();
 
         assertNotNull( categoryOptionComboStore.get( idA ) );
         assertNotNull( categoryOptionComboStore.get( idB ) );

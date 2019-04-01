@@ -38,11 +38,11 @@ import org.hisp.dhis.common.AnalyticalObjectService;
 public interface EventReportService
     extends AnalyticalObjectService<EventReport>
 {
-    int saveEventReport( EventReport report );
+    long saveEventReport( EventReport report );
     
     void updateEventReport( EventReport report );
     
-    EventReport getEventReport( int id );
+    EventReport getEventReport( long id );
     
     EventReport getEventReport( String uid );
     

@@ -291,7 +291,7 @@ public class DefaultDashboardService
     }
 
     @Override
-    public int saveDashboard( Dashboard dashboard )
+    public long saveDashboard( Dashboard dashboard )
     {
         dashboardStore.save( dashboard );
 
@@ -316,7 +316,7 @@ public class DefaultDashboardService
     }
 
     @Override
-    public Dashboard getDashboard( int id )
+    public Dashboard getDashboard( long id )
     {
         return dashboardStore.get( id );
     }

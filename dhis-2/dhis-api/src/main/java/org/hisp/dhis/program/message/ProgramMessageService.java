@@ -81,7 +81,7 @@ public interface ProgramMessageService
     // GET
     // -------------------------------------------------------------------------
 
-    ProgramMessage getProgramMessage( int id );
+    ProgramMessage getProgramMessage( long id );
 
     ProgramMessage getProgramMessage( String uid );
 
@@ -93,7 +93,7 @@ public interface ProgramMessageService
     // Save OR Update
     // -------------------------------------------------------------------------
 
-    int saveProgramMessage( ProgramMessage programMessage );
+    long saveProgramMessage( ProgramMessage programMessage );
     
     void updateProgramMessage( ProgramMessage programMessage );
 

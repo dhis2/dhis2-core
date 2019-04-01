@@ -39,19 +39,20 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Aselefew
  */
 @JacksonXmlRootElement( localName = "categoryCombo", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryCombo
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_CATEGORY_COMBO_NAME = "default";
 
@@ -103,6 +104,7 @@ public class CategoryCombo
     // -------------------------------------------------------------------------
 
     @JsonProperty( "isDefault" )
+    @Override
     public boolean isDefault()
     {
         return DEFAULT_CATEGORY_COMBO_NAME.equals( name );
@@ -153,19 +155,11 @@ public class CategoryCombo
         return categories != null && categories.size() > 1;
     }
 
-    public CategoryOption[][] getCategoryOptionsAsArray()
+    public List<List<CategoryOption>> getCategoryOptionsAsLists()
     {
-        CategoryOption[][] arrays = new CategoryOption[categories.size()][];
-
-        int i = 0;
-
-        for ( Category category : categories )
-        {
-            arrays[i++] = new ArrayList<>(
-                category.getCategoryOptions() ).toArray( new CategoryOption[0] );
-        }
-
-        return arrays;
+        return categories.stream()
+            .map( ca -> ca.getCategoryOptions() )
+            .collect( Collectors.toList() );
     }
 
     public List<CategoryOptionCombo> generateOptionCombosList()
@@ -173,7 +167,7 @@ public class CategoryCombo
         List<CategoryOptionCombo> list = new ArrayList<>();
 
         CombinationGenerator<CategoryOption> generator =
-            new CombinationGenerator<>( getCategoryOptionsAsArray() );
+            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {
@@ -191,7 +185,7 @@ public class CategoryCombo
         List<CategoryOptionCombo> list = new ArrayList<>();
 
         CombinationGenerator<CategoryOption> generator =
-            new CombinationGenerator<>( getCategoryOptionsAsArray() );
+            CombinationGenerator.newInstance( getCategoryOptionsAsLists() );
 
         while ( generator.hasNext() )
         {

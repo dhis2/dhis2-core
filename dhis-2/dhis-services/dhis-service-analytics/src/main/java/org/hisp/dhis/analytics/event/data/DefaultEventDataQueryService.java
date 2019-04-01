@@ -360,11 +360,6 @@ public class DefaultEventDataQueryService
             queryItem = getQueryItem( item, program );
         }
 
-        if ( queryItem == null )
-        {
-            throw new IllegalQueryException( "Sort item is invalid: " + item );
-        }
-
         return queryItem.getItem();
     }
 

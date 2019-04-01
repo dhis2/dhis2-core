@@ -32,9 +32,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RelationshipParams
 {
-    public static RelationshipParams TRUE = new RelationshipParams( true, true );
-
-    public static RelationshipParams FALSE = new RelationshipParams( false, false );
+    public static final RelationshipParams TRUE = new RelationshipParams( true, true );
+    public static final RelationshipParams FALSE = new RelationshipParams( false, false );
 
     private boolean includeFrom;
 

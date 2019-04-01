@@ -55,7 +55,7 @@ import java.util.List;
 public class QueryPlannerUtils
 {
     /**
-     * Creates a mapping between level and organisation unit for the given
+     * Creates a mapping between level and organisation units for the given
      * organisation units.
      *
      * @param orgUnits list of organisation units.
@@ -75,7 +75,20 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between data type and data element for the given data
+     * Creates a mapping between level and organisation units for the given
+     * organisation units.
+     *
+     * @param orgUnits list of organisation units.
+     */
+    public static ListMap<Integer, OrganisationUnit> getLevelOrgUnitTypedMap( List<OrganisationUnit> orgUnits )
+    {
+        ListMap<Integer, OrganisationUnit> map = new ListMap<>();
+        orgUnits.stream().forEach( ou -> map.putValue( ou.getLevel(), ou ) );
+        return map;
+    }
+
+    /**
+     * Creates a mapping between data type and data elements for the given data
      * elements.
      *
      * @param dataElements list of data elements.
@@ -101,7 +114,7 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the aggregation type and data element for the
+     * Creates a mapping between the aggregation type and data elements for the
      * given data elements and period type.
      *
      * @param params the data query parameters.
@@ -130,7 +143,7 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the number of days in the period interval and period
+     * Creates a mapping between the number of days in the period interval and periods
      * for the given periods.
      *
      * @param periods
@@ -203,7 +216,7 @@ public class QueryPlannerUtils
     }
 
     /**
-     * Creates a mapping between the period type and matching data elements for the
+     * Creates a mapping between the period type and data elements for the
      * given list of data elements.
      *
      * @param dataElements the list of data elements.

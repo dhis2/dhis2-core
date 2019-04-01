@@ -217,13 +217,13 @@ public class FacilityReportingServiceImpl
     }
 
     @Override
-    public DataSet getDataSet( int id )
+    public DataSet getDataSet( long id )
     {
         return getDataSetForLocale( id, null );
     }
 
     @Override
-    public DataSet getDataSetForLocale( int dataSetId, Locale locale )
+    public DataSet getDataSetForLocale( long dataSetId, Locale locale )
     {
         org.hisp.dhis.dataset.DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
@@ -289,7 +289,7 @@ public class FacilityReportingServiceImpl
 
                 for ( int i = 0; i < dataElementList.size(); i++ )
                 {
-                	List<Model> categoryOptionCombos = dataElementList.get( i ).getCategoryOptionCombos().getModels();
+                    List<Model> categoryOptionCombos = dataElementList.get( i ).getCategoryOptionCombos().getModels();
                     List<Model> newCategoryOptionCombos = new ArrayList<>();
 
                     for ( int j = 0; j < categoryOptionCombos.size(); j++ )
@@ -363,7 +363,7 @@ public class FacilityReportingServiceImpl
         log.info( "Recieved data value set for: " + unit.getName() + ", " + dataSet.getName() + ", "
             + period.getIsoDate() );
 
-        Map<Integer, org.hisp.dhis.dataelement.DataElement> dataElementMap = getDataElementIdMapping( dataSet );
+        Map<Long, org.hisp.dhis.dataelement.DataElement> dataElementMap = getDataElementIdMapping( dataSet );
 
         for ( DataValue dataValue : dataSetValue.getDataValues() )
         {
@@ -396,13 +396,11 @@ public class FacilityReportingServiceImpl
             registrationService.deleteCompleteDataSetRegistration( registration );
         }
 
-        registration = new CompleteDataSetRegistration();
+        String storedBy = currentUserService.getCurrentUser().getUsername();
+        Date now = new Date();
 
-        registration.setDataSet( dataSet );
-        registration.setPeriod( period );
-        registration.setSource( unit );
-        registration.setDate( new Date() );
-        registration.setStoredBy( currentUserService.getCurrentUser().getUsername() );
+        registration = new CompleteDataSetRegistration( dataSet, period, unit, optionCombo, now, storedBy, now, storedBy, true );
+
         registrationService.saveCompleteDataSetRegistration( registration );
 
         log.info( "Saved and registered data value set as complete: " + unit.getName() + ", " + dataSet.getName()
@@ -433,12 +431,12 @@ public class FacilityReportingServiceImpl
                     if ( period != null )
                     {
                         Set<org.hisp.dhis.dataelement.DataElement> dataElements = apiDataSet.getDataElements();
-                        
+
                         Collection<org.hisp.dhis.datavalue.DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
                             .setDataElements( dataElements )
                             .setPeriods( Sets.newHashSet( period ) )
                             .setOrganisationUnits( Sets.newHashSet( unit ) ) );
-                        
+
                         if ( dataValues != null && !dataValues.isEmpty() )
                         {
                             DataSetValue dataSetValue = new DataSetValue();
@@ -469,10 +467,10 @@ public class FacilityReportingServiceImpl
         return dataSetValueList;
     }
 
-    private Map<Integer, org.hisp.dhis.dataelement.DataElement> getDataElementIdMapping(
+    private Map<Long, org.hisp.dhis.dataelement.DataElement> getDataElementIdMapping(
         org.hisp.dhis.dataset.DataSet dataSet )
     {
-        Map<Integer, org.hisp.dhis.dataelement.DataElement> dataElementMap = new HashMap<>();
+        Map<Long, org.hisp.dhis.dataelement.DataElement> dataElementMap = new HashMap<>();
 
         for ( org.hisp.dhis.dataelement.DataElement dataElement : dataSet.getDataElements() )
         {
@@ -536,7 +534,7 @@ public class FacilityReportingServiceImpl
         return persistedPeriod;
     }
 
-    private boolean isGreyField( org.hisp.dhis.dataset.Section section, int id, int categoryOptionComboId )
+    private boolean isGreyField( org.hisp.dhis.dataset.Section section, long id, long categoryOptionComboId )
     {
         for ( DataElementOperand operand : section.getGreyedFields() )
         {

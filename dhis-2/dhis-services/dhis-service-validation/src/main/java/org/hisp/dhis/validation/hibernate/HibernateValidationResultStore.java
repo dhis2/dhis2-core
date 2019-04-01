@@ -84,7 +84,7 @@ public class HibernateValidationResultStore
     }
 
     @Override
-    public ValidationResult getById( int id )
+    public ValidationResult getById( long id )
     {
         return getSingleResult( getQuery( "from ValidationResult vr where vr.id = :id"
             + getRestrictions( "and") ).setParameter( "id", id ) );

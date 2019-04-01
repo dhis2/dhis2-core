@@ -29,9 +29,9 @@ package org.hisp.dhis.sms.listener;
  */
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -59,7 +59,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 @Transactional
 public class DataValueSMSListener
@@ -105,7 +111,7 @@ public class DataValueSMSListener
 
         if ( getOrganisationUnits( sms ).iterator().hasNext() )
         {
-           orgUnit  = getOrganisationUnits( sms ).iterator().next();
+            orgUnit = getOrganisationUnits( sms ).iterator().next();
         }
 
         Period period = getPeriod( smsCommand, date );
@@ -155,7 +161,7 @@ public class DataValueSMSListener
         markCompleteDataSet( sms, orgUnit, parsedMessage, smsCommand, date );
         sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit );
 
-        update( sms,  SmsMessageStatus.PROCESSED, true );
+        update( sms, SmsMessageStatus.PROCESSED, true );
     }
 
     @Override
@@ -483,20 +489,16 @@ public class DataValueSMSListener
     private void registerCompleteDataSet( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         String storedBy )
     {
-        CompleteDataSetRegistration registration = new CompleteDataSetRegistration();
-
         CategoryOptionCombo optionCombo = dataElementCategoryService
             .getDefaultCategoryOptionCombo(); // TODO
 
         if ( registrationService.getCompleteDataSetRegistration( dataSet, period, organisationUnit,
             optionCombo ) == null )
         {
-            registration.setDataSet( dataSet );
-            registration.setPeriod( period );
-            registration.setSource( organisationUnit );
-            registration.setDate( new Date() );
-            registration.setStoredBy( storedBy );
-            registration.setPeriodName( registration.getPeriod().toString() );
+            Date now = new Date();
+            CompleteDataSetRegistration registration =
+                new CompleteDataSetRegistration( dataSet, period, organisationUnit, optionCombo, now, storedBy, now, storedBy, true );
+
             registrationService.saveCompleteDataSetRegistration( registration );
         }
     }

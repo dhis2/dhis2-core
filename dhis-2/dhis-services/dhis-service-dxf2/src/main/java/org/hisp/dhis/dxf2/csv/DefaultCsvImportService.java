@@ -101,53 +101,57 @@ public class DefaultCsvImportService
     // -------------------------------------------------------------------------
 
     @Override
-    public Metadata fromCsv( InputStream input, CsvImportClass importClass )
+    public Metadata fromCsv( InputStream input, CsvImportOptions options )
         throws IOException
     {
         CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
-        reader.readRecord(); // Ignore first row
+
+        if ( options.isFirstRowIsHeader() )
+        {
+            reader.readRecord(); // Ignore first row
+        }
 
         Metadata metadata = new Metadata();
 
-        switch ( importClass )
+        switch ( options.getImportClass() )
         {
-        case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
-            metadata.setOrganisationUnitGroups( organisationUnitGroupMembership( reader ) );
-            break;
-        case DATA_ELEMENT_GROUP_MEMBERSHIP:
-            metadata.setDataElementGroups( dataElementGroupMembership( reader ) );
-            break;
-        case INDICATOR_GROUP_MEMBERSHIP:
-            metadata.setIndicatorGroups( indicatorGroupMembership( reader ) );
-            break;
-        case DATA_ELEMENT:
-            metadata.setDataElements( dataElementsFromCsv( reader ) );
-            break;
-        case DATA_ELEMENT_GROUP:
-            metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
-            break;
-        case CATEGORY_OPTION:
-            metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
-            break;
-        case CATEGORY_OPTION_GROUP:
-            metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
-            break;
-        case ORGANISATION_UNIT:
-            metadata.setOrganisationUnits( organisationUnitsFromCsv( reader ) );
-            break;
-        case ORGANISATION_UNIT_GROUP:
-            metadata.setOrganisationUnitGroups( organisationUnitGroupsFromCsv( reader ) );
-            break;
-        case VALIDATION_RULE:
-            metadata.setValidationRules( validationRulesFromCsv( reader ) );
-            break;
-        case OPTION_SET:
-            setOptionSetsFromCsv( reader, metadata );
-            break;
-        case TRANSLATION:
-            break;
-        default:
-            break;
+            case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
+                metadata.setOrganisationUnitGroups( organisationUnitGroupMembership( reader ) );
+                break;
+            case DATA_ELEMENT_GROUP_MEMBERSHIP:
+                metadata.setDataElementGroups( dataElementGroupMembership( reader ) );
+                break;
+            case INDICATOR_GROUP_MEMBERSHIP:
+                metadata.setIndicatorGroups( indicatorGroupMembership( reader ) );
+                break;
+            case DATA_ELEMENT:
+                metadata.setDataElements( dataElementsFromCsv( reader ) );
+                break;
+            case DATA_ELEMENT_GROUP:
+                metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
+                break;
+            case CATEGORY_OPTION:
+                metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
+                break;
+            case CATEGORY_OPTION_GROUP:
+                metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT:
+                metadata.setOrganisationUnits( organisationUnitsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT_GROUP:
+                metadata.setOrganisationUnitGroups( organisationUnitGroupsFromCsv( reader ) );
+                break;
+            case VALIDATION_RULE:
+                metadata.setValidationRules( validationRulesFromCsv( reader ) );
+                break;
+            case OPTION_SET:
+                setOptionSetsFromCsv( reader, metadata );
+                break;
+            case TRANSLATION:
+                break;
+            default:
+                break;
         }
 
         return metadata;
@@ -185,6 +189,7 @@ public class DefaultCsvImportService
                 }
             }
         }
+
         return Lists.newArrayList( uidMap.values() );
     }
 
@@ -329,8 +334,7 @@ public class DefaultCsvImportService
                 object.setDomainType( DataElementDomain.fromValue( domainType ) );
                 object.setValueType( ValueType.valueOf( getSafe( values, 7, ValueType.INTEGER.toString(), 50 ) ) );
 
-                object.setAggregationType(
-                    AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
+                object.setAggregationType( AggregationType.valueOf( getSafe( values, 8, AggregationType.SUM.toString(), 50 ) ) );
                 String categoryComboUid = getSafe( values, 9, null, 11 );
                 object.setUrl( getSafe( values, 10, null, 255 ) );
                 object.setZeroIsSignificant( Boolean.valueOf( getSafe( values, 11, "false", null ) ) );
@@ -412,14 +416,11 @@ public class DefaultCsvImportService
                 setIdentifiableObject( object, values );
                 object.setDescription( getSafe( values, 3, null, 255 ) );
                 object.setInstruction( getSafe( values, 4, null, 255 ) );
-                object
-                    .setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
+                object.setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
                 // Left here so nobody wonders what field 6 is for
                 // object.setRuleType( RuleType.valueOf( getSafe( values, 6, RuleType.VALIDATION.toString(), 255 ) ) );
-                object
-                    .setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
-                object.setPeriodType(
-                    PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
+                object.setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
+                object.setPeriodType( PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
 
                 leftSide.setExpression( getSafe( values, 9, null, 255 ) );
                 leftSide.setDescription( getSafe( values, 10, null, 255 ) );
@@ -528,7 +529,6 @@ public class DefaultCsvImportService
      * <li>option code</li>
      * </ul>
      */
-
     private void setOptionSetsFromCsv( CsvReader reader, Metadata metadata )
         throws IOException
     {

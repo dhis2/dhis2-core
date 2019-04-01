@@ -190,8 +190,8 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
-            String filter = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getFilter(),
-                params.getProgramIndicator(), false, params.getEarliestStartDate(), params.getLatestEndDate() );
+            String filter = programIndicatorService.getFilterAnalyticsSql( params.getProgramIndicator(),
+                params.getEarliestStartDate(), params.getLatestEndDate() );
 
             String sqlFilter = ExpressionUtils.asSql( filter );
 

@@ -561,11 +561,11 @@ public class ValidationUtils
         }
         else if ( valueType.isDate() )
         {
-            return "'2000-01-01'";
+            return "2000-01-01";
         }
         else
         {
-            return "'A'";
+            return "A";
         }
     }
 

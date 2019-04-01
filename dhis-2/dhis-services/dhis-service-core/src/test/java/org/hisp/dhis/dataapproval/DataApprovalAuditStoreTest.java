@@ -169,8 +169,8 @@ public class DataApprovalAuditStoreTest
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
 
-        optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionA, optionB );
+        optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
+        optionComboB = createCategoryOptionCombo( categoryComboA, optionA, optionB );
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
 

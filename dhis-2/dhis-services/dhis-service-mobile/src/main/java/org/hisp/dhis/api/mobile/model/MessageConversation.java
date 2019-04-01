@@ -37,7 +37,7 @@ public class MessageConversation
 {
     private String clientVersion;
 
-    private int id;
+    private long id;
 
     private String subject;
 
@@ -51,12 +51,12 @@ public class MessageConversation
         this.clientVersion = clientVersion;
     }
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -75,7 +75,7 @@ public class MessageConversation
     public void serialize( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( id );
+        dout.writeLong( id );
         dout.writeUTF( subject );
 
     }
@@ -85,7 +85,7 @@ public class MessageConversation
         throws IOException
     {
 
-        this.id = din.readInt();
+        this.id = din.readLong();
         this.subject = din.readUTF();
 
     }

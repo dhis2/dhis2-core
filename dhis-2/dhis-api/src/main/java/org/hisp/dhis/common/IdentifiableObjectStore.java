@@ -192,7 +192,7 @@ public interface IdentifiableObjectStore<T>
      * @param ids a collection of ids.
      * @return a list of objects.
      */
-    List<T> getById( Collection<Integer> ids );
+    List<T> getById( Collection<Long> ids );
 
     /**
      * Retrieves a list of objects referenced by the given collection of uids.

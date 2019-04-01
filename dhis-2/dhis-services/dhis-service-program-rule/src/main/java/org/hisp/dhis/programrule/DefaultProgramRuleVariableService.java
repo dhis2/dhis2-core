@@ -57,7 +57,7 @@ public class DefaultProgramRuleVariableService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
+    public long addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.save( programRuleVariable );
         return programRuleVariable.getId();
@@ -76,7 +76,7 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
-    public ProgramRuleVariable getProgramRuleVariable( int id )
+    public ProgramRuleVariable getProgramRuleVariable( long id )
     {
         return programRuleVariableStore.get( id );
     }
@@ -99,5 +99,17 @@ public class DefaultProgramRuleVariableService
         List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );
 
         return !ruleVariables.isEmpty();
+    }
+
+    @Override
+    public List<ProgramRuleVariable> getVariablesWithNoDataElement()
+    {
+        return programRuleVariableStore.getVariablesWithNoDataElement();
+    }
+
+    @Override
+    public List<ProgramRuleVariable> getVariablesWithNoAttribute()
+    {
+        return programRuleVariableStore.getVariablesWithNoAttribute();
     }
 }
