@@ -43,7 +43,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
-import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,9 +62,6 @@ public class JacksonRelationshipService
 
     @Autowired
     private CurrentUserService currentUserService;
-
-    @Autowired
-    private RelationshipService relationshipService;
 
     private final static ObjectMapper XML_MAPPER = new XmlMapper();
 
@@ -161,6 +157,7 @@ public class JacksonRelationshipService
         return updateRelationship( relationship, updateImportOptions( importOptions ) );
     }
 
+    @Override
     protected ImportOptions updateImportOptions( ImportOptions importOptions )
     {
         if ( importOptions == null )
