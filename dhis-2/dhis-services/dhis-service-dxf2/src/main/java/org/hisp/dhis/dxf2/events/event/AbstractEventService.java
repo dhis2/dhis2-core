@@ -634,7 +634,9 @@ public abstract class AbstractEventService
 
         for ( Event event : eventList )
         {
-            if ( trackerOwnershipAccessManager.hasAccess( user, event.getTrackedEntityInstance(), event.getProgram() ) )
+            if ( trackerOwnershipAccessManager.hasAccess( user,
+                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ),
+                programService.getProgram( event.getProgram() ) ) )
             {
                 events.getEvents().add( event );
             }
@@ -832,7 +834,9 @@ public abstract class AbstractEventService
 
         for ( EventRow eventRow : eventRowList )
         {
-            if ( trackerOwnershipAccessManager.hasAccess( user, eventRow.getTrackedEntityInstance(), eventRow.getProgram() ) )
+            if ( trackerOwnershipAccessManager.hasAccess( user,
+                entityInstanceService.getTrackedEntityInstance( eventRow.getTrackedEntityInstance() ),
+                programService.getProgram( eventRow.getProgram() ) ) )
             {
                 eventRows.getEventRows().add( eventRow );
             }
@@ -1332,10 +1336,14 @@ public abstract class AbstractEventService
         }
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
-        preheatDataElementsCache( event, importOptions );
+        preheatDataElementsCache( event );
         eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
-        updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+
+        if ( !importOptions.isSkipLastUpdated() )
+        {
+            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
+        }
 
         if ( importSummary.getConflicts().size() > 0 ) {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -1349,10 +1357,13 @@ public abstract class AbstractEventService
         return importSummary;
     }
 
-    private void preheatDataElementsCache(Event event, ImportOptions importOptions) {
-        Set<String> dataElementUids = event.getDataValues().stream().map( dv -> dv.getDataElement() ).collect( Collectors.toSet());
+    private void preheatDataElementsCache( Event event )
+    {
+        Set<String> dataElementUids = event.getDataValues().stream().map( dv -> dv.getDataElement() )
+            .collect( Collectors.toSet() );
 
-        List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID, dataElementUids );
+        List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
+            dataElementUids );
 
         dataElements.forEach( de -> dataElementCache.put( de.getUid(), de ) );
     }
@@ -1619,7 +1630,7 @@ public abstract class AbstractEventService
         String storedBy = getValidUsername( event.getStoredBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
         String completedBy = getValidUsername( event.getCompletedBy(), importSummary, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
-        CategoryOptionCombo aoc = null;
+        CategoryOptionCombo aoc;
 
         if ( (event.getAttributeCategoryOptions() != null && program.getCategoryCombo() != null)
             || event.getAttributeOptionCombo() != null )
@@ -1693,7 +1704,10 @@ public abstract class AbstractEventService
                     programStageInstance, aoc, assignedUser, importOptions, importSummary );
             }
 
-            updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
+            if ( !importOptions.isSkipLastUpdated() )
+            {
+                updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkSave );
+            }
 
             importSummary.setReference( programStageInstance.getUid() );
         }
@@ -1796,7 +1810,7 @@ public abstract class AbstractEventService
             programStageInstance.setCompletedDate( completedDate );
         }
 
-        preheatDataElementsCache( event, importOptions );
+        preheatDataElementsCache( event );
 
         if ( programStageInstance.getId() == 0 )
         {

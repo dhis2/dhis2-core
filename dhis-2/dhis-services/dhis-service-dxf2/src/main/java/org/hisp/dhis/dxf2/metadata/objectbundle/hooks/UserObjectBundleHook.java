@@ -37,6 +37,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
@@ -58,6 +59,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
@@ -85,6 +89,18 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         if ( !User.class.isInstance( object ) || ((User) object).getUserCredentials() == null ) return;
 
         User user = (User) object;
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser != null )
+        {
+            user.getUserCredentials().getCogsDimensionConstraints().addAll(
+                currentUser.getUserCredentials().getCogsDimensionConstraints() );
+
+            user.getUserCredentials().getCatDimensionConstraints().addAll(
+                currentUser.getUserCredentials().getCatDimensionConstraints() );
+        }
+
         bundle.putExtras( user, "uc", user.getUserCredentials() );
         user.setUserCredentials( null );
     }
@@ -109,6 +125,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             fileResourceService.updateFileResource( fileResource );
         }
 
+        userCredentials.setUserInfo( user );
         preheatService.connectReferences( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         sessionFactory.getCurrentSession().save( userCredentials );
         user.setUserCredentials( userCredentials );

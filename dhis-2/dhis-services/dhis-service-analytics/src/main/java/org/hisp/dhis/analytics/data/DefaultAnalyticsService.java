@@ -125,6 +125,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -736,9 +737,9 @@ public class DefaultAnalyticsService
                 List<String> dataRow = Lists.newArrayList( entry.getKey().split( DIMENSION_SEP ) );
 
                 Double target = entry.getValue();
-                Double actual = dataMap.get( entry.getKey() );
+                Double actual = ObjectUtils.firstNonNull( dataMap.get( entry.getKey() ), 0d );
 
-                if ( target != null && ( actual != null || metric == EXPECTED_REPORTS ) )
+                if ( target != null )
                 {
                     // ---------------------------------------------------------
                     // Multiply target value by number of periods in time span

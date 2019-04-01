@@ -29,15 +29,12 @@ package org.hisp.dhis.dxf2.common;
  */
 
 import com.google.common.base.MoreObjects;
-
 import org.hisp.dhis.query.Order;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
-import java.util.ArrayList;
+
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -64,49 +61,7 @@ public class OrderParams
 
     public List<Order> getOrders( Schema schema )
     {
-        Map<String, Order> orders = new LinkedHashMap<>();
-
-        for ( String o : order )
-        {
-            String[] split = o.split( ":" );
-
-            //Using ascending as default direction. 
-            String direction = "asc";
-            
-            if ( split.length < 1 )
-            {
-                continue;
-            }
-            else if ( split.length == 2 )
-            {
-                direction = split[1].toLowerCase();
-            }
-
-            String propertyName = split[0];
-            Property property = schema.getProperty( propertyName );
-            
-
-            if ( orders.containsKey( propertyName ) || !schema.haveProperty( propertyName )
-                || !validProperty( property ) || !validDirection( direction ) )
-            {
-                continue;
-            }
-
-            orders.put( propertyName, Order.from( direction, property ) );
-        }
-
-        return new ArrayList<>( orders.values() );
-    }
-
-    private boolean validProperty( Property property )
-    {
-        return property.isSimple();
-    }
-
-    private boolean validDirection( String direction )
-    {
-        return "asc".equals( direction ) || "desc".equals( direction )
-            || "iasc".equals( direction ) || "idesc".equals( direction );
+        return QueryUtils.convertOrderStrings( order, schema );
     }
 
     @Override
