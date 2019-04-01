@@ -61,7 +61,7 @@ public class DefaultReservedValueServiceTest
     extends DhisTest
 {
     @Autowired
-    private DefaultReservedValueService reservedValueService;
+    private ReservedValueService reservedValueService;
 
     @Autowired
     private ReservedValueStore reservedValueStore;
