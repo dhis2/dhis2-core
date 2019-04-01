@@ -584,7 +584,7 @@ public abstract class AbstractEventService
         }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
-            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ) );
+            new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
 
         if ( !errors.isEmpty() )
         {
@@ -848,11 +848,11 @@ public abstract class AbstractEventService
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance )
     {
-        return getEvent( programStageInstance, false );
+        return getEvent( programStageInstance, false, false );
     }
 
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery )
+    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery, boolean skipOwnershipCheck )
     {
         if ( programStageInstance == null )
         {
@@ -898,7 +898,7 @@ public abstract class AbstractEventService
         User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
-        List<String> errors = trackerAccessManager.canRead( user, programStageInstance );
+        List<String> errors = trackerAccessManager.canRead( user, programStageInstance, skipOwnershipCheck );
 
         if ( !errors.isEmpty() )
         {
@@ -946,7 +946,7 @@ public abstract class AbstractEventService
         {
             DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
 
-            errors = trackerAccessManager.canRead( user, programStageInstance, dataElement );
+            errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
 
             if ( !errors.isEmpty() )
             {
@@ -1176,7 +1176,7 @@ public abstract class AbstractEventService
             return importSummary.incrementIgnored();
         }
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance );
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -1400,7 +1400,7 @@ public abstract class AbstractEventService
             return;
         }
 
-        List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
+        List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -1461,7 +1461,7 @@ public abstract class AbstractEventService
         {
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
 
-            List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance );
+            List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance, false );
 
             if ( !errors.isEmpty() )
             {

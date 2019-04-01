@@ -48,17 +48,17 @@ public interface TrackerAccessManager
 
     List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
 
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program );
+    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program );
+    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck );
 
-    List<String> canRead( User user, ProgramInstance programInstance );
+    List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, ProgramInstance programInstance );
+    List<String> canWrite( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
-    List<String> canRead( User user, ProgramStageInstance programStageInstance );
+    List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, ProgramStageInstance programStageInstance );
+    List<String> canWrite( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, Relationship relationship );
 
@@ -72,7 +72,7 @@ public interface TrackerAccessManager
      * @param dataElement DataElement of EventDataValue
      * @return Empty list if read access allowed, list of errors otherwise.
      */
-    List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement );
+    List<String> canRead( User user, ProgramStageInstance programStageInstance, DataElement dataElement, boolean skipOwnershipCheck );
 
     /**
      * Checks the sharing write access to EventDataValue
@@ -82,7 +82,7 @@ public interface TrackerAccessManager
      * @param dataElement DataElement of EventDataValue
      * @return Empty list if write access allowed, list of errors otherwise.
      */
-    List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement );
+    List<String> canWrite( User user, ProgramStageInstance programStageInstance, DataElement dataElement, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
 
