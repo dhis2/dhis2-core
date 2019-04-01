@@ -237,7 +237,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             validationPassed = false;
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement );
+        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );
 
         if ( !errors.isEmpty() )
         {
