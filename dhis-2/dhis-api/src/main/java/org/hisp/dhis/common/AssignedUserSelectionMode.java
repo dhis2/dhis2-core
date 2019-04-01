@@ -34,11 +34,12 @@ package org.hisp.dhis.common;
  * <ul>
  * <li>CURRENT: The current logged in user.</li>
  * <li>PROVIDED: The user provided in the param/payload.</li>
+ * <li>NONE: Unassigned.</li>
  * </ul>
  * 
  * @author Ameen Mohamed
  */
 public enum AssignedUserSelectionMode
 {
-    CURRENT, PROVIDED;
+    CURRENT, PROVIDED, NONE;
 }

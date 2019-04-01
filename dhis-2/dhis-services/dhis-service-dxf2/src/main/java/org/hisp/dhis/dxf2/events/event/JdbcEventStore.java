@@ -799,6 +799,11 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
         }
+        
+        if ( params.isIncludeOnlyUnassigned() )
+        {
+            sql += hlp.whereAnd() + " (au.uid is null) ";
+        }
 
         if ( !params.isIncludeDeleted() )
         {
@@ -993,6 +998,11 @@ public class JdbcEventStore
         if ( params.hasAssignedUsers() )
         {
             sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
+        }
+        
+        if ( params.isIncludeOnlyUnassigned() )
+        {
+            sql += hlp.whereAnd() + " (au.uid is null) ";
         }
 
         return sql;

@@ -617,4 +617,9 @@ public class EventSearchParams
     {
         return this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
+    
+    public boolean isIncludeOnlyUnassigned()
+    {
+        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
+    }
 }
