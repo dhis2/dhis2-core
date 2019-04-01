@@ -64,7 +64,7 @@ public class OrganisationUnitGroupSetResourceTable
     {
         return ResourceTableType.ORG_UNIT_GROUP_SET_STRUCTURE;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
@@ -72,23 +72,23 @@ public class OrganisationUnitGroupSetResourceTable
             "organisationunitid integer not null, " +
             "organisationunitname varchar(230), " +
             "startdate date, ";
-        
+
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
-        
+
         return removeLastComma( statement ) + ")";
     }
 
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql = 
+        String sql =
             "insert into " + getTempTableName() + " " +
             "select ou.organisationunitid as organisationunitid, ou.name as organisationunitname, null as startdate, ";
-        
+
         for ( OrganisationUnitGroupSet groupSet : objects )
         {
             if ( !groupSet.isIncludeSubhierarchyInAnalytics() )
@@ -146,11 +146,11 @@ public class OrganisationUnitGroupSetResourceTable
                     ") as " + quote( groupSet.getUid() ) + ", ";
             }
         }
-        
+
         sql = removeLastComma( sql ) + " ";
         sql += "from organisationunit ou " +
             "inner join _orgunitstructure ous on ous.organisationunitid = ou.organisationunitid";
-        
+
         return Optional.of( sql );
     }
 
@@ -167,10 +167,10 @@ public class OrganisationUnitGroupSetResourceTable
         String nameB = "in_orgunitgroupsetstructure_null_" + getRandomSuffix();
 
         // Two partial indexes as start date can be null
-        
-        String indexA = "create index " + nameA + " on " + getTempTableName() + "(organisationunitid, startdate) " + 
+
+        String indexA = "create index " + nameA + " on " + getTempTableName() + "(organisationunitid, startdate) " +
             TextUtils.emptyIfFalse( "where startdate is not null", supportsPartialIndexes );
-        String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) " + 
+        String indexB = "create index " + nameB + " on " + getTempTableName() + "(organisationunitid, startdate) " +
             TextUtils.emptyIfFalse( "where startdate is null", supportsPartialIndexes );
 
         return Lists.newArrayList( indexA, indexB );

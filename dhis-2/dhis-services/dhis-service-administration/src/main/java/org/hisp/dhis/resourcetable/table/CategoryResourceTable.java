@@ -47,7 +47,7 @@ public class CategoryResourceTable
     extends ResourceTable<Category>
 {
     private List<CategoryOptionGroupSet> groupSets;
-    
+
     public CategoryResourceTable( List<Category> objects, List<CategoryOptionGroupSet> groupSets )
     {
         super( objects );
@@ -59,39 +59,39 @@ public class CategoryResourceTable
     {
         return ResourceTableType.CATEGORY_STRUCTURE;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
         String statement = "create table " + getTempTableName() + " (" +
             "categoryoptioncomboid integer not null, " +
             "categoryoptioncomboname varchar(255), ";
-        
+
         for ( Category category : objects )
         {
             quote( category.getName() );
-            statement += quote( category.getName() ) + " varchar(230), ";
+            statement += quote( category.getShortName() ) + " varchar(230), ";
             statement += quote( category.getUid() ) + " character(11), ";
         }
 
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
-        
+
         statement += "primary key (categoryoptioncomboid))";
-        
+
         return statement;
     }
 
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql = 
+        String sql =
             "insert into " + getTempTableName() + " " +
             "select coc.categoryoptioncomboid as cocid, coc.name as cocname, ";
-        
+
         for ( Category category : objects )
         {
             sql += "(" +
@@ -110,7 +110,7 @@ public class CategoryResourceTable
                 "and cco.categoryid = " + category.getId() + " " +
                 "limit 1) as " + quote( category.getUid() ) + ", ";
         }
-        
+
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
             sql += "(" +
@@ -121,7 +121,7 @@ public class CategoryResourceTable
                 "where coc.categoryoptioncomboid = cocco.categoryoptioncomboid " +
                 "and cogsm.categoryoptiongroupsetid = " + groupSet.getId() + " " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
-            
+
             sql += "(" +
                 "select cog.uid from categoryoptioncombos_categoryoptions cocco " +
                 "inner join categoryoptiongroupmembers cogm on cocco.categoryoptionid = cogm.categoryoptionid " +
@@ -134,7 +134,7 @@ public class CategoryResourceTable
 
         sql = TextUtils.removeLastComma( sql ) + " ";
         sql += "from categoryoptioncombo coc ";
-        
+
         return Optional.of( sql );
     }
 

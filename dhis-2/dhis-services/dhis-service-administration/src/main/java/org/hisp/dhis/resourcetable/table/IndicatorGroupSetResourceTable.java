@@ -56,22 +56,22 @@ public class IndicatorGroupSetResourceTable
     {
         return ResourceTableType.INDICATOR_GROUP_SET_STRUCTURE;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
         String statement = "create table " + getTempTableName() + " (" +
             "indicatorid integer not null, " +
             "indicatorname varchar(230), ";
-        
+
         for ( IndicatorGroupSet groupSet : objects )
         {
             statement += quote( groupSet.getName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
-        
+
         statement += "primary key (indicatorid))";
-        
+
         return statement;
     }
 
@@ -81,7 +81,7 @@ public class IndicatorGroupSetResourceTable
         String sql =
             "insert into " + getTempTableName() + " " +
              "select i.indicatorid as indicatorid, i.name as indicatorname, ";
-        
+
         for ( IndicatorGroupSet groupSet : objects )
         {
             sql += "(" +
@@ -96,12 +96,12 @@ public class IndicatorGroupSetResourceTable
                 "inner join indicatorgroupmembers igm on igm.indicatorgroupid = ig.indicatorgroupid " +
                 "inner join indicatorgroupsetmembers igsm on igsm.indicatorgroupid = igm.indicatorgroupid and igsm.indicatorgroupsetid = " + groupSet.getId() + " " +
                 "where igm.indicatorid = i.indicatorid " +
-                "limit 1) as " + quote( groupSet.getUid() ) + ", ";            
+                "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }
 
         sql = TextUtils.removeLastComma( sql ) + " ";
         sql += "from indicator i";
-        
+
         return Optional.of( sql );
     }
 
