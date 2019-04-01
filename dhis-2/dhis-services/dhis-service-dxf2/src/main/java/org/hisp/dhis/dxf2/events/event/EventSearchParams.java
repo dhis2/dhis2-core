@@ -96,7 +96,7 @@ public class EventSearchParams
     
     private AssignedUserSelectionMode assignedUserSelectionMode;
     
-    private Set<String> assignedUsers;
+    private Set<String> assignedUsers = new HashSet<>();
 
     private TrackedEntityInstance trackedEntityInstance;
 
