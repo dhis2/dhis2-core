@@ -40,14 +40,15 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -83,7 +84,7 @@ public class TrackerBundleServiceTest
     private TrackerBundleService trackerBundleService;
 
     @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -118,5 +119,25 @@ public class TrackerBundleServiceTest
         assertNotNull( program );
         assertNotNull( organisationUnit );
         assertFalse( program.getProgramStages().isEmpty() );
+    }
+
+    @Test
+    @Ignore
+    public void testTrackedEntityInstanceImport() throws IOException
+    {
+        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
+            TrackerBundleParams.class ).toTrackerBundle();
+
+        assertEquals( 13, trackerBundle.getTrackedEntities().size() );
+
+        List<TrackerBundle> trackerBundles = trackerBundleService.create( new TrackerBundleParams()
+            .setTrackedEntities( trackerBundle.getTrackedEntities() ) );
+
+        assertEquals( 1, trackerBundles.size() );
+
+        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundles.get( 0 ) );
+
+        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
+        assertEquals( 13, trackedEntityInstances.size() );
     }
 }

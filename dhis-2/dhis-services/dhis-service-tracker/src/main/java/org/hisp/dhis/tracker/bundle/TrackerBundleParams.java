@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.bundle;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -226,6 +227,13 @@ public class TrackerBundleParams
     }
 
     public TrackerBundleParams setTrackedEntities( List<TrackedEntityInstance> trackedEntities )
+    {
+        this.trackedEntities = trackedEntities;
+        return this;
+    }
+
+    @JsonSetter
+    public TrackerBundleParams setTrackedEntityInstances( List<TrackedEntityInstance> trackedEntities )
     {
         this.trackedEntities = trackedEntities;
         return this;
