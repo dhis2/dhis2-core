@@ -80,7 +80,7 @@ public enum SettingKey
     EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true ),
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
-    SMS_CONFIG( "keySmsConfigurationSetting", "", String.class, true ),
+    SMS_CONFIG( "keySmsSetting", "", String.class, true ),
     CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
