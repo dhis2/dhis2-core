@@ -46,7 +46,7 @@ public class CategoryOptionComboResourceTable
     {
         super( objects );
     }
-    
+
     @Override
     public ResourceTableType getTableType()
     {
@@ -61,23 +61,23 @@ public class CategoryOptionComboResourceTable
             "dataelementuid VARCHAR(11) NOT NULL, " +
             "categoryoptioncomboid INTEGER NOT NULL, " +
             "categoryoptioncombouid VARCHAR(11) NOT NULL)";
-        
+
         return sql;
     }
 
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql = 
-            "insert into " + getTempTableName() + 
+        String sql =
+            "insert into " + getTempTableName() +
             " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) " +
             "select de.dataelementid as dataelementid, de.uid as dataelementuid, " +
             "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid " +
             "from dataelement de " +
             "join categorycombos_optioncombos cc on de.categorycomboid = cc.categorycomboid " +
             "join categoryoptioncombo coc on cc.categoryoptioncomboid = coc.categoryoptioncomboid";
-        
-        return Optional.of( sql );        
+
+        return Optional.of( sql );
     }
 
     @Override
@@ -90,9 +90,9 @@ public class CategoryOptionComboResourceTable
     public List<String> getCreateIndexStatements()
     {
         String name = "in_dataelementcategoryoptioncombo_" + getRandomSuffix();
-        
+
         String sql = "create index " + name + " on " + getTempTableName() + "(dataelementuid, categoryoptioncombouid)";
-        
+
         return Lists.newArrayList( sql );
     }
 }

@@ -372,6 +372,8 @@ public abstract class AbstractTrackedEntityInstanceService
         daoEntityInstance.setUid( CodeGenerator.isValidUid( dtoEntityInstance.getTrackedEntityInstance() ) ?
             dtoEntityInstance.getTrackedEntityInstance() : CodeGenerator.generateUid() );
 
+        updateDateFields( dtoEntityInstance, daoEntityInstance );
+
         return daoEntityInstance;
     }
 
@@ -483,9 +485,6 @@ public abstract class AbstractTrackedEntityInstanceService
         teiService.addTrackedEntityInstance( daoEntityInstance );
 
         addAttributeValues( dtoEntityInstance, daoEntityInstance, importOptions.getUser() );
-        updateDateFields( dtoEntityInstance, daoEntityInstance );
-
-        teiService.updateTrackedEntityInstance( daoEntityInstance );
 
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementImported();
@@ -1155,8 +1154,6 @@ public abstract class AbstractTrackedEntityInstanceService
     private void updateDateFields( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance )
     {
-        daoEntityInstance.setAutoFields();
-
         Date createdAtClient = DateUtils.parseDate( dtoEntityInstance.getCreatedAtClient() );
 
         if ( createdAtClient != null )
@@ -1170,6 +1167,8 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             daoEntityInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
         }
+
+        daoEntityInstance.setAutoFields();
     }
 
     private String getStoredBy( Attribute attributeValue, ImportSummary importSummary,
@@ -1206,6 +1205,7 @@ public abstract class AbstractTrackedEntityInstanceService
         if ( importOptions == null )
         {
             importOptions = new ImportOptions();
+            importOptions.setSkipLastUpdated( true );
         }
 
         if ( importOptions.getUser() == null )

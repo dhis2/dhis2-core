@@ -103,8 +103,8 @@ public abstract class AnalyticsServiceBaseTest {
     public void baseSetUp()
     {
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
-                queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
-                eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );
+            queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
+            eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );
 
         doNothing().when( queryValidator ).validateMaintenanceMode();
         when( dhisConfig.getAnalyticsCacheExpiration() ).thenReturn( 0L );

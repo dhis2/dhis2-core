@@ -67,11 +67,10 @@ public class InputUtils
     @PostConstruct
     public void init()
     {
-
         ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
-                .expireAfterWrite( 3, TimeUnit.HOURS )
-                .initialCapacity( 1000 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .initialCapacity( 1000 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
     }
 
     /**
