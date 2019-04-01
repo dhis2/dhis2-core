@@ -502,7 +502,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Params cannot be null" );
         }
 
-        User user = params.hasUser() ? params.getUser() : currentUserService.getCurrentUser();
+        User user = currentUserService.getCurrentUser();
 
         if ( user == null )
         {
