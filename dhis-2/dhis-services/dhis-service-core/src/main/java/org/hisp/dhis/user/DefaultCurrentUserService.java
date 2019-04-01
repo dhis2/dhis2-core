@@ -81,10 +81,10 @@ public class DefaultCurrentUserService
     public void init()
     {
         USERNAME_ID_CACHE = Caffeine.newBuilder()
-                .expireAfterAccess( 1, TimeUnit.HOURS )
-                .initialCapacity( 200 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 4000 )
-                .build();
+            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .initialCapacity( 200 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 4000 )
+            .build();
     }
 
     @Override
