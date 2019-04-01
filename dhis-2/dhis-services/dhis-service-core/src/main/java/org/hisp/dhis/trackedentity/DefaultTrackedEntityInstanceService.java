@@ -153,7 +153,9 @@ public class DefaultTrackedEntityInstanceService
             validate( params );
         }
 
-        params.setUser( currentUserService.getCurrentUser() );
+        User user = currentUserService.getCurrentUser();
+
+        params.setUser( user );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -162,7 +164,7 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
-        String accessedBy = currentUserService.getCurrentUsername();
+        String accessedBy = user.getUsername();
 
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
@@ -500,7 +502,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Params cannot be null" );
         }
 
-        User user = currentUserService.getCurrentUser();
+        User user = params.hasUser() ? params.getUser() : currentUserService.getCurrentUser();
 
         if ( user == null )
         {
@@ -525,7 +527,7 @@ public class DefaultTrackedEntityInstanceService
             }
         }
 
-        if ( !isLocalSearch( params ) )
+        if ( !isLocalSearch( params, user ) )
         {
             int maxTeiLimit = 0; // no limit
 
@@ -690,7 +692,7 @@ public class DefaultTrackedEntityInstanceService
         if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
-        }        
+        }
 
         params.setQuery( queryFilter )
             .setProgram( pr )
@@ -716,7 +718,7 @@ public class DefaultTrackedEntityInstanceService
             .setIncludeAllAttributes( includeAllAttributes )
             .setUser( user )
             .setOrders( orders );
-        
+
         return params;
     }
 
@@ -873,10 +875,8 @@ public class DefaultTrackedEntityInstanceService
         return trackedEntityInstanceStore.existsIncludingDeleted( uid );
     }
 
-    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
+    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
-        User user = params.getUser() != null ? params.getUser() : currentUserService.getCurrentUser();
-
         Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
         Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
