@@ -33,7 +33,6 @@ import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementCategory;
 import org.hisp.dhis.dataelement.DataElementCategoryCombo;
 import org.hisp.dhis.dataelement.DataElementCategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -43,6 +42,10 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.period.FinancialAprilPeriodType;
+import org.hisp.dhis.period.FinancialJulyPeriodType;
+import org.hisp.dhis.period.FinancialOctoberPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -165,8 +168,8 @@ public class AnalyticsUtilsTest
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
-        
-        assertEquals( null, AnalyticsUtils.getRoundedValueObject( paramsA, null ) );
+
+        assertNull(AnalyticsUtils.getRoundedValueObject(paramsA, null));
         assertEquals( "Car", AnalyticsUtils.getRoundedValueObject( paramsA, "Car" ) );
         assertEquals( 3d, AnalyticsUtils.getRoundedValueObject( paramsA, 3d ) );
         assertEquals( 3.1, (Double) AnalyticsUtils.getRoundedValueObject( paramsA, 3.123 ), 0.01 );
@@ -178,8 +181,8 @@ public class AnalyticsUtilsTest
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder().build();
         DataQueryParams paramsB = DataQueryParams.newBuilder().withSkipRounding( true ).build();
-        
-        assertEquals( null, AnalyticsUtils.getRoundedValue( paramsA, null, null ) );
+
+        assertNull(AnalyticsUtils.getRoundedValue(paramsA, null, null));
         assertEquals( 3d, AnalyticsUtils.getRoundedValue( paramsA, null, 3d ), 0.01 );
         assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, null, 3.123 ), 0.01 );
         assertEquals( 3.1, AnalyticsUtils.getRoundedValue( paramsA, 1, 3.123 ), 0.01 );
@@ -262,8 +265,8 @@ public class AnalyticsUtilsTest
     @Test
     public void testGetCocNameMap()
     {
-        DataElementCategoryCombo ccA = createCategoryCombo( 'A', new DataElementCategory[0] );
-        DataElementCategoryCombo ccB = createCategoryCombo( 'B', new DataElementCategory[0] );
+        DataElementCategoryCombo ccA = createCategoryCombo( 'A');
+        DataElementCategoryCombo ccB = createCategoryCombo( 'B');
         
         DataElementCategoryOptionCombo cocA = createCategoryOptionCombo( 'A' );
         DataElementCategoryOptionCombo cocB = createCategoryOptionCombo( 'B' );
@@ -484,22 +487,22 @@ public class AnalyticsUtilsTest
         Integer threeYearsAgo = currentYear - 3;
 
         // maxYears = 0 should always return false
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 0 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 0 ) );
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 0));
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 0));
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(twoYearsAgo, 0));
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(threeYearsAgo, 0));
 
         // maxYears = 1 should only return true for years other than thisYear
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 1 ) );
-        assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 1 ) );
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 1));
+        assertTrue(AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 1));
         assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 1 ) );
         assertTrue( AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 1 ) );
 
         // maxYears = 4 should only return false for all three years defined
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( thisYear, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( oneYearAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( twoYearsAgo, 5 ) );
-        assertTrue( !AnalyticsUtils.periodIsOutsideApprovalMaxYears( threeYearsAgo, 5 ) );
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(thisYear, 5));
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(oneYearAgo, 5));
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(twoYearsAgo, 5));
+        assertFalse(AnalyticsUtils.periodIsOutsideApprovalMaxYears(threeYearsAgo, 5));
     }
     
     @Test
@@ -524,7 +527,26 @@ public class AnalyticsUtilsTest
         de.setDimensionItemType( DimensionItemType.DATA_ELEMENT );
         de.setValueType( ValueType.TEXT );
                 
-        assertEquals( new Integer( 5 ), AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
+        assertEquals(5, AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
         assertEquals( "Male", AnalyticsUtils.getIntegerOrValue( "Male", de ) );
+    }
+
+    @Test
+    public void testCalculateYearlyWeightedAverage()
+    {
+        double avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, 20D, 9D );
+        assertEquals( 17.5, avg, 0 );
+
+        avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, -20D, 9D );
+        assertEquals( -12.5, avg, 0);
+    }
+
+    @Test
+    public void testGetBaseMonth()
+    {
+        assertEquals( 3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0 );
+        assertEquals( 6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0 );
+        assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType() ), 0 );
+        assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
     }
 }

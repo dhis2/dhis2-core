@@ -42,12 +42,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsManager;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.MeasureFilter;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -96,7 +91,7 @@ public class JdbcAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcAnalyticsManager.class );
 
-    public static final String ANALYTICS_TBL_ALIAS = "ax";
+    private static final String ANALYTICS_TBL_ALIAS = "ax";
 
     private static final String COL_APPROVALLEVEL = "approvallevel";
     private static final int LAST_VALUE_YEARS_OFFSET = -10;
@@ -152,7 +147,7 @@ public class JdbcAnalyticsManager
 
             log.debug( sql );
 
-            Map<String, Object> map = null;
+            Map<String, Object> map;
 
             try
             {
@@ -208,7 +203,21 @@ public class JdbcAnalyticsManager
                 {
                     String[] keyCopy = keyArray.clone();
                     keyCopy[periodIndex] = ((Period) period).getIsoDate();
-                    dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                    String replacementKey = TextUtils.toString( keyCopy, DIMENSION_SEP );
+
+                    if ( dataValueMap.containsKey( replacementKey )
+                            && ((Period) period).getPeriodType().spansMultipleCalendarYears() )
+                    {
+                        Object weightedAverage = AnalyticsUtils.calculateYearlyWeightedAverage(
+                                (Double) dataValueMap.get( replacementKey ), (Double) value,
+                                AnalyticsUtils.getBaseMonth( ((Period) period).getPeriodType() ) );
+
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), weightedAverage );
+                    }
+                    else
+                    {
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                    }
                 }
 
                 dataValueMap.remove( key );
@@ -246,7 +255,7 @@ public class JdbcAnalyticsManager
      */
     private String getNumericValueColumn( DataQueryParams params )
     {
-        String sql = "";
+        String sql;
 
         AnalyticsAggregationType aggType = params.getAggregationType();
 

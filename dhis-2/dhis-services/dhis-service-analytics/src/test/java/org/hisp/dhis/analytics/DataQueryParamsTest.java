@@ -48,9 +48,12 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.hamcrest.Matchers;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import java.util.*;
 
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.junit.Assert.*;
 
@@ -86,7 +89,8 @@ public class DataQueryParamsTest
     
     private Period peA;
     private Period peB;
-    
+    private Period peC;
+
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
 
@@ -123,7 +127,8 @@ public class DataQueryParamsTest
         
         peA = createPeriod( "201601" );
         peB = createPeriod( "201603" );
-        
+        peC = createPeriod( "2017July");
+
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         
@@ -562,6 +567,32 @@ public class DataQueryParamsTest
         assertNotNull( paramsB.getKey() );
         assertEquals( 40, paramsB.getKey().length() );
 
-        assertFalse( paramsA.getKey().equals( paramsB.getKey() ) ); // No collision
+        assertNotEquals(paramsA.getKey(), paramsB.getKey()); // No collision
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testFinancialYearPeriodResultsInTwoAggregationYears() {
+
+        DataQueryParams params = DataQueryParams.newBuilder()
+                .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList(peC)))
+                .withDataPeriodType(PeriodType.getPeriodTypeFromIsoString("2017"))
+                .build();
+
+        ListMap<DimensionalItemObject, DimensionalItemObject> periodMap = params.getDataPeriodAggregationPeriodMap();
+
+        assertThat(periodMap.entrySet(), hasSize(2));
+
+        assertThat(periodMap.keySet(), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                hasProperty("isoDate", Matchers.is("2017")),
+                hasProperty("isoDate", Matchers.is("2018")))
+        );
+
+        assertThat(periodMap.allValues(), hasSize(2));
+
+        assertThat(periodMap.allValues(), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                hasProperty("isoDate", Matchers.is(peC.getIsoDate())),
+                hasProperty("isoDate", Matchers.is(peC.getIsoDate())))
+        );
     }
 }
