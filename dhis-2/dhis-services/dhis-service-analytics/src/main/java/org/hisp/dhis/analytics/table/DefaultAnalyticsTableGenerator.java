@@ -81,6 +81,8 @@ public class DefaultAnalyticsTableGenerator
     // Implementation
     // -------------------------------------------------------------------------
 
+    //TODO introduce last successful timestamps per table type
+
     @Override
     public void generateTables( AnalyticsTableUpdateParams params )
     {
