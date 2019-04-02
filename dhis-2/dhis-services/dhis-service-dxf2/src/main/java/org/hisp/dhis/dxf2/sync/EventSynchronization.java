@@ -92,7 +92,10 @@ public class EventSynchronization
         // ---------------------------------------------------------------------
 
         final Clock clock = new Clock( log ).startClock().logTime( "Starting anonymous event program data synchronization job." );
-        final int objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount();
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final int objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount( skipChangedBefore );
+
+        log.info( "Events last changed before " + skipChangedBefore + " will not be synchronized." );
 
         if ( objectsToSynchronize == 0 )
         {
@@ -118,7 +121,7 @@ public class EventSynchronization
 
         for ( int i = 1; i <= pages; i++ )
         {
-            Events events = eventService.getAnonymousEventsForSync( pageSize, psdesWithSkipSyncTrue );
+            Events events = eventService.getAnonymousEventsForSync( pageSize, skipChangedBefore, psdesWithSkipSyncTrue );
             filterOutDataValuesMarkedWithSkipSynchronizationFlag( events );
             log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 

@@ -29,10 +29,10 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.api.util.DateUtils.parseDate;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -117,6 +116,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -372,7 +372,8 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize, int page )
+    public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
+        int page )
     {
         dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes, pageSize, page );
     }

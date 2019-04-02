@@ -28,19 +28,23 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -55,12 +59,17 @@ public abstract class SmsGateway
 {
     private static final Log log = LogFactory.getLog( SmsGateway.class );
 
-    protected static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
-            HttpStatus.ACCEPTED, HttpStatus.CREATED );
+    protected static final String PROTOCOL_VERSION = "X-Version";
+    protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
+    protected static final String BASIC = " Basic ";
+
+    public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
+        HttpStatus.ACCEPTED, HttpStatus.CREATED );
 
     private static final ImmutableMap<HttpStatus, GatewayResponse> GATEWAY_RESPONSE_MAP = new ImmutableMap.Builder<HttpStatus, GatewayResponse>()
         .put( HttpStatus.OK, GatewayResponse.RESULT_CODE_200 )
         .put( HttpStatus.ACCEPTED, GatewayResponse.RESULT_CODE_202 )
+        .put( HttpStatus.CREATED, GatewayResponse.RESULT_CODE_202 )
         .put( HttpStatus.MULTI_STATUS, GatewayResponse.RESULT_CODE_207 )
         .put( HttpStatus.BAD_REQUEST, GatewayResponse.RESULT_CODE_400 )
         .put( HttpStatus.UNAUTHORIZED, GatewayResponse.RESULT_CODE_401 )
@@ -74,27 +83,36 @@ public abstract class SmsGateway
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private SchedulingManager schedulingManager;
+
+    @Autowired
+    private SMSSendingCallback sendingCallback;
+
     protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
-    public boolean accept( SmsGatewayConfig gatewayConfig )
-    {
-        return gatewayConfig != null && gatewayConfig.getClass().isInstance( getGatewayConfigType() );
-    }
-
-    protected abstract SmsGatewayConfig getGatewayConfigType();
+    protected abstract boolean accept( SmsGatewayConfig gatewayConfig );
 
     protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 
     public HttpStatus send( String urlTemplate, HttpEntity<?> request, Class<?> klass )
     {
-        ResponseEntity<?> response;
+        ResponseEntity<?> response = null;
         HttpStatus statusCode = null;
 
         try
         {
             response = restTemplate.exchange( urlTemplate, HttpMethod.POST, request, klass );
 
-            statusCode = response.getStatusCode();
+            if ( response != null )
+            {
+                statusCode = response.getStatusCode();
+            }
+            else
+            {
+                log.error( "Server response is null" );
+                statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
+            }
         }
         catch ( HttpClientErrorException ex )
         {
@@ -143,5 +161,25 @@ public abstract class SmsGateway
         status.setDescription( gatewayResponse.getResponseMessage() );
 
         return status;
+    }
+
+    protected List<OutboundMessageResponse> sendAsyncBatch( Callable<List<OutboundMessageResponse>> task )
+    {
+        ListenableFuture<List<OutboundMessageResponse>> sendingTask = schedulingManager.executeJob( task );
+
+        sendingTask.addCallback( sendingCallback.getBatchCallBack() );
+
+        return new ArrayList<>();
+    }
+
+    protected OutboundMessageResponse sendAsync( Callable<OutboundMessageResponse> task )
+    {
+        ListenableFuture<OutboundMessageResponse> sendingTask = schedulingManager.executeJob( task );
+
+        sendingTask.addCallback( sendingCallback.getCallBack() );
+
+        OutboundMessageResponse response = new OutboundMessageResponse();
+        response.setAsync( true );
+        return response;
     }
 }

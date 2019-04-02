@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -101,6 +100,7 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
@@ -224,10 +224,9 @@ public abstract class AbstractEnrollmentService
 
         for ( ProgramInstance programInstance : programInstances )
         {
-            if ( programInstance != null && programInstance.getEntityInstance() != null
-                && trackerAccessManager.canRead( user, programInstance ).isEmpty() )
+            if ( programInstance != null && trackerOwnershipAccessManager.hasAccess( user, programInstance ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE ) );
+                enrollments.add( getEnrollment( user, programInstance, TrackedEntityInstanceParams.FALSE, true ) );
             }
         }
 
@@ -244,21 +243,21 @@ public abstract class AbstractEnrollmentService
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance )
     {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE );
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, TrackedEntityInstanceParams.FALSE, false );
     }
 
     @Override
     public Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params )
     {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params );
+        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
     }
 
     @Override
-    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params )
+    public Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params, boolean skipOwnershipCheck )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
-        List<String> errors = trackerAccessManager.canRead( user, programInstance );
+        List<String> errors = trackerAccessManager.canRead( user, programInstance, skipOwnershipCheck );
 
         if ( !errors.isEmpty() )
         {
@@ -320,9 +319,9 @@ public abstract class AbstractEnrollmentService
         {
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted()) && trackerAccessManager.canRead( user, programStageInstance ).isEmpty() )
+                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted()) && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
                 {
-                    enrollment.getEvents().add( eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery() ) );
+                    enrollment.getEvents().add( eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true ) );
                 }
             }
         }
@@ -438,7 +437,7 @@ public abstract class AbstractEnrollmentService
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
-            new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ) );
+            new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ), false );
 
         if ( !errors.isEmpty() )
         {
@@ -626,7 +625,7 @@ public abstract class AbstractEnrollmentService
         }
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programInstance );
+        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programInstance, false );
 
         if ( programInstance == null )
         {
@@ -1225,7 +1224,7 @@ public abstract class AbstractEnrollmentService
             importConflicts.add( new ImportConflict( pi.getUid(), "Enrollment " + pi.getUid() + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, pi );
+        List<String> errors = trackerAccessManager.canWrite( user, pi, false );
 
         if ( !errors.isEmpty() )
         {

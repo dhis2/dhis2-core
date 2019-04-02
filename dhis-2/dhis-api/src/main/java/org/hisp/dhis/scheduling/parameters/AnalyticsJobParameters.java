@@ -34,6 +34,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -80,8 +81,8 @@ public class AnalyticsJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
-        return null;
+        return Optional.empty();
     }
 }

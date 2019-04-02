@@ -39,30 +39,12 @@ import com.google.common.base.MoreObjects;
  * Zubair <rajazubair.asghar@gmail.com>
  */
 
-@JacksonXmlRootElement( localName = "requestEntity" )
+@JacksonXmlRootElement( localName = "requestEntityClickatell" )
 public class ClickatellRequestEntity
 {
     private String content;
 
     private Set<String> to;
-
-    public ClickatellRequestEntity()
-    {
-        super();
-    }
-
-    public ClickatellRequestEntity( String content, Set<String> to )
-    {
-        super();
-        this.content = content;
-        this.to = to;
-    }
-    
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this ).
-            add( "content", content ).add( "to", to ).toString();
-    }
 
     @JsonProperty( value = "content" )
     @JacksonXmlProperty( localName = "content" )
@@ -86,5 +68,11 @@ public class ClickatellRequestEntity
     public void setTo( Set<String> to )
     {
         this.to = to;
+    }
+
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this ).
+            add( "content", content ).add( "to", to ).toString();
     }
 }

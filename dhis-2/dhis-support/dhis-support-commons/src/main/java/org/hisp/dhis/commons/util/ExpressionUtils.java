@@ -191,12 +191,8 @@ public class ExpressionUtils
         }
         catch ( JexlException | NumberFormatException ex )
         {
-            if ( ex.getMessage().contains( "divide error" ) )
-            {
-                return true; //TODO division by zero masking
-            }
-
-            return false;
+            // TODO division by zero masking
+            return ex.getMessage().contains( "divide error" );
         }
     }
 

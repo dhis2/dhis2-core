@@ -407,11 +407,6 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-service-expression-parser</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-service-reporting</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -443,6 +438,11 @@
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-hibernate</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-expression-parser</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
@@ -479,7 +479,7 @@
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
-        <version>1.0.2.1-SNAPSHOT</version>
+        <version>1.0.3.1-SNAPSHOT</version>
       </dependency>
 
       <!-- Spring -->
@@ -979,7 +979,7 @@
       <dependency>
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-runtime</artifactId>
-        <version>4.7.2</version>
+        <version>${antlr.version}</version>
       </dependency>
 
       <!--Reporting -->
@@ -1268,7 +1268,13 @@
         <version>0.31.0</version>
       </dependency>
 
-      <!-- SMS -->
+      <!-- SMPP -->
+      <dependency>
+        <groupId>org.jsmpp</groupId>
+        <artifactId>jsmpp</artifactId>
+        <version>2.3.7</version>
+      </dependency>
+
       <dependency>
         <groupId>org.rxtx</groupId>
         <artifactId>rxtx</artifactId>
@@ -1400,6 +1406,7 @@
     <hibernate.version>5.2.17.Final</hibernate.version>
     <hibernate-validator.version>4.3.2.Final</hibernate-validator.version>
     <jclouds.version>2.0.3</jclouds.version>
+    <antlr.version>4.7.2</antlr.version>
     <!-- Keep in sync with Hibernate -->
     <javassist.version>3.20.0-GA</javassist.version>
     <!-- unit test dependencies-->

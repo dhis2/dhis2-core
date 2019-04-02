@@ -95,7 +95,12 @@ public class DataValueSynchronization
 
         final Clock clock = new Clock( log ).startClock().logTime( "Starting DataValueSynchronization job" );
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+
+        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
+
+        log.info( "DataValues last changed before " + skipChangedBefore + " will not be synchronized." );
 
         if ( objectsToSynchronize == 0 )
         {
@@ -125,7 +130,7 @@ public class DataValueSynchronization
         {
             log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 
-            if ( !sendDataValueSyncRequest( instance, lastSuccessTime, pageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
+            if ( !sendDataValueSyncRequest( instance, lastUpdatedAfter, pageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
             {
                 syncResult = false;
             }
@@ -142,15 +147,15 @@ public class DataValueSynchronization
         return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed." );
     }
 
-    private boolean sendDataValueSyncRequest( SystemInstance instance, Date lastSuccessTime, int syncPageSize, int page,
-        SyncEndpoint endpoint )
+    private boolean sendDataValueSyncRequest( SystemInstance instance, Date lastUpdatedAfter, int syncPageSize,
+        int page, SyncEndpoint endpoint )
     {
         final RequestCallback requestCallback = request -> {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-            dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes(),
+            dataValueSetService.writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes(),
                 syncPageSize, page );
         };
 

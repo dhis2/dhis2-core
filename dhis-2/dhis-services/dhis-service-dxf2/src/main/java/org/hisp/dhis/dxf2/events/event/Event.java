@@ -108,6 +108,11 @@ public class Event
 
     private Geometry geometry;
 
+    private String assignedUser;
+
+    private String assignedUserUsername;
+
+
     public Event()
     {
         deleted = false;
@@ -467,6 +472,30 @@ public class Event
         this.geometry = geometry;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUser()
+    {
+        return assignedUser;
+    }
+
+    public void setAssignedUser( String user )
+    {
+        this.assignedUser = user;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUserUsername()
+    {
+        return assignedUserUsername;
+    }
+
+    public void setAssignedUserUsername( String assignedUserUsername )
+    {
+        this.assignedUserUsername = assignedUserUsername;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -505,5 +534,4 @@ public class Event
             ", deleted=" + deleted +
             '}';
     }
-   
 }

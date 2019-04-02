@@ -28,6 +28,7 @@ package org.hisp.dhis.dimension;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -384,6 +385,14 @@ public class DefaultDimensionService
         }
 
         return null;
+    }
+
+    @Override
+    public DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId )
+    {
+        Set<DimensionalItemObject> itemIds = getDataDimensionalItemObjects( Sets.newHashSet( itemId ) );
+
+        return itemIds.isEmpty() ? null : itemIds.iterator().next();
     }
 
     @Override

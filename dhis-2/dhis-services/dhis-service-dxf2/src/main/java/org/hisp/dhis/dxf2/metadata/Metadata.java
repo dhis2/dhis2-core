@@ -72,7 +72,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
-import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -135,8 +134,6 @@ public class Metadata
     private List<UserAuthorityGroup> userRoles = new ArrayList<>();
 
     private List<UserGroup> userGroups = new ArrayList<>();
-
-    private List<MessageConversation> messageConversations = new ArrayList<>();
 
     private List<Interpretation> interpretations = new ArrayList<>();
 
@@ -372,19 +369,6 @@ public class Metadata
     public void setUserGroups( List<UserGroup> userGroups )
     {
         this.userGroups = userGroups;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<MessageConversation> getMessageConversations()
-    {
-        return messageConversations;
-    }
-
-    public void setMessageConversations( List<MessageConversation> messageConversations )
-    {
-        this.messageConversations = messageConversations;
     }
 
     @JsonProperty
@@ -1179,7 +1163,6 @@ public class Metadata
             ", users=" + users +
             ", userRoles=" + userRoles +
             ", userGroups=" + userGroups +
-            ", messageConversations=" + messageConversations +
             ", interpretations=" + interpretations +
             ", optionSets=" + optionSets +
             ", categories=" + categories +

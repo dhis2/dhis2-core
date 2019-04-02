@@ -60,7 +60,7 @@ public class JsonJobParametersType extends JsonBinaryType
         }
     }
 
-    protected void init( Class klass )
+    protected void init( Class<?> klass )
     {
         ObjectMapper MAPPER = new ObjectMapper();
         MAPPER.enableDefaultTyping();

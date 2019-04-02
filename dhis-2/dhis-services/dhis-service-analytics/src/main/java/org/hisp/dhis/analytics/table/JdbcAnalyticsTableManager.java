@@ -36,9 +36,9 @@ import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +57,6 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.ValueType;
@@ -72,6 +71,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -142,7 +142,7 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
     {
         if ( isApprovalEnabled( null ) )
         {
@@ -260,7 +260,7 @@ public class JdbcAnalyticsTableManager
             sql += "and " + whereClause;
         }
 
-        populateAndLog( sql, tableName + ", " + valueTypes );
+        invokeTimeAndLog( sql, String.format( "Populate %s %s", tableName, valueTypes ) );
     }
 
     /**

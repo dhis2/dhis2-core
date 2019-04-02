@@ -71,7 +71,7 @@ public class SmsMessageSenderTest
     private GatewayAdministrationService gatewayAdministrationService;
 
     @Mock
-    private BulkSmsGateway bulkSmsGateway;
+    private BulkSmsHttpGateway bulkSmsGateway;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();

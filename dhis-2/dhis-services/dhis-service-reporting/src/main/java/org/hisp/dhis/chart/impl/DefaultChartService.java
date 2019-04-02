@@ -793,7 +793,7 @@ public class DefaultChartService
 
         SimpleRegression regression = new SimpleRegression();
 
-        BaseAnalyticalObject.sortKeys( valueMap );
+        valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         List<NameableObject> seriez = new ArrayList<>( chart.series() );
         List<NameableObject> categories = new ArrayList<>( chart.category() );
@@ -860,7 +860,7 @@ public class DefaultChartService
 
         // TODO fix issue with keys including -.
 
-        return BaseAnalyticalObject.sortKey( key );
+        return DimensionalObjectUtils.sortKey( key );
     }
 
     /**

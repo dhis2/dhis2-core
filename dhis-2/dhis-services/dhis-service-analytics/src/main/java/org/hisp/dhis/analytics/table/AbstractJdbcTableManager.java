@@ -132,7 +132,7 @@ public abstract class AbstractJdbcTableManager
      * Override in order to perform work before tables are being generated.
      */
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
     {
     }
 
@@ -263,7 +263,7 @@ public abstract class AbstractJdbcTableManager
      * Populates the given analytics table.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param table the analytics table to populate.
+     * @param partition the {@link AnalyticsTablePartition} to populate.
      */
     protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
 
@@ -452,20 +452,20 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes the given table population SQL statement, log and times the operation.
+     * Executes the given  SQL statement. Logs and times the operation.
      *
      * @param sql the SQL statement.
-     * @param tableName the table name.
+     * @param logMessage the custom log message to include in the log statement.
      */
-    protected void populateAndLog( String sql, String tableName )
+    protected void invokeTimeAndLog( String sql, String logMessage )
     {
-        log.debug( String.format( "Populate table: %s with SQL: ", tableName, sql ) );
+        log.debug( String.format( "%s with SQL: '%s'", logMessage, sql ) );
 
         Timer timer = new SystemTimer().start();
 
         jdbcTemplate.execute( sql );
 
-        log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
+        log.info( String.format( "%s done in: %s", logMessage, timer.stop().toString() ) );
     }
 
     // -------------------------------------------------------------------------

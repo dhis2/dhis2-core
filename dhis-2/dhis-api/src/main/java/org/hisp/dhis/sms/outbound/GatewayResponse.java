@@ -47,6 +47,7 @@ public enum GatewayResponse
     AUTHENTICATION_FAILED( "authentication failed", "" ),
     NO_RECIPIENT( "no recipient", "No recipient found" ),
     SMS_DISABLED( "sms notifications are disabled", "sms notifications are disabled" ),
+    SMPP_SESSION_FAILURE( "Smpp session initialization failure", "Smpp session initialization failure" ),
 
     // -------------------------------------------------------------------------
     // BulkSms response codes
@@ -85,8 +86,6 @@ public enum GatewayResponse
 
     private final String responseMessageDetail;
 
-    private String batchId;
-
     GatewayResponse( String responseMessage, String responseMessageDetail )
     {
         this.responseMessage = responseMessage;
@@ -101,16 +100,6 @@ public enum GatewayResponse
     public String getResponseMessageDetail()
     {
         return responseMessageDetail;
-    }
-
-    public String getBatchId()
-    {
-        return batchId;
-    }
-
-    public void setBatchId( String batchId )
-    {
-        this.batchId = batchId;
     }
 }
 

@@ -52,6 +52,12 @@ public class RelationshipType
 
     private String description;
 
+    private boolean bidirectional = false;
+
+    private String fromToName;
+
+    private String toFromName;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -101,5 +107,41 @@ public class RelationshipType
     public void setDescription( String description )
     {
         this.description = description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isBidirectional()
+    {
+        return bidirectional;
+    }
+
+    public void setBidirectional( boolean bidirectional )
+    {
+        this.bidirectional = bidirectional;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getFromToName()
+    {
+        return fromToName;
+    }
+
+    public void setFromToName( String fromToName )
+    {
+        this.fromToName = fromToName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getToFromName()
+    {
+        return toFromName;
+    }
+
+    public void setToFromName( String toFromName )
+    {
+        this.toFromName = toFromName;
     }
 }
