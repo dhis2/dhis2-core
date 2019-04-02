@@ -25,7 +25,7 @@
 
         <property name="fromToName" column="fromToName" not-null="true" />
 
-        <property name="toFromName" column="toFromName" not-null="true" />
+        <property name="toFromName" column="toFromName" />
 
         <many-to-one name="fromConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="from_relationshipconstraintid"
