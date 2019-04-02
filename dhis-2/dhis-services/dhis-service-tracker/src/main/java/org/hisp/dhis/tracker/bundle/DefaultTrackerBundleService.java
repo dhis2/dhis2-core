@@ -155,6 +155,20 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
             TrackedEntityInstance trackedEntity = trackedEntities.get( idx );
+            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService.from( trackedEntity );
+
+            Date now = new Date();
+
+            if ( bundle.getImportStrategy().isCreate() )
+            {
+                trackedEntityInstance.setCreated( now );
+                trackedEntityInstance.setCreatedAtClient( now );
+                trackedEntityInstance.setLastUpdatedAtClient( now );
+            }
+
+            trackedEntityInstance.setLastUpdated( now );
+
+            session.persist( trackedEntityInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -176,6 +190,20 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         for ( int idx = 0; idx < enrollments.size(); idx++ )
         {
             Enrollment enrollment = enrollments.get( idx );
+            ProgramInstance programInstance = enrollmentTrackerConverterService.from( enrollment );
+
+            Date now = new Date();
+
+            if ( bundle.getImportStrategy().isCreate() )
+            {
+                programInstance.setCreated( now );
+                programInstance.setCreatedAtClient( now );
+                programInstance.setLastUpdatedAtClient( now );
+            }
+
+            programInstance.setLastUpdated( now );
+
+            session.persist( programInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {

@@ -122,7 +122,6 @@ public class TrackerBundleServiceTest
     }
 
     @Test
-    @Ignore
     public void testTrackedEntityInstanceImport() throws IOException
     {
         TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/trackedentity_basic_data.json" ).getInputStream(),
