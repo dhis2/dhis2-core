@@ -61,7 +61,7 @@ import static org.mockito.Mockito.*;
 /**
  * @author Zubair Asghar.
  */
-public class SmsGatewayTest extends DhisConvenienceTest
+public class BulkSmsGatewayTest extends DhisConvenienceTest
 {
     private static final String MESSAGE = "text-MESSAGE";
     private static final String SUBJECT = "subject";
@@ -79,7 +79,7 @@ public class SmsGatewayTest extends DhisConvenienceTest
     private RestTemplate restTemplate;
 
     @InjectMocks
-    private BulkSmsGateway bulkSmsGateway;
+    private BulkSmsHttpGateway bulkSmsGateway;
 
     private SmsGatewayConfig smsGatewayConfig;
 
