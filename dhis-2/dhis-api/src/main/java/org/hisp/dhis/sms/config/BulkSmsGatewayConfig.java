@@ -28,7 +28,6 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -40,25 +39,10 @@ public class BulkSmsGatewayConfig
 {
     private static final long serialVersionUID = 5249703354480948250L;
 
-    public static final String TYPE_NAME = "bulksms";
-
     private final String JSON_API_URL = "https://api.bulksms.com/v1/messages";
 
-    // For backward compatibility
-    public BulkSmsGatewayConfig()
-    {
-    }
-
-    @JsonCreator
-    public BulkSmsGatewayConfig( @JsonProperty( "name" ) String name,
-                                 @JsonProperty( "username" ) String username,
-                                 @JsonProperty( value = "password", required = true ) String password )
-    {
-        super( name, username, password, false, null );
-    }
-
     @Override
-    @JsonProperty
+    @JsonProperty( value = "urlTemplate" )
     public String getUrlTemplate()
     {
         return this.JSON_API_URL;

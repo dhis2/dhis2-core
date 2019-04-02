@@ -31,8 +31,6 @@ package org.hisp.dhis.sms.config;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -44,11 +42,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY , property = "type" )
-@JsonSubTypes( { @JsonSubTypes.Type( value = BulkSmsGatewayConfig.class, name = BulkSmsGatewayConfig.TYPE_NAME ),
-                 @JsonSubTypes.Type( value = ClickatellGatewayConfig.class, name = ClickatellGatewayConfig.TYPE_NAME ),
-                 @JsonSubTypes.Type( value = GenericHttpGatewayConfig.class, name = GenericHttpGatewayConfig.TYPE_NAME ),
-                 @JsonSubTypes.Type( value = SMPPGatewayConfig.class, name = SMPPGatewayConfig.TYPE_NAME ) } )
 public abstract class SmsGatewayConfig
     implements Serializable
 {
@@ -66,20 +59,7 @@ public abstract class SmsGatewayConfig
 
     private String urlTemplate;
 
-    public SmsGatewayConfig()
-    {
-    }
-
-    public SmsGatewayConfig( String name, String username, String password, boolean isDefault, String urlTemplate )
-    {
-        this.name = name;
-        this.username = username;
-        this.password = password;
-        this.isDefault = isDefault;
-        this.urlTemplate = urlTemplate;
-    }
-
-    @JsonProperty
+    @JsonProperty( value = "urlTemplate" )
     public String getUrlTemplate()
     {
         return urlTemplate;
@@ -90,7 +70,7 @@ public abstract class SmsGatewayConfig
         this.urlTemplate = urlTemplate;
     }
 
-    @JsonProperty
+    @JsonProperty( value = "name" )
     public String getName()
     {
         return name;
@@ -101,7 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
-    @JsonProperty
+    @JsonProperty( value = "default" )
     public boolean isDefault()
     {
         return isDefault;
@@ -112,7 +92,7 @@ public abstract class SmsGatewayConfig
         this.isDefault = isDefault;
     }
 
-    @JsonProperty
+    @JsonProperty( value = "uid" )
     public String getUid()
     {
         return uid;
@@ -129,6 +109,7 @@ public abstract class SmsGatewayConfig
         return password;
     }
 
+    @JsonProperty
     public void setPassword( String password )
     {
         this.password = password;

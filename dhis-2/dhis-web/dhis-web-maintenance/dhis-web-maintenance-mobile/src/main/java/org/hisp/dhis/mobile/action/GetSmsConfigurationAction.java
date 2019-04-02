@@ -144,7 +144,7 @@ public class GetSmsConfigurationAction
         }
         else
         {
-            smsConfig = new SmsConfiguration();
+            smsConfig = new SmsConfiguration( true );
 
             smsConfigurationManager.updateSmsConfiguration( smsConfig );
         }

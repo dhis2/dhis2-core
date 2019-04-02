@@ -44,6 +44,8 @@ public interface GatewayAdministrationService
 
     boolean removeGatewayByUid( String uid );
 
+    boolean removeGatewayByName( String gatewayName );
+    
     Map<String, SmsGatewayConfig> getGatewayConfigurationMap();
 
     SmsGatewayConfig getDefaultGateway();

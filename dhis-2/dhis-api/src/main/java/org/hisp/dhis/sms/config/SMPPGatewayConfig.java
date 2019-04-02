@@ -28,7 +28,6 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jsmpp.bean.BindType;
 import org.jsmpp.bean.NumberingPlanIndicator;
@@ -39,8 +38,6 @@ import org.jsmpp.bean.TypeOfNumber;
  */
 public class SMPPGatewayConfig extends SmsGatewayConfig
 {
-    public static final String TYPE_NAME = "smpp";
-
     private String systemType;
     private NumberingPlanIndicator numberPlanIndicator = NumberingPlanIndicator.UNKNOWN;
     private TypeOfNumber typeOfNumber = TypeOfNumber.UNKNOWN;
@@ -48,35 +45,15 @@ public class SMPPGatewayConfig extends SmsGatewayConfig
     private int port;
     private boolean compressed;
 
-    // For backward compatibility
-    public SMPPGatewayConfig()
-    {
-    }
-
-    @JsonCreator
-    public SMPPGatewayConfig( @JsonProperty( "name" ) String name, @JsonProperty( "systemId" ) String username, @JsonProperty( value = "password", required = true ) String password,
-                              @JsonProperty( "host" )String urlTemplate, @JsonProperty( "systemType" ) String systemType,  @JsonProperty( "numberPlanIndicator" ) NumberingPlanIndicator numberPlanIndicator,
-                              @JsonProperty( "typeOfNumber" ) TypeOfNumber typeOfNumber,
-                              @JsonProperty( "bindType" )BindType bindType, @JsonProperty( "port" ) int port, @JsonProperty( "compressed" ) boolean compressed )
-    {
-        super( name, username, password, false, urlTemplate );
-        this.systemType = systemType;
-        this.numberPlanIndicator = numberPlanIndicator;
-        this.typeOfNumber = typeOfNumber;
-        this.bindType = bindType;
-        this.port = port;
-        this.compressed = compressed;
-    }
-
     @Override
-    @JsonProperty( "host" )
+    @JsonProperty( value = "host" )
     public String getUrlTemplate()
     {
         return super.getUrlTemplate();
     }
 
     @Override
-    @JsonProperty( "systemId" )
+    @JsonProperty( value = "systemId" )
     public String getUsername()
     {
         return super.getUsername();

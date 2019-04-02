@@ -79,7 +79,7 @@ public class DefaultGatewayAdministrationService
     {
         SmsConfiguration smsConfig = getSmsConfiguration();
 
-        return smsConfig.getGateways().isEmpty() ? Collections.emptyList() : smsConfig.getGateways();
+        return smsConfig != null ? smsConfig.getGateways() : Collections.emptyList();
     }
 
     @Override
@@ -264,6 +264,12 @@ public class DefaultGatewayAdministrationService
     }
 
     @Override
+    public boolean removeGatewayByName( String gatewayName )
+    {
+        return removeGatewayByUid( getUidByGatewayName( gatewayName ) );
+    }
+
+    @Override
     public SmsGatewayConfig getDefaultGateway()
     {
         List<SmsGatewayConfig> list = listGateways();
@@ -363,15 +369,21 @@ public class DefaultGatewayAdministrationService
     {
         SmsConfiguration smsConfiguration = getSmsConfiguration();
 
-        loadGatewayConfigurationMap( smsConfiguration );
-
-        if ( smsConfiguration.getGateways().isEmpty() )
+        if ( smsConfiguration == null )
         {
             log.info( "SMS configuration not found" );
             return;
         }
 
         List<SmsGatewayConfig> gatewayList = smsConfiguration.getGateways();
+
+        if ( gatewayList == null || gatewayList.isEmpty() )
+        {
+            log.info( "No Gateway configuration not found" );
+
+            loadGatewayConfigurationMap( smsConfiguration );
+            return;
+        }
 
         log.info( "Gateway configuration found: " + gatewayList );
 

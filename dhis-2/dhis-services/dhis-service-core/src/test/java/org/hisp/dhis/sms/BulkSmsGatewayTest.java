@@ -92,7 +92,10 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     @Before
     public void initTest()
     {
-        smsGatewayConfig = new BulkSmsGatewayConfig( "bulk", "username", "password" );
+        smsGatewayConfig = new BulkSmsGatewayConfig();
+        smsGatewayConfig.setDefault( true );
+        smsGatewayConfig.setUsername( "username" );
+        smsGatewayConfig.setPassword( "password" );
 
         recipients.add( PHONE_NUMBER );
 
