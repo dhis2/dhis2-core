@@ -28,8 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.option.Option;
@@ -41,8 +39,6 @@ import org.hisp.dhis.option.OptionSet;
 public class OptionObjectBundleHook
     extends AbstractObjectBundleHook
 {
-    private static final Log log = LogFactory.getLog( OptionObjectBundleHook.class );
-
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {

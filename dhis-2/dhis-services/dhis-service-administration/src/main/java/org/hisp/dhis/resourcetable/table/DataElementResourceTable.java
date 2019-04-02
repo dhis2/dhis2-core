@@ -58,11 +58,11 @@ public class DataElementResourceTable
     {
         return ResourceTableType.DATA_ELEMENT_STRUCTURE;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "CREATE TABLE " + getTempTableName() + " (" + 
+        String sql = "CREATE TABLE " + getTempTableName() + " (" +
             "dataelementid INTEGER NOT NULL PRIMARY KEY, " +
             "dataelementuid CHARACTER(11), " +
             "dataelementname VARCHAR(230), " +
@@ -71,9 +71,9 @@ public class DataElementResourceTable
             "datasetname VARCHAR(230), " +
             "datasetapprovallevel INTEGER, " +
             "workflowid INTEGER, " +
-            "periodtypeid INTEGER, " + 
+            "periodtypeid INTEGER, " +
             "periodtypename VARCHAR(230))";
-        
+
         return sql;
     }
 
