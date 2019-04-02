@@ -28,7 +28,7 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.io.IOException;
 import java.io.InputStream;

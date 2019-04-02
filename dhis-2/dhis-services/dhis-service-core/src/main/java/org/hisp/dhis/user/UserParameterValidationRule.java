@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.i18n.I18n;
 
 /**
  * Created by zubair on 16.03.17.
@@ -36,6 +37,9 @@ import org.apache.commons.lang.StringUtils;
 public class UserParameterValidationRule
     implements PasswordValidationRule
 {
+    public static final String ERROR = "Username/Email must not be a part of password";
+    public static final String I18_ERROR = "password_username_validation";
+
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
@@ -49,10 +53,11 @@ public class UserParameterValidationRule
         String password = credentialsInfo.getPassword();
         String username = credentialsInfo.getUsername();
 
+        // password should not contain part of either username or email
         if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
             StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
         {
-            return new PasswordValidationResult( "Username/Email must not be a part of password", "password_username_validation", false );
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
         }
 
         return new PasswordValidationResult( true );

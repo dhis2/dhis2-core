@@ -54,9 +54,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 /**
  * @author Abyot Asalefew

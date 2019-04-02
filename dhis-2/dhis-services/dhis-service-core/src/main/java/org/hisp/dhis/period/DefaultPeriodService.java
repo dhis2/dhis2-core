@@ -40,8 +40,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 /**

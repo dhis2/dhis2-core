@@ -34,10 +34,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableMap;

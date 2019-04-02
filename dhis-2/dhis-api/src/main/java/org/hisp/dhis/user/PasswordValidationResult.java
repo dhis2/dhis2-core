@@ -39,19 +39,19 @@ public class PasswordValidationResult
 
     private boolean valid;
 
-    public PasswordValidationResult( String errorMessage, String i18ErrorMessage, boolean valid )
-    {
-        this.errorMessage = errorMessage;
-        this.i18ErrorMessage = i18ErrorMessage;
-        this.valid = valid;
-    }
-
     public PasswordValidationResult()
     {
     }
 
     public PasswordValidationResult( boolean valid )
     {
+        this.valid = valid;
+    }
+
+    public PasswordValidationResult( String errorMessage, String i18ErrorMessage, boolean valid )
+    {
+        this.errorMessage = errorMessage;
+        this.i18ErrorMessage = i18ErrorMessage;
         this.valid = valid;
     }
 
