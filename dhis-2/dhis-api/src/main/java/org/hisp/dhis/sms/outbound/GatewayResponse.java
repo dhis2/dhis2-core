@@ -47,6 +47,7 @@ public enum GatewayResponse
     AUTHENTICATION_FAILED( "authentication failed", "" ),
     NO_RECIPIENT( "no recipient", "No recipient found" ),
     SMS_DISABLED( "sms notifications are disabled", "sms notifications are disabled" ),
+    SMPP_SESSION_FAILURE( "Smpp session initialization failure", "Smpp session initialization failure" ),
 
     // -------------------------------------------------------------------------
     // BulkSms response codes

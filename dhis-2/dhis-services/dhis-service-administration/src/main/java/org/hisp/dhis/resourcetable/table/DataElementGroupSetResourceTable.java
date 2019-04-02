@@ -56,32 +56,32 @@ public class DataElementGroupSetResourceTable
     {
         return ResourceTableType.DATA_ELEMENT_GROUP_SET_STRUCTURE;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
         String statement = "create table " + getTempTableName() + " (" +
             "dataelementid integer not null, " +
             "dataelementname varchar(230), ";
-        
+
         for ( DataElementGroupSet groupSet : objects )
         {
-            statement += quote( groupSet.getName() ) + " varchar(230), ";
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
-        
+
         statement += "primary key (dataelementid))";
-        
+
         return statement;
     }
 
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql = 
+        String sql =
             "insert into " + getTempTableName() + " " +
             "select d.dataelementid as dataelementid, d.name as dataelementname, ";
-        
+
         for ( DataElementGroupSet groupSet : objects )
         {
             sql += "(" +
@@ -90,13 +90,13 @@ public class DataElementGroupSetResourceTable
                 "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = " + groupSet.getId() + " " +
                 "where degm.dataelementid = d.dataelementid " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
-            
+
             sql += "(" +
                 "select deg.uid from dataelementgroup deg " +
                 "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid " +
                 "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = " + groupSet.getId() + " " +
                 "where degm.dataelementid = d.dataelementid " +
-                "limit 1) as " + quote( groupSet.getUid() ) + ", ";            
+                "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }
 
         sql = TextUtils.removeLastComma( sql ) + " ";

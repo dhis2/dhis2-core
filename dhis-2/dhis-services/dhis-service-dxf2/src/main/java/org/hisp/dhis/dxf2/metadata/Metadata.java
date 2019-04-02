@@ -72,7 +72,6 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
-import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;

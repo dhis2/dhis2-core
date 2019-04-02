@@ -40,35 +40,41 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
 {
     private static final int HISTORY_LIMIT = 24;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    public static final String ERROR = "Password must not be one of the previous %d passwords";
+    public static final String I18_ERROR = "password_history_validation";
+
+    private final PasswordEncoder passwordEncoder;
+
+    private final UserService userService;
+
+    private final CurrentUserService currentUserService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
+    public PasswordHistoryValidationRule( PasswordEncoder passwordEncoder, UserService userService, CurrentUserService currentUserService )
+    {
+        this.passwordEncoder = passwordEncoder;
+        this.userService = userService;
+        this.currentUserService = currentUserService;
+    }
 
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
-        boolean match;
-
         UserCredentials userCredentials = userService.getUserCredentialsByUsername( credentialsInfo.getUsername() );
 
         List<String> previousPasswords = userCredentials.getPreviousPasswords();
 
         for ( String encodedPassword : previousPasswords )
         {
-            match = passwordEncoder.matches( credentialsInfo.getPassword(), encodedPassword );
+            final boolean match = passwordEncoder.matches( credentialsInfo.getPassword(), encodedPassword );
 
             if ( match )
             {
-                return new PasswordValidationResult( String.format(
-                        "Password must not be one of the previous %d passwords", HISTORY_LIMIT ), "password_history_validation", false );
+                return new PasswordValidationResult( String.format( ERROR , HISTORY_LIMIT ), I18_ERROR, false );
             }
         }
 
+        // remove one item from password history if size exceeds HISTORY_LIMIT
         if ( previousPasswords.size() == HISTORY_LIMIT )
         {
             userCredentials.getPreviousPasswords().remove( 0 );
@@ -89,7 +95,8 @@ public class PasswordHistoryValidationRule implements PasswordValidationRule
             return true;
         }
 
-        return ( credentialsInfo.isNewUser() ||
-                !currentUserService.getCurrentUsername().equals( credentialsInfo.getUsername() ) ) ? false : true;
+        // no need to check password history in case of new user
+        return !credentialsInfo.isNewUser() &&
+            currentUserService.getCurrentUsername().equals( credentialsInfo.getUsername() );
     }
 }

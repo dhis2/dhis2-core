@@ -247,13 +247,19 @@ public class DefaultDataApprovalLevelService
     @Override
     public List<DataApprovalLevel> getUserDataApprovalLevels( User user )
     {
-        return subsetUserDataApprovalLevels( getAllDataApprovalLevels(), user );
+        return subsetUserDataApprovalLevels( getAllDataApprovalLevels(), user, false );
     }
 
     @Override
     public List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow )
     {
-        return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user );
+        return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user, false );
+    }
+
+    @Override
+    public List<DataApprovalLevel> getUserDataApprovalLevelsOrLowestLevel( User user, DataApprovalWorkflow workflow )
+    {
+        return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user, true );
     }
 
     @Override
@@ -722,9 +728,10 @@ public class DefaultDataApprovalLevelService
      *
      * @param approvalLevels the approval levels to test.
      * @param user the user to test access for.
+     * @param lowestLevel return lowest level if nothing else.
      * @return the subset of approval levels to which the user has access.
      */
-    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user )
+    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user, boolean lowestLevel )
     {
         UserCredentials userCredentials = user.getUserCredentials();
 
@@ -752,6 +759,11 @@ public class DefaultDataApprovalLevelService
             {
                 userDataApprovalLevels.add( approvalLevel );
             }
+        }
+
+        if ( userDataApprovalLevels.size() == 0 && approvalLevels.size() != 0 && lowestLevel )
+        {
+            userDataApprovalLevels.add( approvalLevels.get( approvalLevels.size() - 1 ) );
         }
 
         return userDataApprovalLevels;
