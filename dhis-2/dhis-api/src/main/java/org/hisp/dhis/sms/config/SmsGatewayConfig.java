@@ -81,7 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
-    @JsonProperty
+    @JsonProperty( value = "isDefault" )
     public boolean isDefault()
     {
         return isDefault;
@@ -109,7 +109,8 @@ public abstract class SmsGatewayConfig
         return password;
     }
 
-    public void setPassword(String password)
+    @JsonProperty
+    public void setPassword( String password )
     {
         this.password = password;
     }
@@ -120,7 +121,7 @@ public abstract class SmsGatewayConfig
         return username;
     }
 
-    public void setUsername(String username)
+    public void setUsername( String username )
     {
         this.username = username;
     }

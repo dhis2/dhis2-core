@@ -45,10 +45,17 @@ public class OutboundMessageResponse
     
     private boolean ok;
 
+    private boolean async;
+
     private Enum<?> responseObject;
 
     public OutboundMessageResponse()
     {
+    }
+
+    public OutboundMessageResponse( boolean async )
+    {
+        this.async = async;
     }
 
     public OutboundMessageResponse( String description, Enum<?> response, boolean ok )
@@ -82,6 +89,8 @@ public class OutboundMessageResponse
         this.description = description;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty
     public boolean isOk()
     {
         return ok;
@@ -90,5 +99,17 @@ public class OutboundMessageResponse
     public void setOk( boolean ok )
     {
         this.ok = ok;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public boolean isAsync()
+    {
+        return async;
+    }
+
+    public void setAsync( boolean async )
+    {
+        this.async = async;
     }
 }
