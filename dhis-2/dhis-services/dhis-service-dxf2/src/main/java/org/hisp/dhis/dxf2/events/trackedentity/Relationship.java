@@ -46,6 +46,8 @@ public class Relationship
 
     private String relationship;
 
+    private boolean bidirectional;
+
     private RelationshipItem from;
 
     private RelationshipItem to;
@@ -140,6 +142,18 @@ public class Relationship
     public void setLastUpdated( String lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isBidirectional()
+    {
+        return bidirectional;
+    }
+
+    public void setBidirectional( boolean bidirectional )
+    {
+        this.bidirectional = bidirectional;
     }
 
     @Override

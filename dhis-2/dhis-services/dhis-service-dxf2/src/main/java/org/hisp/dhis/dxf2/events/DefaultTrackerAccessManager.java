@@ -462,9 +462,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         errors.addAll( canWrite( user, from.getProgramInstance(), false ) );
         errors.addAll( canWrite( user, from.getProgramStageInstance(), false ) );
 
-        errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
-        errors.addAll( canRead( user, to.getProgramInstance(), false ) );
-        errors.addAll( canRead( user, to.getProgramStageInstance(), false ) );
+        errors.addAll( canWrite( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canWrite( user, to.getProgramInstance(), false ) );
+        errors.addAll( canWrite( user, to.getProgramStageInstance(), false ) );
 
         return errors;
     }
