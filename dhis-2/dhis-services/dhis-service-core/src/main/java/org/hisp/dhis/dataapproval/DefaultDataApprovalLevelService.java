@@ -761,7 +761,7 @@ public class DefaultDataApprovalLevelService
             }
         }
 
-        if ( userDataApprovalLevels.size() == 0 && approvalLevels.size() != 0 && lowestLevel )
+        if ( userDataApprovalLevels.isEmpty() && !approvalLevels.isEmpty() && lowestLevel )
         {
             userDataApprovalLevels.add( approvalLevels.get( approvalLevels.size() - 1 ) );
         }
