@@ -38,9 +38,9 @@ import org.hisp.dhis.parser.expression.CommonSqlGenerator;
 import org.hisp.dhis.parser.expression.InternalParserException;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.util.Assert;
 
 import java.util.Date;
