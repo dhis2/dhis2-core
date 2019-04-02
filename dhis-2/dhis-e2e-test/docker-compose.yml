@@ -1,0 +1,22 @@
+version: '3'
+services:
+  db:
+    restart: always
+    image: mdillon/postgis:10-alpine
+    command: postgres -c max_locks_per_transaction=100
+    environment:
+      POSTGRES_USER: dhis
+      POSTGRES_DB: dhis2
+      POSTGRES_PASSOWRD: dhis
+
+  e2e-test-web:
+    image: dhis2/dhis2-core:dev-latest
+    build:
+      dockerfile: Dockerfile
+      context: ../..
+    volumes:
+      - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    depends_on:
+      - db
+    ports:
+      - 8070:8080

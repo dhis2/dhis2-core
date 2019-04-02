@@ -39,12 +39,13 @@ import org.springframework.http.MediaType;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class BulkSmsGateway
+public class BulkSmsHttpGateway
     extends SmsGateway
 {
     // -------------------------------------------------------------------------
@@ -52,17 +53,17 @@ public class BulkSmsGateway
     // -------------------------------------------------------------------------
 
     @Override
-    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
+    public boolean accept( SmsGatewayConfig gatewayConfig )
     {
-        return smsBatch.getMessages().parallelStream()
-            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
-            .collect( Collectors.toList() );
+        return gatewayConfig instanceof BulkSmsGatewayConfig;
     }
 
     @Override
-    protected SmsGatewayConfig getGatewayConfigType()
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch smsBatch, SmsGatewayConfig config )
     {
-        return new BulkSmsGatewayConfig();
+        return smsBatch.getMessages().stream()
+            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
+            .collect( Collectors.toList() );
     }
 
     @Override

@@ -39,17 +39,24 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-public class ClickatellGateway
+public class ClickatellHttpGateway
     extends SmsGateway
 {
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
+
+    @Override
+    public boolean accept( SmsGatewayConfig gatewayConfig )
+    {
+        return gatewayConfig instanceof ClickatellGatewayConfig;
+    }
 
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
@@ -57,12 +64,6 @@ public class ClickatellGateway
             .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), config ) )
             .collect( Collectors.toList() );
-    }
-
-    @Override
-    protected SmsGatewayConfig getGatewayConfigType()
-    {
-        return new ClickatellGatewayConfig();
     }
 
     @Override
