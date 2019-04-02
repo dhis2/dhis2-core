@@ -81,7 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
-    @JsonProperty( value = "default" )
+    @JsonProperty( value = "isDefault" )
     public boolean isDefault()
     {
         return isDefault;

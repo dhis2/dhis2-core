@@ -197,7 +197,7 @@ public class SMPPClient
         {
             SMPPSession session = new SMPPSession( config.getUrlTemplate(), config.getPort(), getBindParameters( config ) );
 
-            log.info( "SMPP client connected SMSC" );
+            log.info( "SMPP client connected to SMSC: " + config.getUrlTemplate() );
             return session;
         }
         catch ( IOException e )
