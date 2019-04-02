@@ -32,6 +32,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -91,18 +92,18 @@ public class SimplisticHttpGetGateWay
     // -------------------------------------------------------------------------
 
     @Override
+    public boolean accept( SmsGatewayConfig gatewayConfig )
+    {
+        return gatewayConfig instanceof GenericHttpGatewayConfig;
+    }
+
+    @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
             .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
             .collect( Collectors.toList() );
-    }
-
-    @Override
-    protected SmsGatewayConfig getGatewayConfigType()
-    {
-        return new GenericHttpGatewayConfig();
     }
 
     @Override

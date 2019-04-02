@@ -42,7 +42,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -75,6 +74,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -440,6 +440,8 @@ public abstract class AbstractRelationshipService
 
         relationship.setFrom( includeRelationshipItem( dao.getFrom(), !params.isIncludeFrom() ) );
         relationship.setTo( includeRelationshipItem( dao.getTo(), !params.isIncludeTo() ) );
+
+        relationship.setBidirectional( dao.getRelationshipType().isBidirectional() );
 
         relationship.setCreated( DateUtils.getIso8601NoTz( dao.getCreated() ) );
         relationship.setLastUpdated( DateUtils.getIso8601NoTz( dao.getLastUpdated() ) );

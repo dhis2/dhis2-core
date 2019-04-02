@@ -33,9 +33,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.util.DateUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
