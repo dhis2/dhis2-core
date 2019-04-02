@@ -1654,7 +1654,7 @@ public abstract class AbstractEventService
 
             Set<String> notPresentMandatoryDataElements = Sets.difference( mandatoryDataElements, presentDataElements );
 
-            if ( notPresentMandatoryDataElements.size() > 0 )
+            if ( !notPresentMandatoryDataElements.isEmpty() )
             {
                 notPresentMandatoryDataElements.forEach( deUid -> importSummary.getConflicts().add( new ImportConflict( deUid, "value_required_but_not_provided" ) ) );
                 importSummary.incrementIgnored();
