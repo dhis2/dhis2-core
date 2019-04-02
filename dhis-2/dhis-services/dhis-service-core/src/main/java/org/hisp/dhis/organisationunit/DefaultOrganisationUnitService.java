@@ -74,9 +74,11 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     private Environment env;
 
-    public void setEnv(Environment env) {
+    public void setEnv( Environment env )
+    {
         this.env = env;
     }
 
@@ -125,11 +127,10 @@ public class DefaultOrganisationUnitService
     @PostConstruct
     public void init()
     {
-
         IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
-                .expireAfterWrite( 3, TimeUnit.HOURS )
-                .initialCapacity( 1000 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .initialCapacity( 1000 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------

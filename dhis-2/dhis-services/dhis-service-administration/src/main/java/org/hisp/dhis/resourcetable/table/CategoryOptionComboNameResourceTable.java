@@ -51,17 +51,17 @@ public class CategoryOptionComboNameResourceTable
     {
         super( objects );
     }
-    
+
     @Override
     public ResourceTableType getTableType()
     {
         return ResourceTableType.CATEGORY_OPTION_COMBO_NAME;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
-        return "create table " + getTempTableName() + 
+        return "create table " + getTempTableName() +
             " (categoryoptioncomboid integer not null primary key, " +
             "categoryoptioncomboname varchar(255), approvallevel integer, " +
             "startdate date, enddate date)";
@@ -85,11 +85,11 @@ public class CategoryOptionComboNameResourceTable
                 log.warn( "Ignoring category combo, not valid: " + combo );
                 continue;
             }
-            
+
             for ( CategoryOptionCombo coc : combo.getOptionCombos() )
             {
                 List<Object> values = new ArrayList<>();
-                
+
                 values.add( coc.getId() );
                 values.add( coc.getName() );
                 values.add( coc.isIgnoreApproval() ? APPROVAL_LEVEL_HIGHEST : null );
@@ -99,7 +99,7 @@ public class CategoryOptionComboNameResourceTable
                 batchArgs.add( values.toArray() );
             }
         }
-        
+
         return Optional.of( batchArgs );
     }
 

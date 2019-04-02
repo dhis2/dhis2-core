@@ -506,11 +506,17 @@ public class TrackedEntityInstanceQueryParams
         return followUp != null;
     }
 
+    /**
+     * Indicates whether this parameters specifies a last updated start date.
+     */
     public boolean hasLastUpdatedStartDate()
     {
         return lastUpdatedStartDate != null;
     }
 
+    /**
+     * Indicates whether this parameters specifies a last updated end date.
+     */
     public boolean hasLastUpdatedEndDate()
     {
         return lastUpdatedEndDate != null;
@@ -595,6 +601,14 @@ public class TrackedEntityInstanceQueryParams
     public boolean hasEventEndDate()
     {
         return eventEndDate != null;
+    }
+
+    /**
+     * Indicates whether this parameters specifies a user.
+     */
+    public boolean hasUser()
+    {
+        return user != null;
     }
 
     /**

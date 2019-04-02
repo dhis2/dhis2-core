@@ -1,4 +1,4 @@
-package org.hisp.dhis.api.util;
+package org.hisp.dhis.util;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,8 +28,8 @@ package org.hisp.dhis.api.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.dateIsValid;
-import static org.hisp.dhis.api.util.DateUtils.dateTimeIsValid;
+import static org.hisp.dhis.util.DateUtils.dateIsValid;
+import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -42,6 +42,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;

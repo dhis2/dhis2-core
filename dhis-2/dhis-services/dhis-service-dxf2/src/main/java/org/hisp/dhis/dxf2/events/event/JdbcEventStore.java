@@ -37,7 +37,6 @@ import com.vividsolutions.jts.io.WKTReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -62,6 +61,7 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -78,12 +78,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.api.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -591,7 +591,7 @@ public class JdbcEventStore
         String sql = "select psi.programstageinstanceid as psi_id, psi.uid as psi_uid, psi.code as psi_code, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
             + "psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
-            + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, au.username as user_assigned_username, "
+            + "ST_AsText( psi.geometry ) as psi_geometry, au.uid as user_assigned, auc.username as user_assigned_username, "
             + "coc.categoryoptioncomboid AS coc_categoryoptioncomboid, coc.code AS coc_categoryoptioncombocode, coc.uid AS coc_categoryoptioncombouid, cocco.categoryoptionid AS cocco_categoryoptionid, deco.uid AS deco_uid, ";
 
         if ( (params.getCategoryOptionCombo() == null || params.getCategoryOptionCombo().isDefault()) && !isSuper( user ) )
@@ -627,7 +627,8 @@ public class JdbcEventStore
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
-            + "left join users au on (psi.assigneduserid=au.userid) ";
+            + "left join users auc on (psi.assigneduserid=auc.userid) "
+            + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -793,6 +794,21 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
         }
+        
+        if ( params.hasAssignedUsers() )
+        {
+            sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
+        }
+        
+        if ( params.isIncludeOnlyUnassigned() )
+        {
+            sql += hlp.whereAnd() + " (au.uid is null) ";
+        }
+        
+        if ( params.isIncludeOnlyAssigned() )
+        {
+            sql += hlp.whereAnd() + " (au.uid is not null) ";
+        }
 
         if ( !params.isIncludeDeleted() )
         {
@@ -825,7 +841,9 @@ public class JdbcEventStore
             + "inner join program p on p.programid = pi.programid "
             + "inner join programstage ps on ps.programstageid = psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-            + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid ";
+            + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
+            + "left join users auc on (psi.assigneduserid=auc.userid) "
+            + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
         Set<String> joinedColumns = new HashSet<>();
 
@@ -980,6 +998,21 @@ public class JdbcEventStore
         if ( params.getEvents() != null && !params.getEvents().isEmpty() && !params.hasFilters() )
         {
             sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
+        }
+        
+        if ( params.hasAssignedUsers() )
+        {
+            sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
+        }
+        
+        if ( params.isIncludeOnlyUnassigned() )
+        {
+            sql += hlp.whereAnd() + " (au.uid is null) ";
+        }
+        
+        if ( params.isIncludeOnlyAssigned() )
+        {
+            sql += hlp.whereAnd() + " (au.uid is not null) ";
         }
 
         return sql;
