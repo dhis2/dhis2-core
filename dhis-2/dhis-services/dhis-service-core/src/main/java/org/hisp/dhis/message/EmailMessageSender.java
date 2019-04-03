@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -41,16 +42,13 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.EmailException;
 import org.apache.commons.mail.HtmlEmail;
-import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.email.EmailConfiguration;
 import org.hisp.dhis.email.EmailResponse;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatchStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -59,11 +57,14 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+
+import javax.annotation.Resource;
 
 /**
  * @author Lars Helge Overland
@@ -102,6 +103,9 @@ public class EmailMessageSender
     {
         this.configurationProvider = configurationProvider;
     }
+
+    @Resource( name = "taskScheduler" )
+    private TaskExecutor taskExecutor;
 
     // -------------------------------------------------------------------------
     // MessageSender implementation
@@ -184,7 +188,7 @@ public class EmailMessageSender
     public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
-        return new AsyncResult<OutboundMessageResponse>( response );
+        return new AsyncResult<>( response );
     }
     
     @Override
@@ -255,13 +259,13 @@ public class EmailMessageSender
     }
 
     @Override
-    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
+    public void sendMessageBatch( OutboundMessageBatch batch )
     {
-        List<OutboundMessageResponse> statuses = batch.getMessages().stream()
-            .map( m -> sendMessage( m.getSubject(), m.getText(), m.getRecipients() ) )
-            .collect( Collectors.toList() );
-
-        return generateSummary( statuses );
+        CompletableFuture
+            .supplyAsync( () -> batch.getMessages().stream()
+                .map( m -> sendMessage( m.getSubject(), m.getText(), m.getRecipients() ) )
+                .collect( Collectors.toList() ), taskExecutor )
+            .thenAccept( this::notifyResponse );
     }
 
     @Override
@@ -378,15 +382,9 @@ public class EmailMessageSender
         return new EmailConfiguration( hostName, username, password, from, port, tls );
     }
 
-    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses )
+    private void notifyResponse( List<OutboundMessageResponse> statuses )
     {
-        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
-
         int total, sent = 0;
-
-        boolean ok = true;
-
-        String errorMessage = StringUtils.EMPTY;
 
         total = statuses.size();
 
@@ -396,34 +394,8 @@ public class EmailMessageSender
             {
                 sent++;
             }
-            else
-            {
-                ok = false;
-
-                errorMessage = status.getDescription();
-            }
         }
 
-        summary.setTotal( total );
-        summary.setChannel( DeliveryChannel.EMAIL );
-        summary.setSent( sent );
-        summary.setFailed( total - sent );
-
-        if ( !ok )
-        {
-            summary.setBatchStatus( OutboundMessageBatchStatus.FAILED );
-            summary.setErrorMessage( errorMessage );
-
-            log.error( errorMessage );
-        }
-        else
-        {
-            summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
-            summary.setResponseMessage( "SENT" );
-
-            log.info( "EMAIL batch processed successfully" );
-        }
-
-        return summary;
+        log.info( String.format( "%d messages sent. %d messages failed", sent, total - sent ) );
     }
 }

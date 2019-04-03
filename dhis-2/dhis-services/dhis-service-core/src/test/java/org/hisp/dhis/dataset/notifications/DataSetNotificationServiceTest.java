@@ -200,7 +200,6 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
 
         when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( templates );
         when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) ).thenReturn( notificationMessage );
-        when( externalMessageService.sendMessages( anyList() ) ).thenReturn( successStatus );
     }
 
     @Test

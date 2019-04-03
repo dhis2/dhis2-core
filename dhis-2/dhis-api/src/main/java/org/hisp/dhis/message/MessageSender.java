@@ -30,7 +30,6 @@ package org.hisp.dhis.message;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
 
 import java.util.Set;
@@ -63,7 +62,7 @@ public interface MessageSender
      * Sends message batch based on DeliveryChannels configured.
      * @param batch batch of messages to be processed.
      */
-    OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
+    void sendMessageBatch( OutboundMessageBatch batch );
 
     /**
      * To check if given service is configured and ready to use.

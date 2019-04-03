@@ -83,12 +83,6 @@ public abstract class SmsGateway
     @Autowired
     private RestTemplate restTemplate;
 
-    @Autowired
-    private SchedulingManager schedulingManager;
-
-    @Autowired
-    private SMSSendingCallback sendingCallback;
-
     protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
     protected abstract boolean accept( SmsGatewayConfig gatewayConfig );
@@ -161,25 +155,5 @@ public abstract class SmsGateway
         status.setDescription( gatewayResponse.getResponseMessage() );
 
         return status;
-    }
-
-    protected List<OutboundMessageResponse> sendAsyncBatch( Callable<List<OutboundMessageResponse>> task )
-    {
-        ListenableFuture<List<OutboundMessageResponse>> sendingTask = schedulingManager.executeJob( task );
-
-        sendingTask.addCallback( sendingCallback.getBatchCallBack() );
-
-        return new ArrayList<>();
-    }
-
-    protected OutboundMessageResponse sendAsync( Callable<OutboundMessageResponse> task )
-    {
-        ListenableFuture<OutboundMessageResponse> sendingTask = schedulingManager.executeJob( task );
-
-        sendingTask.addCallback( sendingCallback.getCallBack() );
-
-        OutboundMessageResponse response = new OutboundMessageResponse();
-        response.setAsync( true );
-        return response;
     }
 }

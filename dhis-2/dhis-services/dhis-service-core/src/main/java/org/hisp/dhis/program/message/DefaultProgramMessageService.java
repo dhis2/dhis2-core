@@ -195,7 +195,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
+    public void sendMessages(List<ProgramMessage> programMessages )
     {
         List<ProgramMessage> populatedProgramMessages = programMessages.stream()
             .filter( this::hasDataWriteAccess )
@@ -204,11 +204,7 @@ public class DefaultProgramMessageService
 
         List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
 
-        BatchResponseStatus status = new BatchResponseStatus( messageBatchService.sendBatches( batches ) );
-
-        saveProgramMessages( programMessages, status );
-
-        return status;
+        messageBatchService.sendBatches( batches );
     }
 
     @Override

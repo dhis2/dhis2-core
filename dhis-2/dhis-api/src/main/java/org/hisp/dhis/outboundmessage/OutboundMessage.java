@@ -28,6 +28,9 @@ package org.hisp.dhis.outboundmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.Set;
 
 /**
@@ -40,8 +43,9 @@ public class OutboundMessage
     private String text;
     
     private Set<String> recipients;
-   
-    public OutboundMessage( String subject, String text, Set<String> recipients )
+
+    @JsonCreator
+    public OutboundMessage( @JsonProperty( "subject" ) String subject, @JsonProperty( "text" ) String text, @JsonProperty( "recipients" ) Set<String> recipients )
     {
         this.subject = subject;
         this.text = text;

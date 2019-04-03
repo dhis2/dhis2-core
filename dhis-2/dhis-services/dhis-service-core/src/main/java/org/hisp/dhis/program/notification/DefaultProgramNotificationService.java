@@ -539,9 +539,7 @@ public class DefaultProgramNotificationService
 
         log.debug( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
 
-        BatchResponseStatus status = programMessageService.sendMessages( Lists.newArrayList( messages ) );
-
-        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );
+        programMessageService.sendMessages( Lists.newArrayList( messages ) );
     }
 
     private void sendAll( MessageBatch messageBatch )

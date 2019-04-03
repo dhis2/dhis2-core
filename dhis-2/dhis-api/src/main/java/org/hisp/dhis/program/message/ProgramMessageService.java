@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.user.User;
 
@@ -75,7 +74,7 @@ public interface ProgramMessageService
      *
      * @param programMessages the ProgramMessage.
      */
-    BatchResponseStatus sendMessages( List<ProgramMessage> programMessages );
+    void sendMessages( List<ProgramMessage> programMessages );
 
     // -------------------------------------------------------------------------
     // GET
