@@ -34,6 +34,7 @@ import org.hisp.dhis.user.User;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -76,4 +77,13 @@ public interface TrackedEntityInstanceStore
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+
+    /**
+     * Checks whether there already exists a TrackedEntityInstance with given unique attribute value. If yes, returns
+     * Optional of it. Otherwise, returns empty Optional.
+     *
+     * @param params Query params. Contains value of unique attribute that should be checked.
+     * @return Optional of TrackedEntityInstance or empty Optional.
+     */
+    Optional<TrackedEntityInstance> getTrackedEntityInstanceWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
 }
