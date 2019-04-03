@@ -143,7 +143,9 @@ public class HibernateTrackedEntityInstanceStore
     {
         return buildTrackedEntityInstanceHql( params )
             .replaceFirst( "select tei from", "select count(distinct tei) from" )
-            .replaceFirst( "left join fetch tei.programInstances", "left join tei.programInstances" )
+            .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
+            .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
+            .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
             .replaceFirst( "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ", "" )
             .replaceFirst( "order by tei.lastUpdated desc ", "" );
     }
