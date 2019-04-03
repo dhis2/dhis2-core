@@ -26,6 +26,9 @@
 # Build the DHIS2 Core server from source (Maven)
 ##########
 FROM maven:3.5.3-jdk-8-slim as build
+
+ARG ADDITIONAL_MAVEN_BUILD_ARGS=""
+
 #NB - maven-frontend-plugin breaks on Alpine linux, so we use Debian Slim instead
 #NB - maven-surefire-plugin fails with maven:3.5.4-jdk-8-slim and later.
 #     This is a recent issue possibly traced to an OpenJDK bug - https://github.com/carlossg/docker-maven/issues/90
@@ -36,8 +39,8 @@ COPY . /src
 
 # TODO: We should be able to achieve much faster incremental builds and cached dependencies using
 #   a wrapper build script and intelligent Docker layer caching, but for now just naively build everything
-RUN mvn clean install -T1C -f /src/dhis-2/pom.xml -DskipTests -q
-RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests -q
+RUN mvn clean install -T1C -f /src/dhis-2/pom.xml ${ADDITIONAL_MAVEN_BUILD_ARGS}
+RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml ${ADDITIONAL_MAVEN_BUILD_ARGS}
 
 ##########
 # BUILD STAGE 2
