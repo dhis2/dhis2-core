@@ -197,13 +197,13 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTable( String tableName )
     {
-        executeSilently( "drop table " + tableName );
+        executeSilently( "drop table if exists " + tableName );
     }
 
     @Override
     public void dropTableCascade( String tableName )
     {
-        executeSilently( "drop table " + tableName + " cascade" );
+        executeSilently( "drop table if exists " + tableName + " cascade" );
     }
 
     @Override

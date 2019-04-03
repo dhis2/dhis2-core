@@ -173,10 +173,10 @@ public class DefaultTrackedEntityInstanceService
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
         String accessedBy = currentUserService.getCurrentUsername();
-        
+
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );            
+            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
         }
 
         return trackedEntityInstances;
@@ -544,7 +544,7 @@ public class DefaultTrackedEntityInstanceService
             }
         }
 
-        if ( !isLocalSearch( params ) )
+        if ( !isLocalSearch( params, user ) )
         {
             int maxTeiLimit = 0; // no limit
 
@@ -710,8 +710,8 @@ public class DefaultTrackedEntityInstanceService
         if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && currentUserService.getCurrentUser() != null )
         {
             params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
-        }        
-        
+        }
+
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -931,11 +931,9 @@ public class DefaultTrackedEntityInstanceService
         return trackedEntityInstanceStore.existsIncludingDeleted( uid );
     }
 
-    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
+    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
-        User user = currentUserService.getCurrentUser();
-
-        Set<OrganisationUnit> localOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+        Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
         Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
