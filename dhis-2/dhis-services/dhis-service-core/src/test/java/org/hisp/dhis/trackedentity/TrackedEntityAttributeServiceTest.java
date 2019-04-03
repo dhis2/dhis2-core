@@ -31,21 +31,16 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.context.ApplicationContext;
 
 import java.util.Optional;
 
@@ -66,34 +61,16 @@ public class TrackedEntityAttributeServiceTest
     private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     @Mock
-    private TrackedEntityAttributeValueService attributeValueService;
-
-    @Mock
-    private TrackedEntityAttributeService attributeService;
-
-    @Mock
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Mock
     private ProgramService programService;
 
     @Mock
-    private OrganisationUnitService organisationUnitService;
-
-    @Mock
     private CurrentUserService currentUserService;
 
     @Mock
-    private TrackedEntityAttributeValueAuditService attributeValueAuditService;
-
-    @Mock
-    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
-
-    @Mock
     private AclService aclService;
-
-    @Mock
-    private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Mock
     private TrackedEntityAttributeStore attributeStore;
@@ -103,12 +80,6 @@ public class TrackedEntityAttributeServiceTest
 
     @Mock
     private UserService userService;
-
-    @Mock
-    private ApplicationContext applicationContext;
-
-    @InjectMocks
-    private DefaultTrackedEntityInstanceService trackedEntityInstanceService;
 
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -126,8 +97,8 @@ public class TrackedEntityAttributeServiceTest
     public void setUp()
     {
         trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
-            trackedEntityTypeService, fileResourceService, userService, applicationContext, currentUserService,
-            aclService );
+            trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
+            trackedEntityInstanceStore );
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
@@ -154,10 +125,7 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
     {
-        when( applicationContext.getBean( TrackedEntityInstanceService.class ) )
-            .thenReturn( trackedEntityInstanceService );
-
-        when( trackedEntityInstanceService
+        when( trackedEntityInstanceStore
             .getTrackedEntityInstanceWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
             .thenReturn( Optional.of( identicalTei ) );
 
@@ -170,10 +138,7 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void differentTeiWithTheSameUniqueAttributeExistsInSystem()
     {
-        when( applicationContext.getBean( TrackedEntityInstanceService.class ) )
-            .thenReturn( trackedEntityInstanceService );
-
-        when( trackedEntityInstanceService
+        when( trackedEntityInstanceStore
             .getTrackedEntityInstanceWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
             .thenReturn( Optional.of( differentTei ) );
 
@@ -186,10 +151,7 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void attributeIsUniqueWithinTheSystem()
     {
-        when( applicationContext.getBean( TrackedEntityInstanceService.class ) )
-            .thenReturn( trackedEntityInstanceService );
-
-        when( trackedEntityInstanceService
+        when( trackedEntityInstanceStore
             .getTrackedEntityInstanceWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
             .thenReturn( Optional.empty() );
 

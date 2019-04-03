@@ -46,8 +46,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -76,38 +74,37 @@ public class DefaultTrackedEntityAttributeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private TrackedEntityAttributeStore attributeStore;
-    private ProgramService programService;
-    private TrackedEntityTypeService trackedEntityTypeService;
-    private FileResourceService fileResourceService;
-    private UserService userService;
-    private ApplicationContext applicationContext;
-    private CurrentUserService currentUserService;
-    private AclService aclService;
+    private final TrackedEntityAttributeStore attributeStore;
+    private final ProgramService programService;
+    private final TrackedEntityTypeService trackedEntityTypeService;
+    private final FileResourceService fileResourceService;
+    private final UserService userService;
+    private final CurrentUserService currentUserService;
+    private final AclService aclService;
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    @Autowired
     public DefaultTrackedEntityAttributeService ( TrackedEntityAttributeStore attributeStore,
         ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
-        FileResourceService fileResourceService, UserService userService, ApplicationContext applicationContext,
-        CurrentUserService currentUserService, AclService aclService )
+        FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
+        AclService aclService, TrackedEntityInstanceStore trackedEntityInstanceStore )
     {
         checkNotNull( attributeStore );
         checkNotNull( programService );
         checkNotNull( trackedEntityTypeService );
         checkNotNull( fileResourceService );
         checkNotNull( userService );
-        checkNotNull( applicationContext );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
+        checkNotNull( trackedEntityInstanceStore );
 
         this.attributeStore = attributeStore;
         this.programService = programService;
         this.trackedEntityTypeService = trackedEntityTypeService;
         this.fileResourceService = fileResourceService;
         this.userService = userService;
-        this.applicationContext = applicationContext;
         this.currentUserService = currentUserService;
         this.aclService = aclService;
+        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
     }
 
     // -------------------------------------------------------------------------
@@ -203,10 +200,7 @@ public class DefaultTrackedEntityAttributeService
             params.addOrganisationUnit( organisationUnit );
         }
 
-        //to avoid circular dependency
-        TrackedEntityInstanceService trackedEntityInstanceService = applicationContext.getBean( TrackedEntityInstanceService.class );
-
-        Optional<TrackedEntityInstance> fetchedTei = trackedEntityInstanceService.getTrackedEntityInstanceWithUniqueAttributeValue( params );
+        Optional<TrackedEntityInstance> fetchedTei = trackedEntityInstanceStore.getTrackedEntityInstanceWithUniqueAttributeValue( params );
 
         if ( fetchedTei.isPresent() && (trackedEntityInstance == null || !fetchedTei.get().getUid().equals( trackedEntityInstance.getUid() )) )
         {
