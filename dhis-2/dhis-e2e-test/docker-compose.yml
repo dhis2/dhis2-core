@@ -14,6 +14,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: ../..
+      args:
+        ADDITIONAL_MAVEN_BUILD_ARGS: -DskipTests -q
     volumes:
       - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     depends_on:
