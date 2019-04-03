@@ -55,6 +55,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -91,6 +92,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -804,7 +806,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
         Set<String> incomingAttributes = new HashSet<>();
 
-        for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
+        List<Attribute> attributes = dtoEntityInstance.getAttributes().stream().filter(  ObjectUtils.distinctByKey( att -> att.getAttribute() ) ).collect( Collectors.toList() );
+
+        for ( Attribute dtoAttribute : attributes )
         {
             String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
                 user == null ? "[Unknown]" : user.getUsername() );
