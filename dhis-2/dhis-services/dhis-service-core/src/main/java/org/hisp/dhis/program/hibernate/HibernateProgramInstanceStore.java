@@ -208,7 +208,7 @@ public class HibernateProgramInstanceStore
             return false;
         }
 
-        return jdbcTemplate.queryForRowSet( "select * from programinstance where uid=+ '" + uid + "' and deleted is false limit 1;" ).next();
+        return jdbcTemplate.queryForRowSet( "select * from programinstance where uid='" + uid + "' and deleted is false limit 1;" ).next();
     }
 
     @Override
@@ -219,7 +219,7 @@ public class HibernateProgramInstanceStore
             return false;
         }
 
-        return jdbcTemplate.queryForRowSet( "select * from programinstance where uid=+ '" + uid + "' limit 1;" ).next();
+        return jdbcTemplate.queryForRowSet( "select * from programinstance where uid='" + uid + "' limit 1;" ).next();
     }
 
 
