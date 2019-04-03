@@ -156,7 +156,20 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasProgram() )
         {
-            hql += "left join fetch tei.programInstances as pi ";
+            hql += "inner join fetch tei.programInstances as pi ";
+            
+            if ( params.hasFilterForEvents() )
+            {
+                hql += " inner join fetch pi.programStageInstances psi ";
+
+                if ( params.hasAssignedUsers() )
+                {
+                    hql += " inner join fetch psi.assignedUser au ";
+                }
+
+                hql += hlp.whereAnd() + getEventWhereClauseHql( params );
+
+            }
 
             hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
 
@@ -449,11 +462,16 @@ public class HibernateTrackedEntityInstanceStore
                 + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
                 + "from programinstance pi ";
 
-            if ( params.hasEventStatus() )
+            if ( params.hasFilterForEvents() )
             {
                 sql += " inner join (select programinstanceid from programstageinstance psi ";
+                
+                if(params.hasAssignedUsers())
+                {
+                    sql += " left join userinfo au on (psi.assigneduserid=au.userinfoid) "; 
+                }
 
-                sql += getEventStatusWhereClause( params );
+                sql += getEventWhereClause( params );
 
                 sql += ") as psi on pi.programinstanceid = psi.programinstanceid ";
             }
@@ -650,42 +668,116 @@ public class HibernateTrackedEntityInstanceStore
         return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME, TRACKED_ENTITY_ID, INACTIVE_ID );
     }
 
-    private String getEventStatusWhereClause( TrackedEntityInstanceQueryParams params )
+    private String getEventWhereClause( TrackedEntityInstanceQueryParams params )
     {
-        String start = getMediumDateString( params.getEventStartDate() );
-        String end = getMediumDateString( params.getEventEndDate() );
-
         String sql = " where ";
 
-        if ( params.isEventStatus( EventStatus.COMPLETED ) )
+        if ( params.hasEventStatus() )
         {
-            sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
-                + "and psi.status = '" + EventStatus.COMPLETED.name() + "' and ";
+            String start = getMediumDateString( params.getEventStartDate() );
+            String end = getMediumDateString( params.getEventEndDate() );
+
+            if ( params.isEventStatus( EventStatus.COMPLETED ) )
+            {
+                sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' " + "and psi.status = '" + EventStatus.COMPLETED.name()
+                    + "' and ";
+            }
+            else if ( params.isEventStatus( EventStatus.VISITED ) )
+            {
+                sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' " + "and psi.status = '" + EventStatus.ACTIVE.name()
+                    + "' and ";
+            }
+            else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
+            {
+                sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
+                    + "and psi.status is not null and date(now()) <= date(psi.duedate) and ";
+            }
+            else if ( params.isEventStatus( EventStatus.OVERDUE ) )
+            {
+                sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
+                    + "and psi.status is not null and date(now()) > date(psi.duedate) and ";
+            }
+            else if ( params.isEventStatus( EventStatus.SKIPPED ) )
+            {
+                sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
+            }
         }
-        else if ( params.isEventStatus( EventStatus.VISITED ) )
+        
+        if ( params.hasAssignedUsers() )
         {
-            sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
-                + "and psi.status = '" + EventStatus.ACTIVE.name() + "' and ";
+            sql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
         }
-        else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
+        
+        if ( params.isIncludeOnlyUnassignedEvents() )
         {
-            sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
-                + "and psi.status is not null and date(now()) <= date(psi.duedate) and ";
+            sql += " (psi.assigneduserid is null) and ";
         }
-        else if ( params.isEventStatus( EventStatus.OVERDUE ) )
+        
+        if ( params.isIncludeOnlyAssignedEvents() )
         {
-            sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
-                + "and psi.status is not null and date(now()) > date(psi.duedate) and ";
-        }
-        else if ( params.isEventStatus( EventStatus.SKIPPED ) )
-        {
-            sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '"
-                + EventStatus.SKIPPED.name() + "' and ";
+            sql += " (psi.assigneduserid is not null) and ";
         }
 
-        sql += " psi.deleted is false";
+
+        sql += " psi.deleted is false ";
 
         return sql;
+    }
+    
+    private String getEventWhereClauseHql( TrackedEntityInstanceQueryParams params )
+    {
+        String hql = "";
+
+        if ( params.hasEventStatus() )
+        {
+            String start = getMediumDateString( params.getEventStartDate() );
+            String end = getMediumDateString( params.getEventEndDate() );
+
+            if ( params.isEventStatus( EventStatus.COMPLETED ) )
+            {
+                hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' " + "and psi.status = '" + EventStatus.COMPLETED.name()
+                    + "' and ";
+            }
+            else if ( params.isEventStatus( EventStatus.VISITED ) )
+            {
+                hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' " + "and psi.status = '" + EventStatus.ACTIVE.name()
+                    + "' and ";
+            }
+            else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
+            {
+                hql += " psi.executionDate is null and psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' "
+                    + "and psi.status is not null and current_date <= psi.dueDate and ";
+            }
+            else if ( params.isEventStatus( EventStatus.OVERDUE ) )
+            {
+                hql += " psi.executionDate is null and psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' "
+                    + "and psi.status is not null and current_date > psi.dueDate and ";
+            }
+            else if ( params.isEventStatus( EventStatus.SKIPPED ) )
+            {
+                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
+            }
+        }
+        
+        if ( params.hasAssignedUsers() )
+        {
+            hql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
+        }
+        
+        if ( params.isIncludeOnlyUnassignedEvents() )
+        {
+            hql += " (psi.assignedUser is null) and ";
+        }
+        
+        if ( params.isIncludeOnlyAssignedEvents() )
+        {
+            hql += " (psi.assignedUser is not null) and ";
+        }
+
+
+        hql += " psi.deleted=false ";
+
+        return hql;
     }
 
     @Override
