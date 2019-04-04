@@ -31,11 +31,7 @@ package org.hisp.dhis.program.notification;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -110,12 +106,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Mock
     private IdentifiableObjectManager manager;
 
-    @Mock
-    private ProgramInstanceStore programInstanceStore;
-
-    @Mock
-    private ProgramStageInstanceStore programStageInstanceStore;
-
     @InjectMocks
     private DefaultProgramNotificationService programNotificationService;
 
@@ -170,25 +160,18 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         setUpInstances();
 
         BatchResponseStatus status = new BatchResponseStatus(Collections.emptyList());
-        when( programMessageService.sendMessages( anyList() ) )
-            .thenAnswer( invocation -> {
-                sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-                return status;
-            } );
+
+        doAnswer( invocation ->
+        {
+            sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
+            return status;
+        }).when( programMessageService ).sendMessagesAsync( anyList() );
 
         when( messageService.sendMessage( any() ) )
             .thenAnswer( invocation -> {
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 40l;
             } );
-
-        when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
-            .thenReturn( Lists.newArrayList( programInstances ) );
-        when( programStageInstanceStore.getWithScheduledNotifications( any(), any() ) )
-            .thenReturn( Lists.newArrayList( programStageInstances ) );
-
-        when( manager.getAll( ProgramNotificationTemplate.class ) )
-            .thenReturn( Collections.singletonList( programNotificationTemplate ) );
 
         when( programNotificationMessageRenderer.render( any(), any() ) )
             .thenReturn( notificationMessage );
@@ -466,9 +449,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     public void testScheduledNotificationsWithDateInPast()
     {
         sentInternalMessages.clear();
-
-        when( manager.getAll( ProgramNotificationTemplate.class ) )
-            .thenReturn( Collections.singletonList( programNotificationTemplateForYesterday ) );
 
         programNotificationService.sendScheduledNotifications();
 

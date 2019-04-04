@@ -40,7 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionEvent;
-import org.hisp.dhis.program.notification.event.programEnrollmentNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -492,7 +492,7 @@ public class DefaultProgramInstanceService
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
 
-        eventPublisher.publishEvent( new programEnrollmentNotificationEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance ) );
 
         eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 

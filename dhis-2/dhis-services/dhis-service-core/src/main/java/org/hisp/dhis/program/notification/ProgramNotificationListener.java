@@ -32,20 +32,25 @@ import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionEvent
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionEvent;
-import org.hisp.dhis.program.notification.event.programEnrollmentNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
+
+@Async
+@Transactional
 public class ProgramNotificationListener
 {
     @Autowired
     private ProgramNotificationService programNotificationService;
 
     @EventListener
-    public void onEnrollment( programEnrollmentNotificationEvent event )
+    public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
@@ -57,15 +62,16 @@ public class ProgramNotificationListener
     }
 
     @EventListener
-    public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
-    {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
-    }
-
-    @EventListener
     public void onEvent( ProgramStageCompletionEvent event )
     {
         programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
+    }
+
+    // Published by rule engine
+    @EventListener
+    public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
+    {
+        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
     @EventListener

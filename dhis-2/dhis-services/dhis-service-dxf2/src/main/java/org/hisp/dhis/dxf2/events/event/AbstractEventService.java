@@ -126,6 +126,7 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionEvent;
+import org.hisp.dhis.programrule.engine.ProgramStageInstanceCompletedEvent;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -1756,6 +1757,7 @@ public abstract class AbstractEventService
             if ( programStageInstance.isCompleted() )
             {
                 eventPublisher.publishEvent( new ProgramStageCompletionEvent( this, programStageInstance ) );
+                eventPublisher.publishEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
             }
 
             if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )

@@ -34,11 +34,11 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @Author Zubair Asghar.
  */
-public class programEnrollmentNotificationEvent extends ApplicationEvent
+public class ProgramEnrollmentNotificationEvent extends ApplicationEvent
 {
     private ProgramInstance programInstance;
 
-    public programEnrollmentNotificationEvent(Object source, ProgramInstance programInstance )
+    public ProgramEnrollmentNotificationEvent(Object source, ProgramInstance programInstance )
     {
         super( source );
         this.programInstance = programInstance;

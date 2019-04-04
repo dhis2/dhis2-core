@@ -34,6 +34,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -59,7 +60,13 @@ public class MockMessageSender
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
         return new AsyncResult<OutboundMessageResponse>( response );
     }
-    
+
+    @Override
+    public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync( OutboundMessageBatch batch )
+    {
+        return null;
+    }
+
     @Override
     public boolean isConfigured()
     {
