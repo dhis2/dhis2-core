@@ -28,10 +28,10 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
-import org.hisp.dhis.program.notification.event.ProgramStageCompletionEvent;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -56,13 +56,13 @@ public class ProgramNotificationListener
     }
 
     @EventListener
-    public void onCompletion( ProgramEnrollmentCompletionEvent event )
+    public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
         programNotificationService.sendCompletionNotifications( event.getProgramInstance() );
     }
 
     @EventListener
-    public void onEvent( ProgramStageCompletionEvent event )
+    public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
         programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
     }

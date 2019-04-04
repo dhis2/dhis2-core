@@ -45,7 +45,7 @@ public class ProgramRuleEngineListener
     private ProgramRuleEngineService programRuleEngineService;
 
     @EventListener
-    public void listenEvent( TrackedEntityInstanceEnrolledEvent event )
+    public void listenEvent( EnrollmentEvaluationEvent event )
     {
         programRuleEngineService.evaluate( event.getProgramInstance() );
     }
@@ -57,13 +57,13 @@ public class ProgramRuleEngineListener
     }
 
     @EventListener
-    public void listenEvent( ProgramStageInstanceCompletedEvent event )
+    public void listenEvent( StageCompletionEvaluationEvent event )
     {
         programRuleEngineService.evaluate( event.getProgramStageInstance() );
     }
 
     @EventListener
-    public void listenEvent( ProgramStageInstanceScheduledEvent event )
+    public void listenEvent( StageScheduledEvaluationEvent event )
     {
         programRuleEngineService.evaluate( event.getProgramStageInstance() );
     }

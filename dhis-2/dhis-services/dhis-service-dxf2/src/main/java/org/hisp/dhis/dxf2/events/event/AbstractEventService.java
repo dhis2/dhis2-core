@@ -125,9 +125,9 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.notification.event.ProgramStageCompletionEvent;
-import org.hisp.dhis.programrule.engine.ProgramStageInstanceCompletedEvent;
-import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
+import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -1756,13 +1756,13 @@ public abstract class AbstractEventService
         {
             if ( programStageInstance.isCompleted() )
             {
-                eventPublisher.publishEvent( new ProgramStageCompletionEvent( this, programStageInstance ) );
-                eventPublisher.publishEvent( new ProgramStageInstanceCompletedEvent( this, programStageInstance ) );
+                eventPublisher.publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance ) );
+                eventPublisher.publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance ) );
             }
 
             if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
             {
-                eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+                eventPublisher.publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance ) );
             }
         }
     }
