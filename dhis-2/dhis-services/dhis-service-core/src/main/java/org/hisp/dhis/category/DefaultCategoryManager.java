@@ -75,6 +75,49 @@ public class DefaultCategoryManager
 
         boolean modified = false;
 
+
+        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            CategoryOptionCombo persistedOptionCombo = iterator.next();
+
+            boolean isDelete = true;
+
+            for ( CategoryOptionCombo c : generatedOptionCombos )
+            {
+                if ( c.equals( persistedOptionCombo ) || c.getUid() == persistedOptionCombo.getUid() )
+                {
+                    isDelete = false;
+                    if ( !c.getName().equals( persistedOptionCombo.getName() ) )
+                    {
+                        persistedOptionCombo.setName( c.getName() );
+                        modified = true;
+                    }
+                }
+            }
+
+            if ( isDelete )
+            {
+                try
+                {
+                    categoryService.deleteCategoryOptionComboNoRollback( persistedOptionCombo );
+                }
+                catch ( DeleteNotAllowedException ex )
+                {
+                    log.warn( "Could not delete category option combo: " + persistedOptionCombo );
+                    continue;
+                }
+
+                iterator.remove();
+                categoryCombo.getOptionCombos().remove( persistedOptionCombo );
+                categoryService.deleteCategoryOptionCombo( persistedOptionCombo );
+
+                log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: " + categoryCombo.getName() );
+                modified = true;
+            }
+        }
+
         for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
         {
             if ( !persistedOptionCombos.contains( optionCombo ) )
@@ -87,32 +130,6 @@ public class DefaultCategoryManager
             }
         }
 
-        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
-
-        while ( iterator.hasNext() )
-        {
-            CategoryOptionCombo optionCombo = iterator.next();
-
-            if ( !generatedOptionCombos.contains( optionCombo ) )
-            {
-                try
-                {
-                    categoryService.deleteCategoryOptionComboNoRollback( optionCombo );
-                }
-                catch ( DeleteNotAllowedException ex )
-                {
-                    log.warn( "Could not delete category option combo: " + optionCombo );
-                    continue;
-                }
-
-                iterator.remove();
-                categoryCombo.getOptionCombos().remove( optionCombo );
-                categoryService.deleteCategoryOptionCombo( optionCombo );
-
-                log.info( "Deleted obsolete category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                modified = true;
-            }
-        }
 
         if ( modified )
         {
