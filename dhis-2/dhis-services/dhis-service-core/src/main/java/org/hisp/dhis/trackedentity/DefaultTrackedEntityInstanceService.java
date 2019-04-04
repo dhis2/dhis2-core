@@ -66,7 +66,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -906,11 +905,5 @@ public class DefaultTrackedEntityInstanceService
             TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( trackedEntityInstance.getUid(), user, auditType );
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
         }
-    }
-
-    @Override
-    public Optional<TrackedEntityInstance> getTrackedEntityInstanceWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params )
-    {
-        return trackedEntityInstanceStore.getTrackedEntityInstanceWithUniqueAttributeValue( params );
     }
 }

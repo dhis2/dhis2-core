@@ -200,9 +200,9 @@ public class DefaultTrackedEntityAttributeService
             params.addOrganisationUnit( organisationUnit );
         }
 
-        Optional<TrackedEntityInstance> fetchedTei = trackedEntityInstanceStore.getTrackedEntityInstanceWithUniqueAttributeValue( params );
+        Optional<String> fetchedTeiUid = trackedEntityInstanceStore.getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
 
-        if ( fetchedTei.isPresent() && (trackedEntityInstance == null || !fetchedTei.get().getUid().equals( trackedEntityInstance.getUid() )) )
+        if ( fetchedTeiUid.isPresent() && (trackedEntityInstance == null || !fetchedTeiUid.get().equals( trackedEntityInstance.getUid() )) )
         {
             return "Non-unique attribute value '" + value + "' for attribute " + trackedEntityAttribute.getUid();
         }

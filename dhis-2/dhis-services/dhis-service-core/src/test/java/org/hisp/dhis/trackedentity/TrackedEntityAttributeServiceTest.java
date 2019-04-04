@@ -85,9 +85,9 @@ public class TrackedEntityAttributeServiceTest
 
     private TrackedEntityInstance teiPassedInPayload;
 
-    private TrackedEntityInstance identicalTei;
+    private final String identicalTeiUid = "TeiUid12345";
 
-    private TrackedEntityInstance differentTei;
+    private final String differentTeiUid = "TeiUid54321";
 
     private OrganisationUnit orgUnit;
 
@@ -103,16 +103,8 @@ public class TrackedEntityAttributeServiceTest
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
         teiPassedInPayload = new TrackedEntityInstance();
-        teiPassedInPayload.setUid( "TeiUid12345" );
+        teiPassedInPayload.setUid( identicalTeiUid );
         teiPassedInPayload.setOrganisationUnit( orgUnit );
-
-        identicalTei = new TrackedEntityInstance();
-        identicalTei.setUid( "TeiUid12345" );
-        identicalTei.setOrganisationUnit( orgUnit );
-
-        differentTei = new TrackedEntityInstance();
-        differentTei.setUid( "TeiUid54321" );
-        differentTei.setOrganisationUnit( orgUnit );
 
         tea = new TrackedEntityAttribute();
         tea.setUid( "TeaUid12345" );
@@ -126,8 +118,8 @@ public class TrackedEntityAttributeServiceTest
     public void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityInstanceStore
-            .getTrackedEntityInstanceWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-            .thenReturn( Optional.of( identicalTei ) );
+            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .thenReturn( Optional.of( identicalTeiUid ) );
 
         String teaValue = "Firstname";
 
@@ -139,8 +131,8 @@ public class TrackedEntityAttributeServiceTest
     public void differentTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityInstanceStore
-            .getTrackedEntityInstanceWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
-            .thenReturn( Optional.of( differentTei ) );
+            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .thenReturn( Optional.of( differentTeiUid ) );
 
         String teaValue = "Firstname";
 
@@ -152,7 +144,7 @@ public class TrackedEntityAttributeServiceTest
     public void attributeIsUniqueWithinTheSystem()
     {
         when( trackedEntityInstanceStore
-            .getTrackedEntityInstanceWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
             .thenReturn( Optional.empty() );
 
         String teaValue = "Firstname";

@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -723,57 +724,59 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public Optional<TrackedEntityInstance> getTrackedEntityInstanceWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params )
+    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params )
     {
         // ---------------------------------------------------------------------
         // Select clause
         // ---------------------------------------------------------------------
 
-        String sql = "select tei.uid as uid from trackedentityinstance tei ";
+        SqlHelper hlp = new SqlHelper( true );
+
+        String hql = "select tei.uid from TrackedEntityInstance tei ";
 
         if ( params.hasOrganisationUnits() )
         {
-            sql += "inner join organisationunit ou on tei.organisationunitid = ou.organisationunitid " +
-                "and ou.uid in (" + params.getOrganisationUnits() + ") ";
+            String orgUnitUids = params.getOrganisationUnits().stream()
+                .map( OrganisationUnit::getUid )
+                .collect( Collectors.joining( ", ", "'", "'" ) );
+
+            hql += "inner join tei.organisationUnit as ou ";
+            hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
         }
 
         for ( QueryItem item : params.getAttributes() )
         {
-            final String col = statementBuilder.columnQuote( item.getItemId() );
-
-            sql += "inner join trackedentityattributevalue as " + col + " on " + col
-                + ".trackedentityinstanceid = tei.trackedentityinstanceid and " + col
-                + ".trackedentityattributeid = " + item.getItem().getId() + " ";
-
             for ( QueryFilter filter : item.getFilters() )
             {
-                final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
-                final String queryCol = item.isNumeric() ? (col + ".value") : "lower(" + col + ".value)";
+                final String encodedFilter = filter.getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
 
-                sql += "and " + queryCol + " LIKE "
-                    + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
+                hql += " and teav.attribute.uid='" + item.getItemId() + "'";
+
+                if ( item.isNumeric() )
+                {
+                    hql += " and teav.plainValue " + filter.getSqlOperator() + encodedFilter + ")";
+                }
+                else
+                {
+                    hql += " and lower(teav.plainValue) " + filter.getSqlOperator() + encodedFilter + ")";
+                }
             }
         }
 
         if ( !params.isIncludeDeleted() )
         {
-            sql += "where tei.deleted is false ";
+            hql += hlp.whereAnd() + " tei.deleted is false";
         }
 
-        sql += " limit 1";
+        Query query = getQuery( hql );
+        query.setMaxResults( 1 );
 
+        Iterator<String> it = query.iterate();
 
-        // ---------------------------------------------------------------------
-        // Query
-        // ---------------------------------------------------------------------
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        if ( rowSet.next() )
+        if ( it.hasNext() )
         {
-            TrackedEntityInstance tei = new TrackedEntityInstance();
-            tei.setUid( rowSet.getString( "uid" ) );
-
-            return Optional.of( tei );
+            return Optional.of( it.next());
         }
 
         return Optional.empty();

@@ -79,11 +79,11 @@ public interface TrackedEntityInstanceStore
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 
     /**
-     * Checks whether there already exists a TrackedEntityInstance with given unique attribute value. If yes, returns
-     * Optional of it. Otherwise, returns empty Optional.
+     * Check whether there already exists a TrackedEntityInstance with given unique attribute value. If yes, return
+     * Optional containing UID of it. Otherwise, return empty Optional.
      *
      * @param params Query params. Contains value of unique attribute that should be checked.
-     * @return Optional of TrackedEntityInstance or empty Optional.
+     * @return Optional of TrackedEntityInstance UID or empty Optional.
      */
-    Optional<TrackedEntityInstance> getTrackedEntityInstanceWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
+    Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
 }

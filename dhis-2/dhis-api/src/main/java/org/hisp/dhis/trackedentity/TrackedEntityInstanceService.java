@@ -38,7 +38,6 @@ import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -264,13 +263,4 @@ public interface TrackedEntityInstanceService
     long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
-
-    /**
-     * Checks whether there already exists a TrackedEntityInstance with given unique attribute value. If yes, returns
-     * Optional of it. Otherwise, returns empty Optional.
-     *
-     * @param params Query params. Contains value of unique attribute that should be checked.
-     * @return Optional of TrackedEntityInstance or empty Optional.
-     */
-    Optional<TrackedEntityInstance> getTrackedEntityInstanceWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
 }
