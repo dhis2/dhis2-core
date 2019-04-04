@@ -148,8 +148,8 @@ public class DimensionalObjectUtilsTest
         AttributeValue avA = new AttributeValue( "AttributeValueA", atA );
         AttributeValue avB = new AttributeValue( "AttributeValueB", atA );
 
-        deA.getAttributeValues().add( avA );
-        deB.getAttributeValues().add( avB );
+        deA.addAttributeValue( avA );
+        deB.addAttributeValue( avB );
 
         List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
 

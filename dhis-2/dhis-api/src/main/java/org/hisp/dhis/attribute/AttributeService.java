@@ -132,17 +132,18 @@ public interface AttributeService
     /**
      * Deletes an attribute value.
      *
+     * @param object the object which the attributeValue belongs to.
      * @param attributeValue the attribute value.
      */
-    void deleteAttributeValue( AttributeValue attributeValue );
+    <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue );
 
     /**
-     * Gets the attribute value with the given id.
+     * Deletes a Set of attribute values.
      *
-     * @param id the id.
-     * @return the attribute value with the given id.
+     * @param object the object which the attributeValue belongs to.
+     * @param attributeValues the Set of attribute values.
      */
-    AttributeValue getAttributeValue( long id );
+    <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues );
 
     <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception;
 

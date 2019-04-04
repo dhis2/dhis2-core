@@ -422,11 +422,11 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.attribute.AttributeValueStore" class="org.hisp.dhis.attribute.hibernate.HibernateAttributeValueStore">
-    <property name="sessionFactory" ref="sessionFactory" />
-    <property name="clazz" value="org.hisp.dhis.attribute.AttributeValue" />
-    <property name="cacheable" value="true" />
-  </bean>
+  <!--<bean id="org.hisp.dhis.attribute.AttributeValueStore" class="org.hisp.dhis.attribute.hibernate.HibernateAttributeValueStore">-->
+    <!--<property name="sessionFactory" ref="sessionFactory" />-->
+    <!--<property name="clazz" value="org.hisp.dhis.attribute.AttributeValue" />-->
+    <!--<property name="cacheable" value="true" />-->
+  <!--</bean>-->
 
   <bean id="org.hisp.dhis.option.OptionSetStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
     <property name="clazz" value="org.hisp.dhis.option.OptionSet" />
@@ -1011,7 +1011,6 @@
 
   <bean id="org.hisp.dhis.attribute.AttributeService" class="org.hisp.dhis.attribute.DefaultAttributeService">
     <property name="attributeStore" ref="org.hisp.dhis.attribute.AttributeStore" />
-    <property name="attributeValueStore" ref="org.hisp.dhis.attribute.AttributeValueStore" />
   </bean>
 
   <bean id="org.hisp.dhis.option.OptionService" class="org.hisp.dhis.option.DefaultOptionService">
@@ -1596,11 +1595,6 @@
 
   <bean id="org.hisp.dhis.message.MessageConversationDeletionHandler" class="org.hisp.dhis.message.MessageConversationDeletionHandler">
     <property name="messageService" ref="org.hisp.dhis.message.MessageService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.attribute.AttributeValueDeletionHandler" class="org.hisp.dhis.attribute.AttributeValueDeletionHandler">
-    <property name="attributeService" ref="org.hisp.dhis.attribute.AttributeService" />
-    <property name="jdbcTemplate" ref="jdbcTemplate" />
   </bean>
 
   <bean id="org.hisp.dhis.legend.LegendSetDeletionHandler" class="org.hisp.dhis.legend.LegendSetDeletionHandler" />

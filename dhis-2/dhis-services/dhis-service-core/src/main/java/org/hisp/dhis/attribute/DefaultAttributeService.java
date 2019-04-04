@@ -72,13 +72,6 @@ public class DefaultAttributeService
         this.attributeStore = attributeStore;
     }
 
-    private AttributeValueStore attributeValueStore;
-
-    public void setAttributeValueStore( AttributeValueStore attributeValueStore )
-    {
-        this.attributeValueStore = attributeValueStore;
-    }
-
     @Autowired
     private IdentifiableObjectManager manager;
 
@@ -176,8 +169,8 @@ public class DefaultAttributeService
         }
 
         attributeValue.setAutoFields();
-        attributeValueStore.save( attributeValue );
-        object.getAttributeValues().add( attributeValue );
+        object.addAttributeValue( attributeValue );
+
     }
 
     @Override
@@ -200,21 +193,27 @@ public class DefaultAttributeService
         }
 
         attributeValue.setAutoFields();
-        attributeValueStore.update( attributeValue );
-        object.getAttributeValues().add( attributeValue );
+        object.getAttributeValues().remove( attributeValue );
+        object.addAttributeValue( attributeValue );
     }
 
     @Override
-    public void deleteAttributeValue( AttributeValue attributeValue )
+    public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
-        attributeValueStore.delete( attributeValue );
+        object.getJsonAttributeValues()
+                .stream().filter( a -> a.getAttribute().equals( attributeValue.getAttribute().getUid() ) )
+                .collect( Collectors.toList() );
+        manager.update( object );
     }
 
     @Override
-    public AttributeValue getAttributeValue( long id )
+    public <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues )
     {
-        return attributeValueStore.get( id );
+        object.getAttributeValues().removeAll( attributeValues );
+
+        manager.update( object );
     }
+
 
     @Override
     public <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception
@@ -282,11 +281,13 @@ public class DefaultAttributeService
             mandatoryAttributes.remove( attributeValue.getAttribute() );
         }
 
+        deleteAttributeValues( object, toBeDeleted );
+
         for ( AttributeValue attributeValue : toBeDeleted )
         {
             mandatoryAttributes.remove( attributeValue.getAttribute() );
-            deleteAttributeValue( attributeValue );
         }
+
 
         if ( !mandatoryAttributes.isEmpty() )
         {

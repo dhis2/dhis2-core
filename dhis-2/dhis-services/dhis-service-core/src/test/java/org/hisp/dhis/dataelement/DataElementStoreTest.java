@@ -29,13 +29,17 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -49,8 +53,9 @@ import static org.junit.Assert.*;
  * @author Torgeir Lorange Ostby
  * @version $Id: DataElementStoreTest.java 5742 2008-09-26 11:37:35Z larshelg $
  */
+@Category( IntegrationTest.class )
 public class DataElementStoreTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private DataElementStore dataElementStore;
@@ -349,28 +354,24 @@ public class DataElementStoreTest
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
 
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-
         AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
 
-        attributeService.addAttributeValue( dataElementA, attributeValueA );
-        attributeService.addAttributeValue( dataElementB, attributeValueB );
-        attributeService.addAttributeValue( dataElementC, attributeValueC );
+        dataElementA.addAttributeValue( attributeValueA );
+        dataElementB.addAttributeValue( attributeValueB );
+        dataElementC.addAttributeValue( attributeValueC );
 
-        dataElementStore.update( dataElementA );
-        dataElementStore.update( dataElementB );
-        dataElementStore.update( dataElementC );
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
 
-        List<AttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
+        List<JsonAttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
         assertEquals( 3, values.size() );
     }
 
     @Test
-    public void testAttributeValueFromAttributeAndValue() throws NonUniqueAttributeValueException
+    public void testGetAttributeValueFromAttributeAndValue() throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "test", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
@@ -380,23 +381,32 @@ public class DataElementStoreTest
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
 
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-
         AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
 
-        attributeService.addAttributeValue( dataElementA, attributeValueA );
-        attributeService.addAttributeValue( dataElementB, attributeValueB );
-        attributeService.addAttributeValue( dataElementC, attributeValueC );
+        dataElementA.addAttributeValue( attributeValueA );
+        dataElementB.addAttributeValue( attributeValueB );
+        dataElementC.addAttributeValue( attributeValueC );
 
-        dataElementStore.update( dataElementA );
-        dataElementStore.update( dataElementB );
-        dataElementStore.update( dataElementC );
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
 
-        List<AttributeValue> values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "SOME VALUE" );
+        DataElement deA = dataElementStore.getByUid(dataElementA.getUid());
+        DataElement deB = dataElementStore.getByUid(dataElementB.getUid());
+        DataElement deC = dataElementStore.getByUid(dataElementC.getUid());
+
+        assertNotNull( deA );
+        assertNotNull( deB );
+        assertNotNull( deC );
+        assertEquals( 1, deA.getJsonAttributeValues().size() );
+        assertEquals( 1, deB.getJsonAttributeValues().size() );
+        assertEquals( 1, deC.getJsonAttributeValues().size() );
+        assertEquals( "SOME VALUE", deA.getJsonAttributeValues().iterator().next().getValue() );
+        assertEquals( "SOME VALUE", deB.getJsonAttributeValues().iterator().next().getValue() );
+
+        List<JsonAttributeValue> values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "SOME VALUE" );
         assertEquals( 2, values.size() );
 
         values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "ANOTHER VALUE" );
@@ -595,5 +605,10 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.getCountGeCreated( dataElementA.getCreated() ) );
 
         assertEquals( 2, dataElementStore.getCountGeLastUpdated( dataElementA.getLastUpdated() ) );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest() {
+        return true;
     }
 }

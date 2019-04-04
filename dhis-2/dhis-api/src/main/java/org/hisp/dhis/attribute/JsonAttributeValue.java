@@ -35,21 +35,21 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.option.OptionSet;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.Objects;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @JacksonXmlRootElement( localName = "attributeValue", namespace = DxfNamespaces.DXF_2_0 )
-public class AttributeValue
+public class JsonAttributeValue
         implements Serializable
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
      */
-    private static final long serialVersionUID = -6625127769248931066L;
+    private static final long serialVersionUID = -3337622176393842811L;
 
     /**
      * The date this object was created.
@@ -61,33 +61,42 @@ public class AttributeValue
      */
     private Date lastUpdated;
 
-    private Attribute attribute;
+    private String attribute;
 
     private String value;
 
-    public AttributeValue()
+    private String valueType;
+
+    public JsonAttributeValue()
     {
         setAutoFields();
     }
 
-    public AttributeValue( String value )
+    public JsonAttributeValue( String value )
     {
         this();
         this.value = value;
     }
 
-    public AttributeValue( String value, Attribute attribute )
+    public JsonAttributeValue( String value, String attribute )
     {
         this( value );
         this.attribute = attribute;
     }
 
-    public AttributeValue( JsonAttributeValue jsonAttributeValue, Attribute attribute )
+    public JsonAttributeValue( String value, Attribute attribute )
     {
-        this.value = jsonAttributeValue.getValue();
-        this.created = jsonAttributeValue.getCreated();
-        this.lastUpdated = jsonAttributeValue.getLastUpdated();
-        this.attribute = attribute;
+        this( value );
+        this.attribute = attribute.getUid();
+    }
+
+    public JsonAttributeValue( AttributeValue attributeValue )
+    {
+        this.value = attributeValue.getValue();
+        this.attribute = attributeValue.getAttribute().getUid();
+        this.created = attributeValue.getCreated();
+        this.lastUpdated = attributeValue.getLastUpdated();
+        this.valueType = attributeValue.getAttribute().getValueType().name();
     }
 
     public void setAutoFields()
@@ -106,21 +115,15 @@ public class AttributeValue
         if ( this == o ) return true;
         if ( o == null || getClass() != o.getClass() ) return false;
 
-        AttributeValue that = (AttributeValue) o;
+        JsonAttributeValue that = (JsonAttributeValue) o;
 
-        if ( attribute != null ? !attribute.equals( that.attribute ) : that.attribute != null ) return false;
-        if ( value != null ? !value.equals( that.value ) : that.value != null ) return false;
-
-        return true;
+        return Objects.equals( this.attribute, that.attribute ) && Objects.equals( this.value, that.value );
     }
 
     @Override
     public int hashCode()
     {
-        int result = 7;
-        result = 31 * result + (attribute != null ? attribute.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        return result;
+        return Objects.hash( attribute, value );
     }
 
     @Override public String toString()
@@ -135,7 +138,6 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     public Date getCreated()
     {
         return created;
@@ -147,7 +149,6 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
     public Date getLastUpdated()
     {
         return lastUpdated;
@@ -159,20 +160,17 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Attribute getAttribute()
+    public String getAttribute()
     {
         return attribute;
     }
 
-    public void setAttribute( Attribute attribute )
+    public void setAttribute( String attribute )
     {
         this.attribute = attribute;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getValue()
     {
         return value;
@@ -183,13 +181,11 @@ public class AttributeValue
         this.value = value;
     }
 
-    public boolean isUnique()
-    {
-        return attribute != null && attribute.isUnique();
+    public String getValueType() {
+        return valueType;
     }
 
-    public boolean isMandatory()
-    {
-        return attribute != null && attribute.isMandatory();
+    public void setValueType(String valueType) {
+        this.valueType = valueType;
     }
 }

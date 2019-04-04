@@ -29,6 +29,7 @@ package org.hisp.dhis.hibernate;
  */
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -54,6 +55,7 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -66,6 +68,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class HibernateGenericStore<T>
     implements GenericStore<T>
 {
+    public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
 
     protected SessionFactory sessionFactory;
@@ -432,7 +436,7 @@ public class HibernateGenericStore<T>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicate( root ->  root.join( "attributeValues", JoinType.INNER ).get( "attribute" ).in( attributes )  );
+            .addPredicate( root ->   builder.function( "jsonb_extract_path_text", String.class, root.get( "attributeValues" ), builder.literal("attribute") ).in( attributes ));
 
         return getList( builder, parameters );
     }
@@ -446,32 +450,34 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
+    public List<JsonAttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
+        CriteriaQuery<JsonAttributeValue> query = builder.createQuery( JsonAttributeValue.class );
 
         Root<T> root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ( "attributeValues" ), JoinType.INNER );
         query.select( root.get( "attributeValues" ) );
-        query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
+        query.where( builder.equal(
+                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal("attribute") )
+                        ,attribute.getUid() )
+        );
 
         return getSession().createQuery( query ).list();
     }
 
     @Override
-    public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
+    public List<JsonAttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
-
+        CriteriaQuery<JsonAttributeValue> query = builder.createQuery( JsonAttributeValue.class );
         Root<T> root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ( "attributeValues" ), JoinType.INNER );
-        query.select( root.get( "attributeValues" ) );
+
+        query.select( root.get( "jsonAttributeValues" ) );
         query.where(
-            builder.and(
-                builder.equal( joinAttributeValue.get( "attribute" ), attribute ),
-                builder.equal( joinAttributeValue.get( "value" ), value ) ) );
+                builder.and(
+                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "jsonAttributeValues" ), builder.literal("attribute" ) ), attribute.getUid() ),
+                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "jsonAttributeValues" ), builder.literal("value" ) ), value ))
+        );
 
         return getSession().createQuery( query ).list();
     }
@@ -481,16 +487,16 @@ public class HibernateGenericStore<T>
     {
         Attribute attribute = getSession().get( Attribute.class, attributeValue.getAttribute() );
 
-        List<AttributeValue> values = getAttributeValueByAttribute( attribute );
+        List<JsonAttributeValue> values = getAttributeValueByAttribute( attribute );
 
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ));
+        return values.isEmpty() || (object != null && values.size() == 1 && object.getJsonAttributeValues().contains( values.get( 0 ) ) );
     }
 
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value )
     {
-        List<AttributeValue> values = getAttributeValueByAttributeAndValue( attribute, value );
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ));
+        List<JsonAttributeValue> values = getAttributeValueByAttributeAndValue( attribute, value );
+        return values.isEmpty() || (object != null && values.size() == 1 && object.getJsonAttributeValues().contains( values.get( 0 ) ) );
     }
 
     /**

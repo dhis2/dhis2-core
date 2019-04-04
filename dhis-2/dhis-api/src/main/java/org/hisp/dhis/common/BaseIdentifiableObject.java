@@ -36,7 +36,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -56,6 +58,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Bob Jolliffe
@@ -98,7 +101,14 @@ public class BaseIdentifiableObject
     /**
      * Set of the dynamic attributes values that belong to this data element.
      */
-    protected Set<AttributeValue> attributeValues = new HashSet<>();
+    protected transient Set<AttributeValue> attributeValues = new HashSet<>();
+
+    /**
+     * Set of the dynamic attributes values in json format that belong to this data element.
+     */
+    protected Set<JsonAttributeValue> jsonAttributeValues = new HashSet<>();
+
+    protected Map<String, JsonAttributeValue> cacheAttributeValues = new HashMap<>();
 
     /**
      * Set of available object translation, normally filtered by locale.
@@ -351,6 +361,54 @@ public class BaseIdentifiableObject
         return translations != null ? translations : new HashSet<>();
     }
 
+    @Override
+    public Set<JsonAttributeValue> getJsonAttributeValues() {
+        return jsonAttributeValues;
+    }
+
+    public void setJsonAttributeValues( Set<JsonAttributeValue> jsonAttributeValues )
+    {
+        this.jsonAttributeValues = jsonAttributeValues;
+    }
+
+    @Override
+    public void removeAttributeValue( AttributeValue attributeValue )
+    {
+        attributeValues.remove( attributeValue );
+        jsonAttributeValues.remove( new JsonAttributeValue( attributeValue ) );
+    }
+
+    @Override
+    public void removeJsonAttributeValue( JsonAttributeValue jsonAttributeValue )
+    {
+        jsonAttributeValues.remove( jsonAttributeValue );
+    }
+
+    public void addAttributeValue( String value, Attribute attribute )
+    {
+        jsonAttributeValues.add( new JsonAttributeValue( value , attribute ) );
+    }
+
+    public void addAttributeValue( AttributeValue attributeValue )
+    {
+        jsonAttributeValues.add( new JsonAttributeValue( attributeValue ) );
+        attributeValues.add( attributeValue );
+    }
+
+    @Override
+    public void addJsonAttributeValue( JsonAttributeValue jsonAttributeValue )
+    {
+        jsonAttributeValues.add( jsonAttributeValue );
+    }
+
+    public AttributeValue getAttributeValue( Attribute attribute )
+    {
+       return jsonAttributeValues.stream()
+               .filter( av ->  av.getAttribute() == attribute.getUid() )
+               .findFirst()
+               .map( jsonAv -> new AttributeValue( jsonAv, attribute ) )
+               .get();
+    }
     /**
      * Clears out cache when setting translations.
      */
@@ -671,9 +729,9 @@ public class BaseIdentifiableObject
         }
         else if ( idScheme.is( IdentifiableProperty.ATTRIBUTE ) )
         {
-            for ( AttributeValue attributeValue : attributeValues )
+            for ( JsonAttributeValue attributeValue : jsonAttributeValues )
             {
-                if ( idScheme.getAttribute().equals( attributeValue.getAttribute().getUid() ) )
+                if ( idScheme.getAttribute().equals( attributeValue.getAttribute() ) )
                 {
                     return attributeValue.getValue();
                 }

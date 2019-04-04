@@ -38,6 +38,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -65,6 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
@@ -85,6 +87,8 @@ public class DefaultIdentifiableObjectManager
      * Cache for default category objects. Disabled during test phase.
      */
     private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
+
+    private static Cache<String, Attribute> ATTRIBUTE_CACHE;
 
     @Autowired
     private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
@@ -111,6 +115,12 @@ public class DefaultIdentifiableObjectManager
             .expireAfterAccess( 2, TimeUnit.HOURS )
             .initialCapacity( 4 )
             .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10 )
+            .build();
+
+        ATTRIBUTE_CACHE = Caffeine.newBuilder()
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .initialCapacity( 4 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 200 )
             .build();
     }
 
@@ -919,7 +929,11 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return store.getAttributeValueByAttribute( attribute );
+        List<JsonAttributeValue> jsonAttributeValues = store.getAttributeValueByAttribute( attribute );
+
+        return jsonAttributeValues.stream().map(
+                json -> new AttributeValue( json, getCachedAttribute( json.getAttribute() ) ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -939,7 +953,11 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return store.getAttributeValueByAttributeAndValue( attribute, value );
+        List<JsonAttributeValue> jsonAttributeValues = store.getAttributeValueByAttributeAndValue( attribute, value );
+
+        return jsonAttributeValues.stream().map(
+                json -> new AttributeValue( json, getCachedAttribute( json.getAttribute() ) ) )
+                .collect( Collectors.toList() );
     }
 
     @Override
@@ -986,6 +1004,11 @@ public class DefaultIdentifiableObjectManager
         }
         IdentifiableObject defaultObject = defaults.get( realClass );
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
+    }
+
+    public Attribute getCachedAttribute( String uid )
+    {
+        return ATTRIBUTE_CACHE.get( uid, key -> get( Attribute.class, uid ) );
     }
 
     @SuppressWarnings( "unchecked" )
