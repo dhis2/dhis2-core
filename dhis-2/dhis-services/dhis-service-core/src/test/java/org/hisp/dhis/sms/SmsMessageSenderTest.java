@@ -51,7 +51,6 @@ import org.mockito.junit.MockitoJUnit;
 
 import com.google.common.collect.Sets;
 import org.mockito.junit.MockitoRule;
-import org.springframework.core.task.TaskExecutor;
 
 /**
  * @author Zubair Asghar.
@@ -72,9 +71,6 @@ public class SmsMessageSenderTest
 
     @Mock
     private BulkSmsHttpGateway bulkSmsGateway;
-
-    @Mock
-    private TaskExecutor taskExecutor;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -121,9 +117,7 @@ public class SmsMessageSenderTest
 
         smsGateways.add( bulkSmsGateway );
 
-        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService, taskExecutor );
-
-        smsGatewayConfig = new BulkSmsGatewayConfig();
+        smsMessageSender = new SmsMessageSender( gatewayAdministrationService, smsGateways, userSettingService );
 
         // stub for GateAdministrationService
         when( gatewayAdministrationService.getDefaultGateway() ).thenReturn( smsGatewayConfig );
@@ -296,14 +290,20 @@ public class SmsMessageSenderTest
 
         ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
 
-        smsMessageSender.sendMessageBatch( batch );
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.COMPLETED, summary.getBatchStatus() );
 
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
-        verify( gatewayAdministrationService, times( 1 ) ).getDefaultGateway();
-
         assertEquals( batch, argumentCaptor.getValue() );
 
         assertEquals( 4, argumentCaptor.getValue().size() );
+
+        assertEquals( 4, summary.getSent() );
+        assertEquals( 4, summary.getTotal() );
+        assertEquals( 0, summary.getFailed() );
+        assertEquals( 0, summary.getPending() );
     }
 
     @Test
@@ -315,11 +315,19 @@ public class SmsMessageSenderTest
 
         ArgumentCaptor<OutboundMessageBatch> argumentCaptor = ArgumentCaptor.forClass( OutboundMessageBatch.class );
 
-        smsMessageSender.sendMessageBatch( batch );
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.FAILED, summary.getBatchStatus() );
 
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
         assertEquals( batch, argumentCaptor.getValue() );
         assertEquals( 4, argumentCaptor.getValue().size() );
+
+        assertEquals( 3, summary.getSent() );
+        assertEquals( 4, summary.getTotal() );
+        assertEquals( 1, summary.getFailed() );
+        assertEquals( 0, summary.getPending() );
     }
 
     @Test
@@ -344,12 +352,19 @@ public class SmsMessageSenderTest
 
         OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages , DeliveryChannel.SMS );
 
-        smsMessageSender.sendMessageBatch( batch );
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.COMPLETED, summary.getBatchStatus() );
 
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
         assertEquals( batch, argumentCaptor.getValue() );
 
         assertEquals( 6, argumentCaptor.getValue().size() );
+        assertEquals( 6, summary.getSent() );
+        assertEquals( 6, summary.getTotal() );
+        assertEquals( 0, summary.getFailed() );
+        assertEquals( 0, summary.getPending() );
     }
 
     @Test
@@ -362,7 +377,10 @@ public class SmsMessageSenderTest
 
         OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages , DeliveryChannel.SMS );
 
-        smsMessageSender.sendMessageBatch( batch );
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.COMPLETED, summary.getBatchStatus() );
 
         verify( bulkSmsGateway, times( 1 ) ).sendBatch( argumentCaptor.capture(), any() );
         assertEquals( batch, argumentCaptor.getValue() );
@@ -380,11 +398,11 @@ public class SmsMessageSenderTest
 
         OutboundMessageBatch batch = new OutboundMessageBatch( outboundMessages, DeliveryChannel.SMS );
 
-       smsMessageSender.sendMessageBatch( batch );
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( batch );
 
-       verify( gatewayAdministrationService, times( 1 ) ).getDefaultGateway();
-       verify( bulkSmsGateway, times( 0 ) ).sendBatch( any(), any() );
-
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.FAILED, summary.getBatchStatus() );
+        assertEquals( NO_CONFIG, summary.getErrorMessage() );
     }
 
     @Test
@@ -395,6 +413,15 @@ public class SmsMessageSenderTest
         assertNotNull( status );
         assertFalse( status.isOk() );
         assertEquals( GatewayResponse.NO_RECIPIENT, status.getResponseObject() );
+    }
+
+    @Test
+    public void testIfBatchIsNull()
+    {
+        OutboundMessageResponseSummary summary = smsMessageSender.sendMessageBatch( null );
+
+        assertNotNull( summary );
+        assertEquals( OutboundMessageBatchStatus.ABORTED, summary.getBatchStatus() );
     }
 
     // -------------------------------------------------------------------------

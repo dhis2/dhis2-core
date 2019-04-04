@@ -29,6 +29,7 @@ package org.hisp.dhis.message;
  */
 
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.user.User;
 import org.springframework.scheduling.annotation.Async;
@@ -78,7 +79,8 @@ public class MockMessageSender
     }
 
     @Override
-    public void sendMessageBatch( OutboundMessageBatch batch )
+    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
+        return null;
     }
 }

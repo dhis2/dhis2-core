@@ -35,5 +35,5 @@ import java.util.List;
  */
 public interface OutboundMessageBatchService
 {
-    void sendBatches (List<OutboundMessageBatch> batches );
+    List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches );
 }

@@ -31,8 +31,6 @@ package org.hisp.dhis.outboundmessage;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.DeliveryChannel;
 
 /**
@@ -45,8 +43,7 @@ public class OutboundMessageBatch
 
     private final DeliveryChannel deliveryChannel;
 
-    @JsonCreator
-    public OutboundMessageBatch( @JsonProperty( "messages" ) List<OutboundMessage> messages, @JsonProperty( "deliveryChannel" )DeliveryChannel deliveryChannel )
+    public OutboundMessageBatch( List<OutboundMessage> messages, DeliveryChannel deliveryChannel )
     {
         this.messages = messages;
         this.deliveryChannel = deliveryChannel;

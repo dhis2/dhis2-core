@@ -525,7 +525,9 @@ public class DefaultDataSetNotificationService
 
         log.info( String.format( "Dispatching %d ProgramMessages", messages.size() ) );
 
-        externalMessageService.sendMessages( messages );
+        BatchResponseStatus status = externalMessageService.sendMessages( messages );
+
+        log.debug( String.format( "Resulting status from ProgramMessageService:\n %s", status.toString() ) );
     }
 
     private void sendAll( MessageBatch messageBatch )

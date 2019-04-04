@@ -362,9 +362,7 @@ public class DefaultGatewayAdministrationService
 
     private SmsConfiguration getSmsConfiguration()
     {
-        SmsConfiguration configuration = smsConfigurationManager.getSmsConfiguration();
-
-        return configuration == null ? new SmsConfiguration() : configuration;
+        return smsConfigurationManager.getSmsConfiguration();
     }
 
     private void initializeSmsConfig()

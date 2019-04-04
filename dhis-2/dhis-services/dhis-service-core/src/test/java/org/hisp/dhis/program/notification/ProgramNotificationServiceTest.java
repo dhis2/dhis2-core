@@ -31,7 +31,11 @@ package org.hisp.dhis.program.notification;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,8 +73,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -108,11 +110,14 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Mock
     private IdentifiableObjectManager manager;
 
+    @Mock
+    private ProgramInstanceStore programInstanceStore;
+
+    @Mock
+    private ProgramStageInstanceStore programStageInstanceStore;
+
     @InjectMocks
     private DefaultProgramNotificationService programNotificationService;
-
-    @Captor
-    private ArgumentCaptor<List<ProgramMessage>> argumentCaptor;
 
     private Set<ProgramInstance> programInstances = new HashSet<>();
     private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
@@ -164,11 +169,26 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         setUpInstances();
 
+        BatchResponseStatus status = new BatchResponseStatus(Collections.emptyList());
+        when( programMessageService.sendMessages( anyList() ) )
+            .thenAnswer( invocation -> {
+                sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
+                return status;
+            } );
+
         when( messageService.sendMessage( any() ) )
             .thenAnswer( invocation -> {
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 40l;
             } );
+
+        when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
+            .thenReturn( Lists.newArrayList( programInstances ) );
+        when( programStageInstanceStore.getWithScheduledNotifications( any(), any() ) )
+            .thenReturn( Lists.newArrayList( programStageInstances ) );
+
+        when( manager.getAll( ProgramNotificationTemplate.class ) )
+            .thenReturn( Collections.singletonList( programNotificationTemplate ) );
 
         when( programNotificationMessageRenderer.render( any(), any() ) )
             .thenReturn( notificationMessage );
@@ -206,12 +226,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         programNotificationService.sendCompletionNotifications( programInstances.iterator().next() );
 
-        verify( programMessageService ).sendMessages( argumentCaptor.capture() );
+        assertEquals( 1, sentProgramMessages.size() );
 
-        List<ProgramMessage> programMessages = argumentCaptor.getValue();
-
-        assertEquals( 1, programMessages.size() );
-        ProgramMessage programMessage = programMessages.iterator().next();
+        ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
         assertEquals( TrackedEntityInstance.class, programMessage.getRecipients().getTrackedEntityInstance().getClass() );
         assertEquals( tei, programMessage.getRecipients().getTrackedEntityInstance() );
@@ -224,13 +241,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendEnrollmentNotifications( programInstances.iterator().next() );
 
-        verify( programMessageService ).sendMessages( argumentCaptor.capture() );
+        assertEquals( 1, sentProgramMessages.size() );
 
-        List<ProgramMessage> programMessages = argumentCaptor.getValue();
-
-        assertEquals( 1, programMessages.size() );
-
-        ProgramMessage programMessage = programMessages.iterator().next();
+        ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
         assertEquals( TrackedEntityInstance.class, programMessage.getRecipients().getTrackedEntityInstance().getClass() );
         assertEquals( tei, programMessage.getRecipients().getTrackedEntityInstance() );
@@ -259,13 +272,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendCompletionNotifications( programInstances.iterator().next() );
 
-        verify( programMessageService ).sendMessages( argumentCaptor.capture() );
+        assertEquals( 1, sentProgramMessages.size() );
 
-        List<ProgramMessage> programMessages = argumentCaptor.getValue();
-
-        assertEquals( 1, programMessages.size() );
-
-        ProgramMessage programMessage = programMessages.iterator().next();
+        ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
         assertEquals( OrganisationUnit.class, programMessage.getRecipients().getOrganisationUnit().getClass() );
         assertEquals( lvlTwoLeftLeft, programMessage.getRecipients().getOrganisationUnit() );
@@ -280,13 +289,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendCompletionNotifications( programInstances.iterator().next() );
 
-        verify( programMessageService ).sendMessages( argumentCaptor.capture() );
+        assertEquals( 1, sentProgramMessages.size() );
 
-        List<ProgramMessage> programMessages = argumentCaptor.getValue();
-
-        assertEquals( 1, programMessages.size() );
-
-        ProgramMessage programMessage = programMessages.iterator().next();
+        ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
         assertTrue( programMessage.getRecipients().getPhoneNumbers().contains( ATT_PHONE_NUMBER ) );
         assertTrue( programMessage.getDeliveryChannels().contains( DeliveryChannel.SMS ) );
@@ -301,13 +306,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendCompletionNotifications( programInstances.iterator().next() );
 
-        verify( programMessageService ).sendMessages( argumentCaptor.capture() );
+        assertEquals( 1, sentProgramMessages.size() );
 
-        List<ProgramMessage> programMessages = argumentCaptor.getValue();
-
-        assertEquals( 1, programMessages.size() );
-
-        ProgramMessage programMessage = programMessages.iterator().next();
+        ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
         assertTrue( programMessage.getRecipients().getEmailAddresses().contains( ATT_EMAIL ) );
         assertTrue( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) );
@@ -331,11 +332,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendCompletionNotifications( programStageInstance );
 
-        verify( programMessageService ).sendMessages( argumentCaptor.capture() );
-
-        List<ProgramMessage> programMessages = argumentCaptor.getValue();
-
-        assertEquals( 1, programMessages.size() );
+        assertEquals( 1, sentProgramMessages.size() );
 
     }
 
@@ -357,11 +354,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendCompletionNotifications( programStageInstance );
 
-        verify( programMessageService ).sendMessages( argumentCaptor.capture() );
-
-        List<ProgramMessage> programMessages = argumentCaptor.getValue();
-
-        assertEquals( 1, programMessages.size() );
+        assertEquals( 1, sentProgramMessages.size() );
     }
 
     @Test
@@ -466,13 +459,16 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         programNotificationService.sendScheduledNotifications();
 
-        verify( programMessageService, times( 1 ) ).sendMessages( anyList() );
+        assertEquals( 1, sentProgramMessages.size() );
     }
 
     @Test
     public void testScheduledNotificationsWithDateInPast()
     {
         sentInternalMessages.clear();
+
+        when( manager.getAll( ProgramNotificationTemplate.class ) )
+            .thenReturn( Collections.singletonList( programNotificationTemplateForYesterday ) );
 
         programNotificationService.sendScheduledNotifications();
 

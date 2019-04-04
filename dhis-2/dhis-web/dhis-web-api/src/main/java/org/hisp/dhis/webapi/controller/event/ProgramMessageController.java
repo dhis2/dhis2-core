@@ -119,10 +119,10 @@ public class ProgramMessageController
             programMessageService.validatePayload( programMessage );
         }
 
-        programMessageService.sendMessages( batch.getProgramMessages() );
+        BatchResponseStatus status = programMessageService.sendMessages( batch.getProgramMessages() );
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
-        renderService.toJson( response.getOutputStream(), "Message queued" );
+        renderService.toJson( response.getOutputStream(), status );
     }
 }

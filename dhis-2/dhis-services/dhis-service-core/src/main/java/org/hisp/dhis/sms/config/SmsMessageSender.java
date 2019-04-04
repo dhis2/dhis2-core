@@ -32,7 +32,6 @@ import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,17 +48,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import javax.annotation.Resource;
 
 /**
  * @author Nguyen Kim Lai
@@ -81,17 +75,15 @@ public class SmsMessageSender
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final GatewayAdministrationService gatewayAdminService;
+    private GatewayAdministrationService gatewayAdminService;
 
     private List<SmsGateway> smsGateways;
 
-    private final UserSettingService userSettingService;
-
-    private TaskExecutor taskExecutor;
+    private UserSettingService userSettingService;
 
     @Autowired
     public SmsMessageSender( GatewayAdministrationService gatewayAdminService, List<SmsGateway> smsGateways,
-        UserSettingService userSettingService, @Qualifier( "taskScheduler" ) TaskExecutor taskExecutor )
+        UserSettingService userSettingService )
     {
 
         Preconditions.checkNotNull( gatewayAdminService );
@@ -102,7 +94,6 @@ public class SmsMessageSender
         this.gatewayAdminService = gatewayAdminService;
         this.smsGateways = smsGateways;
         this.userSettingService = userSettingService;
-        this.taskExecutor = taskExecutor;
     }
 
     // -------------------------------------------------------------------------
@@ -143,7 +134,7 @@ public class SmsMessageSender
     public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
-        return new AsyncResult<>( response );
+        return new AsyncResult<OutboundMessageResponse>( response );
     }
     
     @Override
@@ -175,14 +166,18 @@ public class SmsMessageSender
     }
 
     @Override
-    public void sendMessageBatch( OutboundMessageBatch batch )
+    public OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch )
     {
+        if ( batch == null )
+        {
+            return createMessageResponseSummary( BATCH_ABORTED, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, 0 );
+        }
+
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
         if ( defaultGateway == null )
         {
-            log.info( NO_CONFIG );
-            return;
+            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch.size() );
         }
 
         batch.getMessages().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
@@ -193,24 +188,13 @@ public class SmsMessageSender
         {
             if ( smsGateway.accept( defaultGateway ) )
             {
-                CompletableFuture
-                        .supplyAsync( () -> smsGateway.sendBatch( batch, defaultGateway ), taskExecutor )
-                        .handle( ( result, ex ) ->
-                        {
-                            if ( result != null )
-                            {
-                                return result;
-                            }
-                            else
-                            {
-                                log.error( ex );
-                                return new ArrayList<OutboundMessageResponse>();
-                            }
+                List<OutboundMessageResponse> responses = smsGateway.sendBatch( batch, defaultGateway );
 
-                        })
-                        .thenAccept( this::notifyResponse );
+                return generateSummary( responses, batch );
             }
         }
+
+        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, batch.size() );
     }
 
     @Override
@@ -224,23 +208,6 @@ public class SmsMessageSender
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private void notifyResponse( List<OutboundMessageResponse> responses )
-    {
-        int total, sent = 0;
-
-        total = responses.size();
-
-        for ( OutboundMessageResponse status : responses )
-        {
-            if ( status.isOk() )
-            {
-                sent++;
-            }
-        }
-
-        log.info( String.format( "Messages sent: %d Messages failed: %d", sent, total - sent ) );
-    }
 
     private boolean isQualifiedReceiver( User user )
     {
@@ -328,8 +295,71 @@ public class SmsMessageSender
         status.setResponseObject( gatewayResponse );
     }
 
+    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses, OutboundMessageBatch batch )
+    {
+        Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
+            GatewayResponse.RESULT_CODE_202 );
+
+        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary();
+
+        int total, sent = 0;
+
+        boolean ok = true;
+
+        String errorMessage = StringUtils.EMPTY;
+
+        total = batch.getMessages().size();
+
+        for ( OutboundMessageResponse status : statuses )
+        {
+            if ( okCodes.contains( status.getResponseObject() ) )
+            {
+                sent++;
+            }
+            else
+            {
+                ok = false;
+
+                errorMessage = status.getDescription();
+            }
+        }
+
+        summary.setTotal( total );
+        summary.setChannel( DeliveryChannel.SMS );
+        summary.setSent( sent );
+        summary.setFailed( total - sent );
+
+        if ( !ok )
+        {
+            summary.setBatchStatus( OutboundMessageBatchStatus.FAILED );
+            summary.setErrorMessage( errorMessage );
+
+            log.error( errorMessage );
+        }
+        else
+        {
+            summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
+            summary.setResponseMessage( "SENT" );
+
+            log.info( "SMS batch processed successfully" );
+        }
+
+        return summary;
+    }
+
     private boolean hasRecipients( Set<?> collection )
     {
         return collection != null && !collection.isEmpty();
+    }
+
+    private OutboundMessageResponseSummary createMessageResponseSummary( String responseMessage, DeliveryChannel channel,
+        OutboundMessageBatchStatus batchStatus, int total )
+    {
+        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel, batchStatus );
+        summary.setTotal( total );
+
+        log.warn( responseMessage );
+
+        return summary;
     }
 }

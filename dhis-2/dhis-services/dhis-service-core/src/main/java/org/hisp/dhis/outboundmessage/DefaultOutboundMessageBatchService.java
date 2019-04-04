@@ -69,23 +69,22 @@ public class DefaultOutboundMessageBatchService
     // ---------------------------------------------------------------------
 
     @Override
-    public void sendBatches( List<OutboundMessageBatch> batches )
+    public List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches )
     {
-         batches.forEach( this::send );
+        // Partition by channel (sender) first to avoid sender config checks
+        return batches.stream()
+            .collect( Collectors.groupingBy( OutboundMessageBatch::getDeliveryChannel ) )
+            .entrySet().stream()
+            .flatMap( entry -> entry.getValue().stream().map( this::send ) )
+            .collect( Collectors.toList() );
     }
 
     // ---------------------------------------------------------------------
     // Supportive Methods
     // ---------------------------------------------------------------------
 
-    private void send( OutboundMessageBatch batch )
+    private OutboundMessageResponseSummary send( OutboundMessageBatch batch )
     {
-        if ( batch == null || batch.getMessages().isEmpty() )
-        {
-            log.error( "Batch is either null or empty" );
-            return;
-        }
-
         DeliveryChannel channel = batch.getDeliveryChannel();
         MessageSender sender = messageSenders.get( channel );
 
@@ -94,18 +93,26 @@ public class DefaultOutboundMessageBatchService
             String errorMessage = String.format( "No server/gateway found for delivery channel %s", channel );
             log.error( errorMessage );
 
-            return;
+            return new OutboundMessageResponseSummary(
+                errorMessage,
+                channel,
+                OutboundMessageBatchStatus.FAILED
+            );
         }
         else if ( !sender.isConfigured() )
         {
             String errorMessage = String.format( "Server/gateway for delivery channel %s is not configured", channel );
             log.error( errorMessage );
 
-            return;
+            return new OutboundMessageResponseSummary(
+                errorMessage,
+                channel,
+                OutboundMessageBatchStatus.FAILED
+            );
         }
 
         log.info( "Invoking message sender: " + sender.getClass().getSimpleName() );
 
-        sender.sendMessageBatch( batch );
+        return sender.sendMessageBatch( batch );
     }
 }
