@@ -222,7 +222,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
     @Transactional(readOnly = true)
     public String getFilterAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
-        return getAnalyticsSql( programIndicator.getFilter(), programIndicator, startDate, endDate, false );
+        return getAnalyticsSql( programIndicator.getFilter(), programIndicator, startDate, endDate, true );
     }
 
     @Override

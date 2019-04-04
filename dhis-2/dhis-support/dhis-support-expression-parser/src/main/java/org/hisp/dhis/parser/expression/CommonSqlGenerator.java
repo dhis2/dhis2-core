@@ -53,12 +53,6 @@ public abstract class CommonSqlGenerator
     @Override
     public String visitOperator( ExprContext ctx )
     {
-        if ( ctx.programNullTest != null )
-        {
-            return castString( visitIgnoringMissingValues( ctx.item()) )
-                + " == " + ctx.programNullTest.getText();
-        }
-
         List<String> args = ctx.expr().stream()
             .map( c -> castStringVisit( c ) )
             .collect( Collectors.toList() );

@@ -311,7 +311,7 @@ public class ProgramSqlGenerator
                 return "(cast(" + dates.getEnd() + " as date) - cast(" + dates.getStart() + " as date))";
 
             case D2_HAS_VALUE:
-                return "((" + hasValueArg( ctx.column() ) + ") is not null)";
+                return "(" + visitAllowingNullValues( ctx.item() ) + " is not null)";
 
             case D2_MINUTES_BETWEEN:
                 return "(extract(epoch from (cast(" + dates.getEnd() + " as timestamp) - cast(" + dates.getStart() + " as timestamp))) / 60)";
@@ -465,26 +465,6 @@ public class ProgramSqlGenerator
         return "(select count(*) from relationship r" + relationshipIdConstraint +
             " join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid" +
             " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
-    }
-
-    private String hasValueArg( ColumnContext ctx )
-    {
-        if ( ctx.programAttribute() != null )
-        {
-            return statementBuilder.columnQuote( ctx.programAttribute().uid0.getText() );
-        }
-        else if ( ctx.stageDataElement() != null )
-        {
-            return statementBuilder.columnQuote( ctx.stageDataElement().uid1.getText() );
-        }
-        else if ( ctx.uid0 != null )
-        {
-            return statementBuilder.columnQuote( ctx.uid0.getText() );
-        }
-        else
-        {
-            throw new ParserExceptionWithoutContext( "Parser internal error: column context not recognized." );
-        }
     }
 
     /**

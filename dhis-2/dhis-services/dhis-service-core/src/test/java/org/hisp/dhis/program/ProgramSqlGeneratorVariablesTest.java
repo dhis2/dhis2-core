@@ -60,10 +60,8 @@ import static org.mockito.Mockito.when;
  * @author Luciano Fiandesio
  */
 public class ProgramSqlGeneratorVariablesTest
-    extends
-    DhisConvenienceTest
+    extends DhisConvenienceTest
 {
-
     private BeanRandomizer beanRandomizer = new BeanRandomizer();
 
     private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";

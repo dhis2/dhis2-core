@@ -228,7 +228,7 @@ public class ProgramValidator
                 return 1d;
 
             case D2_HAS_VALUE:
-                validateColumn( ctx.column() );
+                visit( ctx.item() );
                 return true;
 
             case D2_OIZP:
@@ -357,49 +357,6 @@ public class ProgramValidator
         String testExpression = ValidationUtils.getSubstitutionValue( dataElementValueType ) + trimQuotes( ctx.STRING_LITERAL().getText() );
 
         validateSubexprssion( testExpression, Boolean.class );
-    }
-
-    private void validateColumn( ColumnContext ctx )
-    {
-        if ( ctx.programAttribute() != null )
-        {
-            validateProgramAttribute( ctx.programAttribute() );
-        }
-        else if ( ctx.stageDataElement() != null )
-        {
-            validateStageDataElement( ctx.stageDataElement() );
-        }
-        else if ( ctx.uid0 != null )
-        {
-            validateColiumnAttributeOrDataElement( ctx.uid0.getText() );
-        }
-        else
-        {
-            throw new InternalParserException( "column context not recognized" );
-        }
-    }
-
-    private void validateColiumnAttributeOrDataElement( String uid )
-    {
-        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
-
-        if ( attribute != null )
-        {
-            itemDescriptions.put( uid, attribute.getDisplayName() );
-        }
-        else
-        {
-            DataElement dataElement = dataElementService.getDataElement( uid );
-
-            if ( dataElement != null )
-            {
-                itemDescriptions.put( uid, dataElement.getDisplayName() );
-            }
-            else
-            {
-                throw new ParserExceptionWithoutContext( "HasValue argument is not an attribute or a data element" );
-            }
-        }
     }
 
     private void validateRelationshipType( ProgramFunctionContext ctx )

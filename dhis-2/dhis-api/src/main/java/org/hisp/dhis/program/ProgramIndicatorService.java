@@ -190,6 +190,7 @@ public interface ProgramIndicatorService
      * @param programIndicator the program indicator to evaluate.
      * @param startDate the start date.
      * @param endDate the end date.
+     * @param ignoreMissingValues replace nulls with 0 or ''.
      * @return the SQL string.
      */
     String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, boolean ignoreMissingValues );
