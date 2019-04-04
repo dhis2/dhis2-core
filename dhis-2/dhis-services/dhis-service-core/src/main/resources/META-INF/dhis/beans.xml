@@ -1196,9 +1196,6 @@
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.notification.ProgramNotificationPublisher"
-    class="org.hisp.dhis.program.notification.ProgramNotificationPublisher" />
-
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"
     class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
 

@@ -125,8 +125,7 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
-import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionEvent;
 import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -250,9 +249,6 @@ public abstract class AbstractEventService
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
-
-    @Autowired
-    protected ProgramNotificationPublisher programNotificationPublisher;
 
     @Autowired
     protected RelationshipService relationshipService;
@@ -1739,11 +1735,13 @@ public abstract class AbstractEventService
         programInstanceCache.put( programInstance.getUid(), programInstance );
         sendProgramNotification( programStageInstance, importOptions );
 
-        if ( importSummary.getConflicts().size() > 0 ) {
+        if ( importSummary.getConflicts().size() > 0 )
+        {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.incrementIgnored();
         }
-        else {
+        else
+        {
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.incrementImported();
         }
@@ -1757,7 +1755,7 @@ public abstract class AbstractEventService
         {
             if ( programStageInstance.isCompleted() )
             {
-                programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
+                eventPublisher.publishEvent( new ProgramStageCompletionEvent( this, programStageInstance ) );
             }
 
             if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )

@@ -39,8 +39,8 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
-import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionEvent;
+import org.hisp.dhis.program.notification.event.programEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -96,9 +96,6 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private ProgramNotificationPublisher programNotificationPublisher;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -495,7 +492,7 @@ public class DefaultProgramInstanceService
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
 
-        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
+        eventPublisher.publishEvent( new programEnrollmentNotificationEvent( this, programInstance ) );
 
         eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 
@@ -536,7 +533,7 @@ public class DefaultProgramInstanceService
         // Send sms-message when to completed the program
         // ---------------------------------------------------------------------
 
-        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
+        eventPublisher.publishEvent( new ProgramEnrollmentCompletionEvent( this, programInstance ) );
 
         eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
 

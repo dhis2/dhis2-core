@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.program.notification.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,69 +29,23 @@ package org.hisp.dhis.program.notification;
  */
 
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * Created by zubair@dhis2.org on 18.01.18.
+ * @Author Zubair Asghar.
  */
-public class ProgramNotificationEvent extends ApplicationEvent
+public class programEnrollmentNotificationEvent extends ApplicationEvent
 {
     private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
-
-    private ProgramNotificationTemplate template;
-
-    private ProgramNotificationEventType eventType;
-
-    public ProgramNotificationEvent( Object source, ProgramInstance programInstance, ProgramNotificationEventType eventType )
+    public programEnrollmentNotificationEvent(Object source, ProgramInstance programInstance )
     {
-        super(source);
+        super( source );
         this.programInstance = programInstance;
-        this.eventType = eventType;
-    }
-
-    public ProgramNotificationEvent( Object source, ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
-    {
-        super(source);
-        this.programStageInstance = programStageInstance;
-        this.eventType = eventType;
-    }
-
-    public ProgramNotificationEvent( Object source, ProgramNotificationTemplate template, ProgramInstance programInstance, ProgramNotificationEventType eventType )
-    {
-        super(source);
-        this.template = template;
-        this.programInstance = programInstance;
-        this.eventType = eventType;
-    }
-
-    public ProgramNotificationEvent( Object source, ProgramNotificationTemplate template, ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
-    {
-        super(source);
-        this.template = template;
-        this.programStageInstance = programStageInstance;
-        this.eventType = eventType;
     }
 
     public ProgramInstance getProgramInstance()
     {
         return programInstance;
-    }
-
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
-
-    public ProgramNotificationEventType getEventType()
-    {
-        return eventType;
-    }
-
-    public ProgramNotificationTemplate getTemplate()
-    {
-        return template;
     }
 }

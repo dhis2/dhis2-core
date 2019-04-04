@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.program.notification.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,14 +28,24 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.context.ApplicationEvent;
+
 /**
- * Created by zubair@dhis2.org on 18.01.18.
+ * @Author Zubair Asghar.
  */
-public enum  ProgramNotificationEventType
+public class ProgramStageCompletionEvent extends ApplicationEvent
 {
-    PROGRAM_ENROLLMENT,
-    PROGRAM_COMPLETION,
-    PROGRAM_STAGE_COMPLETION,
-    PROGRAM_RULE_ENROLLMENT,
-    PROGRAM_RULE_EVENT
+    private ProgramStageInstance programStageInstance;
+
+    public ProgramStageCompletionEvent( Object source, ProgramStageInstance programStageInstance )
+    {
+        super( source );
+        this.programStageInstance = programStageInstance;
+    }
+
+    public ProgramStageInstance getProgramStageInstance()
+    {
+        return programStageInstance;
+    }
 }

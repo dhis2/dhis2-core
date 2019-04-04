@@ -34,10 +34,13 @@ import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.*;
+import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
+import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Created by zubair@dhis2.org on 04.01.18.
@@ -49,7 +52,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     // -------------------------------------------------------------------------
 
     @Autowired
-    private ProgramNotificationPublisher publisher;
+    private ApplicationEventPublisher publisher;
 
     @Autowired
     private NotificationLoggingService notificationLoggingService;
@@ -72,7 +75,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, programInstance );
 
-        publisher.publishEnrollment( template, programInstance, ProgramNotificationEventType.PROGRAM_RULE_ENROLLMENT );
+        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template, programInstance ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -91,7 +94,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
-        publisher.publishEvent( template, programStageInstance, ProgramNotificationEventType.PROGRAM_RULE_EVENT );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template, programStageInstance ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
