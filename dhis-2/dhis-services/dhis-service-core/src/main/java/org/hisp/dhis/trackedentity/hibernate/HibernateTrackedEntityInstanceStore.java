@@ -28,8 +28,6 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
@@ -46,6 +44,8 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_U
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +65,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -79,6 +78,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -448,18 +448,18 @@ public class HibernateTrackedEntityInstanceStore
             sql += "inner join ("
                 + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
                 + "from programinstance pi ";
-            
+
             if ( params.hasEventStatus() )
             {
                 sql += " inner join (select programinstanceid from programstageinstance psi ";
 
                 sql += getEventStatusWhereClause( params );
-                
+
                 sql += ") as psi on pi.programinstanceid = psi.programinstanceid ";
             }
 
             sql += " where pi.programid= " + params.getProgram().getId() + " ";
-            
+
             if ( params.hasProgramStatus() )
             {
                 sql += "and status = '" + params.getProgramStatus() + "' ";
@@ -682,7 +682,7 @@ public class HibernateTrackedEntityInstanceStore
             sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '"
                 + EventStatus.SKIPPED.name() + "' and ";
         }
-        
+
         sql += " psi.deleted is false";
 
         return sql;

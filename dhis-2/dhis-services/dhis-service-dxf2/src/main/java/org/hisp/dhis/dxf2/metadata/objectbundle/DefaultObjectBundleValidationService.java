@@ -232,7 +232,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -252,8 +251,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 iterator.remove();
                 continue;
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -290,7 +287,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
         PreheatIdentifier identifier = bundle.getPreheatIdentifier();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -383,8 +379,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
                 iterator.remove();
                 continue;
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -400,7 +394,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -419,8 +412,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                 iterator.remove();
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -436,7 +427,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -457,8 +447,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                 iterator.remove();
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -474,7 +462,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -493,8 +480,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                 iterator.remove();
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -510,7 +495,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -528,8 +512,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                 iterator.remove();
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -678,7 +660,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         Map<Class<?>, String> idMap = new HashMap<>();
 
         Iterator<IdentifiableObject> iterator = persistedObjects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -701,12 +682,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             {
                 idMap.put( object.getClass(), object.getUid() );
             }
-
-            idx++;
         }
 
         iterator = nonPersistedObjects.iterator();
-        idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -729,8 +707,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             {
                 idMap.put( object.getClass(), object.getUid() );
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -746,7 +722,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -775,8 +750,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                 iterator.remove();
             }
-
-            idx++;
         }
 
         return typeReport;
@@ -898,7 +871,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         }
 
         Iterator<IdentifiableObject> iterator = objects.iterator();
-        int idx = 0;
 
         while ( iterator.hasNext() )
         {
@@ -915,8 +887,6 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
                 iterator.remove();
             }
-
-            idx++;
         }
 
         return typeReport;

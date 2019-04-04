@@ -28,7 +28,7 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

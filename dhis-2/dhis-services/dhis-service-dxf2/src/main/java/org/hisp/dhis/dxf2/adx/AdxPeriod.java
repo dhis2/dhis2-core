@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.adx;
 import java.util.Calendar;
 import java.util.Date;
 
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.period.BiMonthlyPeriodType;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
@@ -45,6 +44,7 @@ import org.hisp.dhis.period.SixMonthlyAprilPeriodType;
 import org.hisp.dhis.period.SixMonthlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * ADXPeriod
