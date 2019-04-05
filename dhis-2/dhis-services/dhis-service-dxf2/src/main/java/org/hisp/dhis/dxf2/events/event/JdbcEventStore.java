@@ -800,12 +800,12 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
         }
         
-        if ( params.isIncludeOnlyUnassigned() )
+        if ( params.isIncludeOnlyUnassignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is null) ";
         }
         
-        if ( params.isIncludeOnlyAssigned() )
+        if ( params.isIncludeOnlyAssignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is not null) ";
         }
@@ -1005,12 +1005,12 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
         }
         
-        if ( params.isIncludeOnlyUnassigned() )
+        if ( params.isIncludeOnlyUnassignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is null) ";
         }
         
-        if ( params.isIncludeOnlyAssigned() )
+        if ( params.isIncludeOnlyAssignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is not null) ";
         }
