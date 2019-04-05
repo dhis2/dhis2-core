@@ -1,7 +1,5 @@
 package org.hisp.dhis.trackedentityfilter;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,6 +30,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 
 import java.io.Serializable;
 import java.util.HashSet;
