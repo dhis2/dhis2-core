@@ -38,7 +38,6 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +59,6 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -331,7 +329,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( item.hasProgramStage() )
         {
-            Assert.isTrue( item.hasProgram(), "Can not query item with program stage but no program" );
+            Assert.isTrue( item.hasProgram(), "Can not query item with program stage but no program:" + item.getItemName() );
             String eventTableName = "analytics_event_" + item.getProgram().getUid();
             return "(select " + col + " from " + eventTableName + " where " + eventTableName +
                     ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + col + " is not null " +

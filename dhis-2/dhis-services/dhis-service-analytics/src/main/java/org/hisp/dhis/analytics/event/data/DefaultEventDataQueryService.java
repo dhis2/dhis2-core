@@ -399,8 +399,6 @@ public class DefaultEventDataQueryService
             {
                 qi.setProgramStage( programStage );
             }
-
-            return qi;
         }
 
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
@@ -424,7 +422,7 @@ public class DefaultEventDataQueryService
             qi.setProgram( program );   
             return qi;
         }
-        
+
         throw new IllegalQueryException(
             "Item identifier does not reference any data element, attribute or indicator part of the program: " + item );
     }
