@@ -91,7 +91,7 @@ public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EventAnalyticsManager
 {
-    protected static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
+    private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
 
     //TODO introduce dedicated "year" partition column
 

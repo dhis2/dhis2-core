@@ -49,6 +49,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -183,7 +184,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                columns.add( quoteAlias( queryItem.getItemName() ) );
+                columns.add( getColumn( queryItem ) );
             }
         }
 
@@ -439,7 +440,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param item the {@link QueryItem}.
      */
-    protected String getSelectSql( QueryItem item, Date startDate, Date endDate )
+    protected String getSelectSql( QueryItem item,  Date startDate, Date endDate )
     {
         if ( item.isProgramIndicator() )
         {

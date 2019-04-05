@@ -57,6 +57,7 @@ import java.util.List;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 
 /**
@@ -365,19 +366,41 @@ public class DefaultEventDataQueryService
 
     private QueryItem getQueryItemFromDimension( String dimension, Program program )
     {
-        String[] split = dimension.split( ITEM_SEP );
+        String[] legendSplit = dimension.split( ITEM_SEP );
 
-        String item = split[0];
+        LegendSet legendSet = legendSplit.length > 1 && legendSplit[1] != null ? legendSetService.getLegendSet( legendSplit[1] ) : null;
 
-        LegendSet legendSet = split.length > 1 && split[1] != null ? legendSetService.getLegendSet( split[1] ) : null;
+        String[] programStageSplit = legendSplit[0].split( "\\" + PROGRAMSTAGE_SEP );
+
+        if( programStageSplit.length == 0 )
+        {
+            throw new IllegalQueryException( "Dimension: " + dimension + " could not be translated into a valid query item");
+        }
+
+        String item = programStageSplit.length > 1 ? programStageSplit[1] : programStageSplit[0];
 
         DataElement de = dataElementService.getDataElement( item );
+
+        ProgramStage programStage = programStageSplit.length > 1 ? programStageService.getProgramStage( programStageSplit[0] ) : null;
+
+        if( programStageSplit.length > 1 && programStage == null )
+        {
+            throw new IllegalQueryException( "Dimension: " + dimension + " did not have a valid program stage");
+        }
+
+        QueryItem qi = null;
 
         if ( de != null && program.containsDataElement( de ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
 
-            return new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
+            qi = new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
+            if ( programStage != null )
+            {
+                qi.setProgramStage( programStage );
+            }
+
+            return qi;
         }
 
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
@@ -386,16 +409,22 @@ public class DefaultEventDataQueryService
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
 
-            return new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
+            qi = new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( item );
 
         if ( pi != null && program.getProgramIndicators().contains( pi ) )
         {
-            return new QueryItem( pi, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
+            qi = new QueryItem( pi, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
         }
 
+        if ( qi != null )
+        {
+            qi.setProgram( program );   
+            return qi;
+        }
+        
         throw new IllegalQueryException(
             "Item identifier does not reference any data element, attribute or indicator part of the program: " + item );
     }
