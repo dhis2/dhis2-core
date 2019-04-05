@@ -1138,9 +1138,16 @@
   <bean id="org.hisp.dhis.sms.config.GatewayAdministrationService"
     class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
 
-  <bean id="org.hisp.dhis.sms.config.BulkSmsGateway" class="org.hisp.dhis.sms.config.BulkSmsGateway" />
+  <!-- SMPP -->
+  <bean id="org.hisp.dhis.sms.config.SMSSendingCallback" class="org.hisp.dhis.sms.config.SMSSendingCallback" />
 
-  <bean id="org.hisp.dhis.sms.config.ClickatellGateway" class="org.hisp.dhis.sms.config.ClickatellGateway" />
+  <bean id="org.hisp.dhis.sms.config.SMPPGateway" class="org.hisp.dhis.sms.config.SMPPGateway" />
+
+  <bean id="org.hisp.dhis.sms.config.SMPPClient" class="org.hisp.dhis.sms.config.SMPPClient" />
+
+  <bean id="org.hisp.dhis.sms.config.BulkSmsGateway" class="org.hisp.dhis.sms.config.BulkSmsHttpGateway" />
+
+  <bean id="org.hisp.dhis.sms.config.ClickatellGateway" class="org.hisp.dhis.sms.config.ClickatellHttpGateway" />
 
   <bean id="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" class="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" />
 

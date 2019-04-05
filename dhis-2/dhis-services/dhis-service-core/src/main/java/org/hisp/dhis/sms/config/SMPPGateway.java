@@ -1,4 +1,4 @@
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.sms.config;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,55 +28,45 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 /**
- * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
+ * @Author Zubair Asghar.
  */
-@Transactional
-public class DefaultTrackedEntityInstanceAuditService
-    implements TrackedEntityInstanceAuditService
+public class SMPPGateway extends SmsGateway
 {
+    private final SMPPClient smppClient;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    @Autowired 
-    private TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
-    
-    
-    // -------------------------------------------------------------------------
-    // TrackedEntityInstanceAuditService implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    @Async
-    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    @Autowired
+    public SMPPGateway( SMPPClient smppClient )
     {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+        this.smppClient = smppClient;
     }
 
     @Override
-    public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
+    public boolean accept( SmsGatewayConfig gatewayConfig )
     {
-        trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntityInstance );
+        return gatewayConfig instanceof SMPPGatewayConfig;
     }
 
     @Override
-    public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-        TrackedEntityInstanceAuditQueryParams params )
+    public OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig )
     {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits( params );
+        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
+
+        return smppClient.send( text, recipients, config );
     }
 
     @Override
-    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );
+        SMPPGatewayConfig config = (SMPPGatewayConfig) gatewayConfig;
+
+        return smppClient.sendBatch( batch, config );
     }
 }
