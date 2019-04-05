@@ -467,10 +467,10 @@ public class HibernateTrackedEntityInstanceStore
             if ( params.hasFilterForEvents() )
             {
                 sql += " inner join (select programinstanceid from programstageinstance psi ";
-                
-                if(params.hasAssignedUsers())
+
+                if ( params.hasAssignedUsers() )
                 {
-                    sql += " left join userinfo au on (psi.assigneduserid=au.userinfoid) "; 
+                    sql += " left join userinfo au on (psi.assigneduserid=au.userinfoid) ";
                 }
 
                 sql += getEventWhereClause( params );
