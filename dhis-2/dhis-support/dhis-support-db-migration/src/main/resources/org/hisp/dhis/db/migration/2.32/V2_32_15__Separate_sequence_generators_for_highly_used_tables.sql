@@ -30,6 +30,3 @@ select setval('messageconversation_sequence', max(messageconversationid)) FROM m
 
 create sequence if not exists message_sequence;
 select setval('message_sequence', max(messageid)) FROM message;
-
-create sequence if not exists validationresult_sequence;
-select setval('validationresult_sequence', max(validationresultid)) FROM validationresult;

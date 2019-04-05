@@ -8,9 +8,7 @@
     <class name="org.hisp.dhis.validation.ValidationResult" table="validationresult">
 
         <id name="id" column="validationresultid">
-            <generator class="sequence">
-              <param name="sequence_name">validationresult_sequence</param>
-            </generator>
+            <generator class="native"/>
         </id>
 
         <property name="created" type="timestamp" not-null="true" />
