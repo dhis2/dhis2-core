@@ -76,6 +76,7 @@ programVariable // (alphabtical)
     |   'V{' var='event_date' '}'
     |   'V{' var='execution_date' '}'
     |   'V{' var='incident_date' '}'
+    |   'V{' var='org_unit_count' '}'
     |   'V{' var='program_stage_id' '}'
     |   'V{' var='program_stage_name' '}'
     |   'V{' var='sync_date' '}'
@@ -208,6 +209,7 @@ V_EVENT_COUNT           : 'event_count';
 V_EVENT_DATE            : 'event_date';
 V_EXECUTION_DATE        : 'execution_date';
 V_INCIDENT_DATE         : 'incident_date';
+V_ORG_UNIT_COUNT        : 'org_unit_count';
 V_PROGRAM_STAGE_ID      : 'program_stage_id';
 V_PROGRAM_STAGE_NAME    : 'program_stage_name';
 V_SYNC_DATE             : 'sync_date';
