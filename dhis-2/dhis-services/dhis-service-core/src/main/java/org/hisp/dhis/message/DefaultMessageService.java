@@ -41,13 +41,22 @@ import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.commons.util.TextUtils.LN;
@@ -177,6 +186,7 @@ public class DefaultMessageService
 
         // Create MessageConversation based on params
         MessageConversation conversation = params.createMessageConversation();
+        int id = saveMessageConversation( conversation );
 
         // Initial message of the conversation
         conversation.addMessage( new Message( params.getText(), params.getMetadata(), params.getSender() ) );
@@ -197,7 +207,7 @@ public class DefaultMessageService
         invokeMessageSenders( params.getSubject(), params.getText(), footer, params.getSender(),
             params.getRecipients(), params.isForceNotification() );
 
-        return saveMessageConversation( conversation );
+        return id;
     }
 
     @Override
