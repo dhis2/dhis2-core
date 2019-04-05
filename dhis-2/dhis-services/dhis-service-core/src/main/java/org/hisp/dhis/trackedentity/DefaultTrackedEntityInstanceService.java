@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -153,7 +154,9 @@ public class DefaultTrackedEntityInstanceService
             validate( params );
         }
 
-        params.setUser( currentUserService.getCurrentUser() );
+        User user = currentUserService.getCurrentUser();
+
+        params.setUser( user );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -162,7 +165,7 @@ public class DefaultTrackedEntityInstanceService
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
-        String accessedBy = currentUserService.getCurrentUsername();
+        String accessedBy = user.getUsername();
 
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
@@ -467,6 +470,12 @@ public class DefaultTrackedEntityInstanceService
         {
             violation = "Event start and end date must be specified when event status is specified";
         }
+        
+        if ( params.getAssignedUserSelectionMode() != null && params.hasAssignedUsers()
+            && !params.getAssignedUserSelectionMode().equals( AssignedUserSelectionMode.PROVIDED ) )
+        {
+            violation = "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED";
+        }
 
         if ( params.isOrQuery() && params.hasFilters() )
         {
@@ -525,7 +534,7 @@ public class DefaultTrackedEntityInstanceService
             }
         }
 
-        if ( !isLocalSearch( params ) )
+        if ( !isLocalSearch( params, user ) )
         {
             int maxTeiLimit = 0; // no limit
 
@@ -618,7 +627,7 @@ public class DefaultTrackedEntityInstanceService
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
+        Date eventStartDate, Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
@@ -690,7 +699,13 @@ public class DefaultTrackedEntityInstanceService
         if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
-        }        
+        }
+        
+        if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
+            && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
+        {
+            throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+        }
 
         params.setQuery( queryFilter )
             .setProgram( pr )
@@ -707,6 +722,8 @@ public class DefaultTrackedEntityInstanceService
             .setEventStatus( eventStatus )
             .setEventStartDate( eventStartDate )
             .setEventEndDate( eventEndDate )
+            .setAssignedUserSelectionMode( assignedUserSelectionMode )
+            .setAssignedUsers( assignedUsers )
             .setSkipMeta( skipMeta )
             .setPage( page )
             .setPageSize( pageSize )
@@ -716,7 +733,7 @@ public class DefaultTrackedEntityInstanceService
             .setIncludeAllAttributes( includeAllAttributes )
             .setUser( user )
             .setOrders( orders );
-        
+
         return params;
     }
 
@@ -873,10 +890,8 @@ public class DefaultTrackedEntityInstanceService
         return trackedEntityInstanceStore.existsIncludingDeleted( uid );
     }
 
-    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
+    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
-        User user = params.getUser() != null ? params.getUser() : currentUserService.getCurrentUser();
-
         Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
         Set<OrganisationUnit> searchOrgUnits = new HashSet<>();

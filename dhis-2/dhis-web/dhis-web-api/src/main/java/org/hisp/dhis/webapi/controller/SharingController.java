@@ -34,6 +34,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.program.Program;
@@ -225,6 +226,11 @@ public class SharingController
         if ( object == null )
         {
             throw new WebMessageException( WebMessageUtils.notFound( "Object of type " + type + " with ID " + id + " was not found." ) );
+        }
+
+        if ( ( object instanceof SystemDefaultMetadataObject ) && ( (SystemDefaultMetadataObject) object ).isDefault() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "Sharing settings of system default metadata object of type " + type + " cannot be modified." ) );
         }
 
         User user = currentUserService.getCurrentUser();

@@ -178,6 +178,7 @@ public class ProgramValidator
 
             case V_ENROLLMENT_COUNT:
             case V_EVENT_COUNT:
+            case V_ORG_UNIT_COUNT:
             case V_TEI_COUNT:
             case V_VALUE_COUNT:
             case V_ZERO_POS_VALUE_COUNT:
@@ -419,7 +420,7 @@ public class ProgramValidator
         }
     }
 
-    private void validateSubexprssion( String subExpression, Class clazz )
+    private void validateSubexprssion( String subExpression, Class<?> clazz )
     {
         programIndicatorService.validate( subExpression, clazz, itemDescriptions );
     }

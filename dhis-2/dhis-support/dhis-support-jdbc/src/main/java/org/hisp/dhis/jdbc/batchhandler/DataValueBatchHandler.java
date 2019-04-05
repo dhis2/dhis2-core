@@ -28,7 +28,7 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -47,7 +47,7 @@ public class DataValueBatchHandler
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
- 
+
     public DataValueBatchHandler( JdbcConfiguration config )
     {
         super( config );
@@ -74,7 +74,7 @@ public class DataValueBatchHandler
     {
         return true;
     }
-    
+
     @Override
     public List<String> getIdentifierColumns()
     {
@@ -96,7 +96,7 @@ public class DataValueBatchHandler
             value.getCategoryOptionCombo().getId(),
             value.getAttributeOptionCombo().getId() );
     }
-    
+
     @Override
     public List<String> getUniqueColumns()
     {
@@ -107,10 +107,10 @@ public class DataValueBatchHandler
             "categoryoptioncomboid",
             "attributeoptioncomboid" );
     }
-    
+
     @Override
     public List<Object> getUniqueValues( DataValue value )
-    {        
+    {
         return getObjectList(
             value.getDataElement().getId(),
             value.getPeriod().getId(),
@@ -118,7 +118,7 @@ public class DataValueBatchHandler
             value.getCategoryOptionCombo().getId(),
             value.getAttributeOptionCombo().getId() );
     }
-    
+
     @Override
     public List<String> getColumns()
     {
@@ -136,10 +136,10 @@ public class DataValueBatchHandler
             "followup",
             "deleted" );
     }
-    
+
     @Override
     public List<Object> getValues( DataValue value )
-    {        
+    {
         return getObjectList(
             value.getDataElement().getId(),
             value.getPeriod().getId(),
@@ -160,13 +160,13 @@ public class DataValueBatchHandler
         throws SQLException
     {
         DataValue dv = new DataValue();
-        
+
         dv.setValue( resultSet.getString( "value" ) );
         dv.setStoredBy( resultSet.getString( "storedBy" ) );
         dv.setComment( resultSet.getString( "comment" ) );
         dv.setFollowup( resultSet.getBoolean( "followup" ) );
         dv.setDeleted( resultSet.getBoolean( "deleted" ) );
-        
+
         return dv;
     }
 }

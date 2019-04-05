@@ -39,7 +39,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -51,6 +50,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 

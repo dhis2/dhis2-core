@@ -47,7 +47,6 @@ import javax.persistence.criteria.Root;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
@@ -61,6 +60,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 

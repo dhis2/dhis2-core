@@ -28,14 +28,15 @@ package org.hisp.dhis.webapi.controller.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -71,6 +72,15 @@ public class TrackerOwnershipController
     protected ContextService contextService;
 
     @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
     private WebMessageService webMessageService;
 
     // -------------------------------------------------------------------------
@@ -80,21 +90,21 @@ public class TrackerOwnershipController
 
     @RequestMapping( value = "/transfer", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE )
     public void updateTrackerProgramOwner( @RequestParam String trackedEntityInstance, @RequestParam String program,
-        @RequestParam String ou, HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        trackerOwnershipAccessManager.transferOwnership( trackedEntityInstance, program, ou, false, false );
+        @RequestParam String ou, HttpServletRequest request, HttpServletResponse response ) {
 
+        trackerOwnershipAccessManager.transferOwnership(
+            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
+            programService.getProgram( program ), organisationUnitService.getOrganisationUnit( ou ), false, false );
         webMessageService.send( WebMessageUtils.ok( "Ownership transferred" ), response, request );
     }
 
     @RequestMapping( value = "/override", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void overrideOwnershipAccess( @RequestParam String trackedEntityInstance, @RequestParam String reason,
-        @RequestParam String program, HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        trackerOwnershipAccessManager.grantTemporaryOwnership( trackedEntityInstance, program,
-            currentUserService.getCurrentUser(), reason );
+        @RequestParam String program, HttpServletRequest request, HttpServletResponse response ) {
+
+        trackerOwnershipAccessManager.grantTemporaryOwnership(
+            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
+            programService.getProgram( program ), currentUserService.getCurrentUser(), reason );
 
         webMessageService.send( WebMessageUtils.ok( "Temporary Ownership granted" ), response, request );
     }

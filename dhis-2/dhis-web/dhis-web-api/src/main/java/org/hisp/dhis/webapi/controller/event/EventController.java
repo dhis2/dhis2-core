@@ -34,6 +34,7 @@ import com.google.common.io.ByteSource;
 import com.vividsolutions.jts.io.ParseException;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
@@ -209,6 +210,8 @@ public class EventController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+        @RequestParam( required = false ) String assignedUser,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
@@ -250,6 +253,8 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+      
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -257,7 +262,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, assignedUserMode, assignedUserIds, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
@@ -275,6 +280,8 @@ public class EventController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+        @RequestParam( required = false ) String assignedUser,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
@@ -316,6 +323,8 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -323,7 +332,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, assignedUserMode, assignedUserIds, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
@@ -340,6 +349,8 @@ public class EventController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+        @RequestParam( required = false ) String assignedUser,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
@@ -381,6 +392,8 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -388,7 +401,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, assignedUserMode, assignedUserIds, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
@@ -406,6 +419,8 @@ public class EventController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+        @RequestParam( required = false ) String assignedUser,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
@@ -447,6 +462,8 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
@@ -454,7 +471,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            idSchemes, page, pageSize, totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, assignedUserMode, assignedUserIds, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
@@ -472,6 +489,8 @@ public class EventController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+        @RequestParam( required = false ) String assignedUser,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
@@ -508,6 +527,8 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
 
@@ -517,8 +538,8 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ), false, eventIds, filter, dataElementOrders.keySet(), false,
-            includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ), false, eventIds, assignedUserMode, assignedUserIds,
+            filter, dataElementOrders.keySet(), false, includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -563,6 +584,8 @@ public class EventController
         @RequestParam( required = false ) String trackedEntityInstance,
         @RequestParam( required = false ) String orgUnit,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+        @RequestParam( required = false ) String assignedUser,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) Date dueDateStart,
@@ -590,6 +613,8 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
+        
+        Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         List<Order> schemaOrders = getOrderParams( order );
 
@@ -601,8 +626,8 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp,
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate, lastUpdatedEndDate, status, attributeOptionCombo,
-            idSchemes, page, pageSize, totalPages, skipPaging, schemaOrders, getGridOrderParams( order, dataElementOrders ), false, eventIds, filter, dataElementOrders.keySet(), false,
-            includeDeleted );
+            idSchemes, page, pageSize, totalPages, skipPaging, schemaOrders, getGridOrderParams( order, dataElementOrders ), false, eventIds, assignedUserMode, assignedUserIds,
+            filter, dataElementOrders.keySet(), false, includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -649,7 +674,7 @@ public class EventController
 
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null, null, null, eventStatus, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null, false,
+            null, null, null, totalPages, skipPaging, getOrderParams( order ), null, true, null, null, null, null, null, false,
             includeDeleted );
 
         return eventRowService.getEventRows( params );

@@ -149,10 +149,19 @@
       <artifactId>aws-s3</artifactId>
     </dependency>
 
-    <!-- SMS -->
+    <!-- SMPP -->
     <dependency>
-      <groupId>com.googlecode.jsmpp</groupId>
+      <groupId>org.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
+      <version>2.3.7</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.velocity</groupId>

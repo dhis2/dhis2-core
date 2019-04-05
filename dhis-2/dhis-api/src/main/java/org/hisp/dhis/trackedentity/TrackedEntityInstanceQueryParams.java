@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.apache.commons.lang.time.DateUtils;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -39,6 +40,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -146,6 +148,16 @@ public class TrackedEntityInstanceQueryParams
      * Selection mode for the specified organisation units, default is ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
+    
+    /**
+     * Selection mode for user assignment of events.
+     */
+    private AssignedUserSelectionMode assignedUserSelectionMode;
+    
+    /**
+     * Set of user ids to filter based on events assigned to the users.
+     */
+    private Set<String> assignedUsers = new HashSet<>();
 
     /**
      * Status of any events in the specified program.
@@ -334,13 +346,45 @@ public class TrackedEntityInstanceQueryParams
             setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
         }
     }
-
+    
+    /**
+     * Prepares the assignedUsers list to the current user id, if the selection mode is CURRENT.
+     */
+    public void handleCurrentUserSelectionMode()
+    {
+        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && this.user != null )
+        {
+            this.assignedUsers = Collections.singleton( this.user.getUid() );
+            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
+        }
+    }
+    
+    public boolean hasAssignedUsers()
+    {
+        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
+    }
+    
+    public boolean isIncludeOnlyUnassignedEvents()
+    {
+        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
+    }
+    
+    public boolean isIncludeOnlyAssignedEvents()
+    {
+        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
+    }
+    
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
         return this;
     }
-
+    
+    public boolean hasFilterForEvents()
+    {
+        return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents() || hasEventStatus();
+    }
+    
     /**
      * Add the given attributes to this params if they are not already present.
      */
@@ -506,11 +550,17 @@ public class TrackedEntityInstanceQueryParams
         return followUp != null;
     }
 
+    /**
+     * Indicates whether this parameters specifies a last updated start date.
+     */
     public boolean hasLastUpdatedStartDate()
     {
         return lastUpdatedStartDate != null;
     }
 
+    /**
+     * Indicates whether this parameters specifies a last updated end date.
+     */
     public boolean hasLastUpdatedEndDate()
     {
         return lastUpdatedEndDate != null;
@@ -595,6 +645,14 @@ public class TrackedEntityInstanceQueryParams
     public boolean hasEventEndDate()
     {
         return eventEndDate != null;
+    }
+
+    /**
+     * Indicates whether this parameters specifies a user.
+     */
+    public boolean hasUser()
+    {
+        return user != null;
     }
 
     /**
@@ -987,4 +1045,28 @@ public class TrackedEntityInstanceQueryParams
     {
         this.orders = orders;
     }
+
+    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    {
+        return assignedUserSelectionMode;
+    }
+
+    public TrackedEntityInstanceQueryParams setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserMode )
+    {
+        this.assignedUserSelectionMode = assignedUserMode;
+        return this;
+    }
+
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
+    }
+
+    public TrackedEntityInstanceQueryParams setAssignedUsers( Set<String> assignedUsers )
+    {
+        this.assignedUsers = assignedUsers;
+        return this;
+    }
+    
+    
 }
