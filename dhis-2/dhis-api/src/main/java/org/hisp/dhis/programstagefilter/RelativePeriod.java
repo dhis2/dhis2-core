@@ -1,7 +1,5 @@
 package org.hisp.dhis.programstagefilter;
 
-import java.util.List;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -30,13 +28,16 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-/**
- * @author Ameen Mohamed <ameen@dhis2.org>
- *
- */
-public interface ProgramStageInstanceFilterStore extends IdentifiableObjectStore<ProgramStageInstanceFilter>
+public enum RelativePeriod
 {
-    List<ProgramStageInstanceFilter> getByProgram(String program);
+    THIS_WEEK,
+    LAST_WEEK,
+    THIS_DAY,
+    LAST_DAY,
+    THIS_MONTH,
+    LAST_MONTH,
+    THIS_QUARTER,
+    LAST_QUARTER,
+    THIS_YEAR,
+    LAST_YEAR;
 }

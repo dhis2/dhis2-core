@@ -1,5 +1,7 @@
 package org.hisp.dhis.programstagefilter.hibernate;
 
+import java.util.List;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -38,5 +40,12 @@ import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore;
  */
 public class HibernateProgramStageInstanceFilterStore extends HibernateIdentifiableObjectStore<ProgramStageInstanceFilter> implements ProgramStageInstanceFilterStore
 {
+
+    @Override
+    public List<ProgramStageInstanceFilter> getByProgram( String program )
+    {
+        String hql = "from ProgramStageInstanceFilter psif where psif.program.uid =:program";
+        return getQuery( hql ).setParameter( "program", program ).getResultList();
+    }
 
 }

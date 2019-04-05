@@ -61,16 +61,25 @@ public interface ProgramStageInstanceFilterService
     void update( ProgramStageInstanceFilter programStageInstanceFilter );
     
     /**
-     * Gets programStageInstanceFilter 
+     * Gets programStageInstanceFilter using id
      * @param id id of programStageInstanceFilter to be fetched
      * @return programStageInstanceFilter
      */
     ProgramStageInstanceFilter get( long id );
     
     /**
+     * Gets programStageInstanceFilter using the uid
+     * @param uid uid of programStageInstanceFilter to be fetched
+     * @return programStageInstanceFilter
+     */
+    ProgramStageInstanceFilter get( String uid );
+    
+    /**
      * Gets all programStageInstanceFilters
+     * If program is specified, eventFilters are filtered based on it.
+     * 
      * @return list of programStageInstanceFilters
      */
-    List<ProgramStageInstanceFilter> getAll();
-
+    List<ProgramStageInstanceFilter> getAll(String program);
+    
 }

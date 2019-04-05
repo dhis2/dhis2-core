@@ -33,7 +33,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.com>
@@ -46,9 +45,11 @@ public class DatePeriod implements Serializable
      */
     private static final long serialVersionUID = 7320308653620948474L;
 
-    private Date from;
+    private int from;
 
-    private Date to;
+    private int to;
+    
+    private RelativePeriod relativePeriod;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -65,26 +66,40 @@ public class DatePeriod implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getFrom()
+    public int getFrom()
     {
         return from;
     }
 
-    public void setPeriodFrom( Date from )
+    public void setFrom( int from )
     {
         this.from = from;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getTo()
+    public int getTo()
     {
         return to;
     }
 
-    public void setPeriodTo( Date to )
+    public void setTo( int to )
     {
         this.to = to;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RelativePeriod getRelativePeriod()
+    {
+        return relativePeriod;
+    }
+
+    public void setRelativePeriod( RelativePeriod relativePeriod )
+    {
+        this.relativePeriod = relativePeriod;
+    }
+    
+    
 
 }

@@ -64,10 +64,6 @@ public class EventQueryCriteria implements Serializable
      * Property which contains the required assigned user ids to be used in the event filter.
      */
     private Set<String> assignedUsers;
-    /**
-     * Property indicating a specific tei to be used in the event filter.
-     */
-    private String trackedEntityInstance;
     
     /**
      * Property which contains the required field ordering along with its direction (asc/desc)
@@ -113,6 +109,11 @@ public class EventQueryCriteria implements Serializable
      * Property to filter events based on event dates
      */
     private DatePeriod lastUpdatedDate;
+    
+    /**
+     * Property to filter events based on event dates
+     */
+    private DatePeriod completedDate;
 
 
     @JsonProperty
@@ -149,6 +150,18 @@ public class EventQueryCriteria implements Serializable
     public void setDueDate( DatePeriod dueDate )
     {
         this.dueDate = dueDate;
+    }
+    
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DatePeriod getCompletedDate()
+    {
+        return completedDate;
+    }
+
+    public void setCompletedDate( DatePeriod completedDate )
+    {
+        this.completedDate = completedDate;
     }
 
     @JsonProperty
@@ -197,18 +210,6 @@ public class EventQueryCriteria implements Serializable
     public void setOuMode( OrganisationUnitSelectionMode ouMode )
     {
         this.ouMode = ouMode;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTrackedEntityInstance()
-    {
-        return trackedEntityInstance;
-    }
-
-    public void setTrackedEntityInstance( String trackedEntityInstance )
-    {
-        this.trackedEntityInstance = trackedEntityInstance;
     }
 
     @JsonProperty

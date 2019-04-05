@@ -1,5 +1,4 @@
 package org.hisp.dhis.programstagefilter;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,7 +27,17 @@ package org.hisp.dhis.programstagefilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -43,9 +52,34 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
 
     private ProgramStageInstanceFilterStore programStageInstanceFilterStore;
 
+    private ProgramService programService;
+
+    private ProgramStageService programStageService;
+
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
     public void setProgramStageInstanceFilterStore( ProgramStageInstanceFilterStore programStageInstanceFilterStore )
     {
         this.programStageInstanceFilterStore = programStageInstanceFilterStore;
+    }
+
+    @Autowired
+    public void setProgramService( ProgramService programService )
+    {
+        this.programService = programService;
+    }
+
+    @Autowired
+    public void setProgramStageService( ProgramStageService programStageService )
+    {
+        this.programStageService = programStageService;
+    }
+
+    @Autowired
+    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
+    {
+        this.organisationUnitService = organisationUnitService;
     }
 
     // -------------------------------------------------------------------------
@@ -71,6 +105,56 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
         programStageInstanceFilterStore.update( programStageInstanceFilter );
     }
 
+    public List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( programStageInstanceFilter.getProgram() == null || programStageInstanceFilter.getProgram().getUid() == null )
+        {
+            errors.add( "Program should be specified for event filters." );
+        }
+        else
+        {
+            Program pr = programService.getProgram( programStageInstanceFilter.getProgram().getUid() );
+
+            if ( pr == null )
+            {
+                errors.add( "Program is specified but does not exist: " + programStageInstanceFilter.getProgram().getUid() );
+            }
+        }
+
+        if ( programStageInstanceFilter.getProgramStage() != null && programStageInstanceFilter.getProgramStage().getUid() != null )
+        {
+            ProgramStage ps = programStageService.getProgramStage( programStageInstanceFilter.getProgramStage().getUid() );
+            if ( ps == null )
+            {
+                errors.add( "Program stage is specified but does not exist: " + programStageInstanceFilter.getProgramStage().getUid() );
+            }
+        }
+
+        if ( programStageInstanceFilter.getOrganisationUnit() != null && programStageInstanceFilter.getOrganisationUnit().getUid() != null )
+        {
+            OrganisationUnit ou = organisationUnitService.getOrganisationUnit( programStageInstanceFilter.getOrganisationUnit().getUid() );
+            if ( ou == null )
+            {
+                errors.add( "Org unit is specified but does not exist: " + programStageInstanceFilter.getOrganisationUnit().getUid() );
+            }
+        }
+
+        EventQueryCriteria eventQC = programStageInstanceFilter.getEventQueryCriteria();
+        if ( eventQC != null )
+        {
+            if ( eventQC.getAssignedUserMode() != null && eventQC.getAssignedUsers() != null && !eventQC.getAssignedUsers().isEmpty()
+                && !eventQC.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
+            {
+                errors.add( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+            }
+        }
+
+        return errors;
+
+    }
+
     @Override
     public ProgramStageInstanceFilter get( long id )
     {
@@ -78,9 +162,22 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     }
 
     @Override
-    public List<ProgramStageInstanceFilter> getAll()
+    public ProgramStageInstanceFilter get( String uid )
     {
-        return programStageInstanceFilterStore.getAll();
+        return programStageInstanceFilterStore.getByUid( uid );
+    }
+
+    @Override
+    public List<ProgramStageInstanceFilter> getAll( String program )
+    {
+        if ( program != null )
+        {
+            return programStageInstanceFilterStore.getByProgram( program );
+        }
+        else
+        {
+            return programStageInstanceFilterStore.getAll();
+        }
     }
 
 }
