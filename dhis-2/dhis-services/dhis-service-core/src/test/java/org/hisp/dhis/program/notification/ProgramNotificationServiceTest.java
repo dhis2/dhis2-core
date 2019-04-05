@@ -161,14 +161,14 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         BatchResponseStatus status = new BatchResponseStatus(Collections.emptyList());
 
-        doAnswer( invocation ->
-        {
-            sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-            return status;
-        }).when( programMessageService ).sendMessagesAsync( anyList() );
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
+            {
+                sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
+                return status;
+            } );
 
-        when( messageService.sendMessage( any() ) )
-            .thenAnswer( invocation -> {
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
+            {
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
                 return 40l;
             } );
