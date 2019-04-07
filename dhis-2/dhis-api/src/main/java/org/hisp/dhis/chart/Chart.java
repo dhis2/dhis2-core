@@ -56,6 +56,8 @@ public class Chart
 
     private String category;
 
+    private List<Series> seriesItems = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -235,5 +237,15 @@ public class Chart
     public void setCategory( String category )
     {
         this.category = category;
+    }
+
+    public List<Series> getSeriesItems()
+    {
+        return seriesItems;
+    }
+
+    public void setSeriesItems( List<Series> seriesItems )
+    {
+        this.seriesItems = seriesItems;
     }
 }
