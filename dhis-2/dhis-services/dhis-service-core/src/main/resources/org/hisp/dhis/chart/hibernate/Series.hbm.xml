@@ -14,9 +14,9 @@
       <generator class="native" />
     </id>
     
-    <property name="series" column="series" not-null="true" length="230" />
+    <property name="series" column="series" not-null="true" length="255" />
     
-    <property name="axis" column="axis" not-null="true" length="230" />
+    <property name="axis" column="axis" not-null="true" />
     
   </class>
 
