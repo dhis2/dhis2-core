@@ -604,7 +604,7 @@ public class EventSearchParams
         this.skipChangedBefore = skipChangedBefore;
     }
 
-    public void updateAssignedUserBasedOnSelectionMode( User currentUser )
+    public void handleCurrentUserSelectionMode( User currentUser )
     {
         if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && currentUser != null )
         {
@@ -618,12 +618,12 @@ public class EventSearchParams
         return this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
     
-    public boolean isIncludeOnlyUnassigned()
+    public boolean isIncludeOnlyUnassignedEvents()
     {
         return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
     }
     
-    public boolean isIncludeOnlyAssigned()
+    public boolean isIncludeOnlyAssignedEvents()
     {
         return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
