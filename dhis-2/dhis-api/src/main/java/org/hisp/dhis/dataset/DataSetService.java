@@ -122,14 +122,6 @@ public interface DataSetService
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
 
     /**
-     * Returns a list of data sets with the given uids.
-     *
-     * @param uids the collection of uids.
-     * @return a list of data sets.
-     */
-    List<DataSet> getDataSetsByUid( Collection<String> uids );
-
-    /**
      * Returns all DataSets that can be collected through mobile (one
      * organisation unit).
      */

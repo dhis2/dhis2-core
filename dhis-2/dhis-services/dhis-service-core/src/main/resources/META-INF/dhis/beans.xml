@@ -911,7 +911,6 @@
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
     <property name="env" ref="environment" />
   </bean>
