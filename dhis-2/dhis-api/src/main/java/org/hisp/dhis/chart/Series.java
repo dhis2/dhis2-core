@@ -31,6 +31,7 @@ package org.hisp.dhis.chart;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -52,8 +53,7 @@ public class Series
     {
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JsonIgnore
     public long getId()
     {
         return id;
