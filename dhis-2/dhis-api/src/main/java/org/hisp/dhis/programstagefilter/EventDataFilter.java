@@ -1,5 +1,4 @@
 package org.hisp.dhis.programstagefilter;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,34 +27,48 @@ package org.hisp.dhis.programstagefilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.Serializable;
+import java.util.Set;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.io.Serializable;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.com>
  *
  */
-public class DatePeriod implements Serializable
+public class EventDataFilter implements Serializable
 {
     /**
      * 
      */
-    private static final long serialVersionUID = 7320308653620948474L;
+    private static final long serialVersionUID = 1L;
 
-    private int from;
+    private String dataItem;
 
-    private int to;
+    private String le;
     
-    private RelativePeriod relativePeriod;
-
+    private String ge;
+    
+    private String gt;
+    
+    private String lt;
+    
+    private String eq;
+    
+    private Set<String> in;
+    
+    private String like;
+    
+    private DateFilterPeriod dateFilter;
+    
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public DatePeriod()
+    public EventDataFilter()
     {
 
     }
@@ -66,38 +79,110 @@ public class DatePeriod implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getFrom()
+    public String getDataItem()
     {
-        return from;
+        return dataItem;
     }
 
-    public void setFrom( int from )
+    public void setDataItem( String data )
     {
-        this.from = from;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getTo()
-    {
-        return to;
-    }
-
-    public void setTo( int to )
-    {
-        this.to = to;
+        this.dataItem = data;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public RelativePeriod getRelativePeriod()
+    public String getLe()
     {
-        return relativePeriod;
+        return le;
     }
 
-    public void setRelativePeriod( RelativePeriod relativePeriod )
+    public void setLe( String le )
     {
-        this.relativePeriod = relativePeriod;
+        this.le = le;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getGe()
+    {
+        return ge;
+    }
+
+    public void setGe( String ge )
+    {
+        this.ge = ge;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getGt()
+    {
+        return gt;
+    }
+
+    public void setGt( String gt )
+    {
+        this.gt = gt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLt()
+    {
+        return lt;
+    }
+
+    public void setLt( String lt )
+    {
+        this.lt = lt;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getEq()
+    {
+        return eq;
+    }
+
+    public void setEq( String eq )
+    {
+        this.eq = eq;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getIn()
+    {
+        return in;
+    }
+
+    public void setIn( Set<String> in )
+    {
+        this.in = in;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLike()
+    {
+        return like;
+    }
+
+    public void setLike( String like )
+    {
+        this.like = like;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DateFilterPeriod getDateFilter()
+    {
+        return dateFilter;
+    }
+
+    public void setDateFilter( DateFilterPeriod dateFilter )
+    {
+        this.dateFilter = dateFilter;
     }
     
     

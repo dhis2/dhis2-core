@@ -28,6 +28,7 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -71,20 +72,15 @@ public class EventQueryCriteria implements Serializable
     private String order;
     
     /**
-     * Property which contains the required filters to be used when filtering events.
+     * Property which contains the order of output columns
      */
-    private Set<String> filters;
+    private Set<String> displayColumnOrder;
     
     /**
-     * Property which contains the dataElements to be added to the output grid (only for query api)
+     * Property which contains the filters to be used when querying events.
      */
-    private Set<String> dataElements;
+    private List<EventDataFilter> dataFilters;
     
-    /**
-     * Property indicating the fields that needs to be part of the response. (only for event list api)
-     */
-    private String fields;
-
     /**
      * Property indicating explicit event uids to be used when listing events.
      */
@@ -98,22 +94,22 @@ public class EventQueryCriteria implements Serializable
     /**
      * Property to filter events based on event created dates
      */
-    private DatePeriod createdDate;
+    private DateFilterPeriod eventDate;
 
     /**
      * Property to filter events based on event dates
      */
-    private DatePeriod dueDate;
+    private DateFilterPeriod dueDate;
 
     /**
      * Property to filter events based on event dates
      */
-    private DatePeriod lastUpdatedDate;
+    private DateFilterPeriod lastUpdatedDate;
     
     /**
      * Property to filter events based on event dates
      */
-    private DatePeriod completedDate;
+    private DateFilterPeriod completedDate;
 
 
     @JsonProperty
@@ -130,48 +126,48 @@ public class EventQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DatePeriod getCreatedDate()
+    public DateFilterPeriod getEventDate()
     {
-        return createdDate;
+        return eventDate;
     }
 
-    public void setCreatedDate( DatePeriod createdDate )
+    public void setEventDate( DateFilterPeriod createdDate )
     {
-        this.createdDate = createdDate;
+        this.eventDate = createdDate;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DatePeriod getDueDate()
+    public DateFilterPeriod getDueDate()
     {
         return dueDate;
     }
 
-    public void setDueDate( DatePeriod dueDate )
+    public void setDueDate( DateFilterPeriod dueDate )
     {
         this.dueDate = dueDate;
     }
     
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DatePeriod getCompletedDate()
+    public DateFilterPeriod getCompletedDate()
     {
         return completedDate;
     }
 
-    public void setCompletedDate( DatePeriod completedDate )
+    public void setCompletedDate( DateFilterPeriod completedDate )
     {
         this.completedDate = completedDate;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DatePeriod getLastUpdatedDate()
+    public DateFilterPeriod getLastUpdatedDate()
     {
         return lastUpdatedDate;
     }
 
-    public void setLastUpdatedDate( DatePeriod lastUpdatedDate )
+    public void setLastUpdatedDate( DateFilterPeriod lastUpdatedDate )
     {
         this.lastUpdatedDate = lastUpdatedDate;
     }
@@ -226,38 +222,26 @@ public class EventQueryCriteria implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getFilters()
+    public Set<String> getDisplayColumnOrder()
     {
-        return filters;
+        return displayColumnOrder;
     }
 
-    public void setFilters( Set<String> filters )
+    public void setDisplayColumnOrder( Set<String> filters )
     {
-        this.filters = filters;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getDataElements()
-    {
-        return dataElements;
-    }
-
-    public void setDataElements( Set<String> dataElements )
-    {
-        this.dataElements = dataElements;
+        this.displayColumnOrder = filters;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFields()
+    public List<EventDataFilter> getDataFilters()
     {
-        return fields;
+        return dataFilters;
     }
 
-    public void setFields( String fields )
+    public void setDataFilters( List<EventDataFilter> dataElements )
     {
-        this.fields = fields;
+        this.dataFilters = dataElements;
     }
 
     @JsonProperty

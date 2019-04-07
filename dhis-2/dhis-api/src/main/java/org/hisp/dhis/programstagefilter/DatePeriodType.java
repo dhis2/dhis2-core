@@ -28,16 +28,8 @@ package org.hisp.dhis.programstagefilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public enum RelativePeriod
+public enum DatePeriodType
 {
-    THIS_WEEK,
-    LAST_WEEK,
-    THIS_DAY,
-    LAST_DAY,
-    THIS_MONTH,
-    LAST_MONTH,
-    THIS_QUARTER,
-    LAST_QUARTER,
-    THIS_YEAR,
-    LAST_YEAR;
+    RELATIVE,
+    ABSOLUTE;
 }
