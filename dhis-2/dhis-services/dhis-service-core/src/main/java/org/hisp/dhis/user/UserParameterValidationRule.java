@@ -29,10 +29,9 @@ package org.hisp.dhis.user;
  */
 
 import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.i18n.I18n;
 
 /**
- * Created by zubair on 16.03.17.
+ * @author Zubair
  */
 public class UserParameterValidationRule
     implements PasswordValidationRule
