@@ -52,7 +52,7 @@ public class UserParameterValidationRule
         String password = credentialsInfo.getPassword();
         String username = credentialsInfo.getUsername();
 
-        // password should not contain part of either username or email
+        // Password should not contain part of either username or email
         if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
             StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
         {
