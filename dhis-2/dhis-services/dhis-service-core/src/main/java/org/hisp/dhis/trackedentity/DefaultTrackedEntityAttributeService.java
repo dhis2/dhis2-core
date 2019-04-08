@@ -29,15 +29,6 @@ package org.hisp.dhis.trackedentity;
  */
 
 import com.google.common.collect.ImmutableSet;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.imageio.ImageIO;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -58,6 +49,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import javax.imageio.ImageIO;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -69,7 +67,7 @@ public class DefaultTrackedEntityAttributeService
     private static final Logger log = LoggerFactory.getLogger( DefaultTrackedEntityAttributeService.class );
     private static final int VALUE_MAX_LENGTH = 50000;
 
-    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
+    private static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
         ImageIO.getReaderFormatNames() ).build();
 
     // -------------------------------------------------------------------------
@@ -185,12 +183,6 @@ public class DefaultTrackedEntityAttributeService
     {
         Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required." );
         Assert.notNull( value, "tracked entity attribute value is required." );
-
-        if ( trackedEntityAttribute.getProgramScope() )
-        {
-            log.error( "TrackedEntityAttribute '" + trackedEntityAttribute.getUid() + "' has a programScope. ProgramScope feature is not supported." );
-            return "Attribute " + trackedEntityAttribute.getUid() + " has a programScope. ProgramScope is not supported.";
-        }
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),

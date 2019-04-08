@@ -154,17 +154,6 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void trackedEntityAttributeHasProgramScope()
-    {
-        tea.setProgramScope( true );
-
-        String teaValue = "Firstname";
-
-        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
-        assertNotNull( result );
-    }
-
-    @Test
     public void wrongValueToValueType()
     {
         tea.setValueType( ValueType.NUMBER );
@@ -187,7 +176,7 @@ public class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void corectValueToValueType()
+    public void correctValueToValueType()
     {
         String teaValue = "Firstname";
         tea.setValueType( ValueType.TEXT );
