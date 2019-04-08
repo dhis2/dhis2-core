@@ -34,21 +34,26 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.concurrent.ListenableFuture;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -97,6 +102,12 @@ public class DefaultProgramMessageService
 
     @Autowired
     private AclService aclService;
+
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
+
+    @Autowired
+    private MessageSendingCallback sendingCallback;
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -209,6 +220,23 @@ public class DefaultProgramMessageService
         saveProgramMessages( programMessages, status );
 
         return status;
+    }
+
+    @Override
+    public void sendMessagesAsync( List<ProgramMessage> programMessages )
+    {
+        List<ProgramMessage> populatedProgramMessages = programMessages.stream()
+                .filter( this::hasDataWriteAccess )
+                .map( this::setAttributesBasedOnStrategy )
+                .collect( Collectors.toList() );
+
+        List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
+
+        for ( OutboundMessageBatch batch : batches )
+        {
+            ListenableFuture<OutboundMessageResponseSummary> future = smsSender.sendMessageBatchAsync( batch );
+            future.addCallback( sendingCallback.getBatchCallBack() );
+        }
     }
 
     @Override
