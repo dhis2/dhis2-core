@@ -173,7 +173,6 @@ public class Program
      */
     private int maxTeiCountToReturn = 0;
 
-
     /**
      * Property indicating level of access
      */
