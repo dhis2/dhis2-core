@@ -439,7 +439,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param item the {@link QueryItem}.
      */
-    protected String getSelectSql( QueryItem item,  Date startDate, Date endDate )
+    protected String getSelectSql( QueryItem item, Date startDate, Date endDate )
     {
         if ( item.isProgramIndicator() )
         {

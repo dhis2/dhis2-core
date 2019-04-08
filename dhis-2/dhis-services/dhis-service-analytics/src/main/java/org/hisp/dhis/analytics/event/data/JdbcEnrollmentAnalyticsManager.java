@@ -78,7 +78,7 @@ public class JdbcEnrollmentAnalyticsManager
     private static final Log log = LogFactory.getLog( JdbcEnrollmentAnalyticsManager.class );
     
     @Override
-    public Grid getEnrollments(EventQueryParams params, Grid grid, int maxLimit) 
+    public Grid getEnrollments( EventQueryParams params, Grid grid, int maxLimit ) 
     {
         List<String> fixedCols = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 

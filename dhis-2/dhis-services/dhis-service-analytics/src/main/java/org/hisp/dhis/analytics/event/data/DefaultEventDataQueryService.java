@@ -374,7 +374,7 @@ public class DefaultEventDataQueryService
 
         if( programStageSplit.length == 0 )
         {
-            throw new IllegalQueryException( "Dimension: " + dimension + " could not be translated into a valid query item");
+            throw new IllegalQueryException( "Dimension: " + dimension + " could not be translated into a valid query item" );
         }
 
         String item = programStageSplit.length > 1 ? programStageSplit[1] : programStageSplit[0];
@@ -385,7 +385,7 @@ public class DefaultEventDataQueryService
 
         if( programStageSplit.length > 1 && programStage == null )
         {
-            throw new IllegalQueryException( "Dimension: " + dimension + " did not have a valid program stage");
+            throw new IllegalQueryException( "Dimension: " + dimension + " did not have a valid program stage" );
         }
 
         QueryItem qi = null;
