@@ -42,8 +42,7 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 import javax.annotation.Nonnull;
 import java.util.Date;
 
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobStatus.*;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 /**
@@ -313,7 +312,7 @@ public class JobConfiguration
         {
             return true;
         }
-        if ( jobStatus != jobConfiguration.getJobStatus() )
+        if ( !isEqualJobStatus( jobStatus, jobConfiguration.getJobStatus() ) )
         {
             return true;
         }
@@ -326,6 +325,16 @@ public class JobConfiguration
             return true;
         }
         return enabled != jobConfiguration.isEnabled();
+    }
+
+    private boolean isEqualJobStatus( JobStatus jobStatus1, JobStatus jobStatus2 )
+    {
+        if ( jobStatus1 == jobStatus2 )
+        {
+            return true;
+        }
+
+        return ( jobStatus1 == SCHEDULED || jobStatus1 == RUNNING ) && ( jobStatus2 == SCHEDULED || jobStatus2 == RUNNING );
     }
 
     @Override
