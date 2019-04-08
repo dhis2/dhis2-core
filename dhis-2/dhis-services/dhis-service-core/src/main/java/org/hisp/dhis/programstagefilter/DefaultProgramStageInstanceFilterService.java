@@ -126,7 +126,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     @Override
     public void delete( ProgramStageInstanceFilter programStageInstanceFilter )
     {
-        if ( aclService.canDelete( currentUserService.getCurrentUser(), programStageInstanceFilter ) )
+        if ( !aclService.canDelete( currentUserService.getCurrentUser(), programStageInstanceFilter ) )
         {
             throw new DeleteAccessDeniedException( "You do not have the authority to delete the eventFilter: '" + programStageInstanceFilter.getUid() + "'" );
 
@@ -168,6 +168,10 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             {
                 errors.add( "Program is specified but does not exist: " + programStageInstanceFilter.getProgram().getUid() );
             }
+            else
+            {
+                programStageInstanceFilter.setProgram( pr );
+            }
         }
 
         if ( programStageInstanceFilter.getProgramStage() != null && programStageInstanceFilter.getProgramStage().getUid() != null )
@@ -177,6 +181,10 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             {
                 errors.add( "Program stage is specified but does not exist: " + programStageInstanceFilter.getProgramStage().getUid() );
             }
+            else
+            {
+                programStageInstanceFilter.setProgramStage( ps );
+            }
         }
 
         if ( programStageInstanceFilter.getOrganisationUnit() != null && programStageInstanceFilter.getOrganisationUnit().getUid() != null )
@@ -185,6 +193,10 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             if ( ou == null )
             {
                 errors.add( "Org unit is specified but does not exist: " + programStageInstanceFilter.getOrganisationUnit().getUid() );
+            }
+            else
+            {
+                programStageInstanceFilter.setOrganisationUnit( ou );
             }
         }
 
@@ -210,7 +222,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     public ProgramStageInstanceFilter get( long id )
     {
         ProgramStageInstanceFilter psiFilter = programStageInstanceFilterStore.get( id );
-        if ( aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
+        if ( !aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
         {
             throw new ReadAccessDeniedException( "You do not have the authority to read the eventFilter with id: '" + id + "'" );
 
@@ -222,7 +234,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     public ProgramStageInstanceFilter get( String uid )
     {
         ProgramStageInstanceFilter psiFilter = programStageInstanceFilterStore.getByUid( uid );
-        if ( aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
+        if ( !aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
         {
             throw new ReadAccessDeniedException( "You do not have the authority to read the eventFilter: '" + uid + "'" );
 
