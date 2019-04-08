@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,7 @@
 
 package org.hisp.dhis.system.database;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -38,7 +36,11 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.JdbcOperations;
+
+import javax.annotation.Nonnull;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
@@ -48,12 +50,8 @@ public class HibernateDatabaseInfoProvider
 {
     private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
     private static final Log log = LogFactory.getLog( HibernateDatabaseInfoProvider.class );
-    private static final String DEL_A = "/";
-    private static final String DEL_B = ":";
-    private static final String DEL_C = "?";
-    private static final String POSTGRES_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)? .*$";
-
-    private static final Pattern PATTERN = Pattern.compile( POSTGRES_REGEX );
+    private static final String POSTGRES_VERSION_REGEX = "^([a-zA-Z_-]+ \\d+\\.+\\d+)?[ ,].*$";
+    private static final Pattern POSTGRES_VERSION_PATTERN = Pattern.compile( POSTGRES_VERSION_REGEX );
 
     private DatabaseInfo info;
 
@@ -61,14 +59,18 @@ public class HibernateDatabaseInfoProvider
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private DhisConfigurationProvider config;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private JdbcOperations jdbcTemplate;
 
-    @Autowired
     private Environment environment;
+
+    public HibernateDatabaseInfoProvider( @Autowired DhisConfigurationProvider config, @Autowired JdbcOperations jdbcTemplate, @Autowired Environment environment )
+    {
+        this.config = config;
+        this.jdbcTemplate = jdbcTemplate;
+        this.environment = environment;
+    }
 
     public void init()
     {
@@ -92,14 +94,15 @@ public class HibernateDatabaseInfoProvider
         String url = config.getProperty( ConfigurationKey.CONNECTION_URL );
         String user = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String password = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
+        InternalDatabaseInfo internalDatabaseInfo = getInternalDatabaseInfo();
 
         info = new DatabaseInfo();
-        info.setName( getNameFromConnectionUrl( url ) );
-        info.setUser( user );
+        info.setName( internalDatabaseInfo.getDatabase() );
+        info.setUser( StringUtils.defaultIfEmpty( internalDatabaseInfo.getUser(), user ) );
         info.setPassword( password );
         info.setUrl( url );
         info.setSpatialSupport( spatialSupport );
-        info.setDatabaseVersion( getDatabaseVersion() );
+        info.setDatabaseVersion( internalDatabaseInfo.getVersion() );
     }
 
     // -------------------------------------------------------------------------
@@ -109,7 +112,9 @@ public class HibernateDatabaseInfoProvider
     @Override
     public DatabaseInfo getDatabaseInfo()
     {
-        return info;
+        // parts of returned object may be reset due to security reasons
+        // (clone must be created to preserve original values)
+        return info == null ? null : info.clone();
     }
 
     @Override
@@ -118,48 +123,34 @@ public class HibernateDatabaseInfoProvider
         return info.getUrl() != null && info.getUrl().contains( ":mem:" );
     }
 
-    @Override
-    public String getNameFromConnectionUrl( String url )
-    {
-        String name = null;
-
-        if ( url != null && url.lastIndexOf( DEL_B ) != -1 )
-        {
-            int startPos = url.lastIndexOf( DEL_A ) != -1 ? url.lastIndexOf( DEL_A ) : url.lastIndexOf( DEL_B );
-            int endPos = url.lastIndexOf( DEL_C ) != -1 ? url.lastIndexOf( DEL_C ) : url.length();
-            name = url.substring( startPos + 1, endPos );
-        }
-
-        return name;
-    }
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    /**
-     * Attempts to create a spatial database extension. Checks if spatial operations
-     * are supported.
-     */
-
-    private String getDatabaseVersion()
+    @Nonnull
+    private InternalDatabaseInfo getInternalDatabaseInfo()
     {
         try
         {
-            String version = jdbcTemplate.queryForObject( "select version();", String.class );
+            final InternalDatabaseInfo internalDatabaseInfo = jdbcTemplate.queryForObject( "select version(),current_catalog,current_user", ( rs, rowNum ) -> {
+                String version = rs.getString( 1 );
+                final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher( version );
 
-            Matcher matcher = PATTERN.matcher( version );
+                if ( versionMatcher.find() )
+                {
+                    version = versionMatcher.group( 1 );
+                }
 
-            if( matcher.find() )
-            {
-                version = matcher.group( 1 );
-            }
+                return new InternalDatabaseInfo( version, rs.getString( 2 ), rs.getString( 3 ) );
+            } );
 
-            return version;
+            return internalDatabaseInfo == null ? new InternalDatabaseInfo() : internalDatabaseInfo;
         }
         catch ( Exception ex )
         {
-            return "";
+            log.error( "An error occurred when retrieving database info.", ex );
+
+            return new InternalDatabaseInfo();
         }
     }
 
@@ -168,6 +159,10 @@ public class HibernateDatabaseInfoProvider
         jdbcTemplate.queryForObject( "select 'checking db connection';", String.class );
     }
 
+    /**
+     * Attempts to create a spatial database extension. Checks if spatial operations
+     * are supported.
+     */
     private boolean isSpatialSupport()
     {
         try
@@ -188,6 +183,42 @@ public class HibernateDatabaseInfoProvider
         {
             log.error( "Exception when checking postgis version:", ex );
             return false;
+        }
+    }
+
+    protected static class InternalDatabaseInfo
+    {
+        private final String version;
+
+        private final String database;
+
+        private final String user;
+
+        public InternalDatabaseInfo()
+        {
+            this( StringUtils.EMPTY, StringUtils.EMPTY, StringUtils.EMPTY );
+        }
+
+        public InternalDatabaseInfo( String version, String database, String user )
+        {
+            this.version = version;
+            this.database = database;
+            this.user = user;
+        }
+
+        public String getVersion()
+        {
+            return version;
+        }
+
+        public String getDatabase()
+        {
+            return database;
+        }
+
+        public String getUser()
+        {
+            return user;
         }
     }
 }
