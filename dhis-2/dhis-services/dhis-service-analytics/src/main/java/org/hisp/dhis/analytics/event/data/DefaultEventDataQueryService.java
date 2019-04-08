@@ -135,7 +135,7 @@ public class DefaultEventDataQueryService
                 }
                 else
                 {
-                    params.addItem( getQueryItem( dim, pr ) );
+                    params.addItem( getQueryItem( dim, pr, request.getOutputType() ) );
                 }
             }
         }
@@ -155,7 +155,7 @@ public class DefaultEventDataQueryService
                 }
                 else
                 {
-                    params.addItemFilter( getQueryItem( dim, pr ) );
+                    params.addItemFilter( getQueryItem( dim, pr, request.getOutputType() ) );
                 }
             }
         }
@@ -164,7 +164,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getAsc() )
             {
-                params.addAscSortItem( getSortItem( sort, pr ) );
+                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType() ) );
             }
         }
 
@@ -172,7 +172,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getDesc() )
             {
-                params.addDescSortItem( getSortItem( sort, pr ) );
+                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType() ) );
             }
         }
 
@@ -240,7 +240,7 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram() ) );
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(), object.getOutputType() ) );
             }
         }
 
@@ -255,7 +255,7 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram() ) );
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(), object.getOutputType() ) );
             }
         }
 
@@ -313,17 +313,17 @@ public class DefaultEventDataQueryService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private QueryItem getQueryItem( String dimension, String filter, Program program )
+    private QueryItem getQueryItem( String dimension, String filter, Program program, EventOutputType type )
     {
         if ( filter != null )
         {
             dimension += DIMENSION_NAME_SEP + filter;
         }
 
-        return getQueryItem( dimension, program );
+        return getQueryItem( dimension, program, type );
     }
 
-    private QueryItem getQueryItem( String dimensionString, Program program )
+    private QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type )
     {
         String[] split = dimensionString.split( DIMENSION_NAME_SEP );
 
@@ -332,7 +332,7 @@ public class DefaultEventDataQueryService
             throw new IllegalQueryException( "Query item or filter is invalid: " + dimensionString );
         }
 
-        QueryItem queryItem = getQueryItemFromDimension( split[0], program );
+        QueryItem queryItem = getQueryItemFromDimension( split[0], program, type );
 
         if ( split.length > 1 ) // Filters specified
         {
@@ -347,7 +347,7 @@ public class DefaultEventDataQueryService
         return queryItem;
     }
 
-    private DimensionalItemObject getSortItem( String item, Program program )
+    private DimensionalItemObject getSortItem( String item, Program program, EventOutputType type )
     {
         QueryItem queryItem = null;
 
@@ -358,13 +358,13 @@ public class DefaultEventDataQueryService
         }
         else
         {
-            queryItem = getQueryItem( item, program );
+            queryItem = getQueryItem( item, program, type );
         }
 
         return queryItem.getItem();
     }
 
-    private QueryItem getQueryItemFromDimension( String dimension, Program program )
+    private QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type )
     {
         String[] legendSplit = dimension.split( ITEM_SEP );
 
@@ -398,6 +398,11 @@ public class DefaultEventDataQueryService
             if ( programStage != null )
             {
                 qi.setProgramStage( programStage );
+            }
+            else if ( type.equals( EventOutputType.ENROLLMENT ) )
+            {
+                throw new IllegalQueryException( "For enrollment analytics queries," + 
+                    "program stage is mandatory for data element dimensions: " + dimension );
             }
         }
 
