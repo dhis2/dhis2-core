@@ -36,7 +36,6 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.Node;
@@ -147,11 +146,10 @@ public class DeduplicationController
         throws WebMessageException
     {
 
-        PotentialDuplicate newPotentialDuplicate = new PotentialDuplicate( potentialDuplicate.getTeiA(),
-            potentialDuplicate.getTeiB() );
+        validatePotentialDuplicate( potentialDuplicate );
 
-        deduplicationService.addPotentialDuplicate( newPotentialDuplicate );
-        return newPotentialDuplicate;
+        deduplicationService.addPotentialDuplicate( potentialDuplicate);
+        return potentialDuplicate;
     }
 
     @PutMapping( value = "/{id}/invalidate" )
@@ -171,4 +169,71 @@ public class DeduplicationController
         deduplicationService.markPotentialDuplicateInvalid( potentialDuplicate );
     }
 
+
+    private void validatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+        throws WebMessageException
+    {
+
+        // Validate that teiA is present and a valid uid of an existing TEI
+        if ( potentialDuplicate.getTeiA() == null )
+        {
+            throw new WebMessageException( conflict( "Missing required property 'teiA'" ) );
+        }
+
+        if ( !CodeGenerator.isValidUid( potentialDuplicate.getTeiA() ) )
+        {
+            throw new WebMessageException(
+                conflict( "'" + potentialDuplicate.getTeiA() + "' is not valid value for property 'teiA'" ) );
+        }
+
+        TrackedEntityInstance teiA = trackedEntityInstanceService
+            .getTrackedEntityInstance( potentialDuplicate.getTeiA() );
+
+        if ( teiA == null )
+        {
+            throw new WebMessageException(
+                notFound( "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
+        }
+
+        if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), teiA ).isEmpty() )
+        {
+            throw new WebMessageException(
+                forbidden( "You don't have read access to '" + potentialDuplicate.getTeiA() + "'." ) );
+        }
+
+        // Validate that teiB is a valid uid of an existing TEI if present
+        if ( potentialDuplicate.getTeiB() != null )
+        {
+            if ( !CodeGenerator.isValidUid( potentialDuplicate.getTeiB() ) )
+            {
+                throw new WebMessageException(
+                    conflict( "'" + potentialDuplicate.getTeiA() + "' is not valid value for property 'teiB'" ) );
+            }
+
+            TrackedEntityInstance teiB = trackedEntityInstanceService
+                .getTrackedEntityInstance( potentialDuplicate.getTeiB() );
+
+            if ( teiB == null )
+            {
+                throw new WebMessageException(
+                    notFound( "No tracked entity instance found with id '" + potentialDuplicate.getTeiB() + "'." ) );
+            }
+
+            if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), teiB ).isEmpty() )
+            {
+                throw new WebMessageException(
+                    forbidden( "You don't have read access to '" + potentialDuplicate.getTeiB() + "'." ) );
+            }
+        }
+
+        if ( deduplicationService.exists( potentialDuplicate ) )
+        {
+            {
+                throw new WebMessageException(
+                    conflict( "'" + potentialDuplicate.getTeiA() + "' " +
+                        (potentialDuplicate.getTeiB() != null ? "and '" + potentialDuplicate.getTeiB() + "' " : "") +
+                        "is already marked as a potential duplicate" ) );
+            }
+        }
+    }
 }
