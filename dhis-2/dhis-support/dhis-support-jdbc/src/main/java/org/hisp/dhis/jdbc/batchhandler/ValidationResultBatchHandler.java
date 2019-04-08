@@ -134,5 +134,4 @@ public class ValidationResultBatchHandler
     {
         return null;
     }
-    
 }
