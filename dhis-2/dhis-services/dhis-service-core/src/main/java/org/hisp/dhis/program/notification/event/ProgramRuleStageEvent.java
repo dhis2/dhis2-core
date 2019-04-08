@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.program.notification.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,19 +29,28 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * @Author Zubair Asghar.
  */
-public class ProgramStageInstanceCompletedEvent extends ApplicationEvent
+public class ProgramRuleStageEvent extends ApplicationEvent
 {
+    private ProgramNotificationTemplate template;
+
     private ProgramStageInstance programStageInstance;
 
-    public ProgramStageInstanceCompletedEvent( Object source, ProgramStageInstance programStageInstance )
+    public ProgramRuleStageEvent( Object source, ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
     {
         super( source );
+        this.template = template;
         this.programStageInstance = programStageInstance;
+    }
+
+    public ProgramNotificationTemplate getTemplate()
+    {
+        return template;
     }
 
     public ProgramStageInstance getProgramStageInstance()

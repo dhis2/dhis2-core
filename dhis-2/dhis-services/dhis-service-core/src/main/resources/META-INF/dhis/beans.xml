@@ -1131,8 +1131,7 @@
     class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
 
   <!-- SMPP -->
-  
-  <bean id="org.hisp.dhis.sms.config.SMSSendingCallback" class="org.hisp.dhis.sms.config.SMSSendingCallback" />
+  <bean id="org.hisp.dhis.sms.config.MessageSendingCallback" class="org.hisp.dhis.sms.config.MessageSendingCallback" />
 
   <bean id="org.hisp.dhis.sms.config.SMPPGateway" class="org.hisp.dhis.sms.config.SMPPGateway" />
 
@@ -1195,9 +1194,6 @@
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
   </bean>
-
-  <bean id="org.hisp.dhis.program.notification.ProgramNotificationPublisher"
-    class="org.hisp.dhis.program.notification.ProgramNotificationPublisher" />
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"
     class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
