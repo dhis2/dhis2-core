@@ -97,11 +97,12 @@ public class EnrollmentAnalyticsController
         @RequestParam( required = false ) Date relativePeriodDate,
         @RequestParam( required = false ) String userOrgUnit,
         @RequestParam( required = false ) String coordinateField,
+        @RequestParam( required = false ) SortOrder sortOrder,
         DhisApiVersion apiVersion,
         Model model,
         HttpServletResponse response )
     {
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program )
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
             .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
             .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )

@@ -227,8 +227,7 @@ public class DefaultEnrollmentAnalyticsService
         
         if ( params.isPaging() )
         {
-            throw new NotImplementedException("Paging not yet supported for enrollment queries");
-            //count += enrollmentAnalyticsManager.getEnrollmentCount( params );
+            count += enrollmentAnalyticsManager.getEnrollmentCount( params );
         }
 
         enrollmentAnalyticsManager.getEnrollments( params, grid, queryValidator.getMaxLimit() );
@@ -256,10 +255,9 @@ public class DefaultEnrollmentAnalyticsService
 
         if ( params.isPaging() )
         {
-            throw new NotImplementedException("Paging not yet supported for enrollment queries");
-            //Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
 
-            //grid.getMetaData().put( PAGER.getKey(), pager );
+            grid.getMetaData().put( PAGER.getKey(), pager );
         }
 
         return grid;

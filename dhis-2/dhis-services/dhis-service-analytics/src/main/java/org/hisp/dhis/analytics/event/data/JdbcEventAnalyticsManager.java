@@ -510,56 +510,6 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns an SQL sort clause.
-     *
-     * @param params the {@link EventQueryParams}.
-     */
-    private String getSortClause( EventQueryParams params )
-    {
-        String sql = "";
-
-        if ( params.isSorting() )
-        {
-            sql += "order by ";
-
-            for ( DimensionalItemObject item : params.getAsc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " asc,";
-            }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " desc,";
-            }
-
-            sql = removeLastComma( sql ) + " ";
-        }
-
-        return sql;
-    }
-
-    /**
-     * Returns an SQL paging clause.
-     *
-     * @param params the {@link EventQueryParams}.
-     */
-    private String getPagingClause( EventQueryParams params, int maxLimit )
-    {
-        String sql = "";
-
-        if ( params.isPaging() )
-        {
-            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
-        }
-        else if ( maxLimit > 0 )
-        {
-            sql += "limit " + ( maxLimit + 1 );
-        }
-
-        return sql;
-    }
-
-    /**
      * Generates a sub query which provides a view of the data where each row is
      * ranked by the execution date, latest first. The events are partitioned by
      * org unit and attribute option combo. A column {@code pe_rank} defines the rank.

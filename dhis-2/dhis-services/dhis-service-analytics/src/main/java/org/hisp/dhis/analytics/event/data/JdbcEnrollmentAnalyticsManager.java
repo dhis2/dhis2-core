@@ -78,7 +78,7 @@ public class JdbcEnrollmentAnalyticsManager
     private static final Log log = LogFactory.getLog( JdbcEnrollmentAnalyticsManager.class );
     
     @Override
-    public Grid getEnrollments( EventQueryParams params, Grid grid, int maxLimit ) 
+    public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit ) 
     {
         List<String> fixedCols = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
@@ -90,9 +90,9 @@ public class JdbcEnrollmentAnalyticsManager
 
         sql += getWhereClause( params );
 
-        //sql += getSortClause( params );
+        sql += getSortClause( params );
 
-        //sql += getPagingClause( params, maxLimit );
+        sql += getPagingClause( params, maxLimit );
 
         // ---------------------------------------------------------------------
         // Grid
@@ -111,8 +111,6 @@ public class JdbcEnrollmentAnalyticsManager
             log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
             throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
         }
-
-        return grid;
     }
 
     private void getEnrollments( EventQueryParams params, Grid grid, String sql )
@@ -142,6 +140,36 @@ public class JdbcEnrollmentAnalyticsManager
                 index++;
             }
         }
+    }
+
+    @Override
+    public long getEnrollmentCount( EventQueryParams params )
+    {
+        String sql = "select count(pi) ";
+
+        sql += getFromClause( params );
+
+        sql += getWhereClause( params );
+
+        long count = 0;
+
+        try
+        {
+            log.debug( "Analytics enrollment count SQL: " + sql );
+
+            count = jdbcTemplate.queryForObject( sql, Long.class );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+        }
+
+        return count;
     }
 
     /**

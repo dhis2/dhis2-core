@@ -50,6 +50,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
@@ -94,6 +95,56 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     @Autowired
     protected ProgramIndicatorService programIndicatorService;
+
+    /**
+     * Returns an SQL paging clause.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    protected String getPagingClause( EventQueryParams params, int maxLimit )
+    {
+        String sql = "";
+
+        if ( params.isPaging() )
+        {
+            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
+        }
+        else if ( maxLimit > 0 )
+        {
+            sql += "limit " + ( maxLimit + 1 );
+        }
+
+        return sql;
+    }
+
+    /**
+     * Returns an SQL sort clause.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    protected String getSortClause( EventQueryParams params )
+    {
+        String sql = "";
+
+        if ( params.isSorting() )
+        {
+            sql += "order by ";
+
+            for ( DimensionalItemObject item : params.getAsc() )
+            {
+                sql += quoteAlias( item.getUid() ) + " asc,";
+            }
+
+            for  ( DimensionalItemObject item : params.getDesc() )
+            {
+                sql += quoteAlias( item.getUid() ) + " desc,";
+            }
+
+            sql = TextUtils.removeLastComma( sql ) + " ";
+        }
+
+        return sql;
+    }
 
     /**
      * Returns the dynamic select column names to use in a group by clause. Dimensions come
