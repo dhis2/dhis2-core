@@ -39,9 +39,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
-import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
+import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -96,9 +96,6 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private ProgramNotificationPublisher programNotificationPublisher;
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
@@ -495,9 +492,9 @@ public class DefaultProgramInstanceService
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
 
-        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
+        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance ) );
 
-        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -536,9 +533,9 @@ public class DefaultProgramInstanceService
         // Send sms-message when to completed the program
         // ---------------------------------------------------------------------
 
-        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
+        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance ) );
 
-        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update program-instance

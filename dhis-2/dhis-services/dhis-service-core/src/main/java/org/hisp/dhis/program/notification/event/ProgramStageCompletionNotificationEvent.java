@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.program.notification.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,43 +28,24 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.context.ApplicationEvent;
 
 /**
  * @Author Zubair Asghar.
  */
-
-@Async
-@Transactional
-public class ProgramRuleEngineListener
+public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
 {
-    @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
+    private ProgramStageInstance programStageInstance;
 
-    @EventListener
-    public void listenEvent( EnrollmentEvaluationEvent event )
+    public ProgramStageCompletionNotificationEvent( Object source, ProgramStageInstance programStageInstance )
     {
-        programRuleEngineService.evaluate( event.getProgramInstance() );
+        super( source );
+        this.programStageInstance = programStageInstance;
     }
 
-    @EventListener
-    public void listenEvent( DataValueUpdatedEvent event )
+    public ProgramStageInstance getProgramStageInstance()
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
-    }
-
-    @EventListener
-    public void listenEvent( StageCompletionEvaluationEvent event )
-    {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
-    }
-
-    @EventListener
-    public void listenEvent( StageScheduledEvaluationEvent event )
-    {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        return programStageInstance;
     }
 }
