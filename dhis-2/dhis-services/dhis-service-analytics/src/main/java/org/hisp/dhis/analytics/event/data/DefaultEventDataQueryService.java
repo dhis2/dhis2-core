@@ -399,7 +399,7 @@ public class DefaultEventDataQueryService
             {
                 qi.setProgramStage( programStage );
             }
-            else if ( type.equals( EventOutputType.ENROLLMENT ) )
+            else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
                 throw new IllegalQueryException( "For enrollment analytics queries," + 
                     "program stage is mandatory for data element dimensions: " + dimension );
