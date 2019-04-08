@@ -43,6 +43,7 @@ import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,7 +72,7 @@ public class JobConfigurationObjectBundleHook
     private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
     {
         Set<JobConfiguration> jobConfigs = jobConfigurationService.getAllJobConfigurations().stream()
-            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) )
+            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) && !Objects.equals( jobConfig.getUid(), jobConfiguration.getUid() ) )
             .collect( Collectors.toSet() );
 
         /*

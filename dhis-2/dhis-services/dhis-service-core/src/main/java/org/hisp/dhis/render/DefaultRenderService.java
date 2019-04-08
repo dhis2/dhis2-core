@@ -311,6 +311,7 @@ public class DefaultRenderService
             objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
 
             objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
+            objectMapper.disable( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY );
             objectMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
             objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
 

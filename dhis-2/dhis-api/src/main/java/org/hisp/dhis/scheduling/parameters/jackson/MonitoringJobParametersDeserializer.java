@@ -1,7 +1,7 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,18 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public enum ChartType
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+
+public class MonitoringJobParametersDeserializer extends AbstractJobParametersDeserializer<MonitoringJobParameters>
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    public MonitoringJobParametersDeserializer()
+    {
+        super( MonitoringJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends MonitoringJobParameters
+    {
+    }
 }

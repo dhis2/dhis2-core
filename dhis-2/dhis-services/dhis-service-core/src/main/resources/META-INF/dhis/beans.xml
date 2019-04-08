@@ -918,7 +918,6 @@
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
     <property name="env" ref="environment" />
   </bean>
@@ -1139,6 +1138,7 @@
     class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
 
   <!-- SMPP -->
+  
   <bean id="org.hisp.dhis.sms.config.SMSSendingCallback" class="org.hisp.dhis.sms.config.SMSSendingCallback" />
 
   <bean id="org.hisp.dhis.sms.config.SMPPGateway" class="org.hisp.dhis.sms.config.SMPPGateway" />
@@ -1342,7 +1342,7 @@
     <property name="userKeyJsonValueStore" ref="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore" />
   </bean>
 
-  <!-- SMS services -->
+  <!-- SMS listener services -->
 
   <bean id="org.hisp.dhis.sms.command.SMSCommandService" class="org.hisp.dhis.sms.command.DefaultSMSCommandService">
     <property name="smsCommandStore" ref="org.hisp.dhis.sms.command.hibernate.SMSCommandStore" />
@@ -1368,7 +1368,7 @@
 
   <bean id="org.hisp.dhis.sms.listener.SingleEventListener" class="org.hisp.dhis.sms.listener.SingleEventListener" />
 
-  <!-- Notification renderers -->
+  <!-- Notification renderer -->
 
   <bean id="programNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramNotificationMessageRenderer" />
 
@@ -1376,7 +1376,7 @@
 
   <bean id="dataSetNotificationMessageRenderer" class="org.hisp.dhis.notification.DataSetNotificationMessageRenderer" />
 
-  <!-- Notification loggin -->
+  <!-- Notification login -->
 
   <bean id="org.hisp.dhis.notification.logging.NotificationLoggingStore"
     class="org.hisp.dhis.notification.logging.HibernateNotificationLoggingStore">
