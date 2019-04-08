@@ -1075,13 +1075,11 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
 dhis2.de.fetchDataSets = function( ou )
 {
     var def = $.Deferred();
+    var fieldsParam = encodeURIComponent('id,dataSets[id],children[id,dataSets[id]]');
 
     $.ajax({
         type: 'GET',
-        url: '../api/organisationUnits/' + ou,
-        data: {
-            fields: encodeURIComponent('id,dataSets[id],children[id,dataSets[id]]')
-        }
+        url: '../api/organisationUnits/' + ou + '?fields=' + fieldsParam
     }).done(function(data) {
         dhis2.de._updateDataSets(data);
 
@@ -2101,7 +2099,7 @@ function registerCompleteDataSet()
 		return false;
     }
 	
-	dhis2.de.validate( true, function() 
+	dhis2.de.validate( true, true, function() 
     {
         var params = dhis2.de.storageManager.getCurrentCompleteDataSetParams();
 
@@ -2326,7 +2324,7 @@ dhis2.de.validateCompulsoryDataElements = function ()
  *        if validation is successful.
  * @param successCallback the function to execute if validation is successful.                                  
  */
-dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
+dhis2.de.validate = function( completeUncomplete, ignoreValidationSuccess, successCallback )
 {
 	var compulsoryCombinationsValid = dhis2.de.validateCompulsoryCombinations();
 
@@ -2340,7 +2338,14 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
 	{
         if( !compulsoryDataElementsValid && !compulsoryFieldsCompleteOnly )
         {
-            setHeaderDelayMessage( i18n_complete_compulsory_notification );
+            if( completeUncomplete )
+            {
+                setHeaderDelayMessage( i18n_complete_compulsory_notification );
+            }
+            else
+            {
+                setHeaderDelayMessage( i18n_uncomplete_notification );
+            }
         }
         else
         {

@@ -36,7 +36,6 @@ import java.util.List;
 /**
  * @author Chau Thu Tran
  */
-@Transactional
 public class DefaultTrackedEntityTypeService
     implements TrackedEntityTypeService
 {
@@ -56,6 +55,7 @@ public class DefaultTrackedEntityTypeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public int addTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         trackedEntityTypeStore.save( trackedEntityType );
@@ -64,36 +64,42 @@ public class DefaultTrackedEntityTypeService
     }
 
     @Override
+    @Transactional
     public void deleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         trackedEntityTypeStore.delete( trackedEntityType );
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         trackedEntityTypeStore.update( trackedEntityType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityType( int id )
     {
         return trackedEntityTypeStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityType( String uid )
     {
         return trackedEntityTypeStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityByName( String name )
     {
         return trackedEntityTypeStore.getByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityType> getAllTrackedEntityType()
     {
         return trackedEntityTypeStore.getAll();

@@ -1,7 +1,7 @@
-package org.hisp.dhis.period;
+package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,55 +28,20 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.calendar.DateTimeUnit;
-
-import java.util.Calendar;
-
 /**
- * @author Chau Thu Tran
+ * Marker interface marking the class as a proper metadata object
+ * (not data, not embedded object, etc) and specifies that the system itself
+ * creates a predefined set of metadata objects of this type.
+ *
+ * @author Volker Schmidt
  */
-public class FinancialOctoberPeriodType
-    extends FinancialPeriodType
+public interface SystemDefaultMetadataObject extends MetadataObject
 {
     /**
-     * Determines if a de-serialized file is compatible with this class.
+     * Checks if this metadata object is a system default metadata object.
+     *
+     * @return <code>true</code> if this metadata object is a system default
+     * metadata object, <code>false</code> if it is user generated.
      */
-    private static final long serialVersionUID = -1623576547899897811L;
-
-    private static final String ISO_FORMAT = "yyyyOct";
-
-    private static final String ISO8601_DURATION = "P1Y";
-
-    public static final String NAME = "FinancialOct";
-
-    @Override
-    public int getBaseMonth()
-    {
-        return Calendar.OCTOBER;
-    }
-
-    @Override
-    public String getName()
-    {
-        return NAME;
-    }
-
-    @Override
-    public String getIsoDate( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
-    {
-        return String.format( "%dOct", dateTimeUnit.getYear() );
-    }
-
-    @Override
-    public String getIsoFormat()
-    {
-        return ISO_FORMAT;
-    }
-
-    @Override
-    public String getIso8601Duration()
-    {
-        return ISO8601_DURATION;
-    }
-
+    boolean isDefault();
 }

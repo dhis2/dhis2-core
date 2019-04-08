@@ -142,6 +142,15 @@ public interface DataApprovalLevelService
     List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow );
 
     /**
+     * Gets approval levels within a workflow to which the user has access.
+     * If there are none, at least return the lowest level (if any).
+     * @param user the user to test for.
+     * @param workflow the workflow to look within.
+     * @return all user-accessible approval levels within that workflow.
+     */
+    List<DataApprovalLevel> getUserDataApprovalLevelsOrLowestLevel( User user, DataApprovalWorkflow workflow );
+
+    /**
      * Gets data approval levels by org unit level.
      * 
      * @param orgUnitLevel the org unit level.

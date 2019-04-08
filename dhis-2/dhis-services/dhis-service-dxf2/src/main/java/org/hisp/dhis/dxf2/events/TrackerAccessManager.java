@@ -48,25 +48,25 @@ public interface TrackerAccessManager
 
     List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
 
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program );
+    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program );
+    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program, boolean skipOwnershipCheck );
 
-    List<String> canRead( User user, ProgramInstance programInstance );
+    List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, ProgramInstance programInstance );
+    List<String> canWrite( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
-    List<String> canRead( User user, ProgramStageInstance programStageInstance );
+    List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, ProgramStageInstance programStageInstance );
+    List<String> canWrite( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, Relationship relationship );
 
     List<String> canWrite( User user, Relationship relationship );
 
-    List<String> canRead( User user, TrackedEntityDataValue dataValue );
+    List<String> canRead( User user, TrackedEntityDataValue dataValue, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, TrackedEntityDataValue dataValue );
+    List<String> canWrite( User user, TrackedEntityDataValue dataValue, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
 

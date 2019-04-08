@@ -98,6 +98,8 @@ public class ImportOptions
 
     private NotificationLevel notificationLevel;
 
+    private boolean skipLastUpdated;
+
     //--------------------------------------------------------------------------
     // Constructors
     //--------------------------------------------------------------------------
@@ -135,6 +137,7 @@ public class ImportOptions
         options.force = this.force;
         options.filename = this.filename;
         options.notificationLevel = this.notificationLevel;
+        options.skipLastUpdated = this.skipLastUpdated;
 
         return options;
     }
@@ -365,6 +368,13 @@ public class ImportOptions
         return notificationLevel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipLastUpdated()
+    {
+        return skipLastUpdated;
+    }
+
     //--------------------------------------------------------------------------
     // Set methods
     //--------------------------------------------------------------------------
@@ -566,6 +576,12 @@ public class ImportOptions
         return this;
     }
 
+    public ImportOptions setSkipLastUpdated( boolean skipLastUpdated )
+    {
+        this.skipLastUpdated = skipLastUpdated;
+        return this;
+    }
+
     @Override
     public String toString()
     {
@@ -587,6 +603,7 @@ public class ImportOptions
             .add( "requireCategoryOptionCombo", requireCategoryOptionCombo )
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
             .add( "force", force )
+            .add( "skipLastUpdated", skipLastUpdated )
             .toString();
     }
 }

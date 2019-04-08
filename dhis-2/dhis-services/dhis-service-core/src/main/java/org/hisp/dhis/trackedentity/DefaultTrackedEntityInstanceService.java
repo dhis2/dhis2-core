@@ -93,7 +93,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACK
 /**
  * @author Abyot Asalefew Gizaw
  */
-@Transactional
 public class DefaultTrackedEntityInstanceService
     implements TrackedEntityInstanceService
 {
@@ -147,6 +146,7 @@ public class DefaultTrackedEntityInstanceService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
@@ -173,16 +173,17 @@ public class DefaultTrackedEntityInstanceService
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
         String accessedBy = currentUserService.getCurrentUsername();
-        
+
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );            
+            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
         }
 
         return trackedEntityInstances;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         decideAccess( params );
@@ -205,6 +206,7 @@ public class DefaultTrackedEntityInstanceService
     // TODO lower index on attribute value?
 
     @Override
+    @Transactional(readOnly = true)
     public Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
     {
         decideAccess( params );
@@ -254,7 +256,7 @@ public class DefaultTrackedEntityInstanceService
 
         String accessedBy = currentUserService.getCurrentUsername();
 
-        Map<String, TrackedEntityType> trackedEntityTypes = new HashMap<String, TrackedEntityType>();
+        Map<String, TrackedEntityType> trackedEntityTypes = new HashMap<>();
 
         if ( params.hasTrackedEntityType() )
         {
@@ -383,6 +385,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
         User user = params.isInternalSearch() ? null : currentUserService.getCurrentUser();
@@ -415,6 +418,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validate( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
     {
@@ -506,6 +510,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validateSearchScope( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
     {
@@ -539,7 +544,7 @@ public class DefaultTrackedEntityInstanceService
             }
         }
 
-        if ( !isLocalSearch( params ) )
+        if ( !isLocalSearch( params, user ) )
         {
             int maxTeiLimit = 0; // no limit
 
@@ -628,6 +633,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
@@ -704,8 +710,8 @@ public class DefaultTrackedEntityInstanceService
         if ( ouMode == OrganisationUnitSelectionMode.CAPTURE && currentUserService.getCurrentUser() != null )
         {
             params.getOrganisationUnits().addAll( currentUserService.getCurrentUser().getOrganisationUnits() );
-        }        
-        
+        }
+
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
@@ -805,6 +811,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional
     public int addTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.save( instance );
@@ -813,6 +820,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional
     public int createTrackedEntityInstance( TrackedEntityInstance instance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues )
     {
@@ -857,24 +865,28 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.update( instance );
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized )
     {
         trackedEntityInstanceStore.updateTrackedEntityInstancesSyncTimestamp( trackedEntityInstanceUIDs, lastSynchronized );
     }
 
     @Override
+    @Transactional
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
@@ -883,8 +895,8 @@ public class DefaultTrackedEntityInstanceService
 
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityInstance getTrackedEntityInstance( int id )
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.get( id );
@@ -895,6 +907,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityInstance getTrackedEntityInstance( String uid )
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( uid );
@@ -905,22 +918,22 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean trackedEntityInstanceExists( String uid )
     {
         return trackedEntityInstanceStore.exists( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean trackedEntityInstanceExistsIncludingDeleted( String uid )
     {
         return trackedEntityInstanceStore.existsIncludingDeleted( uid );
     }
 
-    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params )
+    private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
-        User user = currentUserService.getCurrentUser();
-
-        Set<OrganisationUnit> localOrgUnits = currentUserService.getCurrentUser().getOrganisationUnits();
+        Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
         Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 

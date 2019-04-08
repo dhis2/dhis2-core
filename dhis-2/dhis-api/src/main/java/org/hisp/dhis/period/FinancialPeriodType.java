@@ -53,7 +53,7 @@ public abstract class FinancialPeriodType
     // Abstract methods
     // -------------------------------------------------------------------------
 
-    protected abstract int getBaseMonth();
+    public abstract int getBaseMonth();
 
     // -------------------------------------------------------------------------
     // PeriodType functionality
@@ -176,5 +176,11 @@ public abstract class FinancialPeriodType
         dateTimeUnit = cal.minusYears( dateTimeUnit, rewindedPeriods );
 
         return cal.toIso( dateTimeUnit ).toJdkDate();
+    }
+
+    @Override
+    public boolean spansMultipleCalendarYears()
+    {
+        return true;
     }
 }

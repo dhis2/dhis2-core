@@ -62,6 +62,8 @@ public interface EnrollmentService
     Enrollment getEnrollment( ProgramInstance programInstance );
 
     Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params );
+    
+    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params, boolean skipOwnershipCheck );
 
     List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
 
@@ -74,8 +76,6 @@ public interface EnrollmentService
     ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
-
-    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params );
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
 

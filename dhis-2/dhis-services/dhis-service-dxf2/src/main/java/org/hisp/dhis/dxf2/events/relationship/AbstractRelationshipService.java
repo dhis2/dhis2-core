@@ -64,8 +64,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -79,7 +79,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
-@Transactional
 public abstract class AbstractRelationshipService
     implements RelationshipService
 {
@@ -125,6 +124,7 @@ public abstract class AbstractRelationshipService
     private HashMap<String, ProgramStageInstance> programStageInstanceCache = new HashMap<>();
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
         TrackedEntityInstance tei, boolean skipAccessValidation )
     {
@@ -135,6 +135,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
@@ -144,6 +145,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         boolean skipAccessValidation )
     {
@@ -154,6 +156,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional
     public ImportSummaries processRelationshipList( List<Relationship> relationships, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
@@ -205,6 +208,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional
     public ImportSummaries addRelationships( List<Relationship> relationships, ImportOptions importOptions )
     {
         List<List<Relationship>> partitions = Lists.partition( relationships, FLUSH_FREQUENCY );
@@ -229,10 +233,10 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional
     public ImportSummary addRelationship( Relationship relationship, ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary( relationship.getRelationship() );
-        Set<ImportConflict> importConflicts = new HashSet<>();
 
         importOptions = updateImportOptions( importOptions );
 
@@ -251,7 +255,7 @@ public abstract class AbstractRelationshipService
                 .incrementIgnored();
         }
 
-        importConflicts.addAll( checkRelationship( relationship, importOptions ) );
+        Set<ImportConflict> importConflicts = new HashSet<>(checkRelationship(relationship));
 
         if ( !importConflicts.isEmpty() )
         {
@@ -261,8 +265,7 @@ public abstract class AbstractRelationshipService
             return importSummary;
         }
 
-        org.hisp.dhis.relationship.Relationship daoRelationship = createDAORelationship(
-            relationship, importOptions, importSummary );
+        org.hisp.dhis.relationship.Relationship daoRelationship = createDAORelationship( relationship );
 
         if ( daoRelationship == null )
         {
@@ -287,6 +290,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional
     public ImportSummaries updateRelationships( List<Relationship> relationships, ImportOptions importOptions )
     {
         List<List<Relationship>> partitions = Lists.partition( relationships, FLUSH_FREQUENCY );
@@ -310,11 +314,11 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional
     public ImportSummary updateRelationship( Relationship relationship, ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary( relationship.getRelationship() );
         importOptions = updateImportOptions( importOptions );
-        Set<ImportConflict> importConflicts = new HashSet<>();
 
         // Set up cache if not set already
         if ( !cacheExists() )
@@ -325,7 +329,7 @@ public abstract class AbstractRelationshipService
         org.hisp.dhis.relationship.Relationship daoRelationship = relationshipService
             .getRelationship( relationship.getRelationship() );
 
-        importConflicts.addAll( checkRelationship( relationship, importOptions ) );
+        Set<ImportConflict> importConflicts = new HashSet<>(checkRelationship(relationship));
 
         if ( daoRelationship == null )
         {
@@ -355,8 +359,7 @@ public abstract class AbstractRelationshipService
             return importSummary;
         }
 
-        org.hisp.dhis.relationship.Relationship _relationship = createDAORelationship( relationship, importOptions,
-            importSummary );
+        org.hisp.dhis.relationship.Relationship _relationship = createDAORelationship( relationship );
 
         daoRelationship.setRelationshipType( _relationship.getRelationshipType() );
         daoRelationship.setTo( _relationship.getTo() );
@@ -371,12 +374,14 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional
     public ImportSummary deleteRelationship( String uid )
     {
         return deleteRelationship( uid, null );
     }
 
     @Override
+    @Transactional
     public ImportSummaries deleteRelationships( List<Relationship> relationships, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
@@ -400,6 +405,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Relationship getRelationshipByUid( String id )
     {
         org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( id );
@@ -413,7 +419,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
         User user )
     {
@@ -556,11 +562,8 @@ public abstract class AbstractRelationshipService
     /**
      * Checks the relationship for any conflicts, like missing or invalid references.
      *
-     * @param relationship
-     * @param importOptions
-     * @return
      */
-    private List<ImportConflict> checkRelationship( Relationship relationship, ImportOptions importOptions )
+    private List<ImportConflict> checkRelationship( Relationship relationship )
     {
         List<ImportConflict> conflicts = new ArrayList<>();
 
@@ -704,8 +707,7 @@ public abstract class AbstractRelationshipService
         return "";
     }
 
-    protected org.hisp.dhis.relationship.Relationship createDAORelationship( Relationship relationship,
-        ImportOptions importOptions, ImportSummary importSummary )
+    private org.hisp.dhis.relationship.Relationship createDAORelationship(Relationship relationship )
     {
         RelationshipType relationshipType = relationshipTypeCache.get( relationship.getRelationshipType() );
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
@@ -849,7 +851,7 @@ public abstract class AbstractRelationshipService
         return importOptions;
     }
 
-    protected void reloadUser( ImportOptions importOptions )
+    private void reloadUser(ImportOptions importOptions)
     {
         if ( importOptions == null || importOptions.getUser() == null )
         {
