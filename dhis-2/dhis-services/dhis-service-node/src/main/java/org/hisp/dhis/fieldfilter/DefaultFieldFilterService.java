@@ -254,7 +254,14 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
 
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-            Schema propertySchema = schemaService.getDynamicSchema( property.getKlass() );
+            Class<?> propertyClass = property.getKlass();
+            Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
+            if ( returnValue != null && propertySchema.getProperties().isEmpty() && !property.isCollection() && property.getKlass().isInterface() && !property.isIdentifiableObject() )
+            {
+                // try to retrieve schema from concrete class
+                propertyClass = returnValue.getClass();
+                propertySchema = schemaService.getDynamicSchema( propertyClass );
+            }
 
             FieldMap fieldValue = fieldMap.get( fieldKey );
 
@@ -269,7 +276,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
             else
             {
-                updateFields( fieldValue, property.getKlass() );
+                updateFields( fieldValue, propertyClass );
             }
 
             if ( fieldValue.isEmpty() )
@@ -319,7 +326,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                         }
                     }
                 }
-                else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
+                else if ( property.isIdentifiableObject() && isProperIdObject( propertyClass ) )
                 {
                     if ( !shouldExclude( returnValue, defaults ) )
                     {
@@ -338,7 +345,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue, user, defaults );
+                        child = buildNode( getFullFieldMap( propertySchema ), propertyClass, returnValue, user, defaults );
                     }
                 }
             }
@@ -361,7 +368,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    child = buildNode( fieldValue, property.getKlass(), returnValue, user, defaults );
+                    child = buildNode( fieldValue, propertyClass, returnValue, user, defaults );
                 }
             }
 

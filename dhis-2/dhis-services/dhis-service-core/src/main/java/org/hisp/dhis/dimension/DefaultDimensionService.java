@@ -513,7 +513,7 @@ public class DefaultDimensionService
      *                      associates each id of that class with an atomic object.
      * @return a map from the item ids to the dimension item objects.
      */
-    private Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap(Set<DimensionalItemId> itemIds,
+    private Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap( Set<DimensionalItemId> itemIds,
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects )
     {
         Map<DimensionalItemId, DimensionalItemObject> itemObjectMap = new HashMap<>();
