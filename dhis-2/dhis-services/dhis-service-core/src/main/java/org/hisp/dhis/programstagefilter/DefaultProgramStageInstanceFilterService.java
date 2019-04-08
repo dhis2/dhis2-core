@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -89,6 +90,12 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     @Override
     public long add( ProgramStageInstanceFilter programStageInstanceFilter )
     {
+        List<String> errors = validate( programStageInstanceFilter );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
         programStageInstanceFilterStore.save( programStageInstanceFilter );
         return programStageInstanceFilter.getId();
     }
@@ -102,6 +109,12 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     @Override
     public void update( ProgramStageInstanceFilter programStageInstanceFilter )
     {
+        List<String> errors = validate( programStageInstanceFilter );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
         programStageInstanceFilterStore.update( programStageInstanceFilter );
     }
 
@@ -149,10 +162,14 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             {
                 errors.add( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
             }
+
+            if ( eventQC.getEvents() != null && !eventQC.getEvents().isEmpty() && eventQC.getDataFilters() != null && !eventQC.getDataFilters().isEmpty() )
+            {
+                errors.add( "Event UIDs and filters can not be specified at the same time" );
+            }
         }
 
         return errors;
-
     }
 
     @Override

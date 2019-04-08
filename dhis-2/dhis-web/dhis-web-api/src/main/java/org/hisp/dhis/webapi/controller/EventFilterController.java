@@ -1,21 +1,4 @@
 package org.hisp.dhis.webapi.controller;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.commons.beanutils.BeanUtils;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -44,6 +27,16 @@ import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
+import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
 import org.hisp.dhis.schema.descriptors.ProgramStageInstanceFilterSchemaDescriptor;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,13 +56,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping( value = ProgramStageInstanceFilterSchemaDescriptor.API_ENDPOINT )
 public class EventFilterController
 {
-    
+
     @Autowired
     private ProgramStageInstanceFilterService psiFilterService;
-    
+
     @Autowired
     private WebMessageService messageService;
-    
+
     /**
      * Returns all eventFilter definitions filtered by program if provided.
      */
@@ -110,13 +103,11 @@ public class EventFilterController
         messageService.sendJson( WebMessageUtils.ok( "EventFilter '" + uid + "' deleted." ), response );
     }
 
-   
-
     /**
      * Add a new eventFilter
      */
     @RequestMapping( value = "", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
-    public void addEventFilter(@RequestBody ProgramStageInstanceFilter psiFilter, HttpServletResponse response )
+    public void addEventFilter( @RequestBody ProgramStageInstanceFilter psiFilter, HttpServletResponse response )
         throws WebMessageException
     {
         psiFilterService.add( psiFilter );
@@ -128,16 +119,17 @@ public class EventFilterController
      * Update an eventFilter definition
      */
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, produces = "application/json", consumes = "application/json" )
-    public void updateEventFilter( @PathVariable String uid, @RequestBody ProgramStageInstanceFilter psiFilter,
-        HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
+    public void updateEventFilter( @PathVariable String uid, @RequestBody ProgramStageInstanceFilter psiFilter, HttpServletRequest request,
+        HttpServletResponse response )
+        throws WebMessageException,
+        IOException
     {
         ProgramStageInstanceFilter existingPsiFilter = psiFilterService.get( uid );
         if ( existingPsiFilter == null )
         {
             throw new WebMessageException( WebMessageUtils.notFound( "EventFilter '" + uid + "' was not found." ) );
         }
-        
+
         psiFilter.setUid( uid );
         psiFilterService.update( psiFilter );
         response.setStatus( HttpServletResponse.SC_OK );
