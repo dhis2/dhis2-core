@@ -60,9 +60,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -721,64 +719,5 @@ public class HibernateTrackedEntityInstanceStore
     protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
     {
         return (trackedEntityInstance == null || trackedEntityInstance.isDeleted()) ? null : trackedEntityInstance;
-    }
-
-    @Override
-    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params )
-    {
-        // ---------------------------------------------------------------------
-        // Select clause
-        // ---------------------------------------------------------------------
-
-        SqlHelper hlp = new SqlHelper( true );
-
-        String hql = "select tei.uid from TrackedEntityInstance tei ";
-
-        if ( params.hasOrganisationUnits() )
-        {
-            String orgUnitUids = params.getOrganisationUnits().stream()
-                .map( OrganisationUnit::getUid )
-                .collect( Collectors.joining( ", ", "'", "'" ) );
-
-            hql += "inner join tei.organisationUnit as ou ";
-            hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
-        }
-
-        for ( QueryItem item : params.getAttributes() )
-        {
-            for ( QueryFilter filter : item.getFilters() )
-            {
-                final String encodedFilter = filter.getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
-
-                hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
-                hql += " and teav.attribute.uid='" + item.getItemId() + "'";
-
-                if ( item.isNumeric() )
-                {
-                    hql += " and teav.plainValue " + filter.getSqlOperator() + encodedFilter + ")";
-                }
-                else
-                {
-                    hql += " and lower(teav.plainValue) " + filter.getSqlOperator() + encodedFilter + ")";
-                }
-            }
-        }
-
-        if ( !params.isIncludeDeleted() )
-        {
-            hql += hlp.whereAnd() + " tei.deleted is false";
-        }
-
-        Query query = getQuery( hql );
-        query.setMaxResults( 1 );
-
-        Iterator<String> it = query.iterate();
-
-        if ( it.hasNext() )
-        {
-            return Optional.of( it.next());
-        }
-
-        return Optional.empty();
     }
 }

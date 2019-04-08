@@ -58,7 +58,7 @@ public class TrackedEntityAttributeServiceTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private TrackedEntityAttributeStore trackedEntityAttributeStore;
 
     @Mock
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -98,7 +98,7 @@ public class TrackedEntityAttributeServiceTest
     {
         trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
             trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
-            trackedEntityInstanceStore );
+            trackedEntityAttributeStore );
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
@@ -117,7 +117,7 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
     {
-        when( trackedEntityInstanceStore
+        when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
             .thenReturn( Optional.of( identicalTeiUid ) );
 
@@ -130,7 +130,7 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void differentTeiWithTheSameUniqueAttributeExistsInSystem()
     {
-        when( trackedEntityInstanceStore
+        when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
             .thenReturn( Optional.of( differentTeiUid ) );
 
@@ -143,7 +143,7 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void attributeIsUniqueWithinTheSystem()
     {
-        when( trackedEntityInstanceStore
+        when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
             .thenReturn( Optional.empty() );
 

@@ -81,12 +81,12 @@ public class DefaultTrackedEntityAttributeService
     private final UserService userService;
     private final CurrentUserService currentUserService;
     private final AclService aclService;
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityAttributeStore trackedEntityAttributeStore;
 
     public DefaultTrackedEntityAttributeService ( TrackedEntityAttributeStore attributeStore,
         ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
         FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
-        AclService aclService, TrackedEntityInstanceStore trackedEntityInstanceStore )
+        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore )
     {
         checkNotNull( attributeStore );
         checkNotNull( programService );
@@ -95,7 +95,7 @@ public class DefaultTrackedEntityAttributeService
         checkNotNull( userService );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
-        checkNotNull( trackedEntityInstanceStore );
+        checkNotNull( trackedEntityAttributeStore );
 
         this.attributeStore = attributeStore;
         this.programService = programService;
@@ -104,7 +104,7 @@ public class DefaultTrackedEntityAttributeService
         this.userService = userService;
         this.currentUserService = currentUserService;
         this.aclService = aclService;
-        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
+        this.trackedEntityAttributeStore = trackedEntityAttributeStore;
     }
 
     // -------------------------------------------------------------------------
@@ -200,7 +200,7 @@ public class DefaultTrackedEntityAttributeService
             params.addOrganisationUnit( organisationUnit );
         }
 
-        Optional<String> fetchedTeiUid = trackedEntityInstanceStore.getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
+        Optional<String> fetchedTeiUid = trackedEntityAttributeStore.getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
 
         if ( fetchedTeiUid.isPresent() && (trackedEntityInstance == null || !fetchedTeiUid.get().equals( trackedEntityInstance.getUid() )) )
         {
