@@ -76,12 +76,12 @@ public class HibernateProgramInstanceStore
     {
         String hql = buildCountProgramInstanceHql( params );
 
-        Query query = getQuery( hql );
+        Query<Long> query = getTypedQuery( hql );
 
-        return ( Integer ) query.getSingleResult();
+        return query.getSingleResult().intValue();
     }
 
-    public String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
+    private String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
     {
         return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
     }
