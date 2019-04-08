@@ -24,6 +24,8 @@
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
     </dependency>
+    
+    <!-- DHIS -->
     <dependency>
      <groupId>org.hisp.dhis</groupId>
      <artifactId>dhis-api</artifactId>

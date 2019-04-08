@@ -1,8 +1,5 @@
 package org.hisp.dhis.organisationunit;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -48,7 +45,6 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.version.VersionService;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +53,9 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
@@ -74,9 +73,11 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     private Environment env;
 
-    public void setEnv(Environment env) {
+    public void setEnv( Environment env )
+    {
         this.env = env;
     }
 
@@ -108,13 +109,6 @@ public class DefaultOrganisationUnitService
         this.currentUserService = currentUserService;
     }
 
-    private VersionService versionService;
-
-    public void setVersionService( VersionService versionService )
-    {
-        this.versionService = versionService;
-    }
-
     private ConfigurationService configurationService;
 
     public void setConfigurationService( ConfigurationService configurationService )
@@ -125,11 +119,10 @@ public class DefaultOrganisationUnitService
     @PostConstruct
     public void init()
     {
-
         IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
-                .expireAfterWrite( 3, TimeUnit.HOURS )
-                .initialCapacity( 1000 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .initialCapacity( 1000 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -155,12 +148,6 @@ public class DefaultOrganisationUnitService
     public void updateOrganisationUnit( OrganisationUnit organisationUnit )
     {
         organisationUnitStore.update( organisationUnit );
-    }
-
-    @Override
-    public void updateOrganisationUnitVersion()
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
     }
 
     @Override
@@ -794,16 +781,6 @@ public class DefaultOrganisationUnitService
         }
 
         return orgUnits;
-    }
-
-    // -------------------------------------------------------------------------
-    // Version
-    // -------------------------------------------------------------------------
-
-    @Override
-    public void updateVersion()
-    {
-        versionService.updateVersion( VersionService.ORGANISATIONUNIT_VERSION );
     }
 
     // -------------------------------------------------------------------------

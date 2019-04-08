@@ -30,8 +30,12 @@ package org.hisp.dhis.trackedentityfilter;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
@@ -41,11 +45,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  */
 public class EventFilter implements Serializable
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private String programStage;
 
     private EventStatus eventStatus;
 
     private FilterPeriod eventCreatedPeriod;
+    
+    private AssignedUserSelectionMode assignedUserMode;
+    
+    private Set<String> assignedUsers = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -95,5 +108,31 @@ public class EventFilter implements Serializable
     {
         this.eventCreatedPeriod = eventCreatedPeriod;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AssignedUserSelectionMode getAssignedUserMode()
+    {
+        return assignedUserMode;
+    }
+
+    public void setAssignedUserMode( AssignedUserSelectionMode assignedUserMode )
+    {
+        this.assignedUserMode = assignedUserMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
+    }
+
+    public void setAssignedUsers( Set<String> assignedUsers )
+    {
+        this.assignedUsers = assignedUsers;
+    }
+    
+    
 
 }

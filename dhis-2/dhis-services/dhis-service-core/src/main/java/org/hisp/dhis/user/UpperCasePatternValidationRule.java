@@ -35,6 +35,9 @@ import java.util.regex.Pattern;
  */
 public class UpperCasePatternValidationRule implements PasswordValidationRule
 {
+    public static final String ERROR = "Password must have at least one upper case";
+    public static final String I18_ERROR = "password_uppercase_validation";
+
     private static final Pattern UPPERCASE_PATTERN = Pattern.compile( ".*[A-Z].*" );
 
     @Override
@@ -42,7 +45,7 @@ public class UpperCasePatternValidationRule implements PasswordValidationRule
     {
         if ( !UPPERCASE_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
         {
-            return new PasswordValidationResult( "Password must have at least one upper case", "password_uppercase_validation",false );
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
         }
 
         return new PasswordValidationResult( true );

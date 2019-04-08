@@ -28,8 +28,6 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.amqp.stats.CpuStats;
 import org.hisp.dhis.amqp.stats.DiskStats;
 import org.hisp.dhis.amqp.stats.MemoryStats;
@@ -54,8 +52,6 @@ import java.time.ZonedDateTime;
 @Component
 public class StatsCollector
 {
-    private final Log log = LogFactory.getLog( StatsCollector.class );
-
     private final AmqpManager amqpManager;
 
     public StatsCollector( AmqpManager amqpManager )

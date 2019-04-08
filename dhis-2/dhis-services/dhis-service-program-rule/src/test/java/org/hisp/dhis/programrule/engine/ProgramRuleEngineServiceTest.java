@@ -163,7 +163,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         assertEquals( programInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
-        verify( ruleActionSendMessage ).implement( Matchers.any( RuleEffect.class ), argumentCaptor.capture() );
+        verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), argumentCaptor.capture() );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
@@ -184,7 +184,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         assertEquals( programStageInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
-        verify( ruleActionSendMessage ).implement( Matchers.any( RuleEffect.class ), argumentCaptor.capture() );
+        verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), argumentCaptor.capture() );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );

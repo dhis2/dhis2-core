@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -54,9 +55,10 @@ public class DefaultTrackedEntityInstanceAuditService
     // -------------------------------------------------------------------------
 
     @Override
+    @Async
     public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
     {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );        
+        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
     }
 
     @Override

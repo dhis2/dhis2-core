@@ -31,7 +31,7 @@ package org.hisp.dhis.hibernate.objectmapper;
 import java.io.IOException;
 import java.util.Date;
 
-import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.util.DateUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

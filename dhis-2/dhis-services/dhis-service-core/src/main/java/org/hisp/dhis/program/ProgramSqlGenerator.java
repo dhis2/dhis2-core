@@ -38,9 +38,9 @@ import org.hisp.dhis.parser.expression.CommonSqlGenerator;
 import org.hisp.dhis.parser.expression.InternalParserException;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.util.Assert;
 
 import java.util.Date;
@@ -230,6 +230,9 @@ public class ProgramSqlGenerator
 
             case V_INCIDENT_DATE:
                 return "incidentdate";
+
+            case V_ORG_UNIT_COUNT:
+                return "distinct ou";
 
             case V_PROGRAM_STAGE_ID:
                 return AnalyticsType.EVENT == programIndicator.getAnalyticsType() ? "ps" : "''";
