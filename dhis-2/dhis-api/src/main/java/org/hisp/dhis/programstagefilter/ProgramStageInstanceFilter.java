@@ -29,10 +29,8 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -63,11 +61,6 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
      * Property for filtering events by programstage
      */
     private ProgramStage programStage;
-
-    /**
-     * Property for filtering events by organisation unit
-     */
-    private OrganisationUnit organisationUnit;
 
     /**
      * Property indicating description of programStageInstanceFilter
@@ -121,18 +114,6 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
     {
         return description;
@@ -153,6 +134,22 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
     public void setEventQueryCriteria( EventQueryCriteria eventQueryCriteria )
     {
         this.eventQueryCriteria = eventQueryCriteria;
+    }
+
+    public void copyValuesFrom( ProgramStageInstanceFilter psiFilter )
+    {
+        if ( psiFilter != null )
+        {
+            this.eventQueryCriteria = psiFilter.getEventQueryCriteria();
+            this.program = psiFilter.getProgram();
+            this.programStage = psiFilter.getProgramStage();
+            this.userAccesses = psiFilter.getUserAccesses();
+            this.userGroupAccesses = psiFilter.getUserGroupAccesses();
+            this.code = psiFilter.getCode();
+            this.name = psiFilter.getName();
+            this.description = psiFilter.getDescription();
+            this.publicAccess = psiFilter.getPublicAccess();
+        }
     }
 
 }

@@ -9,7 +9,6 @@ create table programstageinstancefilter (
     description character varying(255),
     programid bigint,
     programstageid bigint,
-    organisationunitid bigint,
     eventquerycriteria jsonb,
 	userid bigint,
     publicaccess character varying(8)
@@ -34,8 +33,7 @@ add constraint uk_programstageinstancefilter_uid unique (uid),
 add constraint fk_programstageinstancefilter_userid foreign key (userid) references userinfo(userinfoid),
 add constraint fk_lastupdatedby_userid foreign key (lastupdatedby) references userinfo(userinfoid),
 add constraint fk_programstageinstancefilter_programid foreign key (programid) references program(programid),
-add constraint fk_programstageinstancefilter_programstageid foreign key (programstageid) references programstage(programstageid),
-add constraint fk_programstageinstancefilter_organisationunitid foreign key (organisationunitid) references organisationunit(organisationunitid);
+add constraint fk_programstageinstancefilter_programstageid foreign key (programstageid) references programstage(programstageid);
 
 --Adding constraints for programstageinstancefilteruseraccesses
 alter table programstageinstancefilteruseraccesses

@@ -52,6 +52,11 @@ public class EventQueryCriteria implements Serializable
     private Boolean followUp;
     
     /**
+     * Property indication the OU for the filter.
+     */
+    private String organisationUnit;
+    
+    /**
      * Property indicating the OU selection mode for the event filter
      */
     private OrganisationUnitSelectionMode ouMode;
@@ -266,6 +271,18 @@ public class EventQueryCriteria implements Serializable
     public void setAssignedUsers( Set<String> assignedUsers )
     {
         this.assignedUsers = assignedUsers;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
+
+    public void setOrganisationUnit( String organisationUnit )
+    {
+        this.organisationUnit = organisationUnit;
     }
     
     

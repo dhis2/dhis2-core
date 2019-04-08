@@ -28,9 +28,6 @@
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" foreign-key="fk_programstageinstancefilter_programstageid" lazy="false" />
       
-    <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
-      column="organisationunitid" foreign-key="fk_programstageinstancefilter_organisationunitid" lazy="false" />
-    
     <property name="eventQueryCriteria" column="eventquerycriteria" type="jbEventQueryCriteria" />
     
     <!-- Access properties -->

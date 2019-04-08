@@ -152,7 +152,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
         programStageInstanceFilterStore.update( programStageInstanceFilter );
     }
 
-    public List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter )
+    private List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter )
     {
         List<String> errors = new ArrayList<>();
 
@@ -187,22 +187,17 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             }
         }
 
-        if ( programStageInstanceFilter.getOrganisationUnit() != null && programStageInstanceFilter.getOrganisationUnit().getUid() != null )
-        {
-            OrganisationUnit ou = organisationUnitService.getOrganisationUnit( programStageInstanceFilter.getOrganisationUnit().getUid() );
-            if ( ou == null )
-            {
-                errors.add( "Org unit is specified but does not exist: " + programStageInstanceFilter.getOrganisationUnit().getUid() );
-            }
-            else
-            {
-                programStageInstanceFilter.setOrganisationUnit( ou );
-            }
-        }
-
         EventQueryCriteria eventQC = programStageInstanceFilter.getEventQueryCriteria();
         if ( eventQC != null )
         {
+            if ( eventQC.getOrganisationUnit() != null )
+            {
+                OrganisationUnit ou = organisationUnitService.getOrganisationUnit( eventQC.getOrganisationUnit() );
+                if ( ou == null )
+                {
+                    errors.add( "Org unit is specified but does not exist: " + eventQC.getOrganisationUnit() );
+                }
+            }
             if ( eventQC.getAssignedUserMode() != null && eventQC.getAssignedUsers() != null && !eventQC.getAssignedUsers().isEmpty()
                 && !eventQC.getAssignedUserMode().equals( AssignedUserSelectionMode.PROVIDED ) )
             {
