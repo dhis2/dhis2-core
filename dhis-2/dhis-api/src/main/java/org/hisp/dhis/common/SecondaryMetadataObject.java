@@ -1,7 +1,7 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,12 @@ package org.hisp.dhis.chart;
  */
 
 /**
- * @author Lars Helge Overland
+ * More installation specific metadata object, that will not be exported by default.
+ * In some cases it is meaningful that this metadata can also be transferred between
+ * system installations.
+ *
+ * @author Volker Schmidt
  */
-public enum ChartType
+public interface SecondaryMetadataObject extends MetadataObject
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
 }

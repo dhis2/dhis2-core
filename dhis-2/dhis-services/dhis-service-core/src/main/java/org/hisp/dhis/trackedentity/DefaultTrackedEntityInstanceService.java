@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -455,6 +456,12 @@ public class DefaultTrackedEntityInstanceService
         {
             violation = "Event start and end date must be specified when event status is specified";
         }
+        
+        if ( params.getAssignedUserSelectionMode() != null && params.hasAssignedUsers()
+            && !params.getAssignedUserSelectionMode().equals( AssignedUserSelectionMode.PROVIDED ) )
+        {
+            violation = "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED";
+        }
 
         if ( params.isOrQuery() && params.hasFilters() )
         {
@@ -606,7 +613,7 @@ public class DefaultTrackedEntityInstanceService
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
+        Date eventStartDate, Date eventEndDate, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
@@ -679,6 +686,12 @@ public class DefaultTrackedEntityInstanceService
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
         }
+        
+        if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
+            && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
+        {
+            throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
+        }
 
         params.setQuery( queryFilter )
             .setProgram( pr )
@@ -695,6 +708,8 @@ public class DefaultTrackedEntityInstanceService
             .setEventStatus( eventStatus )
             .setEventStartDate( eventStartDate )
             .setEventEndDate( eventEndDate )
+            .setAssignedUserSelectionMode( assignedUserSelectionMode )
+            .setAssignedUsers( assignedUsers )
             .setSkipMeta( skipMeta )
             .setPage( page )
             .setPageSize( pageSize )

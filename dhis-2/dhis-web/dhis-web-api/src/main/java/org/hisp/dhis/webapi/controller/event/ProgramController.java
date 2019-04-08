@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -71,9 +70,6 @@ public class ProgramController
 
     @Autowired
     private ProgramService programService;
-
-    @Autowired
-    private MetadataExportService metadataExportService;
 
     @Override
     protected void postCreateEntity( Program program )

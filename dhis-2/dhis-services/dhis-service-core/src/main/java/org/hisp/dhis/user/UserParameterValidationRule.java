@@ -29,10 +29,9 @@ package org.hisp.dhis.user;
  */
 
 import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.i18n.I18n;
 
 /**
- * Created by zubair on 16.03.17.
+ * @author Zubair
  */
 public class UserParameterValidationRule
     implements PasswordValidationRule
@@ -53,7 +52,7 @@ public class UserParameterValidationRule
         String password = credentialsInfo.getPassword();
         String username = credentialsInfo.getUsername();
 
-        // password should not contain part of either username or email
+        // Password should not contain part of either username or email
         if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
             StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
         {

@@ -611,7 +611,7 @@ public abstract class AbstractEventService
         
         User user = currentUserService.getCurrentUser();
         
-        params.updateAssignedUserBasedOnSelectionMode( user );
+        params.handleCurrentUserSelectionMode( user );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -665,7 +665,7 @@ public abstract class AbstractEventService
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
         
-        params.updateAssignedUserBasedOnSelectionMode( user );
+        params.handleCurrentUserSelectionMode( user );
 
         // ---------------------------------------------------------------------
         // If includeAllDataElements is set to true, return all data elements.

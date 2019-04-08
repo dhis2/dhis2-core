@@ -1,7 +1,7 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,28 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.util.StdConverter;
+import org.hisp.dhis.scheduling.JobConfiguration;
+
 /**
- * @author Lars Helge Overland
+ * Cleans the resulting job configuration after de-serializing.
+ *
+ * @author Volker Schmidt
  */
-public enum ChartType
+public class JobConfigurationSanitizer extends StdConverter<JobConfiguration, JobConfiguration>
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    @Override
+    public JobConfiguration convert( JobConfiguration value )
+    {
+        if ( value == null )
+        {
+            return null;
+        }
+
+        final JobConfiguration jobConfiguration = new JobConfiguration( value.getName(), value.getJobType(),
+            value.getCronExpression(), value.getJobParameters(), value.isContinuousExecution(), value.isEnabled() );
+        jobConfiguration.setLeaderOnlyJob( value.isLeaderOnlyJob() );
+        jobConfiguration.setUid( value.getUid() );
+        return jobConfiguration;
+    }
 }

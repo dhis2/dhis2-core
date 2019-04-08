@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.service;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.service;
  */
 
 import javassist.util.proxy.ProxyFactory;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.collection.spi.PersistentCollection;
@@ -40,8 +41,11 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -54,6 +58,11 @@ import java.util.Map;
 public class DefaultLinkService implements LinkService
 {
     private static final Log log = LogFactory.getLog( DefaultLinkService.class );
+
+    /**
+     * The default URL encoding that is used for query parameter values.
+     */
+    protected static final String DEFAULT_URL_ENCODING = "UTF-8";
 
     @Autowired
     private SchemaService schemaService;
@@ -79,12 +88,19 @@ public class DefaultLinkService implements LinkService
             return;
         }
 
-        String endpoint = contextService.getServletPath() + schema.getRelativeApiEndpoint();
+        final String endpoint = contextService.getApiPath() +
+            schema.getRelativeApiEndpoint() + getContentTypeSuffix();
+        final String parameters = getParametersString();
 
         if ( pager.getPage() < pager.getPageCount() )
         {
             String nextPath = endpoint + "?page=" + (pager.getPage() + 1);
             nextPath += pager.pageSizeIsDefault() ? "" : "&pageSize=" + pager.getPageSize();
+
+            if ( !parameters.isEmpty() )
+            {
+                nextPath += "&" + parameters;
+            }
 
             pager.setNextPage( nextPath );
         }
@@ -93,13 +109,36 @@ public class DefaultLinkService implements LinkService
         {
             if ( (pager.getPage() - 1) == 1 )
             {
-                String prevPath = pager.pageSizeIsDefault() ? endpoint : endpoint + "?pageSize=" + pager.getPageSize();
+                String prevPath = endpoint;
+
+                if ( pager.pageSizeIsDefault() )
+                {
+                    if ( !parameters.isEmpty() )
+                    {
+                        prevPath += "?" + parameters;
+                    }
+                }
+                else
+                {
+                    prevPath += "?pageSize=" + pager.getPageSize();
+
+                    if ( !parameters.isEmpty() )
+                    {
+                        prevPath += "&" + parameters;
+                    }
+                }
+
                 pager.setPrevPage( prevPath );
             }
             else
             {
                 String prevPath = endpoint + "?page=" + (pager.getPage() - 1);
                 prevPath += pager.pageSizeIsDefault() ? "" : "&pageSize=" + pager.getPageSize();
+
+                if ( !parameters.isEmpty() )
+                {
+                    prevPath += "&" + parameters;
+                }
 
                 pager.setPrevPage( prevPath );
             }
@@ -178,6 +217,58 @@ public class DefaultLinkService implements LinkService
             }
 
         }
+    }
+
+    @Nonnull
+    protected String getParametersString()
+    {
+        final Map<String, List<String>> parameters = contextService.getParameterValuesMap();
+        final StringBuilder result = new StringBuilder();
+
+        parameters.forEach( ( name, values ) -> {
+            if ( !"page".equals( name ) && !"pageSize".equals( name ) )
+            {
+                values.forEach( value -> {
+                    if ( result.length() > 0 )
+                    {
+                        result.append( '&' );
+                    }
+
+                    try
+                    {
+                        result.append( URLEncoder.encode( name, DEFAULT_URL_ENCODING ) );
+                        result.append( '=' );
+                        result.append( URLEncoder.encode( value, DEFAULT_URL_ENCODING ) );
+                    }
+                    catch ( UnsupportedEncodingException e )
+                    {
+                        throw new IllegalStateException( "Encoding for URL values is not supported: " + DEFAULT_URL_ENCODING );
+                    }
+                } );
+            }
+        } );
+
+        return result.toString();
+    }
+
+    @Nonnull
+    protected String getContentTypeSuffix()
+    {
+        String requestUri = contextService.getRequest().getRequestURI();
+
+        if ( requestUri == null )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        int index = requestUri.indexOf( '.' );
+
+        if ( index < 0 )
+        {
+            return StringUtils.EMPTY;
+        }
+
+        return requestUri.substring( index );
     }
 
     private <T> void generateLink( T object, String hrefBase, boolean deepScan )

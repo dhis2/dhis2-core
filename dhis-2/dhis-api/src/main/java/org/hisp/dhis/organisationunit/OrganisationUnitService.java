@@ -68,11 +68,6 @@ public interface OrganisationUnitService
     void updateOrganisationUnit( OrganisationUnit organisationUnit );
 
     /**
-     * Updates the version of the organisation unit hierarchy.
-     */
-    void updateOrganisationUnitVersion();
-
-    /**
      * Updates an OrganisationUnit.
      *
      * @param organisationUnit the organisationUnit to update.
@@ -467,10 +462,4 @@ public interface OrganisationUnitService
      * Update all OUs (thus forcing update of path).
      */
     void forceUpdatePaths();
-
-    // -------------------------------------------------------------------------
-    // Version
-    // -------------------------------------------------------------------------
-
-    void updateVersion();
 }
