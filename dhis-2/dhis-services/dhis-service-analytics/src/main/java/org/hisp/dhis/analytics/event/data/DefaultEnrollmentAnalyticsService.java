@@ -131,10 +131,11 @@ public class DefaultEnrollmentAnalyticsService
 {
     private static final Log log = LogFactory.getLog( DefaultEventAnalyticsService.class );
 
-    private static final String NAME_EVENT = "Event";
-    private static final String NAME_PROGRAM_STAGE = "Program stage";
-    private static final String NAME_EVENT_DATE = "Event date";
+    private static final String NAME_TEI = "Tracked entity instance";
+    private static final String NAME_PI  = "Enrollment";
     private static final String NAME_GEOMETRY = "Geometry";
+    private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
+    private static final String NAME_INCIDENT_DATE = "Incident date";
     private static final String NAME_LONGITUDE = "Longitude";
     private static final String NAME_LATITUDE = "Latitude";
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
@@ -174,8 +175,6 @@ public class DefaultEnrollmentAnalyticsService
     // EventAnalyticsService implementation
     // -------------------------------------------------------------------------
 
-
-
     @Override
     public Grid getEnrollments( EventQueryParams params )
     {
@@ -193,8 +192,13 @@ public class DefaultEnrollmentAnalyticsService
         // Headers
         // ---------------------------------------------------------------------
 
-        grid.addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+        grid.addHeader( new GridHeader( ITEM_PI, NAME_PI, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_TEI, NAME_TEI, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
 

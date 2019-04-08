@@ -80,7 +80,7 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     public Grid getEnrollments(EventQueryParams params, Grid grid, int maxLimit) 
     {
-        List<String> fixedCols = Lists.newArrayList( "pi", "tei", "enrollmentdate", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
+        List<String> fixedCols = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
         List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
 
@@ -316,7 +316,7 @@ public class JdbcEnrollmentAnalyticsManager
         return sql;
     }
 
-        /**
+    /**
      * Returns an encoded column name wrapped in lower directive if not numeric
      * or boolean.
      *
@@ -336,7 +336,7 @@ public class JdbcEnrollmentAnalyticsManager
                     eventTableName + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS +
                     ".pi and " + colName + " is not null " + "and ps = '" + 
                     item.getProgramStage().getUid() + "' " + "order by executiondate " +
-                    "desc limit 1 )";
+                    "desc limit 1 ) as " + item.getItemName();
         }
         else
         {
