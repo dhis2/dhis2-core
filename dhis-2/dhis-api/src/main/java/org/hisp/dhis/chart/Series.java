@@ -28,20 +28,63 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * @author Lars Helge Overland
  */
-public enum ChartType
+@JacksonXmlRootElement( localName = "series", namespace = DxfNamespaces.DXF_2_0 )
+public class Series
+    implements EmbeddedObject
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    private long id;
+
+    private String series;
+
+    private Integer axis;
+
+    public Series()
+    {
+    }
+
+    @JsonIgnore
+    public long getId()
+    {
+        return id;
+    }
+
+    public void setId( long id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( String series )
+    {
+        this.series = series;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getAxis()
+    {
+        return axis;
+    }
+
+    public void setAxis( Integer axis )
+    {
+        this.axis = axis;
+    }
 }
