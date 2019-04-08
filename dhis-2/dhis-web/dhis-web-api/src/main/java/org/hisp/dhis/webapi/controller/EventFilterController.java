@@ -129,7 +129,6 @@ public class EventFilterController
         {
             throw new WebMessageException( WebMessageUtils.notFound( "EventFilter '" + uid + "' was not found." ) );
         }
-
         psiFilter.setUid( uid );
         psiFilterService.update( psiFilter );
         response.setStatus( HttpServletResponse.SC_OK );
