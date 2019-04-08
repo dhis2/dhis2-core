@@ -44,7 +44,6 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Transactional
 public class DefaultCategoryManager
     implements CategoryManager
 {
@@ -62,6 +61,7 @@ public class DefaultCategoryManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addAndPruneOptionCombos( CategoryCombo categoryCombo )
     {
         if ( categoryCombo == null || !categoryCombo.isValid() )
@@ -121,6 +121,7 @@ public class DefaultCategoryManager
     }
 
     @Override
+    @Transactional
     public void addAndPruneAllOptionCombos()
     {
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();

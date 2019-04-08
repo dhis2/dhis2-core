@@ -57,7 +57,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
-@Transactional
 public class DefaultDataValueService
     implements DataValueService
 {
@@ -100,6 +99,7 @@ public class DefaultDataValueService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public boolean addDataValue( DataValue dataValue )
     {
         // ---------------------------------------------------------------------
@@ -223,12 +223,14 @@ public class DefaultDataValueService
     }
 
     @Override
+    @Transactional
     public void deleteDataValues( DataElement dataElement )
     {
         dataValueStore.deleteDataValues( dataElement );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo )
     {
@@ -238,6 +240,7 @@ public class DefaultDataValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
@@ -249,6 +252,7 @@ public class DefaultDataValueService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataValue> getDataValues( DataExportParams params )
     {
         validate( params );
@@ -311,12 +315,14 @@ public class DefaultDataValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataValue> getAllDataValues()
     {
         return dataValueStore.getAllDataValues();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
     {
@@ -324,12 +330,14 @@ public class DefaultDataValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
         return dataValueStore.getDeflatedDataValues( params );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getDataValueCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -339,12 +347,14 @@ public class DefaultDataValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( date, null, includeDeleted );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );

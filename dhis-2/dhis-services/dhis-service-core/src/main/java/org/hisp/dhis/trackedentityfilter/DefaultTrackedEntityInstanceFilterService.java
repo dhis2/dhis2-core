@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentityfilter;
 import java.util.List;
 
 import org.hisp.dhis.program.Program;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -56,6 +57,7 @@ public class DefaultTrackedEntityInstanceFilterService
     // -------------------------------------------------------------------------
     
     @Override
+    @Transactional
     public long add( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
     {        
         trackedEntityInstanceFilterStore.save( trackedEntityInstanceFilter );
@@ -63,30 +65,35 @@ public class DefaultTrackedEntityInstanceFilterService
     }
     
     @Override
+    @Transactional
     public void delete( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
     {
         trackedEntityInstanceFilterStore.delete( trackedEntityInstanceFilter );
     }
 
     @Override
+    @Transactional
     public void update( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
     {
         trackedEntityInstanceFilterStore.update( trackedEntityInstanceFilter );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityInstanceFilter get( long id )
     {
         return trackedEntityInstanceFilterStore.get( id );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstanceFilter> getAll()
     {
         return trackedEntityInstanceFilterStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstanceFilter> get( Program program )
     {
         return trackedEntityInstanceFilterStore.get( program );

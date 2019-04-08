@@ -72,7 +72,6 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 /**
  * @author Abyot Asalefew Gizaw
  */
-@Transactional
 public class HibernateTrackedEntityInstanceStore
     extends HibernateIdentifiableObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
