@@ -28,24 +28,24 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * @Author Zubair Asghar.
  */
-public class TrackedEntityInstanceEnrolledEvent extends ApplicationEvent
+public class StageScheduledEvaluationEvent extends ApplicationEvent
 {
-    private ProgramInstance programInstance;
+    private ProgramStageInstance programStageInstance;
 
-    public TrackedEntityInstanceEnrolledEvent( Object source, ProgramInstance programInstance )
+    public StageScheduledEvaluationEvent( Object source, ProgramStageInstance programStageInstance )
     {
         super( source );
-        this.programInstance = programInstance;
+        this.programStageInstance = programStageInstance;
     }
 
-    public ProgramInstance getProgramInstance()
+    public ProgramStageInstance getProgramStageInstance()
     {
-        return programInstance;
+        return programStageInstance;
     }
 }

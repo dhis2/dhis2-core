@@ -28,12 +28,23 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.query.Query;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -42,6 +53,13 @@ public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
     implements TrackedEntityAttributeStore
 {
+    private final StatementBuilder statementBuilder;
+
+    public HibernateTrackedEntityAttributeStore( StatementBuilder statementBuilder )
+    {
+        this.statementBuilder = statementBuilder;
+    }
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -62,5 +80,64 @@ public class HibernateTrackedEntityAttributeStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "displayInListNoProgram" ), true ) ) );
+    }
+
+    @Override
+    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params )
+    {
+        // ---------------------------------------------------------------------
+        // Select clause
+        // ---------------------------------------------------------------------
+
+        SqlHelper hlp = new SqlHelper( true );
+
+        String hql = "select tei.uid from TrackedEntityInstance tei ";
+
+        if ( params.hasOrganisationUnits() )
+        {
+            String orgUnitUids = params.getOrganisationUnits().stream()
+                .map( OrganisationUnit::getUid )
+                .collect( Collectors.joining( ", ", "'", "'" ) );
+
+            hql += "inner join tei.organisationUnit as ou ";
+            hql += hlp.whereAnd() + " ou.uid in (" + orgUnitUids + ") ";
+        }
+
+        for ( QueryItem item : params.getAttributes() )
+        {
+            for ( QueryFilter filter : item.getFilters() )
+            {
+                final String encodedFilter = filter.getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
+
+                hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
+                hql += " and teav.attribute.uid='" + item.getItemId() + "'";
+
+                if ( item.isNumeric() )
+                {
+                    hql += " and teav.plainValue " + filter.getSqlOperator() + encodedFilter + ")";
+                }
+                else
+                {
+                    hql += " and lower(teav.plainValue) " + filter.getSqlOperator() + encodedFilter + ")";
+                }
+            }
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            hql += hlp.whereAnd() + " tei.deleted is false";
+        }
+
+        Query query = getQuery( hql );
+        query.setMaxResults( 1 );
+
+        Iterator<String> it = query.iterate();
+
+        if ( it.hasNext() )
+        {
+            return Optional.of( it.next());
+        }
+
+        return Optional.empty();
     }
 }
