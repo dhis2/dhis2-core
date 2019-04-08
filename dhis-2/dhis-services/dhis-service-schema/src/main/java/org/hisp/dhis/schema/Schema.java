@@ -41,6 +41,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
@@ -105,6 +106,13 @@ public class Schema implements Ordered, Klass
      * Is this class considered metadata, this is mainly used for our metadata importer/exporter.
      */
     private final boolean metadata;
+
+    /**
+     * Specifies if the class is a more installation specific metadata object, that will not be
+     * exported by default. In some cases it is meaningful that this metadata can also be
+     * transferred between system installations.
+     */
+    private final boolean secondaryMetadata;
 
     /**
      * Namespace URI to be used for this class.
@@ -216,6 +224,7 @@ public class Schema implements Ordered, Klass
         this.singular = singular;
         this.plural = plural;
         this.metadata = MetadataObject.class.isAssignableFrom( klass );
+        this.secondaryMetadata = SecondaryMetadataObject.class.isAssignableFrom( klass );
     }
 
     @Override
@@ -273,6 +282,20 @@ public class Schema implements Ordered, Klass
     public boolean isMetadata()
     {
         return metadata;
+    }
+
+    /**
+     * Returns if class contains more installation specific metadata,
+     * that will not be exported by default. In some cases it is meaningful
+     * that this metadata can also be transferred between system installations.
+     *
+     * @return <code>true</code> if class contains more installation specific metadata.
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSecondaryMetadata()
+    {
+        return secondaryMetadata;
     }
 
     @JsonProperty
