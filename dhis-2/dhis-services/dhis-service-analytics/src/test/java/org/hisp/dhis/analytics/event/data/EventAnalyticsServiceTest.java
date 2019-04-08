@@ -271,7 +271,7 @@ public class EventAnalyticsServiceTest
             event.setEventDate( line[3] );
             event.setOrgUnit( line[4] );
 
-            event.setDataValues( Lists.newArrayList( dataValue ) );
+            event.setDataValues( Sets.newHashSet( dataValue ) );
 
             event.setCompletedDate( line[3] );
             event.setTrackedEntityInstance( line[5] );

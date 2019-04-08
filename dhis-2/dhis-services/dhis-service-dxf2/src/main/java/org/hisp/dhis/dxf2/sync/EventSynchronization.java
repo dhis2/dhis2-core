@@ -160,7 +160,7 @@ public class EventSynchronization
             event.setDataValues(
                 event.getDataValues().stream()
                     .filter( dv -> !dv.isSkipSynchronization() )
-                    .collect( Collectors.toList() )
+                    .collect( Collectors.toSet() )
             );
         }
     }
