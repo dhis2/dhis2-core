@@ -35,6 +35,14 @@
 
     <property name="category" />
     
+    <list name="seriesItems" table="chart_seriesitems" cascade="all, delete-orphan">
+      <cache usage="read-write" />
+      <key column="chartid" foreign-key="fk_chart_seriesitems_chartid" />
+      <list-index column="sort_order" base="0" />
+      <many-to-many column="seriesid" class="org.hisp.dhis.chart.Series"
+        foreign-key="fk_chart_seriesitems_seriesid" />
+    </list>
+    
     <list name="yearlySeries" table="chart_yearlyseries">
       <cache usage="read-write" />
       <key column="chartid" foreign-key="fk_yearlyseries_chartid" />

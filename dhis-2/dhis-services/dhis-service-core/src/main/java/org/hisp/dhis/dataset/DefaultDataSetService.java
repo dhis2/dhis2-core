@@ -147,12 +147,6 @@ public class DefaultDataSetService
     }
 
     @Override
-    public List<DataSet> getDataSetsByUid( Collection<String> uids )
-    {
-        return dataSetStore.getByUid( uids );
-    }
-
-    @Override
     public List<DataSet> getDataSetsForMobile( OrganisationUnit source )
     {
         return dataSetStore.getDataSetsForMobile( source );
@@ -173,7 +167,7 @@ public class DefaultDataSetService
     public List<DataSet> getAllDataRead()
     {
         User user = currentUserService.getCurrentUser();
-        
+
         return getUserDataRead( user );
     }
 
@@ -185,6 +179,7 @@ public class DefaultDataSetService
         return getUserDataWrite( user );
     }
 
+    @Override
     public List<DataSet> getUserDataWrite( User user )
     {
         if ( user == null )

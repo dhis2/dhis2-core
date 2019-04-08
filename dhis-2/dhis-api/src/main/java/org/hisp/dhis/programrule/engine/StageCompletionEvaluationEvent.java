@@ -1,4 +1,4 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.programrule.engine;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,20 +28,24 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.context.ApplicationEvent;
+
 /**
- * @author Lars Helge Overland
+ * @Author Zubair Asghar.
  */
-public enum ChartType
+public class StageCompletionEvaluationEvent extends ApplicationEvent
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    private ProgramStageInstance programStageInstance;
+
+    public StageCompletionEvaluationEvent( Object source, ProgramStageInstance programStageInstance )
+    {
+        super( source );
+        this.programStageInstance = programStageInstance;
+    }
+
+    public ProgramStageInstance getProgramStageInstance()
+    {
+        return programStageInstance;
+    }
 }

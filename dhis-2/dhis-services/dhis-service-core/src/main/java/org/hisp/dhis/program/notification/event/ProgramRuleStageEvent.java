@@ -1,4 +1,4 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.program.notification.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,20 +28,33 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.springframework.context.ApplicationEvent;
+
 /**
- * @author Lars Helge Overland
+ * @Author Zubair Asghar.
  */
-public enum ChartType
+public class ProgramRuleStageEvent extends ApplicationEvent
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    private ProgramNotificationTemplate template;
+
+    private ProgramStageInstance programStageInstance;
+
+    public ProgramRuleStageEvent( Object source, ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
+    {
+        super( source );
+        this.template = template;
+        this.programStageInstance = programStageInstance;
+    }
+
+    public ProgramNotificationTemplate getTemplate()
+    {
+        return template;
+    }
+
+    public ProgramStageInstance getProgramStageInstance()
+    {
+        return programStageInstance;
+    }
 }

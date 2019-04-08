@@ -32,16 +32,15 @@ package org.hisp.dhis.sms.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.springframework.util.concurrent.ListenableFutureCallback;
-
-import java.util.List;
 
 /**
  * @Author Zubair Asghar.
  */
-public class SMSSendingCallback
+public class MessageSendingCallback
 {
-    private static final Log log = LogFactory.getLog( SMSSendingCallback.class );
+    private static final Log log = LogFactory.getLog( MessageSendingCallback.class );
 
     public ListenableFutureCallback<OutboundMessageResponse> getCallBack()
     {
@@ -68,9 +67,9 @@ public class SMSSendingCallback
         };
     }
 
-    public ListenableFutureCallback<List<OutboundMessageResponse>> getBatchCallBack()
+    public ListenableFutureCallback<OutboundMessageResponseSummary> getBatchCallBack()
     {
-        return new ListenableFutureCallback<List<OutboundMessageResponse>>()
+        return new ListenableFutureCallback<OutboundMessageResponseSummary>()
         {
             @Override
             public void onFailure( Throwable ex )
@@ -79,12 +78,12 @@ public class SMSSendingCallback
             }
 
             @Override
-            public void onSuccess( List<OutboundMessageResponse> result )
+            public void onSuccess( OutboundMessageResponseSummary result )
             {
-                long successful = result.stream().filter( OutboundMessageResponse::isOk ).count();
-                long failed = result.size() - successful;
+                int successful = result.getSent();
+                int failed = result.getFailed();
 
-                log.info( "Message sending status: Successful: " + successful + " Failed: " + failed );
+                log.info( String.format( "%s Message sending status: Successful: %d Failed: %d", result.getChannel().name(), successful, failed ) );
             }
         };
     }

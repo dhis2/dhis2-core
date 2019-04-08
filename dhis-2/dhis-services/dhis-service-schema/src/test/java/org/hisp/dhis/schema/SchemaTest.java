@@ -1,4 +1,4 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.schema;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,20 +28,41 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
- * @author Lars Helge Overland
+ * Unit tests for {@link Schema}.
+ *
+ * @author Volker Schmidt
  */
-public enum ChartType
+public class SchemaTest
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    @Test
+    public void isSecondaryMetadataObject()
+    {
+        Assert.assertTrue( new Schema( SecondaryMetadata.class, "singular", "plural" ).isSecondaryMetadata() );
+    }
+
+    @Test
+    public void isSecondaryMetadataObjectMetadata()
+    {
+        Assert.assertTrue( new Schema( SecondaryMetadata.class, "singular", "plural" ).isMetadata() );
+    }
+
+    @Test
+    public void isSecondaryMetadataObjectNot()
+    {
+        Assert.assertFalse( new Schema( Metadata.class, "singular", "plural" ).isSecondaryMetadata() );
+    }
+
+    private static class SecondaryMetadata implements SecondaryMetadataObject
+    {
+    }
+
+    private static class Metadata implements MetadataObject
+    {
+    }
 }

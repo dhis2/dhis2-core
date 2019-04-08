@@ -37,8 +37,6 @@ public interface VersionService
 {
     String ORGANISATIONUNIT_VERSION = "organisationUnit";
 
-    String ID = VersionService.class.getName();
-
     /**
      * @param version Version object to add.
      * @return ID of the saved version object.
@@ -49,12 +47,12 @@ public interface VersionService
      * @param version Version object to update.
      */
     void updateVersion( Version version );
-    
+
     /**
      * @param key
      */
     void updateVersion( String key );
-    
+
     /**
      * @param key
      * @param value
