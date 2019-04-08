@@ -137,7 +137,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     @Override
     public void update( ProgramStageInstanceFilter programStageInstanceFilter )
     {
-        if ( aclService.canUpdate( currentUserService.getCurrentUser(), programStageInstanceFilter ) )
+        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), programStageInstanceFilter ) )
         {
             throw new UpdateAccessDeniedException( "You do not have the authority to update the eventFilter: '" + programStageInstanceFilter.getUid() + "'" );
 
