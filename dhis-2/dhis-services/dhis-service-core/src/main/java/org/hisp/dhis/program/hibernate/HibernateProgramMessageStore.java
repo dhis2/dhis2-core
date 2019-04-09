@@ -43,8 +43,6 @@ import java.util.List;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
-@Transactional
 public class HibernateProgramMessageStore
     extends HibernateIdentifiableObjectStore<ProgramMessage>
     implements ProgramMessageStore

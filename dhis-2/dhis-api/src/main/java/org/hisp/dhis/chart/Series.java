@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.chart;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,24 +28,63 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @Author Zubair Asghar.
+ * @author Lars Helge Overland
  */
-public class ProgramStageInstanceScheduledEvent extends ApplicationEvent
+@JacksonXmlRootElement( localName = "series", namespace = DxfNamespaces.DXF_2_0 )
+public class Series
+    implements EmbeddedObject
 {
-    private ProgramStageInstance programStageInstance;
+    private long id;
 
-    public ProgramStageInstanceScheduledEvent( Object source, ProgramStageInstance programStageInstance )
+    private String series;
+
+    private Integer axis;
+
+    public Series()
     {
-        super( source );
-        this.programStageInstance = programStageInstance;
     }
 
-    public ProgramStageInstance getProgramStageInstance()
+    @JsonIgnore
+    public long getId()
     {
-        return programStageInstance;
+        return id;
+    }
+
+    public void setId( long id )
+    {
+        this.id = id;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getSeries()
+    {
+        return series;
+    }
+
+    public void setSeries( String series )
+    {
+        this.series = series;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getAxis()
+    {
+        return axis;
+    }
+
+    public void setAxis( Integer axis )
+    {
+        this.axis = axis;
     }
 }

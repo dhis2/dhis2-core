@@ -264,6 +264,16 @@ public class ProgramSqlGeneratorVariablesTest
     }
 
     @Test
+    public void testOrgUnitCount()
+    {
+        initSubject( makeEnrollmentProgramIndicator() );
+
+        String sql = subject.visitProgramVariable( mockContext( V_ORG_UNIT_COUNT ) );
+
+        assertThat( sql, is( "distinct ou" ) );
+    }
+
+    @Test
     public void testTeiCount()
     {
         initSubject( makeEnrollmentProgramIndicator() );

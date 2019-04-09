@@ -1,7 +1,7 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,18 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Created by zubair@dhis2.org on 18.01.18.
- */
-public enum  ProgramNotificationEventType
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+
+public class PushAnalysisJobParametersDeserializer extends AbstractJobParametersDeserializer<PushAnalysisJobParameters>
 {
-    PROGRAM_ENROLLMENT,
-    PROGRAM_COMPLETION,
-    PROGRAM_STAGE_COMPLETION,
-    PROGRAM_RULE_ENROLLMENT,
-    PROGRAM_RULE_EVENT
+    public PushAnalysisJobParametersDeserializer()
+    {
+        super( PushAnalysisJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends PushAnalysisJobParameters
+    {
+    }
 }

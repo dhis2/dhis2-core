@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.program.notification.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,19 +29,28 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.springframework.context.ApplicationEvent;
 
 /**
  * @Author Zubair Asghar.
  */
-public class TrackedEntityInstanceEnrolledEvent extends ApplicationEvent
+public class ProgramRuleEnrollmentEvent extends ApplicationEvent
 {
+    private ProgramNotificationTemplate template;
+
     private ProgramInstance programInstance;
 
-    public TrackedEntityInstanceEnrolledEvent( Object source, ProgramInstance programInstance )
+    public ProgramRuleEnrollmentEvent( Object source, ProgramNotificationTemplate template, ProgramInstance programInstance )
     {
         super( source );
+        this.template = template;
         this.programInstance = programInstance;
+    }
+
+    public ProgramNotificationTemplate getTemplate()
+    {
+        return template;
     }
 
     public ProgramInstance getProgramInstance()

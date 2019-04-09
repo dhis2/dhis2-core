@@ -36,7 +36,6 @@ import java.util.Collection;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public class DefaultOAuth2ClientService implements OAuth2ClientService
 {
     // -------------------------------------------------------------------------
@@ -51,42 +50,49 @@ public class DefaultOAuth2ClientService implements OAuth2ClientService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void saveOAuth2Client( OAuth2Client oAuth2Client )
     {
         oAuth2ClientStore.save( oAuth2Client );
     }
 
     @Override
+    @Transactional
     public void updateOAuth2Client( OAuth2Client oAuth2Client )
     {
         oAuth2ClientStore.update( oAuth2Client );
     }
 
     @Override
+    @Transactional
     public void deleteOAuth2Client( OAuth2Client oAuth2Client )
     {
         oAuth2ClientStore.delete( oAuth2Client );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OAuth2Client getOAuth2Client( int id )
     {
         return oAuth2ClientStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OAuth2Client getOAuth2Client( String uid )
     {
         return oAuth2ClientStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OAuth2Client getOAuth2ClientByClientId( String cid )
     {
         return oAuth2ClientStore.getByClientId( cid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<OAuth2Client> getOAuth2Clients()
     {
         return oAuth2ClientStore.getAll();

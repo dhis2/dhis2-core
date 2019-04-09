@@ -54,6 +54,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Nguyen Kim Lai
@@ -134,7 +135,7 @@ public class SmsMessageSender
     public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
-        return new AsyncResult<OutboundMessageResponse>( response );
+        return new AsyncResult<>( response );
     }
     
     @Override
@@ -195,6 +196,13 @@ public class SmsMessageSender
         }
 
         return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, batch.size() );
+    }
+
+    @Override
+    public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync( OutboundMessageBatch batch )
+    {
+        OutboundMessageResponseSummary summary = sendMessageBatch( batch );
+        return new AsyncResult<>( summary );
     }
 
     @Override

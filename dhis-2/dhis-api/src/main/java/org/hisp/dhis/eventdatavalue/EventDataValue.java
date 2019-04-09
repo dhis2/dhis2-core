@@ -47,7 +47,7 @@ public class EventDataValue implements Serializable
      */
     private static final long serialVersionUID = 2738519623273453182L;
 
-    private String dataElement;
+    private String dataElement = "";
 
     private Date created = new Date();
 

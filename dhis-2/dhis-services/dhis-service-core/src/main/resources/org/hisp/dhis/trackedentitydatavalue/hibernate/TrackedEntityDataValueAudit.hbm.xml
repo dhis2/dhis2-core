@@ -7,7 +7,9 @@
   <class name="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit" table="trackedentitydatavalueaudit">
 
     <id name="id" column="trackedentitydatavalueauditid">
-      <generator class="native" />
+      <generator class="sequence">
+        <param name="sequence_name">trackedentitydatavalueaudit_sequence</param>
+      </generator>
     </id>
 
     <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
