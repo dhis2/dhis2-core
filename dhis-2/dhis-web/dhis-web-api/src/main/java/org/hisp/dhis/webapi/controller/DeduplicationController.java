@@ -192,7 +192,7 @@ public class DeduplicationController
         if ( teiA == null )
         {
             throw new WebMessageException(
-                notFound( "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
+                conflict( "No tracked entity instance found with id '" + potentialDuplicate.getTeiA() + "'." ) );
         }
 
         if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), teiA ).isEmpty() )
@@ -207,7 +207,7 @@ public class DeduplicationController
             if ( !CodeGenerator.isValidUid( potentialDuplicate.getTeiB() ) )
             {
                 throw new WebMessageException(
-                    conflict( "'" + potentialDuplicate.getTeiA() + "' is not valid value for property 'teiB'" ) );
+                    conflict( "'" + potentialDuplicate.getTeiB() + "' is not valid value for property 'teiB'" ) );
             }
 
             TrackedEntityInstance teiB = trackedEntityInstanceService
