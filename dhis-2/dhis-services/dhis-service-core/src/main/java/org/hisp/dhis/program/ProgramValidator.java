@@ -200,8 +200,6 @@ public class ProgramValidator
     @Override
     public Object visitProgramFunction( ProgramFunctionContext ctx )
     {
-        List<Object> args = ctx.expr().stream().map( c -> visit( c ) ).collect( Collectors.toList() );
-
         validateProgramFunctionDateArgs( ctx );
 
         ValueType dataElementValueType = validateStageDataElement( ctx.stageDataElement() );
@@ -209,7 +207,7 @@ public class ProgramValidator
         switch ( ctx.d2.getType() )
         {
             case D2_CONDITION:
-                return validateCondition( ctx, args );
+                return validateCondition( ctx );
 
             case D2_COUNT:
             case D2_DAYS_BETWEEN:
@@ -228,14 +226,16 @@ public class ProgramValidator
                 return 1d;
 
             case D2_HAS_VALUE:
-                visit( ctx.item() );
+                visit( ctx.item( 0 ) );
                 return true;
 
             case D2_OIZP:
             case D2_ZING:
-            case D2_ZPVC:
-                args.stream().forEach( a -> castDouble( a ) );
+                castDouble( visit( ctx.expr( 0 ) ) );
                 return 1d;
+
+            case D2_ZPVC:
+                ctx.item().stream().forEach( i -> castDouble( visit( i ) ) );
 
             case D2_RELATIONSHIP_COUNT:
                 validateRelationshipType( ctx );
@@ -333,13 +333,16 @@ public class ProgramValidator
         return attribute.getValueType();
     }
 
-    private Object validateCondition( ProgramFunctionContext ctx, List<Object> args )
+    private Object validateCondition( ProgramFunctionContext ctx )
     {
-        validateSubexprssion( trimQuotes( ctx.STRING_LITERAL().getText() ), Boolean.class );
+        validateSubexprssion( trimQuotes( ctx.stringLiteral().getText() ), Boolean.class );
 
-        castClass( args.get( 0 ).getClass(), args.get( 1 ) );
+        Object valueIfTrue = visit( ctx.expr( 0 ) );
+        Object valueIfFalse = visit( ctx.expr( 1 ) );
 
-        return args.get( 0 );
+        castClass( valueIfTrue.getClass(), valueIfFalse );
+
+        return valueIfTrue;
     }
 
     private void validateCountIfValue( ProgramFunctionContext ctx, ValueType dataElementValueType )
@@ -354,7 +357,7 @@ public class ProgramValidator
 
     private void validateCountIfCondition( ProgramFunctionContext ctx, ValueType dataElementValueType )
     {
-        String testExpression = ValidationUtils.getSubstitutionValue( dataElementValueType ) + trimQuotes( ctx.STRING_LITERAL().getText() );
+        String testExpression = ValidationUtils.getSubstitutionValue( dataElementValueType ) + trimQuotes( ctx.stringLiteral().getText() );
 
         validateSubexprssion( testExpression, Boolean.class );
     }

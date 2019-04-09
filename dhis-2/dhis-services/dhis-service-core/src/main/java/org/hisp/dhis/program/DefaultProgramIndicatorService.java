@@ -51,7 +51,8 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Chau Thu Tran
  */
-public class DefaultProgramIndicatorService implements ProgramIndicatorService
+public class DefaultProgramIndicatorService
+    implements ProgramIndicatorService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -213,21 +214,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
 
     @Override
     @Transactional(readOnly = true)
-    public String getExpressionAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate )
-    {
-        return getAnalyticsSql( programIndicator.getExpression(), programIndicator, startDate, endDate, true );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public String getFilterAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate )
-    {
-        return getAnalyticsSql( programIndicator.getFilter(), programIndicator, startDate, endDate, true );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, boolean ignoreMissingValues )
+    public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
     {
         if ( expression == null )
         {
@@ -238,7 +225,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService
             expression, programIndicator.getAnalyticsType() );
 
         ProgramSqlGenerator programSqlGenerator = new ProgramSqlGenerator( programIndicator, startDate, endDate,
-            ignoreMissingValues, dataElementAndAttributeIdentifiers, constantService.getConstantMap(),
+            dataElementAndAttributeIdentifiers, constantService.getConstantMap(),
             this, statementBuilder, dataElementService, attributeService );
 
         return castString( Parser.visit( expression, programSqlGenerator ) );

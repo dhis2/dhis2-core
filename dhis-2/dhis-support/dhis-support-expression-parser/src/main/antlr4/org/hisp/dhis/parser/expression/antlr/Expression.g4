@@ -84,9 +84,9 @@ programVariable // (alphabtical)
     ;
 
 programFunction // (alphabetical)
-    :   d2='d2:condition(' WS* STRING_LITERAL WS* ',' expr ',' expr ')'
+    :   d2='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
     |   d2='d2:count(' WS* stageDataElement WS* ')'
-    |   d2='d2:countIfCondition(' WS* stageDataElement ',' WS* STRING_LITERAL WS* ')'
+    |   d2='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
     |   d2='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
     |   d2='d2:daysBetween(' compareDate ',' compareDate ')'
     |   d2='d2:hasValue(' item ')'
@@ -97,7 +97,7 @@ programFunction // (alphabetical)
     |   d2='d2:weeksBetween(' compareDate ',' compareDate ')'
     |   d2='d2:yearsBetween(' compareDate ',' compareDate ')'
     |   d2='d2:zing(' expr ')'
-    |   d2='d2:zpvc(' expr (',' expr )* ')'
+    |   d2='d2:zpvc(' item (',' item )* ')'
     ;
 
 stageDataElement

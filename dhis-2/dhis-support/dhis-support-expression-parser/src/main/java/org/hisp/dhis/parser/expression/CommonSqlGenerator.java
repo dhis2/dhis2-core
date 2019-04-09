@@ -216,7 +216,7 @@ public abstract class CommonSqlGenerator
     {
         if ( ctx.item() != null )
         {
-            return castString( visitIgnoringMissingValues( ctx.item() ) );
+            return castString( visitAllowingNulls( ctx.item() ) );
         }
         else if ( ctx.numStringLiteral().stringLiteral() != null )
         {
