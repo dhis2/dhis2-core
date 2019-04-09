@@ -22,11 +22,9 @@
 
     <property name="description" />
     
-    <many-to-one name="program" class="org.hisp.dhis.program.Program"
-      column="programid" foreign-key="fk_programstageinstancefilter_programid" lazy="false" />
-      
-    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
-      column="programstageid" foreign-key="fk_programstageinstancefilter_programstageid" lazy="false" />
+    <property name="program" column="program" length="11" not-null="true" />
+   
+    <property name="programStage" column="programstage" length="11" />
       
     <property name="eventQueryCriteria" column="eventquerycriteria" type="jbEventQueryCriteria" />
     

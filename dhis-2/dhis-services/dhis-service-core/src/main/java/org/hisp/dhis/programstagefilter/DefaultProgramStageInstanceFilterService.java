@@ -1,6 +1,6 @@
 package org.hisp.dhis.programstagefilter;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.programstagefilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -67,9 +66,9 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     private ProgramStageService programStageService;
 
     private OrganisationUnitService organisationUnitService;
-    
+
     private AclService aclService;
-    
+
     private CurrentUserService currentUserService;
 
     @Autowired
@@ -95,19 +94,18 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     {
         this.organisationUnitService = organisationUnitService;
     }
-    
+
     @Autowired
     public void setAclService( AclService aclService )
     {
         this.aclService = aclService;
     }
-    
+
     @Autowired
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
-
 
     // -------------------------------------------------------------------------
     // ProgramStageInstanceFilterService implementation
@@ -145,7 +143,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             throw new UpdateAccessDeniedException( "You do not have the authority to update the eventFilter: '" + programStageInstanceFilter.getUid() + "'" );
 
         }
-        
+
         List<String> errors = validate( programStageInstanceFilter );
 
         if ( !errors.isEmpty() )
@@ -159,34 +157,26 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     {
         List<String> errors = new ArrayList<>();
 
-        if ( programStageInstanceFilter.getProgram() == null || programStageInstanceFilter.getProgram().getUid() == null )
+        if ( programStageInstanceFilter.getProgram() == null )
         {
             errors.add( "Program should be specified for event filters." );
         }
         else
         {
-            Program pr = programService.getProgram( programStageInstanceFilter.getProgram().getUid() );
+            Program pr = programService.getProgram( programStageInstanceFilter.getProgram() );
 
             if ( pr == null )
             {
-                errors.add( "Program is specified but does not exist: " + programStageInstanceFilter.getProgram().getUid() );
-            }
-            else
-            {
-                programStageInstanceFilter.setProgram( pr );
+                errors.add( "Program is specified but does not exist: " + programStageInstanceFilter.getProgram() );
             }
         }
 
-        if ( programStageInstanceFilter.getProgramStage() != null && programStageInstanceFilter.getProgramStage().getUid() != null )
+        if ( programStageInstanceFilter.getProgramStage() != null )
         {
-            ProgramStage ps = programStageService.getProgramStage( programStageInstanceFilter.getProgramStage().getUid() );
+            ProgramStage ps = programStageService.getProgramStage( programStageInstanceFilter.getProgramStage() );
             if ( ps == null )
             {
-                errors.add( "Program stage is specified but does not exist: " + programStageInstanceFilter.getProgramStage().getUid() );
-            }
-            else
-            {
-                programStageInstanceFilter.setProgramStage( ps );
+                errors.add( "Program stage is specified but does not exist: " + programStageInstanceFilter.getProgramStage() );
             }
         }
 

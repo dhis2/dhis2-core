@@ -1,7 +1,7 @@
 package org.hisp.dhis.programstagefilter;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@ package org.hisp.dhis.programstagefilter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -55,12 +53,12 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
     /**
      * Property for filtering events by program
      */
-    private Program program;
+    private String program;
 
     /**
      * Property for filtering events by programstage
      */
-    private ProgramStage programStage;
+    private String programStage;
 
     /**
      * Property indicating description of programStageInstanceFilter
@@ -87,27 +85,25 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
     // -------------------------------------------------------------------------
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Program getProgram()
+    public String getProgram()
     {
         return program;
     }
 
-    public void setProgram( Program program )
+    public void setProgram( String program )
     {
         this.program = program;
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStage getProgramStage()
+    public String getProgramStage()
     {
         return programStage;
     }
 
-    public void setProgramStage( ProgramStage programStage )
+    public void setProgramStage( String programStage )
     {
         this.programStage = programStage;
     }
@@ -143,19 +139,19 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
             this.eventQueryCriteria = psiFilter.getEventQueryCriteria();
             this.program = psiFilter.getProgram();
             this.programStage = psiFilter.getProgramStage();
-            
+
             this.userAccesses.clear();
             if ( psiFilter.getUserAccesses() != null )
             {
                 this.userAccesses.addAll( psiFilter.getUserAccesses() );
             }
-            
+
             this.userGroupAccesses.clear();
             if ( psiFilter.getUserGroupAccesses() != null )
             {
                 this.userGroupAccesses.addAll( psiFilter.getUserGroupAccesses() );
             }
-           
+
             this.code = psiFilter.getCode();
             this.name = psiFilter.getName();
             this.description = psiFilter.getDescription();

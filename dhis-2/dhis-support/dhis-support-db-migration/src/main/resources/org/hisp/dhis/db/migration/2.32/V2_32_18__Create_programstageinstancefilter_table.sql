@@ -1,14 +1,14 @@
 --Create table programstageinstancefilter
 create table programstageinstancefilter (
-    programstageinstancefilterid bigint not NULL,
-    uid character varying(11) not NULL,
-    created timestamp without time zone not NULL,
-    lastupdated timestamp without time zone not NULL,
+    programstageinstancefilterid bigint not null,
+    uid character varying(11) not null,
+    created timestamp without time zone not null,
+    lastupdated timestamp without time zone not null,
     lastupdatedby bigint,
-    name character varying(230) not NULL,
+    name character varying(230) not null,
     description character varying(255),
-    programid bigint,
-    programstageid bigint,
+    program character varying(11) not null,
+    programstage character varying(11),
     eventquerycriteria jsonb,
 	userid bigint,
     publicaccess character varying(8)
@@ -31,9 +31,7 @@ alter table programstageinstancefilter
 add constraint programstageinstancefilter_pkey primary key (programstageinstancefilterid),
 add constraint uk_programstageinstancefilter_uid unique (uid),
 add constraint fk_programstageinstancefilter_userid foreign key (userid) references userinfo(userinfoid),
-add constraint fk_lastupdatedby_userid foreign key (lastupdatedby) references userinfo(userinfoid),
-add constraint fk_programstageinstancefilter_programid foreign key (programid) references program(programid),
-add constraint fk_programstageinstancefilter_programstageid foreign key (programstageid) references programstage(programstageid);
+add constraint fk_lastupdatedby_userid foreign key (lastupdatedby) references userinfo(userinfoid);
 
 --Adding constraints for programstageinstancefilteruseraccesses
 alter table programstageinstancefilteruseraccesses
