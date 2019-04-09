@@ -80,6 +80,6 @@ public interface ProgramStageInstanceFilterService
      * 
      * @return list of programStageInstanceFilters
      */
-    List<ProgramStageInstanceFilter> getAll(String program);
+    List<ProgramStageInstanceFilter> getAll( String program );
     
 }

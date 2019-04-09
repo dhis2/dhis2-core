@@ -33,50 +33,56 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
 import org.hisp.dhis.schema.descriptors.ProgramStageInstanceFilterSchemaDescriptor;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-@Controller
+@RestController
 @RequestMapping( value = ProgramStageInstanceFilterSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
 public class EventFilterController
 {
 
-    @Autowired
-    private ProgramStageInstanceFilterService psiFilterService;
+    
+    private final ProgramStageInstanceFilterService psiFilterService;
 
-    @Autowired
-    private WebMessageService messageService;
+    private final WebMessageService messageService;
+    
+    public EventFilterController( ProgramStageInstanceFilterService psiFilterService, WebMessageService messageService )
+    {
+        this.psiFilterService = psiFilterService;
+        this.messageService = messageService;
+    }
 
     /**
      * Returns all eventFilter definitions filtered by program if provided.
      */
     @RequestMapping( value = "", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<ProgramStageInstanceFilter> getEventFilters( @RequestParam( required = false ) String program, HttpServletResponse response )
+    public List<ProgramStageInstanceFilter> getEventFilters( @RequestParam( required = false ) String program, HttpServletResponse response )
     {
         return psiFilterService.getAll( program );
     }
-
+    
     /**
      * Returns the specified eventFilter if exists.
      */
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody ProgramStageInstanceFilter getEventFilter( @PathVariable String uid, HttpServletResponse response )
+    public ProgramStageInstanceFilter getEventFilter( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException
     {
         ProgramStageInstanceFilter psiFilter = psiFilterService.get( uid );
@@ -134,5 +140,4 @@ public class EventFilterController
         response.setStatus( HttpServletResponse.SC_OK );
         messageService.sendJson( WebMessageUtils.ok( "EventFilter updated." ), response );
     }
-
 }
