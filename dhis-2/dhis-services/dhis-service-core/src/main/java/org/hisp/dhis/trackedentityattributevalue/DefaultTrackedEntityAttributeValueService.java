@@ -49,7 +49,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultTrackedEntityAttributeValueService
     implements TrackedEntityAttributeValueService
 {
@@ -84,6 +83,7 @@ public class DefaultTrackedEntityAttributeValueService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
@@ -96,6 +96,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
         TrackedEntityAttribute attribute )
     {
@@ -103,24 +104,28 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance )
     {
         return attributeValueStore.get( instance );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.get( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.getCountOfAssignedTEAValues( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
         Collection<TrackedEntityInstance> instances )
     {
@@ -133,6 +138,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional
     public void addTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         if ( attributeValue == null || attributeValue.getAttribute() == null ||
@@ -175,6 +181,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         if ( attributeValue != null && StringUtils.isEmpty( attributeValue.getValue() ) )

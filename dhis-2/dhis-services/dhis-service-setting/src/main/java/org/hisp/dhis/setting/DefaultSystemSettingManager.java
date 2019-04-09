@@ -203,14 +203,7 @@ public class DefaultSystemSettingManager
      */
     private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute( new TransactionCallback<SystemSetting>()
-        {
-            @Override
-            public SystemSetting doInTransaction( TransactionStatus status )
-            {
-                return systemSettingStore.getByName( name );
-            }
-        } );
+        SystemSetting setting = transactionTemplate.execute(status -> systemSettingStore.getByName( name ));
 
         if ( setting != null && setting.hasValue() )
         {
@@ -238,7 +231,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<SystemSetting> getAllSystemSettings()
     {
         return systemSettingStore.getAll().stream().
@@ -247,7 +240,6 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional
     public Map<String, Serializable> getSystemSettingsAsMap()
     {
         final Map<String, Serializable> settingsMap = new HashMap<>();
@@ -283,7 +275,6 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional
     public Map<String, Serializable> getSystemSettings( Collection<SettingKey> settings )
     {
         Map<String, Serializable> map = new HashMap<>();

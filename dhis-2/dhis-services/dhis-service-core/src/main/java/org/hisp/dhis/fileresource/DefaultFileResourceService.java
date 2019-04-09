@@ -97,14 +97,14 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public FileResource getFileResource( String uid )
     {
         return checkStorageStatus( fileResourceStore.getByUid( uid ) );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<FileResource> getFileResources( List<String> uids )
     {
         return fileResourceStore.getByUid( uids ).stream()
@@ -113,7 +113,7 @@ public class DefaultFileResourceService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<FileResource> getOrphanedFileResources( )
     {
         return fileResourceStore.getAllLeCreated( new DateTime().minus( IS_ORPHAN_TIME_DELTA ).toDate() )
@@ -162,13 +162,14 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ByteSource getFileResourceContent( FileResource fileResource )
     {
         return fileResourceContentStore.getFileResourceContent( fileResource.getStorageKey() );
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean fileResourceExists( String uid )
     {
         return fileResourceStore.getByUid( uid ) != null;
@@ -182,6 +183,7 @@ public class DefaultFileResourceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public URI getSignedGetFileResourceContentUri( String uid )
     {
         FileResource fileResource = getFileResource( uid );

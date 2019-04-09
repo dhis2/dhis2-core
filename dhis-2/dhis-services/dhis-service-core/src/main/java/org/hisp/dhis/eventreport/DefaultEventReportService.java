@@ -38,7 +38,6 @@ import java.util.List;
 /**
 * @author Lars Helge Overland
 */
-@Transactional
 public class DefaultEventReportService
     extends GenericAnalyticalObjectService<EventReport>
     implements EventReportService
@@ -55,12 +54,14 @@ public class DefaultEventReportService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     protected AnalyticalObjectStore<EventReport> getAnalyticalObjectStore()
     {
         return eventReportStore;
     }
     
     @Override
+    @Transactional
     public long saveEventReport( EventReport report )
     {
         eventReportStore.save( report );
@@ -68,30 +69,35 @@ public class DefaultEventReportService
     }
     
     @Override
+    @Transactional
     public void updateEventReport( EventReport report )
     {
         eventReportStore.update( report );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public EventReport getEventReport( long id )
     {
         return eventReportStore.get( id );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public EventReport getEventReport( String uid )
     {
         return eventReportStore.getByUid( uid );
     }
     
     @Override
+    @Transactional
     public void deleteEventReport( EventReport report )
     {
         eventReportStore.delete( report );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<EventReport> getAllEventReports()
     {
         return eventReportStore.getAll();

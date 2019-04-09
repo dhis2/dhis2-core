@@ -83,7 +83,7 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Transactional // TODO check if this class can be readOnly
 public class DefaultPreheatService implements PreheatService
 {
     private static final Log log = LogFactory.getLog( DefaultPreheatService.class );

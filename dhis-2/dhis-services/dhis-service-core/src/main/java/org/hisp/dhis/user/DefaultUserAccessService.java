@@ -37,7 +37,6 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public class DefaultUserAccessService implements UserAccessService
 {
     // -------------------------------------------------------------------------
@@ -56,24 +55,28 @@ public class DefaultUserAccessService implements UserAccessService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addUserAccess( UserAccess userAccess )
     {
         userAccessStore.save( userAccess );
     }
 
     @Override
+    @Transactional
     public void updateUserAccess( UserAccess userAccess )
     {
         userAccessStore.update( userAccess );
     }
 
     @Override
+    @Transactional
     public void deleteUserAccess( UserAccess userAccess )
     {
         userAccessStore.delete( userAccess );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserAccess> getAllUserAccesses()
     {
         return userAccessStore.getAll();

@@ -47,6 +47,7 @@ public class DefaultExternalFileResourceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {
         return externalFileResourceStore.getExternalFileResourceByAccessToken( accessToken );

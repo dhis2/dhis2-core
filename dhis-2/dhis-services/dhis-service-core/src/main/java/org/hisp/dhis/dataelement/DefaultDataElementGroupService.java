@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Stian Sandvold
  */
-@Transactional
+@Transactional(readOnly = true)
 public class DefaultDataElementGroupService
     implements DataElementGroupService
 {
