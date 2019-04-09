@@ -47,8 +47,9 @@ public class HibernatePotentialDuplicateStore
         if ( query.getTei() != null )
         {
             Query<Long> hibernateQuery = getTypedQuery(
-                "select count(*) from PotentialDuplicate pr where pr.teiA = '" + query.getTei() + "' or pr.teiB = '" +
-                    query.getTei() + "'");
+                "select count(*) from PotentialDuplicate pr where pr.teiA = :tei or pr.teiB = :tei");
+
+            hibernateQuery.setParameter( "tei", query.getTei() );
 
             return hibernateQuery.getSingleResult().intValue();
         }
@@ -64,7 +65,9 @@ public class HibernatePotentialDuplicateStore
         if ( query.getTei() != null )
         {
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                "from PotentialDuplicate pr where pr.teiA = '" + query.getTei() + "' or pr.teiB = '" + query.getTei() + "'" );
+                "from PotentialDuplicate pr where pr.teiA = :tei or pr.teiB = :tei" );
+
+            hibernateQuery.setParameter( "tei", query.getTei() );
 
             return hibernateQuery.getResultList();
         }
@@ -78,9 +81,13 @@ public class HibernatePotentialDuplicateStore
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         Query<Long> hibernateQuery = getTypedQuery( "select count(*) from PotentialDuplicate pd " +
-            "where (pd.teiA = '" + potentialDuplicate.getTeiA() + "' and pd.teiB = '" + potentialDuplicate.getTeiB() + "') " +
-            "or (pd.teiA = '" + potentialDuplicate.getTeiB() + "' and pd.teiB = '" + potentialDuplicate.getTeiA() + "') " +
-            "or (pd.teiA = '" + potentialDuplicate.getTeiA() + "' and pd.teiB is null) ");
+            "where (pd.teiA = :teia and pd.teiB = :teib) " +
+            "or (pd.teiA = :teib and pd.teiB = :teia) " +
+            "or ((pd.teiA = :teia or pd.teiA = :teib) and pd.teiB is null) " +
+            "limit 1" );
+
+        hibernateQuery.setParameter( "teia", potentialDuplicate.getTeiA() );
+        hibernateQuery.setParameter( "teib", potentialDuplicate.getTeiB() );
 
         return hibernateQuery.getSingleResult() != 0;
     }
