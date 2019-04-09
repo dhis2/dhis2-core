@@ -41,10 +41,13 @@ import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
 import org.hisp.dhis.schema.descriptors.ProgramStageInstanceFilterSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -72,7 +75,7 @@ public class EventFilterController
     /**
      * Returns all eventFilter definitions filtered by program if provided.
      */
-    @RequestMapping( value = "", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping
     public List<ProgramStageInstanceFilter> getEventFilters( @RequestParam( required = false ) String program, HttpServletResponse response )
     {
         return psiFilterService.getAll( program );
@@ -81,7 +84,7 @@ public class EventFilterController
     /**
      * Returns the specified eventFilter if exists.
      */
-    @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/{uid}")
     public ProgramStageInstanceFilter getEventFilter( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException
     {
@@ -96,7 +99,7 @@ public class EventFilterController
     /**
      * Deletes all keys with the given namespace.
      */
-    @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
+    @DeleteMapping( value = "/{uid}" )
     public void deleteEventFilter( @PathVariable String uid, HttpServletResponse response )
         throws WebMessageException
     {
@@ -112,7 +115,7 @@ public class EventFilterController
     /**
      * Add a new eventFilter
      */
-    @RequestMapping( value = "", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
+    @PostMapping
     public void addEventFilter( @RequestBody ProgramStageInstanceFilter psiFilter, HttpServletResponse response )
         throws WebMessageException
     {
@@ -124,7 +127,7 @@ public class EventFilterController
     /**
      * Update an eventFilter definition
      */
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, produces = "application/json", consumes = "application/json" )
+    @PutMapping( value = "/{uid}" )
     public void updateEventFilter( @PathVariable String uid, @RequestBody ProgramStageInstanceFilter psiFilter, HttpServletRequest request,
         HttpServletResponse response )
         throws WebMessageException,

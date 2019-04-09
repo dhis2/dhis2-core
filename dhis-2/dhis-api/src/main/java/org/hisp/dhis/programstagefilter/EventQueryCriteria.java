@@ -40,6 +40,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
+ * Represents the filtering/sorting criteria to be used when querying events.
+ * 
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class EventQueryCriteria implements Serializable

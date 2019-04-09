@@ -41,15 +41,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
 @JacksonXmlRootElement( localName = "programStageInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStageInstanceFilter extends BaseIdentifiableObject implements MetadataObject
 {
 
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
     /**

@@ -37,5 +37,5 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  */
 public interface ProgramStageInstanceFilterStore extends IdentifiableObjectStore<ProgramStageInstanceFilter>
 {
-    List<ProgramStageInstanceFilter> getByProgram(String program);
+    List<ProgramStageInstanceFilter> getByProgram( String program );
 }

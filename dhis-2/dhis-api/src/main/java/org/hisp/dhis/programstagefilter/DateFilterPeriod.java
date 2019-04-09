@@ -29,6 +29,7 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.period.RelativePeriodEnum;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -36,26 +37,43 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
+ * Filtering parameters for date type.
+ * 
  * @author Ameen Mohamed <ameen@dhis2.com>
  *
  */
 public class DateFilterPeriod implements Serializable
 {
-    /**
-     * 
-     */
     private static final long serialVersionUID = 1L;
 
+    /**
+     * An integer referring to relative startDate based on the current date.
+     */
     private int startBuffer;
 
+    /**
+     * An integer referring to relative startDate based on the current date.
+     */
     private int endBuffer;
     
+    /**
+     * An absolute start date
+     */
     private Date startDate;
     
+    /**
+     * An absolute end date
+     */
     private Date endDate;
     
-    private DateRelativePeriod period;
+    /**
+     * Relative period.
+     */
+    private RelativePeriodEnum period;
     
+    /**
+     * Enum indicating whether this date filter is absolute or relative
+     */
     private DatePeriodType type;
 
     // -------------------------------------------------------------------------
@@ -85,12 +103,12 @@ public class DateFilterPeriod implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DateRelativePeriod getPeriod()
+    public RelativePeriodEnum getPeriod()
     {
         return period;
     }
 
-    public void setPeriod( DateRelativePeriod relativePeriod )
+    public void setPeriod( RelativePeriodEnum relativePeriod )
     {
         this.period = relativePeriod;
     }
