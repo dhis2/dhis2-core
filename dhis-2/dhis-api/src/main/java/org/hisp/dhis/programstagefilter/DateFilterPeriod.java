@@ -143,8 +143,4 @@ public class DateFilterPeriod implements Serializable
         this.type = type;
     }
     
-    
-    
-    
-
 }

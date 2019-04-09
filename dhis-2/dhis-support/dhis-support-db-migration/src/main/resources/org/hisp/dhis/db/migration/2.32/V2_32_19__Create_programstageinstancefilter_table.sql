@@ -1,29 +1,29 @@
 --Create table programstageinstancefilter
 create table programstageinstancefilter (
-    programstageinstancefilterid bigint not null,
-    uid character varying(11) not null,
-    created timestamp without time zone not null,
-    lastupdated timestamp without time zone not null,
-    lastupdatedby bigint,
-    name character varying(230) not null,
-    description character varying(255),
-    program character varying(11) not null,
-    programstage character varying(11),
-    eventquerycriteria jsonb,
-	userid bigint,
-    publicaccess character varying(8)
+programstageinstancefilterid bigint not null,
+uid character varying(11) not null,
+created timestamp without time zone not null,
+lastupdated timestamp without time zone not null,
+lastupdatedby bigint,
+name character varying(230) not null,
+description character varying(255),
+program character varying(11) not null,
+programstage character varying(11),
+eventquerycriteria jsonb,
+userid bigint,
+publicaccess character varying(8)
 );
 
 --Create table programstageinstancefilterusergroupaccesses
 create table if not exists programstageinstancefilterusergroupaccesses (
-    programstageinstancefilterid bigint not null,
-    usergroupaccessid integer not null
+programstageinstancefilterid bigint not null,
+usergroupaccessid integer not null
 );
 
 --Create table programstageinstancefilteruseraccesses
 create table if not exists programstageinstancefilteruseraccesses (
-    programstageinstancefilterid bigint not null,
-    useraccessid integer not null
+programstageinstancefilterid bigint not null,
+useraccessid integer not null
 );
 
 --Adding constraints for programstageinstancefilter
