@@ -313,12 +313,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += "and pistatus = '" + params.getProgramStatus().name() + "' ";
-        }
-
-        if ( params.hasEventStatus() )
-        {
-            sql += "and psistatus = '" + params.getEventStatus().name() + "' ";
+            sql += "and enrollmentstatus = '" + params.getProgramStatus().name() + "' ";
         }
 
         if ( params.isCoordinatesOnly() )
@@ -363,7 +358,7 @@ public class JdbcEnrollmentAnalyticsManager
             return "(select " + ( item.isText() ? "lower(" + colName + ")" : colName ) + " from " + eventTableName +
             " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " + 
             "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-            "order by executiondate " + "desc limit 1 ) as " + item.getItemName();
+            "order by executiondate " + "desc limit 1 )";
         }
         else
         {

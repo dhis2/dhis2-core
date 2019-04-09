@@ -69,7 +69,7 @@ public class DefaultEventDataQueryService
     private static final String COL_NAME_EVENTDATE = "executiondate";
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
-        ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
+        ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
     @Autowired
     private ProgramService programService;

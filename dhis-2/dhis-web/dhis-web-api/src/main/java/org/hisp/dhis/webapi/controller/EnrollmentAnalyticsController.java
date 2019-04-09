@@ -115,4 +115,224 @@ public class EnrollmentAnalyticsController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.RESPECT_SYSTEM_SETTING );
         return analyticsService.getEnrollments( params );
     }
+
+    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xml", method = RequestMethod.GET )
+    public void getQueryXml(
+        @PathVariable String program,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Set<String> asc,
+        @RequestParam( required = false ) Set<String> desc,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
+        @RequestParam( required = false ) boolean completedOnly,
+        @RequestParam( required = false ) boolean hierarchyMeta,
+        @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) boolean includeMetadataDetails,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String coordinateField,
+        @RequestParam( required = false ) SortOrder sortOrder,
+        DhisApiVersion apiVersion,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
+            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
+            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
+            .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
+            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+
+        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.xml", false );
+        Grid grid = analyticsService.getEnrollments( params );
+        GridUtils.toXml( grid, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xls", method = RequestMethod.GET )
+    public void getQueryXls(
+        @PathVariable String program,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Set<String> asc,
+        @RequestParam( required = false ) Set<String> desc,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
+        @RequestParam( required = false ) boolean completedOnly,
+        @RequestParam( required = false ) boolean hierarchyMeta,
+        @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) boolean includeMetadataDetails,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String coordinateField,
+        @RequestParam( required = false ) SortOrder sortOrder,
+        DhisApiVersion apiVersion,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
+            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
+            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
+            .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
+            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+
+        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.xls", true );
+        Grid grid = analyticsService.getEnrollments( params );
+        GridUtils.toXls( grid, response.getOutputStream() );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.csv", method = RequestMethod.GET )
+    public void getQueryCsv(
+        @PathVariable String program,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Set<String> asc,
+        @RequestParam( required = false ) Set<String> desc,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
+        @RequestParam( required = false ) boolean completedOnly,
+        @RequestParam( required = false ) boolean hierarchyMeta,
+        @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) boolean includeMetadataDetails,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String coordinateField,
+        @RequestParam( required = false ) SortOrder sortOrder,
+        DhisApiVersion apiVersion,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
+            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
+            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
+            .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
+            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+
+        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.csv", true );
+        Grid grid = analyticsService.getEnrollments( params );
+        GridUtils.toCsv( grid, response.getWriter() );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html", method = RequestMethod.GET )
+    public void getQueryHtml(
+        @PathVariable String program,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Set<String> asc,
+        @RequestParam( required = false ) Set<String> desc,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
+        @RequestParam( required = false ) boolean completedOnly,
+        @RequestParam( required = false ) boolean hierarchyMeta,
+        @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) boolean includeMetadataDetails,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String coordinateField,
+        @RequestParam( required = false ) SortOrder sortOrder,
+        DhisApiVersion apiVersion,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
+            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
+            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
+            .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
+            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+
+        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.html", false );
+        Grid grid = analyticsService.getEnrollments( params );
+        GridUtils.toHtml( grid, response.getWriter() );
+    }
+
+    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html+css", method = RequestMethod.GET )
+    public void getQueryHtmlCss(
+        @PathVariable String program,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam Set<String> dimension,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) Set<String> asc,
+        @RequestParam( required = false ) Set<String> desc,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) boolean skipData,
+        @RequestParam( required = false ) boolean completedOnly,
+        @RequestParam( required = false ) boolean hierarchyMeta,
+        @RequestParam( required = false ) boolean coordinatesOnly,
+        @RequestParam( required = false ) boolean includeMetadataDetails,
+        @RequestParam( required = false ) IdScheme dataIdScheme,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) DisplayProperty displayProperty,
+        @RequestParam( required = false ) Date relativePeriodDate,
+        @RequestParam( required = false ) String userOrgUnit,
+        @RequestParam( required = false ) String coordinateField,
+        @RequestParam( required = false ) SortOrder sortOrder,
+        DhisApiVersion apiVersion,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( program ).sortOrder( sortOrder )
+            .startDate( startDate ).endDate( endDate ).dimension( dimension ).filter( filter ).ouMode( ouMode )
+            .asc( asc ).desc( desc ).skipMeta( skipMeta ).skipData( skipData ).completedOnly( completedOnly )
+            .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
+            .dataIdScheme( dataIdScheme ).programStatus( programStatus ).outputType( EventOutputType.ENROLLMENT )
+            .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+
+        EventQueryParams params = eventDataQueryService.getFromRequest( request );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, "enrollments.html", false );
+        Grid grid = analyticsService.getEnrollments( params );
+        GridUtils.toHtmlCss( grid, response.getWriter() );
+    }
 }
