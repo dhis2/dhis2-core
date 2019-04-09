@@ -28,55 +28,52 @@ package org.hisp.dhis.deduplication;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-@Transactional
 public class DefaultDeduplicationService
     implements DeduplicationService
 {
 
     private final PotentialDuplicateStore potentialDuplicateStore;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
-
-    public DefaultDeduplicationService( PotentialDuplicateStore potentialDuplicateStore,
-        TrackedEntityInstanceService trackedEntityInstanceService )
+    public DefaultDeduplicationService( PotentialDuplicateStore potentialDuplicateStore )
     {
         this.potentialDuplicateStore = potentialDuplicateStore;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
     }
 
     @Override
+    @Transactional
     public long addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-            potentialDuplicateStore.save( potentialDuplicate );
-            return potentialDuplicate.getId();
+        potentialDuplicateStore.save( potentialDuplicate );
+        return potentialDuplicate.getId();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public PotentialDuplicate getPotentialDuplicateById( long id )
     {
         return potentialDuplicateStore.get( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public PotentialDuplicate getPotentialDuplicateByUid( String uid )
     {
         return potentialDuplicateStore.getByUid( uid );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<PotentialDuplicate> getAllPotentialDuplicates()
     {
         return potentialDuplicateStore.getAll();
     }
 
     @Override
+    @Transactional
     public void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate )
     {
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
@@ -84,19 +81,22 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    public int countPotentialDuplciates( PotentialDuplicateQuery query )
+    @Transactional( readOnly = true )
+    public int countPotentialDuplicates( PotentialDuplicateQuery query )
     {
 
         return potentialDuplicateStore.getCountByQuery( query );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
         return potentialDuplicateStore.exists( potentialDuplicate );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query )
     {
         return potentialDuplicateStore.getAllByQuery( query );

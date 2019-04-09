@@ -42,7 +42,7 @@ public interface DeduplicationService
 
         void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate );
 
-        int countPotentialDuplciates( PotentialDuplicateQuery query );
+        int countPotentialDuplicates( PotentialDuplicateQuery query );
 
         boolean exists( PotentialDuplicate potentialDuplicate );
 
