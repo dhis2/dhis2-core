@@ -98,8 +98,6 @@ public class DeletedObjectServiceTest
         manager.delete( organisationUnitA );
         manager.delete( organisationUnitB );
 
-        manager.flush(); // need to flush to make changes happen within the same tx
-
         assertEquals( 5, deletedObjectService.countDeletedObjects() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );
         assertEquals( 2, deletedObjectService.getDeletedObjectsByKlass( "OrganisationUnit" ).size() );

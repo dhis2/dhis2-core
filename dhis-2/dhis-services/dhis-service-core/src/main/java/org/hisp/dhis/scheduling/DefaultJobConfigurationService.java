@@ -59,7 +59,6 @@ import static org.hisp.dhis.scheduling.JobType.values;
 /**
  * @author Henning Håkonsen
  */
-@Transactional
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
@@ -76,6 +75,7 @@ public class DefaultJobConfigurationService
     private SessionFactory sessionFactory;
 
     @Override
+    @Transactional
     public long addJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
@@ -91,6 +91,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
         jobConfigurations.forEach( jobConfiguration -> {
@@ -105,6 +106,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional
     public long updateJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
@@ -121,6 +123,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional
     public void deleteJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
@@ -130,24 +133,28 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public JobConfiguration getJobConfigurationByUid( String uid )
     {
         return jobConfigurationStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public JobConfiguration getJobConfiguration( long jobId )
     {
         return jobConfigurationStore.get( jobId );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JobConfiguration> getAllJobConfigurations()
     {
         return jobConfigurationStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JobConfiguration> getAllJobConfigurationsSorted()
     {
         List<JobConfiguration> jobConfigurations = getAllJobConfigurations();
@@ -158,6 +165,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<String, Map<String, Property>> getJobParametersSchema()
     {
         Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();

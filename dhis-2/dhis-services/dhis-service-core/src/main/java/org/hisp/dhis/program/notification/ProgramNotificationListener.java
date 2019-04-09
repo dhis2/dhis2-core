@@ -43,7 +43,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 
 @Async
-@Transactional
+@Transactional // TODO do we need the @Transactional annotation here?
 public class ProgramNotificationListener
 {
     @Autowired

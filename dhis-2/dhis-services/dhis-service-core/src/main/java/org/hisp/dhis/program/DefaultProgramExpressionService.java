@@ -48,7 +48,6 @@ import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
 /**
  * @author Chau Thu Tran
  */
-@Transactional
 public class DefaultProgramExpressionService
     implements ProgramExpressionService
 {
@@ -86,6 +85,7 @@ public class DefaultProgramExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramExpression( ProgramExpression programExpression )
     {
         programExpressionStore.save( programExpression );
@@ -93,24 +93,28 @@ public class DefaultProgramExpressionService
     }
 
     @Override
+    @Transactional
     public void updateProgramExpression( ProgramExpression programExpression )
     {
         programExpressionStore.update( programExpression );
     }
 
     @Override
+    @Transactional
     public void deleteProgramExpression( ProgramExpression programExpression )
     {
         programExpressionStore.delete( programExpression );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramExpression getProgramExpression( long id )
     {
         return programExpressionStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getExpressionDescription( String programExpression )
     {
         StringBuffer description = new StringBuffer();
@@ -167,6 +171,7 @@ public class DefaultProgramExpressionService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<DataElement> getDataElements( String programExpression )
     {
         Collection<DataElement> dataElements = new HashSet<>();

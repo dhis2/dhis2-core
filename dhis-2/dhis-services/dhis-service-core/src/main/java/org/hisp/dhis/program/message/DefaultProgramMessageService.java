@@ -63,7 +63,6 @@ import java.util.stream.Collectors;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Transactional
 public class DefaultProgramMessageService
     implements ProgramMessageService
 {
@@ -114,6 +113,7 @@ public class DefaultProgramMessageService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessageQueryParams getFromUrl( Set<String> ou, String piUid, String psiUid,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate )
     {
@@ -154,30 +154,35 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean exists( String uid )
     {
         return programMessageStore.exists( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessage getProgramMessage( long id )
     {
         return programMessageStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessage getProgramMessage( String uid )
     {
         return programMessageStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramMessage> getAllProgramMessages()
     {
         return programMessageStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
     {
         hasAccess( params, currentUserService.getCurrentUser() );
@@ -187,6 +192,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public long saveProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.save( programMessage );
@@ -194,6 +200,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public void updateProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.update( programMessage );
@@ -206,6 +213,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
         List<ProgramMessage> populatedProgramMessages = programMessages.stream()
@@ -223,6 +231,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public void sendMessagesAsync( List<ProgramMessage> programMessages )
     {
         List<ProgramMessage> populatedProgramMessages = programMessages.stream()
@@ -240,11 +249,12 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void hasAccess( ProgramMessageQueryParams params, User user )
     {
         ProgramInstance programInstance = null;
 
-        Set<Program> programs = new HashSet<>();
+        Set<Program> programs;
 
         if ( params.hasProgramInstance() )
         {
@@ -270,6 +280,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validateQueryParameters( ProgramMessageQueryParams params )
     {
         String violation = null;
@@ -288,6 +299,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validatePayload( ProgramMessage message )
     {
         String violation = null;

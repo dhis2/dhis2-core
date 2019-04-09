@@ -34,10 +34,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.transaction.Transactional;
-
-@Transactional
 public class DefaultIncomingSmsService
     implements IncomingSmsService
 {
@@ -65,12 +63,14 @@ public class DefaultIncomingSmsService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public List<IncomingSms> listAllMessage()
     {
         return incomingSmsStore.getAllSmses();
     }
 
     @Override
+    @Transactional
     public int save( IncomingSms sms )
     {
         if ( sms.getReceivedDate() != null )
@@ -91,6 +91,7 @@ public class DefaultIncomingSmsService
     }
 
     @Override
+    @Transactional
     public int save( String message, String originator, String gateway, Date receivedTime, User user )
     {
         IncomingSms sms = new IncomingSms();
@@ -114,6 +115,7 @@ public class DefaultIncomingSmsService
     }
 
     @Override
+    @Transactional
     public void deleteById( Integer id )
     {
         IncomingSms incomingSms = incomingSmsStore.get( id );
@@ -122,36 +124,42 @@ public class DefaultIncomingSmsService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IncomingSms findBy( Integer id )
     {
         return incomingSmsStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IncomingSms getNextUnprocessed()
     {
         return null;
     }
 
     @Override
+    @Transactional
     public void update( IncomingSms incomingSms )
     {
         incomingSmsStore.update( incomingSms );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword )
     {
         return incomingSmsStore.getSmsByStatus( status, keyword );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max )
     {
         return incomingSmsStore.getSmsByStatus( status, keyword, min, max );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<IncomingSms> getAllUnparsedMessages()
     {
         return incomingSmsStore.getAllUnparsedSmses();

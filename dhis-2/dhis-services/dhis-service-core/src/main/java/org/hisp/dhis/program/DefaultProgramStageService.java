@@ -36,7 +36,6 @@ import java.util.List;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultProgramStageService
     implements ProgramStageService
 {
@@ -56,6 +55,7 @@ public class DefaultProgramStageService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long saveProgramStage( ProgramStage programStage )
     {
         programStageStore.save( programStage );
@@ -63,30 +63,35 @@ public class DefaultProgramStageService
     }
 
     @Override
+    @Transactional
     public void deleteProgramStage( ProgramStage programStage )
     {
         programStageStore.delete( programStage );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStage getProgramStage( long id )
     {
         return programStageStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStage getProgramStage( String uid )
     {
         return programStageStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramStage> getProgramStagesByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return programStageStore.getByDataEntryForm( dataEntryForm );
     }
 
     @Override
+    @Transactional
     public void updateProgramStage( ProgramStage programStage )
     {
         programStageStore.update( programStage );
