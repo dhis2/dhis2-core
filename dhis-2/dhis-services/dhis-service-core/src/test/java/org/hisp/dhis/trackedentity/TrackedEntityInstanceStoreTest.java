@@ -35,6 +35,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -63,6 +64,9 @@ public class TrackedEntityInstanceStoreTest
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
@@ -124,6 +128,8 @@ public class TrackedEntityInstanceStoreTest
     {
         teiStore.save( teiA );
         teiStore.save( teiB );
+        
+        dbmsManager.flushSession();
 
         assertTrue( teiStore.exists( teiA.getUid() ) );
         assertTrue( teiStore.exists( teiB.getUid() ) );

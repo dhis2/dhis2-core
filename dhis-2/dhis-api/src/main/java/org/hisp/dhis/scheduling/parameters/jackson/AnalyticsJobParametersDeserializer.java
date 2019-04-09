@@ -1,7 +1,7 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,18 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.context.ApplicationEvent;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 
-/**
- * @Author Zubair Asghar.
- */
-public class ProgramStageInstanceCompletedEvent extends ApplicationEvent
+public class AnalyticsJobParametersDeserializer extends AbstractJobParametersDeserializer<AnalyticsJobParameters>
 {
-    private ProgramStageInstance programStageInstance;
-
-    public ProgramStageInstanceCompletedEvent( Object source, ProgramStageInstance programStageInstance )
+    public AnalyticsJobParametersDeserializer()
     {
-        super( source );
-        this.programStageInstance = programStageInstance;
+        super( AnalyticsJobParameters.class, CustomJobParameters.class );
     }
 
-    public ProgramStageInstance getProgramStageInstance()
+    @JsonDeserialize
+    public static class CustomJobParameters extends AnalyticsJobParameters
     {
-        return programStageInstance;
     }
 }

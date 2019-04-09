@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.program.notification.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -29,43 +29,23 @@ package org.hisp.dhis.program.notification;
  */
 
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Created by zubair@dhis2.org on 18.01.18.
+ * @Author Zubair Asghar.
  */
-public class ProgramNotificationPublisher
+public class ProgramEnrollmentCompletionNotificationEvent extends ApplicationEvent
 {
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private ProgramInstance programInstance;
 
-    public void publishEnrollment( ProgramInstance programInstance, ProgramNotificationEventType eventType )
+    public ProgramEnrollmentCompletionNotificationEvent( Object source, ProgramInstance programInstance )
     {
-        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programInstance, eventType );
-
-        publisher.publishEvent( event );
+        super( source );
+        this.programInstance = programInstance;
     }
 
-    public void publishEnrollment( ProgramNotificationTemplate template, ProgramInstance programInstance, ProgramNotificationEventType type )
+    public ProgramInstance getProgramInstance()
     {
-        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programInstance, type );
-
-        publisher.publishEvent( event );
-    }
-
-    public void publishEvent( ProgramStageInstance programStageInstance, ProgramNotificationEventType eventType )
-    {
-        ProgramNotificationEvent event = new ProgramNotificationEvent( this, programStageInstance, eventType );
-
-        publisher.publishEvent( event );
-    }
-
-    public void publishEvent( ProgramNotificationTemplate template, ProgramStageInstance programStageInstance, ProgramNotificationEventType type )
-    {
-        ProgramNotificationEvent event = new ProgramNotificationEvent( this, template, programStageInstance, type );
-
-        publisher.publishEvent( event );
+        return programInstance;
     }
 }

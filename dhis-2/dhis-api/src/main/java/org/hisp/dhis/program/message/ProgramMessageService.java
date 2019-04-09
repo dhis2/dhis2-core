@@ -77,6 +77,8 @@ public interface ProgramMessageService
      */
     BatchResponseStatus sendMessages( List<ProgramMessage> programMessages );
 
+    void sendMessagesAsync( List<ProgramMessage> programMessages );
+
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------

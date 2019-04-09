@@ -229,6 +229,9 @@ public class ProgramSqlGenerator
             case V_INCIDENT_DATE:
                 return "incidentdate";
 
+            case V_ORG_UNIT_COUNT:
+                return "distinct ou";
+
             case V_PROGRAM_STAGE_ID:
                 return AnalyticsType.EVENT == programIndicator.getAnalyticsType() ? "ps" : "''";
 
