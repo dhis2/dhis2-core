@@ -649,6 +649,13 @@
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
 
+  <bean id="org.hisp.dhis.deduplication.PotentialDuplicateStore" class="org.hisp.dhis.deduplication.hibernate.HibernatePotentialDuplicateStore">
+    <property name="clazz" value="org.hisp.dhis.deduplication.PotentialDuplicate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.deduplication.DeduplicationService" class="org.hisp.dhis.deduplication.DefaultDeduplicationService" />
+
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService"
     class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueAuditService" />
 
