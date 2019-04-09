@@ -97,16 +97,17 @@ public class AttributeValueServiceTest
         avA.setAutoFields();
         AttributeValue avB = new AttributeValue( "valueB", attribute2 );
         avB.setAutoFields();
-        dataElementA.addAttributeValue( avA ) ;
-        dataElementA.addAttributeValue( avB ) ;
 
-        manager.save( dataElementA );
+        attributeService.updateAttributeValue( dataElementA, avA );
+        attributeService.updateAttributeValue( dataElementB, avB );
 
-        DataElement persistedDE = manager.get( DataElement.class, dataElementA.getUid() );
+        DataElement deA = manager.get( DataElement.class, dataElementA.getUid() );
+        DataElement deB = manager.get( DataElement.class, dataElementB.getUid() );
 
-        assertEquals( persistedDE.getJsonAttributeValues().size(), 2 );
-        assertNotNull( persistedDE.getAttributeValue( attribute1 ) );
-        assertNotNull( persistedDE.getAttributeValue( attribute2 ) );
+        assertEquals( deA.getJsonAttributeValues().size(), 1 );
+        assertNotNull( deA.getAttributeValue( attribute1 ) );
+        assertEquals( deB.getJsonAttributeValues().size(), 1 );
+        assertNotNull( deB.getAttributeValue( attribute2 ) );
     }
 
     @Test
