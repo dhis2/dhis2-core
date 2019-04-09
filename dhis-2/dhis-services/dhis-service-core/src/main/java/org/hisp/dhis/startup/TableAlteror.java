@@ -1118,14 +1118,16 @@ public class TableAlteror
         executeSql( "UPDATE jobconfiguration SET leaderonlyjob=true WHERE name='Credentials expiry alert';" );
 
         executeSql( "delete from systemsetting where name = 'keyCorsWhitelist';" );
-        
+
         executeSql( "update program set accesslevel='OPEN' where accesslevel is NULL" );
-        
+
         //Remove unique code,klass from deletedobject table
         executeSql("alter table deletedobject drop constraint key_deleted_object_klass_code;");
-        
+
         //Remove unused storagestatus column from fileresource table
         executeSql("alter table fileresource drop column storagestatus;");
+
+        assignJobConfigurationDistinctUids();
 
         log.info( "Tables updated" );
 
@@ -1980,5 +1982,16 @@ public class TableAlteror
         executeSql( "alter table trackedentityattributedimension alter column \"filter\" type text;" );
         executeSql( "alter table trackedentitydataelementdimension alter column \"filter\" type text;" );
         executeSql( "alter table trackedentityprogramindicatordimension alter column \"filter\" type text;" );
+    }
+
+    private void assignJobConfigurationDistinctUids()
+    {
+        executeSql( "update jobconfiguration set uid='pd6O228pqr0' where name='File resource clean up' and uid<>'pd6O228pqr0';" );
+        executeSql( "update jobconfiguration set uid='BFa3jDsbtdO' where name='Data statistics' and uid<>'BFa3jDsbtdO';" );
+        executeSql( "update jobconfiguration set uid='Js3vHn2AVuG' where name='Validation result notification' and uid<>'Js3vHn2AVuG';" );
+        executeSql( "update jobconfiguration set uid='sHMedQF7VYa' where name='Credentials expiry alert' and uid<>'sHMedQF7VYa';" );
+        executeSql( "update jobconfiguration set uid='YvAwAmrqAtN' where name='Dataset notification' and uid<>'YvAwAmrqAtN';" );
+        executeSql( "update jobconfiguration set uid='uwWCT2BMmlq' where name='Remove expired reserved values' and uid<>'uwWCT2BMmlq';" );
+        executeSql( "update jobconfiguration set uid='ntWCT2BMalb' where name='Kafka Tracker Consume' and uid<>'ntWCT2BMalb';" );
     }
 }
