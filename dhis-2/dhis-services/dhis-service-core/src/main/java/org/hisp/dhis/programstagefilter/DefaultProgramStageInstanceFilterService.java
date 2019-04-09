@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
@@ -45,11 +46,13 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
+@Transactional
 public class DefaultProgramStageInstanceFilterService implements ProgramStageInstanceFilterService
 {
 
@@ -214,6 +217,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramStageInstanceFilter get( long id )
     {
         ProgramStageInstanceFilter psiFilter = programStageInstanceFilterStore.get( id );
@@ -226,6 +230,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ProgramStageInstanceFilter get( String uid )
     {
         ProgramStageInstanceFilter psiFilter = programStageInstanceFilterStore.getByUid( uid );
@@ -238,6 +243,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramStageInstanceFilter> getAll( String program )
     {
         List<ProgramStageInstanceFilter> psiFilters;

@@ -143,8 +143,19 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
             this.eventQueryCriteria = psiFilter.getEventQueryCriteria();
             this.program = psiFilter.getProgram();
             this.programStage = psiFilter.getProgramStage();
-            this.userAccesses = psiFilter.getUserAccesses();
-            this.userGroupAccesses = psiFilter.getUserGroupAccesses();
+            
+            this.userAccesses.clear();
+            if ( psiFilter.getUserAccesses() != null )
+            {
+                this.userAccesses.addAll( psiFilter.getUserAccesses() );
+            }
+            
+            this.userGroupAccesses.clear();
+            if ( psiFilter.getUserGroupAccesses() != null )
+            {
+                this.userGroupAccesses.addAll( psiFilter.getUserGroupAccesses() );
+            }
+           
             this.code = psiFilter.getCode();
             this.name = psiFilter.getName();
             this.description = psiFilter.getDescription();
