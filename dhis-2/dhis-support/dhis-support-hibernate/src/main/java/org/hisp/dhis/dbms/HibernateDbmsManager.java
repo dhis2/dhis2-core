@@ -98,6 +98,8 @@ public class HibernateDbmsManager
         emptyTable( "pushanalysisrecipientusergroups" );
         emptyTable( "pushanalysis" );
 
+        emptyTable( "potentialduplicate" );
+
         emptyTable( "dashboarditem_users" );
         emptyTable( "dashboarditem_resources" );
         emptyTable( "dashboarditem_reports" );

@@ -112,7 +112,7 @@ public class DeduplicationController
 
         if ( !query.isSkipPaging() )
         {
-            query.setTotal( deduplicationService.countPotentialDuplciates( query ) );
+            query.setTotal( deduplicationService.countPotentialDuplicates( query ) );
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 

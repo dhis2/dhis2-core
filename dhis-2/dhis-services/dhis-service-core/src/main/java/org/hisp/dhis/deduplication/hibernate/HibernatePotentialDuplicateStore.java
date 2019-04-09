@@ -83,8 +83,7 @@ public class HibernatePotentialDuplicateStore
         Query<Long> hibernateQuery = getTypedQuery( "select count(*) from PotentialDuplicate pd " +
             "where (pd.teiA = :teia and pd.teiB = :teib) " +
             "or (pd.teiA = :teib and pd.teiB = :teia) " +
-            "or ((pd.teiA = :teia or pd.teiA = :teib) and pd.teiB is null) " +
-            "limit 1" );
+            "or ((pd.teiA = :teia or pd.teiA = :teib) and pd.teiB is null) " );
 
         hibernateQuery.setParameter( "teia", potentialDuplicate.getTeiA() );
         hibernateQuery.setParameter( "teib", potentialDuplicate.getTeiB() );
