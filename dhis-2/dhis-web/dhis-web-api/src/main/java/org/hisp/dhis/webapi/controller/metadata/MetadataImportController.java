@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -114,6 +115,8 @@ public class MetadataImportController
 
         final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects =
             renderService.fromMetadata( StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() ), RenderFormat.JSON );
+        // remove all data that cannot be exported explicitly and is not supported with other data formats
+        objects.remove( MessageConversation.class );
         params.setObjects( objects );
 
         if ( params.hasJobId() )
