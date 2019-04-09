@@ -91,7 +91,7 @@ public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EventAnalyticsManager
 {
-    protected static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
+    private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
 
     //TODO introduce dedicated "year" partition column
 
@@ -506,56 +506,6 @@ public class JdbcEventAnalyticsManager
         if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
-        }
-
-        return sql;
-    }
-
-    /**
-     * Returns an SQL sort clause.
-     *
-     * @param params the {@link EventQueryParams}.
-     */
-    private String getSortClause( EventQueryParams params )
-    {
-        String sql = "";
-
-        if ( params.isSorting() )
-        {
-            sql += "order by ";
-
-            for ( DimensionalItemObject item : params.getAsc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " asc,";
-            }
-
-            for  ( DimensionalItemObject item : params.getDesc() )
-            {
-                sql += quoteAlias( item.getUid() ) + " desc,";
-            }
-
-            sql = removeLastComma( sql ) + " ";
-        }
-
-        return sql;
-    }
-
-    /**
-     * Returns an SQL paging clause.
-     *
-     * @param params the {@link EventQueryParams}.
-     */
-    private String getPagingClause( EventQueryParams params, int maxLimit )
-    {
-        String sql = "";
-
-        if ( params.isPaging() )
-        {
-            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
-        }
-        else if ( maxLimit > 0 )
-        {
-            sql += "limit " + ( maxLimit + 1 );
         }
 
         return sql;
