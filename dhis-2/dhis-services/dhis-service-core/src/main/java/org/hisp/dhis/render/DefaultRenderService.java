@@ -45,6 +45,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -302,7 +304,7 @@ public class DefaultRenderService
 
         for ( ObjectMapper objectMapper : objectMappers )
         {
-            objectMapper.registerModules( module, new JtsModule(  ) );
+            objectMapper.registerModules( module, new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ) );
 
             objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
             objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
