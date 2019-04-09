@@ -89,10 +89,6 @@ public class DeduplicationControllerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private MockHttpServletRequest request = new MockHttpServletRequest();
-
-    private MockHttpServletResponse response = new MockHttpServletResponse();
-
     @Before
     public void setUpTest()
     {
@@ -134,8 +130,29 @@ public class DeduplicationControllerTest
     public void postPotentialDuplicate()
         throws WebMessageException
     {
+        PotentialDuplicate pd = new PotentialDuplicate( "ABCDEFGHIJ1", "ABCDEFGHIJ2" );
+
+        TrackedEntityInstance teiA = new TrackedEntityInstance();
+        TrackedEntityInstance teiB = new TrackedEntityInstance();
+
+        teiA.setUid( "ABCDEFGHIJ1" );
+        teiB.setUid( "ABCDEFGHIJ2" );
+
+        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ1" ) ) )
+            .thenReturn( teiA );
+        Mockito.when( trackedEntityInstanceService.getTrackedEntityInstance( Mockito.eq( "ABCDEFGHIJ2" ) ) )
+            .thenReturn( teiB );
+
+        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiA ) ) ).thenReturn(
+            Lists.newArrayList() );
+        Mockito.when( trackerAccessManager.canRead( Mockito.any(), Mockito.eq( teiB ) ) ).thenReturn(
+            Lists.newArrayList() );
+
+        Mockito.when( deduplicationService.exists( pd ) ).thenReturn( false );
+
         Mockito.when( deduplicationService.addPotentialDuplicate( Mockito.any( PotentialDuplicate.class ) ) )
             .thenReturn( 1L );
+
         controller.postPotentialDuplicate( new PotentialDuplicate( "ABCDEFGHIJ1" ) );
     }
 
@@ -319,9 +336,10 @@ public class DeduplicationControllerTest
     {
         PotentialDuplicate pd = new PotentialDuplicate( "teiA" );
         Mockito.when( deduplicationService.getPotentialDuplicateByUid( Mockito.eq( "1" ) ) ).thenReturn( pd );
-        Mockito.verify( deduplicationService ).markPotentialDuplicateInvalid( Mockito.eq( pd ) );
 
         controller.markPotentialDuplicateInvalid( "1" );
+
+        Mockito.verify( deduplicationService ).markPotentialDuplicateInvalid( Mockito.eq( pd ) );
     }
 
     @Test
