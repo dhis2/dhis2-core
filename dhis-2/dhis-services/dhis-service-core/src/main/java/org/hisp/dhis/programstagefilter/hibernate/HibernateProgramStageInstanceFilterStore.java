@@ -1,9 +1,6 @@
 package org.hisp.dhis.programstagefilter.hibernate;
-
-import java.util.List;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +26,7 @@ import java.util.List;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+import java.util.List;
 
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
@@ -44,7 +42,7 @@ public class HibernateProgramStageInstanceFilterStore extends HibernateIdentifia
     @Override
     public List<ProgramStageInstanceFilter> getByProgram( String program )
     {
-        String hql = "from ProgramStageInstanceFilter psif where psif.program.uid =:program";
+        String hql = "from ProgramStageInstanceFilter psif where psif.program =:program";
         return getQuery( hql ).setParameter( "program", program ).getResultList();
     }
 

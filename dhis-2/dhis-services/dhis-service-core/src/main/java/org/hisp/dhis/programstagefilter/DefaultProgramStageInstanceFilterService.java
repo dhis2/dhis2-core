@@ -220,14 +220,12 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     }
 
     @Override
-    @Transactional( readOnly = true )
     public ProgramStageInstanceFilter get( String uid )
     {
         ProgramStageInstanceFilter psiFilter = programStageInstanceFilterStore.getByUid( uid );
         if ( !aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
         {
             throw new ReadAccessDeniedException( "You do not have the authority to read the eventFilter: '" + uid + "'" );
-
         }
         return psiFilter;
     }

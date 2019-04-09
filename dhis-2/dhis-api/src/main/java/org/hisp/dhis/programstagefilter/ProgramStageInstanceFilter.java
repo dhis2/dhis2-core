@@ -31,9 +31,11 @@ package org.hisp.dhis.programstagefilter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -86,6 +88,8 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.IDENTIFIER, required = Property.Value.TRUE )
+    @PropertyRange( min = 11, max = 11 )
     public String getProgram()
     {
         return program;
@@ -98,6 +102,8 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( value = PropertyType.IDENTIFIER, required = Property.Value.FALSE )
+    @PropertyRange( min = 11, max = 11 )
     public String getProgramStage()
     {
         return programStage;

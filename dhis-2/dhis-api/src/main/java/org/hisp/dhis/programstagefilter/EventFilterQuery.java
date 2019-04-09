@@ -1,11 +1,4 @@
 package org.hisp.dhis.programstagefilter;
-
-import org.apache.commons.lang3.BooleanUtils;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
-
-import com.google.common.base.MoreObjects;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -33,6 +26,13 @@ import com.google.common.base.MoreObjects;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.PagerUtils;
+
+import com.google.common.base.MoreObjects;
+
 
 public class EventFilterQuery
 {
