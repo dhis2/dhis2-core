@@ -31,27 +31,29 @@ package org.hisp.dhis.analytics.event;
 import org.hisp.dhis.common.Grid;
 
 /**
+ * This interface is responsible for retrieving aggregated event data. Data will
+ * be returned in a grid object or as a dimensional key-value mapping.
+ *
  * @author Markus Bekken
  */
-public interface EnrollmentAnalyticsManager
+public interface EnrollmentAnalyticsService
 {
-     /**
-     * Retrieves aggregated data based on enrollments.
-     *
-     * @param params the query to retrieve enrollments for.
-     * @param grid the grid to insert data into.
-     * @param maxLimit the max number of records to retrieve.
-     * @return a grid with data.
-     */
-    void getEnrollments( EventQueryParams params, Grid grid, int maxLimit );
+    String ITEM_TEI = "tei";
+    String ITEM_PI = "pi";
+    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+    String ITEM_INCIDENT_DATE = "incidentdate";
+    String ITEM_GEOMETRY = "geometry";
+    String ITEM_LONGITUDE = "longitude";
+    String ITEM_LATITUDE = "latitude";
+    String ITEM_ORG_UNIT_NAME = "ouname";
+    String ITEM_ORG_UNIT_CODE = "oucode";
+    String ITEM_ORG_UNIT_ID = "ou";
 
     /**
-     * Retreives count of enrollments based on params.
-     * 
-     * @param params the qyery to count enrollments for,
-     * 
-     * @return number of enrollments macting the parameter criteria.
+     * Returns a list of enrollments matching the given query.
+     *
+     * @param params the envent query parameters.
+     * @return enrollments with event data as a Grid object.
      */
-    long getEnrollmentCount( EventQueryParams params );
+    Grid getEnrollments( EventQueryParams params );
 }
-
