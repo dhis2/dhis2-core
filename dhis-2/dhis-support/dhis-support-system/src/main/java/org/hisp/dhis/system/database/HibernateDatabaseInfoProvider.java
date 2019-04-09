@@ -114,7 +114,7 @@ public class HibernateDatabaseInfoProvider
     {
         // parts of returned object may be reset due to security reasons
         // (clone must be created to preserve original values)
-        return info == null ? null : info.clone();
+        return info == null ? null : info.instance();
     }
 
     @Override

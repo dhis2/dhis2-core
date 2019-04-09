@@ -147,7 +147,7 @@ public class SystemInfo
         SystemInfo info = new SystemInfo();
         BeanUtils.copyProperties( this, info );
         // clear sensitive info may reset the data
-        info.setDatabaseInfo( databaseInfo == null ? null : databaseInfo.clone() );
+        info.setDatabaseInfo( databaseInfo == null ? null : databaseInfo.instance() );
         return info;
     }
 

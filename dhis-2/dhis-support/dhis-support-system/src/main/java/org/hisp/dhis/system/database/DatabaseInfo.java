@@ -2,7 +2,11 @@ package org.hisp.dhis.system.database;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import javax.annotation.Nonnull;
+import java.lang.reflect.InvocationTargetException;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -35,7 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Lars Helge Overland
  */
-public class DatabaseInfo implements Cloneable
+public class DatabaseInfo
 {
     private String name;
 
@@ -144,17 +148,23 @@ public class DatabaseInfo implements Cloneable
         this.spatialSupport = spatialSupport;
     }
 
-    @Override
-    public DatabaseInfo clone()
+    /**
+     * @return a cloned instance of this object.
+     */
+    @Nonnull
+    public DatabaseInfo instance()
     {
+        final DatabaseInfo cloned = new DatabaseInfo();
         try
         {
-            return (DatabaseInfo) super.clone();
+            BeanUtils.copyProperties( cloned, this );
         }
-        catch ( CloneNotSupportedException e )
+        catch ( IllegalAccessException | InvocationTargetException e )
         {
             throw new IllegalStateException( e );
         }
+
+        return cloned;
     }
 
     // -------------------------------------------------------------------------

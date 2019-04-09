@@ -56,7 +56,7 @@ public class DatabaseInfoTest
     @Test
     public void cloneDatabaseInfo()
     {
-        final DatabaseInfo cloned = databaseInfo.clone();
+        final DatabaseInfo cloned = databaseInfo.instance();
         Assert.assertNotSame( databaseInfo, cloned );
         Assert.assertEquals( databaseInfo.getName(), cloned.getName() );
         Assert.assertEquals( databaseInfo.getUser(), cloned.getUser() );
