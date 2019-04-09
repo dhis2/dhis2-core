@@ -64,7 +64,7 @@ public class EventAnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics/events";
 
-    private static final String DEFAULT_OUTPUTTYPE = "EVENT";
+    private static final String DEFAULT_OUTPUT_TYPE = "EVENT";
 
     @Autowired
     private EventDataQueryService eventDataQueryService;
@@ -97,7 +97,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUTTYPE ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -149,7 +149,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUTTYPE ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -199,7 +199,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUTTYPE ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -249,7 +249,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUTTYPE ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -299,7 +299,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUTTYPE ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -349,7 +349,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUTTYPE ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
