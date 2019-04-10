@@ -38,9 +38,14 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
@@ -57,22 +62,53 @@ public class SchedulerStart
 {
     private static final Log log = LogFactory.getLog( SchedulerStart.class );
 
-    private final String CRON_HOURLY = "0 0 * ? * *";
-    private final String CRON_DAILY_2AM = "0 0 2 ? * *";
-    private final String CRON_DAILY_7AM = "0 0 7 ? * *";
+    private static final String CRON_HOURLY = "0 0 * ? * *";
+    private static final String CRON_DAILY_2AM = "0 0 2 ? * *";
+    private static final String CRON_DAILY_7AM = "0 0 7 ? * *";
 
-    private final String DEFAULT_FILE_RESOURCE_CLEANUP_UID = "pd6O228pqr0";
-    private final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
-    private final String DEFAULT_DATA_STATISTICS_UID = "BFa3jDsbtdO";
-    private final String DEFAULT_DATA_STATISTICS = "Data statistics";
-    private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID = "Js3vHn2AVuG";
-    private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
-    private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID = "sHMedQF7VYa";
-    private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
-    private final String DEFAULT_DATA_SET_NOTIFICATION_UID = "YvAwAmrqAtN";
-    private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
-    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
-    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
+    private static final String DEFAULT_FILE_RESOURCE_CLEANUP_UID = "pd6O228pqr0";
+    private static final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
+    private static final String DEFAULT_DATA_STATISTICS_UID = "BFa3jDsbtdO";
+    private static final String DEFAULT_DATA_STATISTICS = "Data statistics";
+    private static final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID = "Js3vHn2AVuG";
+    private static final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
+    private static final String DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID = "sHMedQF7VYa";
+    private static final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
+    private static final String DEFAULT_DATA_SET_NOTIFICATION_UID = "YvAwAmrqAtN";
+    private static final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
+    private static final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
+    private static final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
+
+    private static final Map<String, String> DEFAULT_UIDS_BY_NAME;
+
+    static
+    {
+        // for backward compatibility in 2.29 (not to be used in later versions)
+        final Map<String, String> defaultUidsByName = new HashMap<>();
+        defaultUidsByName.put( DEFAULT_FILE_RESOURCE_CLEANUP, DEFAULT_FILE_RESOURCE_CLEANUP_UID );
+        defaultUidsByName.put( DEFAULT_DATA_STATISTICS, DEFAULT_DATA_STATISTICS_UID );
+        defaultUidsByName.put( DEFAULT_VALIDATION_RESULTS_NOTIFICATION, DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID );
+        defaultUidsByName.put( DEFAULT_CREDENTIALS_EXPIRY_ALERT, DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID );
+        defaultUidsByName.put( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES, DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID );
+        DEFAULT_UIDS_BY_NAME = Collections.unmodifiableMap( defaultUidsByName );
+    }
+
+    /**
+     * Returns if any of the specified job configurations is a default job and does not contain
+     * the default UID of that job. <b>This is just used for 2.29 and not for later versions.</b>
+     *
+     * @return <code>true</code> if any job is an invalid default job.
+     */
+    public static boolean containsInvalidDefaultJob( @Nullable Collection<JobConfiguration> jobConfigurations )
+    {
+        if ( jobConfigurations == null )
+        {
+            return false;
+        }
+
+        return jobConfigurations.stream().anyMatch( jc ->
+            DEFAULT_UIDS_BY_NAME.containsKey( jc.getName() ) && !DEFAULT_UIDS_BY_NAME.get( jc.getName() ).equals( jc.getUid() ) );
+    }
 
     @Autowired
     private SystemSettingManager systemSettingManager;

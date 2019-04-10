@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.startup.SchedulerStart;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,11 +81,21 @@ public class ImportMetaDataTask
             if ( "json".equals( format ) )
             {
                 metadata = DefaultRenderService.getJsonMapper().readValue( inputStream, Metadata.class );
+
+                // invalid job UIDs for default jobs of previous exports must result in ignoring jon configurations on import
+                // (this will just be done in 2.29 in order to preserve previous behavior of 2.29)
+                if ( SchedulerStart.containsInvalidDefaultJob( metadata.getJobConfigurations() ) )
+                {
+                    metadata.setJobConfigurations( null );
+                }
+
                 log.info( "Read JSON file. Importing metadata." );
             }
             else
             {
                 metadata = DefaultRenderService.getXmlMapper().readValue( inputStream, Metadata.class );
+                // import does not work for XML based job configurations in 2.29
+                metadata.setJobConfigurations( null );
                 log.info( "Read XML file. Importing metadata." );
             }
         }
