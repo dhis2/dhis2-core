@@ -82,11 +82,13 @@ public class AttributeValueServiceTest
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
 
-        attributeService.addAttributeValue( dataElementA, avA );
-        attributeService.addAttributeValue( dataElementB, avB );
-
         dataElementA = createDataElement( 'A' );
         manager.save( dataElementA );
+        dataElementB = createDataElement( 'B' );
+        manager.save( dataElementB );
+
+        attributeService.addAttributeValue( dataElementA, avA );
+        attributeService.addAttributeValue( dataElementB, avB );
 
     }
 
@@ -104,9 +106,9 @@ public class AttributeValueServiceTest
         DataElement deA = manager.get( DataElement.class, dataElementA.getUid() );
         DataElement deB = manager.get( DataElement.class, dataElementB.getUid() );
 
-        assertEquals( deA.getJsonAttributeValues().size(), 1 );
+        assertEquals( deA.getJsonAttributeValues().size(),  2 );
         assertNotNull( deA.getAttributeValue( attribute1 ) );
-        assertEquals( deB.getJsonAttributeValues().size(), 1 );
+        assertEquals( deB.getJsonAttributeValues().size(), 2 );
         assertNotNull( deB.getAttributeValue( attribute2 ) );
     }
 

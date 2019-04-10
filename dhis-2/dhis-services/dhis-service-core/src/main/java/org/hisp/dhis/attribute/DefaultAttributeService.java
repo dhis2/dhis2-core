@@ -170,7 +170,7 @@ public class DefaultAttributeService
 
         attributeValue.setAutoFields();
         object.addAttributeValue( attributeValue );
-
+        manager.update( object );
     }
 
     @Override
@@ -193,8 +193,9 @@ public class DefaultAttributeService
         }
 
         attributeValue.setAutoFields();
-        object.getAttributeValues().remove( attributeValue );
+        object.removeAttributeValue( attributeValue.getAttribute() );
         object.addAttributeValue( attributeValue );
+        manager.update( object );
     }
 
     @Override

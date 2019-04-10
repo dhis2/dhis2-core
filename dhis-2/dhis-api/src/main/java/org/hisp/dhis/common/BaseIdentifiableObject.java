@@ -52,6 +52,7 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
 
+import javax.validation.Valid;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -372,16 +373,10 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    public void removeAttributeValue( AttributeValue attributeValue )
+    public void removeAttributeValue( Attribute attribute )
     {
-        attributeValues.remove( attributeValue );
-        jsonAttributeValues.remove( new JsonAttributeValue( attributeValue ) );
-    }
-
-    @Override
-    public void removeJsonAttributeValue( JsonAttributeValue jsonAttributeValue )
-    {
-        jsonAttributeValues.remove( jsonAttributeValue );
+        attributeValues.removeIf( av -> av.getAttribute().getUid() == attribute.getUid() );
+        jsonAttributeValues.removeIf( jsonAv -> jsonAv.getAttribute() == attribute.getUid() );
     }
 
     public void addAttributeValue( String value, Attribute attribute )
@@ -393,12 +388,6 @@ public class BaseIdentifiableObject
     {
         jsonAttributeValues.add( new JsonAttributeValue( attributeValue ) );
         attributeValues.add( attributeValue );
-    }
-
-    @Override
-    public void addJsonAttributeValue( JsonAttributeValue jsonAttributeValue )
-    {
-        jsonAttributeValues.add( jsonAttributeValue );
     }
 
     public AttributeValue getAttributeValue( Attribute attribute )
