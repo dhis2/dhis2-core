@@ -214,7 +214,7 @@ public class ExpressionEvaluator
     {
         Double value = keyValueMap.get( itemId );
 
-        if ( ignoreMissingValues )
+        if ( replaceNulls )
         {
             itemsFound++;
 

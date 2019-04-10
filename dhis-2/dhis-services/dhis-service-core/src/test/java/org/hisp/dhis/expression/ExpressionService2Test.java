@@ -377,7 +377,6 @@ public class ExpressionService2Test
     @Test
     public void testGetDataElementsInExpression()
     {
-
         when( dataElementService.getDataElement( opA.getDimensionItem().split( "\\." )[0] ) )
                 .thenReturn( opA.getDataElement() );
         when( dataElementService.getDataElement( opB.getDimensionItem().split( "\\." )[0] ) )
@@ -424,7 +423,6 @@ public class ExpressionService2Test
                         allOf( hasProperty( "dataElement", is( deB) ),
                                 hasProperty( "categoryOptionCombo", is( coc ) ),
                                 hasProperty( "attributeOptionCombo", is(nullValue()) ) ) ) );
-
     }
 
     @Test
@@ -616,7 +614,6 @@ public class ExpressionService2Test
 
         Map<String, Integer> orgUnitCountMap = new HashMap<>();
         orgUnitCountMap.put( groupA.getUid(), groupA.getMembers().size() );
-
 
         assertEquals( "12.0+34.0", target.generateExpression( expressionA, valueMap, constantMap, null, null, null ) );
         assertEquals( "12.0+5", target.generateExpression( expressionD, valueMap, constantMap, null, 5, null ) );
