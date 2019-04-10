@@ -340,7 +340,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         Set<ImportConflict> importConflicts = new HashSet<>();
         importConflicts.addAll( checkTrackedEntityType( dtoEntityInstance, importOptions ) );
-        importConflicts.addAll( checkAttributes( dtoEntityInstance, importOptions ) );
+        checkAttributes( dtoEntityInstance, importOptions, importConflicts, false );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -433,7 +433,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         Set<ImportConflict> importConflicts = new HashSet<>();
         importConflicts.addAll( checkRelationships( dtoEntityInstance ) );
-        importConflicts.addAll( checkAttributes( dtoEntityInstance, importOptions ) );
+        checkAttributes( dtoEntityInstance, importOptions, importConflicts, true );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
         Program program = getProgram( new IdSchemes(), programId );
@@ -723,21 +723,14 @@ public abstract class AbstractTrackedEntityInstanceService
     // VALIDATION
     //--------------------------------------------------------------------------
 
-    private List<ImportConflict> validateAttributeType( Attribute attribute, ImportOptions importOptions )
+    private void validateAttributeType( Attribute attribute, ImportOptions importOptions, Set<ImportConflict> importConflicts )
     {
-        List<ImportConflict> importConflicts = Lists.newArrayList();
-
-        if ( attribute == null || attribute.getValue() == null )
-        {
-            return importConflicts;
-        }
-
+        //Cache is populated. I should hit it.
         TrackedEntityAttribute daoTrackedEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(), attribute.getAttribute() );
 
         if ( daoTrackedEntityAttribute == null )
         {
             importConflicts.add( new ImportConflict( "Attribute.attribute", "Does not point to a valid attribute." ) );
-            return importConflicts;
         }
 
         String errorMessage = trackedEntityAttributeService.validateValueType( daoTrackedEntityAttribute, attribute.getValue() );
@@ -746,8 +739,6 @@ public abstract class AbstractTrackedEntityInstanceService
         {
             importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
         }
-
-        return importConflicts;
     }
 
     private List<ImportConflict> checkRelationships( TrackedEntityInstance dtoEntityInstance )
@@ -783,87 +774,84 @@ public abstract class AbstractTrackedEntityInstanceService
         return importConflicts;
     }
 
-    private List<ImportConflict> validateTextPatternValue( TrackedEntityAttribute attribute, String value )
+    private void validateTextPatternValue( TrackedEntityAttribute attribute, String value, Set<ImportConflict> importConflicts )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
-
         if ( !TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
             && !reservedValueService.isReserved( attribute.getTextPattern(), value ) )
         {
             importConflicts.add( new ImportConflict( "Attribute.value", "Value does not match the attribute pattern." ) );
         }
-
-        return importConflicts;
     }
 
-    private List<ImportConflict> checkScope( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
-        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit )
+    private void checkAttributeUniquenessWithinScope( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
+        Set<ImportConflict> importConflicts )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
-
-        if ( trackedEntityAttribute == null || value == null )
-        {
-            return importConflicts;
-        }
-
-        String errorMessage = trackedEntityAttributeService.validateScope( trackedEntityAttribute, value, entityInstance,
-            organisationUnit, null );
+        String errorMessage = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( trackedEntityAttribute, value, entityInstance,
+            organisationUnit );
 
         if ( errorMessage != null )
         {
             importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
         }
-
-        return importConflicts;
     }
 
-    private List<ImportConflict> checkAttributes( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions )
+    private void checkAttributes( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions,
+        Set<ImportConflict> importConflicts, boolean teiExistsInDatabase )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
-        List<String> fileValues = new ArrayList<>();
-
-        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstanceTemp = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
-
-        if ( daoEntityInstanceTemp != null )
+        if ( dtoEntityInstance.getAttributes().isEmpty() )
         {
-            daoEntityInstanceTemp.getTrackedEntityAttributeValues().stream()
-                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() )
-                .forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
+            return;
         }
 
+        List<String> fileValues = new ArrayList<>();
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = null;
+
+        if ( teiExistsInDatabase )
+        {
+            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
+
+            daoEntityInstance.getTrackedEntityAttributeValues().stream()
+                .filter( attrVal -> attrVal.getAttribute().getValueType().isFile() ).forEach( attrVal -> fileValues.add( attrVal.getValue() ) );
+        }
 
         for ( Attribute attribute : dtoEntityInstance.getAttributes() )
         {
-            TrackedEntityAttribute daoEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(), attribute.getAttribute() );
-
-            if ( daoEntityAttribute == null )
+            if ( StringUtils.isNotEmpty( attribute.getValue() ) )
             {
-                importConflicts.add( new ImportConflict( "Attribute.attribute", "Invalid attribute " + attribute.getAttribute() ) );
-                continue;
-            }
+                //Cache was populated in prepareCaches, so I should hit the cache
+                TrackedEntityAttribute daoEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
+                    attribute.getAttribute() );
 
-            if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
-            {
-                importConflicts.addAll( validateTextPatternValue( daoEntityAttribute, attribute.getValue() ) );
-            }
+                if ( daoEntityAttribute == null )
+                {
+                    importConflicts.add( new ImportConflict( "Attribute.attribute", "Invalid attribute " + attribute.getAttribute() ) );
+                    continue;
+                }
 
-            if ( daoEntityAttribute.isUnique() )
-            {
-                OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), dtoEntityInstance.getOrgUnit() );
-                org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance() );
-                importConflicts.addAll( checkScope( daoEntityInstance, daoEntityAttribute, attribute.getValue(), organisationUnit ) );
-            }
+                if ( daoEntityAttribute.isGenerated() && daoEntityAttribute.getTextPattern() != null && !importOptions.isSkipPatternValidation() )
+                {
+                    validateTextPatternValue( daoEntityAttribute, attribute.getValue(), importConflicts );
+                }
 
-            importConflicts.addAll( validateAttributeType( attribute, importOptions ) );
+                if ( daoEntityAttribute.isUnique() )
+                {
+                    //Cache was populated in prepareCaches, so I should hit the cache
+                    OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(),
+                        dtoEntityInstance.getOrgUnit() );
+                    checkAttributeUniquenessWithinScope( daoEntityInstance, daoEntityAttribute, attribute.getValue(), organisationUnit, importConflicts );
+                }
 
-            if ( daoEntityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
-            {
-                importConflicts.add( new ImportConflict( "Attribute.value",
-                    String.format( " File Resource with uid '%s' has already been assigned to a different object", attribute.getValue() ) ) );
+                validateAttributeType( attribute, importOptions, importConflicts );
+
+                if ( daoEntityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
+                {
+                    importConflicts.add( new ImportConflict( "Attribute.value",
+                        String.format( "File resource with uid '%s' has already been assigned to a different object",
+                            attribute.getValue() ) ) );
+                }
             }
         }
-
-        return importConflicts;
     }
 
     private List<ImportConflict> checkTrackedEntityType( TrackedEntityInstance entityInstance, ImportOptions importOptions )
