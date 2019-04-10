@@ -39,14 +39,9 @@ import org.hisp.dhis.chart.ChartService;
 import org.hisp.dhis.common.GenericIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.Encoder;
 import org.hisp.dhis.dashboard.DashboardItem;
-import org.hisp.dhis.fileresource.ExternalFileResource;
-import org.hisp.dhis.fileresource.ExternalFileResourceService;
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
-import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -71,17 +66,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Stian Sandvold
@@ -377,7 +369,7 @@ public class DefaultPushAnalysisService
 
         if ( image == null )
         {
-            image = MapUtils.createErrorImage( "No data" );
+            image = createErrorImage( "No data" );
         }
 
         ImageIO.write( image, "PNG", baos );
@@ -486,5 +478,23 @@ public class DefaultPushAnalysisService
             default:
                 break;
         }
+    }
+
+    /**
+     * Creates an image with text indicating an error.
+     */
+    private BufferedImage createErrorImage( String error )
+    {
+        String str = "Error creating map image: " + error;
+        BufferedImage image = new BufferedImage( 500, 25, BufferedImage.TYPE_INT_RGB );
+        Graphics2D graphics = image.createGraphics();
+
+        graphics.setColor( Color.WHITE );
+        graphics.fill( new Rectangle( 500, 25 ) );
+
+        graphics.setColor( Color.RED );
+        graphics.drawString( str, 1, 12 );
+
+        return image;
     }
 }
