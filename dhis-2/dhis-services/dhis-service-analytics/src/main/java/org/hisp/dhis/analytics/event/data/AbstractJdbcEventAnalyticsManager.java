@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
@@ -64,6 +65,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -87,14 +89,25 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    @Resource( name = "readOnlyJdbcTemplate" )
-    protected JdbcTemplate jdbcTemplate;
+    private final static String POSTGRES_LOWER_FUNCTION = "lower";
 
-    @Autowired
-    protected StatementBuilder statementBuilder;
+    protected final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    protected ProgramIndicatorService programIndicatorService;
+    protected final StatementBuilder statementBuilder;
+
+    protected final ProgramIndicatorService programIndicatorService;
+
+    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService )
+    {
+        checkNotNull( jdbcTemplate );
+        checkNotNull( statementBuilder );
+        checkNotNull( programIndicatorService );
+
+        this.jdbcTemplate = jdbcTemplate;
+        this.statementBuilder = statementBuilder;
+        this.programIndicatorService = programIndicatorService;
+    }
 
     /**
      * Returns an SQL paging clause.
@@ -336,7 +349,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 for ( QueryItem queryItem : params.getItems() )
                 {
-                    String itemValue = rowSet.getString( queryItem.getItemName() );
+
+                    String itemValue = rowSet.getString( queryItem.isText() ? POSTGRES_LOWER_FUNCTION : queryItem.getItemName() );
                     String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( params, queryItem, itemValue ) : itemValue;
                     grid.addValue( gridValue );
                 }
@@ -480,7 +494,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected String getColumn( QueryItem item )
     {
         String col = quoteAlias( item.getItemName() );
-        return item.isText() ? "lower(" + col + ")" : col;
+        return item.isText() ? POSTGRES_LOWER_FUNCTION + "(" + col + ")" : col;
     }
 
     /**

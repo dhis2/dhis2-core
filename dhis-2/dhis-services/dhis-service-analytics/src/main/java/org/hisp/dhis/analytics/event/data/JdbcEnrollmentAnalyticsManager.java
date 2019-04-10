@@ -58,10 +58,13 @@ import org.hisp.dhis.common.QueryTimeoutException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.Lists;
@@ -76,7 +79,13 @@ public class JdbcEnrollmentAnalyticsManager
         implements EnrollmentAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcEnrollmentAnalyticsManager.class );
-    
+
+    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+        ProgramIndicatorService programIndicatorService )
+    {
+        super( jdbcTemplate, statementBuilder, programIndicatorService );
+    }
+
     @Override
     public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit ) 
     {
