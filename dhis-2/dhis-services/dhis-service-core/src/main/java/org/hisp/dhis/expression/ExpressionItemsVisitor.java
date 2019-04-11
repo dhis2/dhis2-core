@@ -139,64 +139,9 @@ public class ExpressionItemsVisitor
     @Override
     public Object visitItem( ItemContext ctx )
     {
-        switch ( ctx.it.getType() )
-        {
-            case HASH_BRACE:
-                if ( isDataElementOperandSyntax( ctx ) )
-                {
-                    return getExpressionItem( ctx.getText(),
-                        new DimensionalItemId( DATA_ELEMENT_OPERAND,
-                            ctx.uid0.getText(),
-                            ctx.uid1 == null ? null : ctx.uid1.getText(),
-                            ctx.uid2 == null ? null : ctx.uid2.getText() ) );
-                }
-                else
-                {
-                    return getExpressionItem( ctx.getText(),
-                        new DimensionalItemId( DATA_ELEMENT,
-                            ctx.uid0.getText() ) );
-                }
 
-            case A_BRACE:
-                if ( !isExpressionProgramAttribute( ctx ) )
-                {
-                    throw new ParserExceptionWithoutContext( "Program attribute must have two UIDs: " + ctx.getText() );
-                }
-
-                return getExpressionItem( ctx.getText(),
-                    new DimensionalItemId( PROGRAM_ATTRIBUTE,
-                        ctx.uid0.getText(),
-                        ctx.uid1.getText() ) );
-
-            case C_BRACE:
-                return getConstant( ctx );
-
-            case D_BRACE:
-                return getExpressionItem( ctx.getText(),
-                    new DimensionalItemId( PROGRAM_DATA_ELEMENT,
-                        ctx.uid0.getText(),
-                        ctx.uid1.getText() ) );
-
-            case I_BRACE:
-                return getExpressionItem( ctx.getText(),
-                    new DimensionalItemId( PROGRAM_INDICATOR,
-                        ctx.uid0.getText() ) );
-
-            case OUG_BRACE:
-                return getOrgUnitGroupCount( ctx );
-
-            case R_BRACE:
-                return getExpressionItem( ctx.getText(),
-                    new DimensionalItemId( REPORTING_RATE,
-                        ctx.uid0.getText(),
-                        ctx.REPORTING_RATE_TYPE().getText() ) );
-
-            case DAYS:
-                return DOUBLE_VALUE_IF_NULL;
-
-            default:
-                throw new ParserExceptionWithoutContext( "Item not recognized for this type of expression: " + ctx.getText() );
-        }
+        return ExpressionVisitorStrategy.getStrategy(ctx.it.getType()).resolve(ExpressionVisitorType.ITEMS, ctx);
+        
     }
 
     // -------------------------------------------------------------------------
