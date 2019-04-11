@@ -67,6 +67,9 @@ public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
+    private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
+    private static final String COL_NAME_INCIDENTDATE = "incidentdate";
+    
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
         ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
@@ -354,6 +357,8 @@ public class DefaultEventDataQueryService
         if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
         {
             item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
+            item = ITEM_ENROLLMENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_ENROLLMENTDATE : item;
+            item = ITEM_INCIDENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_INCIDENTDATE : item;
             queryItem = new QueryItem( new BaseDimensionalItemObject( item ) );
         }
         else
