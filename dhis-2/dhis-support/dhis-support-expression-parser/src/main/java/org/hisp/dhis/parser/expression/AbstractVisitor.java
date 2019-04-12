@@ -150,7 +150,7 @@ public abstract class AbstractVisitor
      * @param ctx any context
      * @return the Double value
      */
-    protected Double castDoubleVisit( ParserRuleContext ctx )
+    public Double castDoubleVisit( ParserRuleContext ctx )
     {
         return castDouble( visit( ctx ) );
     }
@@ -161,7 +161,7 @@ public abstract class AbstractVisitor
      * @param ctx any context
      * @return the Double value
      */
-    protected String castStringVisit( ParserRuleContext ctx )
+    public String castStringVisit( ParserRuleContext ctx )
     {
         return castString( visit( ctx ) );
     }
@@ -172,7 +172,7 @@ public abstract class AbstractVisitor
      * @param ctx any context
      * @return the Boolean value
      */
-    protected Boolean castBooleanVisit( ParserRuleContext ctx )
+    public Boolean castBooleanVisit( ParserRuleContext ctx )
     {
         return castBoolean( visit( ctx ) );
     }
