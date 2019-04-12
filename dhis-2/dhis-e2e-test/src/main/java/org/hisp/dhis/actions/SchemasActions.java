@@ -61,6 +61,6 @@ public class SchemasActions
 
     public String findSchemaPropertyByKlassName( String klass, String property )
     {
-        return get().extractString( "schemas.find{it.klass == '" + klass + "'}." + property );
+        return get( "?fields=klass," + property ).extractString( "schemas.find{it.klass == '" + klass + "'}." + property );
     }
 }
