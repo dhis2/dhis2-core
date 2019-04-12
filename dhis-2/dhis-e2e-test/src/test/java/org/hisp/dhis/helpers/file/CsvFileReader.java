@@ -39,6 +39,12 @@ public class CsvFileReader
     @Override
     public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesWithIds( String propertyName )
     {
+        return replacePropertyValuesWith( propertyName, new IdGenerator().generateUniqueId() );
+    }
+
+    @Override
+    public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesWith( String propertyName, String replacedValue )
+    {
         int columnIndex = Arrays.asList( csvTable.get( 0 ) ).indexOf( propertyName );
 
         String lastColumnOriginalValue = "";
@@ -58,7 +64,7 @@ public class CsvFileReader
             }
 
             lastColumnOriginalValue = row[columnIndex];
-            lastColumnReplacedValue = new IdGenerator().generateUniqueId();
+            lastColumnReplacedValue = replacedValue;
 
             row[columnIndex] = lastColumnReplacedValue;
 
