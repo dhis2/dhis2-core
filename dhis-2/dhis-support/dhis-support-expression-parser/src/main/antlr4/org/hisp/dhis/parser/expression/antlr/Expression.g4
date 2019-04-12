@@ -85,9 +85,9 @@ expr
 item
     :   it='#{' uid0=UID '}'
     |   it='#{' uid0=UID '.' uid1=UID '}'
-    |   it='#{' uid0=UID '.' uid1=UID wilfun='.*' '}'
-    |   it='#{' uid0=UID '.*.' uifun=UID '}'
-    |   it='#{' uid0=UID '.' uid1=UID '.' uifun=UID '}'
+    |   it='#{' uid0=UID '.' uid1=UID wild2='.*' '}'
+    |   it='#{' uid0=UID '.*.' uid2=UID '}'
+    |   it='#{' uid0=UID '.' uid1=UID '.' uid2=UID '}'
     |   it='A{' uid0=UID '.' uid1=UID '}' // Program attribute in expressions (indicator, etc.)
     |   it='A{' uid0=UID '}' // Program attribute in program indicator expressions
     |   it='C{' uid0=UID '}'
