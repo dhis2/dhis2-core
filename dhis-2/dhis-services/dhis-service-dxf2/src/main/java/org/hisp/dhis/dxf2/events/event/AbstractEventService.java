@@ -1340,7 +1340,7 @@ public abstract class AbstractEventService
             }
         }
 
-        if ( event.getAssignedUser() != null && programStageInstance.getProgramStage().isEnableUserAssignment() )
+        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
             programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
         }
@@ -1676,14 +1676,6 @@ public abstract class AbstractEventService
         Date eventDate = executionDate != null ? executionDate : dueDate;
 
         validateAttributeOptionComboDate( aoc, eventDate );
-
-        if ( event.getAssignedUser() != null )
-        {
-            if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
-            {
-                programStageInstance.setAssignedUser( assignedUser );
-            }
-        }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
 
