@@ -58,10 +58,13 @@ package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
 import io.restassured.mapper.ObjectMapperType;
+import io.restassured.path.json.config.JsonParserType;
+import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -122,6 +125,12 @@ public class ApiResponse
         return raw.jsonPath().get( path );
     }
 
+    public JsonObject extractJsonObject( String path )
+    {
+        return raw.jsonPath( JsonPathConfig.jsonPathConfig().defaultParserType( JsonParserType.GSON ) )
+            .getObject( path, JsonObject.class );
+    }
+
     public <T> List<T> extractList( String path )
     {
         return raw.jsonPath().getList( path );
@@ -129,7 +138,7 @@ public class ApiResponse
 
     public <T> List<T> extractList( String path, Class<T> type )
     {
-        return raw.jsonPath().getList( path, type );
+        return raw.body().jsonPath().getList( path, type );
     }
 
     public int statusCode()
@@ -154,26 +163,43 @@ public class ApiResponse
 
     public boolean containsImportSummaries()
     {
-        return StringUtils.equals( extractString( "response.responseType" ), "ImportSummaries" ) ||
-            StringUtils.equals( extractString( "responseType" ), "ImportSummaries" );
+        return !getImportSummaries().isEmpty();
     }
 
     public List<ImportSummary> getImportSummaries()
     {
-        if ( this.extract( "responseType" ) != null && this.extract( "responseType" ).equals( "ImportSummaries" ) )
+        if ( this.extract( "responseType" ) != null )
         {
-            return this.extractList( "importSummaries", ImportSummary.class );
+
+            switch ( this.extract( "responseType" ).toString() )
+            {
+            case "ImportSummaries":
+                return this.extractList( "importSummaries", ImportSummary.class );
+            case "ImportSummary":
+                return Arrays.asList( raw.getBody().as( ImportSummary.class ) );
+            }
 
         }
+
         return this.extractList( "response.importSummaries", ImportSummary.class );
 
+    }
+
+    public List<TypeReport> getTypeReports()
+    {
+        if ( this.extractList( "typeReports" ) != null )
+        {
+            return this.extractList( "typeReports", TypeReport.class );
+        }
+
+        return null;
     }
 
     public List<ImportSummary> getSuccessfulImportSummaries()
     {
         return getImportSummaries().stream()
             .filter( is -> {
-                return is.getStatus() == "SUCCESS";
+                return is.getStatus().equalsIgnoreCase( "SUCCESS" );
             } )
             .collect( Collectors.toList() );
     }
