@@ -1350,6 +1350,8 @@ public abstract class AbstractEventService
         eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
+        sendProgramNotification( programStageInstance, importOptions );
+
         if ( !importOptions.isSkipLastUpdated() )
         {
             updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );

@@ -64,8 +64,6 @@ public class ProgramRuleEngine
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
-    private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = ProgramRuleActionType.getImplementedActions();
-
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -220,6 +218,15 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
-        return programRuleService.getImplementableProgramRules( program, IMPLEMENTABLE_TYPES );
+        List<ProgramRule> permittedRules = new ArrayList<>();
+
+        permittedRules = programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNotificationLinkedTypes() );
+
+        if ( permittedRules.isEmpty() )
+        {
+            return permittedRules;
+        }
+
+        return programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getImplementedActions() );
     }
 }
