@@ -188,6 +188,7 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
+    @Override
     @Transactional(readOnly = true)
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {

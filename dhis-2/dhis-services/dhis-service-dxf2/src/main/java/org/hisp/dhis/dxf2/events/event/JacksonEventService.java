@@ -63,7 +63,7 @@ import java.util.List;
 public class JacksonEventService extends AbstractEventService
 {
     // -------------------------------------------------------------------------
-    // EventService Impl
+    // EventService implementation
     // -------------------------------------------------------------------------
 
     private final static ObjectMapper XML_MAPPER = new XmlMapper();
