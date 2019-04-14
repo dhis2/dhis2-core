@@ -104,11 +104,6 @@ public class BaseIdentifiableObject
      */
     protected transient Set<AttributeValue> attributeValues = new HashSet<>();
 
-    /**
-     * Set of the dynamic attributes values in json format that belong to this data element.
-     */
-    protected Set<JsonAttributeValue> jsonAttributeValues = new HashSet<>();
-
     protected Map<String, JsonAttributeValue> cacheAttributeValues = new HashMap<>();
 
     /**

@@ -195,15 +195,13 @@ public class DefaultAttributeService
         attributeValue.setAutoFields();
         object.removeAttributeValue( attributeValue.getAttribute() );
         object.addAttributeValue( attributeValue );
-        manager.update( object );
     }
 
     @Override
     public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
         object.getJsonAttributeValues()
-                .stream().filter( a -> a.getAttribute().equals( attributeValue.getAttribute().getUid() ) )
-                .collect( Collectors.toList() );
+                .removeIf( a -> a.getAttribute() == attributeValue.getAttribute().getUid() );
         manager.update( object );
     }
 
@@ -214,7 +212,6 @@ public class DefaultAttributeService
 
         manager.update( object );
     }
-
 
     @Override
     public <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception

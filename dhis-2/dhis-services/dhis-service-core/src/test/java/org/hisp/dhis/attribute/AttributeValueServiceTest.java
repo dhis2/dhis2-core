@@ -131,27 +131,19 @@ public class AttributeValueServiceTest
         assertEquals( "updated value 2", avB.getValue() );
     }
 
-//    @Test
+    @Test
     public void testDeleteAttributeValue()
     {
-//        long attributeValueId1 = avA.getId();
-//        long attributeValueId2 = avB.getId();
+        attributeService.deleteAttributeValue( dataElementA, avA );
 
-//        attributeService.deleteAttributeValue( avA );
-//        attributeService.deleteAttributeValue( avB );
+        dataElementA = manager.get( DataElement.class, dataElementA.getUid() );
 
-//        avA = attributeService.getAttributeValue( attributeValueId1 );
-//        avB = attributeService.getAttributeValue( attributeValueId2 );
-
-//        assertNull( avA );
-//        assertNull( avB );
+        assertEquals( 0, dataElementA.getJsonAttributeValues().size() );
     }
 
     @Test
     public void testGetAttributeValue()
     {
-//        avA = attributeService.getAttributeValue( avA.getId() );
-//        avB = attributeService.getAttributeValue( avB.getId() );
 
         assertNotNull( avA );
         assertNotNull( avB );
