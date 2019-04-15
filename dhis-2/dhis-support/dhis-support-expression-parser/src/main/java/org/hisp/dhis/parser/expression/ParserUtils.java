@@ -28,11 +28,16 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.parser.expression.function.*;
 
 import java.util.Date;
 
+import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
+import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 /**
@@ -45,6 +50,44 @@ public class ParserUtils
     public final static double DOUBLE_VALUE_IF_NULL = 0.0;
 
     public final static boolean BOOLEAN_VALUE_IF_NULL = false;
+
+    public final static ImmutableMap<Integer, ExprFunction> COMMON_EXPRESSION_FUNCTIONS = ImmutableMap.<Integer, ExprFunction>builder()
+
+        // Non-comparison operators
+
+        .put(PAREN, new OperatorParentheses() )
+        .put(PLUS, new OperatorPlus() )
+        .put(MINUS, new OperatorMinus() )
+        .put(POWER, new OperatorPower() )
+        .put(MUL, new OperatorMultiply() )
+        .put(DIV, new OperatorDivide() )
+        .put(MOD, new OperatorModulus() )
+        .put(NOT, new OperatorNot() )
+        .put(EXCLAMATION_POINT, new OperatorNot() )
+        .put(AND, new OperatorAnd() )
+        .put(AMPERSAND_2, new OperatorAnd() )
+        .put(OR, new OperatorOr() )
+        .put(VERTICAL_BAR_2, new OperatorOr() )
+
+        // Comparison operators
+
+        .put(EQ, new OperatorCompareEqual() )
+        .put(NE, new OperatorCompareNotEqual() )
+        .put(GT, new OperatorCompareGreaterThan() )
+        .put(LT, new OperatorCompareLessThan() )
+        .put(GEQ, new OperatorCompareGreaterThanOrEqual() )
+        .put(LEQ, new OperatorCompareLessThanOrEqual() )
+
+        // Functions
+
+        .put(FIRST_NON_NULL, new FunctionFirstNonNull() )
+        .put(GREATEST, new FunctionGreatest() )
+        .put(IF, new FunctionIf() )
+        .put(IS_NOT_NULL, new FunctionIsNotNull() )
+        .put(IS_NULL, new FunctionIsNull() )
+        .put(LEAST, new FunctionLeast() )
+
+        .build();
 
     /**
      * Does an item of the form #{...} have the syntax of a
@@ -259,4 +302,16 @@ public class ParserUtils
             throw new ParserExceptionWithoutContext( "Could not cast value to " + clazz.getSimpleName() );
         }
     }
+
+    /**
+     * Convert a quoted string to a string escaped properly for a SQL constant.
+     *
+     * @param s the quoted string
+     * @return a string escaped properly for a SQL constant
+     */
+    public static String sqlStringLiteral( String s )
+    {
+        return "'" + escapeSql( unescapeJava( trimQuotes( s ) ) ) + "'";
+    }
+
 }

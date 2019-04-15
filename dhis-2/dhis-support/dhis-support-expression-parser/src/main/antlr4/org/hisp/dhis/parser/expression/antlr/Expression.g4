@@ -79,7 +79,9 @@ expr
     //  Other
 
     |   item
-    |   literal
+    |   numericLiteral
+    |   stringLiteral
+    |   booleanLiteral
     ;
 
 item
@@ -121,12 +123,6 @@ numStringLiteral
     |   stringLiteral
     ;
 
-literal
-    :   numericLiteral
-    |   stringLiteral
-    |   BOOLEAN_LITERAL
-    ;
-
 numericLiteral
     :   NUMERIC_LITERAL
     ;
@@ -134,6 +130,10 @@ numericLiteral
 stringLiteral
     :   STRING_LITERAL
     |   QUOTED_UID // Resolve that quoted UID can also be a string literal
+    ;
+
+booleanLiteral
+    :   BOOLEAN_LITERAL
     ;
 
 // -----------------------------------------------------------------------------

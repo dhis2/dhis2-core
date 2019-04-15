@@ -60,7 +60,6 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.parser.expression.AbstractVisitor;
 import org.hisp.dhis.parser.expression.Parser;
 import org.hisp.dhis.parser.expression.ParserException;
 import org.hisp.dhis.period.Period;

@@ -34,7 +34,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.parser.expression.CommonSqlGenerator;
 import org.hisp.dhis.parser.expression.InternalParserException;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;

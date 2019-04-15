@@ -30,36 +30,55 @@ package org.hisp.dhis.parser.expression;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
+import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
 
-import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
-import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import java.util.*;
+
+import static jdk.internal.jline.internal.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
 
 /**
- * Abstraction over the ANTLR-generated ExpressionBaseVisitor, to use in
- * the visitor pattern for the Expression grammar.
- * <p/>
- * Performs basic parsing of the expr label, and separates out the operator
- * processing for easy access by subclasses. (Operator parsing must be included
- * in expr grammar because of left recursive parsing constraints.)
- * <p/>
- * Throws errors for visiting various types unless overridden by subclasses.
- * <p/>
- * Provides basic literal value parsing (which may be overridden by
- * subclasses when needed.)
+ * Common traversal of the ANTLR4 expression parse tree using the
+ * visitor pattern.
  *
  * @author Jim Grace
  */
-public abstract class AbstractVisitor
+public abstract class ExprVisitor
     extends ExpressionBaseVisitor<Object>
 {
+    /**
+     * Map of ExprFunction instances to call for each expression function
+     */
+    protected Map<Integer, ExprFunction> functionMap;
+
+    /**
+     * Map of ExprItem instances to call for each expression item
+     */
+    protected Map<Integer, ExprItem> itemMap;
+
+    /**
+     * Method to call within the ExprFunction instance
+     */
+    protected ExprFunctionMethod functionMethod;
+
+    /**
+     * Method to call within the ExprItem instance
+     */
+    protected ExprItemMethod itemMethod;
+
+    /**
+     * Instance to call for each literal
+     */
+    protected ExprLiteral expressionLiteral = new DefaultLiteral();
+
     /**
      * By default, replace nulls with 0 or ''.
      */
     protected boolean replaceNulls = true;
 
     // -------------------------------------------------------------------------
-    // Visitor methods not to be overridden by subclasses
+    // Visitor methods
     // -------------------------------------------------------------------------
 
     @Override
@@ -69,79 +88,61 @@ public abstract class AbstractVisitor
     }
 
     @Override
-    public final Object visitExpr( ExprContext ctx )
+    public Object visitExpr( ExprContext ctx )
     {
-        if ( ctx.op != null )
+        if ( ctx.fun == null )
         {
-            return visitOperator( ctx );
+            if ( ctx.expr().size() > 0 ) // There's an expr: visit the expr
+            {
+                return visit( ctx.expr( 0 ) );
+            }
+
+            return visit( ctx.getChild( 0 ) ); // All others
         }
-        else if ( ctx.expr().size() > 0 ) // There's an expr: visit the expr
+
+        ExprFunction function = functionMap.get( ctx.fun );
+
+        if ( function == null )
         {
-            return visit( ctx.expr( 0 ) );
+            throw new ParserExceptionWithoutContext( "Function " + ctx.fun.getText() + " not supported for this type of expression" );
         }
 
-        return visit( ctx.getChild( 0 ) ); // All others
-    }
-
-    // -------------------------------------------------------------------------
-    // Visitor methods to be overridden by subclasses as needed
-    // -------------------------------------------------------------------------
-
-    /**
-     * Visit an operator. This method is defined here, but may be overridden
-     * by subclasses in the same way as the visitor methods overridden here.
-     *
-     * @param ctx the expresison context
-     * @return the operator return value (throws an exception for now)
-     */
-    public Object visitOperator( ExprContext ctx )
-    {
-        throw new ParserExceptionWithoutContext( "Operator not valid in this expression" );
-    }
-
-    @Override
-    public Object visitFunction( FunctionContext ctx )
-    {
-        throw new ParserExceptionWithoutContext( "Function not valid in this expression" );
+        return functionMethod.apply( function, ctx, this );
     }
 
     @Override
     public Object visitItem( ItemContext ctx )
     {
-        throw new ParserExceptionWithoutContext( "Item not valid in this expression" );
+        ExprItem item = itemMap.get( ctx.it );
+
+        if ( item == null )
+        {
+            throw new ParserExceptionWithoutContext( "Item " + ctx.it.getText() + " not supported for this type of expression" );
+        }
+
+        return itemMethod.apply( item, ctx, this );
     }
 
     @Override
-    public Object visitProgramVariable( ProgramVariableContext ctx )
+    public Object visitNumericLiteral( NumericLiteralContext ctx )
     {
-        throw new ParserExceptionWithoutContext( "Program variable not valid in this expression" );
+        return Double.valueOf( ctx.getText() );
     }
 
     @Override
-    public Object visitProgramFunction( ProgramFunctionContext ctx )
+    public Object visitStringLiteral( StringLiteralContext ctx )
     {
-        throw new ParserExceptionWithoutContext( "Program function not valid in this expression" );
+        return expressionLiteral.getStringLiteral( ctx );
     }
 
     @Override
-    public Object visitLiteral( LiteralContext ctx )
+    public Object visitBooleanLiteral( BooleanLiteralContext ctx )
     {
-        if ( ctx.numericLiteral() != null )
-        {
-            return Double.valueOf( ctx.getText() );
-        }
-        else if ( ctx.stringLiteral() != null )
-        {
-            return unescapeJava( trimQuotes( ctx.getText() ) );
-        }
-        else
-        {
-            return Boolean.valueOf( ctx.getText() );
-        }
+        return expressionLiteral.getBooleanLiteral( ctx );
     }
 
     // -------------------------------------------------------------------------
-    // Convenience methods for subclasses
+    // Convenience methods for functions and items
     // -------------------------------------------------------------------------
 
     /**
@@ -195,5 +196,27 @@ public abstract class AbstractVisitor
         replaceNulls = savedReplaceNulls;
 
         return result;
+    }
+
+    /**
+     * Gets the value of an item or numeric string literal
+     *
+     * If an item, gets the value while allowing nulls.
+     *
+     * @param ctx item or numeric string literal context
+     * @return the value of the item or numeric string literal
+     */
+    public Object getItemNumStringLiteral( ItemNumStringLiteralContext ctx )
+    {
+        if ( ctx.item() != null )
+        {
+            return visitAllowingNulls( ctx.item() );
+        }
+        else if ( ctx.numStringLiteral().stringLiteral() != null )
+        {
+            return expressionLiteral.getStringLiteral( ctx.numStringLiteral().stringLiteral() );
+        }
+
+        return ctx.getText();
     }
 }
