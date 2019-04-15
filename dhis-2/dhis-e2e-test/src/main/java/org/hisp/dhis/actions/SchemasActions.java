@@ -29,6 +29,7 @@
 package org.hisp.dhis.actions;
 
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.schemas.Schema;
 import org.hisp.dhis.dto.schemas.SchemaProperty;
 
 import java.util.List;
@@ -54,6 +55,11 @@ public class SchemasActions
             .collect( Collectors.toList() );
     }
 
+    public Schema getSchema( String resource )
+    {
+        return get( resource ).extractObject( "", Schema.class );
+    }
+
     public ApiResponse validateObjectAgainstSchema( String resource, Object obj )
     {
         return post( resource, obj );
@@ -61,6 +67,13 @@ public class SchemasActions
 
     public String findSchemaPropertyByKlassName( String klass, String property )
     {
-        return get( "?fields=klass," + property ).extractString( "schemas.find{it.klass == '" + klass + "'}." + property );
+        return findSchemaPropertyByKnownProperty( property, "klass", klass );
+    }
+
+    public String findSchemaPropertyByKnownProperty( String propertyToFind, String knownPropertyName, String knownPropertyValue )
+    {
+        return get( String.format( "?fields=%s,%s", propertyToFind, knownPropertyName ) )
+            .extractString(
+                String.format( "schemas.find{it.%s == '%s'}.%s", knownPropertyName, knownPropertyValue, propertyToFind ) );
     }
 }
