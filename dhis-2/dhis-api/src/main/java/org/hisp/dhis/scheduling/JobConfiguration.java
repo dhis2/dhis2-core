@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,16 +34,15 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
+import javax.annotation.Nonnull;
 import java.util.Date;
 
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobStatus.*;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 /**
@@ -61,8 +60,7 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = JobConfigurationDeserializer.class )
 public class JobConfiguration
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
     private String cronExpression;
 
@@ -300,42 +298,43 @@ public class JobConfiguration
         return userUid;
     }
 
-    @Override
-    public int compareTo( IdentifiableObject jobConfiguration )
+    /**
+     * Checks if this job has changes compared to the specified job configuration that are only
+     * allowed for configurable jobs.
+     *
+     * @param jobConfiguration the job configuration that should be checked.
+     * @return <code>true</code> if this job configuration has changes in fields that are only
+     * allowed for configurable jobs, <code>false</code> otherwise.
+     */
+    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration jobConfiguration )
     {
-        JobConfiguration compareJobConfiguration = (JobConfiguration) jobConfiguration;
-
-        if ( jobType != compareJobConfiguration.getJobType() )
+        if ( jobType != jobConfiguration.getJobType() )
         {
-            return -1;
+            return true;
+        }
+        if ( !isEqualJobStatus( jobStatus, jobConfiguration.getJobStatus() ) )
+        {
+            return true;
+        }
+        if ( jobParameters != jobConfiguration.getJobParameters() )
+        {
+            return true;
+        }
+        if ( continuousExecution != jobConfiguration.isContinuousExecution() )
+        {
+            return true;
+        }
+        return enabled != jobConfiguration.isEnabled();
+    }
+
+    private boolean isEqualJobStatus( JobStatus jobStatus1, JobStatus jobStatus2 )
+    {
+        if ( jobStatus1 == jobStatus2 )
+        {
+            return true;
         }
 
-        if ( jobStatus != compareJobConfiguration.getJobStatus() )
-        {
-            return -1;
-        }
-
-        if ( jobParameters != compareJobConfiguration.getJobParameters() )
-        {
-            return -1;
-        }
-
-        if ( continuousExecution != compareJobConfiguration.isContinuousExecution() )
-        {
-            return -1;
-        }
-
-        if ( enabled != compareJobConfiguration.isEnabled() )
-        {
-            return -1;
-        }
-
-        if ( !cronExpression.equals( compareJobConfiguration.getCronExpression() ) )
-        {
-            return 1;
-        }
-
-        return -1;
+        return ( jobStatus1 == SCHEDULED || jobStatus1 == RUNNING ) && ( jobStatus2 == SCHEDULED || jobStatus2 == RUNNING );
     }
 
     @Override
