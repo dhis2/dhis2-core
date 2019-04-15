@@ -70,7 +70,7 @@ public class DefaultOutboundMessageBatchService
     // ---------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches )
     {
         // Partition by channel (sender) first to avoid sender config checks
