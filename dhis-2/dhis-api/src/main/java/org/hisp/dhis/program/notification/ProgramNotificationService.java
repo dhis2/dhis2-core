@@ -69,23 +69,23 @@ public interface ProgramNotificationService
      * If the ProgramStage is not configured with suitable
      * {@link ProgramNotificationTemplate templates}, nothing will happen.
      *
-     * @param programStageInstance the ProgramStageInstance.
+     * @param programStageInstance the ProgramStageInstance id.
      */
     void sendEventCompletionNotifications( long programStageInstance );
 
     /**
      * Send completion notifications for the ProgramInstance triggered by ProgramRule evaluation.
      * {@link ProgramNotificationTemplate templates}, nothing will happen.
-     * @param pnt ProgramNotificationTemplate to send
-     * @param programInstance the ProgramInstance.
+     * @param pnt ProgramNotificationTemplate id to send
+     * @param programInstance the ProgramInstance id.
      */
     void sendProgramRuleTriggeredNotifications( long pnt, long programInstance );
 
     /**
      * Send completion notifications for the ProgramStageInstance triggered by ProgramRule evaluation.
      * {@link ProgramNotificationTemplate templates}, nothing will happen.
-     * @param pnt ProgramNotificationTemplate to send
-     * @param programStageInstance the ProgramStageInstance.
+     * @param pnt ProgramNotificationTemplate id to send
+     * @param programStageInstance the ProgramStageInstance id.
      */
     void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance );
 
@@ -94,7 +94,7 @@ public interface ProgramNotificationService
      * If the Program is not configured with suitable
      * {@link ProgramNotificationTemplate templates}, nothing will happen.
      *
-     * @param programInstance the ProgramInstance.
+     * @param programInstance the ProgramInstance id.
      */
     void sendEnrollmentCompletionNotifications( long programInstance );
 
@@ -103,7 +103,7 @@ public interface ProgramNotificationService
      * If the Program is not configured with suitable
      * {@link ProgramNotificationTemplate templates}, nothing will happen.
 
-     * @param programInstance the ProgramInstance.
+     * @param programInstance the ProgramInstance id.
      */
     void sendEnrollmentNotifications( long programInstance );
 }
