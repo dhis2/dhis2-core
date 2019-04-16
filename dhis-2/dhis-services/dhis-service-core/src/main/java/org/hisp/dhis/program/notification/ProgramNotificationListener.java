@@ -34,9 +34,7 @@ import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
@@ -49,21 +47,18 @@ public class ProgramNotificationListener
     @Autowired
     private ProgramNotificationService programNotificationService;
 
-    @EventListener
     @TransactionalEventListener
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @EventListener
     @TransactionalEventListener
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
         programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
     }
 
-    @EventListener
     @TransactionalEventListener
     public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
@@ -71,14 +66,12 @@ public class ProgramNotificationListener
     }
 
     // Published by rule engine
-    @EventListener
     @TransactionalEventListener
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
-    @EventListener
     @TransactionalEventListener
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {

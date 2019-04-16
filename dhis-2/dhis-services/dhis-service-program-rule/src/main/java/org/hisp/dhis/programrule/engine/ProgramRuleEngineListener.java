@@ -29,7 +29,6 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -43,30 +42,26 @@ public class ProgramRuleEngineListener
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
 
-    @EventListener
     @TransactionalEventListener
-    public void listenEvent( EnrollmentEvaluationEvent event )
+    public void onEnrollment( EnrollmentEvaluationEvent event )
     {
         programRuleEngineService.evaluateEnrollment( event.getProgramInstance() );
     }
 
-    @EventListener
     @TransactionalEventListener
-    public void listenEvent( DataValueUpdatedEvent event )
+    public void onDataValueChange( DataValueUpdatedEvent event )
     {
         programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
 
-    @EventListener
     @TransactionalEventListener
-    public void listenEvent( StageCompletionEvaluationEvent event )
+    public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
         programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
 
-    @EventListener
     @TransactionalEventListener
-    public void listenEvent( StageScheduledEvaluationEvent event )
+    public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
         programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
