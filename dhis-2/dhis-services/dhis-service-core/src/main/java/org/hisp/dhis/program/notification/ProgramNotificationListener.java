@@ -37,46 +37,51 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
 
 @Async
-@Transactional // TODO do we need the @Transactional annotation here?
 public class ProgramNotificationListener
 {
     @Autowired
     private ProgramNotificationService programNotificationService;
 
     @EventListener
+    @TransactionalEventListener
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
     @EventListener
+    @TransactionalEventListener
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
-        programNotificationService.sendCompletionNotifications( event.getProgramInstance() );
+        programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
     }
 
     @EventListener
+    @TransactionalEventListener
     public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
-        programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
+        programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
     }
 
     // Published by rule engine
     @EventListener
+    @TransactionalEventListener
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
     @EventListener
+    @TransactionalEventListener
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );
+        programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(), event.getProgramStageInstance() );
     }
 }

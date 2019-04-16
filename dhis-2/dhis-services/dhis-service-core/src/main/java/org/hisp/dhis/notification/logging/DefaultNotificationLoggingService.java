@@ -29,12 +29,15 @@ package org.hisp.dhis.notification.logging;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 10.01.18.
  */
+
+@Transactional
 public class DefaultNotificationLoggingService
     implements NotificationLoggingService
 {

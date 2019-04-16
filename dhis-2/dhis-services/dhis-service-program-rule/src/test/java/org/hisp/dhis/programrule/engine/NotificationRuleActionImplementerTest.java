@@ -158,7 +158,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programInstance, ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance() );
+        assertEquals( programInstance.getId(), ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance() );
     }
 
     @Test
@@ -189,7 +189,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programStageInstance, ((ProgramRuleStageEvent) eventType).getProgramStageInstance() );
+        assertEquals( programStageInstance.getId(), ((ProgramRuleStageEvent) eventType).getProgramStageInstance() );
     }
 
     @Test

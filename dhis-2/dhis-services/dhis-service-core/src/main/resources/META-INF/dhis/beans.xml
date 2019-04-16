@@ -1207,6 +1207,7 @@
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
+    <property name="programNotificationStore" ref="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore" />
   </bean>
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"

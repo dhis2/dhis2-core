@@ -68,22 +68,16 @@ import com.google.common.collect.Sets;
 @Transactional
 public class DefaultEventDataValueService implements EventDataValueService
 {
-    private final ApplicationEventPublisher eventPublisher;
-
     private final ProgramStageInstanceService programStageInstanceService;
 
     private final TrackerAccessManager trackerAccessManager;
 
-    private ProgramRuleVariableService ruleVariableService;
-
     @Autowired
-    public DefaultEventDataValueService( ApplicationEventPublisher eventPublisher, TrackerAccessManager trackerAccessManager,
-        ProgramStageInstanceService programStageInstanceService, ProgramRuleVariableService ruleVariableService )
+    public DefaultEventDataValueService( TrackerAccessManager trackerAccessManager,
+        ProgramStageInstanceService programStageInstanceService )
     {
-        this.eventPublisher = eventPublisher;
         this.trackerAccessManager = trackerAccessManager;
         this.programStageInstanceService = programStageInstanceService;
-        this.ruleVariableService = ruleVariableService;
     }
 
     @Override
@@ -114,20 +108,16 @@ public class DefaultEventDataValueService implements EventDataValueService
             String storedBy = !StringUtils.isEmpty( dataValue.getStoredBy() ) ? dataValue.getStoredBy() : fallbackStoredBy;
             DataElement dataElement = dataElementsCache.get( dataValue.getDataElement() );
 
-            if ( dataElement == null ) {
+            if ( dataElement == null )
+            {
                 // This can happen if a wrong data element identifier is provided
                 importSummary.getConflicts().add( new ImportConflict( "dataElement", dataValue.getDataElement() + " is not a valid data element" ) );
             }
             else if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary )
-                && !importOptions.isDryRun())
+                && !importOptions.isDryRun() )
             {
                 prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues, updatedDataValues,
                     removedDataValuesDueToEmptyValue, storedBy );
-            }
-
-            if ( isUpdate && !importOptions.isSkipNotifications() && ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement ) )
-            {
-                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
         }
 

@@ -71,7 +71,7 @@ public interface ProgramNotificationService
      *
      * @param programStageInstance the ProgramStageInstance.
      */
-    void sendCompletionNotifications( ProgramStageInstance programStageInstance );
+    void sendEventCompletionNotifications( long programStageInstance );
 
     /**
      * Send completion notifications for the ProgramInstance triggered by ProgramRule evaluation.
@@ -79,7 +79,7 @@ public interface ProgramNotificationService
      * @param pnt ProgramNotificationTemplate to send
      * @param programInstance the ProgramInstance.
      */
-    void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramInstance programInstance );
+    void sendProgramRuleTriggeredNotifications( long pnt, long programInstance );
 
     /**
      * Send completion notifications for the ProgramStageInstance triggered by ProgramRule evaluation.
@@ -87,7 +87,7 @@ public interface ProgramNotificationService
      * @param pnt ProgramNotificationTemplate to send
      * @param programStageInstance the ProgramStageInstance.
      */
-    void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramStageInstance programStageInstance );
+    void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance );
 
     /**
      * Send completion notifications for the ProgramInstance.
@@ -96,7 +96,7 @@ public interface ProgramNotificationService
      *
      * @param programInstance the ProgramInstance.
      */
-    void sendCompletionNotifications( ProgramInstance programInstance );
+    void sendEnrollmentCompletionNotifications( long programInstance );
 
     /**
      * Send enrollment notifications for the ProgramInstance.
@@ -105,5 +105,5 @@ public interface ProgramNotificationService
 
      * @param programInstance the ProgramInstance.
      */
-    void sendEnrollmentNotifications( ProgramInstance programInstance );
+    void sendEnrollmentNotifications( long programInstance );
 }
