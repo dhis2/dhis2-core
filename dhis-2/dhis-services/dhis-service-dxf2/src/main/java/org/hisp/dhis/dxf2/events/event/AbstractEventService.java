@@ -1113,9 +1113,10 @@ public abstract class AbstractEventService
     @Override
     public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession )
     {
+        sortEventUpdates( events );
+        List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-        List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )
         {
@@ -2505,6 +2506,18 @@ public abstract class AbstractEventService
                 update.add( event );
             }
         }
+    }
+
+    /**
+     * Sorts events according to event identifier. Sorts data values within
+     * each event according to data element.
+     *
+     * @param events the list of events.
+     */
+    private void sortEventUpdates( List<Event> events )
+    {
+        events.sort( ( a, b ) -> a.getEvent().compareTo( b.getEvent() ) );
+        events.forEach( event -> event.getDataValues().sort( ( a, b ) -> a.getDataElement().compareTo( b.getDataElement() ) ) );
     }
 
     protected ImportOptions updateImportOptions( ImportOptions importOptions )

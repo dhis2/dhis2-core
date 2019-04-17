@@ -423,6 +423,7 @@ public abstract class AbstractTrackedEntityInstanceService
     public ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
         ImportOptions importOptions )
     {
+        sortTrackedEntityInstanceUpdates( trackedEntityInstances );
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
@@ -441,6 +442,16 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         return importSummaries;
+    }
+
+    /**
+     * Sorts the tracked entity instances according to the tracked entity instance identifier.
+     * 
+     * @param trackedEntityInstances the list of tracked entity instances.
+     */
+    private void sortTrackedEntityInstanceUpdates( List<TrackedEntityInstance> trackedEntityInstances )
+    {
+        trackedEntityInstances.sort( ( a, b ) -> a.getTrackedEntityInstance().compareTo( b.getTrackedEntityInstance() ) );
     }
 
     @Override
@@ -760,8 +771,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         ImportSummaries importSummaries = new ImportSummaries();
 
-        importSummaries
-            .addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
+        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
         importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, false ) );
         importSummaries.addImportSummaries( enrollmentService.deleteEnrollments( delete, importOptions, false ) );
 
