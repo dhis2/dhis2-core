@@ -6,7 +6,7 @@ $( document ).ready( function() {
     var metadata = [];
 
     $.each( data.schemas, function(idx) {
-      if ( this.metadata ) {
+      if ( this.metadata && !this.secondaryMetadata ) {
         var o = {
           name: this.displayName,
           id: this.plural
