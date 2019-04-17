@@ -1,5 +1,6 @@
 package org.hisp.dhis.actions.metadata;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 
@@ -15,8 +16,10 @@ public class MetadataActions extends RestApiActions
         super( "/metadata" );
     }
 
-    public ApiResponse importMetadata( File file) {
-        ApiResponse response = postFile( file, "?importReportMode=FULL&atomicMode=NONE" );
+    public ApiResponse importMetadata( File file, String queryParams )
+    {
+        queryParams = !StringUtils.isEmpty( queryParams ) ? queryParams : "";
+        ApiResponse response = postFile( file, "?importReportMode=FULL&atomicMode=NONE" + queryParams );
 
         response.validate().statusCode( 200 );
 
