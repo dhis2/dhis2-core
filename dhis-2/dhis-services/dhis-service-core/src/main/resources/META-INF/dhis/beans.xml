@@ -609,6 +609,13 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
+  
+  <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore"
+    class="org.hisp.dhis.programstagefilter.hibernate.HibernateProgramStageInstanceFilterStore">
+    <property name="clazz" value="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
@@ -648,6 +655,13 @@
     class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeValueAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
+
+  <bean id="org.hisp.dhis.deduplication.PotentialDuplicateStore" class="org.hisp.dhis.deduplication.hibernate.HibernatePotentialDuplicateStore">
+    <property name="clazz" value="org.hisp.dhis.deduplication.PotentialDuplicate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.deduplication.DeduplicationService" class="org.hisp.dhis.deduplication.DefaultDeduplicationService" />
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService"
     class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueAuditService" />
@@ -1131,8 +1145,7 @@
     class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
 
   <!-- SMPP -->
-  
-  <bean id="org.hisp.dhis.sms.config.SMSSendingCallback" class="org.hisp.dhis.sms.config.SMSSendingCallback" />
+  <bean id="org.hisp.dhis.sms.config.MessageSendingCallback" class="org.hisp.dhis.sms.config.MessageSendingCallback" />
 
   <bean id="org.hisp.dhis.sms.config.SMPPGateway" class="org.hisp.dhis.sms.config.SMPPGateway" />
 
@@ -1196,9 +1209,6 @@
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.notification.ProgramNotificationPublisher"
-    class="org.hisp.dhis.program.notification.ProgramNotificationPublisher" />
-
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"
     class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
 
@@ -1258,6 +1268,11 @@
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService"
     class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
+  </bean>
+  
+   <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService"
+    class="org.hisp.dhis.programstagefilter.DefaultProgramStageInstanceFilterService">
+    <property name="programStageInstanceFilterStore" ref="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"

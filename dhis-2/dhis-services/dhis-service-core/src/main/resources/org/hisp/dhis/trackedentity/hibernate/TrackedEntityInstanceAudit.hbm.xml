@@ -7,7 +7,9 @@
 	<class name="org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit" table="trackedentityinstanceaudit">
     
         <id name="id" column="trackedentityinstanceauditid">
-            <generator class="native"/>
+            <generator class="sequence">
+              <param name="sequence_name">trackedentityinstanceaudit_sequence</param>
+            </generator>
         </id>
 
         <!-- <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"

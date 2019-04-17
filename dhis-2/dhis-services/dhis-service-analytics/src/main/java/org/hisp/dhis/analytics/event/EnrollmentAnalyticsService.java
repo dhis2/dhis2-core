@@ -1,4 +1,4 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.analytics.event;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,24 +28,32 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.common.Grid;
 
 /**
- * @Author Zubair Asghar.
+ * This interface is responsible for retrieving aggregated event data. Data will
+ * be returned in a grid object or as a dimensional key-value mapping.
+ *
+ * @author Markus Bekken
  */
-public class ProgramStageInstanceCompletedEvent extends ApplicationEvent
+public interface EnrollmentAnalyticsService
 {
-    private ProgramStageInstance programStageInstance;
+    String ITEM_TEI = "tei";
+    String ITEM_PI = "pi";
+    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+    String ITEM_INCIDENT_DATE = "incidentdate";
+    String ITEM_GEOMETRY = "geometry";
+    String ITEM_LONGITUDE = "longitude";
+    String ITEM_LATITUDE = "latitude";
+    String ITEM_ORG_UNIT_NAME = "ouname";
+    String ITEM_ORG_UNIT_CODE = "oucode";
+    String ITEM_ORG_UNIT_ID = "ou";
 
-    public ProgramStageInstanceCompletedEvent( Object source, ProgramStageInstance programStageInstance )
-    {
-        super( source );
-        this.programStageInstance = programStageInstance;
-    }
-
-    public ProgramStageInstance getProgramStageInstance()
-    {
-        return programStageInstance;
-    }
+    /**
+     * Returns a list of enrollments matching the given query.
+     *
+     * @param params the envent query parameters.
+     * @return enrollments with event data as a Grid object.
+     */
+    Grid getEnrollments( EventQueryParams params );
 }

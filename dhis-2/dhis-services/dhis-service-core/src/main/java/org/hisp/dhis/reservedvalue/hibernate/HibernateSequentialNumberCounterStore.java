@@ -41,7 +41,6 @@ import java.util.stream.IntStream;
 /**
  * @author Stian Sandvold
  */
-@Transactional
 public class HibernateSequentialNumberCounterStore
     implements SequentialNumberCounterStore
 {

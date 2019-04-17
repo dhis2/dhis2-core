@@ -86,6 +86,8 @@
 
   <bean id="org.hisp.dhis.analytics.event.EventAnalyticsService" class="org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsService" />
 
+  <bean id="org.hisp.dhis.analytics.event.EnrollmentAnalyticsService" class="org.hisp.dhis.analytics.event.data.DefaultEnrollmentAnalyticsService" />
+
   <bean id="org.hisp.dhis.analytics.event.EventQueryPlanner" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryPlanner" />
   
   <bean id="org.hisp.dhis.analytics.event.EventQueryValidator" class="org.hisp.dhis.analytics.event.data.DefaultEventQueryValidator" />

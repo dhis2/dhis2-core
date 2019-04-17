@@ -1,7 +1,7 @@
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,29 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
- * @Author Zubair Asghar.
+ * @author Ameen Mohamed <ameen@dhis2.org>
+ *
  */
-public class TrackedEntityInstanceEnrolledEvent extends ApplicationEvent
+public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescriptor
 {
-    private ProgramInstance programInstance;
 
-    public TrackedEntityInstanceEnrolledEvent( Object source, ProgramInstance programInstance )
+    public static final String SINGULAR = "eventFilter";
+
+    public static final String PLURAL = "eventFilters";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
+
+    @Override
+    public Schema getSchema()
     {
-        super( source );
-        this.programInstance = programInstance;
+        Schema schema = new Schema( ProgramStageInstanceFilter.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        return schema;
     }
 
-    public ProgramInstance getProgramInstance()
-    {
-        return programInstance;
-    }
 }

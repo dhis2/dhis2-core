@@ -51,7 +51,6 @@ import java.util.Set;
 /**
  * @author Jim Grace
  */
-@Transactional
 public class DefaultDataApprovalAuditService
     implements DataApprovalAuditService
 {
@@ -92,12 +91,14 @@ public class DefaultDataApprovalAuditService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteDataApprovalAudits( OrganisationUnit organisationUnit )
     {
         dataApprovalAuditStore.deleteDataApprovalAudits( organisationUnit );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params )
     {
         if ( !currentUserService.currentUserIsSuper() )

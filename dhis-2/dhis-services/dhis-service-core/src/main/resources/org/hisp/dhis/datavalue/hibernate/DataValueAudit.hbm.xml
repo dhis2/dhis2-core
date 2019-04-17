@@ -7,7 +7,9 @@
   <class name="org.hisp.dhis.datavalue.DataValueAudit" table="datavalueaudit">
 
     <id name="id" column="datavalueauditid">
-      <generator class="native" />
+      <generator class="sequence">
+        <param name="sequence_name">datavalueaudit_sequence</param>
+      </generator>
     </id>
 
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
