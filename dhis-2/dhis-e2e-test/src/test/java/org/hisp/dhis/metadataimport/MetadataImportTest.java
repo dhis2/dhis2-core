@@ -97,7 +97,7 @@ public class MetadataImportTest
         schemasActions = new SchemasActions();
         metadataActions = new RestApiActions( "/metadata" );
 
-        new LoginActions().loginAsDefaultUser();
+        new LoginActions().loginAsSuperUser();
     }
 
     @ParameterizedTest( name = "withImportStrategy[{0}]" )

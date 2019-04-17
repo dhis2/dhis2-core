@@ -40,10 +40,9 @@ public class UserAssignmentTests
         programActions = new ProgramActions();
         eventActions = new EventActions();
 
-        new LoginActions().loginAsDefaultUser();
+        new LoginActions().loginAsSuperUser();
 
-        metadataActions.importMetadata( new File( "src/test/resources/metadata/metadata.json" ) );
-        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );
+        metadataActions.importMetadata( new File( "src/test/resources/tracker/eventProgram.json" ), "" );
     }
 
     @ParameterizedTest

@@ -94,7 +94,7 @@ public class MetadataTest
         schemasActions = new SchemasActions();
         loginActions = new LoginActions();
 
-        loginActions.loginAsDefaultUser();
+        loginActions.loginAsSuperUser();
     }
 
     @ParameterizedTest

@@ -81,7 +81,7 @@ public class OptionSetTests
     @BeforeEach
     public void beforeEach()
     {
-        loginActions.loginAsDefaultUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test
