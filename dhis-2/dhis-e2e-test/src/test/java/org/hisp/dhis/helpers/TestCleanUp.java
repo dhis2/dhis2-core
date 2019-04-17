@@ -58,6 +58,7 @@ package org.hisp.dhis.helpers;
 
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 
@@ -76,9 +77,9 @@ public class TestCleanUp
      */
     public void deleteCreatedEntities()
     {
-        new LoginActions().loginAsDefaultUser();
+        new LoginActions().loginAsSuperUser();
 
-        LinkedHashMap createdEntities = (LinkedHashMap) TestRunStorage.getCreatedEntities();
+        LinkedHashMap<String, String> createdEntities = TestRunStorage.getCreatedEntities();
         List<String> reverseOrderedKeys = new ArrayList<>( createdEntities.keySet() );
         Collections.reverse( reverseOrderedKeys );
 
@@ -92,6 +93,8 @@ public class TestCleanUp
             {
                 createdEntities.remove( key );
             }
+
+            new MaintenanceActions().removeSoftDeletedMetadata();
         }
 
         TestRunStorage.removeAllEntities();
@@ -104,7 +107,7 @@ public class TestCleanUp
      */
     public void deleteCreatedEntities( String... resources )
     {
-        new LoginActions().loginAsDefaultUser();
+        new LoginActions().loginAsSuperUser();
 
         for ( String resource : resources
         )
@@ -125,9 +128,21 @@ public class TestCleanUp
 
     }
 
-    private boolean deleteEntity( String resource, String id )
+    public void deleteCreatedEntities( LinkedHashMap<String, String> entitiesToDelete )
     {
-        ApiResponse response = new RestApiActions( resource ).delete( id );
+        Iterator iterator = entitiesToDelete.keySet().iterator();
+        while ( iterator.hasNext() )
+        {
+            String key = (String) iterator.next();
+
+            deleteEntity( entitiesToDelete.get( key ), key );
+
+        }
+    }
+
+    public boolean deleteEntity( String resource, String id )
+    {
+        ApiResponse response = new RestApiActions( resource ).delete( id + "?force=true" );
 
         if ( response.statusCode() == 200 )
         {
@@ -140,7 +155,8 @@ public class TestCleanUp
             return true;
         }
 
-        logger.warning( String.format( "Entity from resource %s with id %s was not deleted", resource, id ) );
+        logger.warning( String
+            .format( "Entity from resource %s with id %s was not deleted. Status code: %s", resource, id, response.statusCode() ) );
         return false;
     }
 
