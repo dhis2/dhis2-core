@@ -25,7 +25,12 @@
       "notificationTemplates": [],
       "programStageDataElements": [],
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
@@ -57,12 +62,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
-      "user": {
-        "id": "M5zQapPyTZI"
-      },
       "programTrackedEntityAttributes": [],
       "notificationTemplates": [],
       "translations": [],
@@ -80,7 +79,12 @@
           "id": "nGK3m0FCOmd"
         }
       ],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
       "programSections": [],
       "attributeValues": [],
       "programStages": [
