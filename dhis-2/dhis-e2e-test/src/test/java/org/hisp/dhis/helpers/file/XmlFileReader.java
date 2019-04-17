@@ -47,7 +47,7 @@ public class XmlFileReader
     @Override
     public FileReader replacePropertyValuesWithIds( String propertyName )
     {
-        return replacePropertyValuesWith( propertyName, new IdGenerator().generateUniqueId() );
+        return replacePropertyValuesWith( propertyName, "UNIQUEID" );
     }
 
     @Override
@@ -63,6 +63,11 @@ public class XmlFileReader
             {
                 Node node = nodes.item( i ).getAttributes().getNamedItem( propertyName );
 
+                if ( replacedValue.equalsIgnoreCase( "uniqueid" ) )
+                {
+                    node.setNodeValue( new IdGenerator().generateUniqueId() );
+                    continue;
+                }
                 node.setNodeValue( replacedValue );
             }
 
