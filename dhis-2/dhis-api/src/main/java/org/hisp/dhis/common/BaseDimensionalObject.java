@@ -56,6 +56,12 @@ public class BaseDimensionalObject
     private DimensionType dimensionType;
 
     /**
+     * The data dimension type of this dimension. Can be null. Only applicable for
+     * {@link DimensionType#CATEGORY}.
+     */
+    protected DataDimensionType dataDimensionType;
+
+    /**
      * The name of this dimension. For the dynamic dimensions this will be equal
      * to dimension identifier. For the period dimension, this will reflect the
      * period type. For the org unit dimension, this will reflect the level.
@@ -279,6 +285,19 @@ public class BaseDimensionalObject
     public void setDimensionType( DimensionType dimensionType )
     {
         this.dimensionType = dimensionType;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataDimensionType getDataDimensionType()
+    {
+        return dataDimensionType;
+    }
+
+    public void setDataDimensionType( DataDimensionType dataDimensionType )
+    {
+        this.dataDimensionType = dataDimensionType;
     }
 
     public void setDimensionName( String dimensionName )
