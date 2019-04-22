@@ -818,8 +818,7 @@
 
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
 
-  <bean id="fileResourceCleanUpJob"
-    class="org.hisp.dhis.fileresource.FileResourceCleanUpJob" />
+  <bean id="fileResourceCleanUpJob" class="org.hisp.dhis.fileresource.FileResourceCleanUpJob" />
 
   <!-- Service definitions -->
 
@@ -1472,9 +1471,7 @@
   <bean id="programNotificationsJob"
     class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
-  <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob">
-    <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
-  </bean>
+  <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob" />
 
   <!-- Startup routine definitions -->
 
@@ -1858,9 +1855,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
-    class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler">
-    <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
-  </bean>
+    class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" />
 
   <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
     class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler">

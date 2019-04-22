@@ -48,12 +48,10 @@ import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 /**
  * @author Stian Sandvold
  */
-@org.springframework.transaction.annotation.Transactional
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
 {
-
     @Autowired
     private BatchHandlerFactory batchHandlerFactory;
 
@@ -93,7 +91,7 @@ public class HibernateReservedValueStore
     public List<ReservedValue> getIfReservedValues( ReservedValue reservedValue,
         List<String> values )
     {
-        return (List<ReservedValue>) getCriteria()
+        return getCriteria()
             .add( Restrictions.eq( "ownerObject", reservedValue.getOwnerObject() ) )
             .add( Restrictions.eq( "ownerUid", reservedValue.getOwnerUid() ) )
             .add( Restrictions.eq( "key", reservedValue.getKey() ) )
@@ -161,7 +159,9 @@ public class HibernateReservedValueStore
             .list().isEmpty();
     }
 
-    // Helper methods:
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
     {
