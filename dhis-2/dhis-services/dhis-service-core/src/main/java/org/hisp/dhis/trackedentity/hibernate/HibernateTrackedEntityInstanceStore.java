@@ -48,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.User;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -687,15 +688,23 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=? and deleted is false", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        return jdbcTemplate.queryForRowSet( "select * from trackedentityinstance where uid='" + uid + "' and deleted is false limit 1;" ).next();
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        return jdbcTemplate.queryForRowSet( "select * from trackedentityinstance where uid='" + uid + "' limit 1;").next();
     }
 
     @Override

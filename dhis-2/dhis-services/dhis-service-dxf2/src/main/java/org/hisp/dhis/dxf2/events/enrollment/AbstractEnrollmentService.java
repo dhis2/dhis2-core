@@ -488,6 +488,12 @@ public abstract class AbstractEnrollmentService
         ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
 
+        updateCoordinates( program, enrollment, programInstance );
+        updateAttributeValues( enrollment, importOptions );
+        updateDateFields( enrollment, programInstance );
+        programInstance.setFollowup( enrollment.getFollowup() );
+        programInstance.setStoredBy( storedBy );
+
         programInstanceService.addProgramInstance( programInstance );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment );
@@ -496,14 +502,6 @@ public abstract class AbstractEnrollmentService
         {
             return importSummary;
         }
-
-        updateCoordinates( program, enrollment, programInstance );
-        updateAttributeValues( enrollment, importOptions );
-        updateDateFields( enrollment, programInstance );
-        programInstance.setFollowup( enrollment.getFollowup() );
-        programInstance.setStoredBy( storedBy );
-
-        programInstanceService.updateProgramInstance( programInstance );
 
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
 

@@ -154,6 +154,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -1341,7 +1342,9 @@ public abstract class AbstractEventService
             return validationResult;
         }
 
-        for ( DataValue dataValue : event.getDataValues() )
+        List<DataValue> eventDataValues = event.getDataValues().stream().filter(  ObjectUtils.distinctByKey( dv -> dv.getDataElement() ) ).collect( Collectors.toList() );
+
+        for ( DataValue dataValue : eventDataValues )
         {
             DataElement dataElement;
 
@@ -1791,7 +1794,9 @@ public abstract class AbstractEventService
                 dataValueService.getTrackedEntityDataValues( programStageInstance ) );
         }
 
-        for ( DataValue dataValue : event.getDataValues() )
+        List<DataValue> eventDataValues = event.getDataValues().stream().filter(  ObjectUtils.distinctByKey( dv -> dv.getDataElement() ) ).collect( Collectors.toList() );
+
+        for ( DataValue dataValue : eventDataValues )
         {
             DataElement dataElement;
 
