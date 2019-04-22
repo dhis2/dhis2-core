@@ -54,7 +54,7 @@ import javax.jms.Topic;
  */
 public class AmqpClient
 {
-    private final static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Connection connection;
 
