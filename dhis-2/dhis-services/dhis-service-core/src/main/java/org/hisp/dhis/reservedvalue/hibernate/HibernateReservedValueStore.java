@@ -37,7 +37,6 @@ import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,7 +53,6 @@ public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
 {
-
     @Autowired
     private BatchHandlerFactory batchHandlerFactory;
 
@@ -172,7 +170,9 @@ public class HibernateReservedValueStore
             .isEmpty();
     }
 
-    // Helper methods
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
     {

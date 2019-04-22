@@ -57,8 +57,7 @@ import java.util.stream.Collectors;
 public class DefaultReservedValueService
     implements ReservedValueService
 {
-
-    private static final long GENERATION_TIMEOUT = (1000 * 30); // 30 sec
+    private static final long GENERATION_TIMEOUT = (1000 * 30); // 30 seconds
 
     @Autowired
     private TextPatternService textPatternService;
@@ -86,9 +85,9 @@ public class DefaultReservedValueService
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = (generatedSegment != null ?
+        String valueKey = ( generatedSegment != null ?
             key.replaceAll( Pattern.quote( generatedSegment.getRawSegment() ), "%" ) :
-            key);
+            key );
 
         ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(),
             key,
@@ -135,7 +134,7 @@ public class DefaultReservedValueService
 
                 usedGeneratedValues.addAll( generatedValues );
 
-                // Get a list of resolved patterns.
+                // Get a list of resolved patterns
                 for ( int i = 0; i < numberOfReservations - resultList.size(); i++ )
                 {
                     resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
@@ -174,7 +173,23 @@ public class DefaultReservedValueService
         return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value );
     }
 
-    // Helper methods
+    @Override
+    @Transactional
+    public void removeExpiredReservations()
+    {
+        reservedValueStore.removeExpiredReservations();
+    }
+
+    @Override
+    @Transactional
+    public void deleteReservedValueByUid( String uid )
+    {
+        reservedValueStore.deleteReservedValueByUid( uid );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private TextPatternSegment getGeneratedSegment( TextPattern textPattern )
     {
