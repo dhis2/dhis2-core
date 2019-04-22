@@ -235,7 +235,7 @@ public class DefaultSystemService
         // Database
         // ---------------------------------------------------------------------
 
-        info.setDatabaseInfo( databaseInfo );
+        info.setDatabaseInfo( databaseInfo.instance() );
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
 
         // ---------------------------------------------------------------------
