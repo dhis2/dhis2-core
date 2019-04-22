@@ -1701,9 +1701,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
-    class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler">
-    <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
-  </bean>
+    class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" />
 
   <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
     class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler">

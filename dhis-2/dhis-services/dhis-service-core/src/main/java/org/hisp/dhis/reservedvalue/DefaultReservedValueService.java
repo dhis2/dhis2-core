@@ -180,6 +180,13 @@ public class DefaultReservedValueService
         reservedValueStore.removeExpiredReservations();
     }
 
+    @Override
+    @Transactional
+    public void deleteReservedValueByUid( String uid )
+    {
+        reservedValueStore.deleteReservedValueByUid( uid );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
