@@ -92,6 +92,13 @@
       <element type="string" column="dimension" />
     </list>
 
+    <list name="filterDimensions" table="mapview_filters">
+      <cache usage="read-write" />
+      <key column="mapviewid" foreign-key="fk_mapview_filters_mapviewid" />
+      <list-index column="sort_order" base="0" />
+      <element type="string" column="dimension" />    
+    </list>
+
     <property name="userOrganisationUnit" />
 
     <property name="userOrganisationUnitChildren" />
