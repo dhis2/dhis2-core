@@ -223,9 +223,13 @@ public interface ExpressionService
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap );
 
-    // -------------------------------------------------------------------------
-    // Expression logic
-    // -------------------------------------------------------------------------
+    /**
+     * Tests whether the indicator expression is valid
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome indicatorExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing the names of the
@@ -237,7 +241,11 @@ public interface ExpressionService
      *         combo id are not numeric or data element or category option combo
      *         do not exist.
      */
-    String getExpressionDescription( String expression );
+    String getIndicatorExpressionDescription( String expression );
+
+    // -------------------------------------------------------------------------
+    // Expression logic
+    // -------------------------------------------------------------------------
 
     /**
      * Returns all dimensional item objects in the given expression.
@@ -412,13 +420,20 @@ public interface ExpressionService
     Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression );
 
     /**
-     * Tests whether the expression is valid. Returns a positive value if the
-     * expression is valid, or a negative value if not.
+     * Tests whether the predictor expression is valid
      *
-     * @param formula the expression formula.
+     * @param expression the expression formula.
      * @return the ExpressionValidationOutcome of the validation.
      */
-    ExpressionValidationOutcome expressionIsValid( String formula );
+    ExpressionValidationOutcome predictorExpressionIsValid( String expression );
+
+    /**
+     * Tests whether the validation rule expression is valid.
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing DataElement names and the names
