@@ -48,7 +48,6 @@ import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 /**
  * @author Stian Sandvold
  */
-@Transactional
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
