@@ -230,12 +230,6 @@ public class MapView
         {
             filters.add( getDimensionalObject( filter ) );
         }
-
-        /*
-        if ( !periods.isEmpty() || hasRelativePeriods() )
-        {
-            filters.add( getDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
-        }*/
     }
 
     @Override
