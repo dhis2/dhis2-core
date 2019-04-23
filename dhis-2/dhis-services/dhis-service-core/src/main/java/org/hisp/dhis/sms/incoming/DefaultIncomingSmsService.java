@@ -63,7 +63,7 @@ public class DefaultIncomingSmsService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<IncomingSms> listAllMessage()
     {
         return incomingSmsStore.getAllSmses();
