@@ -28,7 +28,6 @@ package org.hisp.dhis.webapi.controller.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -57,9 +56,6 @@ public class OptionSetController
 {
     @Autowired
     private OptionService optionService;
-
-    @Autowired
-    private MetadataExportService metadataExportService;
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
     public ResponseEntity<RootNode> getOptionSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response, @RequestParam( required = false, defaultValue = "false" ) boolean download ) throws WebMessageException

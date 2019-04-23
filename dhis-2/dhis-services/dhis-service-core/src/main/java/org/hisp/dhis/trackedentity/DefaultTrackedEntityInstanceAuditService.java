@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -37,7 +38,6 @@ import java.util.List;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  *
  */
-@Transactional
 public class DefaultTrackedEntityInstanceAuditService
     implements TrackedEntityInstanceAuditService
 {
@@ -54,18 +54,22 @@ public class DefaultTrackedEntityInstanceAuditService
     // -------------------------------------------------------------------------
 
     @Override
+    @Async
+    @Transactional
     public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
     {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );        
+        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
     }
 
     @Override
+    @Transactional
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
     {
         trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntityInstance );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
         TrackedEntityInstanceAuditQueryParams params )
     {
@@ -73,6 +77,7 @@ public class DefaultTrackedEntityInstanceAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
     {
         return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );

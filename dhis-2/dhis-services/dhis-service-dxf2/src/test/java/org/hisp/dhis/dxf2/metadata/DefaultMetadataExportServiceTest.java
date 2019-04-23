@@ -34,9 +34,12 @@ import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -51,7 +54,12 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.stubbing.Answer;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link DefaultMetadataExportService}.
@@ -141,5 +149,55 @@ public class DefaultMetadataExportServiceTest
         service.getMetadataWithDependenciesAsNode( attribute, params );
 
         Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() );
+    }
+
+    @Test
+    public void getParamsFromMapIncludedSecondary()
+    {
+        Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
+            .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
+        Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
+            .thenReturn( new Schema( Option.class, "option", "options" ) );
+
+        final Map<String, List<String>> params = new HashMap<>();
+        params.put( "jobConfigurations", Collections.singletonList( "true" ) );
+        params.put( "options", Collections.singletonList( "true" ) );
+
+        MetadataExportParams exportParams = service.getParamsFromMap( params );
+        Assert.assertTrue( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+    }
+
+    @Test
+    public void getParamsFromMapNotIncludedSecondary()
+    {
+        Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
+            .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
+        Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
+            .thenReturn( new Schema( Option.class, "option", "options" ) );
+
+        final Map<String, List<String>> params = new HashMap<>();
+        params.put( "jobConfigurations", Arrays.asList( "true", "false" ) );
+        params.put( "options", Collections.singletonList( "true" ) );
+
+        MetadataExportParams exportParams = service.getParamsFromMap( params );
+        Assert.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+    }
+
+    @Test
+    public void getParamsFromMapNoSecondary()
+    {
+        Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
+            .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
+        Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
+            .thenReturn( new Schema( Option.class, "option", "options" ) );
+
+        final Map<String, List<String>> params = new HashMap<>();
+        params.put( "options", Collections.singletonList( "true" ) );
+
+        MetadataExportParams exportParams = service.getParamsFromMap( params );
+        Assert.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
     }
 }

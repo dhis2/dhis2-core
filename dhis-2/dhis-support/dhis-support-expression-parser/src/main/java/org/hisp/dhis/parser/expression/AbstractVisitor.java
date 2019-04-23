@@ -54,9 +54,9 @@ public abstract class AbstractVisitor
     extends ExpressionBaseVisitor<Object>
 {
     /**
-     * By default, ignore missing values: change to 0 or ''.
+     * By default, replace nulls with 0 or ''.
      */
-    protected boolean ignoreMissingValues = true;
+    protected boolean replaceNulls = true;
 
     // -------------------------------------------------------------------------
     // Visitor methods not to be overridden by subclasses
@@ -178,43 +178,21 @@ public abstract class AbstractVisitor
     }
 
     /**
-     * Visits a context while ignoring missing values (replacing them with
-     * 0 or ''), even if we would otherwise not be ignoring them.
+     * Visits a context while allowing null values (not replacing them
+     * with 0 or ''), even if we would otherwise be replacing them.
      *
      * @param ctx any context
-     * @return the value while ignoring missing values
+     * @return the value while allowing nulls
      */
-    public Object visitIgnoringMissingValues( ParserRuleContext ctx )
+    public Object visitAllowingNulls( ParserRuleContext ctx )
     {
-        return visitIgnoreMissingValues( ctx, true );
-    }
+        boolean savedReplaceNulls = replaceNulls;
 
-    /**
-     * Visits a context while allowing missing values to be returned as null
-     * (not replacing them with 0 or ''), even if we would otherwise be
-     * replacing them.
-     *
-     * @param ctx any context
-     * @return the value while ignoring missing values
-     */
-    public Object visitAllowingNullValues( ParserRuleContext ctx )
-    {
-        return visitIgnoreMissingValues( ctx, false );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private Object visitIgnoreMissingValues( ParserRuleContext ctx, boolean tempIgnoreMissingValues )
-    {
-        boolean savedIgnoreMissingValues = ignoreMissingValues;
-
-        ignoreMissingValues = tempIgnoreMissingValues;
+        replaceNulls = false;
 
         Object result = visit( ctx );
 
-        ignoreMissingValues = savedIgnoreMissingValues;
+        replaceNulls = savedReplaceNulls;
 
         return result;
     }

@@ -38,7 +38,6 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
 public class DefaultSMSCommandService
     implements SMSCommandService
 {
@@ -75,6 +74,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional
     public void addSmsCodes( Set<SMSCode> codes, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
@@ -88,24 +88,28 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional
     public void delete( SMSCommand cmd )
     {
         smsCommandStore.delete( cmd );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SMSCommand> getJ2MESMSCommands()
     {
         return smsCommandStore.getJ2MESMSCommands();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SMSCommand getSMSCommand( String commandName, ParserType parserType )
     {
         return smsCommandStore.getSMSCommand( commandName, parserType );
     }
 
     @Override
+    @Transactional
     public void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
@@ -119,6 +123,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional
     public void deleteCodeSet( Set<SMSCode> codes, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
@@ -129,12 +134,14 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countDataSetSmsCommands( DataSet dataSet )
     {
         return smsCommandStore.countDataSetSmsCommands( dataSet );
     }
 
     @Override
+    @Transactional
     public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );

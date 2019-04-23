@@ -81,12 +81,7 @@ public abstract class SmsGateway
 
     protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
-    public boolean accept( SmsGatewayConfig gatewayConfig )
-    {
-        return gatewayConfig != null && gatewayConfig.getClass().isInstance( getGatewayConfigType() );
-    }
-
-    protected abstract SmsGatewayConfig getGatewayConfigType();
+    protected abstract boolean accept( SmsGatewayConfig gatewayConfig );
 
     protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 

@@ -38,16 +38,15 @@ import org.hisp.dhis.parser.expression.CommonSqlGenerator;
 import org.hisp.dhis.parser.expression.InternalParserException;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.util.Assert;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
@@ -83,7 +82,7 @@ public class ProgramSqlGenerator
     private TrackedEntityAttributeService attributeService;
 
     public ProgramSqlGenerator( ProgramIndicator programIndicator,
-        Date reportingStartDate, Date reportingEndDate, boolean ignoreMissingValues,
+        Date reportingStartDate, Date reportingEndDate,
         Set<String> dataElementAndAttributeIdentifiers,
         Map<String, Double> constantMap,
         ProgramIndicatorService programIndicatorService,
@@ -104,7 +103,6 @@ public class ProgramSqlGenerator
         this.programIndicator = programIndicator;
         this.reportingStartDate = reportingStartDate;
         this.reportingEndDate = reportingEndDate;
-        this.ignoreMissingValues = ignoreMissingValues;
         this.dataElementAndAttributeIdentifiers = dataElementAndAttributeIdentifiers;
         this.constantMap = constantMap;
         this.programIndicatorService = programIndicatorService;
@@ -134,7 +132,7 @@ public class ProgramSqlGenerator
                 String column = statementBuilder.getProgramIndicatorDataValueSelectSql(
                     programStageId, dataElementId, reportingStartDate, reportingEndDate, programIndicator );
 
-                if ( ignoreMissingValues )
+                if ( replaceNulls )
                 {
                     DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
@@ -143,7 +141,7 @@ public class ProgramSqlGenerator
                         throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found during SQL generation." );
                     }
 
-                    column = handleMissingValues( column, dataElement.getValueType() );
+                    column = replaceNullValues( column, dataElement.getValueType() );
                 }
 
                 return column;
@@ -158,7 +156,7 @@ public class ProgramSqlGenerator
 
                 column = statementBuilder.columnQuote( attributeId );
 
-                if ( ignoreMissingValues )
+                if ( replaceNulls )
                 {
                     TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( attributeId );
 
@@ -167,7 +165,7 @@ public class ProgramSqlGenerator
                         throw new ParserExceptionWithoutContext( "Tracked entity attribute " + attributeId + " not found during SQL generation." );
                     }
 
-                    column = handleMissingValues( column, attribute.getValueType() );
+                    column = replaceNullValues( column, attribute.getValueType() );
                 }
 
                 return column;
@@ -231,6 +229,9 @@ public class ProgramSqlGenerator
             case V_INCIDENT_DATE:
                 return "incidentdate";
 
+            case V_ORG_UNIT_COUNT:
+                return "distinct ou";
+
             case V_PROGRAM_STAGE_ID:
                 return AnalyticsType.EVENT == programIndicator.getAnalyticsType() ? "ps" : "''";
 
@@ -272,31 +273,12 @@ public class ProgramSqlGenerator
     @Override
     public String visitProgramFunction( ProgramFunctionContext ctx )
     {
-        boolean savedIgnoreMissingValues = ignoreMissingValues;
-
-        ignoreMissingValues = false;
-
-        String result = visitProgramFunctionInternal( ctx );
-
-        ignoreMissingValues = savedIgnoreMissingValues;
-
-        return result;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private String visitProgramFunctionInternal( ProgramFunctionContext ctx )
-    {
-        List<String> args = ctx.expr().stream().map( c -> castString( visit( c ) ) ).collect( Collectors.toList() );
-
         StringRange dates = getDateArgs( ctx );
 
         switch ( ctx.d2.getType() )
         {
             case D2_CONDITION:
-                return "case when (" + getStringLiteralSql( ctx ) + ") then " + args.get( 0 ) + " else " + args.get( 1 ) + " end";
+                return "case when (" + getStringLiteralSql( ctx ) + ") then " + visit( ctx.expr( 0 ) ) + " else " + visit( ctx.expr( 1 ) ) + " end";
 
             case D2_COUNT:
                 return countWhereCondition( ctx, " is not null" );
@@ -311,7 +293,7 @@ public class ProgramSqlGenerator
                 return "(cast(" + dates.getEnd() + " as date) - cast(" + dates.getStart() + " as date))";
 
             case D2_HAS_VALUE:
-                return "((" + hasValueArg( ctx.column() ) + ") is not null)";
+                return "(" + visitAllowingNulls( ctx.item( 0 ) ) + " is not null)";
 
             case D2_MINUTES_BETWEEN:
                 return "(extract(epoch from (cast(" + dates.getEnd() + " as timestamp) - cast(" + dates.getStart() + " as timestamp))) / 60)";
@@ -320,7 +302,7 @@ public class ProgramSqlGenerator
                 return "(date_part('month',age(cast(" + dates.getEnd() + " as date), cast(" + dates.getStart() + " as date))))";
 
             case D2_OIZP:
-                return "coalesce(case when " + args.get( 0 ) + " >= 0 then 1 else 0 end, 0)";
+                return "coalesce(case when " + visitAllowingNulls( ctx.expr( 0 ) ) + " >= 0 then 1 else 0 end, 0)";
 
             case D2_RELATIONSHIP_COUNT:
                 return relationshipCount( ctx );
@@ -332,42 +314,46 @@ public class ProgramSqlGenerator
                 return "(date_part('year',age(cast(" + dates.getEnd() + " as date), cast(" + dates.getStart() + " as date))))";
 
             case D2_ZING:
-                return "coalesce(case when " + args.get( 0 ) + " < 0 then 0 else " + args.get( 0 ) + " end, 0)";
+                return "greatest(0," + castString( visit( ctx.expr( 0 ) ) ) + ")";
 
             case D2_ZPVC:
-                return zeroPositiveValueCount( args );
+                return zeroPositiveValueCount( ctx.item() );
 
             default: // A program function defined in the grammar that is not defined here
                 throw new InternalParserException( "program function not recognized: " + ctx.getText() );
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
     private String getStringLiteralSql( ProgramFunctionContext ctx )
     {
-        return getSql( trimQuotes( ctx.STRING_LITERAL().getText() ) );
+        return getSql( trimQuotes( ctx.stringLiteral().getText() ) );
     }
 
     private String getConditionSql( ProgramFunctionContext ctx )
     {
-        String sql = getSql( "0" + trimQuotes( ctx.STRING_LITERAL().getText() ) );
+        String sql = getSql( "0" + trimQuotes( ctx.stringLiteral().getText() ) );
 
-        return sql.substring( 1, sql.length() - 1 );
+        return sql.substring( 1 );
     }
 
     private String getSql( String expression )
     {
         return programIndicatorService.getAnalyticsSql( expression, programIndicator,
-            reportingStartDate, reportingEndDate, ignoreMissingValues );
+            reportingStartDate, reportingEndDate );
     }
 
     /**
-     * Adds logic to ignore missing SQL return column values
+     * Replace null values with 0 or ''.
      *
      * @param column the column (may be a subquery)
-     * @param valueType the type of value that might be missing
-     * @return SQL to replace a missing value with 0 or '' depending on type
+     * @param valueType the type of value that might be null
+     * @return SQL to replace a null value with 0 or '' depending on type
      */
-    private String handleMissingValues( String column, ValueType valueType )
+    private String replaceNullValues( String column, ValueType valueType )
     {
         return valueType.isNumeric() || valueType.isBoolean()
             ? "coalesce(" + column + "::numeric,0)"
@@ -389,9 +375,9 @@ public class ProgramSqlGenerator
         String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
         String columnName = "\"" + dataElement + "\"";
 
-        return "(select count(" + columnName + ") from " + eventTableName + " where " + eventTableName +
-            ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
-            " and " + columnName + condition + " " +
+        return "(select count(" + columnName + ") from " + eventTableName +
+            " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi and " +
+            columnName + " is not null and " + columnName + condition + " " +
             (programIndicator.getEndEventBoundary() != null ? ("and " +
                 statementBuilder.getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator,
                     reportingStartDate, reportingEndDate ) +
@@ -402,8 +388,8 @@ public class ProgramSqlGenerator
     }
 
     /**
-     * Checks program function arguments to see if there are date start and
-     * end date arguemnts. If so, they are resolved and returned.
+     * Checks program function arguments to see if start and end dates are
+     * specified. If so, they are resolved and returned.
      *
      * @param ctx program function parsing context
      * @return start and end date arguments
@@ -425,7 +411,12 @@ public class ProgramSqlGenerator
     }
 
     /**
-     * Resolves a start or end date program function argument
+     * Resolves a start or end date program function argument.
+     * Don't replace nulls while evaluating the sub-expression,
+     * because we don't have a good thing to replace null dates with;
+     * it's better to let null dates remain null so the date comparison
+     * for that event will not be evaluated and aggregated with the
+     * non-null date values.
      *
      * @param ctx program function compare date context
      * @return the resolved date
@@ -439,7 +430,7 @@ public class ProgramSqlGenerator
                 reportingStartDate, reportingEndDate, programIndicator );
         }
 
-        return castString( visit( ctx.expr() ) );
+        return castString( visitAllowingNulls( ctx.expr() ) );
     }
 
     /**
@@ -467,40 +458,20 @@ public class ProgramSqlGenerator
             " join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)";
     }
 
-    private String hasValueArg( ColumnContext ctx )
-    {
-        if ( ctx.programAttribute() != null )
-        {
-            return statementBuilder.columnQuote( ctx.programAttribute().uid0.getText() );
-        }
-        else if ( ctx.stageDataElement() != null )
-        {
-            return statementBuilder.columnQuote( ctx.stageDataElement().uid1.getText() );
-        }
-        else if ( ctx.uid0 != null )
-        {
-            return statementBuilder.columnQuote( ctx.uid0.getText() );
-        }
-        else
-        {
-            throw new ParserExceptionWithoutContext( "Parser internal error: column context not recognized." );
-        }
-    }
-
     /**
      * Generates SQL to count the number of zero or positive values in a list
-     * of arguments
+     * of items
      *
-     * @param args the list of arguments
+     * @param itemContexts parse tree nodes for the items
      * @return SQL to count the number of zero or positive values
      */
-    private String zeroPositiveValueCount( List<String> args )
+    private String zeroPositiveValueCount( List<ItemContext> itemContexts )
     {
         String sql = "nullif(cast((";
 
-        for ( String value : args )
+        for ( ItemContext ctx : itemContexts )
         {
-            sql += "case when " + value + " >= 0 then 1 else 0 end + ";
+            sql += "case when " + visitAllowingNulls( ctx ) + " >= 0 then 1 else 0 end + ";
         }
 
         return TextUtils.removeLast( sql, "+" ).trim() + ") as double precision),0)";

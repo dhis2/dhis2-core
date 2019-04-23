@@ -51,7 +51,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -75,6 +74,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -273,7 +273,7 @@ public class HibernateDataApprovalStore
 
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
 
-        List<DataApprovalLevel> userApprovalLevels = dataApprovalLevelService.getUserDataApprovalLevels( user, workflow );
+        List<DataApprovalLevel> userApprovalLevels = dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( user, workflow );
 
         Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
 

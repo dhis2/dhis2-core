@@ -47,7 +47,7 @@ public class HibernateSMSCommandStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-                .addPredicate( root -> builder.equal( root.get( "parserType" ), ParserType.J2ME_PARSER ) ) );
+            .addPredicate( root -> builder.equal( root.get( "parserType" ), ParserType.J2ME_PARSER ) ) );
     }
 
     @Override
@@ -72,7 +72,7 @@ public class HibernateSMSCommandStore
     {
         Query<Long> query = getTypedQuery( "select count(distinct c) from SMSCommand c where c.dataset=:dataSet" );
         query.setParameter( "dataSet", dataSet );
-        // TODO rename dataset prop
+        // TODO rename data set property
 
         return  query.getSingleResult().intValue();
     }

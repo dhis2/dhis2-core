@@ -41,7 +41,7 @@ public interface EventDataQueryService
      * Used for aggregate query.
      * @param request the request wrapper containing the url params.
      */
-    EventQueryParams getFromRequest( EventDataQueryRequest request);
+    EventQueryParams getFromRequest( EventDataQueryRequest request );
 
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 

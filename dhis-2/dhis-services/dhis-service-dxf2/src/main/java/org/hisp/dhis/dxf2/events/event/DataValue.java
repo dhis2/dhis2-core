@@ -34,6 +34,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.util.Objects;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -46,7 +48,7 @@ public class DataValue
 
     private String value;
 
-    private String dataElement;
+    private String dataElement = "";
 
     private Boolean providedElsewhere = false;
 
@@ -145,6 +147,29 @@ public class DataValue
     public void setSkipSynchronization( boolean skipSynchronization )
     {
         this.skipSynchronization = skipSynchronization;
+    }
+
+    @Override
+    public boolean equals( Object object )
+    {
+        if ( this == object )
+        {
+            return true;
+        }
+        if ( object == null || getClass() != object.getClass() )
+        {
+            return false;
+        }
+
+        DataValue dataValue = (DataValue) object;
+
+        return dataElement.equals( dataValue.dataElement );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash( dataElement );
     }
 
     @Override

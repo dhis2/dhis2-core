@@ -36,6 +36,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -114,6 +115,12 @@ public class MockUserService implements UserService
 
     @Override
     public List<User> getUsers( UserQueryParams params )
+    {
+        return null;
+    }
+
+    @Override
+    public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
     {
         return null;
     }
@@ -306,6 +313,6 @@ public class MockUserService implements UserService
 
     @Override
     public void set2FA( User user, Boolean twoFA )
-    {        
+    {
     }
 }

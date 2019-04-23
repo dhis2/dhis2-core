@@ -138,17 +138,17 @@ public interface TrackedEntityAttributeService
     Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
 
     /**
-     * Validate scope of tracked entity attribute. Will return true if attribute is non-unique.
+     * Validate uniqueness of the tracked entity attribute value within its scope. Will return non-empty error message
+     * if attribute is non-unique.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
      * @param value                  Value
      * @param trackedEntityInstance  TrackedEntityInstance - required if updating TEI
      * @param organisationUnit       OrganisationUnit - only required if org unit scoped
-     * @param program                Program - only required if program scoped
      * @return null if valid, a message if not
      */
-    String validateScope( TrackedEntityAttribute trackedEntityAttribute,
-        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit, Program program );
+    String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
+        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit );
 
     /**
      * Validate value against tracked entity attribute value type.

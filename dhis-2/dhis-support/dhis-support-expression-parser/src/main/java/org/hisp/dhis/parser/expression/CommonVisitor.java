@@ -161,10 +161,10 @@ public abstract class CommonVisitor
                 return ifFunction( ctx );
 
             case IS_NOT_NULL:
-                return visitAllowingNullValues( ctx.item() ) != null;
+                return visitAllowingNulls( ctx.item() ) != null;
 
             case IS_NULL:
-                return visitAllowingNullValues( ctx.item() ) == null;
+                return visitAllowingNulls( ctx.item() ) == null;
 
             case LEAST:
                 return greatestOrLeast( ctx.expr(), -1.0 );
@@ -262,7 +262,7 @@ public abstract class CommonVisitor
     {
         if ( ctx.item() != null )
         {
-            return visitAllowingNullValues( ctx.item() );
+            return visitAllowingNulls( ctx.item() );
         }
         else if ( ctx.numStringLiteral().stringLiteral() != null )
         {

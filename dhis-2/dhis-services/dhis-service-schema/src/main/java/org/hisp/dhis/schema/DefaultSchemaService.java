@@ -167,6 +167,7 @@ public class DefaultSchemaService
         add( new KeyJsonValueSchemaDescriptor() ).
         add( new ProgramStageInstanceSchemaDescriptor() ).
         add( new ProgramInstanceSchemaDescriptor() ).
+        add( new ProgramStageInstanceFilterSchemaDescriptor() ).
         build();
 
     private Map<Class<?>, Schema> classSchemaMap = new HashMap<>();

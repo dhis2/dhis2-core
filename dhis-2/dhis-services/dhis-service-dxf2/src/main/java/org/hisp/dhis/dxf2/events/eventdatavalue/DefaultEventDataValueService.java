@@ -27,14 +27,7 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
@@ -47,6 +40,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -60,7 +54,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David Katuscak
@@ -176,7 +176,7 @@ public class DefaultEventDataValueService implements EventDataValueService
     private Map<String, EventDataValue> getDataElementToEventDataValueMap(
         Collection<EventDataValue> dataValues )
     {
-        return dataValues.stream().collect( Collectors.toMap( dv -> dv.getDataElement(), dv -> dv ) );
+        return dataValues.stream().collect( Collectors.toMap( EventDataValue::getDataElement, dv -> dv ) );
     }
 
     private boolean doValidationOfMandatoryAttributes( User user )
@@ -192,14 +192,14 @@ public class DefaultEventDataValueService implements EventDataValueService
         {
             //I am filling the set only if I know that I will do the validation. Otherwise, it would be waste of resources
             Set<String>  mandatoryDataElements = programStageInstance.getProgramStage().getProgramStageDataElements().stream()
-                .filter( psde -> psde.isCompulsory() )
+                .filter( ProgramStageDataElement::isCompulsory )
                 .map( psde -> psde.getDataElement().getUid() )
                 .collect( Collectors.toSet() );
 
             //Collect all data elements with valid data values present in the payload
             Set<String> presentDataElements = event.getDataValues().stream()
                 .filter( dv -> dv != null && dv.getValue() != null && !dv.getValue().trim().isEmpty() && !dv.getValue().trim().equals( "null" ) )
-                .map( dv -> dv.getDataElement() )
+                .map( DataValue::getDataElement )
                 .collect( Collectors.toSet());
 
             // When the request is update, then only changed data values can be in the payload and so I should take into
@@ -215,7 +215,7 @@ public class DefaultEventDataValueService implements EventDataValueService
 
             Set<String> notPresentMandatoryDataElements = Sets.difference( mandatoryDataElements, presentDataElements );
 
-            if ( notPresentMandatoryDataElements.size() > 0 )
+            if ( !notPresentMandatoryDataElements.isEmpty() )
             {
                 notPresentMandatoryDataElements.forEach( deUid -> importSummary.getConflicts().add( new ImportConflict( deUid, "value_required_but_not_provided" ) ) );
                 return false;
@@ -237,7 +237,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             validationPassed = false;
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement );
+        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );
 
         if ( !errors.isEmpty() )
         {

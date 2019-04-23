@@ -31,7 +31,6 @@ package org.hisp.dhis.program;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -39,6 +38,7 @@ import org.hisp.dhis.parser.expression.InternalParserException;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -60,10 +60,8 @@ import static org.mockito.Mockito.when;
  * @author Luciano Fiandesio
  */
 public class ProgramSqlGeneratorVariablesTest
-    extends
-    DhisConvenienceTest
+    extends DhisConvenienceTest
 {
-
     private BeanRandomizer beanRandomizer = new BeanRandomizer();
 
     private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
@@ -264,6 +262,16 @@ public class ProgramSqlGeneratorVariablesTest
     }
 
     @Test
+    public void testOrgUnitCount()
+    {
+        initSubject( makeEnrollmentProgramIndicator() );
+
+        String sql = subject.visitProgramVariable( mockContext( V_ORG_UNIT_COUNT ) );
+
+        assertThat( sql, is( "distinct ou" ) );
+    }
+
+    @Test
     public void testTeiCount()
     {
         initSubject( makeEnrollmentProgramIndicator() );
@@ -298,7 +306,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testInvalidVariable()
     {
-        thrown.expect(InternalParserException.class);
+        thrown.expect( InternalParserException.class );
         subject.visitProgramVariable( mockContext( 129839128 ) );
     }
 
@@ -322,7 +330,7 @@ public class ProgramSqlGeneratorVariablesTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        this.subject = new ProgramSqlGenerator( programIndicator, startDate, endDate, true,
+        this.subject = new ProgramSqlGenerator( programIndicator, startDate, endDate,
             dataElementsAndAttributesIdentifiers, new HashMap<>(), programIndicatorService, statementBuilder,
             dataElementService, trackedEntityAttributeService );
     }

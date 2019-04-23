@@ -7,8 +7,6 @@
   <class name="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner"
     table="trackedentityprogramowner">
 
-    <cache usage="read-write" />
-
     <id name="id" column="trackedentityprogramownerid">
       <generator class="native" />
     </id>

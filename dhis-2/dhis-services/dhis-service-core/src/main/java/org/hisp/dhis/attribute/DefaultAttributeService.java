@@ -53,7 +53,6 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public class DefaultAttributeService
     implements AttributeService
 {
@@ -80,66 +79,77 @@ public class DefaultAttributeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addAttribute( Attribute attribute )
     {
         attributeStore.save( attribute );
     }
 
     @Override
+    @Transactional
     public void updateAttribute( Attribute attribute )
     {
         attributeStore.update( attribute );
     }
 
     @Override
+    @Transactional
     public void deleteAttribute( Attribute attribute )
     {
         attributeStore.delete( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttribute( long id )
     {
         return attributeStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttribute( String uid )
     {
         return attributeStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttributeByName( String name )
     {
         return attributeStore.getByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttributeByCode( String code )
     {
         return attributeStore.getByCode( code );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getAllAttributes()
     {
         return new ArrayList<>( attributeStore.getAll() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getAttributes( klass ) );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getMandatoryAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getMandatoryAttributes( klass ) );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getUniqueAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getUniqueAttributes( klass ) );
@@ -150,6 +160,7 @@ public class DefaultAttributeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
@@ -174,6 +185,7 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void updateAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
@@ -198,6 +210,7 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
         object.getJsonAttributeValues()
@@ -206,6 +219,7 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues )
     {
         object.getAttributeValues().removeAll( attributeValues );
@@ -214,12 +228,14 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception
     {
         updateAttributeValues( object, getJsonAttributeValues( jsonAttributeValues ) );
     }
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void updateAttributeValues( T object, Set<AttributeValue> attributeValues ) throws Exception
     {
         if ( attributeValues.isEmpty() )

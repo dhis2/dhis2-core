@@ -75,8 +75,8 @@ public class DefaultUserDetailsService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
-    public final UserDetails loadUserByUsername( String username )
+    @Transactional(readOnly = true)
+    public UserDetails loadUserByUsername( String username )
         throws UsernameNotFoundException, DataAccessException
     {
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );

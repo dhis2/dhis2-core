@@ -33,7 +33,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -48,9 +47,6 @@ public class DataSynchronizationJob
 {
     @Autowired
     private SynchronizationManager synchronizationManager;
-
-    @Autowired
-    private MessageService messageService;
 
     @Autowired
     private Notifier notifier;
@@ -96,22 +92,7 @@ public class DataSynchronizationJob
             log.error( "Error while executing complete data set registration sync task. "+ e.getMessage(), e );
         }
 
-        try
-        {
-            synchronizationManager.executeEventPush();
-        }
-        catch ( RuntimeException ex )
-        {
-            notifier.notify( jobConfiguration, "Event sync failed: " + ex.getMessage() );
-
-            messageService.sendSystemErrorNotification( "Event sync failed", ex );
-        }
-        catch ( WebMessageParseException e )
-        {
-            log.error("Error while executing event sync task. "+ e.getMessage(), e );
-        }
-
-        notifier.notify( jobConfiguration, "Data value, Complete data set registration and Event sync successful" );
+        notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
     }
 
     @Override

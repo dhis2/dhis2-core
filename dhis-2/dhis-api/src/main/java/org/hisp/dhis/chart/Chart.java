@@ -29,6 +29,7 @@ package org.hisp.dhis.chart;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.AnalyticsType;
@@ -55,6 +56,8 @@ public class Chart
     private String series;
 
     private String category;
+
+    private List<Series> seriesItems = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -235,5 +238,18 @@ public class Chart
     public void setCategory( String category )
     {
         this.category = category;
+    }
+
+    @JsonProperty( "seriesItems" )
+    @JacksonXmlElementWrapper( localName = "seriesItems", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "seriesItem", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Series> getSeriesItems()
+    {
+        return seriesItems;
+    }
+
+    public void setSeriesItems( List<Series> seriesItems )
+    {
+        this.seriesItems = seriesItems;
     }
 }

@@ -98,6 +98,8 @@ public class HibernateDbmsManager
         emptyTable( "pushanalysisrecipientusergroups" );
         emptyTable( "pushanalysis" );
 
+        emptyTable( "potentialduplicate" );
+
         emptyTable( "dashboarditem_users" );
         emptyTable( "dashboarditem_resources" );
         emptyTable( "dashboarditem_reports" );
@@ -259,6 +261,8 @@ public class HibernateDbmsManager
         emptyTable( "periodboundary" );
         emptyTable( "programindicator" );
         emptyTable( "program" );
+        
+        emptyTable( "programstageinstancefilter" );
 
         emptyTable( "trackedentityattributevalue" );
         emptyTable( "trackedentityattributevalueaudit" );
@@ -367,7 +371,7 @@ public class HibernateDbmsManager
 
         emptyTable( "reservedvalue" );
         emptyTable( "sequentialnumbercounter" );
-
+        
         log.debug( "Cleared database contents" );
 
         cacheManager.clearCache();

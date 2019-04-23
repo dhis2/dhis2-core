@@ -56,7 +56,6 @@ import java.util.Map;
  * @author Lars Helge Overland
  * @version $Id$
  */
-@Transactional
 public class DefaultCompleteDataSetRegistrationService
     implements CompleteDataSetRegistrationService
 {
@@ -98,6 +97,7 @@ public class DefaultCompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         if ( registration.getAttributeOptionCombo() == null )
@@ -116,18 +116,21 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
+    @Transactional
     public void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         completeDataSetRegistrationStore.updateCompleteDataSetRegistration( registration );
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         completeDataSetRegistrationStore.deleteCompleteDataSetRegistration( registration );
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations )
     {
         for ( CompleteDataSetRegistration registration : registrations )
@@ -137,6 +140,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
         OrganisationUnit source, CategoryOptionCombo attributeOptionCombo )
     {
@@ -145,24 +149,28 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
         return completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations();
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistrations( DataSet dataSet )
     {
         completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations( dataSet );
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistrations( OrganisationUnit unit )
     {
         completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations( unit );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -216,6 +224,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
     {
         return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter( lastUpdated );

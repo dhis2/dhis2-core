@@ -28,12 +28,6 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -46,10 +40,15 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author David Katuscak
@@ -59,16 +58,11 @@ public class EventSynchronization
     private static final Log log = LogFactory.getLog( EventSynchronization.class );
 
     private final EventService eventService;
-
     private final SystemSettingManager systemSettingManager;
-
     private final RestTemplate restTemplate;
-
     private final RenderService renderService;
-
     private final ProgramStageDataElementService programStageDataElementService;
 
-    @Autowired
     public EventSynchronization( EventService eventService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService,
         ProgramStageDataElementService programStageDataElementService )
     {
@@ -160,7 +154,7 @@ public class EventSynchronization
             event.setDataValues(
                 event.getDataValues().stream()
                     .filter( dv -> !dv.isSkipSynchronization() )
-                    .collect( Collectors.toList() )
+                    .collect( Collectors.toSet() )
             );
         }
     }

@@ -28,64 +28,175 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
- * @author Chau Thu Tran
+ * @author David Katuscak
  */
 public class TrackedEntityAttributeServiceTest
-    extends DhisSpringTest
 {
-    @Autowired
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private TrackedEntityAttributeStore trackedEntityAttributeStore;
+
+    @Mock
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Mock
+    private ProgramService programService;
+
+    @Mock
+    private CurrentUserService currentUserService;
+
+    @Mock
+    private AclService aclService;
+
+    @Mock
     private TrackedEntityAttributeStore attributeStore;
 
-    private TrackedEntityAttribute attributeA;
+    @Mock
+    private FileResourceService fileResourceService;
 
-    private TrackedEntityAttribute attributeB;
+    @Mock
+    private UserService userService;
 
-    private TrackedEntityAttribute attributeC;
+    private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Override
-    public void setUpTest()
+    private TrackedEntityInstance teiPassedInPayload;
+
+    private final String identicalTeiUid = "TeiUid12345";
+
+    private final String differentTeiUid = "TeiUid54321";
+
+    private OrganisationUnit orgUnit;
+
+    private TrackedEntityAttribute tea;
+
+    @Before
+    public void setUp()
     {
-        attributeA = createTrackedEntityAttribute( 'A' );
-        attributeB = createTrackedEntityAttribute( 'B' );
-        attributeC = createTrackedEntityAttribute( 'C', ValueType.NUMBER );
+        trackedEntityAttributeService = new DefaultTrackedEntityAttributeService( attributeStore, programService,
+            trackedEntityTypeService, fileResourceService, userService, currentUserService, aclService,
+            trackedEntityAttributeStore );
 
-        List<TrackedEntityAttribute> attributesA = new ArrayList<>();
-        attributesA.add( attributeA );
-        attributesA.add( attributeB );
+        orgUnit = new OrganisationUnit( "orgUnitA" );
+
+        teiPassedInPayload = new TrackedEntityInstance();
+        teiPassedInPayload.setUid( identicalTeiUid );
+        teiPassedInPayload.setOrganisationUnit( orgUnit );
+
+        tea = new TrackedEntityAttribute();
+        tea.setUid( "TeaUid12345" );
+        tea.setUnique( true );
+        tea.setValueType( ValueType.TEXT );
+        tea.setOrgunitScope( false );
+        tea.setProgramScope( false );
     }
-
 
     @Test
-    public void testGetTrackedEntityAttributesByDisplayOnVisitSchedule()
+    public void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
     {
-        attributeA.setDisplayOnVisitSchedule( true );
-        attributeB.setDisplayOnVisitSchedule( true );
-        attributeC.setDisplayOnVisitSchedule( false );
+        when( trackedEntityAttributeStore
+            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .thenReturn( Optional.of( identicalTeiUid ) );
 
-        attributeStore.save( attributeA );
-        attributeStore.save( attributeB );
-        attributeStore.save( attributeC );
+        String teaValue = "Firstname";
 
-        List<TrackedEntityAttribute> attributes = attributeStore.getByDisplayOnVisitSchedule( true );
-        assertEquals( 2, attributes.size() );
-        assertTrue( attributes.contains( attributeA ) );
-        assertTrue( attributes.contains( attributeB ) );
-
-        attributes = attributeStore.getByDisplayOnVisitSchedule( false );
-        assertEquals( 1, attributes.size() );
-        assertTrue( attributes.contains( attributeC ) );
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
+        assertNull( result );
     }
 
+    @Test
+    public void differentTeiWithTheSameUniqueAttributeExistsInSystem()
+    {
+        when( trackedEntityAttributeStore
+            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .thenReturn( Optional.of( differentTeiUid ) );
+
+        String teaValue = "Firstname";
+
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
+        assertNotNull( result );
+    }
+
+    @Test
+    public void attributeIsUniqueWithinTheSystem()
+    {
+        when( trackedEntityAttributeStore
+            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .thenReturn( Optional.empty() );
+
+        String teaValue = "Firstname";
+
+        String result = trackedEntityAttributeService.validateAttributeUniquenessWithinScope( tea, teaValue, teiPassedInPayload, orgUnit );
+        assertNull( result );
+    }
+
+    @Test
+    public void wrongValueToValueType()
+    {
+        tea.setValueType( ValueType.NUMBER );
+        String teaValue = "Firstname";
+
+        String result = trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertNotNull( result );
+
+        tea.setValueType( ValueType.BOOLEAN );
+        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertNotNull( result );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void wrongValueToDateValueType()
+    {
+        tea.setValueType( ValueType.DATE );
+        String teaValue = "Firstname";
+        trackedEntityAttributeService.validateValueType( tea, teaValue );
+    }
+
+    @Test
+    public void correctValueToValueType()
+    {
+        String teaValue = "Firstname";
+        tea.setValueType( ValueType.TEXT );
+
+        String result = trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertNull( result );
+
+        tea.setValueType( ValueType.NUMBER );
+        teaValue = "123";
+        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertNull( result );
+
+        tea.setValueType( ValueType.BOOLEAN );
+        teaValue = String.valueOf( true );
+        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertNull( result );
+
+        tea.setValueType( ValueType.DATE );
+        teaValue = "2019-01-01";
+        result = trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertNull( result );
+    }
 }

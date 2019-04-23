@@ -149,7 +149,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         if ( params.getClasses().isEmpty() )
         {
-            schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject )
+            schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject ).filter( s -> !s.isSecondaryMetadata() )
                 .forEach( schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
         }
 
@@ -277,7 +277,7 @@ public class DefaultMetadataExportService implements MetadataExportService
             Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
 
             // class is enabled if value = true, or fields/filter/order is present
-            if ( "true".equalsIgnoreCase( parameters.get( parameterKey ).get( 0 ) ) || (parameter.length > 1 && ("fields".equalsIgnoreCase( parameter[1] )
+            if ( isSelectedClass( parameters.get( parameterKey ) ) || ( parameter.length > 1 && ( "fields".equalsIgnoreCase( parameter[1] )
                 || "filter".equalsIgnoreCase( parameter[1] ) || "order".equalsIgnoreCase( parameter[1] ))) )
             {
                 if ( !map.containsKey( klass ) ) map.put( klass, new HashMap<>() );
@@ -381,6 +381,16 @@ public class DefaultMetadataExportService implements MetadataExportService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
+
+    private boolean isSelectedClass( @Nonnull List<String> values )
+    {
+        if ( values.stream().anyMatch( "false"::equalsIgnoreCase ) )
+        {
+            return false;
+        }
+
+        return values.stream().anyMatch( "true"::equalsIgnoreCase );
+    }
 
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSet dataSet )
     {
