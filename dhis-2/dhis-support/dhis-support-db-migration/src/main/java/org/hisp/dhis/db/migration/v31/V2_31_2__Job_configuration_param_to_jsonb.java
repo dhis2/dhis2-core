@@ -1,6 +1,26 @@
 package org.hisp.dhis.db.migration.v31;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.api.migration.BaseJavaMigration;
+import org.flywaydb.core.api.migration.Context;
+import org.hisp.dhis.db.migration.helper.DataTypeUtils;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.JobType;
+import org.postgresql.util.PGobject;
+
+import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -29,41 +49,20 @@ import org.flywaydb.core.api.FlywayException;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.flywaydb.core.api.migration.BaseJavaMigration;
-import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.JobType;
-import org.postgresql.util.PGobject;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-
 /**
  * 1.Creates new jsonb column for jobparameters in jobconfiguration
  * 2. Fetches jobparameters from existing bytearray column and moves them into new jsonb column
  * 3. Deletes old jobparameter column
- * 
+ *
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
 public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
 {
     private static final Log log = LogFactory.getLog( V2_31_2__Job_configuration_param_to_jsonb.class );
-   
+
     private ObjectWriter writer;
-    
+
     public void migrate( Context context )
         throws Exception
     {
@@ -72,13 +71,13 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         writer = MAPPER.writerFor( JobParameters.class );
 
-        
+
         //1. Create new jsonb column for jobparameters in jobconfiguration
         try (Statement stmt = context.getConnection().createStatement())
         {
-          stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jsonbjobparameters jsonb" );
+            stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jsonbjobparameters jsonb" );
         }
-        
+
         //2. Move existing jobparameters from bytearray column into jsonb column
         Map<Integer, byte[]> jobParamByteMap = new HashMap<>();
         Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();
@@ -99,8 +98,8 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
             JobType jobType = null;
             try
             {
-                jParaB = toObject( jobParamByteArray );
-                jobType = (JobType) toObject( jobTypeByteMap.get( id ) );
+                jParaB = DataTypeUtils.toObject( jobParamByteArray );
+                jobType = (JobType) DataTypeUtils.toObject( jobTypeByteMap.get( id ) );
             }
             catch ( IOException | ClassNotFoundException e )
             {
@@ -116,50 +115,26 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
                 pg.setValue( convertObjectToJson( jobType.getJobParameters().cast( jParaB ) ) );
                 ps.setObject( 1, pg );
                 ps.setInt( 2, id );
-                
-                ps.execute();
 
+                ps.execute();
             }
             catch ( SQLException e )
             {
-               log.error( "Flyway java migration error:", e );
-               throw new FlywayException( e );
+                log.error( "Flyway java migration error:", e );
+                throw new FlywayException( e );
             }
-
         } );
-        
-        
-       //3. Delete old byte array column for jobparameters in jobconfiguration
+
+        //3. Delete old byte array column for jobparameters in jobconfiguration
         try ( Statement stmt = context.getConnection().createStatement() )
         {
-          stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN IF EXISTS jobparameters" );
+            stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN IF EXISTS jobparameters" );
         }
+    }
 
-    }
-    
-    
-    private Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
-        Object obj;
-        ByteArrayInputStream bis = null;
-        ObjectInputStream ois = null;
-        try {
-            bis = new ByteArrayInputStream(bytes);
-            ois = new ObjectInputStream(bis);
-            obj = ois.readObject();
-        } finally {
-            if (bis != null) {
-                bis.close();
-            }
-            if (ois != null) {
-                ois.close();
-            }
-        }
-        return obj;
-    }
-    
     /**
      * Serializes an object to JSON.
-     * 
+     *
      * @param object the object to convert.
      * @return JSON content.
      */
@@ -175,5 +150,4 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
             throw new FlywayException( e );
         }
     }
-
 }
