@@ -39,7 +39,6 @@ import org.springframework.http.MediaType;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
