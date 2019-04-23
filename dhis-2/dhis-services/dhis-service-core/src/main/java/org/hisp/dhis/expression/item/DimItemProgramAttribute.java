@@ -29,10 +29,9 @@ package org.hisp.dhis.expression.item;
  */
 
 import org.hisp.dhis.common.DimensionalItemId;
-import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
 import static org.hisp.dhis.common.DimensionItemType.*;
-import static org.hisp.dhis.parser.expression.ParserUtils.isExpressionProgramAttribute;
+import static org.hisp.dhis.parser.expression.ParserUtils.assumeExpressionProgramAttribute;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
 /**
@@ -41,15 +40,12 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public class DimItemProgramAttribute
-    extends AbstractDimensionalItem
+    extends DimensionalItem
 {
     @Override
     public DimensionalItemId getDimensionalItemId( ItemContext ctx )
     {
-        if ( !isExpressionProgramAttribute( ctx ) )
-        {
-            throw new ParserExceptionWithoutContext( "Program attribute must have two UIDs: " + ctx.getText() );
-        }
+        assumeExpressionProgramAttribute( ctx );
 
         return new DimensionalItemId( PROGRAM_ATTRIBUTE,
             ctx.uid0.getText(),
@@ -59,10 +55,7 @@ public class DimItemProgramAttribute
     @Override
     public String getId( ItemContext ctx )
     {
-        if ( !isExpressionProgramAttribute( ctx ) )
-        {
-            throw new ParserExceptionWithoutContext( "Program attribute must have two UIDs: " + ctx.getText() );
-        }
+        assumeExpressionProgramAttribute( ctx );
 
         return ctx.uid0.getText() + "." +
             ctx.uid1.getText();

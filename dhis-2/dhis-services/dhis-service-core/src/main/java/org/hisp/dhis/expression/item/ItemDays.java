@@ -31,20 +31,23 @@ package org.hisp.dhis.expression.item;
 import org.hisp.dhis.expression.ExpressionExprVisitor;
 
 import static org.hisp.dhis.expression.ExpressionService.DAYS_DESCRIPTION;
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
 /**
- * Expression item ProgramIndicator
+ * Expression item Days
  *
  * @author Jim Grace
  */
 public class ItemDays
-    extends AbstractExpressionItem
+    extends ExpressionItem
 {
     @Override
-    public Object getDescriptions( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object getDescription( ItemContext ctx, ExpressionExprVisitor visitor )
     {
-        return visitor.putDescription( ctx.getText(), DAYS_DESCRIPTION );
+        visitor.getItemDescriptions().put( ctx.getText(), DAYS_DESCRIPTION );
+
+        return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override

@@ -34,9 +34,10 @@ import org.hisp.dhis.parser.expression.ExprVisitor;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Abstract class for expression functions. By default, evaluateConditional
- * returns the same as evalutate. This can be overridden in those cases
- * where it should not be the same.
+ * Expression function.
+ * <p/>
+ * By default, evaluateConditional returns the same as evalutate. This can be
+ * overridden when they should not be the same.
  *
  * @author Jim Grace
  */

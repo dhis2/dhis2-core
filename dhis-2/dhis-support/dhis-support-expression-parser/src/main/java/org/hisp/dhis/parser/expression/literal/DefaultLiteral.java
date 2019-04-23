@@ -29,6 +29,7 @@ package org.hisp.dhis.parser.expression.literal;
  */
 
 import org.hisp.dhis.parser.expression.ExprLiteral;
+import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
@@ -36,12 +37,17 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiter
 import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
 
 /**
- * Gets literal String and Boolean values from an ANTLR parse tree
- * for use internally.
+ * Gets typed literal values from an ANTLR parse tree for use internally.
  */
 public class DefaultLiteral
     implements ExprLiteral
 {
+    @Override
+    public Object getNumericLiteral( ExpressionParser.NumericLiteralContext ctx )
+    {
+        return Double.valueOf( ctx.getText() );
+    }
+
     @Override
     public Object getStringLiteral( StringLiteralContext ctx )
     {

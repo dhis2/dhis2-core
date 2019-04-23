@@ -29,12 +29,12 @@ package org.hisp.dhis.parser.expression;
  */
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
 import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
 
 import java.util.*;
 
-import static jdk.internal.jline.internal.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
 
@@ -47,6 +47,8 @@ import static org.hisp.dhis.parser.expression.ParserUtils.*;
 public abstract class ExprVisitor
     extends ExpressionBaseVisitor<Object>
 {
+    protected ConstantService constantService;
+
     /**
      * Map of ExprFunction instances to call for each expression function
      */
@@ -77,6 +79,16 @@ public abstract class ExprVisitor
      */
     protected boolean replaceNulls = true;
 
+    /**
+     * Used to collect the string replacements to build a description.
+     */
+    protected Map<String, String> itemDescriptions = new HashMap<>();
+
+    /**
+     * Constants to use in evaluating an expression.
+     */
+    Map<String, Double> constantMap = new HashMap<>();
+
     // -------------------------------------------------------------------------
     // Visitor methods
     // -------------------------------------------------------------------------
@@ -100,7 +112,7 @@ public abstract class ExprVisitor
             return visit( ctx.getChild( 0 ) ); // All others
         }
 
-        ExprFunction function = functionMap.get( ctx.fun );
+        ExprFunction function = functionMap.get( ctx.fun.getType() );
 
         if ( function == null )
         {
@@ -113,7 +125,7 @@ public abstract class ExprVisitor
     @Override
     public Object visitItem( ItemContext ctx )
     {
-        ExprItem item = itemMap.get( ctx.it );
+        ExprItem item = itemMap.get( ctx.it.getType() );
 
         if ( item == null )
         {
@@ -126,7 +138,7 @@ public abstract class ExprVisitor
     @Override
     public Object visitNumericLiteral( NumericLiteralContext ctx )
     {
-        return Double.valueOf( ctx.getText() );
+        return expressionLiteral.getNumericLiteral( ctx );
     }
 
     @Override
@@ -139,6 +151,40 @@ public abstract class ExprVisitor
     public Object visitBooleanLiteral( BooleanLiteralContext ctx )
     {
         return expressionLiteral.getBooleanLiteral( ctx );
+    }
+
+    // -------------------------------------------------------------------------
+    // Getters and setters
+    // -------------------------------------------------------------------------
+
+    public ConstantService getConstantService()
+    {
+        return constantService;
+    }
+
+    public Map<String, String> getItemDescriptions()
+    {
+        return itemDescriptions;
+    }
+
+    public Map<String, Double> getConstantMap()
+    {
+        return constantMap;
+    }
+
+    public void setConstantMap( Map<String, Double> constantMap )
+    {
+        this.constantMap = constantMap;
+    }
+
+    public boolean getReplaceNulls()
+    {
+        return replaceNulls;
+    }
+
+    public void setExpressionLiteral( ExprLiteral expressionLiteral )
+    {
+        this.expressionLiteral = expressionLiteral;
     }
 
     // -------------------------------------------------------------------------

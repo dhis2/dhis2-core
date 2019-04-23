@@ -29,32 +29,53 @@ package org.hisp.dhis.expression.item;
  */
 
 import org.hisp.dhis.expression.ExpressionExprVisitor;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
 /**
- * Expression item ProgramIndicator
+ * Expression item OrganisationUnitGroup
  *
  * @author Jim Grace
  */
 public class ItemOrgUnitGroup
-    extends AbstractExpressionItem
+    extends ExpressionItem
 {
     @Override
-    public Object getDescriptions( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object getDescription( ItemContext ctx, ExpressionExprVisitor visitor )
     {
-        return visitor.putConstantDescription( ctx.getText(), ctx.uid0.getText() );
+        OrganisationUnitGroup orgUnitGroup = visitor.getOrganisationUnitGroupService().getOrganisationUnitGroup( ctx.uid0.getText() );
+
+        if ( orgUnitGroup == null )
+        {
+            throw new ParserExceptionWithoutContext( "No organization unit group defined for " + ctx.uid0.getText() );
+        }
+
+        visitor.getItemDescriptions().put( ctx.getText(), orgUnitGroup.getDisplayName() );
+
+        return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override
-    public Object getOrgUnitGroups( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object getOrgUnitGroup( ItemContext ctx, ExpressionExprVisitor visitor )
     {
-        return visitor.putOrgUnitGroup( ctx.uid0.getText() );
+        visitor.getOrgUnitGroupIds().add( ctx.uid0.getText() );
+
+        return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override
     public Object evaluate( ItemContext ctx, ExpressionExprVisitor visitor )
     {
-        return visitor.getOrgUnitGroupCount( ctx.uid0.getText() );
+        Integer count = visitor.getOrgUnitCountMap().get( ctx.uid0.getText() );
+
+        if ( count == null ) // Shouldn't happen for a valid expression.
+        {
+            throw new ParserExceptionWithoutContext( "Can't find count for organisation unit " + ctx.uid0.getText() );
+        }
+
+        return count.doubleValue();
     }
 }

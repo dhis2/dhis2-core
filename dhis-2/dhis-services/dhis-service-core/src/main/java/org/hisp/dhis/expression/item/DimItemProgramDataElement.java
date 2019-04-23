@@ -39,7 +39,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
  * @author Jim Grace
  */
 public class DimItemProgramDataElement
-    extends AbstractDimensionalItem
+    extends DimensionalItem
 {
     @Override
     public DimensionalItemId getDimensionalItemId( ItemContext ctx )

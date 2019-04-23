@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Abstract expression function for greatest or least
+ * Abstract expression function for greatest or least functions
  *
  * @author Jim Grace
  */

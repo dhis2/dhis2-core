@@ -30,14 +30,18 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.parser.expression.Parser;
 import org.hisp.dhis.parser.expression.ParserException;
+import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Before;
@@ -53,8 +57,10 @@ import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_FUNCTIONS;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -91,10 +97,19 @@ public class ProgramSqlGeneratorFunctionsTest
     private ProgramIndicatorService programIndicatorService;
 
     @Mock
+    private ConstantService constantService;
+
+    @Mock
+    private ProgramStageService programStageService;
+
+    @Mock
     private DataElementService dataElementService;
 
     @Mock
     private TrackedEntityAttributeService attributeService;
+
+    @Mock
+    private RelationshipTypeService relationshipTypeService;
 
     private StatementBuilder statementBuilder;
 
@@ -379,11 +394,17 @@ public class ProgramSqlGeneratorFunctionsTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        ProgramSqlGenerator programSqlGenerator = new ProgramSqlGenerator( programIndicator, startDate, endDate,
-            dataElementsAndAttributesIdentifiers, new HashMap<>(), programIndicatorService, statementBuilder,
-            dataElementService, attributeService );
+        ProgramIndicatorExprVisitor visitor = new ProgramIndicatorExprVisitor( PROGRAM_INDICATOR_FUNCTIONS,
+            PROGRAM_INDICATOR_ITEMS, FUNCTION_GET_SQL, ITEM_GET_SQL, programIndicatorService,
+            constantService, programStageService, dataElementService, attributeService,
+            relationshipTypeService, statementBuilder, new I18n( null, null ) );
 
-        return castString( Parser.visit( expression, programSqlGenerator ) );
+        visitor.setExpressionLiteral( new SqlLiteral() );
+        visitor.setProgramIndicator( programIndicator );
+        visitor.setReportingStartDate( startDate );
+        visitor.setReportingEndDate( endDate );
+
+        return castString( Parser.visit( expression, visitor ) );
     }
 
     private void setStartEventBoundary()

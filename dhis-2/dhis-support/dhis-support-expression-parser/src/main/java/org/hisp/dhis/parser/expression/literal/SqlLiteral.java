@@ -33,16 +33,20 @@ import org.hisp.dhis.parser.expression.ExprLiteral;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.parser.expression.ParserUtils.sqlStringLiteral;
 import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
- * Gets literal String and Boolean values from an ANTLR parse tree
- * for inserting into SQL queries.
+ * Gets literal value Strings from an ANTLR parse tree for use in SQL queries.
  */
 public class SqlLiteral
     implements ExprLiteral
 {
+    @Override
+    public Object getNumericLiteral( NumericLiteralContext ctx )
+    {
+        return ctx.getText();
+    }
+
     @Override
     public Object getStringLiteral( StringLiteralContext ctx )
     {

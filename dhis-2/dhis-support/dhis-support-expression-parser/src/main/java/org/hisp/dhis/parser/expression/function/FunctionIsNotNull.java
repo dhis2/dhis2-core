@@ -44,12 +44,12 @@ public class FunctionIsNotNull
     @Override
     public Object evaluate( ExprContext ctx, ExprVisitor visitor )
     {
-        return visitor.getItemNumStringLiteral( ctx.itemNumStringLiteral( 0 ) ) != null;
+        return visitor.visitAllowingNulls( ctx.item( 0 ) ) != null;
     }
 
     @Override
     public Object getSql( ExprContext ctx, ExprVisitor visitor )
     {
-        return castString( visitor.getItemNumStringLiteral( ctx.itemNumStringLiteral( 0 ) ) ) + " is not null";
+        return castString( visitor.visitAllowingNulls( ctx.item( 0 ) ) ) + " is not null";
     }
 }

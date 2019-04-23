@@ -34,12 +34,12 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
 /**
- * Expression item ReportingRate
+ * Expression item ProgramIndicator
  *
  * @author Jim Grace
  */
 public class DimItemProgramIndicator
-    extends AbstractDimensionalItem
+    extends DimensionalItem
 {
     @Override
     public DimensionalItemId getDimensionalItemId( ItemContext ctx )

@@ -28,11 +28,9 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import jdk.internal.jline.internal.Preconditions;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.parser.expression.*;
@@ -47,10 +45,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
 
 /**
- * ANTLR parse tree visitor to compute an expression value, once the expression
- * item values have been retrieved from the database.
+ * Visitor to the nodes in a parsed expression.
  * <p/>
- * Uses the ANTLR visitor partern.
+ * Uses the ANTLR4 visitor partern.
  *
  * @author Jim Grace
  */
@@ -61,8 +58,6 @@ public class ExpressionExprVisitor
 
     private OrganisationUnitGroupService organisationUnitGroupService;
 
-    private ConstantService constantService;
-
     /**
      * Used to collect the dimensional item ids in the expression.
      */
@@ -72,16 +67,6 @@ public class ExpressionExprVisitor
      * Used to collect the organisation unit group ids in the expression.
      */
     private Set<String> orgUnitGroupIds = new HashSet<>();
-
-    /**
-     * Used to collect the string replacements to build a description.
-     */
-    private Map<String, String> itemDescriptions = new HashMap<>();
-
-    /**
-     * Constants to use in evaluating an expression.
-     */
-    Map<String, Double> constantMap = new HashMap<>();
 
     /**
      * Organisation unit group counts to use in evaluating an expression.
@@ -113,18 +98,19 @@ public class ExpressionExprVisitor
     // -------------------------------------------------------------------------
 
     public ExpressionExprVisitor( Map<Integer, ExprFunction> functionMap,
-        Map<Integer, ExprItem> itemMap,
-        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+        Map<Integer, ExprItem> itemMap, ExprFunctionMethod functionMethod,
+        ExprItemMethod itemMethod, DimensionService dimensionService,
+        OrganisationUnitGroupService organisationUnitGroupService,
+        ConstantService constantService )
     {
-        Preconditions.checkNotNull( functionMap );
-        Preconditions.checkNotNull( itemMap );
-        Preconditions.checkNotNull( functionMethod );
-        Preconditions.checkNotNull( itemMethod );
+        this.functionMap = checkNotNull( functionMap );
+        this.itemMap = checkNotNull( itemMap );
+        this.functionMethod = checkNotNull( functionMethod );
+        this.itemMethod = checkNotNull( itemMethod );
 
-        this.functionMap = functionMap;
-        this.itemMap = itemMap;
-        this.functionMethod = functionMethod;
-        this.itemMethod = itemMethod;
+        this.dimensionService = checkNotNull( dimensionService );
+        this.organisationUnitGroupService = checkNotNull( organisationUnitGroupService );
+        this.constantService = checkNotNull( constantService );
     }
 
     // -------------------------------------------------------------------------
@@ -132,78 +118,17 @@ public class ExpressionExprVisitor
     // -------------------------------------------------------------------------
 
     /**
-     * Makes a hash map that can be used for fast
-     * lookup from the identifier found in the expression. This allows the
-     * DimensionalItemObject to be identified from the expression without
-     * the overhead of calling the IdentifiableObjectManager.
+     * Makes a hash map that can be used for fast lookup from the identifier
+     * found in the expression. This allows the DimensionalItemObject to be
+     * identified from the expression without the overhead of calling the
+     * IdentifiableObjectManager.
      *
      * @param valueMap the given valueMap.
      */
-    private void setValueMap( Map<DimensionalItemObject, Double> valueMap )
+    public void setValueMap( Map<DimensionalItemObject, Double> valueMap )
     {
         keyValueMap = valueMap.entrySet().stream().collect(
             Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
-    }
-
-    public Object putItemDescription( String exprText, DimensionalItemId itemId )
-    {
-        DimensionalItemObject item = dimensionService.getDataDimensionalItemObject( itemId );
-
-        if ( item == null )
-        {
-            throw new ParserExceptionWithoutContext( "Can't find " + itemId.getDimensionItemType().name() + " for '" + exprText + "'" );
-        }
-
-        itemDescriptions.put( exprText, item.getDisplayName() );
-
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    public Object putConstantDescription( String exprText, String constantId )
-    {
-        Constant constant = constantService.getConstant( constantId );
-
-        if ( constant == null )
-        {
-            throw new ParserExceptionWithoutContext( "No constant defined for " + exprText );
-        }
-
-        itemDescriptions.put( exprText, constant.getDisplayName() );
-
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    public Object putDescription( String exprText, String description )
-    {
-        itemDescriptions.put( exprText, description );
-
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    public Object putItemId( DimensionalItemId itemId)
-    {
-        itemIds.add( itemId );
-
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    public Object putOrgUnitGroup( String orgUnitGroupId )
-    {
-        orgUnitGroupIds.add( orgUnitGroupId );
-
-        return DOUBLE_VALUE_IF_NULL;
-    }
-
-    public Double evaluateConstant( String constantUid )
-    {
-        Double value = constantMap.get( constantUid );
-
-        if ( value == null ) // Shouldn't happen for a valid expression.
-        {
-            throw new ParserExceptionWithoutContext( "Can't find constant " + constantUid );
-        }
-
-        return value;
     }
 
     /**
@@ -241,21 +166,19 @@ public class ExpressionExprVisitor
         return value;
     }
 
-    public Double getOrgUnitGroupCount( String orgUnitGroupId )
-    {
-        Integer count = orgUnitCountMap.get( orgUnitGroupId );
-
-        if ( count == null ) // Shouldn't happen for a valid expression.
-        {
-            throw new ParserExceptionWithoutContext( "Can't find count for organisation unit " + orgUnitGroupId );
-        }
-
-        return count.doubleValue();
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    public DimensionService getDimensionService()
+    {
+        return dimensionService;
+    }
+
+    public OrganisationUnitGroupService getOrganisationUnitGroupService()
+    {
+        return organisationUnitGroupService;
+    }
 
     public Set<DimensionalItemId> getItemIds()
     {
@@ -267,14 +190,9 @@ public class ExpressionExprVisitor
         return orgUnitGroupIds;
     }
 
-    public Map<String, String> getItemDescriptions()
+    public Map<String, Integer> getOrgUnitCountMap()
     {
-        return itemDescriptions;
-    }
-
-    public void setConstantMap( Map<String, Double> constantMap )
-    {
-        this.constantMap = constantMap;
+        return orgUnitCountMap;
     }
 
     public void setOrgUnitCountMap( Map<String, Integer> orgUnitCountMap )

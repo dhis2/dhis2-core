@@ -30,17 +30,16 @@ package org.hisp.dhis.expression.item;
 
 import org.hisp.dhis.common.DimensionalItemId;
 
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
 /**
- * Expression item ProgramIndicator
+ * Expression item ReportingRate
  *
  * @author Jim Grace
  */
 public class DimItemReportingRate
-    extends AbstractDimensionalItem
+    extends DimensionalItem
 {
     @Override
     public DimensionalItemId getDimensionalItemId( ItemContext ctx )

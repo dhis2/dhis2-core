@@ -44,31 +44,31 @@ public interface ExprItem
      * @param visitor the tree visitor
      * @return a dummy value for the item (of the right type)
      */
-    Object getDescriptions( ItemContext ctx, ExprVisitor visitor );
+    Object getDescription( ItemContext ctx, ExprVisitor visitor );
 
     /**
      * Collects the item id for later database lookup
-     * (applies to non-Program Indicator item).
+     * (applies to expression service items).
      *
      * @param ctx the expression context
      * @param visitor the tree visitor
      * @return a dummy value for the item
      */
-    Object getItemIds( ItemContext ctx, ExprVisitor visitor );
+    Object getItemId( ItemContext ctx, ExprVisitor visitor );
 
     /**
      * Collects the organisation unit group for which we will need counts
-     * (applies to non-Program Indicator item).
+     * (applies to expression service items).
      *
      * @param ctx the expression context
      * @param visitor the tree visitor
      * @return a dummy value for the item
      */
-    Object getOrgUnitGroups( ItemContext ctx, ExprVisitor visitor );
+    Object getOrgUnitGroup( ItemContext ctx, ExprVisitor visitor );
 
     /**
      * Returns the database value of the item
-     * (applies to non-Program Indicator item).
+     * (applies to expression service items).
      *
      * @param ctx the expression context
      * @param visitor the tree visitor

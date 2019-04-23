@@ -28,8 +28,7 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
  * Fetches literal values from an ANTLR4 expression parse tree
@@ -38,6 +37,15 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLite
  */
 public interface ExprLiteral
 {
+    /**
+     * Gets a value from the ANTLR4 expression parse tree node for
+     * a numeric literal
+     *
+     * @param ctx parse tree literal context
+     * @return the literal value
+     */
+    Object getNumericLiteral( NumericLiteralContext ctx );
+
     /**
      * Gets a value from the ANTLR4 expression parse tree node for
      * a string literal
