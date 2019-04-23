@@ -395,14 +395,14 @@ public class DefaultPreheatService implements PreheatService
             {
                 Set<String> uids = preheat.getUniqueAttributes().get( klass );
 
-                if ( uids != null && uids.contains( attributeValue.getAttribute().getUid() ) )
+                if ( uids != null && uids.contains( attributeValue.getAttribute() ) )
                 {
-                    if ( !preheat.getUniqueAttributeValues().get( klass ).containsKey( attributeValue.getAttribute().getUid() ) )
+                    if ( !preheat.getUniqueAttributeValues().get( klass ).containsKey( attributeValue.getAttribute() ) )
                     {
-                        preheat.getUniqueAttributeValues().get( klass ).put( attributeValue.getAttribute().getUid(), new HashMap<>() );
+                        preheat.getUniqueAttributeValues().get( klass ).put( attributeValue.getAttribute(), new HashMap<>() );
                     }
 
-                    preheat.getUniqueAttributeValues().get( klass ).get( attributeValue.getAttribute().getUid() )
+                    preheat.getUniqueAttributeValues().get( klass ).get( attributeValue.getAttribute() )
                         .put( attributeValue.getValue(), object.getUid() );
                 }
             } );

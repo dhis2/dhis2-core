@@ -48,15 +48,6 @@ public class AttributeValueSortOrderComparator
             return 0;
         }
 
-        if ( o1.getAttribute().getSortOrder() == null || o2.getAttribute().getSortOrder() == 0 )
-        {
-            return o1.getAttribute().getName().compareTo( o2.getAttribute().getName() );
-        }
-        if ( o2.getAttribute().getSortOrder() == null || o2.getAttribute().getSortOrder() == 0 )
-        {
-            return o1.getAttribute().getName().compareTo( o2.getAttribute().getName() );
-        }
-
-        return o1.getAttribute().getSortOrder() - o2.getAttribute().getSortOrder();
+            return o1.getCreated().compareTo( o2.getCreated() );
     }
 }

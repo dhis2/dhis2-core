@@ -30,7 +30,6 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.attribute.JsonAttributeValue;
 
 import java.util.List;
 
@@ -90,9 +89,9 @@ public interface GenericStore<T>
 
     List<T> getAllByAttributes( List<Attribute> attributes );
 
-    List<JsonAttributeValue> getAttributeValueByAttribute( Attribute attribute );
+    List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
 
-    List<JsonAttributeValue> getAttributeValueByAttributeAndValue(Attribute attribute, String value );
+    List<AttributeValue> getAttributeValueByAttributeAndValue(Attribute attribute, String value );
 
     <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue );
 

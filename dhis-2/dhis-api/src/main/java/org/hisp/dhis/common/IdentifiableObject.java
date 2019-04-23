@@ -31,7 +31,6 @@ package org.hisp.dhis.common;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
@@ -69,13 +68,7 @@ public interface IdentifiableObject
 
     Set<AttributeValue> getAttributeValues();
 
-    Set<JsonAttributeValue> getJsonAttributeValues();
-
-    void addAttributeValue( AttributeValue attributeValue );
-
     void setAttributeValues( Set<AttributeValue> attributeValues );
-
-    void removeAttributeValue( Attribute attribute );
 
     Set<Translation> getTranslations();
     

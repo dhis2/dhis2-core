@@ -28,13 +28,12 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -42,10 +41,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -358,15 +354,15 @@ public class DataElementStoreTest
         AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
 
-        dataElementA.addAttributeValue( attributeValueA );
-        dataElementB.addAttributeValue( attributeValueB );
-        dataElementC.addAttributeValue( attributeValueC );
+        dataElementA.setAttributeValues( Sets.newHashSet( attributeValueA ) );
+        dataElementB.setAttributeValues( Sets.newHashSet( attributeValueB ) );
+        dataElementC.setAttributeValues( Sets.newHashSet( attributeValueC ) );
 
         dataElementStore.save( dataElementA );
         dataElementStore.save( dataElementB );
         dataElementStore.save( dataElementC );
 
-        List<JsonAttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
+        List<AttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
         assertEquals( 3, values.size() );
     }
 
@@ -385,9 +381,9 @@ public class DataElementStoreTest
         AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
 
-        dataElementA.addAttributeValue( attributeValueA );
-        dataElementB.addAttributeValue( attributeValueB );
-        dataElementC.addAttributeValue( attributeValueC );
+        dataElementA.setAttributeValues( Sets.newHashSet( attributeValueA ) );
+        dataElementB.setAttributeValues( Sets.newHashSet( attributeValueB ) );
+        dataElementC.setAttributeValues( Sets.newHashSet( attributeValueC ) );
 
         dataElementStore.save( dataElementA );
         dataElementStore.save( dataElementB );
@@ -400,13 +396,13 @@ public class DataElementStoreTest
         assertNotNull( deA );
         assertNotNull( deB );
         assertNotNull( deC );
-        assertEquals( 1, deA.getJsonAttributeValues().size() );
-        assertEquals( 1, deB.getJsonAttributeValues().size() );
-        assertEquals( 1, deC.getJsonAttributeValues().size() );
-        assertEquals( "SOME VALUE", deA.getJsonAttributeValues().iterator().next().getValue() );
-        assertEquals( "SOME VALUE", deB.getJsonAttributeValues().iterator().next().getValue() );
+        assertEquals( 1, deA.getAttributeValues().size() );
+        assertEquals( 1, deB.getAttributeValues().size() );
+        assertEquals( 1, deC.getAttributeValues().size() );
+        assertEquals( "SOME VALUE", deA.getAttributeValues().iterator().next().getValue() );
+        assertEquals( "SOME VALUE", deB.getAttributeValues().iterator().next().getValue() );
 
-        List<JsonAttributeValue> values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "SOME VALUE" );
+        List<AttributeValue> values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "SOME VALUE" );
         assertEquals( 2, values.size() );
 
         values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "ANOTHER VALUE" );

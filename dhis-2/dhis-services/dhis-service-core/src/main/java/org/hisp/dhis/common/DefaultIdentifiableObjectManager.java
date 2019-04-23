@@ -38,7 +38,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -66,7 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
@@ -983,11 +981,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        List<JsonAttributeValue> jsonAttributeValues = store.getAttributeValueByAttribute( attribute );
-
-        return jsonAttributeValues.stream().map(
-                json -> new AttributeValue( json, getCachedAttribute( json.getAttribute() ) ) )
-                .collect( Collectors.toList() );
+        return store.getAttributeValueByAttribute( attribute );
     }
 
     @Override
@@ -1008,11 +1002,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        List<JsonAttributeValue> jsonAttributeValues = store.getAttributeValueByAttributeAndValue( attribute, value );
-
-        return jsonAttributeValues.stream().map(
-                json -> new AttributeValue( json, getCachedAttribute( json.getAttribute() ) ) )
-                .collect( Collectors.toList() );
+        return store.getAttributeValueByAttributeAndValue( attribute, value );
     }
 
     @Override
@@ -1064,9 +1054,16 @@ public class DefaultIdentifiableObjectManager
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
 
+    @Override
     public Attribute getCachedAttribute( String uid )
     {
         return ATTRIBUTE_CACHE.get( uid, key -> get( Attribute.class, uid ) );
+    }
+
+    @Override
+    public void updateCachedAttribute( Attribute attribute )
+    {
+        ATTRIBUTE_CACHE.put( attribute.getUid(), attribute );
     }
 
     @SuppressWarnings( "unchecked" )

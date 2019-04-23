@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.SetMap;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -134,6 +135,9 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Autowired
     private SystemService systemService;
+
+    @Autowired
+    private IdentifiableObjectManager manager;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -867,7 +871,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleAttributes( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, IdentifiableObject identifiableObject )
     {
         if ( identifiableObject == null ) return metadata;
-        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class, av.getAttribute() ) );
+        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class,  manager.getCachedAttribute( av.getAttribute() ) ) );
 
         return metadata;
     }

@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -148,8 +149,8 @@ public class DimensionalObjectUtilsTest
         AttributeValue avA = new AttributeValue( "AttributeValueA", atA );
         AttributeValue avB = new AttributeValue( "AttributeValueB", atA );
 
-        deA.addAttributeValue( avA );
-        deB.addAttributeValue( avB );
+        deA.setAttributeValues( Sets.newHashSet( avA ) );
+        deB.setAttributeValues( Sets.newHashSet( avB ) );
 
         List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
 

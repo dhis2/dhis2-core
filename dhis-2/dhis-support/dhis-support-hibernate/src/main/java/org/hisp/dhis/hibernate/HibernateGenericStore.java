@@ -29,7 +29,6 @@ package org.hisp.dhis.hibernate;
  */
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -38,8 +37,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -55,7 +52,6 @@ import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.attribute.JsonAttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -450,10 +446,10 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<JsonAttributeValue> getAttributeValueByAttribute( Attribute attribute )
+    public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<JsonAttributeValue> query = builder.createQuery( JsonAttributeValue.class );
+        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
         Root<T> root = query.from( getClazz() );
         query.select( root.get( "attributeValues" ) );
@@ -466,17 +462,17 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<JsonAttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
+    public List<AttributeValue> getAttributeValueByAttributeAndValue(Attribute attribute, String value )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<JsonAttributeValue> query = builder.createQuery( JsonAttributeValue.class );
+        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
         Root<T> root = query.from( getClazz() );
 
-        query.select( root.get( "jsonAttributeValues" ) );
+        query.select( root.get( "attributeValues" ) );
         query.where(
                 builder.and(
-                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "jsonAttributeValues" ), builder.literal("attribute" ) ), attribute.getUid() ),
-                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "jsonAttributeValues" ), builder.literal("value" ) ), value ))
+                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal("attribute" ) ), attribute.getUid() ),
+                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal("value" ) ), value ))
         );
 
         return getSession().createQuery( query ).list();
@@ -487,16 +483,16 @@ public class HibernateGenericStore<T>
     {
         Attribute attribute = getSession().get( Attribute.class, attributeValue.getAttribute() );
 
-        List<JsonAttributeValue> values = getAttributeValueByAttribute( attribute );
+        List<AttributeValue> values = getAttributeValueByAttribute( attribute );
 
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getJsonAttributeValues().contains( values.get( 0 ) ) );
+        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ) );
     }
 
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value )
     {
-        List<JsonAttributeValue> values = getAttributeValueByAttributeAndValue( attribute, value );
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getJsonAttributeValues().contains( values.get( 0 ) ) );
+        List<AttributeValue> values = getAttributeValueByAttributeAndValue( attribute, value );
+        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ) );
     }
 
     /**

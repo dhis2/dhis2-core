@@ -33,6 +33,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -93,6 +94,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private IdentifiableObjectManager objectManager;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
@@ -623,9 +627,9 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
         if ( schema.havePersistedProperty( "attributeValues" ) )
         {
             object.getAttributeValues().stream()
-                .filter( attributeValue -> attributeValue.getAttribute() != null && preheat.get( identifier, attributeValue.getAttribute() ) == null )
+                .filter( attributeValue -> attributeValue.getAttribute() != null &&  objectManager.getCachedAttribute( attributeValue.getAttribute() ) == null )
                 .forEach( attributeValue -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(), ErrorCode.E5002,
-                    identifier.getIdentifiersWithName( attributeValue.getAttribute() ), identifier.getIdentifiersWithName( object ), "attributeValues" ) ) );
+                    identifier.getIdentifiersWithName( objectManager.getCachedAttribute( attributeValue.getAttribute() ) ), identifier.getIdentifiersWithName( object ), "attributeValues" ) ) );
         }
 
         if ( schema.havePersistedProperty( "userGroupAccesses" ) )
@@ -853,7 +857,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             return errorReports;
         }
 
-        attributeValues.forEach( attributeValue -> mandatoryAttributes.remove( attributeValue.getAttribute().getUid() ) );
+        attributeValues.forEach( attributeValue -> mandatoryAttributes.remove( attributeValue.getAttribute() ) );
         mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att )
             .setMainId( att ).setErrorProperty( "value" ) ) );
 
@@ -918,7 +922,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
         attributeValues.forEach( attributeValue ->
         {
-            Attribute attribute = preheat.get( identifier, attributeValue.getAttribute() );
+            Attribute attribute = objectManager.getCachedAttribute( attributeValue.getAttribute() );
 
             if ( attribute == null || !attribute.isUnique() || StringUtils.isEmpty( attributeValue.getValue() ) )
             {

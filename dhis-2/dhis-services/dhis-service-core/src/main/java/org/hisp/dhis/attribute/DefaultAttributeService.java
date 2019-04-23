@@ -41,12 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -58,8 +53,10 @@ public class DefaultAttributeService
 {
     private static final Predicate<AttributeValue> SHOULD_DELETE_ON_UPDATE =
         ( attributeValue ) ->
-            attributeValue.getValue() == null && attributeValue.getAttribute().getValueType() == ValueType.TRUE_ONLY;
+            attributeValue.getValue() == null && attributeValue.getValueType() == ValueType.TRUE_ONLY.name();
 
+
+    private Map<String, Attribute> attributeMap = new HashMap<>();
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -163,15 +160,17 @@ public class DefaultAttributeService
     @Transactional
     public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
+        Attribute attribute = manager.getCachedAttribute( attributeValue.getAttribute() );
+
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
-            !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
+            !attribute.getSupportedClasses().contains( object.getClass() ) )
         {
             return;
         }
 
-        if ( attributeValue.getAttribute().isUnique() )
+        if ( attribute.isUnique() )
         {
-            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attributeValue.getAttribute(), attributeValue.getValue() );
+            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attribute, attributeValue.getValue() );
 
             if ( !values.isEmpty() )
             {
@@ -180,7 +179,7 @@ public class DefaultAttributeService
         }
 
         attributeValue.setAutoFields();
-        object.addAttributeValue( attributeValue );
+        object.getAttributeValues().add( attributeValue );
         manager.update( object );
     }
 
@@ -188,15 +187,17 @@ public class DefaultAttributeService
     @Transactional
     public <T extends IdentifiableObject> void updateAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
+        Attribute attribute = manager.getCachedAttribute( attributeValue.getAttribute() );
+
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
-            !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
+            !attribute.getSupportedClasses().contains( object.getClass() ) )
         {
             return;
         }
 
-        if ( attributeValue.getAttribute().isUnique() )
+        if ( attribute.isUnique() )
         {
-            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attributeValue.getAttribute(), attributeValue.getValue() );
+            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attribute, attributeValue.getValue() );
 
             if ( values.size() > 1 || (values.size() == 1 && !object.getAttributeValues().contains( values.get( 0 ) )) )
             {
@@ -205,16 +206,18 @@ public class DefaultAttributeService
         }
 
         attributeValue.setAutoFields();
-        object.removeAttributeValue( attributeValue.getAttribute() );
-        object.addAttributeValue( attributeValue );
+        object.setAttributeValues( object.getAttributeValues().stream()
+                .filter( av -> !av.getAttribute().equals( attribute.getUid() ) ).collect(Collectors.toSet() ) );
+
+        manager.update( object );
     }
 
     @Override
     @Transactional
     public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
-        object.getJsonAttributeValues()
-                .removeIf( a -> a.getAttribute() == attributeValue.getAttribute().getUid() );
+        object.getAttributeValues()
+                .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
         manager.update( object );
     }
 
@@ -249,7 +252,7 @@ public class DefaultAttributeService
 
         Map<String, AttributeValue> attributeValueMap = attributeValues.stream()
             .filter( SHOULD_DELETE_ON_UPDATE.negate() )
-            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av ) );
+            .collect( Collectors.toMap( av -> av.getAttribute(), av -> av ) );
 
         Iterator<AttributeValue> iterator = object.getAttributeValues().iterator();
 
@@ -259,13 +262,15 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = iterator.next();
 
-            if ( attributeValueMap.containsKey( attributeValue.getAttribute().getUid() ) )
-            {
-                AttributeValue av = attributeValueMap.get( attributeValue.getAttribute().getUid() );
+            Attribute attribute = manager.getCachedAttribute( attributeValue.getAttribute() );
 
-                if ( attributeValue.isUnique() )
+            if ( attributeValueMap.containsKey( attributeValue.getAttribute() ) )
+            {
+                AttributeValue av = attributeValueMap.get( attributeValue.getAttribute() );
+
+                if ( attribute.isUnique() )
                 {
-                    if ( manager.isAttributeValueUnique( object.getClass(), object, attributeValue.getAttribute(), av.getValue() ) )
+                    if ( manager.isAttributeValueUnique( object.getClass(), object, attribute, av.getValue() ) )
                     {
                         attributeValue.setValue( av.getValue() );
                     }
@@ -279,7 +284,7 @@ public class DefaultAttributeService
                     attributeValue.setValue( av.getValue() );
                 }
 
-                attributeValueMap.remove( attributeValue.getAttribute().getUid() );
+                attributeValueMap.remove( attributeValue.getAttribute() );
                 mandatoryAttributes.remove( attributeValue.getAttribute() );
             }
             else

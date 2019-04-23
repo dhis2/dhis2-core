@@ -154,6 +154,10 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, Attribute attribute, String value );
 
+    void updateCachedAttribute( Attribute attribute );
+
+    Attribute getCachedAttribute( String uid );
+
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );

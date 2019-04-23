@@ -62,7 +62,9 @@ public class AttributeValue
      */
     private Date lastUpdated;
 
-    private String attribute;
+    private String attributeId;
+
+    private transient Attribute attribute;
 
     private String value;
 
@@ -79,10 +81,11 @@ public class AttributeValue
         this.value = value;
     }
 
-    public AttributeValue( String value, String attribute )
+    public AttributeValue( String value, Attribute attribute )
     {
-        this( value );
-        this.attribute = attribute;
+        this.value = value;
+        this.attribute = attribute.getUid();
+        this.valueType = attribute.getValueType().name();
     }
 
     public void setAutoFields()

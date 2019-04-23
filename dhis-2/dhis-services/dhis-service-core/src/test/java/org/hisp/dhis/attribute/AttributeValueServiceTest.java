@@ -76,8 +76,8 @@ public class AttributeValueServiceTest
         attributeService.addAttribute( attribute1 );
         attributeService.addAttribute( attribute2 );
 
-        avA.setAttribute( attribute1 );
-        avB.setAttribute( attribute2 );
+        avA.setAttribute( attribute1.getUid() );
+        avB.setAttribute( attribute2.getUid() );
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -106,9 +106,9 @@ public class AttributeValueServiceTest
         DataElement deA = manager.get( DataElement.class, dataElementA.getUid() );
         DataElement deB = manager.get( DataElement.class, dataElementB.getUid() );
 
-        assertEquals( deA.getJsonAttributeValues().size(),  2 );
+        assertEquals( deA.getAttributeValues().size(),  2 );
         assertNotNull( deA.getAttributeValue( attribute1 ) );
-        assertEquals( deB.getJsonAttributeValues().size(), 2 );
+        assertEquals( deB.getAttributeValues().size(), 2 );
         assertNotNull( deB.getAttributeValue( attribute2 ) );
     }
 
@@ -138,7 +138,7 @@ public class AttributeValueServiceTest
 
         dataElementA = manager.get( DataElement.class, dataElementA.getUid() );
 
-        assertEquals( 0, dataElementA.getJsonAttributeValues().size() );
+        assertEquals( 0, dataElementA.getAttributeValues().size() );
     }
 
     @Test

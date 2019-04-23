@@ -39,13 +39,13 @@ import java.util.Set;
  */
 public class AttributeUtils
 {
-    public static Map<Long, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
+    public static Map<String, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
     {
-        Map<Long, String> attributeValuesMap = new HashMap<>();
+        Map<String, String> attributeValuesMap = new HashMap<>();
 
         for ( AttributeValue attributeValue : attributeValues )
         {
-            attributeValuesMap.put( attributeValue.getAttribute().getId(), attributeValue.getValue() );
+            attributeValuesMap.put( attributeValue.getAttribute(), attributeValue.getValue() );
         }
 
         return attributeValuesMap;
