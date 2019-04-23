@@ -28,39 +28,8 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -159,8 +128,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -773,13 +755,6 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime )
-    {
-        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        return eventStore.getEventCount( params, null );
-    }
-
-    @Override
     public int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore )
     {
         EventSearchParams params = new EventSearchParams();
@@ -789,16 +764,6 @@ public abstract class AbstractEventService
         params.setSkipChangedBefore( skipChangedBefore );
 
         return eventStore.getEventCount( params, null );
-    }
-
-    @Override
-    public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
-    {
-        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        Events anonymousEvents = new Events();
-        List<Event> events = eventStore.getEvents( params, null, Collections.emptyMap() );
-        anonymousEvents.setEvents( events );
-        return anonymousEvents;
     }
 
     @Override
@@ -817,15 +782,6 @@ public abstract class AbstractEventService
         List<Event> events = eventStore.getEvents( params, null, psdesWithSkipSyncTrue );
         anonymousEvents.setEvents( events );
         return anonymousEvents;
-    }
-
-    private EventSearchParams buildAnonymousEventsSearchParams( Date lastSuccessTime )
-    {
-        EventSearchParams params = new EventSearchParams();
-        params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        params.setLastUpdatedStartDate( lastSuccessTime );
-        params.setIncludeDeleted( true );
-        return params;
     }
 
     @Override
@@ -1389,15 +1345,15 @@ public abstract class AbstractEventService
             updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
         }
 
-        if ( importSummary.getConflicts().size() > 0 )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.incrementIgnored();
-        }
-        else
+        if ( importSummary.getConflicts().isEmpty() )
         {
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.incrementUpdated();
+        }
+        else
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
         }
 
         return importSummary;

@@ -28,22 +28,19 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
+
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
-import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,19 +49,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.mock.web.MockHttpServletResponse;
 
-import javax.servlet.http.HttpServletResponse;
-
-import static org.junit.Assert.*;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import com.google.common.collect.Lists;
 
 public class DeduplicationControllerTest
 {
-
     @Mock
     private DeduplicationService deduplicationService;
 

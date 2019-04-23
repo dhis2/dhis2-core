@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.synch;
+package org.hisp.dhis.system;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,42 +28,36 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * @author Lars Helge Overland
+ * Unit tests for {@link SystemInfo}.
+ *
+ * @author Volker Schmidt
  */
-public interface SynchronizationManager
+public class SystemInfoTest
 {
-    /**
-     * Executes data value push to remote server.
-     *
-     * @return an {@link ImportSummary}.
-     */
-    ImportSummary executeDataValuePush() throws WebMessageParseException;
+    private DatabaseInfo databaseInfo;
 
-    /**
-     * Executes CompleteDataSetRegistration data push to remote server.
-     *
-     * @return an {@link ImportSummary}
-     * @throws WebMessageParseException
-     */
-    ImportSummary executeCompleteDataSetRegistrationPush() throws WebMessageParseException;
+    private SystemInfo systemInfo;
 
-    /**
-     * Executes a meta data pull operation from remote server.
-     *
-     * @param url the URL to the remote server.
-     * @return an {@link ImportReport}.
-     */
-    ImportReport executeMetadataPull( String url );
+    @Before
+    public void setUp()
+    {
+        databaseInfo = new DatabaseInfo();
+        systemInfo = new SystemInfo();
 
-    /**
-     * Indicates the availability status of the remote server.
-     *
-     * @return the {@link AvailabilityStatus} of the remote server.
-     */
-    AvailabilityStatus isRemoteServerAvailable();
+        systemInfo.setDatabaseInfo( databaseInfo );
+    }
+
+    @Test
+    public void instance()
+    {
+        final SystemInfo si = systemInfo.instance();
+        Assert.assertNotSame( systemInfo, si );
+        Assert.assertNotSame( systemInfo.getDatabaseInfo(), si.getDatabaseInfo() );
+    }
 }
