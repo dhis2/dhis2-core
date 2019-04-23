@@ -1297,7 +1297,7 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter );
+        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
     }
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
