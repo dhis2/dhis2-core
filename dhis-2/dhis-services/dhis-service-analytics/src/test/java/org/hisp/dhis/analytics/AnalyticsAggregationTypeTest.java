@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,67 +26,36 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.analytics;
+
+import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.junit.Assert.*;
+
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
  */
-public enum AggregationType
+public class AnalyticsAggregationTypeTest
 {
-    SUM( "sum", true ),
-    AVERAGE( "avg", true ),
-    AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
-    LAST( "last", true ), // Sum org unit
-    LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
-    FIRST( "first", true ),
-    FIRST_AVERAGE_ORG_UNIT( "first_avg_org_unit", true ),
-    COUNT( "count", true ),
-    STDDEV( "stddev", true ),
-    VARIANCE( "variance", true ),
-    MIN( "min", true ),
-    MAX( "max", true ),
-    NONE( "none", true ), // Aggregatable for text only
-    CUSTOM( "custom", false ),
-    DEFAULT( "default", false );
 
-    private final String value;
-
-    private boolean aggregateable;
-    
-    AggregationType( String value )
+    @Test
+    public void verifyFromAggregationType()
     {
-        this.value = value;
+        assertAggregationType( fromAggregationType( AVERAGE_SUM_ORG_UNIT ), SUM, AVERAGE );
+        assertAggregationType( fromAggregationType( LAST ), SUM, LAST );
+        assertAggregationType( fromAggregationType( LAST_AVERAGE_ORG_UNIT ), AVERAGE, LAST );
+        assertAggregationType( fromAggregationType( FIRST ), SUM, FIRST );
+        assertAggregationType( fromAggregationType( FIRST_AVERAGE_ORG_UNIT ), AVERAGE, FIRST );
+        assertAggregationType( fromAggregationType( SUM ), SUM, SUM );
     }
 
-    AggregationType( String value, boolean aggregateable )
+    private void assertAggregationType( AnalyticsAggregationType analyticsAggregationType,
+        AggregationType aggregationType, AggregationType periodAggregationType )
     {
-        this.value = value;
-        this.aggregateable = aggregateable;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
-    public boolean isAverage()
-    {
-        return this == AVERAGE_SUM_ORG_UNIT || this == AVERAGE;
-    }
-    
-    public boolean isAggregateable()
-    {
-        return aggregateable;
-    }
-
-    public static AggregationType fromValue( String value )
-    {
-        for ( AggregationType type : AggregationType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
+        assertThat( analyticsAggregationType.getAggregationType(), is( aggregationType ) );
+        assertThat( analyticsAggregationType.getPeriodAggregationType(), is( periodAggregationType ) );
     }
 }

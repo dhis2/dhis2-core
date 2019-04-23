@@ -340,19 +340,32 @@ public class EventQueryPlannerTest
         }
     }
 
+
+
+    @Test
+    public void testPlanAggregateDataQueryFirstValue()
+    {
+        testPlanAggregateDataQueryFirstOrLastValue(AnalyticsAggregationType.FIRST);
+    }
+
     @Test
     public void testPlanAggregateDataQueryLastValue()
     {
+        testPlanAggregateDataQueryFirstOrLastValue(AnalyticsAggregationType.LAST);
+    }
+
+    private void testPlanAggregateDataQueryFirstOrLastValue(AnalyticsAggregationType analyticsAggregationType)
+    {
         DataQueryParams dataQueryParams = DataQueryParams.newBuilder()
-            .withProgramDataElements( getList( pdeA ) )
-            .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ) ) )
-            .withAggregationType( AnalyticsAggregationType.LAST ).build();
-        
+                .withProgramDataElements( getList( pdeA ) )
+                .withOrganisationUnits( getList( ouA ) )
+                .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ) ) )
+                .withAggregationType( analyticsAggregationType ).build();
+
         EventQueryParams params = EventQueryParams.fromDataQueryParams( dataQueryParams );
-        
+
         List<EventQueryParams> queries = queryPlanner.planAggregateQuery( params );
-        
+
         assertEquals( 4, queries.size() );
 
         for ( EventQueryParams query : queries )

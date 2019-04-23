@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics.data;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,11 +44,15 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * @author Lars Helge Overland
@@ -64,6 +67,15 @@ public class AnalyticsManagerTest
 
         private AnalyticsManager analyticsManager;
 
+        @Mock
+        private QueryPlanner queryPlanner;
+
+        @Mock
+        private JdbcTemplate jdbcTemplate;
+
+        @Rule
+        public MockitoRule mockitoRule = MockitoJUnit.rule();
+        
         @Parameterized.Parameter
         public String financialYear;
 
@@ -80,7 +92,7 @@ public class AnalyticsManagerTest
         @Before
         public void setUp()
         {
-            analyticsManager = new JdbcAnalyticsManager( mock( QueryPlanner.class ), mock( JdbcTemplate.class ) );
+            analyticsManager = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate);
         }
 
         @Test
@@ -118,11 +130,19 @@ public class AnalyticsManagerTest
 
     public static class SingleExecution {
 
+        @Mock
+        private QueryPlanner queryPlanner;
+
+        @Mock
+        private JdbcTemplate jdbcTemplate;
+
+        @Rule
+        public MockitoRule mockitoRule = MockitoJUnit.rule();
+        
         @Test
         public void testReplaceDataPeriodsWithAggregationPeriods()
         {
-            AnalyticsManager analyticsManager = new JdbcAnalyticsManager( mock( QueryPlanner.class ),
-                mock( JdbcTemplate.class ) );
+            AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
             Period y2012 = createPeriod( "2012" );
 
             AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(

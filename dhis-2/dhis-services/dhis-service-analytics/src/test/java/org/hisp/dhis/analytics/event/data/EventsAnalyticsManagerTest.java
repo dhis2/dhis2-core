@@ -28,6 +28,7 @@
 
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,6 +54,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -72,6 +75,9 @@ public class EventsAnalyticsManagerTest
     @Mock
     private ProgramIndicatorService programIndicatorService;
 
+    @Captor
+    private ArgumentCaptor<String> sql;
+
     private JdbcEventAnalyticsManager subject;
 
     @Mock
@@ -82,8 +88,6 @@ public class EventsAnalyticsManagerTest
     @Before
     public void setUp()
     {
-        mockRowSet();
-
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
 
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService );
@@ -95,7 +99,8 @@ public class EventsAnalyticsManagerTest
     @Test
     public void verifyGetAggregatedEventQuery()
     {
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
+        mockRowSet();
+
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
         Grid resultGrid = subject.getAggregatedEventData( createRequestParams( ValueType.INTEGER ), createGrid(),
@@ -117,7 +122,8 @@ public class EventsAnalyticsManagerTest
     @Test
     public void verifyGetAggregatedEventQueryWithFilter()
     {
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
+        mockRowSet();
+
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
         Grid resultGrid = subject.getAggregatedEventData( createRequestParamsWithFilter( ValueType.TEXT ), createGrid(),
@@ -137,9 +143,45 @@ public class EventsAnalyticsManagerTest
         assertThat( sql.getValue(), is( expected ) );
     }
 
+    @Test
+    public void verifyFirstAggregationTypeSubquery()
+    {
+        verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType.FIRST );
+    }
+
+    @Test
+    public void verifyLastAggregationTypeSubquery()
+    {
+        verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType.LAST );
+    }
+
+
+    private void verifyFirstOrLastAggregationTypeSubquery(AnalyticsAggregationType analyticsAggregationType)
+    {
+        DataElement programDataElement = createDataElement( 'U' );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParamsWithFilter( ValueType.TEXT ) )
+            .withValue( programDataElement )
+            .withAggregationType( analyticsAggregationType )
+            .withAggregateData( true ).build();
+
+        subject.getAggregatedEventData( params, createGrid(), 200000 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expectedLastSubquery = " from (select \"yearly\",\"" + programDataElement.getUid()
+            + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
+            + "row_number() over (partition by ou, ao order by iax.\"executiondate\" "
+            + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
+            + "from analytics_event_ebayegv0exc iax where iax.\"executiondate\" >= '1990-03-31' "
+            + "and iax.\"executiondate\" <= '2000-03-31' and \"" + programDataElement.getUid() + "\" is not null)";
+
+        assertThat( sql.getValue(), containsString( expectedLastSubquery ) );
+
+    }
+
     private EventQueryParams createRequestParamsWithFilter( ValueType queryItemValueType )
     {
-
         EventQueryParams.Builder params = new EventQueryParams.Builder( createRequestParams( queryItemValueType ) );
         QueryItem queryItem = params.build().getItems().get( 0 );
         queryItem.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
@@ -149,7 +191,7 @@ public class EventsAnalyticsManagerTest
 
     private EventQueryParams createRequestParams( ValueType queryItemValueType )
     {
-        DataElement deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
+        DataElement deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
         deA.setUid( "fWIAEtYVEGk" );
 
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -162,9 +204,9 @@ public class EventsAnalyticsManagerTest
         params.withOrganisationUnits( getList( ouA ) );
         params.withTableName( "analytics_event_ebayegv0exc" );
 
-        Program p = createProgram( 'A' );
-        params.withProgram( p );
-        this.programStage = createProgramStage( 'B', p );
+        Program p = createProgram('P');
+        params.withProgram(p);
+        this.programStage = createProgramStage( 'B', p);
         params.withProgramStage( programStage );
 
         QueryItem queryItem = new QueryItem( dio );

@@ -310,9 +310,9 @@ public class JdbcEventAnalyticsManager
     {
         String sql = " from ";
 
-        if ( params.isAggregateData() && params.hasValueDimension() && params.getAggregationTypeFallback().isLastPeriodAggregationType() )
+        if ( params.isAggregateData() && params.hasValueDimension() && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
         {
-            sql += getLastValueSubquerySql( params );
+            sql += getFirstOrLastValueSubquerySql( params );
         }
         else
         {
@@ -532,7 +532,7 @@ public class JdbcEventAnalyticsManager
         // Period rank restriction to get last value only
         // ---------------------------------------------------------------------
 
-        if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
+        if ( params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
@@ -546,16 +546,17 @@ public class JdbcEventAnalyticsManager
      * org unit and attribute option combo. A column {@code pe_rank} defines the rank.
      * Only data for the last 10 years relative to the period end date is included.
      */
-    private String getLastValueSubquerySql( EventQueryParams params )
+    private String getFirstOrLastValueSubquerySql(EventQueryParams params )
     {
         Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
 
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         String valueItem = quote( params.getValue().getDimensionItem() );
-        List<String> columns = getLastValueSubqueryQuotedColumns( params );
-        String alias = getPeriodAlias( params );
+        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        String alias = "iax";
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
+        String sqlOrderClause = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         String sql = "(select ";
 
@@ -567,8 +568,8 @@ public class JdbcEventAnalyticsManager
         sql +=
             "row_number() over (" +
                 "partition by ou, ao " +
-                "order by " + timeCol + " desc) as pe_rank " +
-            "from " + params.getTableName() + " " +
+                "order by " + timeCol + " " + sqlOrderClause +") as pe_rank " +
+            "from " + params.getTableName() + " " + alias + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
             "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
             "and " + valueItem + " is not null)";
@@ -581,7 +582,7 @@ public class JdbcEventAnalyticsManager
      * The period dimension is replaced by the name of the single period in the given
      * query.
      */
-    private List<String> getLastValueSubqueryQuotedColumns( EventQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns(EventQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
