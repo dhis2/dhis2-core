@@ -34,15 +34,12 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcOperations;
 
 import javax.annotation.Nonnull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -68,15 +65,16 @@ public class HibernateDatabaseInfoProvider
     // -------------------------------------------------------------------------
 
     private final DhisConfigurationProvider config;
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcOperations jdbcTemplate;
     private final Environment environment;
 
-    public HibernateDatabaseInfoProvider( DhisConfigurationProvider config, JdbcTemplate jdbcTemplate,
+    public HibernateDatabaseInfoProvider( DhisConfigurationProvider config, JdbcOperations jdbcTemplate,
         Environment environment )
     {
         checkNotNull( config );
         checkNotNull( jdbcTemplate );
         checkNotNull( environment );
+
         this.config = config;
         this.jdbcTemplate = jdbcTemplate;
         this.environment = environment;

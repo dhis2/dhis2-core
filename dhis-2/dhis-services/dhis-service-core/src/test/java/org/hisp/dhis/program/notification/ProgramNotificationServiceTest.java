@@ -91,31 +91,28 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
-    private ProgramInstanceStore programInstanceStore;
-
-    @Mock
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private ProgramMessageService programMessageService;
 
     @Mock
     private MessageService messageService;
 
     @Mock
-    private ProgramMessageService programMessageService;
-
-    @Mock
-    private IdentifiableObjectManager manager;
-
-    @Mock
     private ProgramInstanceStore programInstanceStore;
 
     @Mock
     private ProgramStageInstanceStore programStageInstanceStore;
+
+    @Mock
+    private IdentifiableObjectManager manager;
 
     @Mock
     private NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
 
     @Mock
     private NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
+
+    @Mock
+    private ProgramNotificationTemplateStore notificationTemplateStore;
 
     private DefaultProgramNotificationService programNotificationService;
 
@@ -165,7 +162,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
             this.messageService, this.programInstanceStore, this.programStageInstanceStore, this.manager,
-            this.programNotificationRenderer, this.programStageNotificationRenderer );
+            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateStore );
 
         setUpInstances();
 

@@ -60,7 +60,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 

@@ -49,7 +49,6 @@ import org.springframework.stereotype.Component;
 /**
  * @author Henning Håkonsen
  */
-@Component( "twoFactorAuthenticationProvider" )
 public class TwoFactorAuthenticationProvider
     extends DaoAuthenticationProvider
 {
