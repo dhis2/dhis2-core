@@ -28,11 +28,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.jobs.MetadataRetryContext;
@@ -52,6 +47,11 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Performs the tasks before metadata sync happens
@@ -106,7 +106,7 @@ public class MetadataSyncPreProcessor
         }
     }
 
-    public void handleTrackerDataPush( MetadataRetryContext context )
+    public void handleTrackerProgramsDataPush( MetadataRetryContext context )
     {
         SynchronizationResult trackerSynchronizationResult = trackerSync.syncTrackerProgramData();
 
@@ -117,7 +117,7 @@ public class MetadataSyncPreProcessor
         }
     }
 
-    public void handleEventDataPush( MetadataRetryContext context )
+    public void handleEventProgramsDataPush( MetadataRetryContext context )
     {
         SynchronizationResult eventsSynchronizationResult = eventSync.syncEventProgramData();
 

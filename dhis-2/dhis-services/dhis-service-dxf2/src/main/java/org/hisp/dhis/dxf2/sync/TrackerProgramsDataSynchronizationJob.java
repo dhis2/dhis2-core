@@ -29,55 +29,40 @@ package org.hisp.dhis.dxf2.sync;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David Katuscak
  */
-public class ProgramDataSynchronizationJob extends AbstractJob
+public class TrackerProgramsDataSynchronizationJob extends AbstractJob
 {
-    private static final Log log = LogFactory.getLog( ProgramDataSynchronizationJob.class );
+    private static final Log log = LogFactory.getLog( TrackerProgramsDataSynchronizationJob.class );
 
     private final Notifier notifier;
     private final MessageService messageService;
     private final TrackerSynchronization trackerSync;
-    private final EventSynchronization eventSync;
 
-    @Autowired
-    public ProgramDataSynchronizationJob( Notifier notifier, MessageService messageService, TrackerSynchronization trackerSync, EventSynchronization eventSync )
+    public TrackerProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService, TrackerSynchronization trackerSync )
     {
         this.notifier = notifier;
         this.messageService = messageService;
         this.trackerSync = trackerSync;
-        this.eventSync = eventSync;
     }
 
 
-    @Override public JobType getJobType()
+    @Override
+    public JobType getJobType()
     {
-        return JobType.PROGRAM_DATA_SYNC;
+        return JobType.TRACKER_PROGRAMS_DATA_SYNC;
     }
 
-    @Override public void execute( JobConfiguration jobConfiguration )
+    @Override
+    public void execute( JobConfiguration jobConfiguration ) throws Exception
     {
-        try
-        {
-            eventSync.syncEventProgramData();
-            notifier.notify( jobConfiguration, "Event programs data sync successful" );
-        }
-        catch ( Exception e )
-        {
-            log.error( "EventPrograms data sync failed.", e );
-            notifier.notify( jobConfiguration, "Event sync failed: " + e.getMessage() );
-            messageService.sendSystemErrorNotification( "Event sync failed", e );
-        }
-
         try
         {
             trackerSync.syncTrackerProgramData();
@@ -85,15 +70,9 @@ public class ProgramDataSynchronizationJob extends AbstractJob
         }
         catch ( Exception e )
         {
-            log.error( "TrackerPrograms data sync failed.", e );
-            notifier.notify( jobConfiguration, "TrackerPrograms data sync failed: " + e.getMessage() );
-            messageService.sendSystemErrorNotification( "TrackerProgram data sync failed", e );
+            log.error( "Tracker programs data sync failed.", e );
+            notifier.notify( jobConfiguration, "Tracker programs data sync failed: " + e.getMessage() );
+            messageService.sendSystemErrorNotification( "Tracker programs data sync failed", e );
         }
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return super.validate();
     }
 }

@@ -242,20 +242,23 @@ public class DefaultExpressionService
         return null;
     }
 
-    // -------------------------------------------------------------------------
-    // Expression logic
-    // -------------------------------------------------------------------------
-
     @Override
-    public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression )
+    public ExpressionValidationOutcome indicatorExpressionIsValid( String expression )
     {
-        Set<DimensionalItemId> itemIds = getExpressionDimensionalItemIds( expression );
+        try
+        {
+            getIndicatorExpressionDescription( expression );
 
-        return dimensionService.getDataDimensionalItemObjects( itemIds );
+            return ExpressionValidationOutcome.VALID;
+        }
+        catch ( IllegalStateException e )
+        {
+            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
+        }
     }
 
     @Override
-    public String getExpressionDescription( String expression )
+    public String getIndicatorExpressionDescription( String expression )
     {
         if ( expression == null )
         {
@@ -278,6 +281,18 @@ public class DefaultExpressionService
         }
 
         return description;
+    }
+
+    // -------------------------------------------------------------------------
+    // Expression logic
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression )
+    {
+        Set<DimensionalItemId> itemIds = getExpressionDimensionalItemIds( expression );
+
+        return dimensionService.getDataDimensionalItemObjects( itemIds );
     }
 
     @Override
@@ -617,7 +632,19 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public ExpressionValidationOutcome expressionIsValid( String expression )
+    public ExpressionValidationOutcome predictorExpressionIsValid( String expression )
+    {
+        return expressionIsValid( expression, true );
+    }
+
+    @Override
+    @Transactional
+    public ExpressionValidationOutcome validationRuleExpressionIsValid( String expression )
+    {
+        return expressionIsValid( expression, false );
+    }
+
+    private ExpressionValidationOutcome expressionIsValid( String expression, boolean customFunctions )
     {
         if ( expression == null || expression.isEmpty() )
         {
@@ -697,7 +724,7 @@ public class DefaultExpressionService
         // Well-formed expression
         // ---------------------------------------------------------------------
 
-        if ( MathUtils.expressionHasErrors( expression ) )
+        if ( MathUtils.expressionHasErrors( expression, customFunctions ) )
         {
             return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
         }
