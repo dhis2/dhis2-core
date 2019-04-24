@@ -10,8 +10,10 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +21,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -56,8 +56,8 @@ public class DashboardControllerV2
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, HttpServletResponse response )
-        throws WebMessageException, IOException
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException
     {
         Dashboard dashboard = dashboardService.getDashboard( dashboardId );
 
@@ -66,6 +66,6 @@ public class DashboardControllerV2
             throw new WebMessageException( WebMessageUtils.notFound( "Dashboard not found for uid: " + dashboardId ) );
         }
 
-        return exportService.getMetadataWithDependenciesAsNode( dashboard );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
     }
 }

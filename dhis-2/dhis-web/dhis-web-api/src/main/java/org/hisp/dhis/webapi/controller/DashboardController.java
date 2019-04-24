@@ -1,9 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.common.DhisApiVersion;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +28,7 @@ import org.hisp.dhis.common.DhisApiVersion;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
@@ -43,11 +42,13 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.DashboardItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DashboardSchemaDescriptor;
+import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -58,7 +59,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -293,7 +293,7 @@ public class DashboardController
         {
             if ( item.getContentCount() == 0 && dashboard.getItems().remove( item ) )
             {
-                dashboardService.deleteDashboardItem( item ); // Delete if empty                
+                dashboardService.deleteDashboardItem( item ); // Delete if empty
             }
 
             dashboardService.updateDashboard( dashboard );
@@ -307,8 +307,8 @@ public class DashboardController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, HttpServletResponse response )
-        throws WebMessageException, IOException
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String dashboardId, @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException
     {
         Dashboard dashboard = dashboardService.getDashboard( dashboardId );
 
@@ -317,9 +317,9 @@ public class DashboardController
             throw new WebMessageException( WebMessageUtils.notFound( "Dashboard not found for uid: " + dashboardId ) );
         }
 
-        return exportService.getMetadataWithDependenciesAsNode( dashboard );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dashboard, download );
     }
-    
+
     // -------------------------------------------------------------------------
     // Hooks
     // -------------------------------------------------------------------------
