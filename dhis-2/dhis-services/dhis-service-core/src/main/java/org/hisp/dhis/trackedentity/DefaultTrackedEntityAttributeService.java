@@ -44,8 +44,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -64,7 +62,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultTrackedEntityAttributeService
     implements TrackedEntityAttributeService
 {
-    private static final Logger log = LoggerFactory.getLogger( DefaultTrackedEntityAttributeService.class );
     private static final int VALUE_MAX_LENGTH = 50000;
 
     private static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(

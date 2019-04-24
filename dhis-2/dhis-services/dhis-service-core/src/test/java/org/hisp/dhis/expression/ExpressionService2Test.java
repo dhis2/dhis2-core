@@ -75,8 +75,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class ExpressionService2Test {
-
+public class ExpressionService2Test
+{
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
     @Mock
@@ -377,7 +377,6 @@ public class ExpressionService2Test {
     @Test
     public void testGetDataElementsInExpression()
     {
-
         when( dataElementService.getDataElement( opA.getDimensionItem().split( "\\." )[0] ) )
                 .thenReturn( opA.getDataElement() );
         when( dataElementService.getDataElement( opB.getDimensionItem().split( "\\." )[0] ) )
@@ -424,7 +423,6 @@ public class ExpressionService2Test {
                         allOf( hasProperty( "dataElement", is( deB) ),
                                 hasProperty( "categoryOptionCombo", is( coc ) ),
                                 hasProperty( "attributeOptionCombo", is(nullValue()) ) ) ) );
-
     }
 
     @Test
@@ -526,46 +524,49 @@ public class ExpressionService2Test {
         when( dimensionService.getDataDimensionalItemObject( deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() ) ).thenReturn( deA );
         when( dimensionService.getDataDimensionalItemObject( deB.getUid() + SEPARATOR + cocA.getUid() ) ).thenReturn( deB );
 
-        assertTrue( target.expressionIsValid( expressionA ).isValid() );
-        assertTrue( target.expressionIsValid( expressionB ).isValid() );
-        assertTrue( target.expressionIsValid( expressionC ).isValid() );
-        assertTrue( target.expressionIsValid( expressionD ).isValid() );
-        assertTrue( target.expressionIsValid( expressionE ).isValid() );
-        assertTrue( target.expressionIsValid( expressionH ).isValid() );
-        assertTrue( target.expressionIsValid( expressionK ).isValid() );
-        assertTrue( target.expressionIsValid( expressionL ).isValid() );
-        assertTrue( target.expressionIsValid( expressionM ).isValid() );
-        assertTrue( target.expressionIsValid( expressionN ).isValid() );
-        assertTrue( target.expressionIsValid( expressionR ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionA ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionB ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionC ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionD ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionE ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionH ).isValid() );
+        assertFalse( target.validationRuleExpressionIsValid( expressionK ).isValid() );
+        assertFalse( target.validationRuleExpressionIsValid( expressionL ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionM ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionN ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionR ).isValid() );
+
+        assertTrue( target.predictorExpressionIsValid( expressionK ).isValid() );
+        assertTrue( target.predictorExpressionIsValid( expressionL ).isValid() );
 
         String expression = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
 
-        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "#{" + deA.getUid() + SEPARATOR + "999} + 12";
 
         assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target
-                .expressionIsValid( expression ) );
+                .validationRuleExpressionIsValid( expression ) );
 
         expression = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "} + ( 12";
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "12 x 4";
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "1.5*AVG(" + target;
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "12 + C{nonExisting}";
 
-        assertEquals( ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "12 + OUG{nonExisting}";
 
-        assertEquals( ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
     }
 
     @Test
@@ -616,7 +617,6 @@ public class ExpressionService2Test {
 
         Map<String, Integer> orgUnitCountMap = new HashMap<>();
         orgUnitCountMap.put( groupA.getUid(), groupA.getMembers().size() );
-
 
         assertEquals( "12.0+34.0", target.generateExpression( expressionA, valueMap, constantMap, null, null, null ) );
         assertEquals( "12.0+5", target.generateExpression( expressionD, valueMap, constantMap, null, 5, null ) );

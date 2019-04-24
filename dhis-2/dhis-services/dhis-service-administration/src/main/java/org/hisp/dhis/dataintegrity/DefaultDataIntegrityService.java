@@ -347,7 +347,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator() );
+            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getNumerator() );
 
             if ( !result.isValid() )
             {
@@ -366,7 +366,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator() );
+            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getDenominator() );
 
             if ( !result.isValid() )
             {
@@ -540,7 +540,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getLeftSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() );
 
             if ( !result.isValid() )
             {
@@ -559,7 +559,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getRightSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() );
 
             if ( !result.isValid() )
             {

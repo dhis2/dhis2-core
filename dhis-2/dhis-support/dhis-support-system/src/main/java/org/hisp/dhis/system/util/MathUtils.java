@@ -101,7 +101,7 @@ public class MathUtils
      */
     public static boolean expressionIsTrue( String expression )
     {
-        final JEP parser = getJep();
+        final JEP parser = getJep( true );
         parser.parseExpression( expression );
 
         return isEqual( parser.getValue(), 1.0 );
@@ -126,7 +126,7 @@ public class MathUtils
      */
     public static Object calculateGenericExpression( String expression )
     {
-        final JEP parser = getJep();
+        final JEP parser = getJep( true );
         parser.parseExpression( expression );
 
         Object result = parser.getValueAsObject();
@@ -136,7 +136,7 @@ public class MathUtils
 
     private static double calculateExpressionInternal( String expression )
     {
-        final JEP parser = getJep();
+        final JEP parser = getJep( true );
         parser.parseExpression( expression );
 
         return parser.getValue();
@@ -158,11 +158,12 @@ public class MathUtils
      * Investigates whether the expression is valid or has errors.
      *
      * @param expression The expression to validate.
+     * @param customFunctions whether to include custom functions.
      * @return True if the expression has errors, false otherwise.
      */
-    public static boolean expressionHasErrors( String expression )
+    public static boolean expressionHasErrors( String expression, boolean customFunctions )
     {
-        final JEP parser = getJep();
+        final JEP parser = getJep( customFunctions );
         parser.parseExpression( expression );
 
         return parser.hasError();
@@ -177,7 +178,7 @@ public class MathUtils
      */
     public static String getExpressionErrorInfo( String expression )
     {
-        final JEP parser = getJep();
+        final JEP parser = getJep( true );
         parser.parseExpression( expression );
 
         return parser.getErrorInfo();
@@ -186,11 +187,14 @@ public class MathUtils
     /**
      * Returns an JEP parser instance.
      */
-    private static JEP getJep()
+    private static JEP getJep( boolean customFunctions )
     {
         final JEP parser = new JEP();
         parser.addStandardFunctions();
-        CustomFunctions.addFunctions( parser );
+        if ( customFunctions )
+        {
+            CustomFunctions.addFunctions( parser );
+        }
         return parser;
     }
 

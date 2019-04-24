@@ -161,28 +161,6 @@ public interface ProgramIndicatorService
     void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions );
 
     /**
-     * Gets the program indicator expression as an analytics SQL clause.
-     * Ignores missing numeric values for data elements and attributes.
-     *
-     * @param programIndicator the program indicator to evaluate.
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return the SQL string.
-     */
-    String getExpressionAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate );
-
-    /**
-     * Gets the program indicator filter as an analytics SQL clause.
-     * Does not ignore missing numeric values for data elements and attributes.
-     *
-     * @param programIndicator the program indicator to evaluate.
-     * @param startDate the start date.
-     * @param endDate the end date.
-     * @return the SQL string.
-     */
-    String getFilterAnalyticsSql( ProgramIndicator programIndicator, Date startDate, Date endDate );
-
-    /**
      * Gets the the analytics SQL clause of an expression.
      * Does not ignore missing numeric values for data elements and attributes.
      *
@@ -192,7 +170,7 @@ public interface ProgramIndicatorService
      * @param endDate the end date.
      * @return the SQL string.
      */
-    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, boolean ignoreMissingValues );
+    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate );
 
     /**
      * Returns a SQL clause which matches any value for the data elements and

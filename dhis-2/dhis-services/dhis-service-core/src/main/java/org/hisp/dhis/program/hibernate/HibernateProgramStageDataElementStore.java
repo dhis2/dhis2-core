@@ -28,21 +28,20 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
 import org.springframework.jdbc.core.RowCallbackHandler;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Viet Nguyen
@@ -79,11 +78,7 @@ public class HibernateProgramStageDataElementStore
                 String programStageUid = rs.getString( "ps_uid" );
                 String dataElementUid = rs.getString( "de_uid" );
 
-                if ( psdesWithSkipSync.get( programStageUid ) == null ) {
-                    psdesWithSkipSync.put( programStageUid, new HashSet<>() );
-                }
-
-                psdesWithSkipSync.get( programStageUid ).add( dataElementUid );
+                psdesWithSkipSync.computeIfAbsent( programStageUid, p -> new HashSet<>() ).add( dataElementUid );
             }
         } );
 
