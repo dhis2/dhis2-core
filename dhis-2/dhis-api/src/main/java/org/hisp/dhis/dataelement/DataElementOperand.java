@@ -224,6 +224,33 @@ public class DataElementOperand
         return shortName;
     }
 
+    @Override
+    public String getDisplayName()
+    {
+        String displayName = null;
+
+        if ( dataElement != null )
+        {
+            displayName = dataElement.getDisplayName();
+        }
+
+        if ( hasNonDefaultCategoryOptionCombo() )
+        {
+            displayName += SPACE + categoryOptionCombo.getDisplayName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayName += SPACE + SYMBOL_WILDCARD;
+        }
+
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayName += SPACE + attributeOptionCombo.getDisplayName();
+        }
+
+        return displayName;
+    }
+
     /**
      * Creates a {@link DataElementOperand} instance from the given identifiers.
      *
