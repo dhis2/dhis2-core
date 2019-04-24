@@ -35,10 +35,9 @@ import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.db.migration.helper.DataTypeUtils;
 import org.hisp.dhis.scheduling.JobType;
+import org.springframework.util.SerializationUtils;
 
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -101,14 +100,12 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
             }
 
             jobTypeByteMap.forEach( ( id, jobTypeByteArray ) -> {
-                JobType jobType = null;
-                try {
-                    jobType = (JobType) DataTypeUtils.toObject( jobTypeByteArray );
-                }
-                catch ( IOException | ClassNotFoundException e )
+
+                JobType jobType = (JobType) SerializationUtils.deserialize( jobTypeByteArray );
+                if ( jobType == null )
                 {
-                    log.error( "Flyway java migration error:", e );
-                    throw new FlywayException( e );
+                    log.error( "Flyway java migration error: Parsing JobType byte array failed." );
+                    throw new FlywayException( "Parsing JobType byte array failed." );
                 }
 
                 try ( PreparedStatement ps = context.getConnection().prepareStatement(

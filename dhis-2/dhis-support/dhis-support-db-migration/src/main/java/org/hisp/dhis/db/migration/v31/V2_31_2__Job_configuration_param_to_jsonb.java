@@ -8,12 +8,13 @@ import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-import org.hisp.dhis.db.migration.helper.DataTypeUtils;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
 import org.postgresql.util.PGobject;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -98,8 +99,8 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
             JobType jobType = null;
             try
             {
-                jParaB = DataTypeUtils.toObject( jobParamByteArray );
-                jobType = (JobType) DataTypeUtils.toObject( jobTypeByteMap.get( id ) );
+                jParaB = toObject( jobParamByteArray );
+                jobType = (JobType) toObject( jobTypeByteMap.get( id ) );
             }
             catch ( IOException | ClassNotFoundException e )
             {
@@ -130,6 +131,25 @@ public class V2_31_2__Job_configuration_param_to_jsonb extends BaseJavaMigration
         {
             stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN IF EXISTS jobparameters" );
         }
+    }
+
+    private Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        Object obj;
+        ByteArrayInputStream bis = null;
+        ObjectInputStream ois = null;
+        try {
+            bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+            if (ois != null) {
+                ois.close();
+            }
+        }
+        return obj;
     }
 
     /**
