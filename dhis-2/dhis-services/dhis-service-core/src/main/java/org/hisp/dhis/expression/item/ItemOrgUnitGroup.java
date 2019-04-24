@@ -28,8 +28,8 @@ package org.hisp.dhis.expression.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.expression.ExpressionExprVisitor;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
@@ -44,7 +44,7 @@ public class ItemOrgUnitGroup
     extends ExpressionItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         OrganisationUnitGroup orgUnitGroup = visitor.getOrganisationUnitGroupService().getOrganisationUnitGroup( ctx.uid0.getText() );
 
@@ -59,7 +59,7 @@ public class ItemOrgUnitGroup
     }
 
     @Override
-    public Object getOrgUnitGroup( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         visitor.getOrgUnitGroupIds().add( ctx.uid0.getText() );
 
@@ -67,7 +67,7 @@ public class ItemOrgUnitGroup
     }
 
     @Override
-    public Object evaluate( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         Integer count = visitor.getOrgUnitCountMap().get( ctx.uid0.getText() );
 

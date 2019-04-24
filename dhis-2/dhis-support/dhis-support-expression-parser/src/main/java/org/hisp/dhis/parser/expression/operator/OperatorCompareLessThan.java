@@ -28,7 +28,7 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
@@ -40,13 +40,13 @@ public class OperatorCompareLessThan
     extends OperatorCompare
 {
     @Override
-    public Object evaluate( ExprContext ctx, ExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return compare( ctx, visitor ) < 0;
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return visitor.castStringVisit( ctx.expr( 0 ) )
             + " < " + visitor.castStringVisit( ctx.expr( 1 ) );

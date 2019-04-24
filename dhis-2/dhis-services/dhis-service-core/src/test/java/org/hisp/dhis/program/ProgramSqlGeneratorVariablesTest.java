@@ -36,6 +36,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
@@ -109,7 +110,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Mock
     private RelationshipTypeService relationshipTypeService;
 
-    private ProgramIndicatorExprVisitor subject;
+    private CommonExpressionVisitor subject;
 
     @Mock
     private ParserRuleContext parserRuleContext;
@@ -350,10 +351,20 @@ public class ProgramSqlGeneratorVariablesTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        this.subject = new ProgramIndicatorExprVisitor( PROGRAM_INDICATOR_FUNCTIONS,
-            PROGRAM_INDICATOR_ITEMS, FUNCTION_GET_SQL, ITEM_GET_SQL, programIndicatorService,
-            constantService, programStageService, dataElementService, attributeService,
-            relationshipTypeService, statementBuilder, new I18n( null, null ) );
+        this.subject = CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
+            .withItemMap( PROGRAM_INDICATOR_ITEMS )
+            .withFunctionMethod( FUNCTION_GET_SQL )
+            .withItemMethod( ITEM_GET_SQL )
+            .withConstantService( constantService )
+            .withProgramIndicatorService( programIndicatorService )
+            .withProgramStageService( programStageService )
+            .withDataElementService( dataElementService )
+            .withAttributeService( attributeService )
+            .withRelationshipTypeService( relationshipTypeService )
+            .withStatementBuilder( statementBuilder )
+            .withI18n( new I18n( null, null ) )
+            .buildForProgramIndicatorExpressions();
 
         subject.setExpressionLiteral( new SqlLiteral() );
         subject.setProgramIndicator( programIndicator );

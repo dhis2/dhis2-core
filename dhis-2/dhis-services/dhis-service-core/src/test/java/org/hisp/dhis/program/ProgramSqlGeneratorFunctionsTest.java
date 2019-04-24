@@ -38,6 +38,7 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.Parser;
 import org.hisp.dhis.parser.expression.ParserException;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
@@ -394,15 +395,26 @@ public class ProgramSqlGeneratorFunctionsTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        ProgramIndicatorExprVisitor visitor = new ProgramIndicatorExprVisitor( PROGRAM_INDICATOR_FUNCTIONS,
-            PROGRAM_INDICATOR_ITEMS, FUNCTION_GET_SQL, ITEM_GET_SQL, programIndicatorService,
-            constantService, programStageService, dataElementService, attributeService,
-            relationshipTypeService, statementBuilder, new I18n( null, null ) );
+        CommonExpressionVisitor visitor = CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
+            .withItemMap( PROGRAM_INDICATOR_ITEMS )
+            .withFunctionMethod( FUNCTION_GET_SQL )
+            .withItemMethod( ITEM_GET_SQL )
+            .withConstantService( constantService )
+            .withProgramIndicatorService( programIndicatorService )
+            .withProgramStageService( programStageService )
+            .withDataElementService( dataElementService )
+            .withAttributeService( attributeService )
+            .withRelationshipTypeService( relationshipTypeService )
+            .withStatementBuilder( statementBuilder )
+            .withI18n( new I18n( null, null ) )
+            .buildForProgramIndicatorExpressions();
 
         visitor.setExpressionLiteral( new SqlLiteral() );
         visitor.setProgramIndicator( programIndicator );
         visitor.setReportingStartDate( startDate );
         visitor.setReportingEndDate( endDate );
+        visitor.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
         return castString( Parser.visit( expression, visitor ) );
     }

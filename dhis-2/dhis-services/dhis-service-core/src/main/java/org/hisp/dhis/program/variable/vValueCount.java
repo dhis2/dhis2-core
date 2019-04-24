@@ -29,7 +29,7 @@ package org.hisp.dhis.program.variable;
  */
 
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -42,7 +42,7 @@ public class vValueCount
     extends ProgramDoubleVariable
 {
     @Override
-    public Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         String sql = "nullif(cast((";
 

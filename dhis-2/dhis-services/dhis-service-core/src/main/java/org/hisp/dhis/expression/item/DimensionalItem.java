@@ -30,7 +30,7 @@ package org.hisp.dhis.expression.item;
 
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.expression.ExpressionExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
@@ -45,7 +45,7 @@ public abstract class DimensionalItem
     extends ExpressionItem
 {
     @Override
-    public final Object getDescription( ItemContext ctx, ExpressionExprVisitor visitor )
+    public final Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         DimensionalItemId itemId = getDimensionalItemId( ctx );
 
@@ -62,7 +62,7 @@ public abstract class DimensionalItem
     }
 
     @Override
-    public final Object getItemId( ItemContext ctx, ExpressionExprVisitor visitor )
+    public final Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         visitor.getItemIds().add( getDimensionalItemId( ctx ) );
 
@@ -70,13 +70,13 @@ public abstract class DimensionalItem
     }
 
     @Override
-    public final Object getOrgUnitGroup( ItemContext ctx, ExpressionExprVisitor visitor )
+    public final Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         return DOUBLE_VALUE_IF_NULL;
     }
 
     @Override
-    public final Object evaluate( ItemContext ctx, ExpressionExprVisitor visitor )
+    public final Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         return visitor.getItemValue( getId( ctx ) );
     }

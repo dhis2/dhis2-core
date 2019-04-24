@@ -28,7 +28,7 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +50,7 @@ public abstract class FunctionGreatestOrLeast
      * @param greatestLeast 1.0 for greatest, -1.0 for least.
      * @return the greatest or least value.
      */
-    protected Double greatestOrLeast( List<ExprContext> contexts, ExprVisitor visitor, double greatestLeast )
+    protected Double greatestOrLeast( List<ExprContext> contexts, CommonExpressionVisitor visitor, double greatestLeast )
     {
         List<Double> values = contexts.stream()
             .map( c -> visitor.castDoubleVisit( c ) )

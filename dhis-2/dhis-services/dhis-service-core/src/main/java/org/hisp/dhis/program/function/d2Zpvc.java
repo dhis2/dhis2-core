@@ -29,12 +29,13 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_VALUE;
 
 /**
  * Program indicator function: d2 zpvc, Zero or Positive Value Count
@@ -42,10 +43,10 @@ import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_V
  * @author Jim Grace
  */
 public class d2Zpvc
-    extends ProgramFunction
+    extends AbstractExpressionFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         ctx.item().stream().forEach( i -> castDouble( visitor.visit( i ) ) );
 
@@ -53,7 +54,7 @@ public class d2Zpvc
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         String sql = "nullif(cast((";
 

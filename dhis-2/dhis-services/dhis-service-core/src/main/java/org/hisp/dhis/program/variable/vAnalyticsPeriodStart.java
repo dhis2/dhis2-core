@@ -28,7 +28,7 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.util.DateUtils;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -42,7 +42,7 @@ public class vAnalyticsPeriodStart
     extends ProgramDateVariable
 {
     @Override
-    public Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return visitor.getStatementBuilder().encode( DateUtils.getSqlDateString( visitor.getReportingStartDate() ) );
     }

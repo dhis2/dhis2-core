@@ -29,8 +29,9 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
 
 import java.util.Date;
 
@@ -42,11 +43,11 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public abstract class ProgramCountFunction
-    extends ProgramFunction
+    extends AbstractExpressionFunction
 {
 
     @Override
-    public final Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public final Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
@@ -81,5 +82,5 @@ public abstract class ProgramCountFunction
      * @param visitor the program indicator expression tree visitor
      * @return the conditional part of the SQL
      */
-    public abstract String getConditionSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor );
+    public abstract String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor );
 }

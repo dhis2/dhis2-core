@@ -28,9 +28,8 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
-import org.hisp.dhis.program.function.ProgramFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -40,16 +39,16 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class vProgramStageId
-    extends ProgramFunction
+    extends ProgramVariable
 {
     @Override
-    public final Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return "WZbXY0S00lP";
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return AnalyticsType.EVENT == visitor.getProgramIndicator().getAnalyticsType() ? "ps" : "''";
     }

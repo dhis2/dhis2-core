@@ -45,5 +45,5 @@ public interface ExprItemMethod
      * @param ctx the second function argument
      * @return the function result
      */
-    Object apply( ExprItem item, ItemContext ctx, ExprVisitor visitor );
+    Object apply( ExprItem item, ItemContext ctx, CommonExpressionVisitor visitor );
 }

@@ -44,7 +44,7 @@ public interface ExprItem
      * @param visitor the tree visitor
      * @return a dummy value for the item (of the right type)
      */
-    Object getDescription( ItemContext ctx, ExprVisitor visitor );
+    Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor );
 
     /**
      * Collects the item id for later database lookup
@@ -54,7 +54,7 @@ public interface ExprItem
      * @param visitor the tree visitor
      * @return a dummy value for the item
      */
-    Object getItemId( ItemContext ctx, ExprVisitor visitor );
+    Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor );
 
     /**
      * Collects the organisation unit group for which we will need counts
@@ -64,7 +64,7 @@ public interface ExprItem
      * @param visitor the tree visitor
      * @return a dummy value for the item
      */
-    Object getOrgUnitGroup( ItemContext ctx, ExprVisitor visitor );
+    Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor );
 
     /**
      * Returns the database value of the item
@@ -74,7 +74,7 @@ public interface ExprItem
      * @param visitor the tree visitor
      * @return a dummy value (of the right type) for the item
      */
-    Object evaluate( ItemContext ctx, ExprVisitor visitor );
+    Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor );
 
     /**
      * Generates SQL for an expression item
@@ -84,5 +84,5 @@ public interface ExprItem
      * @param visitor the tree visitor
      * @return the generated SQL (as a String) for the function
      */
-    Object getSql( ItemContext ctx, ExprVisitor visitor );
+    Object getSql( ItemContext ctx, CommonExpressionVisitor visitor );
 }

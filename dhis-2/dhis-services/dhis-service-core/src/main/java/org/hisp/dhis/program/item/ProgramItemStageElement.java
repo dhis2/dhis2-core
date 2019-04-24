@@ -30,8 +30,8 @@ package org.hisp.dhis.program.item;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
@@ -46,7 +46,7 @@ public class ProgramItemStageElement
     extends ProgramItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         assumeStageElementSyntax( ctx );
 
@@ -59,7 +59,7 @@ public class ProgramItemStageElement
     }
 
     @Override
-    public Object getSql( ItemContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         assumeStageElementSyntax( ctx );
 

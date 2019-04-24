@@ -277,11 +277,11 @@ public class DefaultExpressionService
             return "";
         }
 
-        ExpressionExprVisitor expressionExprVisitor = newExpressionExprVisitor( FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS );
 
-        visit ( expression, expressionExprVisitor, false );
+        visit( expression, visitor, false );
 
-        Map<String, String> itemDescriptions = expressionExprVisitor.getItemDescriptions();
+        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
 
         String description = expression;
 
@@ -301,9 +301,9 @@ public class DefaultExpressionService
             return new HashSet<>();
         }
 
-        ExpressionExprVisitor visitor = newExpressionExprVisitor( FUNCTION_EVALUATE, ITEM_GET_IDS );
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_IDS );
 
-        visit ( expression, visitor, true );
+        visit( expression, visitor, true );
 
         return visitor.getItemIds();
     }
@@ -316,9 +316,9 @@ public class DefaultExpressionService
             return new HashSet<>();
         }
 
-        ExpressionExprVisitor visitor = newExpressionExprVisitor( FUNCTION_EVALUATE, ITEM_GET_ORG_UNIT_GROUPS );
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS );
 
-        visit ( expression, visitor, true );
+        visit( expression, visitor, true );
 
         Set<String> orgUnitGroupIds = visitor.getOrgUnitGroupIds();
 
@@ -340,9 +340,13 @@ public class DefaultExpressionService
             return null;
         }
 
-        ExpressionExprVisitor expressionExprVisitor = newExpressionExprVisitor( FUNCTION_EVALUATE_CONDITIONAL, ITEM_EVALUATE );
+        CommonExpressionVisitor expressionExprVisitor = newVisitor(
+            FUNCTION_EVALUATE, ITEM_EVALUATE );
 
-        expressionExprVisitor.setValueMap( valueMap );
+        Map<String, Double> keyValueMap = valueMap.entrySet().stream().collect(
+            Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
+
+        expressionExprVisitor.setKeyValueMap( keyValueMap );
         expressionExprVisitor.setConstantMap( constantMap );
         expressionExprVisitor.setOrgUnitCountMap( orgUnitCountMap );
 
@@ -387,14 +391,20 @@ public class DefaultExpressionService
     /**
      * Creates a new ExpressionItemsVisitor object.
      */
-    private ExpressionExprVisitor newExpressionExprVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    private CommonExpressionVisitor newVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
     {
-        return new ExpressionExprVisitor( COMMON_EXPRESSION_FUNCTIONS, EXPRESSION_ITEMS,
-            functionMethod, itemMethod, dimensionService,
-            organisationUnitGroupService, constantService );
+        return CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( COMMON_EXPRESSION_FUNCTIONS )
+            .withItemMap( EXPRESSION_ITEMS )
+            .withFunctionMethod( functionMethod )
+            .withItemMethod( itemMethod )
+            .withConstantService( constantService )
+            .withDimensionService( dimensionService )
+            .withOrganisationUnitGroupService( organisationUnitGroupService )
+            .buildForExpressions();
     }
 
-    private Double visit( String expression, ExpressionExprVisitor visitor, boolean logWarnings )
+    private Double visit( String expression, CommonExpressionVisitor visitor, boolean logWarnings )
     {
         try
         {

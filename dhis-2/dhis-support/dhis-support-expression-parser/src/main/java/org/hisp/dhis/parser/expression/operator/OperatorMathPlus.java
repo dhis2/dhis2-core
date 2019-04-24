@@ -28,7 +28,7 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -42,7 +42,7 @@ public class OperatorMathPlus
     extends AbstractExpressionFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         if ( ctx.expr().size() == 1 ) // Unary plus operator
         {
@@ -56,7 +56,7 @@ public class OperatorMathPlus
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         if ( ctx.expr().size() == 1 ) // Unary plus operator
         {

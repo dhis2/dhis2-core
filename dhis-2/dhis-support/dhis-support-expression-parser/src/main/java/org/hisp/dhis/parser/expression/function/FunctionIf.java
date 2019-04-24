@@ -28,7 +28,8 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExprFunction;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -39,10 +40,18 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class FunctionIf
-    extends AbstractExpressionFunction
+    implements ExprFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return visitor.castBooleanVisit( ctx.expr( 0 ) )
+            ? visitor.visit( ctx.expr( 1 ) )
+            : visitor.visit( ctx.expr( 2 ) );
+    }
+
+    @Override
+    public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
         Object arg1 = visitor.visit( ctx.expr( 1 ) );
@@ -57,15 +66,7 @@ public class FunctionIf
     }
 
     @Override
-    public Object evaluateConditional( ExprContext ctx, ExprVisitor visitor )
-    {
-        return visitor.castBooleanVisit( ctx.expr( 0 ) )
-            ? visitor.visit( ctx.expr( 1 ) )
-            : visitor.visit( ctx.expr( 2 ) );
-    }
-
-    @Override
-    public Object getSql( ExprContext ctx, ExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return " case when " + visitor.castStringVisit( ctx.expr( 0 ) ) +
             " then " + visitor.castStringVisit( ctx.expr( 1 ) ) +

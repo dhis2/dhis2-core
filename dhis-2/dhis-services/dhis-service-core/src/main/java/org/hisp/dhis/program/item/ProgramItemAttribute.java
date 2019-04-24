@@ -28,8 +28,8 @@ package org.hisp.dhis.program.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -45,7 +45,7 @@ public class ProgramItemAttribute
     extends ProgramItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         assumeProgramExpressionProgramAttribute( ctx );
 
@@ -64,7 +64,7 @@ public class ProgramItemAttribute
     }
 
     @Override
-    public Object getSql( ItemContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         assumeProgramExpressionProgramAttribute( ctx );
 

@@ -28,7 +28,7 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.InternalParserException;
 import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
@@ -49,7 +49,7 @@ public abstract class OperatorCompare
      * @param ctx expr context
      * @return the results of the comparision.
      */
-    protected int compare( ExprContext ctx, ExprVisitor visitor )
+    protected int compare( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Object o1 = visitor.visit( ctx.expr( 0 ) );
         Object o2 = visitor.visit( ctx.expr( 1 ) );

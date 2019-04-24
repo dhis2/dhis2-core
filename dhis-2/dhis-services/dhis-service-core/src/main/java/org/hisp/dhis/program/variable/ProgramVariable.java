@@ -28,9 +28,8 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -43,21 +42,13 @@ public abstract class ProgramVariable
     extends AbstractExpressionFunction
 {
     @Override
-    public final Object evaluate( ExprContext ctx, ExprVisitor visitor )
+    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ProgramIndicatorExprVisitor piVisitor = (ProgramIndicatorExprVisitor) visitor;
+        String variableName = visitor.getI18n().getString( ctx.fun.getText() );
 
-        String variableName = piVisitor.getI18n().getString( ctx.fun.getText() );
+        visitor.getItemDescriptions().put( ctx.getText(), variableName );
 
-        piVisitor.getItemDescriptions().put( ctx.getText(), variableName );
-
-        return evaluate( ctx, piVisitor );
-    }
-
-    @Override
-    public final Object getSql( ExprContext ctx, ExprVisitor visitor )
-    {
-        return getSql( ctx, (ProgramIndicatorExprVisitor) visitor );
+        return evaluateProgramVariable( ctx, visitor );
     }
 
     /**
@@ -68,14 +59,5 @@ public abstract class ProgramVariable
      * @param visitor the program indicator expression tree visitor
      * @return the value of the variable
      */
-    public abstract Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor );
-
-    /**
-     * Generates SQL for a program indicator variable.
-     *
-     * @param ctx the expression context
-     * @param visitor the program indicator expression tree visitor
-     * @return the generated SQL (as a String) for the variable
-     */
-    public abstract Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor );
+    public abstract Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor );
 }

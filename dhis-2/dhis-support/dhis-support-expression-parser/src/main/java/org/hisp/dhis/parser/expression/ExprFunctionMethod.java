@@ -45,5 +45,5 @@ public interface ExprFunctionMethod
      * @param ctx the expression context
      * @return the function result
      */
-    Object apply( ExprFunction function, ExprContext ctx, ExprVisitor visitor );
+    Object apply( ExprFunction function, ExprContext ctx, CommonExpressionVisitor visitor );
 }

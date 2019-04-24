@@ -28,7 +28,7 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
@@ -42,13 +42,13 @@ public class FunctionIsNotNull
     extends AbstractExpressionFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return visitor.visitAllowingNulls( ctx.item( 0 ) ) != null;
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return castString( visitor.visitAllowingNulls( ctx.item( 0 ) ) ) + " is not null";
     }

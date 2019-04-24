@@ -28,16 +28,21 @@ package org.hisp.dhis.expression.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.expression.ExpressionExprVisitor;
 import org.hisp.dhis.parser.expression.ExprItem;
-import org.hisp.dhis.parser.expression.ExprVisitor;
-import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.InternalParserException;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
 /**
  * Parsed expression item as handled by the expression service.
+ * <p/>
+ * When getting item id and org unit group, just return default values
+ * (because not every item implements these, only those that need to.)
+ * <p/>
+ * Throw an exception if getSql is called, because this is not expected
+ * for items in the expression service.
  *
  * @author Jim Grace
  */
@@ -45,75 +50,20 @@ public abstract class ExpressionItem
     implements ExprItem
 {
     @Override
-    public final Object getDescription( ItemContext ctx, ExprVisitor visitor )
-    {
-        return getDescription( ctx, (ExpressionExprVisitor) visitor );
-    }
-
-    @Override
-    public final Object getItemId( ItemContext ctx, ExprVisitor visitor )
-    {
-        return getItemId( ctx, (ExpressionExprVisitor) visitor );
-    }
-
-    @Override
-    public final Object getOrgUnitGroup( ItemContext ctx, ExprVisitor visitor )
-    {
-        return getOrgUnitGroup( ctx, (ExpressionExprVisitor) visitor );
-    }
-
-    @Override
-    public final Object evaluate( ItemContext ctx, ExprVisitor visitor )
-    {
-        return evaluate( ctx, (ExpressionExprVisitor) visitor );
-    }
-
-    @Override
-    public Object getSql( ItemContext ctx, ExprVisitor visitor )
-    {
-        throw new ParserExceptionWithoutContext( "Internal parsing error: getSql called for expression service item" );
-    }
-
-    /**
-     * Collects the description of an expression service expression item.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return a dummy value for the item (of the right type)
-     */
-    public abstract Object getDescription( ItemContext ctx, ExpressionExprVisitor visitor );
-
-    /**
-     * Collects the item id for later database lookup, for expresion service.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return a dummy value for the item
-     */
-    public Object getItemId( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         return DOUBLE_VALUE_IF_NULL;
     }
 
-    /**
-     * Collects the organisation unit group for which we will need counts
-     * for expression service expressions.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return a dummy value for the item
-     */
-    public Object getOrgUnitGroup( ItemContext ctx, ExpressionExprVisitor visitor )
+    @Override
+    public Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         return DOUBLE_VALUE_IF_NULL;
     }
 
-    /**
-     * Returns the database value of the expression service item.
-     *
-     * @param ctx the expression context
-     * @param visitor the tree visitor
-     * @return a dummy value (of the right type) for the item
-     */
-    public abstract Object evaluate( ItemContext ctx, ExpressionExprVisitor visitor );
+    @Override
+    public final Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
+    {
+        throw new InternalParserException( "getSql called for expression service item" );
+    }
 }

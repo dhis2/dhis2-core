@@ -28,10 +28,10 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_VALUE;
 
 /**
  * Program indicator double variable (uses default double for validity checking)
@@ -42,7 +42,7 @@ public abstract class ProgramDoubleVariable
     extends ProgramVariable
 {
     @Override
-    public final Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public final Object evaluateProgramVariable( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return DEFAULT_DOUBLE_VALUE;
     }

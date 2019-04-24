@@ -28,7 +28,8 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -38,10 +39,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class d2HasValue
-    extends ProgramFunction
+    extends AbstractExpressionFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         visitor.visit( ctx.item( 0 ) );
 
@@ -49,7 +50,7 @@ public class d2HasValue
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return "(" + visitor.visitAllowingNulls( ctx.item( 0 ) ) + " is not null)";
     }

@@ -30,7 +30,7 @@ package org.hisp.dhis.parser.expression.item;
 
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.parser.expression.ExprItem;
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
@@ -45,7 +45,7 @@ public class ItemConstant
     implements ExprItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, ExprVisitor visitor )
+    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         Constant constant = visitor.getConstantService().getConstant( ctx.uid0.getText() );
 
@@ -60,19 +60,19 @@ public class ItemConstant
     }
 
     @Override
-    public Object getItemId( ItemContext ctx, ExprVisitor visitor )
+    public Object getItemId( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         return DOUBLE_VALUE_IF_NULL;
     };
 
     @Override
-    public Object getOrgUnitGroup( ItemContext ctx, ExprVisitor visitor )
+    public Object getOrgUnitGroup( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         return DOUBLE_VALUE_IF_NULL;
     };
 
     @Override
-    public Object evaluate( ItemContext ctx, ExprVisitor visitor )
+    public Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         Double value = visitor.getConstantMap().get( ctx.uid0.getText() );
 
@@ -85,7 +85,7 @@ public class ItemConstant
     }
 
     @Override
-    public Object getSql( ItemContext ctx, ExprVisitor visitor )
+    public Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         String constantId = ctx.uid0.getText();
 

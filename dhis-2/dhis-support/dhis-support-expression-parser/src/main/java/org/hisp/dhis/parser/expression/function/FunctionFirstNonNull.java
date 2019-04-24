@@ -28,7 +28,8 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExprFunction;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 
 import java.util.List;
@@ -43,10 +44,25 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class FunctionFirstNonNull
-    extends AbstractExpressionFunction
+    implements ExprFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        for ( ExpressionParser.ItemNumStringLiteralContext c : ctx.itemNumStringLiteral() )
+        {
+            Object value = visitor.getItemNumStringLiteral( c );
+
+            if ( value != null )
+            {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         List<Object> values = ctx.itemNumStringLiteral().stream()
             .map( c -> visitor.getItemNumStringLiteral( c ) )
@@ -63,22 +79,7 @@ public class FunctionFirstNonNull
     }
 
     @Override
-    public Object evaluateConditional( ExprContext ctx, ExprVisitor visitor )
-    {
-        for ( ExpressionParser.ItemNumStringLiteralContext c : ctx.itemNumStringLiteral() )
-        {
-            Object value = visitor.getItemNumStringLiteral( c );
-
-            if ( value != null )
-            {
-                return value;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public Object getSql( ExprContext ctx, ExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return castString( visitor.getItemNumStringLiteral( ctx.itemNumStringLiteral( 0 ) ) ) + " is null";
     }

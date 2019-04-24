@@ -28,14 +28,15 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 import org.hisp.dhis.program.ProgramStage;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.ParserUtils.castDate;
 import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_VALUE;
 
 /**
  * Program indicator date/time between functions
@@ -43,10 +44,10 @@ import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_V
  * @author Jim Grace
  */
 public abstract class ProgramBetweenFunction
-    extends ProgramFunction
+    extends AbstractExpressionFunction
 {
     @Override
-    public final Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         validateDateArg( ctx.compareDate( 0 ), visitor );
         validateDateArg( ctx.compareDate( 1 ), visitor );
@@ -55,7 +56,7 @@ public abstract class ProgramBetweenFunction
     }
 
     @Override
-    public final Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public final Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         String startDate = getCompareDate( ctx.compareDate( 0 ), visitor );
         String endDate = getCompareDate( ctx.compareDate( 1 ), visitor );
@@ -82,7 +83,7 @@ public abstract class ProgramBetweenFunction
      * @param ctx program function compare date context
      * @param visitor the program indicator expression tree visitor
      */
-    private void validateDateArg( CompareDateContext ctx, ProgramIndicatorExprVisitor visitor )
+    private void validateDateArg( CompareDateContext ctx, CommonExpressionVisitor visitor )
     {
         if ( ctx.uid0 != null )
         {
@@ -115,7 +116,7 @@ public abstract class ProgramBetweenFunction
      * @param visitor the program indicator expression tree visitor
      * @return the resolved date
      */
-    private String getCompareDate( CompareDateContext ctx, ProgramIndicatorExprVisitor visitor )
+    private String getCompareDate( CompareDateContext ctx, CommonExpressionVisitor visitor )
     {
         if ( ctx.uid0 != null )
         {

@@ -29,15 +29,13 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.ExprFunction;
-import org.hisp.dhis.parser.expression.ExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression function.
- * <p/>
- * By default, evaluateConditional returns the same as evalutate. This can be
- * overridden when they should not be the same.
+ * Expression function for which evaluateAllPaths returns the same as
+ * evalutate.
  *
  * @author Jim Grace
  */
@@ -45,8 +43,8 @@ public abstract class AbstractExpressionFunction
     implements ExprFunction
 {
     @Override
-    public Object evaluateConditional( ExprContext ctx, ExprVisitor visitor )
+    public final Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return evaluate( ctx, visitor);
+        return evaluate( ctx, visitor );
     }
 }

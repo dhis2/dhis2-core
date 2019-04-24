@@ -28,7 +28,8 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
@@ -40,10 +41,10 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class d2Condition
-    extends ProgramFunction
+    extends AbstractExpressionFunction
 {
     @Override
-    public final Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         String testExpression = trimQuotes( ctx.stringLiteral().getText() );
 
@@ -58,7 +59,7 @@ public class d2Condition
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         String testExpression = trimQuotes( ctx.stringLiteral().getText() );
 

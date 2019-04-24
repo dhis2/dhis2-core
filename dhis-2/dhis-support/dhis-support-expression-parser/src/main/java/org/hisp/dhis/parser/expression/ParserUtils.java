@@ -89,15 +89,15 @@ public class ParserUtils
 
         .build();
 
-    public final static ExprFunctionMethod FUNCTION_EVALUATE = ( ExprFunction f, ExprContext c, ExprVisitor v ) -> f.evaluate( c, v );
-    public final static ExprFunctionMethod FUNCTION_EVALUATE_CONDITIONAL = ( ExprFunction f, ExprContext c, ExprVisitor v ) -> f.evaluateConditional( c, v );
-    public final static ExprFunctionMethod FUNCTION_GET_SQL = ( ExprFunction f, ExprContext c, ExprVisitor v ) -> f.getSql( c, v );
+    public final static ExprFunctionMethod FUNCTION_EVALUATE = ( ExprFunction f, ExprContext c, CommonExpressionVisitor v ) -> f.evaluate( c, v );
+    public final static ExprFunctionMethod FUNCTION_EVALUATE_ALL_PATHS = ( ExprFunction f, ExprContext c, CommonExpressionVisitor v ) -> f.evaluateAllPaths( c, v );
+    public final static ExprFunctionMethod FUNCTION_GET_SQL = ( ExprFunction f, ExprContext c, CommonExpressionVisitor v ) -> f.getSql( c, v );
 
-    public final static ExprItemMethod ITEM_GET_DESCRIPTIONS = ( ExprItem i, ItemContext c, ExprVisitor v ) -> i.getDescription( c, v );
-    public final static ExprItemMethod ITEM_GET_IDS = ( ExprItem i, ItemContext c, ExprVisitor v ) -> i.getItemId( c, v );
-    public final static ExprItemMethod ITEM_GET_ORG_UNIT_GROUPS = ( ExprItem i, ItemContext c, ExprVisitor v ) -> i.getOrgUnitGroup( c, v );
-    public final static ExprItemMethod ITEM_EVALUATE = ( ExprItem i, ItemContext c, ExprVisitor v ) -> i.evaluate( c, v );
-    public final static ExprItemMethod ITEM_GET_SQL = ( ExprItem i, ItemContext c, ExprVisitor v ) -> i.getSql( c, v );
+    public final static ExprItemMethod ITEM_GET_DESCRIPTIONS = ( ExprItem i, ItemContext c, CommonExpressionVisitor v ) -> i.getDescription( c, v );
+    public final static ExprItemMethod ITEM_GET_IDS = ( ExprItem i, ItemContext c, CommonExpressionVisitor v ) -> i.getItemId( c, v );
+    public final static ExprItemMethod ITEM_GET_ORG_UNIT_GROUPS = ( ExprItem i, ItemContext c, CommonExpressionVisitor v ) -> i.getOrgUnitGroup( c, v );
+    public final static ExprItemMethod ITEM_EVALUATE = ( ExprItem i, ItemContext c, CommonExpressionVisitor v ) -> i.evaluate( c, v );
+    public final static ExprItemMethod ITEM_GET_SQL = ( ExprItem i, ItemContext c, CommonExpressionVisitor v ) -> i.getSql( c, v );
 
     /**
      * Does an item of the form #{...} have the syntax of a

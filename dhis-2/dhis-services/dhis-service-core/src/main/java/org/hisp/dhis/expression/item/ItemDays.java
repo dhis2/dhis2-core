@@ -28,7 +28,7 @@ package org.hisp.dhis.expression.item;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.expression.ExpressionExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
 import static org.hisp.dhis.expression.ExpressionService.DAYS_DESCRIPTION;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
@@ -43,7 +43,7 @@ public class ItemDays
     extends ExpressionItem
 {
     @Override
-    public Object getDescription( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object getDescription( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         visitor.getItemDescriptions().put( ctx.getText(), DAYS_DESCRIPTION );
 
@@ -51,7 +51,7 @@ public class ItemDays
     }
 
     @Override
-    public Object evaluate( ItemContext ctx, ExpressionExprVisitor visitor )
+    public Object evaluate( ItemContext ctx, CommonExpressionVisitor visitor )
     {
         return visitor.getDays();
     }

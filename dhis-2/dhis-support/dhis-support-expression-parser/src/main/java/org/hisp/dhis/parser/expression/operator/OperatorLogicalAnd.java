@@ -28,8 +28,8 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.ExprVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExprFunction;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -39,10 +39,17 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class OperatorLogicalAnd
-    extends AbstractExpressionFunction
+    implements ExprFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return visitor.castBooleanVisit( ctx.expr( 0 ) )
+            && visitor.castBooleanVisit( ctx.expr( 1 ) );
+    }
+
+    @Override
+    public Object evaluateAllPaths( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
         Boolean arg1 = visitor.castBooleanVisit( ctx.expr( 1 ) );
@@ -51,14 +58,7 @@ public class OperatorLogicalAnd
     }
 
     @Override
-    public Object evaluateConditional( ExprContext ctx, ExprVisitor visitor )
-    {
-        return visitor.castBooleanVisit( ctx.expr( 0 ) )
-            && visitor.castBooleanVisit( ctx.expr( 1 ) );
-    }
-
-    @Override
-    public Object getSql( ExprContext ctx, ExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return visitor.castStringVisit( ctx.expr( 0 ) )
             + " and " + visitor.castStringVisit( ctx.expr( 1 ) );

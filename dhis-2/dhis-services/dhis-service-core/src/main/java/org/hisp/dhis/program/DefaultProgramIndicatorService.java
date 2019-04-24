@@ -261,7 +261,7 @@ public class DefaultProgramIndicatorService
     @Transactional(readOnly = true)
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
-        ProgramIndicatorExprVisitor visitor = newProgramIndicatorExprVisitor( FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
 
         castClass( clazz, Parser.visit( expression, visitor ) );
 
@@ -277,7 +277,7 @@ public class DefaultProgramIndicatorService
             return null;
         }
 
-        ProgramIndicatorExprVisitor visitor = newProgramIndicatorExprVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
 
         visitor.setExpressionLiteral( new SqlLiteral() );
         visitor.setProgramIndicator( programIndicator );
@@ -371,13 +371,22 @@ public class DefaultProgramIndicatorService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private ProgramIndicatorExprVisitor newProgramIndicatorExprVisitor(
-        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    private CommonExpressionVisitor newVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
     {
-        return new ProgramIndicatorExprVisitor( PROGRAM_INDICATOR_FUNCTIONS,
-            PROGRAM_INDICATOR_ITEMS, functionMethod, itemMethod, this,
-            constantService, programStageService, dataElementService, attributeService,
-            relationshipTypeService, statementBuilder, i18nManager.getI18n() );
+        return CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
+            .withItemMap( PROGRAM_INDICATOR_ITEMS )
+            .withFunctionMethod( functionMethod )
+            .withItemMethod( itemMethod )
+            .withConstantService( constantService )
+            .withProgramIndicatorService( this )
+            .withProgramStageService( programStageService )
+            .withDataElementService( dataElementService )
+            .withAttributeService( attributeService )
+            .withRelationshipTypeService( relationshipTypeService )
+            .withStatementBuilder( statementBuilder )
+            .withI18n( i18nManager.getI18n() )
+            .buildForProgramIndicatorExpressions();
     }
 
     private String getDescription( String expression, Class<?> clazz )

@@ -28,12 +28,13 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_VALUE;
 
 /**
  * Program indicator function: d2 zing, Zero If Negative
@@ -41,10 +42,10 @@ import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_V
  * @author Jim Grace
  */
 public class d2Zing
-    extends ProgramFunction
+    extends AbstractExpressionFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         castDouble( visitor.visit( ctx.expr( 0 ) ) );
 
@@ -52,7 +53,7 @@ public class d2Zing
     }
 
     @Override
-    public Object getSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return "greatest(0," + castString( visitor.visit( ctx.expr( 0 ) ) ) + ")";
     }

@@ -28,10 +28,10 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramIndicatorExprVisitor;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.program.ProgramIndicatorExprVisitor.DEFAULT_DOUBLE_VALUE;
 
 /**
  * Program indicator function: d2 count
@@ -42,7 +42,7 @@ public class d2Count
     extends ProgramCountFunction
 {
     @Override
-    public Object evaluate( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         visitor.validateStageDataElement( ctx.getText(),
             ctx.stageDataElement().uid0.getText(),
@@ -52,7 +52,7 @@ public class d2Count
     }
 
     @Override
-    public String getConditionSql( ExprContext ctx, ProgramIndicatorExprVisitor visitor )
+    public String getConditionSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
         return " is not null";
     }
