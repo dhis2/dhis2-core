@@ -47,6 +47,8 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.ibm.icu.impl.Assert;
+
 @Category( IntegrationTest.class )
 public class ProgramStageInstanceFilterTest extends IntegrationTestBase
 {
@@ -55,15 +57,8 @@ public class ProgramStageInstanceFilterTest extends IntegrationTestBase
     private ProgramStageInstanceFilterService psiFilterService;
 
     @Autowired
-    private ProgramStageInstanceFilterStore psiFilterStore;
-
-    @Autowired
     private ProgramService programService;
 
-    @Autowired
-    private UserService userService;
-
-    private CurrentUserService currentUserService;
 
     private Program programA;
 
@@ -72,11 +67,6 @@ public class ProgramStageInstanceFilterTest extends IntegrationTestBase
     @Override
     public void setUpTest()
     {
-        super.userService = this.userService;
-        User user = createUser( "testUser" );
-        currentUserService = new MockCurrentUserService( user );
-        setDependency( psiFilterStore, "currentUserService", currentUserService );
-
         programA = createProgram( 'A' );
         programB = createProgram( 'B' );
 
@@ -91,104 +81,21 @@ public class ProgramStageInstanceFilterTest extends IntegrationTestBase
         return true;
     }
 
-    @Test
-    public void testAddEventFilter()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        long id = psiFilterService.add( psiFilter );
-
-        assertNotNull( id );
-        assertEquals( psiFilter, psiFilterService.get( id ) );
-    }
-
-    @Test
-    public void testGetEventFilterByUid()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        long id = psiFilterService.add( psiFilter );
-
-        assertNotNull( id );
-        assertEquals( psiFilter, psiFilterService.get( psiFilter.getUid() ) );
-    }
-
-    @Test
-    public void testGetAllEventFilters()
-    {
-        ProgramStageInstanceFilter psif1 = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        ProgramStageInstanceFilter psif2 = createProgramStageInstanceFilter( '2', programB.getUid(), null );
-        ProgramStageInstanceFilter psif3 = createProgramStageInstanceFilter( '3', programA.getUid(), null );
-
-        psiFilterService.add( psif1 );
-        psiFilterService.add( psif2 );
-        psiFilterService.add( psif3 );
-
-        List<ProgramStageInstanceFilter> list = psiFilterService.getAll( null );
-
-        assertEquals( 3, list.size() );
-        assertTrue( list.contains( psif1 ) );
-        assertTrue( list.contains( psif2 ) );
-        assertTrue( list.contains( psif3 ) );
-    }
-
-    @Test
-    public void testGetAllEventFiltersByProgram()
-    {
-        ProgramStageInstanceFilter psif1 = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        ProgramStageInstanceFilter psif2 = createProgramStageInstanceFilter( '2', programB.getUid(), null );
-        ProgramStageInstanceFilter psif3 = createProgramStageInstanceFilter( '3', programA.getUid(), null );
-
-        psiFilterService.add( psif1 );
-        psiFilterService.add( psif2 );
-        psiFilterService.add( psif3 );
-
-        List<ProgramStageInstanceFilter> list = psiFilterService.getAll( programA.getUid() );
-
-        assertEquals( 2, list.size() );
-        assertTrue( list.contains( psif1 ) );
-        assertTrue( list.contains( psif3 ) );
-    }
-
-    @Test
-    public void testUpdateEventFilter()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        long id = psiFilterService.add( psiFilter );
-
-        assertNotNull( id );
-        assertEquals( psiFilter, psiFilterService.get( id ) );
-        assertEquals( programA.getUid(), psiFilterService.get( psiFilter.getUid() ).getProgram() );
-
-        psiFilter.setProgram( programB.getUid() );
-
-        psiFilterService.update( psiFilter );
-        assertEquals( programB.getUid(), psiFilterService.get( psiFilter.getUid() ).getProgram() );
-    }
-
-    @Test
-    public void testDeleteEventFilter()
-    {
-        ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', programA.getUid(), null );
-        long id = psiFilterService.add( psiFilter );
-
-        assertNotNull( id );
-        assertEquals( psiFilter, psiFilterService.get( psiFilter.getUid() ) );
-
-        psiFilterService.delete( psiFilter );
-        assertNull( psiFilterService.get( psiFilter.getUid() ) );
-    }
-
-    @Test( expected = IllegalQueryException.class )
-    public void testAddInvalidEventFilterWithMissingProgram()
+    public void testValidatenvalidEventFilterWithMissingProgram()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', null, null );
-        psiFilterService.add( psiFilter );
+        List<String> errors = psiFilterService.validate( psiFilter );
+        
+        assertNotNull( errors );
+        assertEquals( 1 , errors.size() );
     }
 
-    @Test( expected = IllegalQueryException.class )
-    public void testAddInvalidEventFilterWithInvalidProgram()
+    public void testValidateInvalidEventFilterWithInvalidProgram()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', "ABCDEF12345", null );
-        psiFilterService.add( psiFilter );
+        List<String> errors = psiFilterService.validate( psiFilter );
+        assertNotNull( errors );
+        assertEquals( 1 , errors.size() );
     }
 
     private static ProgramStageInstanceFilter createProgramStageInstanceFilter( char uniqueCharacter, String program, String programStage )

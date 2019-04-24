@@ -38,48 +38,6 @@ public interface ProgramStageInstanceFilterService
 {
     String ID = ProgramStageInstanceFilter.class.getName();
     
-    /** 
-     * Adds programStageInstanceFilter
-     * 
-     * @param programStageInstanceFilter
-     * @return id of added programStageInstanceFilter
-     */
-    long add( ProgramStageInstanceFilter programStageInstanceFilter );
-    
-    /**
-     * Deletes programStageInstanceFilter
-     * 
-     * @param programStageInstanceFilter
-     */
-    void delete( ProgramStageInstanceFilter programStageInstanceFilter );
-    
-    /**
-     * Updates programStageInstanceFilter
-     * 
-     * @param programStageInstanceFilter
-     */
-    void update( ProgramStageInstanceFilter programStageInstanceFilter );
-    
-    /**
-     * Gets programStageInstanceFilter using id
-     * @param id id of programStageInstanceFilter to be fetched
-     * @return programStageInstanceFilter
-     */
-    ProgramStageInstanceFilter get( long id );
-    
-    /**
-     * Gets programStageInstanceFilter using the uid
-     * @param uid uid of programStageInstanceFilter to be fetched
-     * @return programStageInstanceFilter
-     */
-    ProgramStageInstanceFilter get( String uid );
-    
-    /**
-     * Gets all programStageInstanceFilters
-     * If program is specified, eventFilters are filtered based on it.
-     * 
-     * @return list of programStageInstanceFilters
-     */
-    List<ProgramStageInstanceFilter> getAll( String program );
+    List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter );
     
 }
