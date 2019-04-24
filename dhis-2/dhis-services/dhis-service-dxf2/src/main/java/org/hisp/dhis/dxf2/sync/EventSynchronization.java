@@ -77,15 +77,15 @@ public class EventSynchronization
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
-            return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed. Remote server is unavailable." );
+            return SynchronizationResult.newFailureResultWithMessage( "Event programs data synchronization failed. Remote server is unavailable." );
         }
 
         // ---------------------------------------------------------------------
         // Set time for last success to start of process to make data saved
-        // subsequently part of next synch process without being ignored
+        // subsequently part of next sync process without being ignored
         // ---------------------------------------------------------------------
 
-        final Clock clock = new Clock( log ).startClock().logTime( "Starting anonymous event program data synchronization job." );
+        final Clock clock = new Clock( log ).startClock().logTime( "Starting Event programs data synchronization job." );
         final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         final int objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount( skipChangedBefore );
 
@@ -94,23 +94,32 @@ public class EventSynchronization
         if ( objectsToSynchronize == 0 )
         {
             log.info( "Skipping synchronization, no new or updated events found" );
-            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization skipped. No new or updated events found." );
+            return SynchronizationResult.newSuccessResultWithMessage( "Event programs data synchronization skipped. No new or updated events found." );
         }
 
-        final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
-        final String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + SyncEndpoint.EVENTS.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
-        final SystemInstance instance = new SystemInstance( syncUrl, username, password );
-
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.EVENT_SYNC_PAGE_SIZE );
+        final SystemInstance instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.EVENTS );
+        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.EVENT_PROGRAM_SYNC_PAGE_SIZE );
         final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
 
         log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );
-        log.info( "Remote server URL for Events POST synchronization: " + syncUrl );
-        log.info( "Events synchronization job has " + pages + " pages to synchronize. With page size: " + pageSize );
+        log.info( "Remote server URL for Event programs POST synchronization: " + instance.getUrl() );
+        log.info( "Event programs data synchronization job has " + pages + " pages to synchronize. With page size: " + pageSize );
 
+        boolean syncResult = runEventSyncWithPaging( instance, clock, skipChangedBefore, pageSize, pages );
+
+        if ( syncResult )
+        {
+            clock.logTime( "SUCCESS! Event programs data sync was successfully done! It took " );
+            return SynchronizationResult.newSuccessResultWithMessage( "Event programs data synchronization done. It took " + clock.getTime() + " ms." );
+        }
+
+        return SynchronizationResult.newFailureResultWithMessage( "Event programs data synchronization failed." );
+    }
+
+    private boolean runEventSyncWithPaging( SystemInstance instance,  Clock clock, Date skipChangedBefore,
+        int pageSize, int pages )
+    {
         final Map<String, Set<String>> psdesWithSkipSyncTrue = programStageDataElementService.getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-
         boolean syncResult = true;
 
         for ( int i = 1; i <= pages; i++ )
@@ -138,13 +147,7 @@ public class EventSynchronization
             }
         }
 
-        if ( syncResult )
-        {
-            clock.logTime( "SUCCESS! Events sync was successfully done! It took " );
-            return SynchronizationResult.newSuccessResultWithMessage( "Events synchronization done. It took " + clock.getTime() + " ms." );
-        }
-
-        return SynchronizationResult.newFailureResultWithMessage( "Events synchronization failed." );
+        return syncResult;
     }
 
     private void filterOutDataValuesMarkedWithSkipSynchronizationFlag( Events events )
