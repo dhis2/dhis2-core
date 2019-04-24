@@ -1131,7 +1131,8 @@ public class ExpressionServiceTest
 
         Period period = createPeriod( "20010101" );
 
-        IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA, period, valueMap, constantMap, null );
+        IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA,
+            Collections.singletonList( period ), valueMap, constantMap, null );
 
         assertEquals( 2.5, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
@@ -1140,7 +1141,8 @@ public class ExpressionServiceTest
         assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 50.0, value.getValue(), DELTA );
 
-        value = expressionService.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
+        value = expressionService.getIndicatorValueObject( indicatorB, Collections.singletonList( period ), valueMap,
+            constantMap, null );
 
         assertEquals( 20.0, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );

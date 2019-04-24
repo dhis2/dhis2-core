@@ -932,7 +932,7 @@ public class DataQueryParams
     {
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
 
-        return index != -1 ? filters.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
+        return index != -1 ? filters.get( index ).getItems() : new ArrayList<>();
     }
 
     /**
