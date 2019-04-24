@@ -1,15 +1,4 @@
 
--- Create table "mapview_orgunitgroupsetdimensions"
-
-create table public.mapview_orgunitgroupsetdimensions (
-	mapviewid int8 not null,
-	sort_order int4 not null,
-	orgunitgroupsetdimensionid int4 not null,
-	constraint mapview_orgunitgroupsetdimensions_pkey primary key (mapviewid, sort_order),
-	constraint fk_mapview_dimensions_orgunitgroupsetdimensionid foreign key (orgunitgroupsetdimensionid) references orgunitgroupsetdimension(orgunitgroupsetdimensionid),
-	constraint fk_mapview_orgunitgroupsetdimensions_mapviewid foreign key (mapviewid) references mapview(mapviewid)
-);
-
 -- Create table "mapview_categorydimensions"
 
 create table public.mapview_categorydimensions (
@@ -19,6 +8,17 @@ create table public.mapview_categorydimensions (
 	constraint mapview_categorydimensions_pkey primary key (mapviewid, sort_order),
 	constraint fk_mapview_categorydimensions_categorydimensionid foreign key (categorydimensionid) references categorydimension(categorydimensionid),
 	constraint fk_mapview_categorydimensions_mapviewid foreign key (mapviewid) references mapview(mapviewid)
+);
+
+-- Create table "mapview_orgunitgroupsetdimensions"
+
+create table public.mapview_orgunitgroupsetdimensions (
+	mapviewid int8 not null,
+	sort_order int4 not null,
+	orgunitgroupsetdimensionid int4 not null,
+	constraint mapview_orgunitgroupsetdimensions_pkey primary key (mapviewid, sort_order),
+	constraint fk_mapview_dimensions_orgunitgroupsetdimensionid foreign key (orgunitgroupsetdimensionid) references orgunitgroupsetdimension(orgunitgroupsetdimensionid),
+	constraint fk_mapview_orgunitgroupsetdimensions_mapviewid foreign key (mapviewid) references mapview(mapviewid)
 );
 
 -- Create table "mapview_categoryoptiongroupsetdimensions"
