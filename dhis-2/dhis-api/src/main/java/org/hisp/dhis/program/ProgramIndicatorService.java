@@ -104,7 +104,7 @@ public interface ProgramIndicatorService
      * Get the description of any program indicator expression (expression or
      * filter).
      *
-     * @Depreicated Does not do type-checking on the expression.
+     * @deprecated Does not do type-checking on the expression.
      * Use getExpressionDescriptionRegEx or getFilterDescription instead.
      *
      * @param expression A program indicator expression or filter string

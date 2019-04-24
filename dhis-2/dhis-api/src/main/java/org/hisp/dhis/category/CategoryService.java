@@ -34,7 +34,6 @@ import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.user.UserCredentials;
 
 import java.util.Collection;
@@ -58,25 +57,23 @@ public interface CategoryService
      * @param category the Category to add.
      * @return a generated unique id of the added Category.
      */
-    long addCategory( Category Category );
+    long addCategory( Category category );
 
     /**
      * Updates a Category.
      *
-     * @param Category the Category to update.
+     * @param category the Category to update.
      */
-    void updateCategory( Category Category );
+    void updateCategory( Category category );
 
     /**
      * Deletes a Category. The Category is also removed
      * from any CategoryCombos if it is a member of. It is not
      * possible to delete a Category with options.
      *
-     * @param Category the Category to delete.
-     * @throws HierarchyViolationException if the Category has
-     *                                     children.
+     * @param category the Category to delete.
      */
-    void deleteCategory( Category Category );
+    void deleteCategory( Category category );
 
     /**
      * Returns a Category.
