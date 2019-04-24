@@ -40,7 +40,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import java.util.Date;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar
  */
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramNotificationInstance extends BaseIdentifiableObject

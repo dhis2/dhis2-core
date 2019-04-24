@@ -77,7 +77,7 @@ public interface AttributeService
     /**
      * Gets the attribute with the given uid.
      *
-     * @param id the attribute uid.
+     * @param uid the attribute uid.
      * @return the attribute with the given uid.
      */
     Attribute getAttribute( String uid );
