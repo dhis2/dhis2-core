@@ -470,8 +470,7 @@ public class DefaultAnalyticsService
 
             List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
 
-            List<Period> filterPeriods = dataSourceParams.getFilterPeriods().stream().map( Period.class::cast )
-                    .collect( Collectors.toList() );
+            List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
 
             Map<String, Double> constantMap = constantService.getConstantMap();
 
