@@ -711,6 +711,16 @@ public class DataQueryParams
     }
 
     /**
+     * Returns the filter periods as period objects.
+     */
+    public List<Period> getTypedFilterPeriods()
+    {
+        return getFilterPeriods().stream()
+            .map( p -> (Period ) p )
+            .collect( Collectors.toList() );
+    }
+
+    /**
      * Returns a list of dimensions which occur more than once, not including
      * the first duplicate.
      */
