@@ -1,5 +1,7 @@
-package org.hisp.dhis.trackedentitycomment.hibernate;/*
- * Copyright (c) 2004-2018, University of Oslo
+package org.hisp.dhis.system;
+
+/*
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,21 +28,36 @@ package org.hisp.dhis.trackedentitycomment.hibernate;/*
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * @author David Katuscak
+ * Unit tests for {@link SystemInfo}.
+ *
+ * @author Volker Schmidt
  */
-public class HibernateTrackedEntityCommentStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityComment>
-    implements TrackedEntityCommentStore
+public class SystemInfoTest
 {
-    @Override
-    public boolean exists( String uid )
+    private DatabaseInfo databaseInfo;
+
+    private SystemInfo systemInfo;
+
+    @Before
+    public void setUp()
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentitycomment where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        databaseInfo = new DatabaseInfo();
+        systemInfo = new SystemInfo();
+
+        systemInfo.setDatabaseInfo( databaseInfo );
+    }
+
+    @Test
+    public void instance()
+    {
+        final SystemInfo si = systemInfo.instance();
+        Assert.assertNotSame( systemInfo, si );
+        Assert.assertNotSame( systemInfo.getDatabaseInfo(), si.getDatabaseInfo() );
     }
 }

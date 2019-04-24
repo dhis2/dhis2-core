@@ -46,4 +46,8 @@ public interface ReservedValueService
     boolean useReservedValue( TextPattern textPattern, String value );
 
     boolean isReserved( TextPattern textPattern, String value );
+
+    void removeExpiredReservations();
+
+    void deleteReservedValueByUid( String uid );
 }
