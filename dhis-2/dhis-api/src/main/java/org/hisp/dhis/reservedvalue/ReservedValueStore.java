@@ -38,8 +38,9 @@ import java.util.List;
 public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {
-
     List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+
+    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
 
     List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
 

@@ -75,8 +75,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class ExpressionService2Test {
-
+public class ExpressionService2Test
+{
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
     @Mock
