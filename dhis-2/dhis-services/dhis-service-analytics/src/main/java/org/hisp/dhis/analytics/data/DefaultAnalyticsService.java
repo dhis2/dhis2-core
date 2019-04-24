@@ -470,7 +470,8 @@ public class DefaultAnalyticsService
 
             List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
 
-            List<Period> filterPeriods = AnalyticsUtils.getFilterPeriods( dataSourceParams );
+            List<Period> filterPeriods = dataSourceParams.getFilterPeriods().stream().map( Period.class::cast )
+                    .collect( Collectors.toList() );
 
             Map<String, Double> constantMap = constantService.getConstantMap();
 
@@ -499,7 +500,7 @@ public class DefaultAnalyticsService
                         continue;
                     }
 
-                    List<Period> periods = (filterPeriods != null && !filterPeriods.isEmpty()) ? filterPeriods
+                    List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
                         : Collections.singletonList( (Period) DimensionItem.getPeriodItem( dimensionItems ) );
 
                     OrganisationUnit unit = (OrganisationUnit) DimensionItem.getOrganisationUnitItem( dimensionItems );

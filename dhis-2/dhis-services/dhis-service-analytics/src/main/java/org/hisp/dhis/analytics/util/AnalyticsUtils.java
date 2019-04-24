@@ -820,27 +820,4 @@ public class AnalyticsUtils
 
         return 0D;
     }
-
-    /**
-     * Get all the filter {@see Period} from the {@see DataQueryParams} object
-     * 
-     * @param dataQueryParams a {@see DataQueryParams} with filter period
-     * @return a List of {@see Period}
-     */
-    public static List<Period> getFilterPeriods( DataQueryParams dataQueryParams )
-    {
-        List<Period> periods = new ArrayList<>();
-
-        if ( dataQueryParams.getFilterPeriods() != null )
-        {
-            List<DimensionalItemObject> filterPeriods = dataQueryParams.getFilterPeriods();
-
-            for ( DimensionalItemObject filterPeriod : filterPeriods )
-            {
-                periods.add( (Period) filterPeriod );
-            }
-        }
-
-        return periods;
-    }
 }
