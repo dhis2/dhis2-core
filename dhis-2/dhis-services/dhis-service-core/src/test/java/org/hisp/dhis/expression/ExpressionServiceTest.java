@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
+import static org.hisp.dhis.expression.ExpressionValidationOutcome.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
@@ -495,7 +496,7 @@ public class ExpressionServiceTest
     {
         try
         {
-            expressionService.getExpressionDescription( expr );
+            expressionService.getIndicatorExpressionDescription( expr );
         }
         catch ( ParserException ex )
         {
@@ -584,7 +585,7 @@ public class ExpressionServiceTest
 
         try
         {
-            description = expressionService.getExpressionDescription( expr );
+            description = expressionService.getIndicatorExpressionDescription( expr );
         }
         catch ( ParserException ex )
         {
@@ -619,7 +620,7 @@ public class ExpressionServiceTest
      */
     private String desc( String expr )
     {
-        return expressionService.getExpressionDescription( expr );
+        return expressionService.getIndicatorExpressionDescription( expr );
     }
 
     // -------------------------------------------------------------------------
@@ -1147,5 +1148,33 @@ public class ExpressionServiceTest
         assertEquals( 36500, value.getMultiplier(), DELTA );
         assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 146000.0, value.getValue(), DELTA );
+    }
+
+    // -------------------------------------------------------------------------
+    // Valid expression tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    public void testIndicatorExpressionIsValid()
+    {
+        assertEquals( VALID, expressionService.indicatorExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.indicatorExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
+        assertEquals( VALID, expressionService.indicatorExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+    }
+
+    @Test
+    public void testValidationRuleExpressionIsValid()
+    {
+        assertEquals( VALID, expressionService.validationRuleExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.validationRuleExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.validationRuleExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+    }
+
+    @Test
+    public void testPredictorExpressionIsValid()
+    {
+        assertEquals( VALID, expressionService.predictorExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
+        assertEquals( VALID, expressionService.predictorExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.predictorExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
     }
 }
