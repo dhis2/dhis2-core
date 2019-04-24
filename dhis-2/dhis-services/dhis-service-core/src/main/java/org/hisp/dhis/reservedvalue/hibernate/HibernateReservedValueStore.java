@@ -59,14 +59,40 @@ public class HibernateReservedValueStore
     public List<ReservedValue> reserveValues( ReservedValue reservedValue,
         List<String> values )
     {
+        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
+
         BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
             .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
+        toAdd.forEach( rv -> batchHandler.addObject( rv ) );
+        batchHandler.flush();
+
+        return toAdd;
+    }
+
+    @Override
+    public List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values )
+    {
+        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
+        toAdd.forEach( rv -> save( rv ) );
+        return toAdd;
+    }
+
+    /**
+     * Generates a list of reserved values based on the given input.
+     *
+     * @param reservedValue the reserved value.
+     * @param values the values to reserve.
+     * @return a list of {@link ReservedValue}.
+     */
+    private List<ReservedValue> getGeneratedValues( ReservedValue reservedValue, List<String> values )
+    {
         List<String> availableValues = getIfAvailable( reservedValue, values );
 
-        List<ReservedValue> toAdd = new ArrayList<>();
+        List<ReservedValue> generatedValues = new ArrayList<>();
 
         availableValues.forEach( ( value ) -> {
+
             ReservedValue rv = new ReservedValue(
                 reservedValue.getOwnerObject(),
                 reservedValue.getOwnerUid(),
@@ -77,14 +103,10 @@ public class HibernateReservedValueStore
 
             rv.setCreated( reservedValue.getCreated() );
 
-            batchHandler.addObject( rv );
-            toAdd.add( rv );
-
+            generatedValues.add( rv );
         } );
 
-        batchHandler.flush();
-
-        return toAdd;
+        return generatedValues;
     }
 
     @Override
@@ -165,11 +187,14 @@ public class HibernateReservedValueStore
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
     {
-        values.removeAll( getIfReservedValues( reservedValue, values ).stream()
+        List<String> reservedValues = getIfReservedValues( reservedValue, values ).stream()
             .map( ReservedValue::getValue )
-            .collect( Collectors.toList() ) );
+            .collect( Collectors.toList() );
+
+        values.removeAll( reservedValues );
 
         // All values supplied is unavailable
+
         if ( values.isEmpty() )
         {
             return values;
@@ -177,7 +202,7 @@ public class HibernateReservedValueStore
 
         if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
-            values.removeAll( getSqlQuery(
+            values.removeAll( getUntypedSqlQuery(
                 "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
                 .setParameter( 1, reservedValue.getOwnerUid() )
                 .setParameter( 2, values )
