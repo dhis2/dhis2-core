@@ -186,7 +186,8 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
-            log.error( "Exception when checking postgis version:", ex );
+            log.error( "Exception when checking postgis_full_version(), PostGIS not available" );
+            log.debug( "Exception when checking postgis_full_version()", ex );
             return false;
         }
     }
