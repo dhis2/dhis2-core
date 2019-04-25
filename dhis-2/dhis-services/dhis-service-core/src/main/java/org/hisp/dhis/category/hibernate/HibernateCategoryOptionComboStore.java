@@ -57,37 +57,36 @@ public class HibernateCategoryOptionComboStore
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
     {
         String hql = "from CategoryOptionCombo co where co.categoryCombo = :categoryCombo";
-        
+
         for ( CategoryOption option : categoryOptions )
         {
             hql += " and :option" + option.getId() + " in elements (co.categoryOptions)";
         }
-        
+
         Query query = getQuery( hql );
-        
+
         query.setParameter( "categoryCombo", categoryCombo );
-        
+
         for ( CategoryOption option : categoryOptions )
         {
             query.setParameter( "option" + option.getId(), option );
         }
-        
+
         return (CategoryOptionCombo) query.uniqueResult();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public void updateNames()
     {
         List<CategoryOptionCombo> categoryOptionCombos = getQuery( "from CategoryOptionCombo co where co.name is null" ).list();
         int counter = 0;
-        
+
         Session session = getSession();
-        
+
         for ( CategoryOptionCombo coc : categoryOptionCombos )
         {
             session.update( coc );
-            
+
             if ( ( counter % 400 ) == 0 )
             {
                 dbmsManager.clearSession();

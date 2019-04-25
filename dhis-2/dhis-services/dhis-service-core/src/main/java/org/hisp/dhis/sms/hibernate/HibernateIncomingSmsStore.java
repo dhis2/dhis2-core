@@ -50,7 +50,7 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     public IncomingSms get( int id )
     {
         Session session = sessionFactory.getCurrentSession();
-        return (IncomingSms) session.get( IncomingSms.class, id );
+        return session.get( IncomingSms.class, id );
     }
 
     @Override

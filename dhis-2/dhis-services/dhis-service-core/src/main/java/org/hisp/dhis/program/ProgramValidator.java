@@ -44,9 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.util.Assert;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
@@ -311,11 +309,6 @@ public class ProgramValidator
     }
 
     private ValueType validateProgramAttribute( ItemContext ctx )
-    {
-        return validateProgramAttribute( ctx.getText(), ctx.uid0.getText() );
-    }
-
-    private ValueType validateProgramAttribute( ProgramAttributeContext ctx )
     {
         return validateProgramAttribute( ctx.getText(), ctx.uid0.getText() );
     }

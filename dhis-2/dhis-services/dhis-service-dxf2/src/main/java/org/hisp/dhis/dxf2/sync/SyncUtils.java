@@ -411,7 +411,7 @@ public class SyncUtils
      * @param endpoint Endpoint against which the sync was run
      * @return true if sync was successful, false otherwise
      */
-    public static boolean checkSummaryStatus( ImportSummary summary, SyncEndpoint endpoint )
+    static boolean checkSummaryStatus( ImportSummary summary, SyncEndpoint endpoint )
     {
         if ( summary.getStatus() == ImportStatus.ERROR || summary.getStatus() == ImportStatus.WARNING )
         {
@@ -420,5 +420,14 @@ public class SyncUtils
         }
 
         return true;
+    }
+
+    static SystemInstance getRemoteInstance( SystemSettingManager systemSettingManager, SyncEndpoint syncEndpoint )
+    {
+        String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+        String syncUrl = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + syncEndpoint.getPath() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
+
+        return new SystemInstance( syncUrl, username, password );
     }
 }
