@@ -41,9 +41,6 @@ import java.util.stream.Collectors;
  */
 public class DefaultMergeService implements MergeService
 {
-    private static final List<String> SHARING_PROPS = Arrays.asList(
-        "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
-
     private final SchemaService schemaService;
 
     public DefaultMergeService( SchemaService schemaService )
@@ -61,9 +58,12 @@ public class DefaultMergeService implements MergeService
 
         for ( Property property : schema.getProperties() )
         {
-            if ( schema.isIdentifiableObject() && mergeParams.isSkipSharing() && isSharingProperty( property ) )
+            if ( schema.isIdentifiableObject() )
             {
-                continue;
+                if ( mergeParams.isSkipSharing() && ReflectionUtils.isSharingProperty( property ) )
+                {
+                    continue;
+                }
             }
 
             // passwords should only be merged manually
@@ -137,10 +137,5 @@ public class DefaultMergeService implements MergeService
         }
 
         return null;
-    }
-
-    private boolean isSharingProperty( Property property )
-    {
-        return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
     }
 }
