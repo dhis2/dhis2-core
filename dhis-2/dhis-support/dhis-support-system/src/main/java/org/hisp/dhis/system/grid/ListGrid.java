@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.google.common.collect.Iterables;
 
+import jxl.write.Label;
+import jxl.write.Number;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +49,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -865,6 +869,24 @@ public class ListGrid
             if ( metaValue != null )
             {
                 grid.get( rowIndex ).set( targetColumnIndex, metaValue );
+            }
+        }
+
+        return this;
+    }
+
+    @Override
+    public Grid substituteValues( Map<String, String> uidToNameMap )
+    {
+        for ( List<Object> columns : grid )
+        {
+            for ( int col = 0; col < columns.size(); col++ )
+            {
+                Object column = columns.get( col );
+                if ( column != null && !MathUtils.isNumeric( String.valueOf( column ) ) )
+                {
+                    columns.set( col, uidToNameMap.getOrDefault( String.valueOf( column ), String.valueOf( column ) ) );
+                }
             }
         }
 

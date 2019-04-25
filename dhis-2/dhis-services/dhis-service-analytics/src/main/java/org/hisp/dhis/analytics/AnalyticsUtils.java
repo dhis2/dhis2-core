@@ -60,7 +60,9 @@ import org.springframework.util.Assert;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
@@ -313,6 +315,29 @@ public class AnalyticsUtils
         }
 
         return map;
+    }
+
+    /**
+     * Generates a mapping between the metadata item UID and the metadata name
+     * 
+     * @param grid the grid.
+     * @return a mapping between metadata items UID and names
+     */
+    @SuppressWarnings( "unchecked" )
+    public static Map<String, String> getMetadataItemCache( Grid grid )
+    {
+        Map<String, String> metadataItemCache = new HashMap<>();
+
+        if ( grid.getMetaData().containsKey( ITEMS.getKey() ) )
+        {
+            Map<String, MetadataItem> items = (Map<String, MetadataItem>) grid.getMetaData().get( ITEMS.getKey() );
+
+            for ( String key : items.keySet() )
+            {
+                metadataItemCache.put( key, items.get( key ).getName() );
+            }
+        }
+        return metadataItemCache;
     }
 
     /**
