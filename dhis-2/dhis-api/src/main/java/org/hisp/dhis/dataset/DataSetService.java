@@ -135,8 +135,9 @@ public interface DataSetService
     /**
      * Returns the data sets which given user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
-     * @param User  user to query for data set list
-     * @return List of dataset which given user has data read access
+     *
+     * @param user the user to query for data set list.
+     * @return a list of data sets which the given user has data read access to.
      */
     List<DataSet> getUserDataRead( User user );
 
@@ -149,8 +150,9 @@ public interface DataSetService
     /**
      * Returns the data sets which current user have WRITE access. If the current
      * user has the ALL authority then all data sets are returned.
-     * @param User  user to query for data set list
-     * @return List of dataset which given User has data write access
+     *
+     * @param user the user to query for data set list.
+     * @return a list of data sets which given user has data write access to.
      */
     List<DataSet> getUserDataWrite( User user );
 

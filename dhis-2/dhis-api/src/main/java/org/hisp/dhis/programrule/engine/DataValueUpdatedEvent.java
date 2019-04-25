@@ -32,7 +32,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar
  */
 public class DataValueUpdatedEvent extends ApplicationEvent
 {
