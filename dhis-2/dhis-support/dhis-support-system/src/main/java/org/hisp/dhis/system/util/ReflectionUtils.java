@@ -32,6 +32,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import javassist.util.proxy.ProxyFactory;
 import org.hibernate.collection.spi.PersistentCollection;
+import org.hisp.dhis.schema.Property;
 import org.springframework.util.StringUtils;
 
 import java.lang.annotation.Annotation;
@@ -55,6 +56,9 @@ import java.util.stream.Collectors;
  */
 public class ReflectionUtils
 {
+    public static final List<String> SHARING_PROPS = Arrays.asList(
+            "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
+
     /**
      * Invokes method getId() for this object and returns the return value. An
      * int return type is expected. If the operation fails -1 is returned.
@@ -511,5 +515,15 @@ public class ReflectionUtils
         Multimap<String, Method> methods = ArrayListMultimap.create();
         getMethods( klass ).forEach( method -> methods.put( method.getName(), method ) );
         return methods;
+    }
+
+    public static boolean isSharingProperty( Property property )
+    {
+        return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
+    }
+
+    public static boolean isTranslationProperty( Property property )
+    {
+        return "translations".equals( property.getName() ) || "translations".equals( property.getCollectionName() );
     }
 }
