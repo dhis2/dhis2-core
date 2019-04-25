@@ -29,28 +29,16 @@ package org.hisp.dhis.programstagefilter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.ibm.icu.impl.Assert;
-
-@Category( IntegrationTest.class )
-public class ProgramStageInstanceFilterTest extends IntegrationTestBase
+public class ProgramStageInstanceFilterTest extends DhisSpringTest
 {
 
     @Autowired
@@ -75,12 +63,8 @@ public class ProgramStageInstanceFilterTest extends IntegrationTestBase
 
     }
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
+    @Test
     public void testValidatenvalidEventFilterWithMissingProgram()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', null, null );
@@ -90,6 +74,7 @@ public class ProgramStageInstanceFilterTest extends IntegrationTestBase
         assertEquals( 1 , errors.size() );
     }
 
+    @Test
     public void testValidateInvalidEventFilterWithInvalidProgram()
     {
         ProgramStageInstanceFilter psiFilter = createProgramStageInstanceFilter( '1', "ABCDEF12345", null );
