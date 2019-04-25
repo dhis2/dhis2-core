@@ -13,7 +13,13 @@
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "trackedEntityTypeAttributes": [
         {
@@ -44,7 +50,13 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
+          "userGroupAccesses": [
+            {
+              "access": "rwrw----",
+              "userGroupUid": "OPVIvvXzNTw",
+              "id": "OPVIvvXzNTw"
+            }
+          ],
           "attributeValues": [],
           "userAccesses": []
         },
@@ -76,7 +88,13 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
+          "userGroupAccesses": [
+            {
+              "access": "rwrw----",
+              "userGroupUid": "OPVIvvXzNTw",
+              "id": "OPVIvvXzNTw"
+            }
+          ],
           "attributeValues": [],
           "userAccesses": []
         }
@@ -110,9 +128,6 @@
           "id": "Q9GufDoplCL"
         }
       },
-      "user": {
-        "id": "M5zQapPyTZI"
-      },
       "userGroupAccesses": [
         {
           "access": "rwrw----",
@@ -134,7 +149,13 @@
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
       "dataDimension": false,
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "translations": [],
       "userAccesses": [],
@@ -205,7 +226,13 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
+          "userGroupAccesses": [
+            {
+              "access": "rwrw----",
+              "userGroupUid": "OPVIvvXzNTw",
+              "id": "OPVIvvXzNTw"
+            }
+          ],
           "attributeValues": [],
           "userAccesses": []
         },
@@ -238,7 +265,13 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
+          "userGroupAccesses": [
+            {
+              "access": "rwrw----",
+              "userGroupUid": "OPVIvvXzNTw",
+              "id": "OPVIvvXzNTw"
+            }
+          ],
           "attributeValues": [],
           "userAccesses": []
         },
@@ -271,13 +304,25 @@
           },
           "favorites": [],
           "translations": [],
-          "userGroupAccesses": [],
+          "userGroupAccesses": [
+            {
+              "access": "rwrw----",
+              "userGroupUid": "OPVIvvXzNTw",
+              "id": "OPVIvvXzNTw"
+            }
+          ],
           "attributeValues": [],
           "userAccesses": []
         }
       ],
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
@@ -312,7 +357,13 @@
       "notificationTemplates": [],
       "programStageDataElements": [],
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
@@ -354,6 +405,8 @@
       ],
       "userGroupAccesses": [
         {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
           "id": "OPVIvvXzNTw"
         }
       ],
@@ -399,11 +452,86 @@
           "id": "r16njpPwUCb"
         }
       ],
-      "programTrackedEntityAttributes": [],
+      "programTrackedEntityAttributes": [
+        {
+          "lastUpdated": "2019-04-25T11:04:29.271",
+          "id": "k45TmK2PnUx",
+          "created": "2019-04-25T11:04:29.212",
+          "name": "TA Tracker_program TA First name",
+          "displayName": "TA Tracker_program TA First name",
+          "mandatory": false,
+          "displayShortName": "TA Tracker_program TA First name",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "TEXT",
+          "searchable": true,
+          "displayInList": true,
+          "sortOrder": 1,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "f1AyMswryyQ"
+          },
+          "trackedEntityAttribute": {
+            "id": "dIVt4l5vIOa"
+          },
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-04-25T11:04:29.271",
+          "id": "dM04wvu2GE8",
+          "created": "2019-04-25T11:04:29.212",
+          "name": "TA Tracker_program TA Last name",
+          "displayName": "TA Tracker_program TA Last name",
+          "mandatory": false,
+          "displayShortName": "TA Tracker_program TA Last name",
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "valueType": "TEXT",
+          "searchable": true,
+          "displayInList": true,
+          "sortOrder": 2,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "program": {
+            "id": "f1AyMswryyQ"
+          },
+          "trackedEntityAttribute": {
+            "id": "kZeSYCgaHTk"
+          },
+          "favorites": [],
+          "programTrackedEntityAttributeGroups": [],
+          "translations": [],
+          "userGroupAccesses": [],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
       "notificationTemplates": [],
       "translations": [],
       "userGroupAccesses": [
         {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
           "id": "OPVIvvXzNTw"
         }
       ],
@@ -438,7 +566,13 @@
       "unique": false,
       "inherit": false,
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": []
@@ -463,7 +597,13 @@
       "unique": false,
       "inherit": false,
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": []
@@ -538,7 +678,13 @@
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
       "skipTotal": false,
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "translations": [],
       "userAccesses": [],
       "categories": [
@@ -564,7 +710,13 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": [],
@@ -585,7 +737,13 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": [],
@@ -606,7 +764,13 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": [],
@@ -627,7 +791,13 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": [],
@@ -648,7 +818,13 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": [],
@@ -669,7 +845,13 @@
         "id": "bjDvmb4bfuf"
       },
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": [],
@@ -685,41 +867,136 @@
       "id": "yrB6vc5Ip7r",
       "publicAccess": "--------",
       "description": "TA Superuser",
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
+        "F_PROGRAM_INDICATOR_PUBLIC_ADD",
         "ALL",
         "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
         "F_USER_VIEW",
+        "F_DATAELEMENTGROUP_PUBLIC_ADD",
         "F_GENERATE_MIN_MAX_VALUES",
-        "F_ORGANISATIONUNIT_MOVE",
         "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
         "F_PREDICTOR_RUN",
         "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
-        "F_SKIP_DATA_IMPORT_AUDIT",
-        "F_RUN_VALIDATION",
-        "F_IMPORT_DATA",
-        "F_LOCALE_ADD",
+        "F_PROGRAM_PUBLIC_ADD",
+        "F_VALIDATIONRULE_PUBLIC_ADD",
+        "F_MAP_PUBLIC_ADD",
+        "F_ATTRIBUTE_PUBLIC_ADD",
+        "F_INDICATORGROUPSET_PUBLIC_ADD",
+        "F_ORGANISATIONUNIT_ADD",
+        "F_CATEGORY_OPTION_GROUP_PUBLIC_ADD",
+        "F_PREDICTORGROUP_ADD",
+        "F_LEGEND_SET_PUBLIC_ADD",
+        "F_CONSTANT_ADD",
         "F_REPLICATE_USER",
         "F_SEND_EMAIL",
+        "F_DATAVALUE_ADD",
         "F_INSERT_CUSTOM_JS_CSS",
         "F_ENROLLMENT_CASCADE_DELETE",
-        "F_METADATA_IMPORT",
-        "F_EXPORT_EVENTS",
+        "F_INDICATORTYPE_ADD",
         "F_VIEW_EVENT_ANALYTICS",
         "F_VIEW_UNAPPROVED_DATA",
+        "F_INDICATOR_PUBLIC_ADD",
+        "F_INDICATORGROUP_PUBLIC_ADD",
         "F_IMPORT_EVENTS",
-        "F_PERFORM_MAINTENANCE",
         "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
-        "F_METADATA_EXPORT",
+        "F_RELATIONSHIPTYPE_PUBLIC_ADD",
+        "F_PREDICTOR_ADD",
         "F_TEI_CASCADE_DELETE",
         "F_EXPORT_DATA",
+        "F_EDIT_EXPIRED",
+        "F_EVENTCHART_PUBLIC_ADD",
+        "F_PUSH_ANALYSIS_ADD",
+        "F_USERGROUP_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD",
+        "F_USER_ADD",
+        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
+        "F_TRACKED_ENTITY_ADD",
+        "F_ANALYTICSTABLEHOOK_ADD",
+        "F_VALIDATIONRULEGROUP_PUBLIC_ADD",
+        "F_APPROVE_DATA_LOWER_LEVELS",
+        "F_CATEGORY_OPTION_PUBLIC_ADD",
+        "F_ORGUNITGROUP_PUBLIC_ADD",
+        "F_DOCUMENT_PUBLIC_ADD",
+        "F_REPORTTABLE_PUBLIC_ADD",
+        "F_DATAELEMENT_MINMAX_ADD",
+        "F_OPTIONSET_PUBLIC_ADD",
+        "F_REPORT_PUBLIC_ADD",
+        "F_ORGANISATIONUNIT_MOVE",
+        "F_EXTERNAL_MAP_LAYER_PUBLIC_ADD",
+        "F_PROGRAM_TRACKED_ENTITY_ATTRIBUTE_GROUP_ADD",
+        "F_SKIP_DATA_IMPORT_AUDIT",
+        "F_DATAELEMENT_PUBLIC_ADD",
+        "F_RUN_VALIDATION",
+        "F_PROGRAM_RULE_ADD",
+        "F_USERROLE_PUBLIC_ADD",
+        "F_IMPORT_DATA",
+        "F_ORGUNITGROUPSET_PUBLIC_ADD",
+        "F_DATASET_PUBLIC_ADD",
+        "F_LOCALE_ADD",
+        "F_PROGRAMSTAGE_ADD",
+        "F_DASHBOARD_PUBLIC_ADD",
+        "F_METADATA_IMPORT",
+        "F_EXPORT_EVENTS",
+        "F_CATEGORY_PUBLIC_ADD",
+        "F_SECTION_ADD",
+        "F_CHART_PUBLIC_ADD",
+        "F_SQLVIEW_PUBLIC_ADD",
+        "F_PERFORM_MAINTENANCE",
+        "F_CATEGORY_COMBO_PUBLIC_ADD",
+        "F_COLOR_SET_ADD",
+        "F_METADATA_EXPORT",
+        "F_MINMAX_DATAELEMENT_ADD",
         "F_APPROVE_DATA",
         "F_ACCEPT_DATA_LOWER_LEVELS",
-        "F_EDIT_EXPIRED",
-        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
-        "F_APPROVE_DATA_LOWER_LEVELS",
-        "F_UNCOMPLETE_EVENT"
+        "F_EVENTREPORT_PUBLIC_ADD",
+        "F_OPTIONGROUPSET_PUBLIC_ADD",
+        "F_OPTIONGROUP_PUBLIC_ADD",
+        "F_PROGRAM_INDICATOR_GROUP_PUBLIC_ADD",
+        "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD",
+        "F_UNCOMPLETE_EVENT",
+        "F_DATAELEMENTGROUPSET_PUBLIC_ADD",
+        "F_TRACKED_ENTITY_UPDATE",
+        "F_PROGRAM_RULE_MANAGEMENT",
+        "M_dhis-web-app-management",
+        "M_dhis-web-cache-cleaner",
+        "M_dhis-web-visualizer",
+        "M_dhis-web-dashboard",
+        "M_dhis-web-data-administration",
+        "M_dhis-web-dataentry",
+        "M_dhis-web-data-quality",
+        "M_dhis-web-data-visualizer",
+        "M_dhis-web-datastore",
+        "M_dhis-web-event-capture",
+        "M_dhis-web-event-reports",
+        "M_dhis-web-event-visualizer",
+        "M_dhis-web-mapping",
+        "M_dhis-web-importexport",
+        "M_dhis-web-interpretation",
+        "M_dhis-web-maintenance",
+        "M_dhis-web-maps",
+        "M_dhis-web-menu-management",
+        "M_dhis-web-messaging",
+        "M_dhis-web-maintenance-mobile",
+        "M_dhis-web-pivot",
+        "M_dhis-web-reporting",
+        "M_dhis-web-scheduler",
+        "M_dhis-web-settings",
+        "M_dhis-web-tracker-capture",
+        "M_dhis-web-translations",
+        "M_dhis-web-usage-analytics",
+        "M_dhis-web-user",
+        "M_dhis-web-capture",
+        "M_dhis-web-reports",
+        "F_METADATA_MANAGE",
+        "F_USER_ADD_WITHIN_MANAGED_GROUP"
       ],
       "translations": [],
       "userAccesses": []
@@ -776,7 +1053,13 @@
         "cogsDimensionConstraints": [],
         "catDimensionConstraints": [],
         "translations": [],
-        "userGroupAccesses": [],
+        "userGroupAccesses": [
+          {
+            "access": "rwrw----",
+            "userGroupUid": "OPVIvvXzNTw",
+            "id": "OPVIvvXzNTw"
+          }
+        ],
         "attributeValues": [],
         "userRoles": [
           {
@@ -829,7 +1112,13 @@
           "id": "nGK3m0FCOmd"
         }
       ],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "userGroups": [
         {
@@ -846,9 +1135,18 @@
       "name": "TA user group",
       "id": "OPVIvvXzNTw",
       "publicAccess": "rwrw----",
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
       "attributeValues": [],
       "users": [
+        {
+          "id": "PQD6wXJ2r5j"
+        }
       ],
       "managedGroups": [],
       "translations": [],
