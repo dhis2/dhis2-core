@@ -119,7 +119,7 @@ public class DefaultPredictionService
 
     private final BatchHandlerFactory batchHandlerFactory;
 
-    private final CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
     public DefaultPredictionService( PredictorService predictorService, ConstantService constantService,
         ExpressionService expressionService, DataValueService dataValueService, CategoryService categoryService,
@@ -161,6 +161,14 @@ public class DefaultPredictionService
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setCurrentUserService(CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------

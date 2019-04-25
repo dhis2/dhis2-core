@@ -97,7 +97,7 @@ public class DefaultValidationService
 
     private final ValidationResultService validationResultService;
 
-    private final AnalyticsService analyticsService;
+    private AnalyticsService analyticsService;
     
     private CurrentUserService currentUserService;
 
@@ -135,6 +135,15 @@ public class DefaultValidationService
         this.validationResultService = validationResultService;
         this.analyticsService = analyticsService;
         this.currentUserService = currentUserService;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setAnalyticsService( AnalyticsService analyticsService )
+    {
+        this.analyticsService = analyticsService;
     }
 
     /**
