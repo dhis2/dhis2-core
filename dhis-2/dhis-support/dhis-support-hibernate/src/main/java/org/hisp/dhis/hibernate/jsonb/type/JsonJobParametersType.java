@@ -36,7 +36,6 @@ import java.util.Properties;
 /**
  * @author Henning Håkonsen
  */
-@SuppressWarnings("rawtypes")
 public class JsonJobParametersType extends JsonBinaryType
 {
     @Override

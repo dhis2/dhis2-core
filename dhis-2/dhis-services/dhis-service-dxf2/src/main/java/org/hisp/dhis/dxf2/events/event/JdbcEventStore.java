@@ -127,7 +127,6 @@ public class JdbcEventStore
     // EventStore implementation
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
@@ -330,7 +329,6 @@ public class JdbcEventStore
         return list;
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {

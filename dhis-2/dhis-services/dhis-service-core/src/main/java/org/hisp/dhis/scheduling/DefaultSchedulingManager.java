@@ -106,13 +106,13 @@ public class DefaultSchedulingManager
         leaderManager.setSchedulingManager( this );
     }
 
-
     // -------------------------------------------------------------------------
     // Queue
     // -------------------------------------------------------------------------
 
     private List<JobConfiguration> runningJobConfigurations = new CopyOnWriteArrayList<>();
 
+    @Override
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isInMemoryJob() )
@@ -125,6 +125,7 @@ public class DefaultSchedulingManager
                 !jobConfig.isContinuousExecution() );
     }
 
+    @Override
     public void jobConfigurationStarted( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
@@ -134,6 +135,7 @@ public class DefaultSchedulingManager
         }
     }
 
+    @Override
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
     {
         runningJobConfigurations.remove( jobConfiguration );
@@ -166,6 +168,8 @@ public class DefaultSchedulingManager
 
             if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
             {
+                log.info( "Scheduling job: " + jobConfiguration );
+
                 ScheduledFuture<?> future = jobScheduler
                     .schedule( () -> {
                         try
@@ -255,6 +259,7 @@ public class DefaultSchedulingManager
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    @Override
     public Job getJob( JobType jobType )
     {
         return (Job) applicationContext.getBean( jobType.getKey() );
