@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,44 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Set;
+import org.hisp.dhis.translation.Translation;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * Unit tests for {@link JsonBinaryType}.
+ *
+ * @author Volker Schmidt
  */
-public class JsonSetBinaryType
-    extends JsonBinaryType
+public class JsonBinaryTypeTest
 {
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    private JsonBinaryType jsonBinaryType;
 
-    static
+    private Translation translation1;
+
+    @Before
+    public void setUp()
     {
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        translation1 = new Translation();
+        translation1.setLocale( "en" );
+        translation1.setValue( "English Test 1" );
+
+        jsonBinaryType = new JsonBinaryType();
+        jsonBinaryType.init( Translation.class );
     }
 
-    @Override
-    protected ObjectMapper getResultingMapper()
+    @Test
+    public void deepCopy()
     {
-        return MAPPER;
+        final Translation result = (Translation) jsonBinaryType.deepCopy( translation1 );
+        Assert.assertNotSame( translation1, result );
+        Assert.assertEquals( translation1, result );
     }
 
-    @Override
-    protected JavaType getResultingJavaType( Class<?> returnedClass )
+    @Test
+    public void deepCopyNull()
     {
-        return MAPPER.getTypeFactory().constructCollectionType( Set.class, returnedClass );
+        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }

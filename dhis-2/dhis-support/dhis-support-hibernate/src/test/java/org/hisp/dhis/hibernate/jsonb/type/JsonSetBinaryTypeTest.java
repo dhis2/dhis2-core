@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,34 +28,61 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
+import org.hisp.dhis.translation.Translation;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * Unit tests for {@link JsonSetBinaryType}.
+ *
+ * @author Volker Schmidt
  */
-public class JsonSetBinaryType
-    extends JsonBinaryType
+public class JsonSetBinaryTypeTest
 {
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    private JsonSetBinaryType jsonBinaryType;
 
-    static
+    private Set<Translation> translations;
+
+    private Translation translation1;
+
+    private Translation translation2;
+
+    @Before
+    public void setUp()
     {
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        translation1 = new Translation();
+        translation1.setLocale( "en" );
+        translation1.setValue( "English Test 1" );
+
+        translation2 = new Translation();
+        translation2.setLocale( "no" );
+        translation2.setValue( "Norwegian Test 1" );
+
+        translations = new HashSet<>();
+        translations.add( translation1 );
+        translations.add( translation2 );
+
+        jsonBinaryType = new JsonSetBinaryType();
+        jsonBinaryType.init( Translation.class );
     }
 
-    @Override
-    protected ObjectMapper getResultingMapper()
+    @SuppressWarnings( "unchecked" )
+    @Test
+    public void deepCopy()
     {
-        return MAPPER;
+        final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy( translations );
+        Assert.assertNotSame( translations, result );
+        Assert.assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
     }
 
-    @Override
-    protected JavaType getResultingJavaType( Class<?> returnedClass )
+    @Test
+    public void deepCopyNull()
     {
-        return MAPPER.getTypeFactory().constructCollectionType( Set.class, returnedClass );
+        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }
