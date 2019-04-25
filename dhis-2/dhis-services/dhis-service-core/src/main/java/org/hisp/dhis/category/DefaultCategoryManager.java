@@ -44,7 +44,6 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-@Transactional
 public class DefaultCategoryManager
     implements CategoryManager
 {
@@ -62,6 +61,7 @@ public class DefaultCategoryManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addAndPruneOptionCombos( CategoryCombo categoryCombo )
     {
         if ( categoryCombo == null || !categoryCombo.isValid() )
@@ -84,14 +84,14 @@ public class DefaultCategoryManager
 
             boolean isDelete = true;
 
-            for ( CategoryOptionCombo c : generatedOptionCombos )
+            for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
             {
-                if ( c.equals( persistedOptionCombo ) || c.getUid() == persistedOptionCombo.getUid() )
+                if ( optionCombo.equals( persistedOptionCombo ) || optionCombo.getUid().equals( persistedOptionCombo.getUid() ) )
                 {
                     isDelete = false;
-                    if ( !c.getName().equals( persistedOptionCombo.getName() ) )
+                    if ( !optionCombo.getName().equals( persistedOptionCombo.getName() ) )
                     {
-                        persistedOptionCombo.setName( c.getName() );
+                        persistedOptionCombo.setName( optionCombo.getName() );
                         modified = true;
                     }
                 }
@@ -138,6 +138,7 @@ public class DefaultCategoryManager
     }
 
     @Override
+    @Transactional
     public void addAndPruneAllOptionCombos()
     {
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
