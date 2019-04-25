@@ -107,6 +107,12 @@ public interface DimensionalObject
     DimensionType getDimensionType();
 
     /**
+     * Gets the data dimension type. Can be null. Only applicable for
+     * {@link DimensionType#CATEGORY}.
+     */
+    DataDimensionType getDataDimensionType();
+
+    /**
      * Gets the dimension name, which corresponds to a column in the analytics
      * tables, with fall back to dimension.
      */

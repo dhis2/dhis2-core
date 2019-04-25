@@ -28,16 +28,13 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;

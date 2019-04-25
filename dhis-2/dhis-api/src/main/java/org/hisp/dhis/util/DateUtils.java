@@ -220,7 +220,7 @@ public class DateUtils
     /**
      * Returns the latest of the given dates.
      *
-     * @param date the collection of dates.
+     * @param dates the collection of dates.
      * @return the latest of the given dates.
      */
     public static Date max( Collection<Date> dates )
@@ -255,7 +255,7 @@ public class DateUtils
     /**
      * Returns the earliest of the given dates.
      *
-     * @param date the collection of dates.
+     * @param dates the collection of dates.
      * @return the earliest of the given dates.
      */
     public static Date min( Collection<Date> dates )
@@ -274,7 +274,7 @@ public class DateUtils
      * Parses a date from a String on the format YYYY-MM-DD. Returns null if the
      * given string is null.
      *
-     * @param dateString the String to parse.
+     * @param string the String to parse.
      * @return a Date based on the given String.
      * @throws IllegalArgumentException if the given string is invalid.
      */
@@ -659,7 +659,7 @@ public class DateUtils
     /**
      * Return the current date minus the duration specified by the given string.
      *
-     * @param duration the duration string, see {@link DateUtils.getDuration}.
+     * @param duration the duration string.
      * @return a Date.
      */
     public static Date nowMinusDuration( String duration )

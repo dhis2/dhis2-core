@@ -115,7 +115,7 @@ public class JobConfigurationObjectBundleHook
         // Validate parameters
         if ( tempJobConfiguration.getJobParameters() != null )
         {
-            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReport -> errorReports.add( errorReport ) );
+            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
         }
 
         validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );
@@ -165,15 +165,13 @@ public class JobConfigurationObjectBundleHook
     {
         Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
         ErrorReport jobValidation = job.validate();
-        if ( jobValidation != null )
+        if ( jobValidation != null &&
+            ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() ))
         {
             // If the error is caused by the environment and the job is a non configurable job
             // that exists already, then the error can be ignored. Job has the issue with and
             // without updating it.
-            if ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() )
-            {
-                errorReports.add( jobValidation );
-            }
+            errorReports.add( jobValidation );
         }
     }
 

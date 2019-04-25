@@ -128,7 +128,7 @@ public class HibernateTrackedEntityAttributeStore
             hql += hlp.whereAnd() + " tei.deleted is false";
         }
 
-        Query query = getQuery( hql );
+        Query<String> query = getTypedQuery( hql );
         query.setMaxResults( 1 );
 
         Iterator<String> it = query.iterate();

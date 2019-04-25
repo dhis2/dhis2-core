@@ -989,8 +989,7 @@ public abstract class AbstractEnrollmentService
                 OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, instance.getOrgUnit() );
 
                 checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
-                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, program,
-                    importConflicts );
+                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, importConflicts );
             }
 
             attributeValueMap.remove( trackedEntityAttribute.getUid() );
@@ -1024,7 +1023,7 @@ public abstract class AbstractEnrollmentService
     }
 
     private void checkAttributeUniquenessWithinScope( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
-        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit, Program program,
+        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
         Set<ImportConflict> importConflicts )
     {
         if ( value == null )

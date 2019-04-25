@@ -62,8 +62,6 @@ public class Category
 {
     public static final String DEFAULT_NAME = "default";
 
-    private DataDimensionType dataDimensionType;
-
     private List<CategoryOption> categoryOptions = new ArrayList<>();
 
     private List<CategoryCombo> categoryCombos = new ArrayList<>();
@@ -190,18 +188,6 @@ public class Category
         {
             return getName().substring( 0, 49 );
         }
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataDimensionType getDataDimensionType()
-    {
-        return dataDimensionType;
-    }
-
-    public void setDataDimensionType( DataDimensionType dataDimensionType )
-    {
-        this.dataDimensionType = dataDimensionType;
     }
 
     @JsonProperty

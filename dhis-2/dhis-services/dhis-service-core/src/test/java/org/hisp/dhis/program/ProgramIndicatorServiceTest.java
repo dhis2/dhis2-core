@@ -59,9 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Chau Thu Tran
  */
 public class ProgramIndicatorServiceTest
-        extends DhisSpringTest
+    extends DhisSpringTest
 {
-    private static final String COL_QUOTE = "\"";
 
     @Autowired
     private ProgramIndicatorService programIndicatorService;

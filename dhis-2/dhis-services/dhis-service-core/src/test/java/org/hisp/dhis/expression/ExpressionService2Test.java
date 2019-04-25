@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.*;
 
+import org.apache.commons.math3.util.Precision;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
@@ -75,8 +76,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class ExpressionService2Test {
-
+public class ExpressionService2Test
+{
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
     @Mock
@@ -524,46 +525,49 @@ public class ExpressionService2Test {
         when( dimensionService.getDataDimensionalItemObject( deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() ) ).thenReturn( deA );
         when( dimensionService.getDataDimensionalItemObject( deB.getUid() + SEPARATOR + cocA.getUid() ) ).thenReturn( deB );
 
-        assertTrue( target.expressionIsValid( expressionA ).isValid() );
-        assertTrue( target.expressionIsValid( expressionB ).isValid() );
-        assertTrue( target.expressionIsValid( expressionC ).isValid() );
-        assertTrue( target.expressionIsValid( expressionD ).isValid() );
-        assertTrue( target.expressionIsValid( expressionE ).isValid() );
-        assertTrue( target.expressionIsValid( expressionH ).isValid() );
-        assertTrue( target.expressionIsValid( expressionK ).isValid() );
-        assertTrue( target.expressionIsValid( expressionL ).isValid() );
-        assertTrue( target.expressionIsValid( expressionM ).isValid() );
-        assertTrue( target.expressionIsValid( expressionN ).isValid() );
-        assertTrue( target.expressionIsValid( expressionR ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionA ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionB ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionC ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionD ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionE ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionH ).isValid() );
+        assertFalse( target.validationRuleExpressionIsValid( expressionK ).isValid() );
+        assertFalse( target.validationRuleExpressionIsValid( expressionL ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionM ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionN ).isValid() );
+        assertTrue( target.validationRuleExpressionIsValid( expressionR ).isValid() );
+
+        assertTrue( target.predictorExpressionIsValid( expressionK ).isValid() );
+        assertTrue( target.predictorExpressionIsValid( expressionL ).isValid() );
 
         String expression = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
 
-        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "#{" + deA.getUid() + SEPARATOR + "999} + 12";
 
         assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target
-                .expressionIsValid( expression ) );
+                .validationRuleExpressionIsValid( expression ) );
 
         expression = "#{" + deA.getUid() + SEPARATOR + coc.getUid() + "} + ( 12";
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "12 x 4";
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "1.5*AVG(" + target;
 
-        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "12 + C{nonExisting}";
 
-        assertEquals( ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "12 + OUG{nonExisting}";
 
-        assertEquals( ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST, target.expressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
     }
 
     @Test
@@ -685,7 +689,8 @@ public class ExpressionService2Test {
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
 
-        IndicatorValue value = target.getIndicatorValueObject( indicatorA, period, valueMap, constantMap, null );
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, Collections.singletonList( period ),
+            valueMap, constantMap, null );
 
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -701,7 +706,8 @@ public class ExpressionService2Test {
         indicatorB.setDenominator( expressionF );
         indicatorB.setAnnualized( true );
 
-        value = target.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
+        value = target.getIndicatorValueObject( indicatorB, Collections.singletonList( period ), valueMap, constantMap,
+            null );
 
         assertEquals( 36d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -761,5 +767,76 @@ public class ExpressionService2Test {
 
         assertNotNull( groups );
         assertThat(groups, hasSize(0));
+    }
+
+    @Test
+    public void testAnnualizedIndicatorValueWhenHavingMultiplePeriods()
+    {
+        List<Period> periods = new ArrayList<>( 6 );
+
+        periods.add( createPeriod( "200001" ) );
+        periods.add( createPeriod( "200002" ) );
+        periods.add( createPeriod( "200003" ) );
+        periods.add( createPeriod( "200004" ) );
+        periods.add( createPeriod( "200005" ) );
+        periods.add( createPeriod( "200006" ) );
+
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setAnnualized( true );
+        indicatorA.setNumerator( expressionE );
+        indicatorA.setDenominator( expressionF );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 10d );
+
+        Map<String, Double> constantMap = new HashMap<>();
+        constantMap.put( constantA.getUid(), 2.0 );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, periods, valueMap, constantMap, null );
+
+        assertEquals( 24d, value.getNumeratorValue(), DELTA );
+        assertEquals( 12d, value.getDenominatorValue(), DELTA );
+        assertEquals( 36500, value.getMultiplier() );
+        assertEquals( 182, value.getDivisor() );
+        assertEquals( 200.55d, Precision.round( value.getFactor(), 2 ), DELTA );
+        assertEquals( 401.1d, Precision.round( value.getValue(), 2 ), DELTA );
+
+    }
+
+    @Test
+    public void testAnnualizedIndicatorValueWhenHavingNullPeriods()
+    {
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setAnnualized( true );
+        indicatorA.setNumerator( expressionE );
+        indicatorA.setDenominator( expressionF );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 10d );
+
+        Map<String, Double> constantMap = new HashMap<>();
+        constantMap.put( constantA.getUid(), 2.0 );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap, null );
+
+        assertEquals( 24d, value.getNumeratorValue(), DELTA );
+        assertEquals( 12d, value.getDenominatorValue(), DELTA );
+        assertEquals( 100, value.getMultiplier() );
+        assertEquals( 1, value.getDivisor() );
+        assertEquals( 100.0d, Precision.round( value.getFactor(), 2 ), DELTA );
+        assertEquals( 200.0d, Precision.round( value.getValue(), 2 ), DELTA );
+
     }
 }

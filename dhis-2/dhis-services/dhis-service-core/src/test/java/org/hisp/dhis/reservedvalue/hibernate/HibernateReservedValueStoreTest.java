@@ -29,7 +29,8 @@ package org.hisp.dhis.reservedvalue.hibernate;
  */
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisTest;
+
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -41,7 +42,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,18 +55,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class HibernateReservedValueStoreTest
-    extends DhisTest
+    extends DhisSpringTest
 {
-
     private static int counter = 1;
 
-    private final ReservedValue RESERVED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
-        "00X", "001",
-        null );
+    private final ReservedValue reservedValueA = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
+        "00X", "001", null );
 
-    private final ReservedValue USED_VALUE = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
-        "00X", "002",
-        null );
+    private final ReservedValue usedValueA = new ReservedValue( Objects.TRACKEDENTITYATTRIBUTE.name(), "A",
+        "00X", "002", null );
 
     private Date futureDate;
 
@@ -91,10 +88,10 @@ public class HibernateReservedValueStoreTest
         Calendar future = Calendar.getInstance();
         future.add( Calendar.DATE, 10 );
         futureDate = future.getTime();
-        RESERVED_VALUE.setExpiryDate( futureDate );
-        USED_VALUE.setExpiryDate( futureDate );
+        reservedValueA.setExpiryDate( futureDate );
+        usedValueA.setExpiryDate( futureDate );
 
-        reservedValueStore.save( RESERVED_VALUE );
+        reservedValueStore.save( reservedValueA );
 
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
@@ -112,18 +109,12 @@ public class HibernateReservedValueStoreTest
 
     }
 
-    @Override
-    protected boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
     @Test
     public void reserveValuesSingleValue()
     {
         int count = reservedValueStore.getCount();
         ReservedValue rv = getFreeReservedValue();
-        List<ReservedValue> res = reservedValueStore.reserveValues( rv, Lists.newArrayList( rv.getValue() ) );
+        List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
 
         assertEquals( 1, res.size() );
         assertEquals(reservedValueStore.getCount(), count + 1);
@@ -132,13 +123,13 @@ public class HibernateReservedValueStoreTest
     @Test
     public void isReservedShouldBeTrue()
     {
-        assertTrue( reservedValueStore.isReserved( RESERVED_VALUE.getOwnerObject(), RESERVED_VALUE.getOwnerUid(), "001" ) );
+        assertTrue( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "001" ) );
     }
 
     @Test
     public void isReservedShouldBeFalse()
     {
-        assertFalse( reservedValueStore.isReserved( RESERVED_VALUE.getOwnerObject(), RESERVED_VALUE.getOwnerUid(), "100" ) );
+        assertFalse( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "100" ) );
     }
 
     @Test
@@ -154,10 +145,10 @@ public class HibernateReservedValueStoreTest
             values.add( String.format( "%03d", counter++ ) );
         }
 
-        List<ReservedValue> res = reservedValueStore.reserveValues( getFreeReservedValue(), values );
+        List<ReservedValue> res = reservedValueStore.reserveValuesJpa( getFreeReservedValue(), values );
 
         assertEquals( n, res.size() );
-        assertEquals(reservedValueStore.getCount(), count + n);
+        assertEquals( ( count + n ), reservedValueStore.getCount() );
     }
 
     @Test
@@ -166,10 +157,10 @@ public class HibernateReservedValueStoreTest
         int count = reservedValueStore.getCount();
 
         List<ReservedValue> res = reservedValueStore
-            .reserveValues( RESERVED_VALUE, Lists.newArrayList( RESERVED_VALUE.getValue() ) );
+            .reserveValuesJpa( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
 
         assertEquals( 0, res.size() );
-        assertEquals(reservedValueStore.getCount(), count);
+        assertEquals( count, reservedValueStore.getCount() );
     }
 
     @Test
@@ -178,10 +169,10 @@ public class HibernateReservedValueStoreTest
         int count = reservedValueStore.getCount();
 
         List<ReservedValue> res = reservedValueStore
-            .reserveValues( USED_VALUE, Lists.newArrayList( USED_VALUE.getValue() ) );
+            .reserveValuesJpa( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
 
         assertEquals( 0, res.size() );
-        assertEquals(reservedValueStore.getCount(), count);
+        assertEquals( count, reservedValueStore.getCount() );
     }
 
     @Test
@@ -190,19 +181,20 @@ public class HibernateReservedValueStoreTest
         int count = reservedValueStore.getCount();
 
         List<ReservedValue> res = reservedValueStore
-            .reserveValues( RESERVED_VALUE, Lists.newArrayList( "001", "002", "003", "004" ) );
+            .reserveValuesJpa( reservedValueA, Lists.newArrayList( "001", "002", "003", "004" ) );
 
-        assertEquals( 2, res.size() );
-        assertEquals(reservedValueStore.getCount(), count + 2);
+        assertEquals( 1, count );
+        assertEquals( 3, res.size() );
+        assertEquals( ( count + 3 ), reservedValueStore.getCount() );
     }
 
     @Test
     public void getIfReservedValuesReturnsReservedValue()
     {
         List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( RESERVED_VALUE, Lists.newArrayList( RESERVED_VALUE.getValue() ) );
+            .getIfReservedValues( reservedValueA, Lists.newArrayList( reservedValueA.getValue() ) );
 
-        assertEquals(RESERVED_VALUE, res.get(0));
+        assertEquals( reservedValueA, res.get( 0 ) );
         assertEquals( 1, res.size() );
     }
 
@@ -219,33 +211,31 @@ public class HibernateReservedValueStoreTest
     public void getIfReservedValuesReturnOnlyReservedValuesWhenSendingMultipleValues()
     {
         List<ReservedValue> res = reservedValueStore
-            .getIfReservedValues( RESERVED_VALUE, Lists.newArrayList( "001", "002", "003" ) );
+            .getIfReservedValues( reservedValueA, Lists.newArrayList( "001", "002", "003" ) );
 
-        assertEquals(RESERVED_VALUE, res.get(0));
+        assertEquals( reservedValueA, res.get( 0 ) );
         assertEquals( 1, res.size() );
     }
 
     @Test
-    @Ignore
     public void removeExpiredReservationsRemovesExpiredReservation()
     {
         Calendar pastDate = Calendar.getInstance();
         pastDate.add( Calendar.DATE, -1 );
         ReservedValue expired = getFreeReservedValue();
         expired.setExpiryDate( pastDate.getTime() );
-        reservedValueStore.reserveValues( expired, Lists.newArrayList( expired.getValue() ) );
+        reservedValueStore.reserveValuesJpa( expired, Lists.newArrayList( expired.getValue() ) );
 
         assertEquals( expired,
             reservedValueStore.getIfReservedValues( expired, Lists.newArrayList( expired.getValue() ) ).get( 0 ) );
 
         reservedValueStore.removeExpiredReservations();
 
-        assertFalse(reservedValueStore.getIfReservedValues(expired, Lists.newArrayList(expired.getValue()))
-                .contains(expired));
+        assertFalse( reservedValueStore.getIfReservedValues( expired, Lists.newArrayList(expired.getValue() ) )
+                .contains( expired ) );
     }
 
     @Test
-    @Ignore
     public void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired()
     {
         int num = reservedValueStore.getCount();
@@ -267,5 +257,4 @@ public class HibernateReservedValueStoreTest
             futureDate
         );
     }
-
 }
