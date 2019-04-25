@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.*;
 
+import org.apache.commons.math3.util.Precision;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
@@ -688,7 +689,8 @@ public class ExpressionService2Test
         Map<String, Double> constantMap = new HashMap<>();
         constantMap.put( constantA.getUid(), 2.0 );
 
-        IndicatorValue value = target.getIndicatorValueObject( indicatorA, period, valueMap, constantMap, null );
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, Collections.singletonList( period ),
+            valueMap, constantMap, null );
 
         assertEquals( 24d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -704,7 +706,8 @@ public class ExpressionService2Test
         indicatorB.setDenominator( expressionF );
         indicatorB.setAnnualized( true );
 
-        value = target.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
+        value = target.getIndicatorValueObject( indicatorB, Collections.singletonList( period ), valueMap, constantMap,
+            null );
 
         assertEquals( 36d, value.getNumeratorValue(), DELTA );
         assertEquals( 12d, value.getDenominatorValue(), DELTA );
@@ -764,5 +767,76 @@ public class ExpressionService2Test
 
         assertNotNull( groups );
         assertThat(groups, hasSize(0));
+    }
+
+    @Test
+    public void testAnnualizedIndicatorValueWhenHavingMultiplePeriods()
+    {
+        List<Period> periods = new ArrayList<>( 6 );
+
+        periods.add( createPeriod( "200001" ) );
+        periods.add( createPeriod( "200002" ) );
+        periods.add( createPeriod( "200003" ) );
+        periods.add( createPeriod( "200004" ) );
+        periods.add( createPeriod( "200005" ) );
+        periods.add( createPeriod( "200006" ) );
+
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setAnnualized( true );
+        indicatorA.setNumerator( expressionE );
+        indicatorA.setDenominator( expressionF );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 10d );
+
+        Map<String, Double> constantMap = new HashMap<>();
+        constantMap.put( constantA.getUid(), 2.0 );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, periods, valueMap, constantMap, null );
+
+        assertEquals( 24d, value.getNumeratorValue(), DELTA );
+        assertEquals( 12d, value.getDenominatorValue(), DELTA );
+        assertEquals( 36500, value.getMultiplier() );
+        assertEquals( 182, value.getDivisor() );
+        assertEquals( 200.55d, Precision.round( value.getFactor(), 2 ), DELTA );
+        assertEquals( 401.1d, Precision.round( value.getValue(), 2 ), DELTA );
+
+    }
+
+    @Test
+    public void testAnnualizedIndicatorValueWhenHavingNullPeriods()
+    {
+        IndicatorType indicatorType = new IndicatorType( "A", 100, false );
+
+        Indicator indicatorA = createIndicator( 'A', indicatorType );
+        indicatorA.setAnnualized( true );
+        indicatorA.setNumerator( expressionE );
+        indicatorA.setDenominator( expressionF );
+
+        Map<DimensionalItemObject, Double> valueMap = new HashMap<>();
+
+        valueMap.put( new DataElementOperand( deA, coc ), 12d );
+        valueMap.put( new DataElementOperand( deB, coc ), 34d );
+        valueMap.put( new DataElementOperand( deA, cocA, cocB ), 46d );
+        valueMap.put( new DataElementOperand( deB, cocA ), 10d );
+
+        Map<String, Double> constantMap = new HashMap<>();
+        constantMap.put( constantA.getUid(), 2.0 );
+
+        IndicatorValue value = target.getIndicatorValueObject( indicatorA, null, valueMap, constantMap, null );
+
+        assertEquals( 24d, value.getNumeratorValue(), DELTA );
+        assertEquals( 12d, value.getDenominatorValue(), DELTA );
+        assertEquals( 100, value.getMultiplier() );
+        assertEquals( 1, value.getDivisor() );
+        assertEquals( 100.0d, Precision.round( value.getFactor(), 2 ), DELTA );
+        assertEquals( 200.0d, Precision.round( value.getValue(), 2 ), DELTA );
+
     }
 }
