@@ -94,7 +94,7 @@ public class DefaultAclService implements AclService
         Schema schema = schemaService.getSchema( klass );
         return schema != null && schema.isDataShareable();
     }
-    
+
     @Override
     public boolean canRead( User user, IdentifiableObject object )
     {
@@ -104,7 +104,7 @@ public class DefaultAclService implements AclService
         }
 
         Schema schema = schemaService.getSchema( object.getClass() );
-        
+
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.READ ) ) )
         {
             if ( object instanceof CategoryOptionCombo )
@@ -132,7 +132,7 @@ public class DefaultAclService implements AclService
         if ( readWriteCommonCheck( user, object ) ) return true;
 
         Schema schema = schemaService.getSchema( object.getClass() );
-        
+
         if ( canAccess( user, schema.getAuthorityByType( AuthorityType.DATA_READ ) ) )
         {
             if ( object instanceof CategoryOptionCombo )
@@ -169,7 +169,7 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.CREATE );
+        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.CREATE ) );
 
         if ( anyAuthorities.isEmpty() )
         {
@@ -204,6 +204,7 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
+        // returned unmodifiable list does not need to be cloned since it is not modified
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
 
         if ( canAccess( user, anyAuthorities ) )
@@ -232,7 +233,7 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
+        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.UPDATE ) );
 
         if ( anyAuthorities.isEmpty() )
         {
@@ -264,7 +265,7 @@ public class DefaultAclService implements AclService
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DELETE );
+        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.DELETE ) );
 
         if ( anyAuthorities.isEmpty() )
         {
@@ -646,7 +647,7 @@ public class DefaultAclService implements AclService
         for ( UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
             /*
-             * Is the user allowed to read this object through group access? 
+             * Is the user allowed to read this object through group access?
              *
              */
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
@@ -659,7 +660,7 @@ public class DefaultAclService implements AclService
         for ( UserAccess userAccess : object.getUserAccesses() )
         {
             /*
-             * Is the user allowed to read to this object through user access? 
+             * Is the user allowed to read to this object through user access?
              *
              */
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
@@ -704,7 +705,7 @@ public class DefaultAclService implements AclService
         return schemaService.getSchema( object.getClass() ) == null;
     }
 
-    private boolean writeCommonCheck(Schema schema, User user, IdentifiableObject object ) 
+    private boolean writeCommonCheck( Schema schema, User user, IdentifiableObject object )
     {
         if ( !schema.isShareable() )
         {
