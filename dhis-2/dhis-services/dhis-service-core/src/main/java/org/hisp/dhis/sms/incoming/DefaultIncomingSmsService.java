@@ -162,6 +162,6 @@ public class DefaultIncomingSmsService
     @Transactional(readOnly = true)
     public List<IncomingSms> getAllUnparsedMessages()
     {
-        return incomingSmsStore.getAllUnparsedSmses();
+        return incomingSmsStore.getAllUnparsedMessages();
     }
 }

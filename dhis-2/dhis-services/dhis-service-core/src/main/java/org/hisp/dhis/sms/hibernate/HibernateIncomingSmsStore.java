@@ -101,7 +101,7 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     }
 
     @Override
-    public List<IncomingSms> getAllUnparsedSmses()
+    public List<IncomingSms> getAllUnparsedMessages()
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
