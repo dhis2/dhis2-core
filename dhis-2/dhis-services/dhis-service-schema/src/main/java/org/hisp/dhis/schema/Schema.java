@@ -48,6 +48,8 @@ import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -208,6 +210,12 @@ public class Schema implements Ordered, Klass
      * Map of all link object properties, cached on first request.
      */
     private Map<String, Property> embeddedObjectProperties;
+
+    /**
+     * Map containing cached authorities by their type.
+     */
+    @JsonIgnore
+    private transient volatile Map<AuthorityType, List<String>> cachedAuthoritiesByType;
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -480,6 +488,7 @@ public class Schema implements Ordered, Klass
     public void setAuthorities( List<Authority> authorities )
     {
         this.authorities = authorities;
+        this.cachedAuthoritiesByType = null;
     }
 
     @JsonProperty
@@ -632,11 +641,35 @@ public class Schema implements Ordered, Klass
 
     public List<String> getAuthorityByType( AuthorityType type )
     {
-        List<String> authorityList = Lists.newArrayList();
+        if ( cachedAuthoritiesByType == null )
+        {
+            cachedAuthoritiesByType = new HashMap<>();
+        }
 
+        List<String> authorityList = cachedAuthoritiesByType.get( type );
+
+        if ( authorityList != null )
+        {
+            return authorityList;
+        }
+
+        final List<String> list = new ArrayList<>();
         authorities.stream()
             .filter( authority -> type.equals( authority.getType() ) )
-            .forEach( authority -> authorityList.addAll( authority.getAuthorities() ) );
+            .forEach( authority -> list.addAll( authority.getAuthorities() ) );
+        authorityList = Collections.unmodifiableList( list );
+
+        final Map<AuthorityType, List<String>> authoritiesByType = new HashMap<>();
+        authoritiesByType.put( type, authorityList );
+
+        final Map<AuthorityType, List<String>> currentCachedAuthoritiesByType = cachedAuthoritiesByType;
+
+        if ( currentCachedAuthoritiesByType != null )
+        {
+            authoritiesByType.putAll( currentCachedAuthoritiesByType );
+        }
+
+        cachedAuthoritiesByType = authoritiesByType;
 
         return authorityList;
     }
