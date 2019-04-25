@@ -49,7 +49,7 @@ public class UserAssignmentTests
     @ValueSource( strings = { "WITHOUT_REGISTRATION", "WITH_REGISTRATION" } )
     public void userAssignmentShouldBeEnabledOnProgramStage( String programType )
     {
-        String programId = programActions.get( "?filter=programType:eq:" + programType ).extractString( "programs.id[0]" );
+        String programId = programActions.get( "?filter=programStages:ge:1&filter=programType:eq:" + programType ).extractString( "programs.id[0]" );
         String programStageId = programActions.get( programId ).extractString( "programStages.id[0]" );
 
         // test enabling of user assignment
