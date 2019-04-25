@@ -205,7 +205,6 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithIndicatorGroup()
     {
         final String INDICATOR_GROUP_UID = "oehv9EO3vP7";

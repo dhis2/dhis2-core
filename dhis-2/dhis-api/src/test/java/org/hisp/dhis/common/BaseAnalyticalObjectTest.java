@@ -100,8 +100,6 @@ public class BaseAnalyticalObjectTest
         assertTrue( deA.equals( deC ) );
 
         assertFalse( deA.equals( deB ) );
-        assertFalse( deA.equals( dsA ) );
-        assertFalse( deA.equals( dsD ) );
         assertFalse( dsA.equals( dsD ) );
     }
 

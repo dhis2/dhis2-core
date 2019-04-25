@@ -42,7 +42,6 @@ public class HibernateOrganisationUnitGroupStore
     implements OrganisationUnitGroupStore
 {
     @Override
-    @SuppressWarnings("unchecked")
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
     {
         return getQuery( "from OrganisationUnitGroup o where o.groupSet is not null" ).list();
