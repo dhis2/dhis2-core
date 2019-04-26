@@ -66,6 +66,7 @@ public class UserAssignmentFilterTests
     private String userUsername;
 
     private String programId = "BJ42SUrAvHo";
+
     private String orgUnit = "r16njpPwUCb";
 
     private String userId;
@@ -150,7 +151,6 @@ public class UserAssignmentFilterTests
 
         assertThat( unassignedEvents.extractList( "events.event" ),  Matchers.hasItem( eventId ) ) ;
         assertThat( unassignedEvents.extractList( "events.assignedUser" ), everyItem( Matchers.isEmptyOrNullString(  ) ) );
-
 
     }
 
