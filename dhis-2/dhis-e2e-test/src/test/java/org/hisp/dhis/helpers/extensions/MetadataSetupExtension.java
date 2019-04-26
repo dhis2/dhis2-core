@@ -74,9 +74,12 @@ public class MetadataSetupExtension
             createdData = TestRunStorage.getCreatedEntities();
 
             iterateCreatedData( id -> {
+                System.out.println( "removing resource  " + createdData.get( id ) + " id: " + id );
                 TestRunStorage.removeEntity( createdData.get( id ), id );
             } );
-
+            
+            System.out.println( " Size: " + createdData.size() );
+            System.out.println( "Storage Size: " + TestRunStorage.getCreatedEntities() );
             // The following line registers a callback hook when the root test context is shut down
             context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
         }
