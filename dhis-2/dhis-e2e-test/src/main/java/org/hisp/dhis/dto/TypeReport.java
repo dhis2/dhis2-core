@@ -29,58 +29,47 @@ package org.hisp.dhis.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @JsonIgnoreProperties( ignoreUnknown = true )
-public class ImportSummary
+public class TypeReport
 {
-    private String status;
+    private String klass;
 
-    private String description;
+    private List<ObjectReport> objectReports;
 
-    private String reference;
+    private ImportCount stats;
 
-    private ImportCount importCount;
-
-    public String getStatus()
+    public String getKlass()
     {
-        return status;
+        return klass;
     }
 
-    public void setStatus( String status )
+    public void setKlass( String klass )
     {
-        this.status = status;
+        this.klass = klass;
     }
 
-    public String getDescription()
+    public List<ObjectReport> getObjectReports()
     {
-        return description;
+        return objectReports;
     }
 
-    public void setDescription( String description )
+    public void setObjectReports( List<ObjectReport> objectReports )
     {
-        this.description = description;
+        this.objectReports = objectReports;
     }
 
-    public String getReference()
+    public ImportCount getStats()
     {
-        return reference;
+        return stats;
     }
 
-    public void setReference( String reference )
+    public void setStats( ImportCount stats )
     {
-        this.reference = reference;
+        this.stats = stats;
     }
-
-    public ImportCount getImportCount()
-    {
-        return importCount;
-    }
-
-    public void setImportCount( ImportCount importCount )
-    {
-        this.importCount = importCount;
-    }
-
 }
