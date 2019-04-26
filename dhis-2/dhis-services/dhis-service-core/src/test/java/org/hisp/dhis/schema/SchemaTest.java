@@ -40,8 +40,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.contains;
-
 /**
  * Unit tests for {@link Schema}.
  *
@@ -85,10 +83,10 @@ public class SchemaTest
         schema.setAuthorities( authorities );
 
         List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
-        Assert.assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
+        Assert.assertEquals( Arrays.asList( "x1", "x2", "y1", "y2" ), list1 );
 
         List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
-        Assert.assertThat( list2, contains( "x1", "x2", "y1", "y2" ) );
+        Assert.assertEquals( Arrays.asList( "x1", "x2", "y1", "y2" ), list2 );
         Assert.assertSame( list1, list2 );
     }
 
@@ -99,13 +97,13 @@ public class SchemaTest
         schema.setAuthorities( authorities );
 
         List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
-        Assert.assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
+        Assert.assertEquals( Arrays.asList( "x1", "x2", "y1", "y2" ), list1 );
 
         List<String> list3 = schema.getAuthorityByType( AuthorityType.DELETE );
-        Assert.assertThat( list3, contains( "z1", "z2" ) );
+        Assert.assertEquals( Arrays.asList( "z1", "z2" ), list3 );
 
         List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
-        Assert.assertThat( list2, contains( "x1", "x2", "y1", "y2" ) );
+        Assert.assertEquals( Arrays.asList( "x1", "x2", "y1", "y2" ), list2 );
         Assert.assertSame( list1, list2 );
     }
 
@@ -130,13 +128,13 @@ public class SchemaTest
         schema.setAuthorities( authorities );
 
         List<String> list1 = schema.getAuthorityByType( AuthorityType.CREATE );
-        Assert.assertThat( list1, contains( "x1", "x2", "y1", "y2" ) );
+        Assert.assertEquals( Arrays.asList( "x1", "x2", "y1", "y2" ), list1 );
 
         authorities.add( new Authority( AuthorityType.CREATE, Arrays.asList( "a1", "a2" ) ) );
         schema.setAuthorities( authorities );
 
         List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
-        Assert.assertThat( list2, contains( "x1", "x2", "y1", "y2", "a1", "a2" ) );
+        Assert.assertEquals( Arrays.asList( "x1", "x2", "y1", "y2", "a1", "a2" ), list2 );
         Assert.assertNotSame( list1, list2 );
     }
 
