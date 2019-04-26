@@ -28,7 +28,10 @@ package org.hisp.dhis.system.database;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.cfg.Configuration;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -39,6 +42,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
+    private static final String POSTGIS_MISSING_ERROR = "Postgis extension is not installed. Execute \"CREATE EXTENSION postgis;\" as a superuser and start the application again.";
+    private static final Log log = LogFactory.getLog( HibernateDatabaseInfoProvider.class );
     private static final String KEY_DIALECT = "hibernate.dialect";
     private static final String KEY_DRIVER_CLASS = "hibernate.connection.driver_class";
     private static final String KEY_URL = "hibernate.connection.url";
@@ -59,14 +64,14 @@ public class HibernateDatabaseInfoProvider
     // -------------------------------------------------------------------------
 
     private HibernateConfigurationProvider hibernateConfigurationProvider;
-    
+
     public void setHibernateConfigurationProvider( HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         this.hibernateConfigurationProvider = hibernateConfigurationProvider;
     }
 
     private JdbcTemplate jdbcTemplate;
-    
+
     public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
@@ -74,10 +79,24 @@ public class HibernateDatabaseInfoProvider
     
     public void init()
     {
+        checkDatabaseConnectivity();
+
         Configuration config = hibernateConfigurationProvider.getConfiguration();
-        
-        boolean spatialSupport = isSpatialSupport();
-        
+
+        boolean spatialSupport = false;
+
+        // Check if postgis is installed, fail startup if not
+        if ( !SystemUtils.isTestRun() )
+        {
+            spatialSupport = isSpatialSupport();
+
+            if ( !spatialSupport )
+            {
+                log.error( POSTGIS_MISSING_ERROR );
+                throw new IllegalStateException( POSTGIS_MISSING_ERROR );
+            }
+        }
+
         String dialect = config.getProperty( KEY_DIALECT );
         String driverClass = config.getProperty( KEY_DRIVER_CLASS );
         String url = config.getProperty( KEY_URL );
@@ -85,28 +104,28 @@ public class HibernateDatabaseInfoProvider
         String password = config.getProperty( KEY_PASSWORD );
 
         info = new DatabaseInfo();
-        
+
         if ( dialect != null && dialect.lastIndexOf( SEPARATOR ) != -1 && dialect.lastIndexOf( DIALECT_SUFFIX ) != -1 )
         {
             info.setType( dialect.substring( dialect.lastIndexOf( SEPARATOR ) + 1, dialect.lastIndexOf( DIALECT_SUFFIX ) ) );
         }
-        
+
         if ( url != null && url.lastIndexOf( DEL_B ) != -1 )
         {
-            int startPos = url.lastIndexOf( DEL_A ) != -1 ? url.lastIndexOf( DEL_A ) : url.lastIndexOf( DEL_B );            
+            int startPos = url.lastIndexOf( DEL_A ) != -1 ? url.lastIndexOf( DEL_A ) : url.lastIndexOf( DEL_B );
             int endPos = url.lastIndexOf( DEL_C ) != -1 ? url.lastIndexOf( DEL_C ) : url.length();
-                    
+
             info.setName( url.substring( startPos + 1, endPos ) );
         }
-        
+
         info.setUser( user );
         info.setPassword( password );
         info.setDialect( dialect );
         info.setDriverClass( driverClass );
         info.setUrl( url );
         info.setSpatialSupport( spatialSupport );
-    }    
-    
+    }
+
     // -------------------------------------------------------------------------
     // DatabaseInfoProvider implementation
     // -------------------------------------------------------------------------
@@ -126,6 +145,11 @@ public class HibernateDatabaseInfoProvider
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private void checkDatabaseConnectivity()
+    {
+        jdbcTemplate.queryForObject( "select 'checking db connection';", String.class );
+    }
 
     /**
      * Attempts to create a spatial database extension. Checks if spatial operations
@@ -148,6 +172,7 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
+            log.error( "Exception when checking postgis version:", ex );
             return false;
         }
     }
