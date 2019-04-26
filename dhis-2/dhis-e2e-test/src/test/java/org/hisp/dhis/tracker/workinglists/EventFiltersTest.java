@@ -55,8 +55,7 @@ public class EventFiltersTest
     {
         eventFiltersActions = new RestApiActions( "/eventFilters" );
 
-        new LoginActions().loginAsDefaultUser();
-        new MetadataActions().importMetadata( new File( "src/test/resources/metadata/metadata.json" ) );
+        new LoginActions().loginAsSuperUser();
     }
 
     @Test
