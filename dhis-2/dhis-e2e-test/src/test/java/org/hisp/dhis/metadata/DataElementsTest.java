@@ -98,7 +98,7 @@ public class DataElementsTest
         categoryComboActions = new RestApiActions( "/categoryCombos" );
         loginActions = new LoginActions();
 
-        loginActions.loginAsDefaultUser();
+        loginActions.loginAsSuperUser();
     }
 
     @ParameterizedTest

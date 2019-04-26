@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,75 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dto;
 
-package org.hisp.dhis;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-public abstract class ApiTest
+@JsonIgnoreProperties( ignoreUnknown = true )
+public class ObjectReport
 {
-    @AfterAll
-    public void afterAll()
+    private String klass;
+
+    private String uid;
+
+    private String displayName;
+
+    private int index;
+
+    private List<Object> errorReports;
+
+    public String getKlass()
     {
-        new TestCleanUp().deleteCreatedEntities();
+        return klass;
+    }
+
+    public void setKlass( String klass )
+    {
+        this.klass = klass;
+    }
+
+    public String getUid()
+    {
+        return uid;
+    }
+
+    public void setUid( String uid )
+    {
+        this.uid = uid;
+    }
+
+    public String getDisplayName()
+    {
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
+    }
+
+    public List<Object> getErrorReports()
+    {
+        return errorReports;
+    }
+
+    public void setErrorReports( List<Object> errorReports )
+    {
+        this.errorReports = errorReports;
+    }
+
+    public int getIndex()
+    {
+        return index;
+    }
+
+    public void setIndex( int index )
+    {
+        this.index = index;
     }
 }

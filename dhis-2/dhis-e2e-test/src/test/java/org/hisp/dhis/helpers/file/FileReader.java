@@ -13,6 +13,8 @@ public interface FileReader
 
     FileReader replacePropertyValuesWithIds( String propertyValues );
 
+    FileReader replacePropertyValuesWith( String propertyNames, String replacedValues );
+
     FileReader replace( Function<Object, Object> function );
 
     Object get();

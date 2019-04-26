@@ -63,7 +63,8 @@ public class UsersRemovalTests
     public void beforeEach()
     {
         userName = DataGenerator.randomString();
-        loginActions.loginAsDefaultUser();
+
+        loginActions.loginAsSuperUser();
         userId = userActions.addUser( "johnny", "bravo", userName, password );
     }
 
@@ -72,7 +73,7 @@ public class UsersRemovalTests
     {
         loginActions.loginAsUser( userName, password );
 
-        loginActions.loginAsDefaultUser();
+        loginActions.loginAsSuperUser();
 
         ApiResponse response = userActions.delete( userId );
 

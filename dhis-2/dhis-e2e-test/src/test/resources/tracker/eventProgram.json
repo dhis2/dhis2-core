@@ -1,0 +1,98 @@
+{
+  "programStages": [
+    {
+      "lastUpdated": "2019-04-09T13:29:20.325",
+      "id": "l8oDIfJJhtg",
+      "created": "2019-04-09T13:29:20.285",
+      "name": "Program with user assignment",
+      "allowGenerateNextVisit": false,
+      "preGenerateUID": false,
+      "publicAccess": "rw------",
+      "openAfterEnrollment": false,
+      "repeatable": false,
+      "remindCompleted": false,
+      "displayGenerateEventBox": true,
+      "generatedByEnrollmentDate": false,
+      "validationStrategy": "ON_COMPLETE",
+      "autoGenerateEvent": true,
+      "hideDueDate": false,
+      "blockEntryForm": false,
+      "enableUserAssignment": true,
+      "minDaysFromStart": 0,
+      "program": {
+        "id": "BJ42SUrAvHo"
+      },
+      "notificationTemplates": [],
+      "programStageDataElements": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "programStageSections": []
+    }
+  ],
+  "programs": [
+    {
+      "lastUpdated": "2019-04-09T13:29:20.328",
+      "id": "BJ42SUrAvHo",
+      "created": "2019-04-09T13:29:20.304",
+      "name": "Program with user assignment",
+      "shortName": "User assignment program ",
+      "publicAccess": "rw------",
+      "completeEventsExpiryDays": 0,
+      "ignoreOverdueEvents": false,
+      "skipOffline": false,
+      "minAttributesRequiredToSearch": 1,
+      "displayFrontPageList": false,
+      "onlyEnrollOnce": false,
+      "programType": "WITHOUT_REGISTRATION",
+      "accessLevel": "OPEN",
+      "version": 0,
+      "maxTeiCountToReturn": 0,
+      "selectIncidentDatesInFuture": false,
+      "displayIncidentDate": true,
+      "selectEnrollmentDatesInFuture": false,
+      "expiryDays": 0,
+      "useFirstStageDuringRegistration": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "programTrackedEntityAttributes": [],
+      "notificationTemplates": [],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "r16njpPwUCb"
+        },
+        {
+          "id": "rvXpdBllyHI"
+        },
+        {
+          "id": "Gg0Uq9ZiYe0"
+        },
+        {
+          "id": "nGK3m0FCOmd"
+        }
+      ],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "programSections": [],
+      "attributeValues": [],
+      "programStages": [
+        {
+          "id": "l8oDIfJJhtg"
+        }
+      ],
+      "userAccesses": []
+    }
+  ]
+}
