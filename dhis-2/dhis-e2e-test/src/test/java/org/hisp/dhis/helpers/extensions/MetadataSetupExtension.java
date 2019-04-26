@@ -60,7 +60,7 @@ public class MetadataSetupExtension
         if ( !started )
         {
             started = true;
-            new LoginActions().loginAsSuperUser();
+            new LoginActions().loginAsDefaultUser();
             new MetadataActions().importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
             new MetadataActions().importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
             new MetadataActions().importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
