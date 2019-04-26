@@ -45,7 +45,6 @@ public class MetadataActions extends RestApiActions
 
     public ApiResponse importMetadata( File file, String queryParams )
     {
-        queryParams = !StringUtils.isEmpty( queryParams ) ? queryParams : "";
         ApiResponse response = postFile( file, "?importReportMode=FULL&atomicMode=NONE" + queryParams );
 
         response.validate().statusCode( 200 );

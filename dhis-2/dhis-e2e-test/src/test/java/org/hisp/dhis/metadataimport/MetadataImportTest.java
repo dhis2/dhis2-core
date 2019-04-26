@@ -119,10 +119,8 @@ public class MetadataImportTest
             .statusCode( 200 )
             .body( "stats.total", greaterThan( 0 ) )
             .body( "stats.created", Matchers.equalTo( 0 ) )
-            .body( "stats.deleted", Matchers.equalTo( 0 ) );
-
-        assertEquals( response.extractString( "stats.total" ), response.extractString( "stats." + expected ),
-            "Ignored objects count should have matched total." );
+            .body( "stats.deleted", Matchers.equalTo( 0 ) )
+            .body( "stats.total", equalTo( response.extract( "stats." + expected ) ) );
 
         List<HashMap> typeReports = response.extractList( "typeReports.stats" );
 
