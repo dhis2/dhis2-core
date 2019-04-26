@@ -133,7 +133,6 @@ public class ApiResponse
                 return this.extractList( pathToImportSummaries + "importSummaries", ImportSummary.class );
             case "ImportSummary":
                 return Arrays.asList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
-            //return Arrays.asList( raw.jsonPath().as( ImportSummary.class ) );
             }
 
         }
