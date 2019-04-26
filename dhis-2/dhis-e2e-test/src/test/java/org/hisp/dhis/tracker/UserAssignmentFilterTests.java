@@ -19,6 +19,7 @@ import java.io.File;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -34,7 +35,7 @@ public class UserAssignmentFilterTests
 
     private UserActions userActions;
 
-    private String userPassword = "Qwerty1234?";
+    private String userPassword = "Test1212?";
 
     private String userUsername;
 
@@ -62,7 +63,8 @@ public class UserAssignmentFilterTests
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
         userActions.addUserToUserGroup( userId, "OPVIvvXzNTw" );
-
+        userActions.addURoleToUser( userId, "yrB6vc5Ip7r" );
+        
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }
 
@@ -109,6 +111,8 @@ public class UserAssignmentFilterTests
 
         String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
             .extractString( "events.event[0]" );
+        assertNotNull( eventId, "Event was not found" );
+
         unassignEvent( eventId );
 
         // act
@@ -134,6 +138,7 @@ public class UserAssignmentFilterTests
         loginActions.loginAsUser( userUsername, userPassword );
         String eventId = eventActions.get( "?orgUnit=" + orgUnit + "&assignedUserMode=CURRENT" )
             .extractString( "events.event[0]" );
+        assertNotNull( eventId, "Event was not found" );
 
         String status = "SCHEDULE";
         changeEventStatus( eventId, status );
