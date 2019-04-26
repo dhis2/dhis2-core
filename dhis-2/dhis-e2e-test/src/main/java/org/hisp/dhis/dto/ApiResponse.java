@@ -104,7 +104,7 @@ public class ApiResponse
 
     public JsonObject getBody()
     {
-        return raw.getBody().as( JsonObject.class, ObjectMapperType.GSON );
+        return extractJsonObject( "" );
     }
 
     public boolean isEntityCreated()
