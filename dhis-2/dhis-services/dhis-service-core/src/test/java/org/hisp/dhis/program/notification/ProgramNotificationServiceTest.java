@@ -54,10 +54,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -73,7 +71,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -148,7 +145,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private ProgramNotificationTemplate programNotificationTemplate;
     private ProgramNotificationTemplate programNotificationTemplateForToday;
     private ProgramNotificationInstance programNotificationInstaceForToday;
-    private ProgramNotificationTemplate programNotificationTemplateForYesterday;
 
     @Before
     @SuppressWarnings("unchecked")
@@ -467,10 +463,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         Date today = cal.getTime();
         cal.add( java.util.Calendar.DATE, -1 );
-        Date yesterday = cal.getTime();
 
         programNotificationTemplateForToday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, today );
-        programNotificationTemplateForYesterday = createProgramNotificationTemplate( TEMPLATE_NAME, 0, NotificationTrigger.PROGRAM_RULE, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE, yesterday );
 
         programNotificationInstaceForToday = new ProgramNotificationInstance();
         programNotificationInstaceForToday.setProgramNotificationTemplate( programNotificationTemplateForToday );

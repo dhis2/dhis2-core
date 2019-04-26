@@ -32,7 +32,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar
  */
 public class  EnrollmentEvaluationEvent extends ApplicationEvent
 {

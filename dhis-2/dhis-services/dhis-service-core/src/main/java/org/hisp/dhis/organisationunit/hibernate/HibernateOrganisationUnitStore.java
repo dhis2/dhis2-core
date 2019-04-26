@@ -84,14 +84,12 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getRootOrganisationUnits()
     {
         return getQuery( "from OrganisationUnit o where o.parent is null" ).list();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
         return getQuery( "from OrganisationUnit o where size(o.groups) = 0" ).list();
@@ -261,7 +259,6 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<OrganisationUnit> getWithinCoordinateArea( double[] box )
     {
         // can't use hibernate-spatial 'makeenvelope' function, because not available in
@@ -313,7 +310,6 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public void forceUpdatePaths()
     {
         List<OrganisationUnit> organisationUnits = new ArrayList<>( getQuery( "from OrganisationUnit" ).list() );

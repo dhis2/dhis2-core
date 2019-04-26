@@ -40,7 +40,6 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.Resource;
 import javax.persistence.QueryTimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -64,7 +63,6 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
