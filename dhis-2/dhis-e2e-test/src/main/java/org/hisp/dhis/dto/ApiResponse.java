@@ -58,6 +58,8 @@ package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
 import io.restassured.mapper.ObjectMapperType;
+import io.restassured.path.json.config.JsonParserType;
+import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -131,7 +133,8 @@ public class ApiResponse
 
     public JsonObject extractJsonObject( String path )
     {
-        return extractObject( path, JsonObject.class );
+        return raw.jsonPath( JsonPathConfig.jsonPathConfig().defaultParserType( JsonParserType.GSON ) )
+            .getObject( path, JsonObject.class );
     }
 
     public <T> List<T> extractList( String path )
