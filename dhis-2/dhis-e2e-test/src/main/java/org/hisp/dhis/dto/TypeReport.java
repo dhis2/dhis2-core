@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dto;
 
-package org.hisp.dhis;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-public abstract class ApiTest
+@JsonIgnoreProperties( ignoreUnknown = true )
+public class TypeReport
 {
-    @AfterAll
-    public void afterAll()
+    private String klass;
+
+    private List<ObjectReport> objectReports;
+
+    private ImportCount stats;
+
+    public String getKlass()
     {
-        new TestCleanUp().deleteCreatedEntities();
+        return klass;
+    }
+
+    public void setKlass( String klass )
+    {
+        this.klass = klass;
+    }
+
+    public List<ObjectReport> getObjectReports()
+    {
+        return objectReports;
+    }
+
+    public void setObjectReports( List<ObjectReport> objectReports )
+    {
+        this.objectReports = objectReports;
+    }
+
+    public ImportCount getStats()
+    {
+        return stats;
+    }
+
+    public void setStats( ImportCount stats )
+    {
+        this.stats = stats;
     }
 }

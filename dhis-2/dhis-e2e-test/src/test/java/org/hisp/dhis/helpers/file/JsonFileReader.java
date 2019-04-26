@@ -39,13 +39,22 @@ public class JsonFileReader
     @Override
     public FileReader replacePropertyValuesWithIds( String propertyName )
     {
+        return replacePropertyValuesWith( propertyName, "uniqueid" );
+    }
+
+    @Override
+    public FileReader replacePropertyValuesWith( String propertyName, String replacedValue )
+    {
         replace( p -> {
             JsonObject object = ((JsonElement) p).getAsJsonObject();
+
+            if ( replacedValue.equalsIgnoreCase( "uniqueid" ) )
             {
-                if ( object.has( propertyName ) )
-                {
-                    object.addProperty( propertyName, new IdGenerator().generateUniqueId() );
-                }
+                object.addProperty( propertyName, new IdGenerator().generateUniqueId() );
+            }
+            else
+            {
+                object.addProperty( propertyName, replacedValue );
             }
 
             return object;

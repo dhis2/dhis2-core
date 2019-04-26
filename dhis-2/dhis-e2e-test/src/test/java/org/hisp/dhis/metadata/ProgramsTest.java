@@ -81,7 +81,7 @@ public class ProgramsTest
     @BeforeEach
     public void before()
     {
-        loginActions.loginAsDefaultUser();
+        loginActions.loginAsSuperUser();
     }
 
     @ParameterizedTest( name = "withType[{0}]" )

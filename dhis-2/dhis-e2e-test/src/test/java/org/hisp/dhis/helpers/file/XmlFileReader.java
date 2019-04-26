@@ -45,19 +45,30 @@ public class XmlFileReader
     }
 
     @Override
-    public FileReader replacePropertyValuesWithIds( String propertyValues )
+    public FileReader replacePropertyValuesWithIds( String propertyName )
+    {
+        return replacePropertyValuesWith( propertyName, "UNIQUEID" );
+    }
+
+    @Override
+    public FileReader replacePropertyValuesWith( String propertyName, String replacedValue )
     {
         XPath xPath = XPathFactory.newInstance().newXPath();
 
         try
         {
-            NodeList nodes = (NodeList) xPath.evaluate( "//*[@" + propertyValues + "]", document, XPathConstants.NODESET );
+            NodeList nodes = (NodeList) xPath.evaluate( "//*[@" + propertyName + "]", document, XPathConstants.NODESET );
 
             for ( int i = 0; i < nodes.getLength(); i++ )
             {
-                Node node = nodes.item( i ).getAttributes().getNamedItem( propertyValues );
+                Node node = nodes.item( i ).getAttributes().getNamedItem( propertyName );
 
-                node.setNodeValue( new IdGenerator().generateUniqueId() );
+                if ( replacedValue.equalsIgnoreCase( "uniqueid" ) )
+                {
+                    node.setNodeValue( new IdGenerator().generateUniqueId() );
+                    continue;
+                }
+                node.setNodeValue( replacedValue );
             }
 
         }

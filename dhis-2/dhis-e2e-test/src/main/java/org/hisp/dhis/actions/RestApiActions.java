@@ -34,9 +34,11 @@ import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
+import org.hisp.dhis.dto.ObjectReport;
 
 import java.io.File;
 import java.util.List;
@@ -218,6 +220,30 @@ public class RestApiActions
             return;
         }
 
+        if ( response.getTypeReports() != null )
+        {
+            SchemasActions schemasActions = new SchemasActions();
+            response.getTypeReports().stream()
+                .filter( typeReport -> {
+                    return typeReport.getStats().getIgnored() == 0;
+                } )
+                .forEach( tr -> {
+                    List<ObjectReport> objectReports = tr.getObjectReports();
+
+                    if ( !CollectionUtils.isEmpty( objectReports ) )
+                    {
+                        String endpoint = schemasActions.findSchemaPropertyByKlassName( tr.getKlass(), "plural" );
+
+                        objectReports.forEach( or -> {
+                            String uid = or.getUid();
+                            TestRunStorage.addCreatedEntity( endpoint, uid );
+                        } );
+                    }
+
+                } );
+
+            return;
+        }
         if ( response.isEntityCreated() )
         {
             TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.helpers.extensions;
 
-package org.hisp.dhis;
-
-import org.hisp.dhis.helpers.TestCleanUp;
-import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
-import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.extension.ExtendWith;
+import io.restassured.RestAssured;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.filter.cookie.CookieFilter;
+import io.restassured.filter.session.SessionFilter;
+import io.restassured.http.ContentType;
+import io.restassured.parsing.Parser;
+import io.restassured.specification.RequestSpecification;
+import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@TestInstance( TestInstance.Lifecycle.PER_CLASS )
-@ExtendWith( ConfigurationExtension.class )
-@ExtendWith( MetadataSetupExtension.class )
-public abstract class ApiTest
+public class ConfigurationExtension
+    implements BeforeAllCallback
 {
-    @AfterAll
-    public void afterAll()
+    @Override
+    public void beforeAll( ExtensionContext context )
+        throws Exception
     {
-        new TestCleanUp().deleteCreatedEntities();
+        RestAssured.baseURI = "http://localhost:8070/api";
+        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+        RestAssured.defaultParser = Parser.JSON;
+        RestAssured.requestSpecification = defaultRequestSpecification();
+    }
+
+    private RequestSpecification defaultRequestSpecification()
+    {
+        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+
+        requestSpecification.addFilter( new CookieFilter() );
+        requestSpecification.addFilter( new SessionFilter() );
+        requestSpecification.setContentType( ContentType.JSON );
+
+        return requestSpecification.build();
     }
 }

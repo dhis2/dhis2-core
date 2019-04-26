@@ -47,6 +47,14 @@ public class MaintenanceActions
         sendRequest( "?softDeletedEventRemoval=true" );
     }
 
+    public void removeSoftDeletedMetadata()
+    {
+        removeSoftDeletedEvents();
+        sendRequest( "?softDeletedTrackedEntityInstanceRemoval=true" );
+        sendRequest( "?softDeletedProgramStageInstanceRemoval=true" );
+        sendRequest( "?softDeletedProgramInstanceRemoval=true" );
+    }
+
     private void sendRequest( String queryParams )
     {
         ApiResponse apiResponse = super.update( queryParams, new JsonObject() );
