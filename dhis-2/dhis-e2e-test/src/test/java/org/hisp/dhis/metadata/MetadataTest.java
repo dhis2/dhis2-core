@@ -127,8 +127,8 @@ public class MetadataTest
     {
         List blacklistedEndpoints = Arrays.asList( "jobConfigurations",
             "relationshipTypes",
-            "messageConversations" ,
-            "users"); //blacklisted because contains conditionally required properties, which are not marked as required
+            "messageConversations",
+            "users" ); //blacklisted because contains conditionally required properties, which are not marked as required
 
         List<SchemaProperty> schemaProperties = schemasActions.getRequiredProperties( schema );
 

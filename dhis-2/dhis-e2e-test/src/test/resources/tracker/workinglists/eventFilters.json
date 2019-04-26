@@ -3,7 +3,7 @@
   "description": "Simple Filter",
   "name": "TA event program events",
   "eventQueryCriteria": {
-    "organisationUnit":"r16njpPwUCb",
+    "organisationUnit": "r16njpPwUCb",
     "eventStatus": "COMPLETED",
     "eventDate": {
       "startDate": "2014-05-01",
@@ -13,15 +13,19 @@
       "period": "LAST_WEEK",
       "type": "RELATIVE"
     },
-    "dataFilters": [{
-      "dataItem": "abcDataElementUid",
-      "le": "20",
-      "ge": "10",
-      "lt": "20",
-      "gt": "10",
-      "in": ["India", "Norway"],
-      "like": "abc"
-    },
+    "dataFilters": [
+      {
+        "dataItem": "abcDataElementUid",
+        "le": "20",
+        "ge": "10",
+        "lt": "20",
+        "gt": "10",
+        "in": [
+          "India",
+          "Norway"
+        ],
+        "like": "abc"
+      },
       {
         "dataItem": "dateDataElementUid",
         "dateFilter": {
@@ -44,7 +48,8 @@
           "period": "LAST_WEEK",
           "type": "RELATIVE"
         }
-      }],
+      }
+    ],
     "programStatus": "ACTIVE"
   }
 }

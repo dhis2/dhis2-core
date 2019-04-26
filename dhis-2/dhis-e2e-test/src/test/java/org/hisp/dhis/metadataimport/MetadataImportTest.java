@@ -229,7 +229,6 @@ public class MetadataImportTest
         // act
         ApiResponse response = metadataActions.post( params, object );
 
-
         // send async request
         params = params.replace( "async=false", "async=true" );
 
