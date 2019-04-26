@@ -33,6 +33,9 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.TestCleanUp;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +52,7 @@ public class RelationshipsTest
     private RestApiActions trackedEntityInstanceActions;
     private RestApiActions relationshipTypesActions;
     private String bidirectionalRelationshipId;
+    private String createdRelationship;
 
     @BeforeAll
     public void before()
@@ -67,9 +71,9 @@ public class RelationshipsTest
     public void bidirectionalRelationshipsCanBeAdded()
     {
         // arrange
-        String mother = "PZJz33UMzpS";
+        String mother = "PZJz33UMzpZ";
 
-        String child = "brqJcRd1L6S";
+        String child = "brqJcRd1L6Z";
 
         JsonObject responseBody = trackedEntityInstanceActions.get( child ).getBody();
 
@@ -100,6 +104,9 @@ public class RelationshipsTest
             .body( "relationships[0].relationshipType", Matchers.equalTo( bidirectionalRelationshipId ) )
             .body( "relationships[0].from.trackedEntityInstance.trackedEntityInstance", Matchers.equalTo( child ) )
             .body( "relationships[0].to.trackedEntityInstance.trackedEntityInstance", Matchers.equalTo( mother ) );
+
+        createdRelationship = childResponse.extractString( "relationships[0].relationship" );
+
     }
 
     private JsonObject addRelationship( JsonObject object, String fromId, String toId, String relationshipType )
@@ -125,5 +132,10 @@ public class RelationshipsTest
         object.get( "relationships" ).getAsJsonArray().add( relationship );
 
         return object;
+    }
+
+    @AfterEach
+    public void cleanup() {
+        new TestCleanUp().deleteEntity( "relationships", createdRelationship );
     }
 }
