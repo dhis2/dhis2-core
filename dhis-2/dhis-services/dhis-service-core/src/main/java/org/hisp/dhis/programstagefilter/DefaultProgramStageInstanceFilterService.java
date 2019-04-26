@@ -29,22 +29,14 @@ package org.hisp.dhis.programstagefilter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -59,101 +51,26 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageInstanceFilterStore programStageInstanceFilterStore;
-
     private ProgramService programService;
 
     private ProgramStageService programStageService;
 
     private OrganisationUnitService organisationUnitService;
 
-    private AclService aclService;
-
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    public void setProgramStageInstanceFilterStore( ProgramStageInstanceFilterStore programStageInstanceFilterStore )
-    {
-        this.programStageInstanceFilterStore = programStageInstanceFilterStore;
-    }
-
-    @Autowired
-    public void setProgramService( ProgramService programService )
+    public DefaultProgramStageInstanceFilterService( ProgramService programService, ProgramStageService programStageService,
+        OrganisationUnitService organisationUnitService )
     {
         this.programService = programService;
-    }
-
-    @Autowired
-    public void setProgramStageService( ProgramStageService programStageService )
-    {
         this.programStageService = programStageService;
-    }
-
-    @Autowired
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
         this.organisationUnitService = organisationUnitService;
-    }
-
-    @Autowired
-    public void setAclService( AclService aclService )
-    {
-        this.aclService = aclService;
-    }
-
-    @Autowired
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
     // ProgramStageInstanceFilterService implementation
     // -------------------------------------------------------------------------
-
+   
     @Override
-    public long add( ProgramStageInstanceFilter programStageInstanceFilter )
-    {
-        List<String> errors = validate( programStageInstanceFilter );
-
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
-        programStageInstanceFilterStore.save( programStageInstanceFilter );
-        return programStageInstanceFilter.getId();
-    }
-
-    @Override
-    public void delete( ProgramStageInstanceFilter programStageInstanceFilter )
-    {
-        if ( !aclService.canDelete( currentUserService.getCurrentUser(), programStageInstanceFilter ) )
-        {
-            throw new DeleteAccessDeniedException( "You do not have the authority to delete the eventFilter: '" + programStageInstanceFilter.getUid() + "'" );
-
-        }
-        programStageInstanceFilterStore.delete( programStageInstanceFilter );
-    }
-
-    @Override
-    public void update( ProgramStageInstanceFilter programStageInstanceFilter )
-    {
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), programStageInstanceFilter ) )
-        {
-            throw new UpdateAccessDeniedException( "You do not have the authority to update the eventFilter: '" + programStageInstanceFilter.getUid() + "'" );
-
-        }
-
-        List<String> errors = validate( programStageInstanceFilter );
-
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
-        programStageInstanceFilterStore.update( programStageInstanceFilter );
-    }
-
-    private List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter )
+    public List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter )
     {
         List<String> errors = new ArrayList<>();
 
@@ -206,49 +123,5 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
         return errors;
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public ProgramStageInstanceFilter get( long id )
-    {
-        ProgramStageInstanceFilter psiFilter = programStageInstanceFilterStore.get( id );
-        if ( !aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
-        {
-            throw new ReadAccessDeniedException( "You do not have the authority to read the eventFilter with id: '" + id + "'" );
-
-        }
-        return psiFilter;
-    }
-
-    @Override
-    public ProgramStageInstanceFilter get( String uid )
-    {
-        ProgramStageInstanceFilter psiFilter = programStageInstanceFilterStore.getByUid( uid );
-        if ( !aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
-        {
-            throw new ReadAccessDeniedException( "You do not have the authority to read the eventFilter: '" + uid + "'" );
-        }
-        return psiFilter;
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<ProgramStageInstanceFilter> getAll( String program )
-    {
-        List<ProgramStageInstanceFilter> psiFilters;
-        if ( program != null )
-        {
-            psiFilters = programStageInstanceFilterStore.getByProgram( program );
-        }
-        else
-        {
-            psiFilters = programStageInstanceFilterStore.getAll();
-        }
-
-        List<ProgramStageInstanceFilter> filteredEventFilters = psiFilters.stream()
-            .filter( psiFilter -> aclService.canRead( currentUserService.getCurrentUser(), psiFilter ) )
-            .collect( Collectors.toList() );
-
-        return filteredEventFilters;
-    }
 
 }
