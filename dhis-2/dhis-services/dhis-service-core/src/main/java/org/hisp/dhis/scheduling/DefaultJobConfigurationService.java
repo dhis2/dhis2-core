@@ -34,12 +34,10 @@ import com.google.common.primitives.Primitives;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.PropertyDescriptor;
@@ -70,9 +68,6 @@ public class DefaultJobConfigurationService
     {
         this.jobConfigurationStore = jobConfigurationStore;
     }
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     @Override
     @Transactional
@@ -116,7 +111,7 @@ public class DefaultJobConfigurationService
                 jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
             }
 
-            sessionFactory.getCurrentSession().update( jobConfiguration );
+            jobConfigurationStore.update( jobConfiguration );
         }
 
         return jobConfiguration.getId();
@@ -188,7 +183,9 @@ public class DefaultJobConfigurationService
 
             final Set<String> propertyNames = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
                 .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
-                .map( PropertyDescriptor::getName ).collect( Collectors.toSet() );
+                .map( PropertyDescriptor::getName )
+                .collect( Collectors.toSet() );
+
             for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) ).collect( Collectors.toList() ) )
             {
                 Property property = new Property( Primitives.wrap( field.getType() ), null, null );
@@ -197,6 +194,7 @@ public class DefaultJobConfigurationService
 
                 String relativeApiElements = jobType.getRelativeApiElements() != null ?
                     jobType.getRelativeApiElements().get( field.getName() ) : "";
+
                 if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
                 {
                     property.setRelativeApiEndpoint( relativeApiElements );
@@ -221,8 +219,7 @@ public class DefaultJobConfigurationService
         List<String> fieldStrings = Arrays.stream( field.split( "(?=[A-Z])" ) ).map( String::toLowerCase )
             .collect( Collectors.toList() );
 
-        fieldStrings
-            .set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
+        fieldStrings.set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
 
         return String.join( " ", fieldStrings );
     }

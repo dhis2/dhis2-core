@@ -25,42 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers.extensions;
+package org.hisp.dhis.dto.schemas;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+@JsonIgnoreProperties( ignoreUnknown = true )
+public class Schema
 {
-    @Override
-    public void beforeAll( ExtensionContext context )
-        throws Exception
+    private ArrayList<SchemaProperty> properties;
+
+    private String plural;
+
+    public String getPlural()
     {
-        RestAssured.baseURI = "http://localhost:8070/api";
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
+        return plural;
     }
 
-    private RequestSpecification defaultRequestSpecification()
+    public void setPlural( String plural )
     {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+        this.plural = plural;
+    }
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
+    public ArrayList<SchemaProperty> getProperties()
+    {
+        return properties;
+    }
 
-        return requestSpecification.build();
+    public void setProperties( ArrayList<SchemaProperty> properties )
+    {
+        this.properties = properties;
+    }
+
+    public List<SchemaProperty> getRequiredProperties()
+    {
+        return properties.stream()
+            .filter( (schemaProperty -> schemaProperty.isRequired()) )
+            .collect( Collectors.toList() );
     }
 }

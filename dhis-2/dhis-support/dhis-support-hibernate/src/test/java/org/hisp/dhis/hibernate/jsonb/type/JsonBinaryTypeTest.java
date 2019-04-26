@@ -1,3 +1,5 @@
+package org.hisp.dhis.hibernate.jsonb.type;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,42 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers.extensions;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import org.hisp.dhis.translation.Translation;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Unit tests for {@link JsonBinaryType}.
+ *
+ * @author Volker Schmidt
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+public class JsonBinaryTypeTest
 {
-    @Override
-    public void beforeAll( ExtensionContext context )
-        throws Exception
+    private JsonBinaryType jsonBinaryType;
+
+    private Translation translation1;
+
+    @Before
+    public void setUp()
     {
-        RestAssured.baseURI = "http://localhost:8070/api";
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
+        translation1 = new Translation();
+        translation1.setLocale( "en" );
+        translation1.setValue( "English Test 1" );
+
+        jsonBinaryType = new JsonBinaryType();
+        jsonBinaryType.init( Translation.class );
     }
 
-    private RequestSpecification defaultRequestSpecification()
+    @Test
+    public void deepCopy()
     {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+        final Translation result = (Translation) jsonBinaryType.deepCopy( translation1 );
+        Assert.assertNotSame( translation1, result );
+        Assert.assertEquals( translation1, result );
+    }
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
-
-        return requestSpecification.build();
+    @Test
+    public void deepCopyNull()
+    {
+        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }

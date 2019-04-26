@@ -25,42 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers.extensions;
+package org.hisp.dhis.tracker.workinglists;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+public class EventFiltersTest
+    extends ApiTest
 {
-    @Override
-    public void beforeAll( ExtensionContext context )
-        throws Exception
+    private RestApiActions eventFiltersActions;
+
+    private String pathToFile = "src/test/resources/tracker/workinglists/eventFilters.json";
+
+    @BeforeAll
+    public void beforeAll()
     {
-        RestAssured.baseURI = "http://localhost:8070/api";
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
+        eventFiltersActions = new RestApiActions( "/eventFilters" );
+
+        new LoginActions().loginAsSuperUser();
     }
 
-    private RequestSpecification defaultRequestSpecification()
+    @Test
+    public void eventFilterCanBeSaved()
+        throws Exception
     {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+        JsonObject body = new FileReaderUtils().readJsonAndGenerateData( new File( pathToFile ) );
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
+        ApiResponse response = eventFiltersActions.post( body );
 
-        return requestSpecification.build();
+        ResponseValidationHelper.validateObjectCreation( response );
     }
 }

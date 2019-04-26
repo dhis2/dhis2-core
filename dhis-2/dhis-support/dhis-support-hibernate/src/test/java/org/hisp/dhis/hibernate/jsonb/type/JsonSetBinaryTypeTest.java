@@ -1,3 +1,5 @@
+package org.hisp.dhis.hibernate.jsonb.type;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,42 +27,62 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers.extensions;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import org.hamcrest.Matchers;
+import org.hisp.dhis.translation.Translation;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * Unit tests for {@link JsonSetBinaryType}.
+ *
+ * @author Volker Schmidt
  */
-public class ConfigurationExtension
-    implements BeforeAllCallback
+public class JsonSetBinaryTypeTest
 {
-    @Override
-    public void beforeAll( ExtensionContext context )
-        throws Exception
+    private JsonSetBinaryType jsonBinaryType;
+
+    private Set<Translation> translations;
+
+    private Translation translation1;
+
+    private Translation translation2;
+
+    @Before
+    public void setUp()
     {
-        RestAssured.baseURI = "http://localhost:8070/api";
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
+        translation1 = new Translation();
+        translation1.setLocale( "en" );
+        translation1.setValue( "English Test 1" );
+
+        translation2 = new Translation();
+        translation2.setLocale( "no" );
+        translation2.setValue( "Norwegian Test 1" );
+
+        translations = new HashSet<>();
+        translations.add( translation1 );
+        translations.add( translation2 );
+
+        jsonBinaryType = new JsonSetBinaryType();
+        jsonBinaryType.init( Translation.class );
     }
 
-    private RequestSpecification defaultRequestSpecification()
+    @SuppressWarnings( "unchecked" )
+    @Test
+    public void deepCopy()
     {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
+        final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy( translations );
+        Assert.assertNotSame( translations, result );
+        Assert.assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
+    }
 
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
-
-        return requestSpecification.build();
+    @Test
+    public void deepCopyNull()
+    {
+        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }
