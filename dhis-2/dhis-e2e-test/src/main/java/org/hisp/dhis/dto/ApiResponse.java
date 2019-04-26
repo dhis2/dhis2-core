@@ -160,4 +160,8 @@ public class ApiResponse
             .collect( Collectors.toList() );
     }
 
+    public void prettyPrint() {
+        raw.prettyPrint();
+    }
+
 }

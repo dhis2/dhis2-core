@@ -31,6 +31,7 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -62,9 +63,12 @@ public class MetadataSetupExtension
             started = true;
             new LoginActions().loginAsDefaultUser();
             System.out.println( "Before hook" );
+
             new MetadataActions().importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
             new MetadataActions().importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
-            new MetadataActions().importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+            ApiResponse response =new MetadataActions().importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+            response.prettyPrint();
+
             setupSuperuser();
 
             createdData = TestRunStorage.getCreatedEntities();
