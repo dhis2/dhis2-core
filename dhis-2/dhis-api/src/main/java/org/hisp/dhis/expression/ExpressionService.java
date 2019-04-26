@@ -213,13 +213,13 @@ public interface ExpressionService
      * values in the given maps.
      *
      * @param indicator the indicator for which to calculate the value.
-     * @param periods a List of periods for which to calculate the value.
+     * @param period the period for which to calculate the value.
      * @param valueMap the map of data values.
      * @param constantMap the map of constants.
      * @param orgUnitCountMap the map of organisation unit counts.
      * @return the calculated value as a double.
      */
-    IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
+    IndicatorValue getIndicatorValueObject( Indicator indicator, Period period,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap );
 

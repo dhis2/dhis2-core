@@ -42,7 +42,7 @@ import org.flywaydb.core.api.FlywayException;
  * reader) and executes them onto the given jdbc connection. This is used to
  * create the base schema (if db is empy) by reading from the sql script
  * packaged as classpath resource.
- *
+ * 
  * @author Ameen Mohamed
  *
  */
@@ -133,16 +133,16 @@ public class JdbcSqlFileExecutor
         throws IOException,
         SQLException
     {
-        StringBuilder command = null;
+        StringBuffer command = null;
         try
         {
             LineNumberReader lineReader = new LineNumberReader( reader );
             String line;
-            while ( ( line = lineReader.readLine() ) != null )
+            while ( (line = lineReader.readLine()) != null )
             {
                 if ( command == null )
                 {
-                    command = new StringBuilder();
+                    command = new StringBuffer();
                 }
                 String trimmedLine = line.trim();
                 final Matcher delimMatch = delimP.matcher( trimmedLine );
@@ -166,7 +166,7 @@ public class JdbcSqlFileExecutor
                 {
                     command.append( line.substring( 0, line.lastIndexOf( this.delimiter ) ) );
                     command.append( " " );
-                    execCommand( conn, command, lineReader );
+                    this.execCommand( conn, command, lineReader );
                     command = null;
                 }
                 else
@@ -194,7 +194,7 @@ public class JdbcSqlFileExecutor
         }
     }
 
-    private void execCommand( Connection conn, StringBuilder command, LineNumberReader lineReader )
+    private void execCommand( Connection conn, StringBuffer command, LineNumberReader lineReader )
         throws SQLException
     {
         Statement statement = conn.createStatement();

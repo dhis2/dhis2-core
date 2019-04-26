@@ -52,7 +52,13 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
 import static org.hisp.dhis.period.PeriodType.getPeriodTypeFromIsoString;
 import static org.hisp.dhis.reporttable.ReportTable.addListIfEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -470,7 +476,7 @@ public class DefaultAnalyticsService
 
             List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
 
-            List<Period> filterPeriods = dataSourceParams.getTypedFilterPeriods();
+            Period filterPeriod = dataSourceParams.getFilterPeriod();
 
             Map<String, Double> constantMap = constantService.getConstantMap();
 
@@ -499,8 +505,7 @@ public class DefaultAnalyticsService
                         continue;
                     }
 
-                    List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
-                        : Collections.singletonList( (Period) DimensionItem.getPeriodItem( dimensionItems ) );
+                    Period period = filterPeriod != null ? filterPeriod : (Period) DimensionItem.getPeriodItem( dimensionItems );
 
                     OrganisationUnit unit = (OrganisationUnit) DimensionItem.getOrganisationUnitItem( dimensionItems );
 
@@ -508,7 +513,7 @@ public class DefaultAnalyticsService
 
                     Map<String, Integer> orgUnitCountMap = permutationOrgUnitTargetMap != null ? permutationOrgUnitTargetMap.get( ou ) : null;
 
-                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, periods, valueMap, constantMap, orgUnitCountMap );
+                    IndicatorValue value = expressionService.getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
 
                     if ( value != null && satisfiesMeasureCriteria( params, value, indicator ) )
                     {

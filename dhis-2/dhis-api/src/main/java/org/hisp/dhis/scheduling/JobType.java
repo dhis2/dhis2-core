@@ -54,8 +54,6 @@ public enum JobType
     ) ),
     DATA_SYNC( "dataSynchJob", true, null, null ),
     PROGRAM_DATA_SYNC( "programDataSyncJob", true, null, null ),
-    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, null, null ),
-    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, null, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false, null, null ),
     META_DATA_SYNC( "metadataSyncJob", true, null, null ),
     SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),

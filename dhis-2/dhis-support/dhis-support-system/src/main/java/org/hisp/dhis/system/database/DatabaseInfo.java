@@ -1,15 +1,12 @@
 package org.hisp.dhis.system.database;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import javax.annotation.Nonnull;
-import java.lang.reflect.InvocationTargetException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,7 +68,6 @@ public class DatabaseInfo
         this.user = null;
         this.password = null;
         this.url = null;
-        this.databaseVersion = null;
     }
 
     // -------------------------------------------------------------------------
@@ -102,8 +98,6 @@ public class DatabaseInfo
         this.user = user;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDatabaseVersion()
     {
         return databaseVersion;
@@ -124,8 +118,6 @@ public class DatabaseInfo
         this.password = password;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUrl()
     {
         return url;
@@ -146,25 +138,6 @@ public class DatabaseInfo
     public void setSpatialSupport( boolean spatialSupport )
     {
         this.spatialSupport = spatialSupport;
-    }
-
-    /**
-     * @return a cloned instance of this object.
-     */
-    @Nonnull
-    public DatabaseInfo instance()
-    {
-        final DatabaseInfo cloned = new DatabaseInfo();
-        try
-        {
-            BeanUtils.copyProperties( cloned, this );
-        }
-        catch ( IllegalAccessException | InvocationTargetException e )
-        {
-            throw new IllegalStateException( e );
-        }
-
-        return cloned;
     }
 
     // -------------------------------------------------------------------------

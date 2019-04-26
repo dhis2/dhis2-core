@@ -433,7 +433,6 @@ public abstract class DhisConvenienceTest
         dataElement.setValueType( ValueType.INTEGER );
         dataElement.setDomainType( DataElementDomain.AGGREGATE );
         dataElement.setAggregationType( AggregationType.SUM );
-        dataElement.setZeroIsSignificant( false );
 
         if ( categoryCombo != null )
         {

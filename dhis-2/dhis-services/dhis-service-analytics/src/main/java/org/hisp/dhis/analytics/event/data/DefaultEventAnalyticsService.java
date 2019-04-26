@@ -76,6 +76,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsUtils;
@@ -155,6 +156,9 @@ public class DefaultEventAnalyticsService
 
     @Autowired
     private EventAnalyticsManager eventAnalyticsManager;
+
+    @Autowired
+    private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
     @Autowired
     private EventDataQueryService eventDataQueryService;

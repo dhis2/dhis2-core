@@ -28,10 +28,10 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Properties;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Properties;
 
 /**
  * @author Henning Håkonsen
@@ -60,7 +60,6 @@ public class JsonJobParametersType extends JsonBinaryType
         }
     }
 
-    @Override
     protected void init( Class<?> klass )
     {
         ObjectMapper MAPPER = new ObjectMapper();
