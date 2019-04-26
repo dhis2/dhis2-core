@@ -199,8 +199,8 @@ public class DefaultExpressionService
 
         return groups;
     }
-
-    public IndicatorValue getIndicatorValueObject( Indicator indicator, Period period,
+    
+    public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap )
     {
@@ -209,7 +209,7 @@ public class DefaultExpressionService
             return null;
         }
 
-        Integer days = period != null ? period.getDaysInPeriod() : null;
+        Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
         Double denominatorValue = getExpressionValue( indicator.getDenominator(),
             valueMap, constantMap, orgUnitCountMap, days, MissingValueStrategy.NEVER_SKIP );
@@ -223,9 +223,9 @@ public class DefaultExpressionService
 
             int divisor = 1;
 
-            if ( indicator.isAnnualized() && period != null )
+            if ( indicator.isAnnualized() && periods != null )
             {
-                final int daysInPeriod = DateUtils.daysBetween( period.getStartDate(), period.getEndDate() ) + 1;
+                final int daysInPeriod = getDaysFromPeriods( periods );
 
                 multiplier *= DateUtils.DAYS_IN_YEAR;
 
@@ -1174,5 +1174,10 @@ public class DefaultExpressionService
         }
 
         return TextUtils.appendTail( matcher, sb );
+    }
+
+    private int getDaysFromPeriods( List<Period> periods )
+    {
+        return periods.stream().mapToInt(Period::getDaysInPeriod).sum();
     }
 }

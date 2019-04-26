@@ -28,48 +28,24 @@
 
 package org.hisp.dhis;
 
-import io.restassured.RestAssured;
-import io.restassured.builder.RequestSpecBuilder;
-import io.restassured.filter.cookie.CookieFilter;
-import io.restassured.filter.session.SessionFilter;
-import io.restassured.http.ContentType;
-import io.restassured.parsing.Parser;
-import io.restassured.specification.RequestSpecification;
-import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
+import org.hisp.dhis.helpers.extensions.ConfigurationExtension;
+import org.hisp.dhis.helpers.extensions.MetadataSetupExtension;
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @TestInstance( TestInstance.Lifecycle.PER_CLASS )
+@ExtendWith( ConfigurationExtension.class )
+@ExtendWith( MetadataSetupExtension.class )
 public abstract class ApiTest
 {
-    @BeforeAll
-    public void setupRestAssured()
-    {
-        RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
-        RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
-        RestAssured.defaultParser = Parser.JSON;
-        RestAssured.requestSpecification = defaultRequestSpecification();
-    }
-
     @AfterAll
     public void afterAll()
     {
         new TestCleanUp().deleteCreatedEntities();
-    }
-
-    private RequestSpecification defaultRequestSpecification()
-    {
-        RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
-
-        requestSpecification.addFilter( new CookieFilter() );
-        requestSpecification.addFilter( new SessionFilter() );
-        requestSpecification.setContentType( ContentType.JSON );
-
-        return requestSpecification.build();
     }
 }

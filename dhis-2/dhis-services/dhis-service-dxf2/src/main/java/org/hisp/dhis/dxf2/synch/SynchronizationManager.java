@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
@@ -52,13 +51,6 @@ public interface SynchronizationManager
      * @throws WebMessageParseException
      */
     ImportSummary executeCompleteDataSetRegistrationPush() throws WebMessageParseException;
-
-    /**
-     * Executes an event push to remote server.
-     *
-     * @return an {@link ImportSummaries}.
-     */
-    ImportSummaries executeEventPush() throws WebMessageParseException;
 
     /**
      * Executes a meta data pull operation from remote server.

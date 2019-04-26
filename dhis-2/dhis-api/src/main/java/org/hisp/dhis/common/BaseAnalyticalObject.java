@@ -296,6 +296,16 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
+     * Adds a {@link CategoryDimension}.
+     *
+     * @param dimension the dimension to add.
+     */
+    public void addCategoryDimension( CategoryDimension dimension )
+    {
+        categoryDimensions.add( dimension );
+    }
+
+    /**
      * Adds a {@link CategoryOptionGroupSetDimension}.
      *
      * @param dimension the dimension to add.

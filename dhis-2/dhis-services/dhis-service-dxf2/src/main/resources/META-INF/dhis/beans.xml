@@ -189,6 +189,8 @@
 
   <bean id="dataSynchJob" class="org.hisp.dhis.dxf2.synch.DataSynchronizationJob" />
 
-  <bean id="programDataSyncJob" class="org.hisp.dhis.dxf2.sync.ProgramDataSynchronizationJob" />
+  <bean id="trackerProgramsDataSyncJob" class="org.hisp.dhis.dxf2.sync.TrackerProgramsDataSynchronizationJob" />
+
+  <bean id="eventProgramsDataSyncJob" class="org.hisp.dhis.dxf2.sync.EventProgramsDataSynchronizationJob" />
 
 </beans>

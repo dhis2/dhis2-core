@@ -1,11 +1,10 @@
-package org.hisp.dhis.events;
+package org.hisp.dhis.tracker.events;
 
 import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -51,13 +50,7 @@ public class EventsImportTests
     @BeforeAll
     public void before()
     {
-        new LoginActions().loginAsDefaultUser();
-
-        ApiResponse response = new RestApiActions( "/metadata" )
-            .postFile( new File( "src/test/resources/metadata/metadata.json" ), "" );
-
-        response.validate().statusCode( 200 );
-
+        new LoginActions().loginAsSuperUser();
     }
 
     @ParameterizedTest

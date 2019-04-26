@@ -48,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -145,7 +144,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.hasProgram() )
         {
             hql += "inner join fetch tei.programInstances as pi ";
-            
+
             if ( params.hasFilterForEvents() )
             {
                 hql += " inner join fetch pi.programStageInstances psi ";
@@ -690,17 +689,17 @@ public class HibernateTrackedEntityInstanceStore
                 sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
-        
+
         if ( params.hasAssignedUsers() )
         {
             sql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
         }
-        
+
         if ( params.isIncludeOnlyUnassignedEvents() )
         {
             sql += " (psi.assigneduserid is null) and ";
         }
-        
+
         if ( params.isIncludeOnlyAssignedEvents() )
         {
             sql += " (psi.assigneduserid is not null) and ";
@@ -711,7 +710,7 @@ public class HibernateTrackedEntityInstanceStore
 
         return sql;
     }
-    
+
     private String getEventWhereClauseHql( TrackedEntityInstanceQueryParams params )
     {
         String hql = "";
@@ -746,17 +745,17 @@ public class HibernateTrackedEntityInstanceStore
                 hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
-        
+
         if ( params.hasAssignedUsers() )
         {
             hql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
         }
-        
+
         if ( params.isIncludeOnlyUnassignedEvents() )
         {
             hql += " (psi.assignedUser is null) and ";
         }
-        
+
         if ( params.isIncludeOnlyAssignedEvents() )
         {
             hql += " (psi.assignedUser is not null) and ";
