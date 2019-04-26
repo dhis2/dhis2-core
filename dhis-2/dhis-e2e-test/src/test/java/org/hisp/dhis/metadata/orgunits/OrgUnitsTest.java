@@ -116,7 +116,7 @@ public class OrgUnitsTest
         userActions = new UserActions();
         orgUnitActions = new OrgUnitActions();
 
-        loginActions.loginAsDefaultUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test
