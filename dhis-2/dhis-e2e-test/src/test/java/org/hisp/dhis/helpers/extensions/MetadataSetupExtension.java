@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
@@ -24,7 +25,7 @@ public class MetadataSetupExtension
 {
     private static boolean started = false;
 
-    private static LinkedHashMap<String, String> createdData = new LinkedHashMap();
+    private static Map<String, String> createdData = new LinkedHashMap();
 
     @Override
     public void beforeAll( ExtensionContext context )

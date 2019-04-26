@@ -79,7 +79,7 @@ public class TestCleanUp
     {
         new LoginActions().loginAsSuperUser();
 
-        LinkedHashMap<String, String> createdEntities = TestRunStorage.getCreatedEntities();
+        Map<String, String> createdEntities = TestRunStorage.getCreatedEntities();
         List<String> reverseOrderedKeys = new ArrayList<>( createdEntities.keySet() );
         Collections.reverse( reverseOrderedKeys );
 
