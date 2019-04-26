@@ -1340,7 +1340,7 @@ public abstract class AbstractEventService
             }
         }
 
-        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+        if ( event.getAssignedUser() != null && programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
             programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
         }
@@ -1677,6 +1677,14 @@ public abstract class AbstractEventService
 
         validateAttributeOptionComboDate( aoc, eventDate );
 
+        if ( event.getAssignedUser() != null )
+        {
+            if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+            {
+                programStageInstance.setAssignedUser( assignedUser );
+            }
+        }
+
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
 
         if ( !errors.isEmpty() )
@@ -1798,11 +1806,7 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setGeometry( event.getGeometry() );
-
-        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
-        {
-            programStageInstance.setAssignedUser( assignedUser );
-        }
+        programStageInstance.setAssignedUser( assignedUser );
 
         updateDateFields( event, programStageInstance );
 
