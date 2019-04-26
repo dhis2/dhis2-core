@@ -29,58 +29,71 @@ package org.hisp.dhis.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @JsonIgnoreProperties( ignoreUnknown = true )
-public class ImportSummary
+public class ObjectReport
 {
-    private String status;
+    private String klass;
 
-    private String description;
+    private String uid;
 
-    private String reference;
+    private String displayName;
 
-    private ImportCount importCount;
+    private int index;
 
-    public String getStatus()
+    private List<Object> errorReports;
+
+    public String getKlass()
     {
-        return status;
+        return klass;
     }
 
-    public void setStatus( String status )
+    public void setKlass( String klass )
     {
-        this.status = status;
+        this.klass = klass;
     }
 
-    public String getDescription()
+    public String getUid()
     {
-        return description;
+        return uid;
     }
 
-    public void setDescription( String description )
+    public void setUid( String uid )
     {
-        this.description = description;
+        this.uid = uid;
     }
 
-    public String getReference()
+    public String getDisplayName()
     {
-        return reference;
+        return displayName;
     }
 
-    public void setReference( String reference )
+    public void setDisplayName( String displayName )
     {
-        this.reference = reference;
+        this.displayName = displayName;
     }
 
-    public ImportCount getImportCount()
+    public List<Object> getErrorReports()
     {
-        return importCount;
+        return errorReports;
     }
 
-    public void setImportCount( ImportCount importCount )
+    public void setErrorReports( List<Object> errorReports )
     {
-        this.importCount = importCount;
+        this.errorReports = errorReports;
     }
 
+    public int getIndex()
+    {
+        return index;
+    }
+
+    public void setIndex( int index )
+    {
+        this.index = index;
+    }
 }

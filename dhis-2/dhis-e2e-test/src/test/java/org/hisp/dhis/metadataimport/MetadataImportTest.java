@@ -59,14 +59,14 @@ package org.hisp.dhis.metadataimport;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
-import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ObjectReport;
+import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -79,8 +79,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -88,8 +87,6 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 public class MetadataImportTest
     extends ApiTest
 {
-    List<HashMap> createdObjectReport = new ArrayList<>();
-
     private RestApiActions metadataActions;
 
     private SchemasActions schemasActions;
@@ -107,16 +104,17 @@ public class MetadataImportTest
     @CsvSource( { "CREATE, ignored", "CREATE_AND_UPDATE, updated" } )
     public void shouldUpdateExistingMetadata( String importStrategy, String expected )
     {
+        // arrange
         JsonObject exported = metadataActions.get().getBody();
 
         String params = "?async=false" +
             "&importReportMode=FULL" +
             "&importStrategy=" + importStrategy;
 
+        // act
         ApiResponse response = metadataActions.post( params, exported );
 
-        System.out.print( response.getBody() );
-
+        // assert
         response.validate()
             .statusCode( 200 )
             .body( "stats.total", greaterThan( 0 ) )
@@ -137,6 +135,7 @@ public class MetadataImportTest
     public void shouldImportUniqueMetadataAndReturnObjectReports()
         throws Exception
     {
+        // arrange
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
             "&importStrategy=CREATE";
@@ -144,8 +143,10 @@ public class MetadataImportTest
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
+        // act
         ApiResponse response = metadataActions.post( params, object );
 
+        // assert
         response.validate()
             .statusCode( 200 )
             .body( "stats.total", greaterThan( 0 ) )
@@ -159,16 +160,17 @@ public class MetadataImportTest
             assertEquals( x.get( "total" ), x.get( "created" ) );
         } );
 
-        // assert all object reports contains references and store them for clean up
-        ArrayList<HashMap> objectReports = flatten( response.extractList( "typeReports.objectReports" ) );
+        List<ObjectReport> objectReports = getObjectReports( response.getTypeReports() );
 
-        validateAndStoreCreatedEntities( objectReports );
+        assertNotNull( objectReports );
+        validateCreatedEntities( objectReports );
     }
 
     @Test
     public void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse()
         throws Exception
     {
+        // arrange
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
             "&importStrategy=CREATE" +
@@ -177,6 +179,7 @@ public class MetadataImportTest
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
+        // act
         ApiResponse response = metadataActions.post( params, object );
         response.validate().statusCode( 200 );
 
@@ -190,6 +193,7 @@ public class MetadataImportTest
 
         response = metadataActions.post( params, newObj );
 
+        // assert
         response.validate()
             .statusCode( 200 )
             .body( "stats.total", greaterThan( 1 ) )
@@ -199,18 +203,20 @@ public class MetadataImportTest
 
         int total = (int) response.extract( "stats.total" );
 
-        ArrayList<HashMap> flatenned = flatten( response.extractList( "typeReports.objectReports" ) );
+        List<ObjectReport> objectReports = getObjectReports( response.getTypeReports() );
 
-        validateAndStoreCreatedEntities( flatenned );
+        assertNotNull( objectReports );
+        validateCreatedEntities( objectReports );
 
-        assertEquals( total, flatenned.size(), "Not all imported entities had object reports" );
-
+        assertThat( objectReports, Matchers.hasItems( hasProperty( "errorReports", notNullValue() ) ) );
+        assertEquals( total, objectReports.size(), "Not all imported entities had object reports" );
     }
 
     @Test
     public void shouldImportMetadataAsync()
         throws Exception
     {
+        // arrange
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
             "&importStrategy=CREATE" +
@@ -220,11 +226,8 @@ public class MetadataImportTest
         JsonObject object = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
+        // act
         ApiResponse response = metadataActions.post( params, object );
-
-        ArrayList<HashMap> flatennedObjectReports = flatten( response.extractList( "typeReports.objectReports" ) );
-
-        storeCreatedEntities( flatennedObjectReports );
 
         // send async request
         params = params.replace( "async=false", "async=true" );
@@ -246,43 +249,27 @@ public class MetadataImportTest
         assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );
     }
 
-    private void validateAndStoreCreatedEntities( ArrayList<HashMap> array )
+    private List<ObjectReport> getObjectReports( List<TypeReport> typeReports )
     {
-        array.forEach(
-            report -> {
-                assertNotEquals( "", report.get( "uid" ) );
-                assertNotEquals( "", report.get( "klass" ) );
-                assertNotEquals( "", report.get( "index" ) );
-                assertNotEquals( "", report.get( "displayName" ) );
+        List<ObjectReport> objectReports = new ArrayList<>();
 
-                createdObjectReport.add( report );
+        typeReports.stream().forEach( typeReport -> {
+            objectReports.addAll( typeReport.getObjectReports() );
+        } );
+
+        return objectReports;
+    }
+
+    private void validateCreatedEntities( List<ObjectReport> objectReports )
+    {
+        objectReports.forEach(
+            report -> {
+                assertNotEquals( "", report.getUid() );
+                assertNotEquals( "", report.getKlass() );
+                assertNotEquals( "", report.getIndex() );
+                assertNotEquals( "", report.getDisplayName() );
             }
         );
     }
 
-    private void storeCreatedEntities( ArrayList<HashMap> hashMaps )
-    {
-        createdObjectReport.addAll( hashMaps );
-    }
-
-    private ArrayList<HashMap> flatten( List<List> array )
-    {
-        ArrayList list = new ArrayList();
-        array.forEach( p -> {
-            p.forEach( map -> {
-                list.add( map );
-            } );
-        } );
-
-        return list;
-    }
-
-    @AfterEach
-    public void cleanUp()
-    {
-        createdObjectReport.forEach( p -> {
-            String resource = schemasActions.findSchemaPropertyByKlassName( String.valueOf( p.get( "klass" ) ), "plural" );
-            TestRunStorage.addCreatedEntity( resource, String.valueOf( p.get( "uid" ) ) );
-        } );
-    }
 }

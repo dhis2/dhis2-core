@@ -25,62 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.actions.metadata;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+
+import java.io.File;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@JsonIgnoreProperties( ignoreUnknown = true )
-public class ImportSummary
+public class MetadataActions
+    extends RestApiActions
 {
-    private String status;
-
-    private String description;
-
-    private String reference;
-
-    private ImportCount importCount;
-
-    public String getStatus()
+    public MetadataActions()
     {
-        return status;
+        super( "/metadata" );
     }
 
-    public void setStatus( String status )
+    public ApiResponse importMetadata( File file )
     {
-        this.status = status;
-    }
+        ApiResponse response = postFile( file, "?importReportMode=FULL&atomicMode=NONE" );
 
-    public String getDescription()
-    {
-        return description;
-    }
+        response.validate().statusCode( 200 );
 
-    public void setDescription( String description )
-    {
-        this.description = description;
+        return response;
     }
-
-    public String getReference()
-    {
-        return reference;
-    }
-
-    public void setReference( String reference )
-    {
-        this.reference = reference;
-    }
-
-    public ImportCount getImportCount()
-    {
-        return importCount;
-    }
-
-    public void setImportCount( ImportCount importCount )
-    {
-        this.importCount = importCount;
-    }
-
 }

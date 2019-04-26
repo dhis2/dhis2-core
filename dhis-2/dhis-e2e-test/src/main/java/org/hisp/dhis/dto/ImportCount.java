@@ -33,54 +33,77 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @JsonIgnoreProperties( ignoreUnknown = true )
-public class ImportSummary
+public class ImportCount
 {
-    private String status;
+    private int ignored;
 
-    private String description;
+    private int deleted;
 
-    private String reference;
+    private int updated;
 
-    private ImportCount importCount;
+    private int imported;
 
-    public String getStatus()
+    private int created;
+
+    private int total;
+
+    public int getIgnored()
     {
-        return status;
+        return ignored;
     }
 
-    public void setStatus( String status )
+    public void setIgnored( int ignored )
     {
-        this.status = status;
+        this.ignored = ignored;
     }
 
-    public String getDescription()
+    public int getDeleted()
     {
-        return description;
+        return deleted;
     }
 
-    public void setDescription( String description )
+    public void setDeleted( int deleted )
     {
-        this.description = description;
+        this.deleted = deleted;
     }
 
-    public String getReference()
+    public int getUpdated()
     {
-        return reference;
+        return updated;
     }
 
-    public void setReference( String reference )
+    public void setUpdated( int updated )
     {
-        this.reference = reference;
+        this.updated = updated;
     }
 
-    public ImportCount getImportCount()
+    public int getImported()
     {
-        return importCount;
+        return imported;
     }
 
-    public void setImportCount( ImportCount importCount )
+    public void setImported( int imported )
     {
-        this.importCount = importCount;
+        this.imported = imported;
     }
 
+    public int getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( int created )
+    {
+        this.created = created;
+    }
+
+    public int getTotal()
+    {
+        return total;
+    }
+
+    public void setTotal( int total )
+    {
+        this.total = total;
+    }
 }
