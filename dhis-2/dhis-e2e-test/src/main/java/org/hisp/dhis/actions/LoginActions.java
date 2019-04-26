@@ -46,9 +46,22 @@ public class LoginActions
         getLoggedInUserInfo().validate().statusCode( 200 );
     }
 
-    public void loginAsDefaultUser()
+    /**
+     * Logs in with superuser configured in test run time.
+     * If properties are not set default user will be used.
+     */
+    public void loginAsSuperUser()
     {
         loginAsUser( ConfigurationHelper.SUPER_USER_USERNAME, ConfigurationHelper.SUPER_USER_PASS );
+    }
+
+    /**
+     * Logs in with default user created by dhis2 setup.
+     * Username: admin
+     */
+    public void loginAsDefaultUser()
+    {
+        loginAsUser( "admin", "district" );
     }
 
     public ApiResponse getLoggedInUserInfo()

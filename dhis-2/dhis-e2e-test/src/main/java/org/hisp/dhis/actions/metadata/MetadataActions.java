@@ -35,17 +35,17 @@ import java.io.File;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class MetadataActions
-    extends RestApiActions
+public class MetadataActions extends RestApiActions
 {
-    public MetadataActions()
+    public MetadataActions(  )
     {
         super( "/metadata" );
     }
 
-    public ApiResponse importMetadata( File file )
+    public ApiResponse importMetadata( File file, String queryParams )
     {
-        ApiResponse response = postFile( file, "?importReportMode=FULL&atomicMode=NONE" );
+        queryParams = !StringUtils.isEmpty( queryParams ) ? queryParams : "";
+        ApiResponse response = postFile( file, "?importReportMode=FULL&atomicMode=NONE" + queryParams );
 
         response.validate().statusCode( 200 );
 

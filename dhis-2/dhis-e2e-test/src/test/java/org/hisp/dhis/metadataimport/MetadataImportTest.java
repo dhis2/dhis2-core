@@ -97,7 +97,7 @@ public class MetadataImportTest
         schemasActions = new SchemasActions();
         metadataActions = new RestApiActions( "/metadata" );
 
-        new LoginActions().loginAsDefaultUser();
+        new LoginActions().loginAsSuperUser();
     }
 
     @ParameterizedTest( name = "withImportStrategy[{0}]" )
@@ -228,6 +228,7 @@ public class MetadataImportTest
 
         // act
         ApiResponse response = metadataActions.post( params, object );
+
 
         // send async request
         params = params.replace( "async=false", "async=true" );

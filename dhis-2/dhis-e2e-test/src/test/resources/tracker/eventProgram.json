@@ -25,7 +25,12 @@
       "notificationTemplates": [],
       "programStageDataElements": [],
       "translations": [],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
       "attributeValues": [],
       "userAccesses": [],
       "programStageSections": []
@@ -80,7 +85,12 @@
           "id": "nGK3m0FCOmd"
         }
       ],
-      "userGroupAccesses": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
       "programSections": [],
       "attributeValues": [],
       "programStages": [
