@@ -70,8 +70,12 @@ public class MetadataSetupExtension
             new LoginActions().loginAsDefaultUser();
 
             metadataActions.importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
-            metadataActions.importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
+
             metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+
+            metadataActions.importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
+
 
             createdData = TestRunStorage.getCreatedEntities();
 

@@ -2,6 +2,7 @@
 package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
@@ -162,6 +163,10 @@ public class ApiResponse
 
     public void prettyPrint() {
         raw.prettyPrint();
+    }
+
+    public String getContentType() {
+        return raw.getContentType();
     }
 
 }

@@ -1,144 +1,4 @@
 {
-  "trackedEntityTypes": [
-    {
-      "created": "2019-02-05T13:46:01.308",
-      "lastUpdated": "2019-02-05T13:46:01.309",
-      "name": "TA Person",
-      "id": "Q9GufDoplCL",
-      "publicAccess": "rw------",
-      "maxTeiCountToReturn": 0,
-      "allowAuditLog": false,
-      "featureType": "NONE",
-      "minAttributesRequiredToSearch": 1,
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "attributeValues": [],
-      "trackedEntityTypeAttributes": [
-        {
-          "lastUpdated": "2019-02-05T13:46:01.309",
-          "id": "IvcLJpReZPS",
-          "created": "2019-02-05T13:46:01.219",
-          "name": "Person TA First name",
-          "displayName": "Person TA First name",
-          "displayShortName": "null First name",
-          "externalAccess": false,
-          "valueType": "TEXT",
-          "searchable": false,
-          "displayInList": false,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": true,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "trackedEntityAttribute": {
-            "id": "dIVt4l5vIOa"
-          },
-          "trackedEntityType": {
-            "id": "Q9GufDoplCL"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [
-            {
-              "access": "rwrw----",
-              "userGroupUid": "OPVIvvXzNTw",
-              "id": "OPVIvvXzNTw"
-            }
-          ],
-          "attributeValues": [],
-          "userAccesses": []
-        },
-        {
-          "lastUpdated": "2019-02-05T13:46:01.309",
-          "id": "C8qhzRpGTXd",
-          "created": "2019-02-05T13:46:01.220",
-          "name": "Person TA Last name",
-          "displayName": "Person TA Last name",
-          "displayShortName": "null Last name",
-          "externalAccess": false,
-          "valueType": "TEXT",
-          "searchable": false,
-          "displayInList": false,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": true,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "trackedEntityAttribute": {
-            "id": "kZeSYCgaHTk"
-          },
-          "trackedEntityType": {
-            "id": "Q9GufDoplCL"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [
-            {
-              "access": "rwrw----",
-              "userGroupUid": "OPVIvvXzNTw",
-              "id": "OPVIvvXzNTw"
-            }
-          ],
-          "attributeValues": [],
-          "userAccesses": []
-        }
-      ],
-      "translations": [],
-      "userAccesses": []
-    }
-  ],
-  "relationshipTypes": [
-    {
-      "created": "2019-04-23T09:20:41.834",
-      "lastUpdated": "2019-04-23T09:21:18.063",
-      "name": "TA Parent",
-      "id": "xLmPUYJX8Ks",
-      "bidirectional": true,
-      "publicAccess": "rw------",
-      "toFromName": "Parent",
-      "fromToName": "Child",
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
-      "fromConstraint": {
-        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
-        "trackedEntityType": {
-          "id": "Q9GufDoplCL"
-        }
-      },
-      "toConstraint": {
-        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
-        "trackedEntityType": {
-          "id": "Q9GufDoplCL"
-        }
-      },
-      "userGroupAccesses": [
-        {
-          "access": "rwrw----",
-          "userGroupUid": "OPVIvvXzNTw",
-          "id": "OPVIvvXzNTw"
-        }
-      ],
-      "translations": [],
-      "userAccesses": []
-    }
-  ],
   "categories": [
     {
       "code": "default",
@@ -607,6 +467,143 @@
       "attributeValues": [],
       "userAccesses": [],
       "legendSets": []
+    }
+  ],
+  "relationshipTypes": [
+    {
+      "created": "2019-04-23T09:20:41.834",
+      "lastUpdated": "2019-04-23T09:21:18.063",
+      "name": "TA Parent",
+      "id": "xLmPUYJX8Ks",
+      "bidirectional": true,
+      "publicAccess": "rw------",
+      "toFromName": "Parent",
+      "fromToName": "Child",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
+  "trackedEntityTypes": [
+    {
+      "created": "2019-02-05T13:46:01.308",
+      "lastUpdated": "2019-02-05T13:46:01.309",
+      "name": "TA Person",
+      "id": "Q9GufDoplCL",
+      "publicAccess": "rw------",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": false,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [
+        {
+          "access": "rwrw----",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "trackedEntityTypeAttributes": [
+        {
+          "lastUpdated": "2019-02-05T13:46:01.309",
+          "id": "IvcLJpReZPS",
+          "created": "2019-02-05T13:46:01.219",
+          "name": "Person TA First name",
+          "displayName": "Person TA First name",
+          "displayShortName": "null First name",
+          "externalAccess": false,
+          "valueType": "TEXT",
+          "searchable": false,
+          "displayInList": false,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "dIVt4l5vIOa"
+          },
+          "trackedEntityType": {
+            "id": "Q9GufDoplCL"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [
+            {
+              "access": "rwrw----",
+              "userGroupUid": "OPVIvvXzNTw",
+              "id": "OPVIvvXzNTw"
+            }
+          ],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2019-02-05T13:46:01.309",
+          "id": "C8qhzRpGTXd",
+          "created": "2019-02-05T13:46:01.220",
+          "name": "Person TA Last name",
+          "displayName": "Person TA Last name",
+          "displayShortName": "null Last name",
+          "externalAccess": false,
+          "valueType": "TEXT",
+          "searchable": false,
+          "displayInList": false,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "trackedEntityAttribute": {
+            "id": "kZeSYCgaHTk"
+          },
+          "trackedEntityType": {
+            "id": "Q9GufDoplCL"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [
+            {
+              "access": "rwrw----",
+              "userGroupUid": "OPVIvvXzNTw",
+              "id": "OPVIvvXzNTw"
+            }
+          ],
+          "attributeValues": [],
+          "userAccesses": []
+        }
+      ],
+      "translations": [],
+      "userAccesses": []
     }
   ],
   "organisationUnits": [
