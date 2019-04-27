@@ -69,16 +69,14 @@ public class MetadataSetupExtension
             ApiResponse response =new MetadataActions().importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
             response.prettyPrint();
 
-            setupSuperuser();
-
             createdData = TestRunStorage.getCreatedEntities();
-            System.out.println( " Size: " + createdData.size() );
-            System.out.println( "Storage Size: " + TestRunStorage.getCreatedEntities() );
+
             iterateCreatedData( id -> {
                 System.out.println( "removing resource  " + createdData.get( id ) + " id: " + id );
                 TestRunStorage.removeEntity( createdData.get( id ), id );
             } );
 
+            setupSuperuser();
 
             // The following line registers a callback hook when the root test context is shut down
             context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );

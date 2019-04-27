@@ -59,7 +59,7 @@ public class ConfigurationExtension
         RequestSpecBuilder requestSpecification = new RequestSpecBuilder();
 
         requestSpecification.addFilter( new CookieFilter() );
-        //requestSpecification.addFilter( new SessionFilter() );
+        requestSpecification.addFilter( new SessionFilter() );
         requestSpecification.setContentType( ContentType.JSON );
 
         return requestSpecification.build();
