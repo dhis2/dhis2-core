@@ -104,7 +104,12 @@ public class UserActions
 
     public void addURoleToUser( String userId, String userRoleId )
     {
-        JsonObject object = this.get( userId ).getBody();
+        ApiResponse response = this.get( userId );
+        if (response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId )) {
+            return;
+        }
+
+        JsonObject object = response.getBody();
 
         JsonObject userRole = new JsonObject();
         userRole.addProperty( "id", userRoleId );
@@ -116,7 +121,12 @@ public class UserActions
 
     public void addUserToUserGroup( String userId, String userGroupId )
     {
-        JsonObject object = this.get( userId ).getBody();
+        ApiResponse response = this.get( userId );
+        if (response.extractList( "userGroups.id" ).contains( userGroupId )) {
+            return;
+        }
+
+        JsonObject object = response.getBody();
 
         JsonObject userGroupAccess = new JsonObject();
         userGroupAccess.addProperty( "id", userGroupId );

@@ -42,6 +42,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
@@ -55,24 +56,26 @@ public class MetadataSetupExtension
 
     private static Map<String, String> createdData = new LinkedHashMap();
 
+    private static Logger logger = Logger.getLogger( MetadataSetupExtension.class.getName() );
+
     @Override
     public void beforeAll( ExtensionContext context )
     {
         if ( !started )
         {
             started = true;
-            new LoginActions().loginAsDefaultUser();
-            System.out.println( "Before hook" );
+            logger.info( "Importing metadata for tests" );
+            MetadataActions metadataActions = new MetadataActions();
 
-            new MetadataActions().importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
-            new MetadataActions().importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
-            ApiResponse response =new MetadataActions().importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
-            response.prettyPrint();
+            new LoginActions().loginAsDefaultUser();
+
+            metadataActions.importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
+            metadataActions.importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
+            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
 
             createdData = TestRunStorage.getCreatedEntities();
 
             iterateCreatedData( id -> {
-                System.out.println( "removing resource  " + createdData.get( id ) + " id: " + id );
                 TestRunStorage.removeEntity( createdData.get( id ), id );
             } );
 
@@ -95,6 +98,7 @@ public class MetadataSetupExtension
     }
 
     private void setupSuperuser( ) {
+        logger.info( "Setting up super user" );
         UserActions userActions = new UserActions();
         String userRoleId = "yrB6vc5Ip7r";
         String userGroupId= "OPVIvvXzNTw";
