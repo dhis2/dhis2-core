@@ -452,11 +452,7 @@ public class UserController
 
         ImportReport importReport = importService.importMetadata( params );
 
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
-        {
-            User user = userService.getUser( pvUid );
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
-        }
+        updateUserGroups( importReport, pvUid, parsed, currentUser );
 
         renderService.toXml( response.getOutputStream(), importReport );
     }
@@ -495,14 +491,25 @@ public class UserController
 
         ImportReport importReport = importService.importMetadata( params );
 
+        updateUserGroups( importReport, pvUid, parsed, currentUser );
+
+        renderService.toJson( response.getOutputStream(), importReport );
+    }
+
+    protected void updateUserGroups( ImportReport importReport, String pvUid, User parsed, User currentUser )
+    {
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
         {
             User user = userService.getUser( pvUid );
 
+            // current user may have been changed and detached and must become managed again
+            if ( currentUser != null && currentUser.getId() == user.getId() )
+            {
+                currentUser = currentUserService.getCurrentUser();
+            }
+
             userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
-
-        renderService.toJson( response.getOutputStream(), importReport );
     }
 
     // -------------------------------------------------------------------------
