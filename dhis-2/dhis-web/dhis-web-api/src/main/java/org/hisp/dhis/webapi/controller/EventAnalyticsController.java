@@ -28,11 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -531,10 +527,10 @@ public class EventAnalyticsController
         EventQueryParams params = eventDataQueryService.getFromUrl( program, stage, startDate, endDate, dimension, filter,
             ouMode, asc, desc, skipMeta, skipData, completedOnly, hierarchyMeta, coordinatesOnly, false, dataIdScheme, eventStatus, programStatus,
             displayProperty, relativePeriodDate, userOrgUnit, coordinateField, page, pageSize, apiVersion );
-
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING, "events.xls", true );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            "events.xls", true );
         Grid grid = analyticsService.getEvents( params );
-        GridUtils.toXls( substituteMetaData( grid ), response.getOutputStream() );
+        GridUtils.toXls( substituteValues( substituteMetaData( grid ) ), response.getOutputStream() );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_EVENT_ANALYTICS')" )
@@ -664,6 +660,16 @@ public class EventAnalyticsController
         if ( grid.getMetaData() != null && grid.getMetaData().containsKey( AnalyticsMetaDataKey.NAMES.getKey() ) )
         {
             grid.substituteMetaData( (Map<Object, Object>) grid.getMetaData().get( AnalyticsMetaDataKey.NAMES.getKey() ) );
+        }
+
+        return grid;
+    }
+
+    private Grid substituteValues(Grid grid )
+    {
+        if ( grid.getMetaData() != null && grid.getMetaData().containsKey( AnalyticsMetaDataKey.ITEMS.getKey() ) )
+        {
+            grid.substituteValues( AnalyticsUtils.getMetadataItemCache( grid ) );
         }
 
         return grid;
