@@ -64,6 +64,8 @@ public class EventAnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics/events";
 
+    private static final String DEFAULT_OUTPUT_TYPE = "EVENT";
+
     @Autowired
     private EventDataQueryService eventDataQueryService;
 
@@ -95,7 +97,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -147,7 +149,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -197,7 +199,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -247,7 +249,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -297,7 +299,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -347,7 +349,7 @@ public class EventAnalyticsController
         @RequestParam( required = false ) boolean showHierarchy,
         @RequestParam( required = false ) SortOrder sortOrder,
         @RequestParam( required = false ) Integer limit,
-        @RequestParam( required = false ) EventOutputType outputType,
+        @RequestParam( required = false, defaultValue = DEFAULT_OUTPUT_TYPE ) EventOutputType outputType,
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) boolean collapseDataDimensions,
@@ -417,7 +419,7 @@ public class EventAnalyticsController
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).build();
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -466,7 +468,7 @@ public class EventAnalyticsController
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).build();
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -521,7 +523,7 @@ public class EventAnalyticsController
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).includeMetadataDetails( includeMetadataDetails )
             .dataIdScheme( dataIdScheme ).eventStatus( eventStatus ).programStatus( programStatus )
             .displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).build();
+            .coordinateField( coordinateField ).page( page ).pageSize( pageSize ).apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -566,7 +568,7 @@ public class EventAnalyticsController
             .dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).build();
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -610,7 +612,7 @@ public class EventAnalyticsController
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).build();
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -654,7 +656,7 @@ public class EventAnalyticsController
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).build();
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -698,7 +700,7 @@ public class EventAnalyticsController
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).build();
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 
@@ -742,7 +744,7 @@ public class EventAnalyticsController
             .hierarchyMeta( hierarchyMeta ).coordinatesOnly( coordinatesOnly ).dataIdScheme( dataIdScheme ).eventStatus( eventStatus )
             .programStatus( programStatus ).displayProperty( displayProperty ).relativePeriodDate( relativePeriodDate )
             .userOrgUnit( userOrgUnit ).coordinateField( coordinateField ).page( page ).pageSize( pageSize )
-            .apiVersion( apiVersion ).build();
+            .apiVersion( apiVersion ).outputType( EventOutputType.EVENT ).build();
 
         EventQueryParams params = eventDataQueryService.getFromRequest( request );
 

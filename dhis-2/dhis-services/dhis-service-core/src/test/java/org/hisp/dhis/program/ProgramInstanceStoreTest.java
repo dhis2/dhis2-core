@@ -32,6 +32,7 @@ import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
@@ -72,6 +73,9 @@ public class ProgramInstanceStoreTest
 
     @Autowired
     private ProgramService programService;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     @Autowired
     private ProgramStageService programStageService;
@@ -180,7 +184,9 @@ public class ProgramInstanceStoreTest
     {
         programInstanceStore.save( programInstanceA );
         programInstanceStore.save( programInstanceB );
-
+        
+        dbmsManager.flushSession();
+        
         assertTrue( programInstanceStore.exists( programInstanceA.getUid() ) );
         assertTrue( programInstanceStore.exists( programInstanceB.getUid() ) );
         assertFalse( programInstanceStore.exists( "aaaabbbbccc" ) );

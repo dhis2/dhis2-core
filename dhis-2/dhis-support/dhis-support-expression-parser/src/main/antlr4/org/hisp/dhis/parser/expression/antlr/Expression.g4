@@ -24,7 +24,6 @@ expr
     |   expr op=('*' | '/' | '%') expr
     |   expr op=('+' | '-') expr
     |   expr op=('<' | '>' | '<=' | '>=') expr
-    |   item WS+ op='==' WS+ programNullTest=('0' | '\'\'') // Special program indicator syntax
     |   expr op=('==' | '!=') expr
     |   expr op=('&&' | 'and') expr
     |   expr op=('||' | 'or') expr
@@ -76,6 +75,7 @@ programVariable // (alphabtical)
     |   'V{' var='event_date' '}'
     |   'V{' var='execution_date' '}'
     |   'V{' var='incident_date' '}'
+    |   'V{' var='org_unit_count' '}'
     |   'V{' var='program_stage_id' '}'
     |   'V{' var='program_stage_name' '}'
     |   'V{' var='sync_date' '}'
@@ -85,12 +85,12 @@ programVariable // (alphabtical)
     ;
 
 programFunction // (alphabetical)
-    :   d2='d2:condition(' WS* STRING_LITERAL WS* ',' expr ',' expr ')'
+    :   d2='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
     |   d2='d2:count(' WS* stageDataElement WS* ')'
-    |   d2='d2:countIfCondition(' WS* stageDataElement ',' WS* STRING_LITERAL WS* ')'
+    |   d2='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
     |   d2='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
     |   d2='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   d2='d2:hasValue(' column ')'
+    |   d2='d2:hasValue(' item ')'
     |   d2='d2:minutesBetween(' compareDate ',' compareDate ')'
     |   d2='d2:monthsBetween(' compareDate ',' compareDate ')'
     |   d2='d2:oizp(' expr ')'
@@ -98,14 +98,7 @@ programFunction // (alphabetical)
     |   d2='d2:weeksBetween(' compareDate ',' compareDate ')'
     |   d2='d2:yearsBetween(' compareDate ',' compareDate ')'
     |   d2='d2:zing(' expr ')'
-    |   d2='d2:zpvc(' expr (',' expr )* ')'
-    ;
-
-column
-    :   Q1 uid0=UID Q1
-    |   Q2 uid0=UID Q2
-    |   stageDataElement
-    |   programAttribute
+    |   d2='d2:zpvc(' item (',' item )* ')'
     ;
 
 stageDataElement
@@ -138,13 +131,11 @@ literal
     ;
 
 numericLiteral
-    :   '0' // Needed here because it's used above in special program indicator syntax
-    |   NUMERIC_LITERAL
+    :   NUMERIC_LITERAL
     ;
 
 stringLiteral
-    :   '\'\'' // Needed here because it's used above in special program indicator syntax
-    |   STRING_LITERAL
+    :   STRING_LITERAL
     |   QUOTED_UID // Resolve that quoted UID can also be a string literal
     ;
 
@@ -208,6 +199,7 @@ V_EVENT_COUNT           : 'event_count';
 V_EVENT_DATE            : 'event_date';
 V_EXECUTION_DATE        : 'execution_date';
 V_INCIDENT_DATE         : 'incident_date';
+V_ORG_UNIT_COUNT        : 'org_unit_count';
 V_PROGRAM_STAGE_ID      : 'program_stage_id';
 V_PROGRAM_STAGE_NAME    : 'program_stage_name';
 V_SYNC_DATE             : 'sync_date';

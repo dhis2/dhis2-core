@@ -34,7 +34,7 @@ import org.jsmpp.bean.NumberingPlanIndicator;
 import org.jsmpp.bean.TypeOfNumber;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar
  */
 public class SMPPGatewayConfig extends SmsGatewayConfig
 {

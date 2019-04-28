@@ -33,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Stian Sandvold
  */
-@Transactional
+@Transactional(readOnly = true)
 public class DefaultIndicatorGroupService implements IndicatorGroupService
 {
     private HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;

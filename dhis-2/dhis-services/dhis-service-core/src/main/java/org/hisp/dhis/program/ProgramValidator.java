@@ -44,9 +44,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.util.Assert;
 
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
@@ -178,6 +176,7 @@ public class ProgramValidator
 
             case V_ENROLLMENT_COUNT:
             case V_EVENT_COUNT:
+            case V_ORG_UNIT_COUNT:
             case V_TEI_COUNT:
             case V_VALUE_COUNT:
             case V_ZERO_POS_VALUE_COUNT:
@@ -200,8 +199,6 @@ public class ProgramValidator
     @Override
     public Object visitProgramFunction( ProgramFunctionContext ctx )
     {
-        List<Object> args = ctx.expr().stream().map( c -> visit( c ) ).collect( Collectors.toList() );
-
         validateProgramFunctionDateArgs( ctx );
 
         ValueType dataElementValueType = validateStageDataElement( ctx.stageDataElement() );
@@ -209,7 +206,7 @@ public class ProgramValidator
         switch ( ctx.d2.getType() )
         {
             case D2_CONDITION:
-                return validateCondition( ctx, args );
+                return validateCondition( ctx );
 
             case D2_COUNT:
             case D2_DAYS_BETWEEN:
@@ -228,14 +225,16 @@ public class ProgramValidator
                 return 1d;
 
             case D2_HAS_VALUE:
-                validateColumn( ctx.column() );
+                visit( ctx.item( 0 ) );
                 return true;
 
             case D2_OIZP:
             case D2_ZING:
-            case D2_ZPVC:
-                args.stream().forEach( a -> castDouble( a ) );
+                castDouble( visit( ctx.expr( 0 ) ) );
                 return 1d;
+
+            case D2_ZPVC:
+                ctx.item().stream().forEach( i -> castDouble( visit( i ) ) );
 
             case D2_RELATIONSHIP_COUNT:
                 validateRelationshipType( ctx );
@@ -314,11 +313,6 @@ public class ProgramValidator
         return validateProgramAttribute( ctx.getText(), ctx.uid0.getText() );
     }
 
-    private ValueType validateProgramAttribute( ProgramAttributeContext ctx )
-    {
-        return validateProgramAttribute( ctx.getText(), ctx.uid0.getText() );
-    }
-
     private ValueType validateProgramAttribute( String text, String attributeId )
     {
         TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( attributeId );
@@ -333,13 +327,16 @@ public class ProgramValidator
         return attribute.getValueType();
     }
 
-    private Object validateCondition( ProgramFunctionContext ctx, List<Object> args )
+    private Object validateCondition( ProgramFunctionContext ctx )
     {
-        validateSubexprssion( trimQuotes( ctx.STRING_LITERAL().getText() ), Boolean.class );
+        validateSubexprssion( trimQuotes( ctx.stringLiteral().getText() ), Boolean.class );
 
-        castClass( args.get( 0 ).getClass(), args.get( 1 ) );
+        Object valueIfTrue = visit( ctx.expr( 0 ) );
+        Object valueIfFalse = visit( ctx.expr( 1 ) );
 
-        return args.get( 0 );
+        castClass( valueIfTrue.getClass(), valueIfFalse );
+
+        return valueIfTrue;
     }
 
     private void validateCountIfValue( ProgramFunctionContext ctx, ValueType dataElementValueType )
@@ -354,52 +351,9 @@ public class ProgramValidator
 
     private void validateCountIfCondition( ProgramFunctionContext ctx, ValueType dataElementValueType )
     {
-        String testExpression = ValidationUtils.getSubstitutionValue( dataElementValueType ) + trimQuotes( ctx.STRING_LITERAL().getText() );
+        String testExpression = ValidationUtils.getSubstitutionValue( dataElementValueType ) + trimQuotes( ctx.stringLiteral().getText() );
 
         validateSubexprssion( testExpression, Boolean.class );
-    }
-
-    private void validateColumn( ColumnContext ctx )
-    {
-        if ( ctx.programAttribute() != null )
-        {
-            validateProgramAttribute( ctx.programAttribute() );
-        }
-        else if ( ctx.stageDataElement() != null )
-        {
-            validateStageDataElement( ctx.stageDataElement() );
-        }
-        else if ( ctx.uid0 != null )
-        {
-            validateColiumnAttributeOrDataElement( ctx.uid0.getText() );
-        }
-        else
-        {
-            throw new InternalParserException( "column context not recognized" );
-        }
-    }
-
-    private void validateColiumnAttributeOrDataElement( String uid )
-    {
-        TrackedEntityAttribute attribute = attributeService.getTrackedEntityAttribute( uid );
-
-        if ( attribute != null )
-        {
-            itemDescriptions.put( uid, attribute.getDisplayName() );
-        }
-        else
-        {
-            DataElement dataElement = dataElementService.getDataElement( uid );
-
-            if ( dataElement != null )
-            {
-                itemDescriptions.put( uid, dataElement.getDisplayName() );
-            }
-            else
-            {
-                throw new ParserExceptionWithoutContext( "HasValue argument is not an attribute or a data element" );
-            }
-        }
     }
 
     private void validateRelationshipType( ProgramFunctionContext ctx )

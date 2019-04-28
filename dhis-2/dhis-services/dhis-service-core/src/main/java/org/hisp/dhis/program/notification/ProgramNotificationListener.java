@@ -28,43 +28,54 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
+import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
+
+@Async
+@Transactional // TODO do we need the @Transactional annotation here?
 public class ProgramNotificationListener
 {
     @Autowired
     private ProgramNotificationService programNotificationService;
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
-    public void onEnrollment( ProgramNotificationEvent event )
+    @EventListener
+    public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
-    public void onCompletion( ProgramNotificationEvent event )
+    @EventListener
+    public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
         programNotificationService.sendCompletionNotifications( event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
-    public void onProgramRuleEnrollment( ProgramNotificationEvent event )
-    {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
-    }
-
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
-    public void onEvent( ProgramNotificationEvent event )
+    @EventListener
+    public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
         programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
-    public void onProgramRuleEvent( ProgramNotificationEvent event )
+    // Published by rule engine
+    @EventListener
+    public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
+    {
+        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
+    }
+
+    @EventListener
+    public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );
     }

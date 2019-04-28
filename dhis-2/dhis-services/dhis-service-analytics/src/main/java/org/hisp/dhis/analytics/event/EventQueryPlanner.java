@@ -50,4 +50,12 @@ public interface EventQueryPlanner
      * @return an {@link EventQueryParams}.
      */
     EventQueryParams planEventQuery( EventQueryParams params );
+
+    /**
+     * Plans the given parameters and returns a list of parameters.
+     *
+     * @param params the enrollment query parameters.
+     * @return an {@link EventQueryParams}.
+     */
+    EventQueryParams planEnrollmentQuery( EventQueryParams params );
 }

@@ -51,9 +51,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.core.env.Environment;
 import com.google.common.collect.Lists;
@@ -203,14 +201,7 @@ public class DefaultSystemSettingManager
      */
     private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute( new TransactionCallback<SystemSetting>()
-        {
-            @Override
-            public SystemSetting doInTransaction( TransactionStatus status )
-            {
-                return systemSettingStore.getByName( name );
-            }
-        } );
+        SystemSetting setting = transactionTemplate.execute(status -> systemSettingStore.getByName( name ));
 
         if ( setting != null && setting.hasValue() )
         {
@@ -238,7 +229,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<SystemSetting> getAllSystemSettings()
     {
         return systemSettingStore.getAll().stream().
@@ -247,7 +238,6 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional
     public Map<String, Serializable> getSystemSettingsAsMap()
     {
         final Map<String, Serializable> settingsMap = new HashMap<>();
@@ -283,7 +273,6 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional
     public Map<String, Serializable> getSystemSettings( Collection<SettingKey> settings )
     {
         Map<String, Serializable> map = new HashMap<>();

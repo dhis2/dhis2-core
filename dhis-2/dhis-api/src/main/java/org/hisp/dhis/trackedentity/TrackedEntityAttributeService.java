@@ -37,7 +37,6 @@ import java.util.Set;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface TrackedEntityAttributeService
 {
@@ -95,7 +94,7 @@ public interface TrackedEntityAttributeService
     /**
      * Returns all {@link TrackedEntityAttribute}
      *
-     * @return a List of all TrackedEntityAttribute, or an empty
+     * @return a list of all TrackedEntityAttribute, or an empty
      * List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
@@ -117,7 +116,7 @@ public interface TrackedEntityAttributeService
      * Get attributes which are displayed in visit schedule
      *
      * @param displayOnVisitSchedule True/False value
-     * @return List of attributes
+     * @return a list of attributes
      */
     List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
         boolean displayOnVisitSchedule );
@@ -125,30 +124,30 @@ public interface TrackedEntityAttributeService
     /**
      * Get attributes which are displayed in visit schedule
      *
-     * @return List of attributes
+     * @return a list of attributes
      */
     List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram();
-    
+
     /**
-     * Get all attributes that user is allowed to read 
+     * Get all attributes that user is allowed to read
      * (through program and tracked entity type)
-     * 
-     * @return
+     *
+     * @return a list of attributes
      */
     Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
 
     /**
-     * Validate scope of tracked entity attribute. Will return true if attribute is non-unique.
+     * Validate uniqueness of the tracked entity attribute value within its scope. Will return non-empty error message
+     * if attribute is non-unique.
      *
      * @param trackedEntityAttribute TrackedEntityAttribute
      * @param value                  Value
      * @param trackedEntityInstance  TrackedEntityInstance - required if updating TEI
      * @param organisationUnit       OrganisationUnit - only required if org unit scoped
-     * @param program                Program - only required if program scoped
      * @return null if valid, a message if not
      */
-    String validateScope( TrackedEntityAttribute trackedEntityAttribute,
-        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit, Program program );
+    String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
+        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit );
 
     /**
      * Validate value against tracked entity attribute value type.

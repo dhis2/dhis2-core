@@ -64,6 +64,7 @@ import org.springframework.scheduling.annotation.AsyncResult;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import org.springframework.util.concurrent.ListenableFuture;
 
 /**
  * @author Lars Helge Overland
@@ -262,6 +263,13 @@ public class EmailMessageSender
             .collect( Collectors.toList() );
 
         return generateSummary( statuses );
+    }
+
+    @Override
+    public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync( OutboundMessageBatch batch )
+    {
+        OutboundMessageResponseSummary summary = sendMessageBatch( batch );
+        return new AsyncResult<>( summary );
     }
 
     @Override

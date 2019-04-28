@@ -39,9 +39,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
-import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.TrackedEntityInstanceEnrolledEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
+import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -66,7 +66,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
 {
@@ -98,9 +97,6 @@ public class DefaultProgramInstanceService
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private ProgramNotificationPublisher programNotificationPublisher;
-
-    @Autowired
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
@@ -114,6 +110,7 @@ public class DefaultProgramInstanceService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.save( programInstance );
@@ -121,12 +118,14 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
         deleteProgramInstance( programInstance, false );
     }
 
     @Override
+    @Transactional
     public void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete )
     {
         if ( forceDelete )
@@ -142,6 +141,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramInstance getProgramInstance( long id )
     {
         ProgramInstance programInstance = programInstanceStore.get( id );
@@ -157,6 +157,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramInstance getProgramInstance( String uid )
     {
         ProgramInstance programInstance = programInstanceStore.getByUid( uid );
@@ -172,24 +173,28 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean programInstanceExists( String uid )
     {
         return programInstanceStore.exists( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean programInstanceExistsIncludingDeleted( String uid )
     {
         return programInstanceStore.existsIncludingDeleted( uid );
     }
 
     @Override
+    @Transactional
     public void updateProgramInstance( ProgramInstance programInstance )
     {
         programInstanceStore.update( programInstance );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program, ProgramStatus programStatus,
         Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, boolean includeDeleted )
@@ -267,6 +272,7 @@ public class DefaultProgramInstanceService
 
     // TODO consider security
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
@@ -308,6 +314,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
@@ -339,6 +346,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void decideAccess( ProgramInstanceQueryParams params )
     {
 
@@ -418,24 +426,28 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( Program program )
     {
         return programInstanceStore.get( program );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status )
     {
         return programInstanceStore.get( program, status );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
         return programInstanceStore.get( entityInstance, program, status );
     }
 
     @Override
+    @Transactional
     public ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid ) {
         if ( program.getTrackedEntityType() != null && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
@@ -472,6 +484,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
@@ -480,6 +493,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance,Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
@@ -495,9 +509,9 @@ public class DefaultProgramInstanceService
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
 
-        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_ENROLLMENT );
+        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance ) );
 
-        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -510,6 +524,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance )
     {
         Set<ProgramStageInstance> programStageInstances = new HashSet<>( programInstance.getProgramStageInstances() );
@@ -530,15 +545,16 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void completeProgramInstanceStatus( ProgramInstance programInstance )
     {
         // ---------------------------------------------------------------------
         // Send sms-message when to completed the program
         // ---------------------------------------------------------------------
 
-        programNotificationPublisher.publishEnrollment( programInstance, ProgramNotificationEventType.PROGRAM_COMPLETION );
+        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance ) );
 
-        eventPublisher.publishEvent( new TrackedEntityInstanceEnrolledEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
 
         // -----------------------------------------------------------------
         // Update program-instance
@@ -552,6 +568,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void cancelProgramInstanceStatus( ProgramInstance programInstance )
     {
         // ---------------------------------------------------------------------
@@ -592,6 +609,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional
     public void incompleteProgramInstanceStatus( ProgramInstance programInstance )
     {
         Program program = programInstance.getProgram();

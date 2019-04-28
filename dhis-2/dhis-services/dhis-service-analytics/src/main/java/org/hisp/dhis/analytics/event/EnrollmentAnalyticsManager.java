@@ -35,14 +35,23 @@ import org.hisp.dhis.common.Grid;
  */
 public interface EnrollmentAnalyticsManager
 {
-    /**
+     /**
      * Retrieves aggregated data based on enrollments.
      *
-     * @param params the query to retrieve aggregated data for.
+     * @param params the query to retrieve enrollments for.
      * @param grid the grid to insert data into.
      * @param maxLimit the max number of records to retrieve.
      * @return a grid with data.
      */
-    Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit );
+    void getEnrollments( EventQueryParams params, Grid grid, int maxLimit );
+
+    /**
+     * Retreives count of enrollments based on params.
+     * 
+     * @param params the qyery to count enrollments for,
+     * 
+     * @return number of enrollments macting the parameter criteria.
+     */
+    long getEnrollmentCount( EventQueryParams params );
 }
 

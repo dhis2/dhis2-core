@@ -61,6 +61,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
+import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -388,6 +389,11 @@ public class DefaultPushAnalysisService
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 578, 440, user );
+
+        if ( image == null )
+        {
+            image = MapUtils.createErrorImage( "No data" );
+        }
 
         ImageIO.write( image, "PNG", baos );
 

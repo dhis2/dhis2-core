@@ -29,19 +29,14 @@ package org.hisp.dhis.trackedentitycomment.hibernate;/*
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author David Katuscak
  */
-
 public class HibernateTrackedEntityCommentStore
     extends HibernateIdentifiableObjectStore<TrackedEntityComment>
     implements TrackedEntityCommentStore
 {
-    private static final Logger log = LoggerFactory.getLogger( HibernateTrackedEntityCommentStore.class );
-
     @Override
     public boolean exists( String uid )
     {
