@@ -883,9 +883,10 @@ public class ListGrid
             for ( int col = 0; col < columns.size(); col++ )
             {
                 Object column = columns.get( col );
-                if ( column != null && !MathUtils.isNumeric( String.valueOf( column ) ) )
+                if ( column != null && !MathUtils.isNumeric( String.valueOf( column ) )
+                    && uidToNameMap.containsKey( String.valueOf( column ) ) )
                 {
-                    columns.set( col, uidToNameMap.getOrDefault( String.valueOf( column ), String.valueOf( column ) ) );
+                    columns.set( col, uidToNameMap.get( String.valueOf( column ) ) );
                 }
             }
         }
