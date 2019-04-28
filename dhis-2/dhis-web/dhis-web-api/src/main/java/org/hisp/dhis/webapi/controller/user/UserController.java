@@ -436,6 +436,10 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
 
+        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
+        // (in case it gets detached)
+        currentUser.getUserCredentials().getAllAuthorities();
+
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
@@ -474,6 +478,10 @@ public class UserController
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
+
+        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
+        // (in case it gets detached)
+        currentUser.getUserCredentials().getAllAuthorities();
 
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
