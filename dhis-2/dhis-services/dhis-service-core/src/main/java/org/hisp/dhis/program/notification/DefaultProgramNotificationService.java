@@ -134,6 +134,13 @@ public class DefaultProgramNotificationService
         this.programStageNotificationRenderer = programStageNotificationRenderer;
     }
 
+    private ProgramNotificationTemplateStore notificationTemplateStore;
+
+    public void setProgramNotificationStore( ProgramNotificationTemplateStore notificationTemplateStore )
+    {
+        this.notificationTemplateStore = notificationTemplateStore;
+    }
+
     // -------------------------------------------------------------------------
     // ProgramStageNotificationService implementation
     // -------------------------------------------------------------------------
@@ -196,28 +203,50 @@ public class DefaultProgramNotificationService
     @Override
     public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
     {
-        sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
+        if ( programStageInstance == null )
+        {
+            return;
+        }
+
+        sendProgramStageInstanceNotifications( programStageInstanceStore.get( programStageInstance.getId() ) , NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
     public void sendCompletionNotifications( ProgramInstance programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.COMPLETION );
+        if ( programInstance == null  )
+        {
+            return;
+        }
+
+        sendProgramInstanceNotifications( programInstanceStore.get( programInstance.getId() ), NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
     public void sendEnrollmentNotifications( ProgramInstance programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.ENROLLMENT );
+        if ( programInstance == null  )
+        {
+            return;
+        }
+
+        sendProgramInstanceNotifications( programInstanceStore.get( programInstance.getId() ), NotificationTrigger.ENROLLMENT );
     }
 
     @Transactional
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramInstance programInstance )
     {
-        MessageBatch messageBatch = createProgramInstanceMessageBatch( pnt, Collections.singletonList( programInstance) );
+        if ( programInstance == null  || pnt == null )
+        {
+            return;
+        }
+
+        MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateStore.get( pnt.getId() ),
+            Collections.singletonList( programInstanceStore.get( programInstance.getId() ) ) );
+
         sendAll( messageBatch );
     }
 
@@ -256,11 +285,6 @@ public class DefaultProgramNotificationService
 
     private void sendProgramStageInstanceNotifications( ProgramStageInstance programStageInstance, NotificationTrigger trigger )
     {
-        if ( programStageInstance == null )
-        {
-            return;
-        }
-
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programStageInstance, trigger );
 
         if ( templates.isEmpty() )
@@ -277,11 +301,6 @@ public class DefaultProgramNotificationService
 
     private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
     {
-        if ( programInstance == null  )
-        {
-            return;
-        }
-
         Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
 
         for ( ProgramNotificationTemplate template : templates )

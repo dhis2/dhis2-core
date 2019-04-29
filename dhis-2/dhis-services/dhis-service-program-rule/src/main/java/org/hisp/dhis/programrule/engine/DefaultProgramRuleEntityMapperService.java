@@ -58,11 +58,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
 
+@Transactional
 public class DefaultProgramRuleEntityMapperService
     implements ProgramRuleEntityMapperService
 {

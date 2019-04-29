@@ -51,12 +51,10 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
@@ -68,8 +66,6 @@ import com.google.common.collect.Sets;
 @Transactional
 public class DefaultEventDataValueService implements EventDataValueService
 {
-    private final ApplicationEventPublisher eventPublisher;
-
     private final ProgramStageInstanceService programStageInstanceService;
 
     private final TrackerAccessManager trackerAccessManager;
@@ -77,10 +73,9 @@ public class DefaultEventDataValueService implements EventDataValueService
     private ProgramRuleVariableService ruleVariableService;
 
     @Autowired
-    public DefaultEventDataValueService( ApplicationEventPublisher eventPublisher, TrackerAccessManager trackerAccessManager,
+    public DefaultEventDataValueService( TrackerAccessManager trackerAccessManager,
         ProgramStageInstanceService programStageInstanceService, ProgramRuleVariableService ruleVariableService )
     {
-        this.eventPublisher = eventPublisher;
         this.trackerAccessManager = trackerAccessManager;
         this.programStageInstanceService = programStageInstanceService;
         this.ruleVariableService = ruleVariableService;
@@ -123,11 +118,6 @@ public class DefaultEventDataValueService implements EventDataValueService
             {
                 prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues, updatedDataValues,
                     removedDataValuesDueToEmptyValue, storedBy );
-            }
-
-            if ( isUpdate && !importOptions.isSkipNotifications() && ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement ) )
-            {
-                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
             }
         }
 

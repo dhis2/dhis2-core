@@ -35,12 +35,14 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
+@Transactional
 public class DefaultProgramRuleEngineService 
     implements ProgramRuleEngineService
 {
