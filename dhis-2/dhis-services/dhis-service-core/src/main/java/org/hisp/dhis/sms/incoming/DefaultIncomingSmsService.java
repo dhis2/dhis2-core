@@ -33,6 +33,7 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -51,7 +52,7 @@ public class DefaultIncomingSmsService
 
     private final MessageQueue incomingSmsQueue;
 
-    public DefaultIncomingSmsService(IncomingSmsStore incomingSmsStore, MessageQueue incomingSmsQueue) {
+    public DefaultIncomingSmsService(IncomingSmsStore incomingSmsStore, @Lazy MessageQueue incomingSmsQueue) {
 
         checkNotNull( incomingSmsQueue );
         checkNotNull( incomingSmsStore );
