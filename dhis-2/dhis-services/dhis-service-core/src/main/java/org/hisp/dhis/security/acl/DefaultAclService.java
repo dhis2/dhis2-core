@@ -171,7 +171,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.CREATE );
+        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.CREATE ) );
 
         if ( anyAuthorities.isEmpty() )
         {
@@ -223,6 +223,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
+        // returned unmodifiable list does not need to be cloned since it is not modified
         List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DATA_CREATE );
 
         if ( canAccess( user, anyAuthorities ) )
@@ -251,7 +252,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.UPDATE );
+        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.UPDATE ) );
 
         if ( anyAuthorities.isEmpty() )
         {
@@ -297,7 +298,7 @@ public class DefaultAclService implements AclService
             return true;
         }
 
-        List<String> anyAuthorities = schema.getAuthorityByType( AuthorityType.DELETE );
+        List<String> anyAuthorities = new ArrayList<>( schema.getAuthorityByType( AuthorityType.DELETE ) );
 
         if ( anyAuthorities.isEmpty() )
         {
