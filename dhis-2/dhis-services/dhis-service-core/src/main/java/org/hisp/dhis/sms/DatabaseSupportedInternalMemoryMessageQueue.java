@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsStore;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class DatabaseSupportedInternalMemoryMessageQueue
@@ -46,7 +46,7 @@ public class DatabaseSupportedInternalMemoryMessageQueue
     // -------------------------------------------------------------------------
     
     @Autowired
-    private IncomingSmsStore incomingSmsStore;
+    private IncomingSmsService incomingSmsService;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -78,7 +78,7 @@ public class DatabaseSupportedInternalMemoryMessageQueue
     @Override
     public void initialize()
     {
-        Collection<IncomingSms> messages = incomingSmsStore.getAllUnparsedSmses();
+        Collection<IncomingSms> messages = incomingSmsService.getAllUnparsedMessages();
 
         if ( messages != null )
         {

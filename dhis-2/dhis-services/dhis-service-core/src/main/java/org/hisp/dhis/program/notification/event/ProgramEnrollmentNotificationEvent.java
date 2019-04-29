@@ -28,7 +28,6 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -36,15 +35,15 @@ import org.springframework.context.ApplicationEvent;
  */
 public class ProgramEnrollmentNotificationEvent extends ApplicationEvent
 {
-    private ProgramInstance programInstance;
+    private long programInstance;
 
-    public ProgramEnrollmentNotificationEvent(Object source, ProgramInstance programInstance )
+    public ProgramEnrollmentNotificationEvent( Object source, long programInstance )
     {
         super( source );
         this.programInstance = programInstance;
     }
 
-    public ProgramInstance getProgramInstance()
+    public long getProgramInstance()
     {
         return programInstance;
     }

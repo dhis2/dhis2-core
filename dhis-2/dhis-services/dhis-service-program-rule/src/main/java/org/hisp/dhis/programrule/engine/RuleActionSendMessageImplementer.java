@@ -75,7 +75,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, programInstance );
 
-        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template, programInstance ) );
+        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance.getId() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -94,7 +94,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template, programStageInstance ) );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
