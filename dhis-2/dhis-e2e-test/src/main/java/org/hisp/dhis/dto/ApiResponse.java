@@ -140,15 +140,20 @@ public class ApiResponse
 
     public List<ImportSummary> getImportSummaries()
     {
-        if ( this.extract( "responseType" ) != null )
+        String pathToImportSummaries = "";
+        if ( this.extract( "response.responseType" ) != null )
         {
+            pathToImportSummaries = "response.";
+        }
 
-            switch ( this.extract( "responseType" ).toString() )
+        if ( this.extract( pathToImportSummaries + "responseType" ) != null )
+        {
+            switch ( this.extract( pathToImportSummaries + "responseType" ).toString() )
             {
             case "ImportSummaries":
-                return this.extractList( "importSummaries", ImportSummary.class );
+                return this.extractList( pathToImportSummaries + "importSummaries", ImportSummary.class );
             case "ImportSummary":
-                return Arrays.asList( raw.getBody().as( ImportSummary.class ) );
+                return Arrays.asList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
             }
 
         }

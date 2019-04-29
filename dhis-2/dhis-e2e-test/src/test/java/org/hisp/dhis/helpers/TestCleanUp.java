@@ -146,12 +146,13 @@ public class TestCleanUp
 
         if ( response.statusCode() == 200 )
         {
+            logger.info( String.format( "Entity from resource %s with id %s deleted", resource, id ) );
+
             if ( response.containsImportSummaries() )
             {
                 return response.extract( "response.importCount.deleted" ).equals( 1 );
             }
 
-            logger.info( String.format( "Entity from resource %s with id %s deleted", resource, id ) );
             return true;
         }
 
