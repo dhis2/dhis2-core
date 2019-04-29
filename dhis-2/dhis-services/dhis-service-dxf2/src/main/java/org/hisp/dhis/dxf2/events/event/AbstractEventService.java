@@ -1798,7 +1798,11 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setGeometry( event.getGeometry() );
-        programStageInstance.setAssignedUser( assignedUser );
+
+        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+        {
+            programStageInstance.setAssignedUser( assignedUser );
+        }
 
         updateDateFields( event, programStageInstance );
 
