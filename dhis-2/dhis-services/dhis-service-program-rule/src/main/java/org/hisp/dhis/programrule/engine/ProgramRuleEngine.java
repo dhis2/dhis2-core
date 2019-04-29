@@ -44,6 +44,7 @@ import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -53,6 +54,8 @@ import java.util.stream.Collectors;
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
+
+@Transactional( readOnly = true )
 public class ProgramRuleEngine
 {
     private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
@@ -63,8 +66,6 @@ public class ProgramRuleEngine
         "( *'[^']*'))*( *, *(([\\d/\\*\\+\\-%\\. ]+)|'[^']*'))* *\\)";
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
-
-    private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = ProgramRuleActionType.getImplementedActions();
 
     @Autowired
     private ProgramRuleEntityMapperService programRuleEntityMapperService;
@@ -220,6 +221,15 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
-        return programRuleService.getImplementableProgramRules( program, IMPLEMENTABLE_TYPES );
+        List<ProgramRule> permittedRules = new ArrayList<>();
+
+        permittedRules = programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNotificationLinkedTypes() );
+
+        if ( permittedRules.isEmpty() )
+        {
+            return permittedRules;
+        }
+
+        return programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getImplementedActions() );
     }
 }

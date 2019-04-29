@@ -134,6 +134,13 @@ public class DefaultProgramNotificationService
         this.programStageNotificationRenderer = programStageNotificationRenderer;
     }
 
+    private ProgramNotificationTemplateStore notificationTemplateStore;
+
+    public void setProgramNotificationStore( ProgramNotificationTemplateStore notificationTemplateStore )
+    {
+        this.notificationTemplateStore = notificationTemplateStore;
+    }
+
     // -------------------------------------------------------------------------
     // ProgramStageNotificationService implementation
     // -------------------------------------------------------------------------
@@ -194,38 +201,40 @@ public class DefaultProgramNotificationService
 
     @Transactional
     @Override
-    public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
+    public void sendEventCompletionNotifications( long programStageInstance )
     {
-        sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
+        sendProgramStageInstanceNotifications( programStageInstanceStore.get( programStageInstance ), NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
-    public void sendCompletionNotifications( ProgramInstance programInstance )
+    public void sendEnrollmentCompletionNotifications( long programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.COMPLETION );
+        sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
-    public void sendEnrollmentNotifications( ProgramInstance programInstance )
+    public void sendEnrollmentNotifications( long programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.ENROLLMENT );
+        sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.ENROLLMENT );
     }
 
     @Transactional
     @Override
-    public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramInstance programInstance )
+    public void sendProgramRuleTriggeredNotifications( long pnt, long programInstance )
     {
-        MessageBatch messageBatch = createProgramInstanceMessageBatch( pnt, Collections.singletonList( programInstance) );
+        MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateStore.get( pnt ),
+            Collections.singletonList( programInstanceStore.get( programInstance ) ) );
         sendAll( messageBatch );
     }
 
     @Transactional
     @Override
-    public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramStageInstance programStageInstance )
+    public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
     {
-        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( pnt, Collections.singletonList( programStageInstance ) );
+        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateStore.get( pnt ),
+            Collections.singletonList( programStageInstanceStore.get( programStageInstance ) ) );
         sendAll( messageBatch );
     }
 

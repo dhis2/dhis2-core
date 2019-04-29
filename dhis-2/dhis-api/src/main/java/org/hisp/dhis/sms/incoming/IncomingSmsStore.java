@@ -55,5 +55,5 @@ public interface IncomingSmsStore extends GenericStore<IncomingSms>
 
     void delete( IncomingSms incomingSms );
 
-    List<IncomingSms> getAllUnparsedSmses();
+    List<IncomingSms> getAllUnparsedMessages();
 }
