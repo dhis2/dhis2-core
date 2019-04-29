@@ -88,7 +88,7 @@ public class DefaultProgramRuleVariableService
     }
 
     @Override
-    public List<ProgramRuleVariable>    getProgramRuleVariable( Program program )
+    public List<ProgramRuleVariable> getProgramRuleVariable( Program program )
     {
         return programRuleVariableStore.get( program );
     }
