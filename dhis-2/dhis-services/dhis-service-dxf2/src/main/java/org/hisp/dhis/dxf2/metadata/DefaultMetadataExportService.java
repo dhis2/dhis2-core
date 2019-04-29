@@ -358,7 +358,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object )
+    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
@@ -367,8 +367,10 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            rootNode.addChild( fieldFilterService.toCollectionNode( klass, new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
-                Lists.newArrayList( ":owner" ) ) ) );
+            FieldFilterParams fieldFilterParams = new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
+                Lists.newArrayList( ":owner" ) );
+            fieldFilterParams.setSkipSharing( params.getSkipSharing() );
+            rootNode.addChild( fieldFilterService.toCollectionNode( klass, fieldFilterParams ) );
         }
 
         return rootNode;
