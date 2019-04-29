@@ -104,26 +104,36 @@ public class UserActions
 
     public void addURoleToUser( String userId, String userRoleId )
     {
-        JsonObject object = this.get( userId ).getBody();
+        ApiResponse response = this.get( userId );
+        if (response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId )) {
+            return;
+        }
+
+        JsonObject object = response.getBody();
 
         JsonObject userRole = new JsonObject();
         userRole.addProperty( "id", userRoleId );
 
         object.get( "userCredentials" ).getAsJsonObject().get( "userRoles" ).getAsJsonArray().add( userRole );
 
-        this.update( userId, object ).validate().statusCode( 200 );
+        this.update( userId, object );
     }
 
     public void addUserToUserGroup( String userId, String userGroupId )
     {
-        JsonObject object = this.get( userId ).getBody();
+        ApiResponse response = this.get( userId );
+        if (response.extractList( "userGroups.id" ).contains( userGroupId )) {
+            return;
+        }
+
+        JsonObject object = response.getBody();
 
         JsonObject userGroupAccess = new JsonObject();
         userGroupAccess.addProperty( "id", userGroupId );
 
         object.get( "userGroups" ).getAsJsonArray().add( userGroupAccess );
 
-        this.update( userId, object ).validate().statusCode( 200 );
+        this.update( userId, object );
     }
 
     public void grantUserAccessToOrgUnit( String userId, String orgUnitId )

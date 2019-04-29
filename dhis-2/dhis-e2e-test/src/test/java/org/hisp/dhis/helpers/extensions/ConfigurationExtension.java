@@ -34,6 +34,7 @@ import io.restassured.filter.session.SessionFilter;
 import io.restassured.http.ContentType;
 import io.restassured.parsing.Parser;
 import io.restassured.specification.RequestSpecification;
+import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -47,7 +48,7 @@ public class ConfigurationExtension
     public void beforeAll( ExtensionContext context )
         throws Exception
     {
-        RestAssured.baseURI = "http://localhost:8070/api";
+        RestAssured.baseURI = ConfigurationHelper.BASE_API_URL;
         RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
         RestAssured.defaultParser = Parser.JSON;
         RestAssured.requestSpecification = defaultRequestSpecification();

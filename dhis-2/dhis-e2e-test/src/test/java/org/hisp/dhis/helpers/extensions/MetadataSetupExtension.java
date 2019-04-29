@@ -31,6 +31,7 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
+import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ConfigurationHelper;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -41,6 +42,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
@@ -54,23 +56,34 @@ public class MetadataSetupExtension
 
     private static Map<String, String> createdData = new LinkedHashMap();
 
+    private static Logger logger = Logger.getLogger( MetadataSetupExtension.class.getName() );
+
     @Override
     public void beforeAll( ExtensionContext context )
     {
         if ( !started )
         {
             started = true;
-            new LoginActions().loginAsSuperUser();
-            new MetadataActions().importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
-            new MetadataActions().importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
-            new MetadataActions().importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
-            setupSuperuser();
+            logger.info( "Importing metadata for tests" );
+            MetadataActions metadataActions = new MetadataActions();
+
+            new LoginActions().loginAsDefaultUser();
+
+            metadataActions.importMetadata( new File( "src/test/resources/setup/userGroups.json" ), "" );
+
+            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+            metadataActions.importMetadata( new File( "src/test/resources/setup/metadata.json" ), "" );
+
+            metadataActions.importMetadata( new File( "src/test/resources/setup/users.json" ), "" );
+
 
             createdData = TestRunStorage.getCreatedEntities();
 
             iterateCreatedData( id -> {
                 TestRunStorage.removeEntity( createdData.get( id ), id );
             } );
+
+            setupSuperuser();
 
             // The following line registers a callback hook when the root test context is shut down
             context.getRoot().getStore( GLOBAL ).put( "MetadataSetupExtension", this );
@@ -89,6 +102,7 @@ public class MetadataSetupExtension
     }
 
     private void setupSuperuser( ) {
+        logger.info( "Setting up super user" );
         UserActions userActions = new UserActions();
         String userRoleId = "yrB6vc5Ip7r";
         String userGroupId= "OPVIvvXzNTw";
