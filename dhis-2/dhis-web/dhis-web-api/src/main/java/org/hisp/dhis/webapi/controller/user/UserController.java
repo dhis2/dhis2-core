@@ -436,6 +436,13 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
 
+        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
+        // (in case it gets detached)
+        if ( currentUser != null )
+        {
+            currentUser.getUserCredentials().getAllAuthorities();
+        }
+
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
@@ -452,11 +459,7 @@ public class UserController
 
         ImportReport importReport = importService.importMetadata( params );
 
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
-        {
-            User user = userService.getUser( pvUid );
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
-        }
+        updateUserGroups( importReport, pvUid, parsed, currentUser );
 
         renderService.toXml( response.getOutputStream(), importReport );
     }
@@ -479,6 +482,13 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
 
+        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
+        // (in case it gets detached)
+        if ( currentUser != null )
+        {
+            currentUser.getUserCredentials().getAllAuthorities();
+        }
+
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
@@ -495,14 +505,25 @@ public class UserController
 
         ImportReport importReport = importService.importMetadata( params );
 
+        updateUserGroups( importReport, pvUid, parsed, currentUser );
+
+        renderService.toJson( response.getOutputStream(), importReport );
+    }
+
+    protected void updateUserGroups( ImportReport importReport, String pvUid, User parsed, User currentUser )
+    {
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
         {
             User user = userService.getUser( pvUid );
 
+            // current user may have been changed and detached and must become managed again
+            if ( currentUser != null && currentUser.getId() == user.getId() )
+            {
+                currentUser = currentUserService.getCurrentUser();
+            }
+
             userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
-
-        renderService.toJson( response.getOutputStream(), importReport );
     }
 
     // -------------------------------------------------------------------------
