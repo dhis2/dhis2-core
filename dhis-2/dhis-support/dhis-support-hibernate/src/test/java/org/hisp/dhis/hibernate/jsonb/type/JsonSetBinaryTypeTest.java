@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,61 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hamcrest.Matchers;
+import org.hisp.dhis.translation.Translation;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
-import java.util.Properties;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Henning Håkonsen
+ * Unit tests for {@link JsonSetBinaryType}.
+ *
+ * @author Volker Schmidt
  */
-@SuppressWarnings("rawtypes")
-public class JsonJobParametersType extends JsonBinaryType
+public class JsonSetBinaryTypeTest
 {
-    @Override
-    public void setParameterValues( Properties parameters )
+    private JsonSetBinaryType jsonBinaryType;
+
+    private Set<Translation> translations;
+
+    private Translation translation1;
+
+    private Translation translation2;
+
+    @Before
+    public void setUp()
     {
-        final String clazz = (String) parameters.get( "clazz" );
+        translation1 = new Translation();
+        translation1.setLocale( "en" );
+        translation1.setValue( "English Test 1" );
 
-        if ( clazz == null )
-        {
-            throw new IllegalArgumentException(
-                String.format( "Required parameter '%s' is not configured", "clazz" ) );
-        }
+        translation2 = new Translation();
+        translation2.setLocale( "no" );
+        translation2.setValue( "Norwegian Test 1" );
 
-        try
-        {
-            init( classForName( clazz ) );
-        }
-        catch ( ClassNotFoundException e )
-        {
-            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
-        }
+        translations = new HashSet<>();
+        translations.add( translation1 );
+        translations.add( translation2 );
+
+        jsonBinaryType = new JsonSetBinaryType();
+        jsonBinaryType.init( Translation.class );
     }
 
-    @Override
-    protected void init( Class klass )
+    @SuppressWarnings( "unchecked" )
+    @Test
+    public void deepCopy()
     {
-        ObjectMapper MAPPER = new ObjectMapper();
-        MAPPER.enableDefaultTyping();
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        final Set<Translation> result = (Set<Translation>) jsonBinaryType.deepCopy( translations );
+        Assert.assertNotSame( translations, result );
+        Assert.assertThat( result, Matchers.containsInAnyOrder( translation1, translation2 ) );
+    }
 
-        returnedClass = klass;
-        reader = MAPPER.readerFor( klass );
-        writer = MAPPER.writerFor( klass );
+    @Test
+    public void deepCopyNull()
+    {
+        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }

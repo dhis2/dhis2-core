@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,47 +28,44 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.util.Properties;
+import org.hisp.dhis.translation.Translation;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
- * @author Henning Håkonsen
+ * Unit tests for {@link JsonBinaryType}.
+ *
+ * @author Volker Schmidt
  */
-@SuppressWarnings("rawtypes")
-public class JsonJobParametersType extends JsonBinaryType
+public class JsonBinaryTypeTest
 {
-    @Override
-    public void setParameterValues( Properties parameters )
+    private JsonBinaryType jsonBinaryType;
+
+    private Translation translation1;
+
+    @Before
+    public void setUp()
     {
-        final String clazz = (String) parameters.get( "clazz" );
+        translation1 = new Translation();
+        translation1.setLocale( "en" );
+        translation1.setValue( "English Test 1" );
 
-        if ( clazz == null )
-        {
-            throw new IllegalArgumentException(
-                String.format( "Required parameter '%s' is not configured", "clazz" ) );
-        }
-
-        try
-        {
-            init( classForName( clazz ) );
-        }
-        catch ( ClassNotFoundException e )
-        {
-            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
-        }
+        jsonBinaryType = new JsonBinaryType();
+        jsonBinaryType.init( Translation.class );
     }
 
-    @Override
-    protected void init( Class klass )
+    @Test
+    public void deepCopy()
     {
-        ObjectMapper MAPPER = new ObjectMapper();
-        MAPPER.enableDefaultTyping();
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+        final Translation result = (Translation) jsonBinaryType.deepCopy( translation1 );
+        Assert.assertNotSame( translation1, result );
+        Assert.assertEquals( translation1, result );
+    }
 
-        returnedClass = klass;
-        reader = MAPPER.readerFor( klass );
-        writer = MAPPER.writerFor( klass );
+    @Test
+    public void deepCopyNull()
+    {
+        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }
