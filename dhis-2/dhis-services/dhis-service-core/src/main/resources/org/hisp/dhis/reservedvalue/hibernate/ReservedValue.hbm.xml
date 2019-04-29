@@ -7,7 +7,9 @@
     <class name="org.hisp.dhis.reservedvalue.ReservedValue" table="reservedvalue">
 
         <id name="id" column="reservedvalueid">
-            <generator class="native"/>
+            <generator class="sequence">
+              <param name="sequence_name">reservedvalue_sequence</param>
+            </generator>
         </id>
 
         <property name="expiryDate" not-null="true"/>

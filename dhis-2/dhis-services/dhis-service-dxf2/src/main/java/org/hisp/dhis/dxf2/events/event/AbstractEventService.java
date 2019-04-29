@@ -28,39 +28,8 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -125,9 +94,11 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
-import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
-import org.hisp.dhis.programrule.engine.ProgramStageInstanceScheduledEvent;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
+import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
+import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -157,8 +128,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -252,9 +236,6 @@ public abstract class AbstractEventService
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    protected ProgramNotificationPublisher programNotificationPublisher;
-
-    @Autowired
     protected RelationshipService relationshipService;
 
     @Autowired
@@ -262,6 +243,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected EventSyncService eventSyncService;
+
+    @Autowired
+    private ProgramRuleVariableService ruleVariableService;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -771,13 +755,6 @@ public abstract class AbstractEventService
     }
 
     @Override
-    public int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime )
-    {
-        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        return eventStore.getEventCount( params, null );
-    }
-
-    @Override
     public int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore )
     {
         EventSearchParams params = new EventSearchParams();
@@ -787,16 +764,6 @@ public abstract class AbstractEventService
         params.setSkipChangedBefore( skipChangedBefore );
 
         return eventStore.getEventCount( params, null );
-    }
-
-    @Override
-    public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
-    {
-        EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
-        Events anonymousEvents = new Events();
-        List<Event> events = eventStore.getEvents( params, null, Collections.emptyMap() );
-        anonymousEvents.setEvents( events );
-        return anonymousEvents;
     }
 
     @Override
@@ -815,15 +782,6 @@ public abstract class AbstractEventService
         List<Event> events = eventStore.getEvents( params, null, psdesWithSkipSyncTrue );
         anonymousEvents.setEvents( events );
         return anonymousEvents;
-    }
-
-    private EventSearchParams buildAnonymousEventsSearchParams( Date lastSuccessTime )
-    {
-        EventSearchParams params = new EventSearchParams();
-        params.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        params.setLastUpdatedStartDate( lastSuccessTime );
-        params.setIncludeDeleted( true );
-        return params;
     }
 
     @Override
@@ -1343,7 +1301,7 @@ public abstract class AbstractEventService
             }
         }
 
-        if ( event.getAssignedUser() != null && programStageInstance.getProgramStage().isEnableUserAssignment() )
+        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
             programStageInstance.setAssignedUser( getUser( event.getAssignedUser() ) );
         }
@@ -1351,22 +1309,51 @@ public abstract class AbstractEventService
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event );
         eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
+
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
+
+        // trigger rule engine
+        // 1. only once for whole event
+        // 2. only if data value is associated with any ProgramRuleVariable
+
+        boolean isLinkedWithRuleVariable = false;
+
+        for ( DataValue dv :  event.getDataValues() )
+        {
+            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
+
+            if ( dataElement != null )
+            {
+                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+
+                if ( isLinkedWithRuleVariable )
+                {
+                    break;
+                }
+            }
+        }
+
+        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
+        {
+            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
+        }
+
+        sendProgramNotification( programStageInstance, importOptions );
 
         if ( !importOptions.isSkipLastUpdated() )
         {
             updateTrackedEntityInstance( programStageInstance, importOptions.getUser(), bulkUpdate );
         }
 
-        if ( importSummary.getConflicts().size() > 0 )
-        {
-            importSummary.setStatus( ImportStatus.ERROR );
-            importSummary.incrementIgnored();
-        }
-        else
+        if ( importSummary.getConflicts().isEmpty() )
         {
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.incrementUpdated();
+        }
+        else
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.incrementIgnored();
         }
 
         return importSummary;
@@ -1374,7 +1361,7 @@ public abstract class AbstractEventService
 
     private void preheatDataElementsCache( Event event )
     {
-        Set<String> dataElementUids = event.getDataValues().stream().map( dv -> dv.getDataElement() )
+        Set<String> dataElementUids = event.getDataValues().stream().map( DataValue::getDataElement )
             .collect( Collectors.toSet() );
 
         List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
@@ -1680,14 +1667,6 @@ public abstract class AbstractEventService
 
         validateAttributeOptionComboDate( aoc, eventDate );
 
-        if ( event.getAssignedUser() != null )
-        {
-            if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
-            {
-                programStageInstance.setAssignedUser( assignedUser );
-            }
-        }
-
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
 
         if ( !errors.isEmpty() )
@@ -1739,11 +1718,13 @@ public abstract class AbstractEventService
         programInstanceCache.put( programInstance.getUid(), programInstance );
         sendProgramNotification( programStageInstance, importOptions );
 
-        if ( importSummary.getConflicts().size() > 0 ) {
+        if ( importSummary.getConflicts().size() > 0 )
+        {
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.incrementIgnored();
         }
-        else {
+        else
+        {
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.incrementImported();
         }
@@ -1757,12 +1738,13 @@ public abstract class AbstractEventService
         {
             if ( programStageInstance.isCompleted() )
             {
-                programNotificationPublisher.publishEvent( programStageInstance, ProgramNotificationEventType.PROGRAM_STAGE_COMPLETION );
+                eventPublisher.publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
+                eventPublisher.publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
             }
 
             if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
             {
-                eventPublisher.publishEvent( new ProgramStageInstanceScheduledEvent( this, programStageInstance ) );
+                eventPublisher.publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
             }
         }
     }
@@ -1806,7 +1788,11 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setGeometry( event.getGeometry() );
-        programStageInstance.setAssignedUser( assignedUser );
+
+        if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
+        {
+            programStageInstance.setAssignedUser( assignedUser );
+        }
 
         updateDateFields( event, programStageInstance );
 

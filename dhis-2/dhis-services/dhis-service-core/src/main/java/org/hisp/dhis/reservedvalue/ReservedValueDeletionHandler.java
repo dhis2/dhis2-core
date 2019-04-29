@@ -30,16 +30,13 @@ package org.hisp.dhis.reservedvalue;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class ReservedValueDeletionHandler extends DeletionHandler
+public class ReservedValueDeletionHandler
+    extends DeletionHandler
 {
-
-    private final ReservedValueStore reservedValueStore;
-
-    public ReservedValueDeletionHandler( ReservedValueStore reservedValueStore )
-    {
-        this.reservedValueStore = reservedValueStore;
-    }
+    @Autowired
+    private ReservedValueService reservedValueService;
 
     @Override
     protected String getClassName()
@@ -50,6 +47,6 @@ public class ReservedValueDeletionHandler extends DeletionHandler
     @Override
     public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
-        reservedValueStore.deleteReservedValueByUid( attribute.getUid() );
+        reservedValueService.deleteReservedValueByUid( attribute.getUid() );
     }
 }

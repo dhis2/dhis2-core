@@ -130,7 +130,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramRuleEngineService programRuleEngineService;
 
     @Autowired
-    private List<RuleActionImplementer> ruleActionImplementers;
+    private RuleActionScheduleMessageImplementer ruleActionImplementers;
 
     @Autowired
     private ProgramRuleService programRuleService;
@@ -245,7 +245,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
 
-        List<RuleEffect> ruleEffects = programRuleEngineService.evaluate( programInstance );
+        List<RuleEffect> ruleEffects = programRuleEngineService.evaluateEnrollment( programInstance.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -260,20 +260,18 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         // For duplication detection
 
-        List<RuleEffect> ruleEffects2 = programRuleEngineService.evaluate( programInstance );
+        List<RuleEffect> ruleEffects2 = programRuleEngineService.evaluateEnrollment( programInstance.getId() );
 
         assertNotNull( ruleEffects2.get( 0 ) );
 
-        RuleActionImplementer ruleActionImplementer = ruleActionImplementers.stream()
-            .filter( r -> r.accept( ruleEffects2.get( 0 ).ruleAction() ) ).findFirst().get();
-
-        RuleActionScheduleMessageImplementer messageImplementer2 = (RuleActionScheduleMessageImplementer) ruleActionImplementer;
+        assertTrue( ruleEffects2.get( 0 ).ruleAction() instanceof  RuleActionScheduleMessage );
 
         RuleActionScheduleMessage ruleActionScheduleMessage2 = (RuleActionScheduleMessage) ruleEffects2.get( 0 ).ruleAction();
 
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
+
         // duplicate enrollment/events will be ignored and validation will be failed.
-        assertFalse( messageImplementer2.validate( ruleEffects2.get( 0 ), programInstance ) );
+        assertFalse( ruleActionImplementers.validate( ruleEffects2.get( 0 ), programInstance ) );
     }
 
     private void setupEvents()

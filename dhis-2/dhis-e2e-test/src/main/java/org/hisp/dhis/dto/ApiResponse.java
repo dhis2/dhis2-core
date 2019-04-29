@@ -1,67 +1,16 @@
-/*
- * Copyright (c) 2004-2019, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-/*
- * Copyright (c) 2004-2019, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 
 package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
+import io.restassured.path.json.config.JsonParserType;
+import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -117,9 +66,21 @@ public class ApiResponse
         return raw.jsonPath().getString( path );
     }
 
+    public <T> T extractObject( String path, Class<T> type )
+    {
+        return raw.jsonPath()
+            .getObject( path, type );
+    }
+
     public Object extract( String path )
     {
         return raw.jsonPath().get( path );
+    }
+
+    public JsonObject extractJsonObject( String path )
+    {
+        return raw.jsonPath( JsonPathConfig.jsonPathConfig().defaultParserType( JsonParserType.GSON ) )
+            .getObject( path, JsonObject.class );
     }
 
     public <T> List<T> extractList( String path )
@@ -129,7 +90,7 @@ public class ApiResponse
 
     public <T> List<T> extractList( String path, Class<T> type )
     {
-        return raw.jsonPath().getList( path, type );
+        return raw.body().jsonPath().getList( path, type );
     }
 
     public int statusCode()
@@ -144,7 +105,7 @@ public class ApiResponse
 
     public JsonObject getBody()
     {
-        return raw.getBody().as( JsonObject.class, ObjectMapperType.GSON );
+        return extractJsonObject( "" );
     }
 
     public boolean isEntityCreated()
@@ -154,28 +115,58 @@ public class ApiResponse
 
     public boolean containsImportSummaries()
     {
-        return StringUtils.equals( extractString( "response.responseType" ), "ImportSummaries" ) ||
-            StringUtils.equals( extractString( "responseType" ), "ImportSummaries" );
+        return !getImportSummaries().isEmpty();
     }
 
     public List<ImportSummary> getImportSummaries()
     {
-        if ( this.extract( "responseType" ) != null && this.extract( "responseType" ).equals( "ImportSummaries" ) )
+        String pathToImportSummaries = "";
+        if ( this.extract( "response.responseType" ) != null )
         {
-            return this.extractList( "importSummaries", ImportSummary.class );
+            pathToImportSummaries = "response.";
+        }
+
+        if ( this.extract( pathToImportSummaries + "responseType" ) != null )
+        {
+            switch ( this.extract( pathToImportSummaries + "responseType" ).toString() )
+            {
+            case "ImportSummaries":
+                return this.extractList( pathToImportSummaries + "importSummaries", ImportSummary.class );
+            case "ImportSummary":
+                return Arrays.asList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
+            }
 
         }
+
         return this.extractList( "response.importSummaries", ImportSummary.class );
 
+    }
+
+    public List<TypeReport> getTypeReports()
+    {
+        if ( this.extractList( "typeReports" ) != null )
+        {
+            return this.extractList( "typeReports", TypeReport.class );
+        }
+
+        return null;
     }
 
     public List<ImportSummary> getSuccessfulImportSummaries()
     {
         return getImportSummaries().stream()
             .filter( is -> {
-                return is.getStatus() == "SUCCESS";
+                return is.getStatus().equalsIgnoreCase( "SUCCESS" );
             } )
             .collect( Collectors.toList() );
+    }
+
+    public void prettyPrint() {
+        raw.prettyPrint();
+    }
+
+    public String getContentType() {
+        return raw.getContentType();
     }
 
 }

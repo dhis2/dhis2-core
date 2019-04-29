@@ -1,0 +1,19 @@
+{
+  "userGroups": [
+    {
+      "created": "2019-04-15T14:40:58.215",
+      "lastUpdated": "2019-04-15T14:40:58.215",
+      "name": "TA user group",
+      "id": "OPVIvvXzNTw",
+      "publicAccess": "rwrw----",
+      "userGroupAccesses": [
+      ],
+      "attributeValues": [],
+      "users": [
+      ],
+      "managedGroups": [],
+      "translations": [],
+      "userAccesses": []
+    }
+  ]
+}

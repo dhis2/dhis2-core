@@ -29,37 +29,40 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * @Author Zubair Asghar.
  */
+
+@Async
 public class ProgramRuleEngineListener
 {
     @Autowired
     private ProgramRuleEngineService programRuleEngineService;
 
-    @EventListener
-    public void listenEvent( TrackedEntityInstanceEnrolledEvent event )
+    @TransactionalEventListener
+    public void onEnrollment( EnrollmentEvaluationEvent event )
     {
-        programRuleEngineService.evaluate( event.getProgramInstance() );
+        programRuleEngineService.evaluateEnrollment( event.getProgramInstance() );
     }
 
-    @EventListener
-    public void listenEvent( DataValueUpdatedEvent event )
+    @TransactionalEventListener
+    public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
 
-    @EventListener
-    public void listenEvent( ProgramStageInstanceCompletedEvent event )
+    @TransactionalEventListener
+    public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
 
-    @EventListener
-    public void listenEvent( ProgramStageInstanceScheduledEvent event )
+    @TransactionalEventListener
+    public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
 }

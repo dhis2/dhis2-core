@@ -135,4 +135,10 @@ public class ReservedValueBatchHandler
 
         return rv;
     }
+    
+    @Override
+    public String getIdSequenceName()
+    {
+        return "reservedvalue_sequence";
+    }
 }

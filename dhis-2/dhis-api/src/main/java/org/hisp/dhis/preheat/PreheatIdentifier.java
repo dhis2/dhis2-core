@@ -55,7 +55,6 @@ public enum PreheatIdentifier
      */
     AUTO;
 
-    @SuppressWarnings( "incomplete-switch" )
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
         switch ( this )

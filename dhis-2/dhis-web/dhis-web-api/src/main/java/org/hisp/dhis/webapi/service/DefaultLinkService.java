@@ -261,7 +261,15 @@ public class DefaultLinkService implements LinkService
             return StringUtils.EMPTY;
         }
 
-        int index = requestUri.indexOf( '.' );
+        int index = requestUri.lastIndexOf( '/' );
+
+        if ( index >= 0 )
+        {
+            // the request URI itself may have dots inside
+            requestUri = requestUri.substring( index );
+        }
+
+        index = requestUri.indexOf( '.' );
 
         if ( index < 0 )
         {

@@ -34,6 +34,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -65,6 +66,7 @@ public class DefaultDeletionManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void execute( Object object )
     {
         if ( deletionHandlers == null || deletionHandlers.isEmpty() )

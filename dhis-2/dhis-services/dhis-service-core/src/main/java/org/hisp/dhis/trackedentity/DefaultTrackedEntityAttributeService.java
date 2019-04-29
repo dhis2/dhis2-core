@@ -28,16 +28,8 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.imageio.ImageIO;
-
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
@@ -52,12 +44,17 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableSet;
+import javax.imageio.ImageIO;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew
@@ -67,36 +64,45 @@ public class DefaultTrackedEntityAttributeService
 {
     private static final int VALUE_MAX_LENGTH = 50000;
 
-    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
+    private static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String>builder().add(
         ImageIO.getReaderFormatNames() ).build();
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private TrackedEntityAttributeStore attributeStore;
+    private final TrackedEntityAttributeStore attributeStore;
+    private final ProgramService programService;
+    private final TrackedEntityTypeService trackedEntityTypeService;
+    private final FileResourceService fileResourceService;
+    private final UserService userService;
+    private final CurrentUserService currentUserService;
+    private final AclService aclService;
+    private final TrackedEntityAttributeStore trackedEntityAttributeStore;
 
-    @Autowired
-    private ProgramService programService;
+    public DefaultTrackedEntityAttributeService ( TrackedEntityAttributeStore attributeStore,
+        ProgramService programService, TrackedEntityTypeService trackedEntityTypeService,
+        FileResourceService fileResourceService, UserService userService, CurrentUserService currentUserService,
+        AclService aclService, TrackedEntityAttributeStore trackedEntityAttributeStore )
+    {
+        checkNotNull( attributeStore );
+        checkNotNull( programService );
+        checkNotNull( trackedEntityTypeService );
+        checkNotNull( fileResourceService );
+        checkNotNull( userService );
+        checkNotNull( currentUserService );
+        checkNotNull( aclService );
+        checkNotNull( trackedEntityAttributeStore );
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
-    private FileResourceService fileResourceService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private AclService aclService;
+        this.attributeStore = attributeStore;
+        this.programService = programService;
+        this.trackedEntityTypeService = trackedEntityTypeService;
+        this.fileResourceService = fileResourceService;
+        this.userService = userService;
+        this.currentUserService = currentUserService;
+        this.aclService = aclService;
+        this.trackedEntityAttributeStore = trackedEntityAttributeStore;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -169,64 +175,27 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional(readOnly = true)
-    public String validateScope( TrackedEntityAttribute trackedEntityAttribute,
-        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit, Program program )
+    public String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
+        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit )
     {
         Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required." );
-
-        if ( !trackedEntityAttribute.isUnique() || value == null )
-        {
-            return null;
-        }
+        Assert.notNull( value, "tracked entity attribute value is required." );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
-        params.setInternalSearch( true );
 
-        if ( trackedEntityAttribute.getOrgunitScope() && trackedEntityAttribute.getProgramScope() )
-        {
-            Assert.notNull( program, "program is required for program scope" );
-            Assert.notNull( organisationUnit, "organisationUnit is required for org unit scope" );
-
-            if ( !program.getOrganisationUnits().contains( organisationUnit ) )
-            {
-                return "Organisation unit is not assigned to program " + program.getUid();
-            }
-
-            params.setProgram( program );
-            params.addOrganisationUnit( organisationUnit );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
-        }
-        else if ( trackedEntityAttribute.getOrgunitScope() )
+        if ( trackedEntityAttribute.getOrgunitScope() )
         {
             Assert.notNull( organisationUnit, "organisation unit is required for org unit scope" );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
             params.addOrganisationUnit( organisationUnit );
         }
-        else if ( trackedEntityAttribute.getProgramScope() )
+
+        Optional<String> fetchedTeiUid = trackedEntityAttributeStore.getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
+
+        if ( fetchedTeiUid.isPresent() && (trackedEntityInstance == null || !fetchedTeiUid.get().equals( trackedEntityInstance.getUid() )) )
         {
-            Assert.notNull( program, "program is required for program scope" );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-            params.setProgram( program );
-        }
-        else
-        {
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        }
-
-        // TODO re-factor to avoid circular dependency
-
-        TrackedEntityInstanceService trackedEntityInstanceService = applicationContext.getBean( TrackedEntityInstanceService.class );
-
-        Grid instances = trackedEntityInstanceService.getTrackedEntityInstancesGrid( params );
-
-        if ( !(instances.getHeight() == 0) )
-        {
-            if ( trackedEntityInstance == null || (instances.getHeight() == 1 && !instances.getRow( 0 ).contains( trackedEntityInstance.getUid() )) )
-            {
-                return "Non-unique attribute value '" + value + "' for attribute " + trackedEntityAttribute.getUid();
-            }
+            return "Non-unique attribute value '" + value + "' for attribute " + trackedEntityAttribute.getUid();
         }
 
         return null;

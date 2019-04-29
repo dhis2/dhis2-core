@@ -36,7 +36,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public class DefaultUserGroupAccessService implements UserGroupAccessService
 {
     // -------------------------------------------------------------------------
@@ -55,24 +54,28 @@ public class DefaultUserGroupAccessService implements UserGroupAccessService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         userGroupAccessStore.save( userGroupAccess );
     }
 
     @Override
+    @Transactional
     public void updateUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         userGroupAccessStore.update( userGroupAccess );
     }
 
     @Override
+    @Transactional
     public void deleteUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         userGroupAccessStore.delete( userGroupAccess );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGroupAccess> getAllUserGroupAccesses()
     {
         return userGroupAccessStore.getAll();

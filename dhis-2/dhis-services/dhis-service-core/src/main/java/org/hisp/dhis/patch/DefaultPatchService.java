@@ -63,7 +63,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Transactional // TODO not sure if this can be completely readonly
 public class DefaultPatchService implements PatchService
 {
     private static final Log log = LogFactory.getLog( DefaultPatchService.class );

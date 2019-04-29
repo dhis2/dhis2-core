@@ -60,10 +60,8 @@ import static org.mockito.Mockito.when;
  * @author Luciano Fiandesio
  */
 public class ProgramSqlGeneratorVariablesTest
-    extends
-    DhisConvenienceTest
+    extends DhisConvenienceTest
 {
-
     private BeanRandomizer beanRandomizer = new BeanRandomizer();
 
     private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
@@ -308,7 +306,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testInvalidVariable()
     {
-        thrown.expect(InternalParserException.class);
+        thrown.expect( InternalParserException.class );
         subject.visitProgramVariable( mockContext( 129839128 ) );
     }
 
@@ -332,7 +330,7 @@ public class ProgramSqlGeneratorVariablesTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        this.subject = new ProgramSqlGenerator( programIndicator, startDate, endDate, true,
+        this.subject = new ProgramSqlGenerator( programIndicator, startDate, endDate,
             dataElementsAndAttributesIdentifiers, new HashMap<>(), programIndicatorService, statementBuilder,
             dataElementService, trackedEntityAttributeService );
     }

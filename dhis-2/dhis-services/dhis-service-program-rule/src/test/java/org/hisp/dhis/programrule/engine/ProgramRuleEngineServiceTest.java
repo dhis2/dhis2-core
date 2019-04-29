@@ -32,8 +32,10 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -69,6 +71,12 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     // -------------------------------------------------------------------------
     // Mocking Dependencies
     // -------------------------------------------------------------------------
+
+    @Mock
+    private ProgramInstanceService programInstanceService;
+
+    @Mock
+    private ProgramStageInstanceService programStageInstanceService;
 
     @Mock
     private ProgramRuleEngine programRuleEngine;
@@ -129,6 +137,10 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         }).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
 
         when( programRuleService.getProgramRule( any( Program.class ) ) ).thenReturn( programRules );
+
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
+        when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
     }
 
     @Test
@@ -147,7 +159,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
-        List<RuleEffect> effects = service.evaluate( programInstance );
+        List<RuleEffect> effects = service.evaluateEnrollment( programInstance.getId() );
 
         assertEquals( 1, effects.size() );
 
@@ -176,7 +188,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluate( programStageInstance );
+        List<RuleEffect> ruleEffects = service.evaluateEvent( programStageInstance.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 

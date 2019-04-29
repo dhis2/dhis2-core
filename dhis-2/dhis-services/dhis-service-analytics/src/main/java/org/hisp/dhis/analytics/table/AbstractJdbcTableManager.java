@@ -37,8 +37,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -122,7 +120,7 @@ public abstract class AbstractJdbcTableManager
     @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Resource( name = "slowQueryJdbcTemplate" )
+    @Autowired
     protected JdbcTemplate jdbcTemplate;
 
     // -------------------------------------------------------------------------

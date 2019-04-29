@@ -32,9 +32,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.color.Color;
 import org.hisp.dhis.color.ColorSet;
@@ -46,13 +51,7 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -92,10 +91,11 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
@@ -250,6 +250,8 @@ public class Metadata
     private List<AnalyticsTableHook> analyticsTableHooks = new ArrayList<>();
 
     private List<ValidationNotificationTemplate> validationNotificationTemplates = new ArrayList<>();
+
+    private List<JobConfiguration> jobConfigurations = new ArrayList<>();
 
     public Metadata()
     {
@@ -1151,6 +1153,19 @@ public class Metadata
         this.validationNotificationTemplates = validationNotificationTemplates;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "jobConfigurations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
+    public List<JobConfiguration> getJobConfigurations()
+    {
+        return jobConfigurations;
+    }
+
+    public void setJobConfigurations( List<JobConfiguration> jobConfigurations )
+    {
+        this.jobConfigurations = jobConfigurations;
+    }
+
     @Override
     public String toString()
     {
@@ -1210,6 +1225,7 @@ public class Metadata
             ", predictorGroups=" + predictorGroups +
             ", analyticsTableHooks=" + analyticsTableHooks +
             ", validationNotificationTemplates=" + validationNotificationTemplates +
+            ", jobConfigurations=" + jobConfigurations +
             '}';
     }
 }

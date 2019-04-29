@@ -33,10 +33,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.dto.schemas.PropertyType;
+import org.hisp.dhis.dto.schemas.Schema;
 import org.hisp.dhis.dto.schemas.SchemaProperty;
 
 import java.text.SimpleDateFormat;
@@ -101,10 +103,6 @@ public class DataGenerator
             jsonElement = new JsonPrimitive( faker.number().numberBetween( (int) property.getMin(), (int) property.getMax() ) );
             break;
 
-        case IDENTIFIER:
-            jsonElement = new JsonPrimitive( new IdGenerator().generateUniqueId() );
-            break;
-
         default:
             jsonElement = new JsonPrimitive( "Conversion not defined." );
             break;
@@ -122,6 +120,7 @@ public class DataGenerator
         )
         {
             JsonElement element;
+
             if ( prop.getPropertyType() == PropertyType.REFERENCE )
             {
                 List<SchemaProperty> referenceProperties = new SchemasActions().getRequiredProperties( prop.getName() );
@@ -131,6 +130,22 @@ public class DataGenerator
                 referenceObject.addProperty( "id", uid );
 
                 element = referenceObject;
+            }
+            else if ( prop.getPropertyType() == PropertyType.IDENTIFIER )
+            {
+                if ( !StringUtils.containsAny( prop.getName(), "id", "uid", "code" ) )
+                {
+
+                    Schema schema = new SchemasActions().getSchema( prop.getName() );
+                    JsonObject referenceObject = generateObjectMatchingSchema( schema.getRequiredProperties() );
+                    String uid = new RestApiActions( schema.getPlural() ).post( referenceObject ).extractUid();
+
+                    element = new JsonPrimitive( uid );
+                }
+                else
+                {
+                    element = new JsonPrimitive( new IdGenerator().generateUniqueId() );
+                }
             }
 
             else

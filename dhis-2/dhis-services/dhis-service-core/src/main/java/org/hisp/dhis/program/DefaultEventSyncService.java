@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-@Transactional
+@Transactional(readOnly = true)
 public class DefaultEventSyncService implements EventSyncService
 {
     // -------------------------------------------------------------------------

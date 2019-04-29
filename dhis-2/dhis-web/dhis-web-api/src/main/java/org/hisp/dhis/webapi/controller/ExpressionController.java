@@ -70,7 +70,7 @@ public class ExpressionController
     {
         I18n i18n = i18nManager.getI18n();
 
-        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression );
+        ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( expression );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
         message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
