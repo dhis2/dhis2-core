@@ -92,6 +92,12 @@ public class ApiResponse
         return raw.jsonPath().getString( path );
     }
 
+    public <T> T extractObject( String path, Class<T> type )
+    {
+        return raw.jsonPath()
+            .getObject( path, type );
+    }
+
     public Object extract( String path )
     {
         return raw.jsonPath().get( path );
