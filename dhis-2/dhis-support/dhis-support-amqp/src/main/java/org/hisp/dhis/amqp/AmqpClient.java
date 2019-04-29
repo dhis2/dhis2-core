@@ -112,11 +112,14 @@ public class AmqpClient
         try
         {
             Session session = createSession();
-            MessageProducer producer = session.createProducer( destination );
-            String message = toJson( value );
-            TextMessage textMessage = session.createTextMessage( message );
-            producer.send( textMessage );
-            producer.close();
+
+            try ( MessageProducer producer = session.createProducer( destination ) )
+            {
+                String message = toJson( value );
+                TextMessage textMessage = session.createTextMessage( message );
+                producer.send( textMessage );
+            }
+
             session.close();
         }
         catch ( JMSException ex )
