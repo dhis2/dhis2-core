@@ -1694,7 +1694,7 @@ public abstract class AbstractEventService
             else
             {
                 updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate,
-                    executionDate, event.getStatus().getValue(), completedBy,
+                    executionDate, event.getStatus().getValue(), completedBy, storedBy,
                     programStageInstance, aoc, assignedUser, importOptions, importSummary );
             }
 
@@ -1751,7 +1751,7 @@ public abstract class AbstractEventService
 
     private ProgramStageInstance createProgramStageInstance( Event event, ProgramStage programStage,
         ProgramInstance programInstance, OrganisationUnit organisationUnit, Date dueDate, Date executionDate,
-        int status, String completedBy, String storeBy, String programStageInstanceIdentifier,
+        int status, String completedBy, String storedBy, String programStageInstanceIdentifier,
         CategoryOptionCombo aoc, User assignedUser, ImportOptions importOptions, ImportSummary importSummary )
     {
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
@@ -1768,17 +1768,17 @@ public abstract class AbstractEventService
             programStageInstance.setCode( programStageInstanceIdentifier );
         }
 
-        programStageInstance.setStoredBy( storeBy );
+        programStageInstance.setStoredBy( storedBy );
 
         updateProgramStageInstance( event, programStage, programInstance, organisationUnit, dueDate, executionDate,
-            status, completedBy, programStageInstance, aoc, assignedUser, importOptions, importSummary );
+            status, completedBy, storedBy, programStageInstance, aoc, assignedUser, importOptions, importSummary );
 
         return programStageInstance;
     }
 
     private void updateProgramStageInstance( Event event, ProgramStage programStage, ProgramInstance programInstance,
         OrganisationUnit organisationUnit, Date dueDate, Date executionDate, int status,
-        String completedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc, User assignedUser,
+        String completedBy, String storedBy, ProgramStageInstance programStageInstance, CategoryOptionCombo aoc, User assignedUser,
         ImportOptions importOptions, ImportSummary importSummary )
     {
         programStageInstance.setProgramInstance( programInstance );
@@ -1798,7 +1798,7 @@ public abstract class AbstractEventService
 
         programStageInstance.setStatus( EventStatus.fromInt( status ) );
 
-        saveTrackedEntityComment( programStageInstance, event, event.getStoredBy() );
+        saveTrackedEntityComment( programStageInstance, event, storedBy );
 
         if ( programStageInstance.isCompleted() )
         {
@@ -1839,7 +1839,7 @@ public abstract class AbstractEventService
                 TrackedEntityComment comment = new TrackedEntityComment();
                 comment.setUid( noteUid );
                 comment.setCommentText( note.getValue() );
-                comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? User.getSafeUsername( storedBy ) : note.getStoredBy() );
+                comment.setCreator( getValidUsername( note.getStoredBy(), null, storedBy ) );
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
                 comment.setCreated( created );
