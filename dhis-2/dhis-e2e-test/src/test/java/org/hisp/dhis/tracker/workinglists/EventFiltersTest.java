@@ -25,62 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.tracker.workinglists;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.MetadataActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@JsonIgnoreProperties( ignoreUnknown = true )
-public class ImportSummary
+public class EventFiltersTest
+    extends ApiTest
 {
-    private String status;
+    private RestApiActions eventFiltersActions;
 
-    private String description;
+    private String pathToFile = "src/test/resources/tracker/workinglists/eventFilters.json";
 
-    private String reference;
-
-    private ImportCount importCount;
-
-    public String getStatus()
+    @BeforeAll
+    public void beforeAll()
     {
-        return status;
+        eventFiltersActions = new RestApiActions( "/eventFilters" );
+
+        new LoginActions().loginAsSuperUser();
     }
 
-    public void setStatus( String status )
+    @Test
+    public void eventFilterCanBeSaved()
+        throws Exception
     {
-        this.status = status;
-    }
+        JsonObject body = new FileReaderUtils().readJsonAndGenerateData( new File( pathToFile ) );
 
-    public String getDescription()
-    {
-        return description;
-    }
+        ApiResponse response = eventFiltersActions.post( body );
 
-    public void setDescription( String description )
-    {
-        this.description = description;
+        ResponseValidationHelper.validateObjectCreation( response );
     }
-
-    public String getReference()
-    {
-        return reference;
-    }
-
-    public void setReference( String reference )
-    {
-        this.reference = reference;
-    }
-
-    public ImportCount getImportCount()
-    {
-        return importCount;
-    }
-
-    public void setImportCount( ImportCount importCount )
-    {
-        this.importCount = importCount;
-    }
-
 }

@@ -25,62 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dto;
+package org.hisp.dhis.dto.schemas;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @JsonIgnoreProperties( ignoreUnknown = true )
-public class ImportSummary
+public class Schema
 {
-    private String status;
+    private ArrayList<SchemaProperty> properties;
 
-    private String description;
+    private String plural;
 
-    private String reference;
-
-    private ImportCount importCount;
-
-    public String getStatus()
+    public String getPlural()
     {
-        return status;
+        return plural;
     }
 
-    public void setStatus( String status )
+    public void setPlural( String plural )
     {
-        this.status = status;
+        this.plural = plural;
     }
 
-    public String getDescription()
+    public ArrayList<SchemaProperty> getProperties()
     {
-        return description;
+        return properties;
     }
 
-    public void setDescription( String description )
+    public void setProperties( ArrayList<SchemaProperty> properties )
     {
-        this.description = description;
+        this.properties = properties;
     }
 
-    public String getReference()
+    public List<SchemaProperty> getRequiredProperties()
     {
-        return reference;
+        return properties.stream()
+            .filter( (schemaProperty -> schemaProperty.isRequired()) )
+            .collect( Collectors.toList() );
     }
-
-    public void setReference( String reference )
-    {
-        this.reference = reference;
-    }
-
-    public ImportCount getImportCount()
-    {
-        return importCount;
-    }
-
-    public void setImportCount( ImportCount importCount )
-    {
-        this.importCount = importCount;
-    }
-
 }

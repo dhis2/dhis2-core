@@ -225,7 +225,7 @@ public class RestApiActions
             SchemasActions schemasActions = new SchemasActions();
             response.getTypeReports().stream()
                 .filter( typeReport -> {
-                    return typeReport.getStats().getIgnored() == 0;
+                    return typeReport.getStats().getCreated() != 0 || typeReport.getStats().getImported() != 0;
                 } )
                 .forEach( tr -> {
                     List<ObjectReport> objectReports = tr.getObjectReports();
