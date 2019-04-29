@@ -27,16 +27,16 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.hibernate.HibernateException;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author David Katuscak
@@ -57,6 +57,14 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType
         returnedClass = klass;
         reader = MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
         writer = MAPPER.writerFor( new TypeReference<Map<String, EventDataValue>>() {} );
+    }
+
+    @Override
+    public Object deepCopy( Object value ) throws HibernateException
+    {
+        // null must be handled by the conversion methods
+        String json = convertObjectToJson( value );
+        return convertJsonToObject( json );
     }
 
     /**
