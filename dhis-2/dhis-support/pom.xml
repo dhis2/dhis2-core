@@ -15,13 +15,13 @@
 
   <modules>
     <module>dhis-support-commons</module>
-    <module>dhis-support-expression-parser</module>
     <module>dhis-support-db-migration</module>
     <module>dhis-support-test</module>
     <module>dhis-support-external</module>
     <module>dhis-support-hibernate</module>
     <module>dhis-support-system</module>
     <module>dhis-support-jdbc</module>
+    <module>dhis-support-expression-parser</module>
     <module>dhis-support-amqp</module>
   </modules>
 

@@ -509,9 +509,9 @@ public class DefaultProgramInstanceService
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
 
-        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance.getId() ) );
 
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -548,14 +548,6 @@ public class DefaultProgramInstanceService
     @Transactional
     public void completeProgramInstanceStatus( ProgramInstance programInstance )
     {
-        // ---------------------------------------------------------------------
-        // Send sms-message when to completed the program
-        // ---------------------------------------------------------------------
-
-        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance ) );
-
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
-
         // -----------------------------------------------------------------
         // Update program-instance
         // -----------------------------------------------------------------
@@ -565,6 +557,14 @@ public class DefaultProgramInstanceService
         programInstance.setCompletedBy( currentUserService.getCurrentUsername() );
 
         updateProgramInstance( programInstance );
+
+        // ---------------------------------------------------------------------
+        // Send sms-message after program completion
+        // ---------------------------------------------------------------------
+
+        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance.getId() ) );
+
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
     }
 
     @Override

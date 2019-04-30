@@ -35,12 +35,10 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsStore;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
-@Transactional
 public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms>
     implements IncomingSmsStore
 {
@@ -103,7 +101,7 @@ public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms
     }
 
     @Override
-    public List<IncomingSms> getAllUnparsedSmses()
+    public List<IncomingSms> getAllUnparsedMessages()
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

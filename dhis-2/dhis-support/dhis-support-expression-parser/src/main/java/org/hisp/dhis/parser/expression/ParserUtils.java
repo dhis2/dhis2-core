@@ -28,11 +28,16 @@ package org.hisp.dhis.parser.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.parser.expression.function.*;
+import org.hisp.dhis.parser.expression.operator.*;
 
 import java.util.Date;
 
+import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
+import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 /**
@@ -46,6 +51,55 @@ public class ParserUtils
 
     public final static boolean BOOLEAN_VALUE_IF_NULL = false;
 
+    public final static ImmutableMap<Integer, ExprFunction> COMMON_EXPRESSION_FUNCTIONS = ImmutableMap.<Integer, ExprFunction>builder()
+
+        // Non-comparison operators
+
+        .put( PAREN, new OperatorGroupingParentheses() )
+        .put( PLUS, new OperatorMathPlus() )
+        .put( MINUS, new OperatorMathMinus() )
+        .put( POWER, new OperatorMathPower() )
+        .put( MUL, new OperatorMathMultiply() )
+        .put( DIV, new OperatorMathDivide() )
+        .put( MOD, new OperatorMathModulus() )
+        .put( NOT, new OperatorLogicalNot() )
+        .put( EXCLAMATION_POINT, new OperatorLogicalNot() )
+        .put( AND, new OperatorLogicalAnd() )
+        .put( AMPERSAND_2, new OperatorLogicalAnd() )
+        .put( OR, new OperatorLogicalOr() )
+        .put( VERTICAL_BAR_2, new OperatorLogicalOr() )
+
+        // Comparison operators
+
+        .put( EQ, new OperatorCompareEqual() )
+        .put( NE, new OperatorCompareNotEqual() )
+        .put( GT, new OperatorCompareGreaterThan() )
+        .put( LT, new OperatorCompareLessThan() )
+        .put( GEQ, new OperatorCompareGreaterThanOrEqual() )
+        .put( LEQ, new OperatorCompareLessThanOrEqual() )
+
+        // Functions
+
+        .put( FIRST_NON_NULL, new FunctionFirstNonNull() )
+        .put( GREATEST, new FunctionGreatest() )
+        .put( IF, new FunctionIf() )
+        .put( IS_NOT_NULL, new FunctionIsNotNull() )
+        .put( IS_NULL, new FunctionIsNull() )
+        .put( LEAST, new FunctionLeast() )
+
+        .build();
+
+
+    public final static ExprFunctionMethod FUNCTION_EVALUATE = ExprFunction::evaluate;
+    public final static ExprFunctionMethod FUNCTION_EVALUATE_ALL_PATHS = ExprFunction::evaluateAllPaths;
+    public final static ExprFunctionMethod FUNCTION_GET_SQL = ExprFunction::getSql;
+
+    public final static ExprItemMethod ITEM_GET_DESCRIPTIONS = ExprItem::getDescription;
+    public final static ExprItemMethod ITEM_GET_IDS = ExprItem::getItemId;
+    public final static ExprItemMethod ITEM_GET_ORG_UNIT_GROUPS = ExprItem::getOrgUnitGroup;
+    public final static ExprItemMethod ITEM_EVALUATE = ExprItem::evaluate;
+    public final static ExprItemMethod ITEM_GET_SQL = ExprItem::getSql;
+
     /**
      * Does an item of the form #{...} have the syntax of a
      * data element operand (as opposed to a data element)?
@@ -53,45 +107,51 @@ public class ParserUtils
      * @param ctx the item context
      * @return true if data element operand syntax
      */
-    public static boolean isDataElementOperandSyntax( ExpressionParser.ItemContext ctx )
+    public static boolean isDataElementOperandSyntax( ItemContext ctx )
     {
         return anyNotNull( ctx.uid1, ctx.uid2 );
     }
 
     /**
-     * Does an item of the form #{...} have the syntax that could
-     * be used for #{programStageUid.dataElementUid}?
+     * Assume that an item of the form #{...} has a syntax that could be used
+     * in a program indicator expression for #{programStageUid.dataElementUid}
      *
      * @param ctx the item context
-     * @return true if data element operand syntax
      */
-    public static boolean isStageElementSyntax( ExpressionParser.ItemContext ctx )
+    public static void assumeStageElementSyntax( ItemContext ctx )
     {
-        return ctx.uid1 != null && ctx.uid2 == null && ctx.wild2 == null;
+        if ( ctx.uid1 == null || ctx.uid2 != null || ctx.wild2 != null )
+        {
+            throw new ParserExceptionWithoutContext( "Invalid Program Stage / DataElement syntax: " + ctx.getText() );
+        }
     }
 
     /**
-     * Does an item of the form A{...} have the syntax that could be used
-     * in an expression for A{progamUid.attributeUid}?
+     * Assume that an item of the form A{...} has a syntax that could be used
+     * in an expression for A{progamUid.attributeUid}
      *
      * @param ctx the item context
-     * @return true if indicator expression program attribute
      */
-    public static boolean isExpressionProgramAttribute( ExpressionParser.ItemContext ctx )
+    public static void assumeExpressionProgramAttribute( ItemContext ctx )
     {
-        return ctx.uid1 != null;
+        if ( ctx.uid1 == null )
+        {
+            throw new ParserExceptionWithoutContext( "Program attribute must have two UIDs: " + ctx.getText() );
+        }
     }
 
     /**
-     * Does an item of the form A{...} have the syntax that could be used
-     * in an program expression for A{attributeUid}?
+     * Assume that an item of the form A{...} has a syntax that could be used
+     * be used in an program expression for A{attributeUid}
      *
      * @param ctx the item context
-     * @return true if indicator expression program attribute
      */
-    public static boolean isProgramExpressionProgramAttribute( ExpressionParser.ItemContext ctx )
+    public static void assumeProgramExpressionProgramAttribute( ItemContext ctx )
     {
-        return ctx.uid1 == null;
+        if ( ctx.uid1 != null )
+        {
+            throw new ParserExceptionWithoutContext( "Program attribute must have one UID: " + ctx.getText() );
+        }
     }
 
     /**
@@ -106,7 +166,7 @@ public class ParserUtils
     public static String trimQuotes( String str )
     {
         if ( str.length() < 2
-            || "'\"".indexOf( str.substring( 0, 1 ) ) < 0
+            || ! "'\"".contains( str.substring( 0, 1 ) )
             || str.charAt( 0 ) != str.charAt( str.length() - 1 ) )
         {
             throw new ParserExceptionWithoutContext( "Internal parsing error: unquoted string '" + str + "'" );
@@ -259,4 +319,16 @@ public class ParserUtils
             throw new ParserExceptionWithoutContext( "Could not cast value to " + clazz.getSimpleName() );
         }
     }
+
+    /**
+     * Convert a quoted string to a string escaped properly for a SQL constant.
+     *
+     * @param s the quoted string
+     * @return a string escaped properly for a SQL constant
+     */
+    public static String sqlStringLiteral( String s )
+    {
+        return "'" + escapeSql( unescapeJava( trimQuotes( s ) ) ) + "'";
+    }
+
 }
