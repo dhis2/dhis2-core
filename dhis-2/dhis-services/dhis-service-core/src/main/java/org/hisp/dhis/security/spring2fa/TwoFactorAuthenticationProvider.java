@@ -28,6 +28,7 @@ package org.hisp.dhis.security.spring2fa;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
 import org.hisp.dhis.security.SecurityService;
@@ -81,6 +82,9 @@ public class TwoFactorAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
+        // initialize all required properties of user credentials since these will become detached
+        userCredentials.getAllAuthorities();
+
         // -------------------------------------------------------------------------
         // Check two-factor authentication
         // -------------------------------------------------------------------------
@@ -123,6 +127,14 @@ public class TwoFactorAuthenticationProvider
         // -------------------------------------------------------------------------
 
         Authentication result = super.authenticate( auth );
+
+        // Puts detached state of the user credentials into the session,
+        // since user credentials must not be updated during session execution (e.g. by metadata importer).
+        userCredentials = SerializationUtils.clone( userCredentials );
+
+        // initialize cached authorities
+        userCredentials.isSuper();
+        userCredentials.getAllAuthorities();
 
         return new UsernamePasswordAuthenticationToken( userCredentials, result.getCredentials(), result.getAuthorities() );
     }
