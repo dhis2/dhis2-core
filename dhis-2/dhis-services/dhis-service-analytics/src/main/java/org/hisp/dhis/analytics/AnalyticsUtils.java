@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -60,7 +61,6 @@ import org.springframework.util.Assert;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
@@ -334,7 +334,10 @@ public class AnalyticsUtils
 
             for ( String key : items.keySet() )
             {
-                metadataItemCache.put( key, items.get( key ).getName() );
+                MetadataItem item = items.get( key );
+                // if the MetaDataItem has a code, use the code as map key. Otherwise use the original UID as key
+                metadataItemCache.put( Strings.isNullOrEmpty( item.getCode() ) ? key : item.getCode(),
+                    items.get( key ).getName() );
             }
         }
         return metadataItemCache;
