@@ -68,6 +68,12 @@ public class TranslationInterceptor extends HandlerInterceptorAdapter
         return true;
     }
 
+    @Override
+    public void afterCompletion( HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex )
+    {
+        UserContext.reset();
+    }
+
     private void setUserContext( User user, TranslateParams translateParams )
     {
         Locale dbLocale = getLocaleWithDefault( translateParams, user );
