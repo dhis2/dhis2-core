@@ -82,7 +82,8 @@ public class TwoFactorAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
-        // initialize all required properties of user credentials since these will become detached
+        // Initialize all required properties of user credentials since these will become detached
+
         userCredentials.getAllAuthorities();
 
         // -------------------------------------------------------------------------
@@ -128,11 +129,13 @@ public class TwoFactorAuthenticationProvider
 
         Authentication result = super.authenticate( auth );
 
-        // Puts detached state of the user credentials into the session,
-        // since user credentials must not be updated during session execution (e.g. by metadata importer).
+        // Put detached state of the user credentials into the session as user 
+        // credentials must not be updated during session execution
+
         userCredentials = SerializationUtils.clone( userCredentials );
 
-        // initialize cached authorities
+        // Initialize cached authorities
+
         userCredentials.isSuper();
         userCredentials.getAllAuthorities();
 
