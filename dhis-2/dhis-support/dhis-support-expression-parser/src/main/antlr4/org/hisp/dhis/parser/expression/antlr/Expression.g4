@@ -99,6 +99,16 @@ programFunction // (alphabetical)
     |   d2='d2:yearsBetween(' compareDate ',' compareDate ')'
     |   d2='d2:zing(' expr ')'
     |   d2='d2:zpvc(' item (',' item )* ')'
+
+    // program functions for aggregation
+
+    |   d2='avg(' expr ')'
+    |   d2='count(' expr ')'
+    |   d2='max(' expr ')'
+    |   d2='min(' expr ')'
+    |   d2='stddev(' expr ')'
+    |   d2='sum(' expr ')'
+    |   d2='variance(' expr ')'
     ;
 
 stageDataElement
@@ -223,6 +233,16 @@ D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
 D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
 D2_ZING                 : 'd2:zing(';
 D2_ZPVC                 : 'd2:zpvc(';
+
+// Program functions for aggregation
+
+AVG                     : 'avg(';
+COUNT                   : 'count(';
+MAX                     : 'max(';
+MIN                     : 'min(';
+STDDEV                  : 'stddev(';
+SUM                     : 'sum(';
+VARIANCE                : 'variance(';
 
 // -----------------------------------------------------------------------------
 // Lexer rules

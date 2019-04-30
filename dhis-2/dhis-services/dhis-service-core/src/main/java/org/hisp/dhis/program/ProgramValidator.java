@@ -232,6 +232,13 @@ public class ProgramValidator
 
             case D2_OIZP:
             case D2_ZING:
+            case AVG:
+            case COUNT:
+            case MAX:
+            case MIN:
+            case STDDEV:
+            case SUM:
+            case VARIANCE:
                 castDouble( visit( ctx.expr( 0 ) ) );
                 return 1d;
 
