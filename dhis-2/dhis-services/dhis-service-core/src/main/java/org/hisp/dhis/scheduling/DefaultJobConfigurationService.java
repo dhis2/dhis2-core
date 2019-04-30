@@ -44,7 +44,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,17 +149,6 @@ public class DefaultJobConfigurationService
 
     @Override
     @Transactional(readOnly = true)
-    public List<JobConfiguration> getAllJobConfigurationsSorted()
-    {
-        List<JobConfiguration> jobConfigurations = getAllJobConfigurations();
-
-        Collections.sort( jobConfigurations );
-
-        return jobConfigurations;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Map<String, Map<String, Property>> getJobParametersSchema()
     {
         Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
@@ -191,6 +179,16 @@ public class DefaultJobConfigurationService
                 Property property = new Property( Primitives.wrap( field.getType() ), null, null );
                 property.setName( field.getName() );
                 property.setFieldName( prettyPrint( field.getName() ) );
+
+                try
+                {
+                    field.setAccessible( true );
+                    property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
+                }
+                catch ( IllegalAccessException | InstantiationException e )
+                {
+                    log.error( "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
+                }
 
                 String relativeApiElements = jobType.getRelativeApiElements() != null ?
                     jobType.getRelativeApiElements().get( field.getName() ) : "";
