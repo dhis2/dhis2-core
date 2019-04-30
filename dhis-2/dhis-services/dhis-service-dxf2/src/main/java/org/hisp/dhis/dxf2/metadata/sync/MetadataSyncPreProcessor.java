@@ -43,6 +43,7 @@ import org.hisp.dhis.dxf2.sync.SynchronizationStatus;
 import org.hisp.dhis.dxf2.sync.TrackerSynchronization;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
@@ -95,9 +96,10 @@ public class MetadataSyncPreProcessor
         systemSettingManager.saveSystemSetting( SettingKey.METADATAVERSION_ENABLED, true );
     }
 
-    public void handleDataValuePush( MetadataRetryContext context )
+    public void handleDataValuePush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
-        SynchronizationResult dataValuesSynchronizationResult = dataValueSync.syncDataValuesData();
+        SynchronizationResult dataValuesSynchronizationResult =
+            dataValueSync.syncDataValuesData( jobParameters.getDataValuesPageSize() );
 
         if ( dataValuesSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -106,9 +108,10 @@ public class MetadataSyncPreProcessor
         }
     }
 
-    public void handleTrackerProgramsDataPush( MetadataRetryContext context )
+    public void handleTrackerProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
-        SynchronizationResult trackerSynchronizationResult = trackerSync.syncTrackerProgramData();
+        SynchronizationResult trackerSynchronizationResult =
+            trackerSync.syncTrackerProgramData( jobParameters.getTrackerProgramPageSize() );
 
         if ( trackerSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
@@ -117,9 +120,10 @@ public class MetadataSyncPreProcessor
         }
     }
 
-    public void handleEventProgramsDataPush( MetadataRetryContext context )
+    public void handleEventProgramsDataPush( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
     {
-        SynchronizationResult eventsSynchronizationResult = eventSync.syncEventProgramData();
+        SynchronizationResult eventsSynchronizationResult =
+            eventSync.syncEventProgramData( jobParameters.getEventProgramPageSize() );
 
         if ( eventsSynchronizationResult.status == SynchronizationStatus.FAILURE )
         {
