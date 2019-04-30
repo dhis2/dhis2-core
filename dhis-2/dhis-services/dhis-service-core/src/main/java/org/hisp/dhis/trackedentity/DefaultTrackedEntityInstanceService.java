@@ -148,6 +148,8 @@ public class DefaultTrackedEntityInstanceService
         {
             params.setDefaultPaging();
         }
+        
+        params.handleCurrentUserSelectionMode();
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
@@ -178,6 +180,8 @@ public class DefaultTrackedEntityInstanceService
         }
 
         params.setUser( currentUserService.getCurrentUser() );
+        
+        params.handleCurrentUserSelectionMode();
 
         return trackedEntityInstanceStore.countTrackedEntityInstances( params );
     }
@@ -198,6 +202,7 @@ public class DefaultTrackedEntityInstanceService
         // ---------------------------------------------------------------------
 
         params.conform();
+        params.handleCurrentUserSelectionMode();
 
         // ---------------------------------------------------------------------
         // Grid headers
