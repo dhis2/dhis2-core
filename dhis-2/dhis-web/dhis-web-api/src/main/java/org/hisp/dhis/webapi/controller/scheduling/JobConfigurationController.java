@@ -28,14 +28,10 @@ package org.hisp.dhis.webapi.controller.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -48,14 +44,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 
 /**
  * Simple controller for API endpoints
@@ -98,55 +87,5 @@ public class JobConfigurationController
         }
 
         return objectReport;
-    }
-
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_JSON )
-    public void addJobConfigurationJson(
-        HttpServletRequest request, HttpServletResponse response
-    ) throws IOException
-    {
-        response.setContentType( CONTENT_TYPE_JSON );
-        InputStream in = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        JobConfiguration jobConfiguration = DefaultRenderService.getJsonMapper()
-            .readValue( in, JobConfiguration.class );
-
-        addJobConfiguration( jobConfiguration, request, response );
-    }
-
-    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_XML )
-    public void addJobConfigurationXml(
-        HttpServletRequest request, HttpServletResponse response
-    ) throws IOException
-    {
-        response.setContentType( CONTENT_TYPE_XML );
-        InputStream in = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        JobConfiguration jobConfiguration = DefaultRenderService.getXmlMapper()
-            .readValue( in, JobConfiguration.class );
-
-        addJobConfiguration( jobConfiguration, request, response );
-    }
-
-    private void addJobConfiguration( JobConfiguration jobConfiguration, HttpServletRequest request,
-        HttpServletResponse response )
-    {
-        WebMessage webMessage = new WebMessage( Status.OK );
-        try
-        {
-            long id = jobConfigurationService.addJobConfiguration( jobConfiguration );
-
-            if ( id <= 0 )
-            {
-                webMessage = new WebMessage( Status.ERROR );
-                webMessage.setMessage( "Creating new JobConfiguration with JobType: " + jobConfiguration.getJobType().name() + " failed." );
-            }
-        }
-        catch ( Exception e )
-        {
-            webMessage = new WebMessage( Status.ERROR );
-            webMessage.setMessage( "Creating new JobConfiguration with JobType: " + jobConfiguration.getJobType().name() + " failed." );
-            webMessage.setDevMessage( "Creating new JobConfiguration with JobType: " + jobConfiguration.getJobType().name() + " failed. Exception thrown: " + e );
-        }
-
-        webMessageService.send( webMessage, response, request );
     }
 }
