@@ -29,10 +29,7 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.ParserUtils.castString;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -42,16 +39,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
  * @author Jim Grace
  */
 public class d2Zing
-    extends AbstractExpressionFunction
+    extends ProgramExprFunction
 {
-    @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        castDouble( visitor.visit( ctx.expr( 0 ) ) );
-
-        return DEFAULT_DOUBLE_VALUE;
-    }
-
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {

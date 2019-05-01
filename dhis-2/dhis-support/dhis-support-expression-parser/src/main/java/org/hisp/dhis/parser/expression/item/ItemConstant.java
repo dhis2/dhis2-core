@@ -78,7 +78,7 @@ public class ItemConstant
 
         if ( value == null ) // Shouldn't happen for a valid expression.
         {
-            throw new ParserExceptionWithoutContext( "Can't find constant " + ctx.uid0.getText() );
+            throw new ParserExceptionWithoutContext( "Can't find constant to evaluate " + ctx.uid0.getText() );
         }
 
         return value;
@@ -87,13 +87,11 @@ public class ItemConstant
     @Override
     public Object getSql( ItemContext ctx, CommonExpressionVisitor visitor )
     {
-        String constantId = ctx.uid0.getText();
-
-        Double value = visitor.getConstantMap().get( constantId );
+        Double value = visitor.getConstantMap().get( ctx.uid0.getText() );
 
         if ( value == null )
         {
-            throw new ParserExceptionWithoutContext( "No constant defined for " + constantId );
+            throw new ParserExceptionWithoutContext( "Can't find constant for SQL " + ctx.uid0.getText() );
         }
 
         return value.toString();
