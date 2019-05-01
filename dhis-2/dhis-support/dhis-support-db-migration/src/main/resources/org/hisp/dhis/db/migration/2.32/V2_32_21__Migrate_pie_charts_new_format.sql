@@ -1,7 +1,7 @@
 
 -- Pie charts upgrade
 
--- Moves 'series' to filter, then 'category' to 'series' and sets 'category' 
+-- Moves 'series' to 'filter', then 'category' to 'series' and sets 'category' 
 -- to null for pie charts
 
 -- Move 'series' to become a 'filter' when 'series' and 'category' are present
