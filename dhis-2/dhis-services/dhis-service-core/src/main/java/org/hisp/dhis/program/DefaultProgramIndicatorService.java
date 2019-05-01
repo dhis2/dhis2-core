@@ -29,11 +29,12 @@ package org.hisp.dhis.program;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 import java.util.*;
 
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -41,8 +42,13 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.parser.expression.Parser;
-import org.hisp.dhis.parser.expression.ParserException;
+import org.hisp.dhis.parser.expression.*;
+import org.hisp.dhis.parser.expression.item.ItemConstant;
+import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.program.function.*;
+import org.hisp.dhis.program.item.ProgramItemAttribute;
+import org.hisp.dhis.program.item.ProgramItemStageElement;
+import org.hisp.dhis.program.variable.*;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -76,7 +82,6 @@ public class DefaultProgramIndicatorService
 
     private RelationshipTypeService relationshipTypeService;
 
-
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
         TrackedEntityAttributeService attributeService, ConstantService constantService, StatementBuilder statementBuilder,
@@ -104,7 +109,60 @@ public class DefaultProgramIndicatorService
         this.relationshipTypeService = relationshipTypeService;
     }
 
+    public final static ImmutableMap<Integer, ExprFunction> PROGRAM_INDICATOR_FUNCTIONS = ImmutableMap.<Integer, ExprFunction>builder()
 
+        // Common functions
+
+        .putAll( COMMON_EXPRESSION_FUNCTIONS )
+
+        // Program variables
+
+        .put( V_ANALYTICS_PERIOD_END, new vAnalyticsPeriodEnd() )
+        .put( V_ANALYTICS_PERIOD_START, new vAnalyticsPeriodStart() )
+        .put( V_CREATION_DATE, new vCreationDate() )
+        .put( V_CURRENT_DATE, new vCurrentDate() )
+        .put( V_DUE_DATE, new vDueDate() )
+        .put( V_ENROLLMENT_COUNT, new vEnrollmentCount() )
+        .put( V_ENROLLMENT_DATE, new vEnrolmentDate() )
+        .put( V_ENROLLMENT_STATUS, new vEnrollmentStatus() )
+        .put( V_EVENT_COUNT, new vEventCount() )
+        .put( V_EXECUTION_DATE, new vEventDate() ) // Same as event date
+        .put( V_EVENT_DATE, new vEventDate() )
+        .put( V_INCIDENT_DATE, new vIncidentDate() )
+        .put( V_ORG_UNIT_COUNT, new vOrgUnitCount() )
+        .put( V_PROGRAM_STAGE_ID, new vProgramStageId() )
+        .put( V_PROGRAM_STAGE_NAME, new vProgramStageName() )
+        .put( V_SYNC_DATE, new vSyncDate() )
+        .put( V_TEI_COUNT, new vTeiCount() )
+        .put( V_VALUE_COUNT, new vValueCount() )
+        .put( V_ZERO_POS_VALUE_COUNT, new vZeroPosValueCount() )
+
+        // Program functions
+
+        .put( D2_CONDITION, new d2Condition() )
+        .put( D2_COUNT, new d2Count() )
+        .put( D2_COUNT_IF_CONDITION, new d2CountIfCondition() )
+        .put( D2_COUNT_IF_VALUE, new d2CountIfValue() )
+        .put( D2_DAYS_BETWEEN, new d2DaysBetween() )
+        .put( D2_HAS_VALUE, new d2HasValue() )
+        .put( D2_MINUTES_BETWEEN, new d2MinutesBetween() )
+        .put( D2_MONTHS_BETWEEN, new d2MonthsBetween() )
+        .put( D2_OIZP, new d2Oizp() )
+        .put( D2_RELATIONSHIP_COUNT, new d2RelationshipCount() )
+        .put( D2_WEEKS_BETWEEN, new d2WeeksBetween() )
+        .put( D2_YEARS_BETWEEN, new d2YearsBetween() )
+        .put( D2_ZING, new d2Zing() )
+        .put( D2_ZPVC, new d2Zpvc() )
+
+        .build();
+
+    public final static ImmutableMap<Integer, ExprItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
+
+        .put( C_BRACE, new ItemConstant() )
+        .put( HASH_BRACE, new ProgramItemStageElement() )
+        .put( A_BRACE, new ProgramItemAttribute() )
+
+        .build();
 
     // -------------------------------------------------------------------------
     // ProgramIndicator CRUD
@@ -160,7 +218,6 @@ public class DefaultProgramIndicatorService
         return programIndicatorStore.getAll();
     }
 
-
     // -------------------------------------------------------------------------
     // ProgramIndicator logic
     // -------------------------------------------------------------------------
@@ -204,12 +261,11 @@ public class DefaultProgramIndicatorService
     @Transactional(readOnly = true)
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
-        ProgramValidator programExpressionValidator = new ProgramValidator(
-            this, constantService, programStageService,
-            dataElementService, attributeService, relationshipTypeService,
-            i18nManager.getI18n(), itemDescriptions );
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
 
-        castClass( clazz, Parser.visit( expression, programExpressionValidator ) );
+        castClass( clazz, Parser.visit( expression, visitor ) );
+
+        itemDescriptions.putAll( visitor.getItemDescriptions() );
     }
 
     @Override
@@ -221,14 +277,14 @@ public class DefaultProgramIndicatorService
             return null;
         }
 
-        Set<String> dataElementAndAttributeIdentifiers = getDataElementAndAttributeIdentifiers(
-            expression, programIndicator.getAnalyticsType() );
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
 
-        ProgramSqlGenerator programSqlGenerator = new ProgramSqlGenerator( programIndicator, startDate, endDate,
-            dataElementAndAttributeIdentifiers, constantService.getConstantMap(),
-            this, statementBuilder, dataElementService, attributeService );
+        visitor.setExpressionLiteral( new SqlLiteral() );
+        visitor.setProgramIndicator( programIndicator );
+        visitor.setReportingStartDate( startDate );
+        visitor.setReportingEndDate( endDate );
 
-        return castString( Parser.visit( expression, programSqlGenerator ) );
+        return castString( Parser.visit( expression, visitor ) );
     }
 
     @Override
@@ -315,6 +371,24 @@ public class DefaultProgramIndicatorService
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    private CommonExpressionVisitor newVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    {
+        return CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
+            .withItemMap( PROGRAM_INDICATOR_ITEMS )
+            .withFunctionMethod( functionMethod )
+            .withItemMethod( itemMethod )
+            .withConstantService( constantService )
+            .withProgramIndicatorService( this )
+            .withProgramStageService( programStageService )
+            .withDataElementService( dataElementService )
+            .withAttributeService( attributeService )
+            .withRelationshipTypeService( relationshipTypeService )
+            .withStatementBuilder( statementBuilder )
+            .withI18n( i18nManager.getI18n() )
+            .buildForProgramIndicatorExpressions();
+    }
+
     private String getDescription( String expression, Class<?> clazz )
     {
         Map<String, String> itemDescriptions = new HashMap<>();
@@ -357,4 +431,5 @@ public class DefaultProgramIndicatorService
         Parser.listen( expression, listener );
 
         return items;
-    }}
+    }
+}
