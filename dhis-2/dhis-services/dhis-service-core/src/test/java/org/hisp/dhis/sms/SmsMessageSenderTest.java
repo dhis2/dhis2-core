@@ -46,7 +46,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 
@@ -241,7 +240,7 @@ public class SmsMessageSenderTest
     {
         Set<String> tempRecipients = Sets.newHashSet();
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ),any( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), any( BulkSmsGatewayConfig.class ) ) ).thenAnswer( invocation ->
         {
             tempRecipients.addAll( (Set<String>) invocation.getArguments()[2] );
             return okStatus;
@@ -267,7 +266,7 @@ public class SmsMessageSenderTest
 
         generateRecipients( 500 );
 
-        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ),any( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
+        when( bulkSmsGateway.send( anyString(), anyString(), anySet( ), any( BulkSmsGatewayConfig.class ) ) ).then( invocation ->
         {
             recipientList.add( (Set<String>) invocation.getArguments()[2] );
 

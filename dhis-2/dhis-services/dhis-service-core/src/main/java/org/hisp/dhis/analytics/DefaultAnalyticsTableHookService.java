@@ -37,7 +37,6 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultAnalyticsTableHookService
     implements AnalyticsTableHookService
 {
@@ -45,30 +44,35 @@ public class DefaultAnalyticsTableHookService
     private AnalyticsTableHookStore analyticsTableHookStore;
 
     @Override
+    @Transactional(readOnly = true)
     public AnalyticsTableHook getByUid( String uid )
     {
         return analyticsTableHookStore.getByUid( uid );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {
         return analyticsTableHookStore.getByPhase( phase );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AnalyticsTableHook> getByPhaseAndResourceTableType( AnalyticsTablePhase phase, ResourceTableType resourceTableType )
     {
         return analyticsTableHookStore.getByPhaseAndResourceTableType( phase, resourceTableType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<AnalyticsTableHook> getByPhaseAndAnalyticsTableType( AnalyticsTablePhase phase, AnalyticsTableType analyticsTableType )
     {
         return analyticsTableHookStore.getByPhaseAndAnalyticsTableType( phase, analyticsTableType );
     }
 
     @Override
+    @Transactional
     public void executeAnalyticsTableSqlHooks( List<AnalyticsTableHook> hooks )
     {
         analyticsTableHookStore.executeAnalyticsTableSqlHooks( hooks );        

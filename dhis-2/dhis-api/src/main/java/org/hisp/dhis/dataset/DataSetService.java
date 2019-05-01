@@ -36,7 +36,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -122,14 +121,6 @@ public interface DataSetService
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
 
     /**
-     * Returns a list of data sets with the given uids.
-     *
-     * @param uids the collection of uids.
-     * @return a list of data sets.
-     */
-    List<DataSet> getDataSetsByUid( Collection<String> uids );
-
-    /**
      * Returns all DataSets that can be collected through mobile (one
      * organisation unit).
      */
@@ -144,8 +135,9 @@ public interface DataSetService
     /**
      * Returns the data sets which given user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
-     * @param User  user to query for data set list
-     * @return List of dataset which given user has data read access
+     *
+     * @param user the user to query for data set list.
+     * @return a list of data sets which the given user has data read access to.
      */
     List<DataSet> getUserDataRead( User user );
 
@@ -158,8 +150,9 @@ public interface DataSetService
     /**
      * Returns the data sets which current user have WRITE access. If the current
      * user has the ALL authority then all data sets are returned.
-     * @param User  user to query for data set list
-     * @return List of dataset which given User has data write access
+     *
+     * @param user the user to query for data set list.
+     * @return a list of data sets which given user has data write access to.
      */
     List<DataSet> getUserDataWrite( User user );
 

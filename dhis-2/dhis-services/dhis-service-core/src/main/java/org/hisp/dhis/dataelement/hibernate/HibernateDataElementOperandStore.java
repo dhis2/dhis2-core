@@ -42,14 +42,12 @@ public class HibernateDataElementOperandStore
     implements DataElementOperandStore
 {
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElementOperand> getAllOrderedName()
     {
         return getQuery( "from DataElementOperand d" ).list();
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<DataElementOperand> getAllOrderedName( int first, int max )
     {
         return getQuery( "from DataElementOperand d" ).setFirstResult( first ).setMaxResults( max ).list();

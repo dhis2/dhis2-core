@@ -100,6 +100,15 @@ public class DefaultEventQueryPlanner
         return withTableNameAndPartitions( params );
     }
 
+    @Override
+    public EventQueryParams planEnrollmentQuery( EventQueryParams params )
+    {
+        return new EventQueryParams.Builder( params )
+            .withTableName( PartitionUtils.getTableName( 
+                AnalyticsTableType.ENROLLMENT.getTableName(), params.getProgram() ) )
+            .build();
+    }
+
     public void validateMaintenanceMode()
         throws MaintenanceModeException
     {

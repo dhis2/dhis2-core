@@ -642,7 +642,7 @@ public class DimensionalObjectUtils
      * and sorting the components alphabetically.
      *
      * @param valueMap the mapping of keys and values.
-     * @param a map with sorted keys.
+     * @return a map with sorted keys.
      */
     public static Map<String, Object> getSortedKeysMap( Map<String, Object> valueMap )
     {

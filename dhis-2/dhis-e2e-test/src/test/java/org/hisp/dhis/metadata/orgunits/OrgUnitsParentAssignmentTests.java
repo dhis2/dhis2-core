@@ -111,7 +111,7 @@ public class OrgUnitsParentAssignmentTests
         loginActions = new LoginActions();
         orgUnitActions = new OrgUnitActions();
 
-        loginActions.loginAsDefaultUser();
+        loginActions.loginAsSuperUser();
     }
 
     @Test

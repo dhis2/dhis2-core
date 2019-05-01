@@ -46,7 +46,7 @@ import java.util.Set;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Transactional
+@Transactional // TODO do we need transactions at all here?
 public class DefaultEmailService
     implements EmailService
 {

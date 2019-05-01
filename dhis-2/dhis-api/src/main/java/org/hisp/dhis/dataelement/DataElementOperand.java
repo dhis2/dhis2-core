@@ -231,6 +231,60 @@ public class DataElementOperand
         return shortName;
     }
 
+    @Override
+    public String getDisplayShortName()
+    {
+        String displayShortName = null;
+
+        if ( dataElement != null )
+        {
+            displayShortName = dataElement.getDisplayShortName();
+        }
+
+        if ( hasNonDefaultCategoryOptionCombo() )
+        {
+            displayShortName += SPACE + categoryOptionCombo.getDisplayShortName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayShortName += SPACE + SYMBOL_WILDCARD;
+        }
+
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayShortName += SPACE + attributeOptionCombo.getDisplayShortName();
+        }
+
+        return displayShortName;
+    }
+
+    @Override
+    public String getDisplayName()
+    {
+        String displayName = null;
+
+        if ( dataElement != null )
+        {
+            displayName = dataElement.getDisplayName();
+        }
+
+        if ( hasNonDefaultCategoryOptionCombo() )
+        {
+            displayName += SPACE + categoryOptionCombo.getDisplayName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayName += SPACE + SYMBOL_WILDCARD;
+        }
+
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayName += SPACE + attributeOptionCombo.getDisplayName();
+        }
+
+        return displayName;
+    }
+
     /**
      * Creates a {@link DataElementOperand} instance from the given identifiers.
      *

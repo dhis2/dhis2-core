@@ -31,18 +31,21 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,7 +74,7 @@ public class JobConfigurationObjectBundleHook
     private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
     {
         Set<JobConfiguration> jobConfigs = jobConfigurationService.getAllJobConfigurations().stream()
-            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) )
+            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) && !Objects.equals( jobConfig.getUid(), jobConfiguration.getUid() ) )
             .collect( Collectors.toSet() );
 
         /*
@@ -114,7 +117,7 @@ public class JobConfigurationObjectBundleHook
         // Validate parameters
         if ( tempJobConfiguration.getJobParameters() != null )
         {
-            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReport -> errorReports.add( errorReport ) );
+            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReports::add );
         }
 
         validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );
@@ -164,15 +167,13 @@ public class JobConfigurationObjectBundleHook
     {
         Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
         ErrorReport jobValidation = job.validate();
-        if ( jobValidation != null )
+        if ( jobValidation != null &&
+            ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() ))
         {
             // If the error is caused by the environment and the job is a non configurable job
             // that exists already, then the error can be ignored. Job has the issue with and
             // without updating it.
-            if ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() )
-            {
-                errorReports.add( jobValidation );
-            }
+            errorReports.add( jobValidation );
         }
     }
 
@@ -212,12 +213,25 @@ public class JobConfigurationObjectBundleHook
     }
 
     @Override
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    {
+        if ( !( object instanceof JobConfiguration ) )
+        {
+            return;
+        }
+
+        JobConfiguration jobConfiguration = (JobConfiguration) object;
+        ensureDefaultJobParametersAreUsedIfNoOtherArePresent( jobConfiguration );
+    }
+
+    @Override
     public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
     {
         if ( !JobConfiguration.class.isInstance( object ) )
         {
             return;
         }
+
         JobConfiguration newObject = (JobConfiguration) object;
         JobConfiguration persObject = (JobConfiguration) persistedObject;
 
@@ -229,6 +243,8 @@ public class JobConfigurationObjectBundleHook
         {
             newObject.setCronExpression( HOUR_CRON );
         }
+
+        ensureDefaultJobParametersAreUsedIfNoOtherArePresent( newObject );
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
     }
@@ -275,5 +291,35 @@ public class JobConfigurationObjectBundleHook
         {
             schedulingManager.scheduleJob( jobConfiguration );
         }
+    }
+
+    private void ensureDefaultJobParametersAreUsedIfNoOtherArePresent( JobConfiguration jobConfiguration )
+    {
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            if ( jobConfiguration.getJobParameters() == null )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+        }
+    }
+
+    private JobParameters getDefaultJobParameters( JobConfiguration jobConfiguration )
+    {
+        if ( jobConfiguration.getJobType().getJobParameters() == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return jobConfiguration.getJobType().getJobParameters().newInstance();
+        }
+        catch ( InstantiationException | IllegalAccessException ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+        }
+
+        return null;
     }
 }

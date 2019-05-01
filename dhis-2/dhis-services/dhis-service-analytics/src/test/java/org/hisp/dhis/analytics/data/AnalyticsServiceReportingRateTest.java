@@ -51,10 +51,8 @@ import static org.mockito.Mockito.*;
  * @author Luciano Fiandesio
  */
 public class AnalyticsServiceReportingRateTest
-    extends
-    AnalyticsServiceBaseTest
+    extends AnalyticsServiceBaseTest
 {
-
     @Test
     public void verifyReportingRatesValueWhenPeriodIsFilter()
     {

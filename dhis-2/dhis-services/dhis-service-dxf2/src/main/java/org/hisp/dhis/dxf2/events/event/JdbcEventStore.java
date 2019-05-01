@@ -127,7 +127,6 @@ public class JdbcEventStore
     // EventStore implementation
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
@@ -144,6 +143,7 @@ public class JdbcEventStore
                 .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
 
+        Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
@@ -151,10 +151,6 @@ public class JdbcEventStore
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
-
-        Event event = new Event();
-
-        event.setEvent( "not_valid" );
 
         Set<String> notes = new HashSet<>();
 
@@ -167,11 +163,16 @@ public class JdbcEventStore
                 continue;
             }
 
-            if ( event.getUid() == null || !event.getUid().equals( rowSet.getString( "psi_uid" ) ) )
+            String psiUid = rowSet.getString( "psi_uid" );
+
+            Event event;
+
+            if ( !eventUidToEventMap.containsKey( psiUid ) )
             {
                 event = new Event();
+                eventUidToEventMap.put( psiUid, event );
 
-                event.setUid( rowSet.getString( "psi_uid" ) );
+                event.setUid( psiUid );
 
                 event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
                     idSchemes.getProgramStageInstanceIdScheme() ) );
@@ -240,6 +241,7 @@ public class JdbcEventStore
             }
             else
             {
+                event = eventUidToEventMap.get( psiUid );
                 String attributeCategoryCombination = event.getAttributeCategoryOptions();
                 String currentAttributeCategoryCombination = rowSet.getString( "deco_uid" );
 
@@ -327,7 +329,6 @@ public class JdbcEventStore
         return list;
     }
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<EventRow> getEventRows( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
@@ -794,18 +795,18 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
         }
-        
+
         if ( params.hasAssignedUsers() )
         {
             sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
         }
-        
-        if ( params.isIncludeOnlyUnassigned() )
+
+        if ( params.isIncludeOnlyUnassignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is null) ";
         }
-        
-        if ( params.isIncludeOnlyAssigned() )
+
+        if ( params.isIncludeOnlyAssignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is not null) ";
         }
@@ -999,18 +1000,18 @@ public class JdbcEventStore
         {
             sql += hlp.whereAnd() + " (psi.uid in (" + getQuotedCommaDelimitedString( params.getEvents() ) + ")) ";
         }
-        
+
         if ( params.hasAssignedUsers() )
         {
             sql += hlp.whereAnd() + " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) ";
         }
-        
-        if ( params.isIncludeOnlyUnassigned() )
+
+        if ( params.isIncludeOnlyUnassignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is null) ";
         }
-        
-        if ( params.isIncludeOnlyAssigned() )
+
+        if ( params.isIncludeOnlyAssignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is not null) ";
         }

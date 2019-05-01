@@ -37,7 +37,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-@Transactional
 public class DefaultProgramTempOwnershipAuditService implements ProgramTempOwnershipAuditService
 {
 
@@ -53,24 +52,28 @@ public class DefaultProgramTempOwnershipAuditService implements ProgramTempOwner
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit )
     {
         programTempOwnershipAuditStore.addProgramTempOwnershipAudit( programTempOwnershipAudit );
     }
 
     @Override
+    @Transactional
     public void deleteProgramTempOwnershipAudit( Program program )
     {
         programTempOwnershipAuditStore.deleteProgramTempOwnershipAudit( program );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params )
     {
         return programTempOwnershipAuditStore.getProgramTempOwnershipAudits( params );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params )
     {
         return programTempOwnershipAuditStore.getProgramTempOwnershipAuditsCount( params );

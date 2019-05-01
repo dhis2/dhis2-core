@@ -67,7 +67,6 @@ import com.google.api.client.util.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultMessageService
     implements MessageService
 {
@@ -147,6 +146,7 @@ public class DefaultMessageService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long sendTicketMessage( String subject, String text, String metaData )
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -164,6 +164,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments )
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -181,6 +182,7 @@ public class DefaultMessageService
     }
     
     @Override
+    @Transactional
     public long sendSystemMessage( Set<User> recipients, String subject, String text )
     {
         MessageConversationParams params = new MessageConversationParams.Builder()
@@ -193,6 +195,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public long sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority )
     {
         MessageConversationParams params = new MessageConversationParams.Builder()
@@ -207,6 +210,7 @@ public class DefaultMessageService
     }
     
     @Override
+    @Transactional
     public long sendMessage( MessageConversationParams params )
     {
         MessageConversation conversation = params.createMessageConversation();
@@ -234,6 +238,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public long sendSystemErrorNotification( String subject, Throwable t )
     {
         String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
@@ -257,6 +262,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments )
     {
         User sender = currentUserService.getCurrentUser();
@@ -281,6 +287,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public long sendCompletenessMessage( CompleteDataSetRegistration registration )
     {
         DataSet dataSet = registration.getDataSet();
@@ -342,6 +349,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public long saveMessageConversation( MessageConversation conversation )
     {
         messageConversationStore.save( conversation );
@@ -349,18 +357,21 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public void updateMessageConversation( MessageConversation conversation )
     {
         messageConversationStore.update( conversation );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MessageConversation getMessageConversation( long id )
     {
         return messageConversationStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MessageConversation getMessageConversation( String uid )
     {
         MessageConversation mc = messageConversationStore.getByUid( uid );
@@ -379,18 +390,21 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public long getUnreadMessageConversationCount()
     {
         return messageConversationStore.getUnreadUserMessageConversationCount( currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public long getUnreadMessageConversationCount( User user )
     {
         return messageConversationStore.getUnreadUserMessageConversationCount( user );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MessageConversation> getMessageConversations()
     {
         return messageConversationStore
@@ -399,6 +413,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MessageConversation> getMessageConversations( int first, int max )
     {
         return messageConversationStore
@@ -407,6 +422,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<MessageConversation> getMessageConversations( User user, Collection<String> uid )
     {
         List<MessageConversation> conversations = messageConversationStore
@@ -424,6 +440,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional
     public void deleteMessages( User user )
     {
         messageConversationStore.deleteMessages( user );
@@ -432,12 +449,14 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserMessage> getLastRecipients( int first, int max )
     {
         return messageConversationStore.getLastRecipients( currentUserService.getCurrentUser(), first, max );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean hasAccessToManageFeedbackMessages( User user )
     {
         user = (user == null ? currentUserService.getCurrentUser() : user);

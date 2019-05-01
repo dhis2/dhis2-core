@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar
  */
 public class BulkSmsRequestEntity
 {

@@ -40,7 +40,6 @@ import org.springframework.http.MediaType;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +58,7 @@ public class ClickatellHttpGateway
         return gatewayConfig instanceof ClickatellGatewayConfig;
     }
 
+    @Override
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig config )
     {
         return batch.getMessages()

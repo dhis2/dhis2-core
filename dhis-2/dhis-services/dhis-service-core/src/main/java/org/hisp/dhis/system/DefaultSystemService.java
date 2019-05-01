@@ -54,6 +54,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,6 +119,7 @@ public class DefaultSystemService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public SystemInfo getSystemInfo()
     {
         SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
@@ -233,7 +235,7 @@ public class DefaultSystemService
         // Database
         // ---------------------------------------------------------------------
 
-        info.setDatabaseInfo( databaseInfo );
+        info.setDatabaseInfo( databaseInfo.instance() );
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
 
         // ---------------------------------------------------------------------

@@ -33,5 +33,15 @@ package org.hisp.dhis.chart;
  */
 public enum ChartType
 {
-    COLUMN, STACKED_COLUMN, BAR, STACKED_BAR, LINE, AREA, PIE, RADAR, GAUGE, YEAR_OVER_YEAR_LINE, YEAR_OVER_YEAR_COLUMN
+    COLUMN,
+    STACKED_COLUMN,
+    BAR,
+    STACKED_BAR,
+    LINE,
+    AREA,
+    PIE,
+    RADAR,
+    GAUGE,
+    YEAR_OVER_YEAR_LINE,
+    YEAR_OVER_YEAR_COLUMN
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,17 @@ package org.hisp.dhis.scheduling.parameters;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.parameters.jackson.MonitoringJobParametersDeserializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,24 +50,21 @@ import java.util.stream.Collectors;
  * @author Henning Håkonsen
  * @author Stian Sandvold
  */
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+@JsonDeserialize( using = MonitoringJobParametersDeserializer.class )
 public class MonitoringJobParameters
     implements JobParameters
 {
     private static final long serialVersionUID = -1683853240301569669L;
 
-    @JsonProperty
     private int relativeStart;
 
-    @JsonProperty
     private int relativeEnd;
 
-    @JsonProperty
     private List<String> validationRuleGroups = new ArrayList<>();
 
-    @JsonProperty
     private boolean sendNotifications;
 
-    @JsonProperty
     private boolean persistResults;
 
     public MonitoringJobParameters()
@@ -78,6 +81,8 @@ public class MonitoringJobParameters
         this.persistResults = persistResults;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getRelativeStart()
     {
         return relativeStart;
@@ -88,6 +93,8 @@ public class MonitoringJobParameters
         this.relativeStart = relativeStart;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getRelativeEnd()
     {
         return relativeEnd;
@@ -98,6 +105,9 @@ public class MonitoringJobParameters
         this.relativeEnd = relativeEnd;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "validationRuleGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "validationRuleGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<String> getValidationRuleGroups()
     {
         return validationRuleGroups;
@@ -108,6 +118,8 @@ public class MonitoringJobParameters
         this.validationRuleGroups = validationRuleGroups;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSendNotifications()
     {
         return sendNotifications;
@@ -118,6 +130,8 @@ public class MonitoringJobParameters
         this.sendNotifications = sendNotifications;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isPersistResults()
     {
         return persistResults;
@@ -147,4 +161,5 @@ public class MonitoringJobParameters
 
         return Optional.empty();
     }
+
 }

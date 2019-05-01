@@ -35,7 +35,6 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageStore;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -43,8 +42,6 @@ import java.util.List;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
-@Transactional
 public class HibernateProgramMessageStore
     extends HibernateIdentifiableObjectStore<ProgramMessage>
     implements ProgramMessageStore
@@ -111,15 +108,15 @@ public class HibernateProgramMessageStore
         }
 
         hql += params.getMessageStatus() != null
-            ? helper.whereAnd() + "pm.messageStatus = :messageStatus" : ""; 
+            ? helper.whereAnd() + "pm.messageStatus = :messageStatus" : "";
 
         hql += params.getAfterDate() != null ? helper.whereAnd() + "pm.processeddate > :processeddate" : "" ;
 
         hql += params.getBeforeDate() != null
-            ? helper.whereAnd() + "pm.processeddate < :processeddate" : ""; 
+            ? helper.whereAnd() + "pm.processeddate < :processeddate" : "";
 
         Query<ProgramMessage> query = getQuery( hql );
-        
+
         if ( params.hasProgramInstance() )
         {
             query.setParameter( "programInstance", params.getProgramInstance() );
@@ -129,7 +126,7 @@ public class HibernateProgramMessageStore
         {
             query.setParameter( "programStageInstance", params.getProgramStageInstance() );
         }
-        
+
         if ( params.getMessageStatus() != null)
         {
             query.setParameter( "messageStatus", params.getMessageStatus() );
@@ -139,12 +136,12 @@ public class HibernateProgramMessageStore
         {
             query.setParameter( "processeddate", params.getAfterDate() );
         }
-        
+
         if ( params.getBeforeDate() != null )
         {
             query.setParameter( "processeddate", params.getBeforeDate() );
         }
-        
+
         return query;
     }
 }
