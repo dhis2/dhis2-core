@@ -29,7 +29,6 @@ package org.hisp.dhis.mapping;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.user.User;
 
 import java.util.Iterator;
 
@@ -54,19 +53,6 @@ public class MapDeletionHandler
     protected String getClassName()
     {
         return Map.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteUser( User user )
-    {
-        for ( Map map : mappingService.getAllMaps() )
-        {
-            if ( map.getUser() != null && map.getUser().equals( user ) )
-            {
-                map.setUser( null );
-                mappingService.updateMap( map );
-            }
-        }
     }
 
     @Override
