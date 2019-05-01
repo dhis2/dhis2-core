@@ -30,8 +30,8 @@ package org.hisp.dhis.parser.expression.literal;
 
 import org.hisp.dhis.parser.expression.ExprLiteral;
 
+import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
-import static org.hisp.dhis.parser.expression.ParserUtils.sqlStringLiteral;
 import static org.hisp.dhis.parser.expression.ParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
@@ -50,7 +50,7 @@ public class SqlLiteral
     @Override
     public Object getStringLiteral( StringLiteralContext ctx )
     {
-        return sqlStringLiteral( unescapeJava( trimQuotes( ctx.getText() ) ) );
+        return "'" + escapeSql( unescapeJava( trimQuotes( ctx.getText() ) ) ) + "'";
     }
 
     @Override
