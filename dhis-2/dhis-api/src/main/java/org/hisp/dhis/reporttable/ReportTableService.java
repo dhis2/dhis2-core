@@ -111,6 +111,4 @@ public interface ReportTableService
     Grid getReportTableGrid( String uid, Date reportingPeriod, String organisationUnitUid );
 
     Grid getReportTableGridByUser( String uid, Date reportingPeriod, String organisationUnitUid, User user );
-
-    ReportTable getReportTable( String uid, String mode );
 }
