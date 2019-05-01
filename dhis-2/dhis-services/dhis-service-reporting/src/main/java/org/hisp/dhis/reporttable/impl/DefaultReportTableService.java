@@ -34,7 +34,6 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -50,7 +49,6 @@ import java.util.Map;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultReportTableService
     extends GenericAnalyticalObjectService<ReportTable>
     implements ReportTableService
@@ -71,13 +69,6 @@ public class DefaultReportTableService
     public void setReportTableStore( AnalyticalObjectStore<ReportTable> reportTableStore )
     {
         this.reportTableStore = reportTableStore;
-    }
-
-    private IdentifiableObjectStore<Report> reportStore;
-
-    public void setReportStore( IdentifiableObjectStore<Report> reportStore )
-    {
-        this.reportStore = reportStore;
     }
 
     private OrganisationUnitService organisationUnitService;
@@ -112,14 +103,15 @@ public class DefaultReportTableService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Grid getReportTableGrid( String uid, Date reportingPeriod, String organisationUnitUid )
     {
         return getReportTableGridByUser( uid, reportingPeriod, organisationUnitUid,
             currentUserService.getCurrentUser() );
-
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Grid getReportTableGridByUser( String uid, Date reportingPeriod, String organisationUnitUid, User user )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -155,26 +147,12 @@ public class DefaultReportTableService
         return reportTableGrid;
     }
 
-    @Override
-    public ReportTable getReportTable( String uid, String mode )
-    {
-        if ( mode.equals( MODE_REPORT_TABLE ) )
-        {
-            return getReportTable( uid );
-        }
-        else if ( mode.equals( MODE_REPORT ) )
-        {
-            return reportStore.getByUid( uid ).getReportTable();
-        }
-
-        return null;
-    }
-
     // -------------------------------------------------------------------------
-    // Persistence
+    // CRUD
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long saveReportTable( ReportTable reportTable )
     {
         reportTableStore.save( reportTable );
@@ -183,37 +161,42 @@ public class DefaultReportTableService
     }
 
     @Override
+    @Transactional
     public void updateReportTable( ReportTable reportTable )
     {
         reportTableStore.update( reportTable );
     }
 
     @Override
+    @Transactional
     public void deleteReportTable( ReportTable reportTable )
     {
         reportTableStore.delete( reportTable );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReportTable getReportTable( long id )
     {
         return reportTableStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReportTable getReportTable( String uid )
     {
         return reportTableStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReportTable getReportTableNoAcl( String uid )
     {
         return reportTableStore.getByUidNoAcl( uid );
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public List<ReportTable> getAllReportTables()
     {
         return reportTableStore.getAll();

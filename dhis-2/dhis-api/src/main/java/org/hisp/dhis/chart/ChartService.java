@@ -41,7 +41,6 @@ import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.plot.PlotOrientation;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -62,7 +61,7 @@ public interface ChartService
 
     /**
      * Generates a JFreeChart.
-     * 
+     *
      * @param chart the chart to use as basis for the JFreeChart generation.
      * @param date the date to use as basis for relative periods, can be null.
      * @param organisationUnit the org unit to use as basis for relative units, will
@@ -90,25 +89,11 @@ public interface ChartService
 
     long addChart( Chart chart );
 
-    void updateChart( Chart chart );
-
     Chart getChart( long id );
 
     Chart getChart( String uid );
-    
+
     Chart getChartNoAcl( String uid );
 
     void deleteChart( Chart chart );
-
-    List<Chart> getAllCharts();
-    
-    Chart getChartByName( String name );
-
-    List<Chart> getChartsBetween( int first, int max );
-
-    List<Chart> getChartsBetweenByName( String name, int first, int max );
-
-    int getChartCount();
-
-    int getChartCountByName( String name );
 }

@@ -68,12 +68,13 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  */
 @Transactional
-public class DefaultInterpretationService 
+public class DefaultInterpretationService
     implements InterpretationService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     @Autowired
     private SchemaService schemaService;
 
@@ -111,7 +112,7 @@ public class DefaultInterpretationService
     {
         this.messageService = messageService;
     }
-    
+
     private AclService aclService;
 
     public void setAclService( AclService aclService )
@@ -141,7 +142,7 @@ public class DefaultInterpretationService
     public long saveInterpretation( Interpretation interpretation )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         Set<User> users = new HashSet<>();
 
         if ( interpretation != null )
@@ -156,8 +157,8 @@ public class DefaultInterpretationService
                 interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
             }
 
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );            
-            interpretation.setMentionsFromUsers( users );            
+            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+            interpretation.setMentionsFromUsers( users );
             updateSharingForMentions( interpretation, users );
         }
 
@@ -280,7 +281,7 @@ public class DefaultInterpretationService
             Jsoup.parse( details ).text(),
             String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
         ) );
-        
+
         return messageService.sendSystemMessage( users, subject, fullBody );
     }
 
@@ -294,8 +295,8 @@ public class DefaultInterpretationService
             SubscribableObject object = (SubscribableObject) interpretableObject;
             Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
             subscribers.remove( currentUserService.getCurrentUser() );
-            
-            if ( !subscribers.isEmpty() ) 
+
+            if ( !subscribers.isEmpty() )
             {
                 sendNotificationMessage( subscribers, interpretation, comment, notificationType );
             }
@@ -328,7 +329,7 @@ public class DefaultInterpretationService
         User user = currentUserService.getCurrentUser();
         StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
             .append( i18n.getString( "mentioned_you_in_dhis2" ) );
-        
+
         messageService.sendSystemMessage( users, subjectContent.toString(), messageContent.toString() );
     }
 
@@ -375,7 +376,7 @@ public class DefaultInterpretationService
             }
         }
     }
-    
+
     @Override
     public InterpretationComment addInterpretationComment( String uid, String text )
     {
@@ -433,6 +434,7 @@ public class DefaultInterpretationService
         return count;
     }
 
+    @Override
     @Transactional( isolation = Isolation.REPEATABLE_READ )
     public boolean likeInterpretation( long id )
     {
@@ -456,6 +458,7 @@ public class DefaultInterpretationService
         return userLike;
     }
 
+    @Override
     @Transactional( isolation = Isolation.REPEATABLE_READ )
     public boolean unlikeInterpretation( long id )
     {
