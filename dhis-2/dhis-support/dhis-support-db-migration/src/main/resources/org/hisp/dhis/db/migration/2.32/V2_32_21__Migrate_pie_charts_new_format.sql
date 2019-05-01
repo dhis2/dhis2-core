@@ -34,3 +34,4 @@ and category is not null;
 update chart set category = null
 where type = 'PIE'
 and category is not null;
+
