@@ -76,6 +76,16 @@ expr
     |   fun='d2:zing(' expr ')'
     |   fun='d2:zpvc(' item (',' item )* ')'
 
+    // Program functions for custom aggregation
+
+    |   fun='avg(' expr ')'
+    |   fun='count(' expr ')'
+    |   fun='max(' expr ')'
+    |   fun='min(' expr ')'
+    |   fun='stddev(' expr ')'
+    |   fun='sum(' expr ')'
+    |   fun='variance(' expr ')'
+
     //  Other
 
     |   item
@@ -220,6 +230,16 @@ D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
 D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
 D2_ZING                 : 'd2:zing(';
 D2_ZPVC                 : 'd2:zpvc(';
+
+// Program functions for custom aggregation
+
+AVG                     : 'avg(';
+COUNT                   : 'count(';
+MAX                     : 'max(';
+MIN                     : 'min(';
+STDDEV                  : 'stddev(';
+SUM                     : 'sum(';
+VARIANCE                : 'variance(';
 
 // -----------------------------------------------------------------------------
 // Lexer rules

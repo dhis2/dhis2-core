@@ -33,16 +33,16 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Program indicator function: d2 oizp, Object Is Zero or Positive
+ * Program indicator aggregation function: variance
  *
  * @author Jim Grace
  */
-public class d2Oizp
+public class aggVariance
     extends ProgramExprFunction
 {
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return "coalesce(case when " + visitor.visitAllowingNulls( ctx.expr( 0 ) ) + " >= 0 then 1 else 0 end, 0)";
+        return "variance(" + visitor.visit( ctx.expr( 0 ) ) + ")";
     }
 }

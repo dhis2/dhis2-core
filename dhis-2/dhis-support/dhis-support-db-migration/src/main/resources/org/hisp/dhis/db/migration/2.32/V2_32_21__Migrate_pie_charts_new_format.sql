@@ -1,7 +1,7 @@
 
 -- Pie charts upgrade
 
--- Moves 'series' to filter, then 'category' to 'series' and sets 'category' 
+-- Moves 'series' to 'filter', then 'category' to 'series' and sets 'category' 
 -- to null for pie charts
 
 -- Move 'series' to become a 'filter' when 'series' and 'category' are present
@@ -34,3 +34,4 @@ and category is not null;
 update chart set category = null
 where type = 'PIE'
 and category is not null;
+

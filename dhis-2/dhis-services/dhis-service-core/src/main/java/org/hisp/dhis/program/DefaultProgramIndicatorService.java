@@ -154,6 +154,16 @@ public class DefaultProgramIndicatorService
         .put( D2_ZING, new d2Zing() )
         .put( D2_ZPVC, new d2Zpvc() )
 
+        // Program functions for custom aggregation
+
+        .put( AVG, new aggAvg() )
+        .put( COUNT, new aggCount() )
+        .put( MAX, new aggMax() )
+        .put( MIN, new aggMin() )
+        .put( STDDEV, new aggStddev() )
+        .put( SUM, new aggSum() )
+        .put( VARIANCE, new aggVariance() )
+
         .build();
 
     public final static ImmutableMap<Integer, ExprItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap.<Integer, ExprItem>builder()

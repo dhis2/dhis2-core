@@ -29,20 +29,25 @@ package org.hisp.dhis.program.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.castDouble;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Program indicator function: d2 oizp, Object Is Zero or Positive
+ * Program indicator function to visit one expression.
  *
  * @author Jim Grace
  */
-public class d2Oizp
-    extends ProgramExprFunction
+public abstract class ProgramExprFunction
+    extends AbstractExpressionFunction
 {
     @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    public final Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return "coalesce(case when " + visitor.visitAllowingNulls( ctx.expr( 0 ) ) + " >= 0 then 1 else 0 end, 0)";
+        castDouble( visitor.visit( ctx.expr( 0 ) ) );
+
+        return DEFAULT_DOUBLE_VALUE;
     }
 }
