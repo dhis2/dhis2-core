@@ -36,6 +36,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -54,7 +55,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public int addUser( User user )
+    public long addUser( User user )
     {
         this.users.add( user );
         return user.getId();
@@ -66,7 +67,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public User getUser( int id )
+    public User getUser( long id )
     {
         return null;
     }
@@ -119,6 +120,12 @@ public class MockUserService implements UserService
     }
 
     @Override
+    public List<User> getUsers( UserQueryParams params, @Nullable List<String> orders )
+    {
+        return null;
+    }
+
+    @Override
     public int getUserCount( UserQueryParams params )
     {
         return 0;
@@ -149,7 +156,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public int addUserCredentials( UserCredentials userCredentials )
+    public long addUserCredentials( UserCredentials userCredentials )
     {
         return 0;
     }
@@ -224,7 +231,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public int addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    public long addUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         return 0;
     }
@@ -235,7 +242,7 @@ public class MockUserService implements UserService
     }
 
     @Override
-    public UserAuthorityGroup getUserAuthorityGroup( int id )
+    public UserAuthorityGroup getUserAuthorityGroup( long id )
     {
         return null;
     }
@@ -306,6 +313,6 @@ public class MockUserService implements UserService
 
     @Override
     public void set2FA( User user, Boolean twoFA )
-    {        
+    {
     }
 }

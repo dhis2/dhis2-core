@@ -64,6 +64,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  *
  * @author Margrethe Store
  * @author Lars Helge Overland
+ * @author Jim Grace
  */
 public interface ExpressionService
 {
@@ -153,7 +154,7 @@ public interface ExpressionService
      * @param expression The Expression to add.
      * @return The generated identifier for this Expression.
      */
-    int addExpression( Expression expression );
+    long addExpression( Expression expression );
 
     /**
      * Updates an Expression.
@@ -175,7 +176,7 @@ public interface ExpressionService
      * @param id The identifier.
      * @return an Expression with the given identifier.
      */
-    Expression getExpression( int id );
+    Expression getExpression( long id );
 
     /**
      * Gets all Expressions.
@@ -184,19 +185,28 @@ public interface ExpressionService
      */
     List<Expression> getAllExpressions();
 
+    // -------------------------------------------------------------------------
+    // Indicator expression logic
+    // -------------------------------------------------------------------------
+
     /**
-     * Generates the calculated value for the given parameters based on the
-     * values in the given maps.
+     * Returns all dimensional item objects which are present in numerator and
+     * denominator of the given indicators.
      *
-     * @param indicator the indicator for which to calculate the value.
-     * @param period the period for which to calculate the value.
-     * @param valueMap the map of data values.
-     * @param constantMap the map of constants.
-     * @param orgUnitCountMap the map of organisation unit counts.
-     * @return the calculated value as a double.
+     * @param indicators the collection of indicators.
+     * @return a set of dimensional item objects.
      */
-    Double getIndicatorValue( Indicator indicator, Period period, Map<? extends DimensionalItemObject, Double> valueMap,
-        Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap );
+    Set<DimensionalItemObject> getIndicatorDimensionalItemObjects( Collection<Indicator> indicators );
+
+    /**
+     * Returns all OrganisationUnitGroups in the numerator and denominator
+     * expressions in the given Indicators. Returns an empty set if the given
+     * indicators are null or empty.
+     *
+     * @param indicators the set of indicators.
+     * @return a Set of OrganisationUnitGroups.
+     */
+    Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators );
 
     /**
      * Generates the calculated value for the given parameters based on the
@@ -210,8 +220,80 @@ public interface ExpressionService
      * @return the calculated value as a double.
      */
     IndicatorValue getIndicatorValueObject( Indicator indicator, Period period,
-        Map<? extends DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap );
+
+    /**
+     * Tests whether the indicator expression is valid
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome indicatorExpressionIsValid( String expression );
+
+    /**
+     * Creates an expression string containing the names of the
+     * DimensionalItemObjects from an expression string.
+     *
+     * @param expression The expression string.
+     * @return An expression string containing DimensionalItemObjects names.
+     * @throws IllegalArgumentException if data element id or category option
+     *         combo id are not numeric or data element or category option combo
+     *         do not exist.
+     */
+    String getIndicatorExpressionDescription( String expression );
+
+    // -------------------------------------------------------------------------
+    // Expression logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns all dimensional item objects in the given expression.
+     *
+     * @param expression the expression to parse
+     * @return a set of dimensional item objects.
+     */
+    Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression );
+
+    /**
+     * Returns all dimensional item object ids in the given expression.
+     *
+     * @param expression the expression to parse
+     * @return a set of dimensional item object ids.
+     */
+    Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression );
+
+    /**
+     * Returns all OrganisationUnitGroups in the given expression.
+     *
+     * @param expression the expression string.
+     * @return a Set of OrganisationUnitGroups included in the expression
+     *         string.
+     */
+    Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression );
+
+    /**
+     * Generates the calculated value for an expression bases on the values
+     * supplied in the value map, constant map, orgUnit counts, and days.
+     *
+     * @param expression the expression holding the formula for calculation.
+     * @param valueMap the DimensionalItemObject values to use for calculation.
+     * @param constantMap map of constants to use for calculation.
+     * @param orgUnitCountMap the mapping between organisation unit group uid
+     *        and count of organisation units to use in the calculation.
+     * @param days the number of days to use in the calculation.
+     * @param missingValueStrategy the strategy to use when data values are
+     *        missing when calculating the expression.
+     * @return the calculated value as a double.
+     */
+    Double getExpressionValue( String expression,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<String, Integer> orgUnitCountMap, Integer days,
+        MissingValueStrategy missingValueStrategy );
+
+    // -------------------------------------------------------------------------
+    // Expression logic based on regular expressions (to be refactored)
+    // -------------------------------------------------------------------------
 
     /**
      * Generates the calculated value for the given expression base on the
@@ -228,7 +310,7 @@ public interface ExpressionService
      * @param days the number of days to use in the calculation.
      * @return the calculated value as a double.
      */
-    Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
+    Double getExpressionValueRegEx( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days );
 
     /**
@@ -248,7 +330,7 @@ public interface ExpressionService
      *         for the expression
      * @return the calculated value as a double.
      */
-    Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
+    Double getExpressionValueRegEx( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         ListMap<String, Double> aggregateMap );
 
@@ -338,32 +420,20 @@ public interface ExpressionService
     Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression );
 
     /**
-     * Returns all dimensional item objects which are present in numerator and
-     * denominator of the given indicators.
+     * Tests whether the predictor expression is valid
      *
-     * @param indicators the collection of indicators.
-     * @return a set of dimensional item objects.
-     */
-    Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators );
-
-    /**
-     * Returns all OrganisationUnitGroups in the numerator and denominator
-     * expressions in the given Indicators. Returns an empty set if the given
-     * indicators are null or empty.
-     *
-     * @param indicators the set of indicators.
-     * @return a Set of OrganisationUnitGroups.
-     */
-    Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators );
-
-    /**
-     * Tests whether the expression is valid. Returns a positive value if the
-     * expression is valid, or a negative value if not.
-     *
-     * @param formula the expression formula.
+     * @param expression the expression formula.
      * @return the ExpressionValidationOutcome of the validation.
      */
-    ExpressionValidationOutcome expressionIsValid( String formula );
+    ExpressionValidationOutcome predictorExpressionIsValid( String expression );
+
+    /**
+     * Tests whether the validation rule expression is valid.
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing DataElement names and the names
@@ -377,7 +447,7 @@ public interface ExpressionService
      *         combo id are not numeric or data element or category option combo
      *         do not exist.
      */
-    String getExpressionDescription( String expression );
+    String getExpressionDescriptionRegEx( String expression );
 
     /**
      * Substitutes potential constant and days in the numerator and denominator

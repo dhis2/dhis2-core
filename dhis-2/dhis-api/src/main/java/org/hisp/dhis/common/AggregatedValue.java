@@ -39,13 +39,13 @@ public abstract class AggregatedValue
     // Properties
     // ----------------------------------------------------------------------
     
-    protected int periodId;
+    protected long periodId;
     
-    protected int periodTypeId;
+    protected long periodTypeId;
     
-    protected int organisationUnitId;
+    protected long organisationUnitId;
     
-    protected int organisationUnitGroupId;
+    protected long organisationUnitGroupId;
     
     protected int level;
     
@@ -61,48 +61,48 @@ public abstract class AggregatedValue
     // Abstract methods
     // ----------------------------------------------------------------------
     
-    public abstract int getElementId();
+    public abstract long getElementId();
 
     // ----------------------------------------------------------------------
     // Getters and setters
     // ----------------------------------------------------------------------
     
-    public int getPeriodId()
+    public long getPeriodId()
     {
         return periodId;
     }
 
-    public void setPeriodId( int periodId )
+    public void setPeriodId( long periodId )
     {
         this.periodId = periodId;
     }
 
-    public int getPeriodTypeId()
+    public long getPeriodTypeId()
     {
         return periodTypeId;
     }
 
-    public void setPeriodTypeId( int periodTypeId )
+    public void setPeriodTypeId( long periodTypeId )
     {
         this.periodTypeId = periodTypeId;
     }
 
-    public int getOrganisationUnitId()
+    public long getOrganisationUnitId()
     {
         return organisationUnitId;
     }
 
-    public void setOrganisationUnitId( int organisationUnitId )
+    public void setOrganisationUnitId( long organisationUnitId )
     {
         this.organisationUnitId = organisationUnitId;
     }
 
-    public int getOrganisationUnitGroupId()
+    public long getOrganisationUnitGroupId()
     {
         return organisationUnitGroupId;
     }
 
-    public void setOrganisationUnitGroupId( int organisationUnitGroupId )
+    public void setOrganisationUnitGroupId( long organisationUnitGroupId )
     {
         this.organisationUnitGroupId = organisationUnitGroupId;
     }

@@ -41,7 +41,6 @@ import java.util.List;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-@Transactional
 public class DefaultDataValueAuditService
     implements DataValueAuditService
 {
@@ -61,30 +60,35 @@ public class DefaultDataValueAuditService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addDataValueAudit( DataValueAudit dataValueAudit )
     {
         dataValueAuditStore.addDataValueAudit( dataValueAudit );
     }
     
     @Override
+    @Transactional
     public void deleteDataValueAudits( OrganisationUnit organisationUnit )
     {
         dataValueAuditStore.deleteDataValueAudits( organisationUnit );
     }
 
     @Override
+    @Transactional
     public void deleteDataValueAudits( DataElement dataElement )
     {
         dataValueAuditStore.deleteDataValueAudits( dataElement );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataValueAudit> getDataValueAudits( DataValue dataValue )
     {
         return dataValueAuditStore.getDataValueAudits( dataValue );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
@@ -92,6 +96,7 @@ public class DefaultDataValueAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
     {
@@ -99,6 +104,7 @@ public class DefaultDataValueAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {

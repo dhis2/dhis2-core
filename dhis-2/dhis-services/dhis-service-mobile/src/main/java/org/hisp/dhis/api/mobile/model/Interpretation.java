@@ -39,7 +39,7 @@ public class Interpretation
     implements DataStreamSerializable
 
 {
-    private int id;
+    private long id;
 
     private String text;
 
@@ -47,12 +47,12 @@ public class Interpretation
 
     private List<InterpretationComment> interCommentList = new ArrayList<>();
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -91,7 +91,7 @@ public class Interpretation
     public void serialize( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getText() );
 
         if ( inComments == null )
@@ -113,7 +113,7 @@ public class Interpretation
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
     {
-        id = dataInputStream.readInt();
+        id = dataInputStream.readLong();
         text = dataInputStream.readUTF();
 
         int interCommentSize = dataInputStream.readInt();

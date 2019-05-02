@@ -38,7 +38,6 @@ import java.util.List;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultRelationshipService
     implements RelationshipService
 {
@@ -58,25 +57,29 @@ public class DefaultRelationshipService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteRelationship( Relationship relationship )
     {
         relationshipStore.delete( relationship );
     }
 
     @Override
-    public Relationship getRelationship( int id )
+    @Transactional(readOnly = true)
+    public Relationship getRelationship( long id )
     {
         return relationshipStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean relationshipExists( String uid )
     {
         return relationshipStore.getByUid( uid ) != null;
     }
 
     @Override
-    public int addRelationship( Relationship relationship )
+    @Transactional
+    public long addRelationship( Relationship relationship )
     {
         relationship.getFrom().setRelationship( relationship );
         relationship.getTo().setRelationship( relationship );
@@ -86,6 +89,7 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional
     public void updateRelationship( Relationship relationship )
     {
         //TODO: Do we need next 2 lines? relationship never changes during update
@@ -95,12 +99,14 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Relationship getRelationship( String uid )
     {
         return relationshipStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
         boolean skipAccessValidation )
     {
@@ -108,12 +114,14 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramInstance( pi );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         boolean skipAccessValidation )
     {

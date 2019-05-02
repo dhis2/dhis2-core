@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -57,6 +56,7 @@ import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 

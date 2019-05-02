@@ -7,7 +7,9 @@
   <class name="org.hisp.dhis.program.ProgramStageInstance" table="programstageinstance">
 
     <id name="id" column="programstageinstanceid">
-      <generator class="native" />
+      <generator class="sequence">
+        <param name="sequence_name">programstageinstance_sequence</param>
+      </generator>
     </id>
 
     <property name="uid" column="uid" unique="true" length="11" />
@@ -59,6 +61,9 @@
     <property name="completedDate" />
 
     <property name="geometry" />
+
+    <many-to-one name="assignedUser" class="org.hisp.dhis.user.User" column="assigneduserid"
+                 foreign-key="fk_programstageinstance_assigneduserid" />
 
     <property name="eventDataValues" type="jsbEventDataValues" />
 

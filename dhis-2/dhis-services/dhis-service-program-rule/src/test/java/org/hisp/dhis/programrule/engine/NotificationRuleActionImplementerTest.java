@@ -43,10 +43,10 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
-import org.hisp.dhis.program.notification.ProgramNotificationPublisher;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
+import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
+import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
@@ -61,6 +61,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Created by zubair@dhis2.org on 05.02.18.
@@ -73,6 +75,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     // -------------------------------------------------------------------------
     // Mocking Dependencies
     // -------------------------------------------------------------------------
@@ -81,7 +84,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     private ProgramNotificationTemplateStore templateStore;
 
     @Mock
-    private ProgramNotificationPublisher publisher;
+    private ApplicationEventPublisher publisher;
 
     @Mock
     private NotificationLoggingService loggingService;
@@ -91,9 +94,9 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private ProgramNotificationTemplate template;
 
-    private ProgramNotificationEventType eventType;
-
     private ExternalNotificationLogEntry logEntry;
+
+    private ApplicationEvent eventType;
 
     private RuleEffect ruleEffectWithActionSendMessage;
 
@@ -133,9 +136,9 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         doAnswer( invocationOnMock ->
         {
-            eventType = (ProgramNotificationEventType) invocationOnMock.getArguments()[2];
+            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
-        }).when( publisher ).publishEnrollment( Mockito.any( ProgramNotificationTemplate.class ) ,Mockito.any( ProgramInstance.class ), any( ProgramNotificationEventType.class ) );
+        }).when( publisher ).publishEvent( any() );
 
         doAnswer( invocationOnMock ->
         {
@@ -145,7 +148,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
-        ArgumentCaptor<ProgramNotificationEventType> argumentEventCaptor = ArgumentCaptor.forClass( ProgramNotificationEventType.class );
+        ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
         ArgumentCaptor<ProgramInstance> argumentInstanceCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programInstance );
@@ -153,9 +156,9 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
-        verify( publisher ).publishEnrollment( any( ProgramNotificationTemplate.class ), argumentInstanceCaptor.capture(), argumentEventCaptor.capture() );
+        verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programInstance, argumentInstanceCaptor.getValue() );
+        assertEquals( programInstance, ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance() );
     }
 
     @Test
@@ -164,10 +167,9 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
         doAnswer( invocationOnMock -> {
-            eventType = (ProgramNotificationEventType) invocationOnMock.getArguments()[2];
+            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
-        } ).when( publisher ).publishEvent( any( ProgramNotificationTemplate.class ),
-            Mockito.any( ProgramStageInstance.class ), any( ProgramNotificationEventType.class ) );
+        } ).when( publisher ).publishEvent( any() );
 
         doAnswer( invocationOnMock ->
         {
@@ -177,7 +179,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
-        ArgumentCaptor<ProgramNotificationEventType> argumentEventCaptor = ArgumentCaptor.forClass( ProgramNotificationEventType.class );
+        ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
         ArgumentCaptor<ProgramStageInstance> argumentStageInstanceCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
@@ -185,9 +187,9 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         verify( templateStore, times( 2 ) ).getByUid( anyString() );
         verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
 
-        verify( publisher ).publishEvent( any( ProgramNotificationTemplate.class ), argumentStageInstanceCaptor.capture(), argumentEventCaptor.capture() );
+        verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programStageInstance, argumentStageInstanceCaptor.getValue() );
+        assertEquals( programStageInstance, ((ProgramRuleStageEvent) eventType).getProgramStageInstance() );
     }
 
     @Test
@@ -198,10 +200,9 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
 
         doAnswer( invocationOnMock -> {
-            eventType = (ProgramNotificationEventType) invocationOnMock.getArguments()[2];
+            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
             return eventType;
-        } ).when( publisher ).publishEnrollment( any( ProgramNotificationTemplate.class ), any( ProgramInstance.class ),
-            any( ProgramNotificationEventType.class ) );
+        } ).when( publisher ).publishEvent( any() );
 
         doAnswer( invocationOnMock ->
         {

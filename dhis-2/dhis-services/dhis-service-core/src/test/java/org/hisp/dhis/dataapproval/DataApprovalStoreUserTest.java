@@ -179,7 +179,7 @@ public class DataApprovalStoreUserTest
         CategoryCombo catComboA = createCategoryCombo( 'A', catA );
         categoryService.addCategoryCombo( catComboA );
 
-        CategoryOptionCombo catOptionComboA = createCategoryOptionCombo(  'A', catComboA, catOptionA );
+        CategoryOptionCombo catOptionComboA = createCategoryOptionCombo( catComboA, catOptionA );
         categoryService.addCategoryOptionCombo( catOptionComboA );
 
         List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflowA,

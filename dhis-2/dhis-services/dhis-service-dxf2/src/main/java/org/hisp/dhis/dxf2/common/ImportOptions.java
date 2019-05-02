@@ -70,10 +70,12 @@ public class ImportOptions
 
     private boolean skipNotifications;
 
+    private boolean skipAudit;
+
     private boolean datasetAllowsPeriods;
 
     private boolean strictPeriods;
-    
+
     private boolean strictDataElements;
 
     private boolean strictCategoryOptionCombos;
@@ -87,7 +89,7 @@ public class ImportOptions
     private boolean requireAttributeOptionCombo;
 
     private boolean skipPatternValidation;
-    
+
     private boolean ignoreEmptyCollection;
 
     private boolean force;
@@ -97,6 +99,8 @@ public class ImportOptions
     private String filename;
 
     private NotificationLevel notificationLevel;
+
+    private boolean skipLastUpdated;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -138,6 +142,7 @@ public class ImportOptions
         options.notificationLevel = this.notificationLevel;
         options.ignoreEmptyCollection = this.ignoreEmptyCollection;
         options.firstRowIsHeader = this.firstRowIsHeader;
+        options.skipLastUpdated = this.skipLastUpdated;
 
         return options;
     }
@@ -279,11 +284,18 @@ public class ImportOptions
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipAudit()
+    {
+        return skipAudit;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictPeriods()
     {
         return strictPeriods;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isStrictDataElements()
@@ -332,7 +344,7 @@ public class ImportOptions
     {
         return skipPatternValidation;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isIgnoreEmptyCollection()
@@ -367,6 +379,14 @@ public class ImportOptions
     {
         return firstRowIsHeader;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isSkipLastUpdated()
+    {
+        return skipLastUpdated;
+    }
+
     //--------------------------------------------------------------------------
     // Set methods
     //--------------------------------------------------------------------------
@@ -491,12 +511,17 @@ public class ImportOptions
         return this;
     }
 
+    public void setSkipAudit( boolean skipAudit )
+    {
+        this.skipAudit = skipAudit;
+    }
+
     public ImportOptions setStrictPeriods( boolean strictPeriods )
     {
         this.strictPeriods = strictPeriods;
         return this;
     }
-    
+
     public ImportOptions setStrictDataElements( boolean strictDataElements )
     {
         this.strictDataElements = strictDataElements;
@@ -538,7 +563,7 @@ public class ImportOptions
         this.skipPatternValidation = skipPatternValidation;
         return this;
     }
-    
+
     public ImportOptions setIgnoreEmptyCollection( boolean ignoreEmptyCollection )
     {
         this.ignoreEmptyCollection = ignoreEmptyCollection;
@@ -569,6 +594,12 @@ public class ImportOptions
         return this;
     }
 
+    public ImportOptions setSkipLastUpdated( boolean skipLastUpdated )
+    {
+        this.skipLastUpdated = skipLastUpdated;
+        return this;
+    }
+
     @Override
     public String toString()
     {
@@ -593,6 +624,7 @@ public class ImportOptions
             .add( "requireAttributeOptionCombo", requireAttributeOptionCombo )
             .add( "force", force )
             .add( "firstRowIsHeader", firstRowIsHeader )
+            .add( "skipLastUpdated", skipLastUpdated )
             .toString();
     }
 }

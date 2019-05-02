@@ -41,19 +41,15 @@ import com.google.common.base.Charsets;
  */
 public class TestResourceUtils
 {
-
     public static File getFile( String path )
         throws IOException
     {
-
         return new ClassPathResource( path ).getFile();
     }
 
     public static String getFileContent( String path )
         throws IOException
     {
-
         return Files.toString( getFile( path ), Charsets.UTF_8 );
     }
-
 }

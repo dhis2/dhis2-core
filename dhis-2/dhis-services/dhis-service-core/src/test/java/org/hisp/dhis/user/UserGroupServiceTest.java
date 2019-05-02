@@ -114,7 +114,7 @@ public class UserGroupServiceTest
 
         userGroup = userGroupService.getUserGroupByName( "UserGroupA" ).get( 0 );
 
-        int id = userGroup.getId();
+        long id = userGroup.getId();
 
         assertEq( 'A', userGroup );
         assertTrue( members.size() == userGroup.getMembers().size() );
@@ -138,7 +138,7 @@ public class UserGroupServiceTest
 
         userGroup = userGroupService.getUserGroupByName( "UserGroupA" ).get( 0 );
 
-        int id = userGroup.getId();
+        long id = userGroup.getId();
 
         assertEq( 'A', userGroup );
         assertEquals( members, userGroup.getMembers() );
@@ -200,7 +200,7 @@ public class UserGroupServiceTest
 
         userGroupService.addUserGroup( userGroup );
 
-        int id = userGroupService.getUserGroupByName( "UserGroupA" ).get( 0 ).getId();
+        long id = userGroupService.getUserGroupByName( "UserGroupA" ).get( 0 ).getId();
 
         userGroup = userGroupService.getUserGroup( id );
 

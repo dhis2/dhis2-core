@@ -28,7 +28,6 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -38,6 +37,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,7 +51,6 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -80,6 +79,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
@@ -87,6 +87,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.springframework.util.Assert;
 
@@ -624,17 +625,16 @@ public class AnalyticsUtils
                         map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
                     }
                 }
-
-
             }
 
             map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
-            // Add additional items from the aggregation data
+
             if ( dimension.getDimensionalKeywords() != null )
             {
                 dimension.getDimensionalKeywords().getGroupBy()
-                    .forEach( b -> map.put( b.getUid(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
+                    .forEach( b -> map.put( b.getKey(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
             }
+
         }
 
         Program program = params.getProgram();
@@ -650,9 +650,9 @@ public class AnalyticsUtils
             }
             else
             {
-                for ( ProgramStage st : program.getProgramStages() )
+                for ( ProgramStage ps : program.getProgramStages() )
                 {
-                    map.put( st.getUid(), new MetadataItem( st.getDisplayName(), includeMetadataDetails ? st : null ) );
+                    map.put( ps.getUid(), new MetadataItem( ps.getDisplayName(), includeMetadataDetails ? ps : null ) );
                 }
             }
         }
@@ -789,5 +789,35 @@ public class AnalyticsUtils
     public static boolean isTableLayout( List<String> columns, List<String> rows )
     {
         return ( columns != null && !columns.isEmpty() ) || ( rows != null && !rows.isEmpty() );
+    }
+
+    /**
+     * Calculates the weighted arithmetic mean between two yearly values, based on the given factor as the month.
+     *
+     * @param year1Value the value for the first year.
+     * @param year2Value the value for the second year.
+     * @param factor a month value, zero represents January.
+     * @return the weighted average of the two values.
+     */
+    public static Double calculateYearlyWeightedAverage( Double year1Value, Double year2Value, Double factor )
+    {
+        return Precision.round( (year1Value * ((12 - factor) / 12)) + (year2Value * (factor / 12)),
+            DECIMALS_NO_ROUNDING );
+    }
+
+    /**
+     * Returns the base month of the year for the period type, zero-based.
+     *
+     * @param periodType the period type.
+     * @return the base month.
+     */
+    public static Double getBaseMonth( PeriodType periodType )
+    {
+        if ( periodType instanceof FinancialPeriodType)
+        {
+            return (double) ((FinancialPeriodType) periodType).getBaseMonth();
+        }
+
+        return 0D;
     }
 }

@@ -37,16 +37,15 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.hisp.dhis.scheduling.DefaultSchedulingManager.CONTINOUS_CRON;
 import static org.hisp.dhis.scheduling.DefaultSchedulingManager.HOUR_CRON;
@@ -60,8 +59,6 @@ public class JobConfigurationObjectBundleHook
 {
     private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
 
-    private static final int SUCCESS = 1;
-
     @Autowired
     private JobConfigurationService jobConfigurationService;
 
@@ -72,112 +69,114 @@ public class JobConfigurationObjectBundleHook
         this.schedulingManager = schedulingManager;
     }
 
-    private List<ErrorReport> validateCronForJobType( JobConfiguration jobConfiguration )
+    private void validateCronExpressionWithinJobType( List<ErrorReport> errorReports, JobConfiguration jobConfiguration )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
-        // Make list of all jobs for each job type
-        Map<JobType, List<JobConfiguration>> jobConfigurationForJobTypes = new HashMap<>();
-
-        jobConfigurationService.getAllJobConfigurations().stream()
-            .filter( configuration -> !Objects.equals( configuration.getUid(), jobConfiguration.getUid() ) )
-            .forEach( configuration -> {
-                List<JobConfiguration> jobConfigurationList = new ArrayList<>();
-                List<JobConfiguration> oldList = jobConfigurationForJobTypes.get( configuration.getJobType() );
-                if ( oldList != null )
-                {
-                    jobConfigurationList.addAll( oldList );
-                }
-                jobConfigurationList.add( configuration );
-                jobConfigurationForJobTypes.put( configuration.getJobType(), jobConfigurationList );
-            } );
+        Set<JobConfiguration> jobConfigs = jobConfigurationService.getAllJobConfigurations().stream()
+            .filter( jobConfig -> jobConfig.getJobType().equals( jobConfiguration.getJobType() ) && !Objects.equals( jobConfig.getUid(), jobConfiguration.getUid() ) )
+            .collect( Collectors.toSet() );
 
         /*
          *  Validate that there are no other jobs of the same job type which are scheduled with the same cron.
          *
-         *  Also check if the job is trying to run continuously while other jobs of the same type is running continuously - this should not be allowed
+         *  Also check if the job is trying to run continuously while other job of the same type is running continuously - this should not be allowed
          */
-        List<JobConfiguration> listForJobType = jobConfigurationForJobTypes.get( jobConfiguration.getJobType() );
-
-        if ( listForJobType != null )
+        for ( JobConfiguration jobConfig : jobConfigs )
         {
-            for ( JobConfiguration jobConfig : listForJobType )
+            if ( jobConfiguration.isContinuousExecution() )
             {
-                if ( jobConfiguration.isContinuousExecution() )
+                if ( jobConfig.isContinuousExecution() )
                 {
-                    if ( jobConfig.isContinuousExecution() )
-                    {
-                        errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7001 ) );
-                    }
+                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7001 ) );
                 }
-                else
+            }
+            else
+            {
+                if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
                 {
-                    if ( jobConfig.getCronExpression().equals( jobConfiguration.getCronExpression() ) )
-                    {
-                        errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
-                    }
+                    errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7000 ) );
                 }
             }
         }
+    }
+
+    List<ErrorReport> validateInternal( final JobConfiguration jobConfiguration )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        //Check whether jobConfiguration already exists in the system and if yes, validate it
+        JobConfiguration persistedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
+
+        final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
+            jobConfiguration, persistedJobConfiguration );
+
+        validateJobConfigurationWithNonContinuousExecution( errorReports, tempJobConfiguration );
+        validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
+
+        // Validate parameters
+        if ( tempJobConfiguration.getJobParameters() != null )
+        {
+            tempJobConfiguration.getJobParameters().validate().ifPresent( errorReport -> errorReports.add( errorReport ) );
+        }
+
+        validateJob( errorReports, tempJobConfiguration, persistedJobConfiguration );
 
         return errorReports;
     }
 
-    private List<ErrorReport> validateInternal( JobConfiguration jobConfiguration )
+    private JobConfiguration validatePersistedAndPrepareTempJobConfiguration( List<ErrorReport> errorReports,
+        JobConfiguration jobConfiguration, JobConfiguration persistedJobConfiguration )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
-        JobConfiguration persitedJobConfiguration = jobConfigurationService.getJobConfigurationByUid( jobConfiguration.getUid() );
-        if ( persitedJobConfiguration != null && !persitedJobConfiguration.isConfigurable() )
+        if ( persistedJobConfiguration != null && !persistedJobConfiguration.isConfigurable() )
         {
-            if ( !Objects.equals( persitedJobConfiguration.compareTo( jobConfiguration ), SUCCESS ) )
+            if ( persistedJobConfiguration.hasNonConfigurableJobChanges( jobConfiguration ) )
             {
                 errorReports
                     .add( new ErrorReport( JobConfiguration.class, ErrorCode.E7003, jobConfiguration.getJobType() ) );
             }
             else
             {
-                persitedJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
-                jobConfiguration = persitedJobConfiguration;
+                persistedJobConfiguration.setCronExpression( jobConfiguration.getCronExpression() );
+                return persistedJobConfiguration;
             }
         }
 
+        return jobConfiguration;
+    }
+
+    private void validateJobConfigurationWithNonContinuousExecution( List<ErrorReport> errorReports,
+        JobConfiguration jobConfiguration )
+    {
         if ( !jobConfiguration.isContinuousExecution() )
         {
-            if ( Objects.isNull( jobConfiguration.getCronExpression() ) )
+            if ( jobConfiguration.getCronExpression() == null )
             {
                 errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7004 ) );
-                return errorReports;
             }
-
             // Validate the cron expression
-            if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
+            else if ( !CronSequenceGenerator.isValidExpression( jobConfiguration.getCronExpression() ) )
             {
                 errorReports.add( new ErrorReport( JobConfiguration.class, ErrorCode.E7005 ) );
-                return errorReports;
             }
         }
+    }
 
-        // Validate cron expression with relation to all other jobs
-        errorReports.addAll( validateCronForJobType( jobConfiguration ) );
-
-        // Validate parameters
-        ErrorReport parameterValidation =
-            jobConfiguration.getJobParameters() != null ? jobConfiguration.getJobParameters().validate() : null;
-        if ( !Objects.isNull( parameterValidation ) )
-        {
-            errorReports.add( parameterValidation );
-        }
-
+    private void validateJob( List<ErrorReport> errorReports, JobConfiguration jobConfiguration,
+        JobConfiguration persistedJobConfiguration )
+    {
         Job job = schedulingManager.getJob( jobConfiguration.getJobType() );
         ErrorReport jobValidation = job.validate();
         if ( jobValidation != null )
         {
-            errorReports.add( jobValidation );
+            // If the error is caused by the environment and the job is a non configurable job
+            // that exists already, then the error can be ignored. Job has the issue with and
+            // without updating it.
+            if ( jobValidation.getErrorCode() != ErrorCode.E7010 || persistedJobConfiguration == null || jobConfiguration.isConfigurable() )
+            {
+                errorReports.add( jobValidation );
+            }
         }
-
-        return errorReports;
     }
+
 
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )

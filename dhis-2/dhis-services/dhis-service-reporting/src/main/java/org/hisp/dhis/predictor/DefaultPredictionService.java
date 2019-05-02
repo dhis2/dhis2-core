@@ -47,7 +47,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
@@ -87,6 +86,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -335,7 +335,7 @@ public class DefaultPredictionService
 
                             Map<DimensionalItemObject, Double> nonAggregateValueMap = combine( nonAggregateSampleMap.get( aoc ), nonAggregateSampleMapNonAoc );
 
-                            Double value = expressionService.getExpressionValue( generator, nonAggregateValueMap,
+                            Double value = expressionService.getExpressionValueRegEx( generator, nonAggregateValueMap,
                                 constantMap, null, period.getDaysInPeriod(), aggregateValueMap );
 
                             if ( value != null && !value.isNaN() && !value.isInfinite() &&
@@ -477,7 +477,7 @@ public class DefaultPredictionService
                     {
                         for ( String aoc : periodValues.keySet() )
                         {
-                            Double value = expressionService.getExpressionValue( expression,
+                            Double value = expressionService.getExpressionValueRegEx( expression,
                                 periodValues.get( aoc ), constantMap, null, period.getDaysInPeriod() );
 
                             result.putValue( aoc, aggregate, value );
@@ -511,7 +511,7 @@ public class DefaultPredictionService
 
                 for ( String aoc : periodData.keySet() )
                 {
-                    Double testValue = expressionService.getExpressionValue( skipTest, periodData.get( aoc ),
+                    Double testValue = expressionService.getExpressionValueRegEx( skipTest, periodData.get( aoc ),
                         constantMap, null, period.getDaysInPeriod() );
 
                     if ( testValue != null && !MathUtils.isZero( testValue ) )
@@ -713,12 +713,12 @@ public class DefaultPredictionService
 
         List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
 
-        Map<Integer, DataElement> dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
+        Map<Long, DataElement> dataElementLookup = dataElements.stream().collect( Collectors.toMap( DataElement::getId, de -> de ) );
         Map<String, DataElementOperand> dataElementOperandLookup = dataElementOperands.stream().collect(
             Collectors.toMap( deo -> deo.getDataElement().getId() + "." + deo.getCategoryOptionCombo().getId(), deo -> deo ) );
-        Map<Integer, Period> periodLookup = periods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
-        Map<Integer, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, ou -> ou ) );
-        Map<Integer, CategoryOptionCombo> aocLookup = new HashMap<>();
+        Map<Long, Period> periodLookup = periods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
+        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, ou -> ou ) );
+        Map<Long, CategoryOptionCombo> aocLookup = new HashMap<>();
 
         Map4<OrganisationUnit, Period, String, DimensionalItemObject, Double> dataValues = new Map4<>();
 
@@ -911,7 +911,7 @@ public class DefaultPredictionService
             }
         }
 
-        Map<Integer, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, o -> o ) );
+        Map<Long, OrganisationUnit> orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getId, o -> o ) );
 
         for ( DeflatedDataValue oldValue : oldValues.values() )
         {

@@ -259,6 +259,7 @@ public class ListGrid
             .collect( Collectors.toList() );
     }
 
+    @Override
     public List<GridHeader> getMetadataHeaders()
     {
         return headers.stream()

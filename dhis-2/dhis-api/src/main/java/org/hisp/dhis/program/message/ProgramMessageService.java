@@ -77,11 +77,13 @@ public interface ProgramMessageService
      */
     BatchResponseStatus sendMessages( List<ProgramMessage> programMessages );
 
+    void sendMessagesAsync( List<ProgramMessage> programMessages );
+
     // -------------------------------------------------------------------------
     // GET
     // -------------------------------------------------------------------------
 
-    ProgramMessage getProgramMessage( int id );
+    ProgramMessage getProgramMessage( long id );
 
     ProgramMessage getProgramMessage( String uid );
 
@@ -93,7 +95,7 @@ public interface ProgramMessageService
     // Save OR Update
     // -------------------------------------------------------------------------
 
-    int saveProgramMessage( ProgramMessage programMessage );
+    long saveProgramMessage( ProgramMessage programMessage );
     
     void updateProgramMessage( ProgramMessage programMessage );
 

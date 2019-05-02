@@ -347,6 +347,7 @@ public class DataApprovalServiceTest
         dataSetC.addOrganisationUnit( organisationUnitA );
         dataSetC.addOrganisationUnit( organisationUnitB );
         dataSetC.addOrganisationUnit( organisationUnitC );
+        dataSetC.addOrganisationUnit( organisationUnitD );
 
         dataSetD.addOrganisationUnit( organisationUnitA );
         dataSetD.addOrganisationUnit( organisationUnitB );
@@ -454,22 +455,22 @@ public class DataApprovalServiceTest
 
         categoryService.addCategoryCombo( categoryComboA );
 
-        optionComboAE = createCategoryOptionCombo( 'A', categoryComboA, optionA, optionE );
-        optionComboAF = createCategoryOptionCombo( 'B', categoryComboA, optionA, optionF );
-        optionComboAG = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionG );
-        optionComboAH = createCategoryOptionCombo( 'D', categoryComboA, optionA, optionH );
-        optionComboBE = createCategoryOptionCombo( 'E', categoryComboA, optionB, optionE );
-        optionComboBF = createCategoryOptionCombo( 'F', categoryComboA, optionB, optionF );
-        optionComboBG = createCategoryOptionCombo( 'G', categoryComboA, optionB, optionG );
-        optionComboBH = createCategoryOptionCombo( 'H', categoryComboA, optionB, optionH );
-        optionComboCE = createCategoryOptionCombo( 'I', categoryComboA, optionC, optionE );
-        optionComboCF = createCategoryOptionCombo( 'J', categoryComboA, optionC, optionF );
-        optionComboCG = createCategoryOptionCombo( 'K', categoryComboA, optionC, optionG );
-        optionComboCH = createCategoryOptionCombo( 'L', categoryComboA, optionC, optionH );
-        optionComboDE = createCategoryOptionCombo( 'M', categoryComboA, optionD, optionE );
-        optionComboDF = createCategoryOptionCombo( 'N', categoryComboA, optionD, optionF );
-        optionComboDG = createCategoryOptionCombo( 'O', categoryComboA, optionD, optionG );
-        optionComboDH = createCategoryOptionCombo( 'P', categoryComboA, optionD, optionH );
+        optionComboAE = createCategoryOptionCombo( categoryComboA, optionA, optionE );
+        optionComboAF = createCategoryOptionCombo( categoryComboA, optionA, optionF );
+        optionComboAG = createCategoryOptionCombo( categoryComboA, optionA, optionG );
+        optionComboAH = createCategoryOptionCombo( categoryComboA, optionA, optionH );
+        optionComboBE = createCategoryOptionCombo( categoryComboA, optionB, optionE );
+        optionComboBF = createCategoryOptionCombo( categoryComboA, optionB, optionF );
+        optionComboBG = createCategoryOptionCombo( categoryComboA, optionB, optionG );
+        optionComboBH = createCategoryOptionCombo( categoryComboA, optionB, optionH );
+        optionComboCE = createCategoryOptionCombo( categoryComboA, optionC, optionE );
+        optionComboCF = createCategoryOptionCombo( categoryComboA, optionC, optionF );
+        optionComboCG = createCategoryOptionCombo( categoryComboA, optionC, optionG );
+        optionComboCH = createCategoryOptionCombo( categoryComboA, optionC, optionH );
+        optionComboDE = createCategoryOptionCombo( categoryComboA, optionD, optionE );
+        optionComboDF = createCategoryOptionCombo( categoryComboA, optionD, optionF );
+        optionComboDG = createCategoryOptionCombo( categoryComboA, optionD, optionG );
+        optionComboDH = createCategoryOptionCombo( categoryComboA, optionD, optionH );
 
         optionComboAE.setUid( "optionComAE" );
         optionComboAF.setUid( "optionComAF" );
@@ -860,6 +861,22 @@ public class DataApprovalServiceTest
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitD, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitE, defaultOptionCombo ).getState() );
         assertEquals( DataApprovalState.APPROVED_ABOVE, dataApprovalService.getDataApprovalStatus( workflow13, periodA, organisationUnitF, defaultOptionCombo ).getState() );
+    }
+
+    @Test
+    public void testGetDataApprovalStateAboveUserOrgUnitLevel()
+    {
+        Set<OrganisationUnit> units = newHashSet( organisationUnitD );
+
+        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE );
+        userService.addUser( currentUserService.getCurrentUser() );
+        setCurrentUserServiceDependencies( currentUserService );
+
+        assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow12, periodA, organisationUnitD, defaultOptionCombo) );
+
+        dataApprovalStore.addDataApproval( new DataApproval( level2, workflow12, periodA, organisationUnitB, defaultOptionCombo, NOT_ACCEPTED, new Date(), userA ) );
+
+        assertEquals( "APPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T", statusAndPermissions( workflow12, periodA, organisationUnitD, defaultOptionCombo) );
     }
 
     @Test

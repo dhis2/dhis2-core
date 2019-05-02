@@ -1,0 +1,137 @@
+{
+  "userRoles": [
+    {
+      "code": "TA Superuser",
+      "created": "2019-04-17T09:51:30.952",
+      "lastUpdated": "2019-04-17T11:27:44.297",
+      "name": "TA Superuser",
+      "id": "yrB6vc5Ip7r",
+      "publicAccess": "--------",
+      "description": "TA Superuser",
+      "authorities": [
+        "ALL"
+      ],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
+  "users": [
+    {
+      "lastUpdated": "2019-04-23T09:35:15.027",
+      "id": "PQD6wXJ2r5j",
+      "href": "http://localhost:8070/api/users/PQD6wXJ2r5j",
+      "created": "2019-04-23T09:35:15.027",
+      "name": "TA Superuser",
+      "displayName": "TA Superuser",
+      "externalAccess": false,
+      "surname": "Superuser",
+      "firstName": "TA",
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true
+      },
+      "userCredentials": {
+        "lastUpdated": "2019-04-23T09:35:14.980",
+        "id": "cguDGoo8Amj",
+        "created": "2019-04-23T09:35:14.980",
+        "name": "TA Superuser",
+        "displayName": "TA Superuser",
+        "externalAuth": false,
+        "externalAccess": false,
+        "disabled": false,
+        "twoFA": false,
+        "passwordLastUpdated": "2019-04-23T09:35:15.052",
+        "invitation": false,
+        "selfRegistered": false,
+        "favorite": false,
+        "username": "taadmin",
+        "password": "Test1212?",
+        "userInfo": {
+          "id": "PQD6wXJ2r5j"
+        },
+        "access": {
+          "read": true,
+          "update": true,
+          "externalize": true,
+          "delete": true,
+          "write": true,
+          "manage": true
+        },
+        "favorites": [],
+        "cogsDimensionConstraints": [],
+        "catDimensionConstraints": [],
+        "translations": [],
+        "userGroupAccesses": [
+          {
+            "access": "rwrw----",
+            "userGroupUid": "OPVIvvXzNTw",
+            "id": "OPVIvvXzNTw"
+          }
+        ],
+        "attributeValues": [],
+        "userRoles": [
+          {
+            "id": "yrB6vc5Ip7r"
+          }
+        ],
+        "userAccesses": []
+      },
+      "favorites": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "r16njpPwUCb"
+        },
+        {
+          "id": "rvXpdBllyHI"
+        },
+        {
+          "id": "Gg0Uq9ZiYe0"
+        },
+        {
+          "id": "nGK3m0FCOmd"
+        }
+      ],
+      "translations": [],
+      "organisationUnits": [
+        {
+          "id": "r16njpPwUCb"
+        },
+        {
+          "id": "rvXpdBllyHI"
+        },
+        {
+          "id": "Gg0Uq9ZiYe0"
+        },
+        {
+          "id": "nGK3m0FCOmd"
+        }
+      ],
+      "dataViewOrganisationUnits": [
+        {
+          "id": "r16njpPwUCb"
+        },
+        {
+          "id": "rvXpdBllyHI"
+        },
+        {
+          "id": "Gg0Uq9ZiYe0"
+        },
+        {
+          "id": "nGK3m0FCOmd"
+        }
+      ],
+      "attributeValues": [],
+      "userGroups": [
+        {
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "userAccesses": []
+    }
+  ]
+}

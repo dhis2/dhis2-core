@@ -609,6 +609,13 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="cacheable" value="true" />
   </bean>
+  
+  <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore"
+    class="org.hisp.dhis.programstagefilter.hibernate.HibernateProgramStageInstanceFilterStore">
+    <property name="clazz" value="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter" />
+    <property name="sessionFactory" ref="sessionFactory" />
+    <property name="cacheable" value="true" />
+  </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityInstanceStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityInstanceStore">
@@ -648,6 +655,13 @@
     class="org.hisp.dhis.trackedentityattributevalue.hibernate.HibernateTrackedEntityAttributeValueAuditStore">
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>
+
+  <bean id="org.hisp.dhis.deduplication.PotentialDuplicateStore" class="org.hisp.dhis.deduplication.hibernate.HibernatePotentialDuplicateStore">
+    <property name="clazz" value="org.hisp.dhis.deduplication.PotentialDuplicate" />
+    <property name="sessionFactory" ref="sessionFactory" />
+  </bean>
+
+  <bean id="org.hisp.dhis.deduplication.DeduplicationService" class="org.hisp.dhis.deduplication.DefaultDeduplicationService" />
 
   <bean id="org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService"
     class="org.hisp.dhis.trackedentitydatavalue.DefaultTrackedEntityDataValueAuditService" />
@@ -778,8 +792,7 @@
 
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
 
-  <bean id="fileResourceCleanUpJob"
-    class="org.hisp.dhis.fileresource.FileResourceCleanUpJob" />
+  <bean id="fileResourceCleanUpJob" class="org.hisp.dhis.fileresource.FileResourceCleanUpJob" />
 
   <!-- Service definitions -->
 
@@ -911,7 +924,6 @@
     <property name="dataSetService" ref="org.hisp.dhis.dataset.DataSetService" />
     <property name="organisationUnitLevelStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-    <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
     <property name="env" ref="environment" />
   </bean>
@@ -1131,9 +1143,16 @@
   <bean id="org.hisp.dhis.sms.config.GatewayAdministrationService"
     class="org.hisp.dhis.sms.config.DefaultGatewayAdministrationService" />
 
-  <bean id="org.hisp.dhis.sms.config.BulkSmsGateway" class="org.hisp.dhis.sms.config.BulkSmsGateway" />
+  <!-- SMPP -->
+  <bean id="org.hisp.dhis.sms.config.MessageSendingCallback" class="org.hisp.dhis.sms.config.MessageSendingCallback" />
 
-  <bean id="org.hisp.dhis.sms.config.ClickatellGateway" class="org.hisp.dhis.sms.config.ClickatellGateway" />
+  <bean id="org.hisp.dhis.sms.config.SMPPGateway" class="org.hisp.dhis.sms.config.SMPPGateway" />
+
+  <bean id="org.hisp.dhis.sms.config.SMPPClient" class="org.hisp.dhis.sms.config.SMPPClient" />
+
+  <bean id="org.hisp.dhis.sms.config.BulkSmsGateway" class="org.hisp.dhis.sms.config.BulkSmsHttpGateway" />
+
+  <bean id="org.hisp.dhis.sms.config.ClickatellGateway" class="org.hisp.dhis.sms.config.ClickatellHttpGateway" />
 
   <bean id="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" class="org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" />
 
@@ -1159,15 +1178,7 @@
     <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
   </bean>
 
-  <bean id="org.hisp.dhis.program.ProgramIndicatorService" class="org.hisp.dhis.program.DefaultProgramIndicatorService">
-    <property name="programIndicatorStore" ref="org.hisp.dhis.program.ProgramIndicatorStore" />
-    <property name="programStageService" ref="org.hisp.dhis.program.ProgramStageService" />
-    <property name="dataElementService" ref="org.hisp.dhis.dataelement.DataElementService" />
-    <property name="attributeService" ref="org.hisp.dhis.trackedentity.TrackedEntityAttributeService" />
-    <property name="constantService" ref="org.hisp.dhis.constant.ConstantService" />
-    <property name="statementBuilder" ref="statementBuilder" />
-    <property name="programIndicatorGroupStore" ref="org.hisp.dhis.program.ProgramIndicatorGroupStore" />
-  </bean>
+  <bean id="org.hisp.dhis.program.ProgramIndicatorService" class="org.hisp.dhis.program.DefaultProgramIndicatorService"/>
 
   <bean id="org.hisp.dhis.relationship.RelationshipService" class="org.hisp.dhis.relationship.DefaultRelationshipService">
     <property name="relationshipStore" ref="org.hisp.dhis.relationship.RelationshipStore" />
@@ -1196,9 +1207,6 @@
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
   </bean>
-
-  <bean id="org.hisp.dhis.program.notification.ProgramNotificationPublisher"
-    class="org.hisp.dhis.program.notification.ProgramNotificationPublisher" />
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"
     class="org.hisp.dhis.program.notification.ProgramNotificationListener" />
@@ -1259,6 +1267,10 @@
   <bean id="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService"
     class="org.hisp.dhis.trackedentityfilter.DefaultTrackedEntityInstanceFilterService">
     <property name="trackedEntityInstanceFilterStore" ref="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" />
+  </bean>
+  
+   <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService"
+    class="org.hisp.dhis.programstagefilter.DefaultProgramStageInstanceFilterService">
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
@@ -1331,7 +1343,7 @@
     <property name="userKeyJsonValueStore" ref="org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore" />
   </bean>
 
-  <!-- SMS services -->
+  <!-- SMS listener services -->
 
   <bean id="org.hisp.dhis.sms.command.SMSCommandService" class="org.hisp.dhis.sms.command.DefaultSMSCommandService">
     <property name="smsCommandStore" ref="org.hisp.dhis.sms.command.hibernate.SMSCommandStore" />
@@ -1362,7 +1374,7 @@
   <bean id="org.hisp.dhis.sms.listener.TrackerEventSMSListener" 
   	class="org.hisp.dhis.sms.listener.TrackerEventSMSListener" />
 
-  <!-- Notification renderers -->
+  <!-- Notification renderer -->
 
   <bean id="programNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramNotificationMessageRenderer" />
 
@@ -1370,7 +1382,7 @@
 
   <bean id="dataSetNotificationMessageRenderer" class="org.hisp.dhis.notification.DataSetNotificationMessageRenderer" />
 
-  <!-- Notification loggin -->
+  <!-- Notification login -->
 
   <bean id="org.hisp.dhis.notification.logging.NotificationLoggingStore"
     class="org.hisp.dhis.notification.logging.HibernateNotificationLoggingStore">
@@ -1406,9 +1418,7 @@
   <bean id="programNotificationsJob"
     class="org.hisp.dhis.program.notification.ProgramNotificationJob" />
 
-  <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob">
-    <property name="reservedValueStore" ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
-  </bean>
+  <bean id="removeExpiredReservedValuesJob" class="org.hisp.dhis.reservedvalue.RemoveExpiredReservedValuesJob" />
 
   <!-- Startup routine definitions -->
   
@@ -1695,9 +1705,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler"
-    class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler">
-    <constructor-arg ref="org.hisp.dhis.reservedvalue.ReservedValueStore" />
-  </bean>
+    class="org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" />
 
   <bean id="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler"
     class="org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler">

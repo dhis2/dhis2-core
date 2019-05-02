@@ -29,9 +29,14 @@ package org.hisp.dhis.analytics;
  */
 
 import com.google.common.base.MoreObjects;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -125,13 +130,57 @@ public class AnalyticsTableUpdateParams
             .toString();
     }
 
+    /**
+     * Returns the from date based on the last years property, i.e. the first
+     * day of year relative to the last years property.
+     *
+     * @return the from date based on the last years property.
+     */
+    public Date getFromDate()
+    {
+        Date earliest = null;
+
+        if ( lastYears != null )
+        {
+            Calendar calendar = PeriodType.getCalendar();
+            DateTimeUnit dateTimeUnit = calendar.today();
+            dateTimeUnit = calendar.minusYears( dateTimeUnit, lastYears - 1 );
+            dateTimeUnit.setMonth( 1 );
+            dateTimeUnit.setDay( 1 );
+
+            earliest = dateTimeUnit.toJdkDate();
+        }
+
+        return earliest;
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns a new instance of this parameter object.
+     */
+    public AnalyticsTableUpdateParams instance()
+    {
+        AnalyticsTableUpdateParams params = new AnalyticsTableUpdateParams();
+
+        params.lastYears = this.lastYears;
+        params.skipResourceTables = this.skipResourceTables;
+        params.skipTableTypes = new HashSet<>( this.skipTableTypes );
+        params.jobId = this.jobId;
+        params.startTime = this.startTime;
+
+        return this;
+    }
     public static Builder newBuilder()
     {
         return new AnalyticsTableUpdateParams.Builder();
+    }
+
+    public static Builder newBuilder( AnalyticsTableUpdateParams analyticsTableUpdateParams )
+    {
+        return new AnalyticsTableUpdateParams.Builder( analyticsTableUpdateParams );
     }
 
     /**
@@ -144,6 +193,11 @@ public class AnalyticsTableUpdateParams
         protected Builder()
         {
             this.params = new AnalyticsTableUpdateParams();
+        }
+
+        protected Builder( AnalyticsTableUpdateParams analyticsTableUpdateParams )
+        {
+            this.params = analyticsTableUpdateParams.instance();
         }
 
         public Builder withLastYears( Integer lastYears )

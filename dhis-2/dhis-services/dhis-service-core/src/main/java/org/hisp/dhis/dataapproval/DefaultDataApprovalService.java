@@ -66,7 +66,6 @@ import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
 /**
  * @author Jim Grace
  */
-@Transactional
 public class DefaultDataApprovalService
     implements DataApprovalService
 {
@@ -137,7 +136,8 @@ public class DefaultDataApprovalService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addWorkflow( DataApprovalWorkflow workflow )
+    @Transactional
+    public long addWorkflow( DataApprovalWorkflow workflow )
     {
         workflowStore.save( workflow );
 
@@ -145,30 +145,35 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional
     public void updateWorkflow( DataApprovalWorkflow dataApprovalWorkflow )
     {
         workflowStore.update( dataApprovalWorkflow );
     }
 
     @Override
+    @Transactional
     public void deleteWorkflow( DataApprovalWorkflow workflow )
     {
         workflowStore.delete( workflow );
     }
 
     @Override
-    public DataApprovalWorkflow getWorkflow( int id )
+    @Transactional(readOnly = true)
+    public DataApprovalWorkflow getWorkflow( long id )
     {
         return workflowStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DataApprovalWorkflow getWorkflow( String uid )
     {
         return workflowStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataApprovalWorkflow> getAllWorkflows()
     {
         return workflowStore.getAll();
@@ -179,6 +184,7 @@ public class DefaultDataApprovalService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void approveData( List<DataApproval> dataApprovalList )
     {
         log.debug( "approveData ( " + dataApprovalList.size() + " items )" );
@@ -289,6 +295,7 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional
     public void unapproveData( List<DataApproval> dataApprovalList )
     {
         log.debug( "unapproveData ( " + dataApprovalList.size() + " items )" );
@@ -339,6 +346,7 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional
     public void acceptData( List<DataApproval> dataApprovalList )
     {
         log.debug( "acceptData ( " + dataApprovalList.size() + " items )" );
@@ -392,6 +400,7 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional
     public void unacceptData( List<DataApproval> dataApprovalList )
     {
         log.debug( "unacceptData ( " + dataApprovalList.size() + " items )" );
@@ -444,12 +453,14 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DataApproval getDataApproval( DataApproval dataApproval )
     {
         return dataApproval == null ? null : dataApprovalStore.getDataApproval( dataApproval );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isApproved( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -462,10 +473,11 @@ public class DefaultDataApprovalService
 
         da = DataApproval.getLowestApproval( da );
 
-        return da != null ? dataApprovalStore.dataApprovalExists( da ) : false;
+        return da != null && dataApprovalStore.dataApprovalExists(da);
     }
 
     @Override
+    @Transactional
     public Map<DataApproval, DataApprovalStatus> getDataApprovalStatuses( List<DataApproval> dataApprovalList )
     {
         Map<String, DataApprovalStatus> statusMap = getStatusMap( dataApprovalList );
@@ -490,6 +502,7 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional
     public DataApprovalStatus getDataApprovalStatus( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -534,6 +547,7 @@ public class DefaultDataApprovalService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo )
     {
@@ -553,6 +567,7 @@ public class DefaultDataApprovalService
     }
     
     @Override
+    @Transactional
     public void deleteDataApprovals( OrganisationUnit organisationUnit )
     {
         dataApprovalStore.deleteDataApprovals( organisationUnit );

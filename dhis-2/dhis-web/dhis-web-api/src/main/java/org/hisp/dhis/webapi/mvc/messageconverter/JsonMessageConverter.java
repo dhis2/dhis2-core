@@ -31,25 +31,15 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
 import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpInputMessage;
-import org.springframework.http.HttpOutputMessage;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.AbstractHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.http.converter.HttpMessageNotWritableException;
 
-import java.io.IOException;
-import java.util.zip.GZIPOutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import javax.annotation.Nonnull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
+public class JsonMessageConverter extends AbstractRootNodeMessageConverter
 {
     public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType>builder()
         .add( new MediaType( "application", "json" ) )
@@ -63,16 +53,10 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
         .add( new MediaType( "application", "json+zip" ) )
         .build();
 
-    @Autowired
-    private NodeService nodeService;
-
-    private Compression compression;
-
-    public JsonMessageConverter( Compression compression )
+    public JsonMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
     {
-        this.compression = compression;
-
-        switch ( this.compression )
+        super( nodeService, "application/json", "json", compression );
+        switch ( getCompression() )
         {
             case NONE:
                 setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
@@ -82,59 +66,6 @@ public class JsonMessageConverter extends AbstractHttpMessageConverter<RootNode>
                 break;
             case ZIP:
                 setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
-        }
-    }
-
-    @Override
-    protected boolean supports( Class<?> clazz )
-    {
-        return RootNode.class.equals( clazz );
-    }
-
-    @Override
-    protected boolean canRead( MediaType mediaType )
-    {
-        return false;
-    }
-
-    @Override
-    protected RootNode readInternal( Class<? extends RootNode> clazz, HttpInputMessage inputMessage ) throws IOException, HttpMessageNotReadableException
-    {
-        return null;
-    }
-
-    @Override
-    protected void writeInternal( RootNode rootNode, HttpOutputMessage outputMessage ) throws IOException, HttpMessageNotWritableException
-    {
-        if ( Compression.GZIP == compression )
-        {
-            if ( !outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION  ).contains( "attachment" ) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.gz" );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            GZIPOutputStream outputStream = new GZIPOutputStream( outputMessage.getBody() );
-            nodeService.serialize( rootNode, "application/json", outputStream );
-            outputStream.close();
-        }
-        else if ( Compression.ZIP == compression )
-        {
-            if ( !outputMessage.getHeaders().getFirst( ContextUtils.HEADER_CONTENT_DISPOSITION  ).contains( "attachment" ) )
-            {
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=metadata.json.zip" );
-                outputMessage.getHeaders().set( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-            }
-
-            ZipOutputStream outputStream = new ZipOutputStream( outputMessage.getBody() );
-            outputStream.putNextEntry( new ZipEntry( "metadata.json" ) );
-            nodeService.serialize( rootNode, "application/json", outputStream );
-            outputStream.close();
-        }
-        else
-        {
-            nodeService.serialize( rootNode, "application/json", outputMessage.getBody() );
-            outputMessage.getBody().close();
         }
     }
 }

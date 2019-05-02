@@ -39,7 +39,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StrSubstitutor;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -48,6 +47,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingJsonCompleteDataSetRegistrations;
 import org.hisp.dhis.dxf2.dataset.streaming.StreamingXmlCompleteDataSetRegistrations;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -119,8 +119,8 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
     }
 
     @Override
-    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream, IdSchemes
-            idSchemes )
+    public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,
+        IdSchemes idSchemes )
     {
         String dsScheme = idSchemes.getDataSetIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
@@ -129,15 +129,15 @@ public class JdbcCompleteDataSetRegistrationExchangeStore
         CompleteDataSetRegistrations completeDataSetRegistrations = new StreamingJsonCompleteDataSetRegistrations( outputStream );
 
         final String completenessSql =
-                "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
-                        "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.completed as iscompleted " +
-                        "from completedatasetregistration cdr " +
-                        "join dataset ds on ( cdr.datasetid=ds.datasetid ) " +
-                        "join period pe on ( cdr.periodid=pe.periodid ) " +
-                        "join periodtype pt on ( pe.periodtypeid=pt.periodtypeid ) " +
-                        "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) " +
-                        "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) " +
-                        "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "'";
+            "select ds." + dsScheme + " as dsid, pe.startdate as pestart, pt.name as ptname, ou." + ouScheme + " as ouid, aoc." + ocScheme + " as aocid, " +
+                "cdr.date, cdr.storedby, cdr.lastupdatedby, cdr.lastupdated, cdr.completed as iscompleted " +
+                "from completedatasetregistration cdr " +
+                "join dataset ds on ( cdr.datasetid=ds.datasetid ) " +
+                "join period pe on ( cdr.periodid=pe.periodid ) " +
+                "join periodtype pt on ( pe.periodtypeid=pt.periodtypeid ) " +
+                "join organisationunit ou on ( cdr.sourceid=ou.organisationunitid ) " +
+                "join categoryoptioncombo aoc on ( cdr.attributeoptioncomboid=aoc.categoryoptioncomboid ) " +
+                "where cdr.lastupdated >= '" + DateUtils.getLongDateString( lastUpdated ) + "' ";
 
         writeCompleteness( completenessSql, completeDataSetRegistrations );
     }

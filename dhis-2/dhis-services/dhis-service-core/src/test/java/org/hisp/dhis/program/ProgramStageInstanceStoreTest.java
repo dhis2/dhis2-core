@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -81,10 +82,13 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -144,14 +148,14 @@ public class ProgramStageInstanceStoreTest
     {
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
-        
+
         idObjectManager.save( organisationUnitA );
         idObjectManager.save( organisationUnitB );
-        
-        entityInstanceA = createTrackedEntityInstance( 'A', organisationUnitA );
+
+        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
 
-        entityInstanceB = createTrackedEntityInstance( 'B', organisationUnitB );
+        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -256,6 +260,8 @@ public class ProgramStageInstanceStoreTest
         programStageInstanceStore.save( programStageInstanceA );
         programStageInstanceStore.save( programStageInstanceB );
 
+        dbmsManager.flushSession();
+        
         assertTrue( programStageInstanceStore.exists( programStageInstanceA.getUid() ) );
         assertTrue( programStageInstanceStore.exists( programStageInstanceB.getUid() ) );
         assertFalse( programStageInstanceStore.exists( "aaaabbbbccc" ) );

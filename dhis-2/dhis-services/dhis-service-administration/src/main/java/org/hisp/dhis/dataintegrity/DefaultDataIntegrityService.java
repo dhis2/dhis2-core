@@ -125,7 +125,8 @@ public class DefaultDataIntegrityService
         OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
         ValidationRuleService validationRuleService, ExpressionService expressionService,
         DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
-        ProgramIndicatorService programIndicatorService, ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
+        ProgramIndicatorService programIndicatorService,
+        ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
         ProgramRuleActionService programRuleActionService )
     {
         checkNotNull( i18nManager );
@@ -346,7 +347,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator() );
+            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getNumerator() );
 
             if ( !result.isValid() )
             {
@@ -365,7 +366,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator() );
+            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getDenominator() );
 
             if ( !result.isValid() )
             {
@@ -539,7 +540,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getLeftSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() );
 
             if ( !result.isValid() )
             {
@@ -558,7 +559,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getRightSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() );
 
             if ( !result.isValid() )
             {
@@ -661,7 +662,7 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidExpressions;
 
         invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ! ProgramIndicator.VALID.equals( programIndicatorService.expressionIsValid( pi.getExpression() ) ) )
+            .filter( pi -> ! programIndicatorService.expressionIsValid( pi.getExpression() ) )
             .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression ) );
 
         return invalidExpressions;
@@ -673,7 +674,7 @@ public class DefaultDataIntegrityService
         Map<ProgramIndicator, String> invalidFilters;
 
         invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ( ! ( pi.hasFilter() ? ProgramIndicator.VALID.equals( programIndicatorService.filterIsValid( pi.getFilter() ) ) : true ) ) )
+            .filter( pi -> ! programIndicatorService.filterIsValid( pi.getFilter() ) )
             .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter ) );
 
         return invalidFilters;

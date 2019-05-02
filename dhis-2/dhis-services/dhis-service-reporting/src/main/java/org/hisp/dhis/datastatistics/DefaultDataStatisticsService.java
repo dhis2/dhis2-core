@@ -138,7 +138,7 @@ public class DefaultDataStatisticsService
     }
 
     @Override
-    public int saveDataStatistics( DataStatistics dataStatistics )
+    public long saveDataStatistics( DataStatistics dataStatistics )
     {
         dataStatisticsStore.save( dataStatistics );
 
@@ -146,7 +146,7 @@ public class DefaultDataStatisticsService
     }
 
     @Override
-    public int saveDataStatisticsSnapshot()
+    public long saveDataStatisticsSnapshot()
     {
         return saveDataStatistics( getDataStatisticsSnapshot( new Date() ) );
     }

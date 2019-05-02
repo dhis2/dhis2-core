@@ -69,21 +69,27 @@ public class EmbeddedObjectObjectBundleHook
 
         Collection<Property> properties = schema.getEmbeddedObjectProperties().values();
 
-        clearEmbeddedObjects( persistedObject, properties );
+
+        clearEmbeddedObjects( persistedObject, bundle, properties );
         handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, Collection<Property> properties )
+    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
     {
         for ( Property property : properties )
         {
             if ( property.isCollection() )
             {
-                ((Collection<?>) ReflectionUtils.invokeMethod( object, property.getGetterMethod() )).clear();
+                if ( ReflectionUtils.isSharingProperty( property ) && bundle.isSkipSharing() )
+                {
+                    continue;
+                }
+
+                ( ( Collection<?> ) ReflectionUtils.invokeMethod( object, property.getGetterMethod() ) ).clear();
             }
             else
             {
-                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), (Object) null );
+                ReflectionUtils.invokeMethod( object, property.getSetterMethod(), ( Object ) null );
             }
         }
     }

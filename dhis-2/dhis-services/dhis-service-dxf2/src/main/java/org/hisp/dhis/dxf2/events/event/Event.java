@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -80,7 +81,7 @@ public class Event
 
     private Coordinate coordinate;
 
-    private List<DataValue> dataValues = new ArrayList<>();
+    private Set<DataValue> dataValues = new HashSet<>();
 
     private List<Note> notes = new ArrayList<>();
 
@@ -107,6 +108,11 @@ public class Event
     private int optionSize;
 
     private Geometry geometry;
+
+    private String assignedUser;
+
+    private String assignedUserUsername;
+
 
     public Event()
     {
@@ -290,12 +296,12 @@ public class Event
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "dataValues", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataValue> getDataValues()
+    public Set<DataValue> getDataValues()
     {
         return dataValues;
     }
 
-    public void setDataValues( List<DataValue> dataValues )
+    public void setDataValues( Set<DataValue> dataValues )
     {
         this.dataValues = dataValues;
     }
@@ -467,6 +473,30 @@ public class Event
         this.geometry = geometry;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUser()
+    {
+        return assignedUser;
+    }
+
+    public void setAssignedUser( String user )
+    {
+        this.assignedUser = user;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getAssignedUserUsername()
+    {
+        return assignedUserUsername;
+    }
+
+    public void setAssignedUserUsername( String assignedUserUsername )
+    {
+        this.assignedUserUsername = assignedUserUsername;
+    }
+
     @Override
     public boolean equals( Object o )
     {
@@ -505,5 +535,4 @@ public class Event
             ", deleted=" + deleted +
             '}';
     }
-   
 }

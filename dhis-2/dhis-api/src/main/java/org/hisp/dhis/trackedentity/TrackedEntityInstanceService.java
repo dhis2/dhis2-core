@@ -1,5 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
+import org.hisp.dhis.common.AssignedUserSelectionMode;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -146,6 +148,8 @@ public interface TrackedEntityInstanceService
      * @param eventStatus                the event status for the given Program.
      * @param eventStartDate             the event start date for the given Program.
      * @param eventEndDate               the event end date for the given Program.
+     * @param assignedUserMode           the selection mode for assigned users of events.
+     * @param assignedUsers              list of userids for events assigned.
      * @param skipMeta                   indicates whether to include meta data in the response.
      * @param page                       the page number.
      * @param pageSize                   the page size.
@@ -158,7 +162,7 @@ public interface TrackedEntityInstanceService
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
+        Date eventStartDate, Date eventEndDate, AssignedUserSelectionMode assignedUserMode, Set<String> assignedUsers, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
 
     /**
      * Decides whether current user is authorized to perform the given query.
@@ -196,7 +200,7 @@ public interface TrackedEntityInstanceService
      * @param entityInstance The to TrackedEntityInstance add.
      * @return A generated unique id of the added {@link TrackedEntityInstance}.
      */
-    int addTrackedEntityInstance( TrackedEntityInstance entityInstance );
+    long addTrackedEntityInstance( TrackedEntityInstance entityInstance );
 
     /**
      * Soft deletes a {@link TrackedEntityInstance}.
@@ -226,7 +230,7 @@ public interface TrackedEntityInstanceService
      * @param id the id of the TrackedEntityInstanceAttribute to return.
      * @return the TrackedEntityInstanceAttribute with the given id
      */
-    TrackedEntityInstance getTrackedEntityInstance( int id );
+    TrackedEntityInstance getTrackedEntityInstance( long id );
 
     /**
      * Returns the {@link TrackedEntityAttribute} with the given UID.
@@ -257,13 +261,10 @@ public interface TrackedEntityInstanceService
      * Register a new entityInstance
      *
      * @param entityInstance     TrackedEntityInstance
-     * @param representativeId   The uid of entityInstance who is representative
-     * @param relationshipTypeId The id of relationship type defined
      * @param attributeValues    Set of attribute values
      * @return The error code after registering entityInstance
      */
-    int createTrackedEntityInstance( TrackedEntityInstance entityInstance, String representativeId,
-        Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues );
+    long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 }

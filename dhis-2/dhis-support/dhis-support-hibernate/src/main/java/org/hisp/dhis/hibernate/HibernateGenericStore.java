@@ -367,11 +367,23 @@ public class HibernateGenericStore<T>
     /**
      * Creates a SqlQuery.
      *
-     * @param sql the sql query String.
+     * @param sql the SQL query String.
      * @return a NativeQuery<T> instance.
      */
     @SuppressWarnings("unchecked")
     protected final NativeQuery<T> getSqlQuery( String sql )
+    {
+        return getSession().createNativeQuery( sql )
+            .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
+    }
+
+    /**
+     * Creates a untyped SqlQuery.
+     *
+     * @param sql the SQL query String.
+     * @return a NativeQuery<T> instance.
+     */
+    protected final NativeQuery<?> getUntypedSqlQuery( String sql  )
     {
         return getSession().createNativeQuery( sql )
             .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
@@ -402,7 +414,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public T get( int id )
+    public T get( long id )
     {
         T object = getSession().get( getClazz(), id );
 

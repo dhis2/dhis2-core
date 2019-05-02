@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
  */
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -40,8 +41,10 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -90,6 +93,10 @@ public class EventSearchParams
     private OrganisationUnit orgUnit;
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
+    
+    private AssignedUserSelectionMode assignedUserSelectionMode;
+    
+    private Set<String> assignedUsers = new HashSet<>();
 
     private TrackedEntityInstance trackedEntityInstance;
 
@@ -147,6 +154,11 @@ public class EventSearchParams
 
     private boolean synchronizationQuery;
 
+    /**
+     * Indicates a point in the time used to decide the data that should not be synchronized
+     */
+    private Date skipChangedBefore;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -188,12 +200,12 @@ public class EventSearchParams
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
     }
-    
+
     public boolean hasProgram()
     {
     	return program != null;
     }
-    
+
     public boolean hasProgramStage()
     {
     	return programStage != null;
@@ -305,6 +317,26 @@ public class EventSearchParams
     public void setOrgUnitSelectionMode( OrganisationUnitSelectionMode orgUnitSelectionMode )
     {
         this.orgUnitSelectionMode = orgUnitSelectionMode;
+    }
+    
+    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    {
+        return assignedUserSelectionMode;
+    }
+
+    public void setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
+    {
+        this.assignedUserSelectionMode = assignedUserSelectionMode;
+    }
+
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
+    }
+
+    public void setAssignedUsers( Set<String> assignedUsers )
+    {
+        this.assignedUsers = assignedUsers;
     }
 
     public TrackedEntityInstance getTrackedEntityInstance()
@@ -560,5 +592,39 @@ public class EventSearchParams
     public void setSynchronizationQuery( boolean synchronizationQuery )
     {
         this.synchronizationQuery = synchronizationQuery;
+    }
+
+    public Date getSkipChangedBefore()
+    {
+        return skipChangedBefore;
+    }
+
+    public void setSkipChangedBefore( Date skipChangedBefore )
+    {
+        this.skipChangedBefore = skipChangedBefore;
+    }
+
+    public void handleCurrentUserSelectionMode( User currentUser )
+    {
+        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && currentUser != null )
+        {
+            this.assignedUsers = Collections.singleton( currentUser.getUid() );
+            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
+        }
+    }
+
+    public boolean hasAssignedUsers()
+    {
+        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
+    }
+    
+    public boolean isIncludeOnlyUnassignedEvents()
+    {
+        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
+    }
+    
+    public boolean isIncludeOnlyAssignedEvents()
+    {
+        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
 }

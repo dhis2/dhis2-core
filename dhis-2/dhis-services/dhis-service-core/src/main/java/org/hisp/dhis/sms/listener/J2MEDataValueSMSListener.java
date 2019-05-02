@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
@@ -65,6 +64,7 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 

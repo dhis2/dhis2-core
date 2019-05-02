@@ -38,7 +38,6 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultOptionService
     implements OptionService
 {
@@ -75,7 +74,8 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOptionSet( OptionSet optionSet )
+    @Transactional
+    public long saveOptionSet( OptionSet optionSet )
     {
         optionSetStore.save( optionSet );
 
@@ -83,42 +83,49 @@ public class DefaultOptionService
     }
 
     @Override
+    @Transactional
     public void updateOptionSet( OptionSet optionSet )
     {
         optionSetStore.update( optionSet );
     }
 
     @Override
-    public OptionSet getOptionSet( int id )
+    @Transactional(readOnly = true)
+    public OptionSet getOptionSet( long id )
     {
         return optionSetStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OptionSet getOptionSet( String uid )
     {
         return optionSetStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OptionSet getOptionSetByName( String name )
     {
         return optionSetStore.getByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OptionSet getOptionSetByCode( String code )
     {
         return optionSetStore.getByCode( code );
     }
 
     @Override
+    @Transactional
     public void deleteOptionSet( OptionSet optionSet )
     {
         optionSetStore.delete( optionSet );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OptionSet> getAllOptionSets()
     {
         return optionSetStore.getAll();
@@ -129,9 +136,10 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public List<Option> getOptions( int optionSetId, String key, Integer max )
+    @Transactional(readOnly = true)
+    public List<Option> getOptions( long optionSetId, String key, Integer max )
     {
-        List<Option> options = null;
+        List<Option> options;
 
         if ( key != null || max != null )
         {
@@ -152,24 +160,28 @@ public class DefaultOptionService
     }
 
     @Override
+    @Transactional
     public void updateOption( Option option )
     {
         optionStore.update( option );
     }
 
     @Override
-    public Option getOption( int id )
+    @Transactional(readOnly = true)
+    public Option getOption( long id )
     {
         return optionStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Option getOptionByCode( String code )
     {
         return optionStore.getByCode( code );
     }
 
     @Override
+    @Transactional
     public void deleteOption( Option option )
     {
         optionStore.delete( option );
@@ -180,7 +192,8 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOptionGroup( OptionGroup group )
+    @Transactional
+    public long saveOptionGroup( OptionGroup group )
     {
         optionGroupStore.save( group );
 
@@ -188,30 +201,35 @@ public class DefaultOptionService
     }
 
     @Override
+    @Transactional
     public void updateOptionGroup( OptionGroup group )
     {
         optionGroupStore.update( group );
     }
 
     @Override
-    public OptionGroup getOptionGroup( int id )
+    @Transactional(readOnly = true)
+    public OptionGroup getOptionGroup( long id )
     {
         return optionGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OptionGroup getOptionGroup( String uid )
     {
         return optionGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional
     public void deleteOptionGroup( OptionGroup group )
     {
         optionGroupStore.delete( group );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OptionGroup> getAllOptionGroups()
     {
         return optionGroupStore.getAll();
@@ -222,7 +240,8 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveOptionGroupSet( OptionGroupSet group )
+    @Transactional
+    public long saveOptionGroupSet( OptionGroupSet group )
     {
         optionGroupSetStore.save( group );
 
@@ -230,30 +249,35 @@ public class DefaultOptionService
     }
 
     @Override
+    @Transactional
     public void updateOptionGroupSet( OptionGroupSet group )
     {
         optionGroupSetStore.update( group );
     }
 
     @Override
-    public OptionGroupSet getOptionGroupSet( int id )
+    @Transactional(readOnly = true)
+    public OptionGroupSet getOptionGroupSet( long id )
     {
         return optionGroupSetStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OptionGroupSet getOptionGroupSet( String uid )
     {
         return optionGroupSetStore.getByUid( uid );
     }
 
     @Override
+    @Transactional
     public void deleteOptionGroupSet( OptionGroupSet group )
     {
         optionGroupSetStore.delete( group );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OptionGroupSet> getAllOptionGroupSets()
     {
         return optionGroupSetStore.getAll();

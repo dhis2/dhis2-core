@@ -35,6 +35,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -63,6 +64,9 @@ public class TrackedEntityInstanceStoreTest
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
@@ -111,12 +115,12 @@ public class TrackedEntityInstanceStoreTest
         idObjectManager.save( prA );
         idObjectManager.save( prB );
 
-        teiA = createTrackedEntityInstance( 'A', ouA );
-        teiB = createTrackedEntityInstance( 'B', ouB );
-        teiC = createTrackedEntityInstance( 'C', ouB );
-        teiD = createTrackedEntityInstance( 'D', ouC );
-        teiE = createTrackedEntityInstance( 'E', ouC );
-        teiF = createTrackedEntityInstance( 'F', ouC );
+        teiA = createTrackedEntityInstance( ouA );
+        teiB = createTrackedEntityInstance( ouB );
+        teiC = createTrackedEntityInstance( ouB );
+        teiD = createTrackedEntityInstance( ouC );
+        teiE = createTrackedEntityInstance( ouC );
+        teiF = createTrackedEntityInstance( ouC );
     }
 
     @Test
@@ -124,6 +128,8 @@ public class TrackedEntityInstanceStoreTest
     {
         teiStore.save( teiA );
         teiStore.save( teiB );
+        
+        dbmsManager.flushSession();
 
         assertTrue( teiStore.exists( teiA.getUid() ) );
         assertTrue( teiStore.exists( teiB.getUid() ) );
@@ -135,9 +141,9 @@ public class TrackedEntityInstanceStoreTest
     public void testAddGet()
     {
         teiStore.save( teiA );
-        int idA = teiA.getId();
+        long idA = teiA.getId();
         teiStore.save( teiB );
-        int idB = teiB.getId();
+        long idB = teiB.getId();
 
         assertNotNull( teiStore.get( idA ) );
         assertNotNull( teiStore.get( idB ) );
@@ -147,9 +153,9 @@ public class TrackedEntityInstanceStoreTest
     public void testAddGetbyOu()
     {
         teiStore.save( teiA );
-        int idA = teiA.getId();
+        long idA = teiA.getId();
         teiStore.save( teiB );
-        int idB = teiB.getId();
+        long idB = teiB.getId();
 
         assertEquals( teiA.getName(), teiStore.get( idA ).getName() );
         assertEquals( teiB.getName(), teiStore.get( idB ).getName() );
@@ -159,9 +165,9 @@ public class TrackedEntityInstanceStoreTest
     public void testDelete()
     {
         teiStore.save( teiA );
-        int idA = teiA.getId();
+        long idA = teiA.getId();
         teiStore.save( teiB );
-        int idB = teiB.getId();
+        long idB = teiB.getId();
 
         assertNotNull( teiStore.get( idA ) );
         assertNotNull( teiStore.get( idB ) );

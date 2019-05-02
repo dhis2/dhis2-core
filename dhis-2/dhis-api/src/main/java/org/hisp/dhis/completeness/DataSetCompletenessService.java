@@ -53,7 +53,7 @@ public interface DataSetCompletenessService
      * @param groupIds the organisation unit group identifiers.
      * @return a List of DataSetCompletenessResults.
      */
-    List<DataSetCompletenessResult> getDataSetCompleteness( int periodId, int organisationUnitId, Set<Integer> groupIds );
+    List<DataSetCompletenessResult> getDataSetCompleteness( long periodId, long organisationUnitId, Set<Long> groupIds );
 
     /**
      * Returns a List of DataSetCompletenessResults. The
@@ -70,6 +70,6 @@ public interface DataSetCompletenessService
      * @param groupIds the organisation unit group identifiers.
      * @return a List of DataSetCompletenessResults.
      */
-    List<DataSetCompletenessResult> getDataSetCompleteness( int periodId,
-        Collection<Integer> organisationUnitIds, int dataSetId, Set<Integer> groupIds );
+    List<DataSetCompletenessResult> getDataSetCompleteness( long periodId,
+        Collection<Long> organisationUnitIds, long dataSetId, Set<Long> groupIds );
 }

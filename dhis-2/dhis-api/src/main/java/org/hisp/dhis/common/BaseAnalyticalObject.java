@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -698,76 +697,6 @@ public abstract class BaseAnalyticalObject
         {
             RelativePeriods.setName( period, null, dynamicNames, format );
         }
-    }
-
-    /**
-     * Sorts the keys in the given map by splitting on the '-' character and
-     * sorting the components alphabetically.
-     *
-     * @param valueMap the mapping of keys and values.
-     */
-    public static void sortKeys( Map<String, Object> valueMap )
-    {
-        Map<String, Object> map = new HashMap<>();
-
-        for ( String key : valueMap.keySet() )
-        {
-            String sortKey = sortKey( key );
-
-            if ( sortKey != null )
-            {
-                map.put( sortKey, valueMap.get( key ) );
-            }
-        }
-
-        valueMap.clear();
-        valueMap.putAll( map );
-    }
-
-    /**
-     * Sorts the given key by splitting on the '-' character and sorting the
-     * components alphabetically.
-     *
-     * @param key the mapping of keys and values.
-     */
-    public static String sortKey( String key )
-    {
-        if ( key != null )
-        {
-            String[] ids = key.split( DIMENSION_SEP );
-
-            Collections.sort( Arrays.asList( ids ) );
-
-            key = StringUtils.join( ids, DIMENSION_SEP );
-        }
-
-        return key;
-    }
-
-    /**
-     * Generates an identifier based on the given lists of {@link NameableObject}. Uses
-     * the identifiers for each nameable object, sorts them and writes them out as a key.
-     *
-     * @param column list of dimension items representing a column.
-     * @param row    list of dimension items representing a row.
-     * @return an identifier representing a column item and a row item.
-     */
-    public static String getIdentifier( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
-    {
-        List<String> ids = new ArrayList<>();
-
-        List<DimensionalItemObject> dimensions = new ArrayList<>();
-        dimensions.addAll( column != null ? column : new ArrayList<>() );
-        dimensions.addAll( row != null ? row : new ArrayList<>() );
-
-        for ( DimensionalItemObject item : dimensions )
-        {
-            ids.add( item.getDimensionItem() );
-        }
-
-        Collections.sort( ids );
-
-        return StringUtils.join( ids, DIMENSION_SEP );
     }
 
     /**

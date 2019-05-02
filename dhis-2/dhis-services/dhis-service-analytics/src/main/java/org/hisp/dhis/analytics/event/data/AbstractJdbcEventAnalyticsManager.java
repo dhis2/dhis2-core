@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALIAS;
@@ -50,6 +51,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
@@ -63,6 +65,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -86,14 +89,73 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    @Resource( name = "readOnlyJdbcTemplate" )
-    protected JdbcTemplate jdbcTemplate;
+    protected final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    protected StatementBuilder statementBuilder;
+    protected final StatementBuilder statementBuilder;
 
-    @Autowired
-    protected ProgramIndicatorService programIndicatorService;
+    protected final ProgramIndicatorService programIndicatorService;
+
+    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService )
+    {
+        checkNotNull( jdbcTemplate );
+        checkNotNull( statementBuilder );
+        checkNotNull( programIndicatorService );
+
+        this.jdbcTemplate = jdbcTemplate;
+        this.statementBuilder = statementBuilder;
+        this.programIndicatorService = programIndicatorService;
+    }
+
+    /**
+     * Returns an SQL paging clause.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    protected String getPagingClause( EventQueryParams params, int maxLimit )
+    {
+        String sql = "";
+
+        if ( params.isPaging() )
+        {
+            sql += "limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
+        }
+        else if ( maxLimit > 0 )
+        {
+            sql += "limit " + ( maxLimit + 1 );
+        }
+
+        return sql;
+    }
+
+    /**
+     * Returns an SQL sort clause.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    protected String getSortClause( EventQueryParams params )
+    {
+        String sql = "";
+
+        if ( params.isSorting() )
+        {
+            sql += "order by ";
+
+            for ( DimensionalItemObject item : params.getAsc() )
+            {
+                sql += quoteAlias( item.getUid() ) + " asc,";
+            }
+
+            for  ( DimensionalItemObject item : params.getDesc() )
+            {
+                sql += quoteAlias( item.getUid() ) + " desc,";
+            }
+
+            sql = TextUtils.removeLastComma( sql ) + " ";
+        }
+
+        return sql;
+    }
 
     /**
      * Returns the dynamic select column names to use in a group by clause. Dimensions come
@@ -171,7 +233,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
 
                 String asClause = " as " + quote( in.getUid() );
-                columns.add( "(" + programIndicatorService.getAnalyticsSQl( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
+                columns.add( "(" + programIndicatorService.getAnalyticsSql( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -285,6 +347,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 for ( QueryItem queryItem : params.getItems() )
                 {
+
                     String itemValue = rowSet.getString( queryItem.getItemName() );
                     String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( params, queryItem, itemValue ) : itemValue;
                     grid.addValue( gridValue );
@@ -348,7 +411,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
 
-            String expression = programIndicatorService.getAnalyticsSQl( params.getProgramIndicator().getExpression(),
+            String expression = programIndicatorService.getAnalyticsSql( params.getProgramIndicator().getExpression(),
                 params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
 
             return function + "(" + expression + ")";
@@ -444,8 +507,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         if ( item.isProgramIndicator() )
         {
             ProgramIndicator programIndicator = (ProgramIndicator)item.getItem();
-            return programIndicatorService.getAnalyticsSQl(
-                programIndicator.getExpression(), programIndicator, startDate, endDate );
+            return programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator, startDate, endDate );
         }
         else
         {

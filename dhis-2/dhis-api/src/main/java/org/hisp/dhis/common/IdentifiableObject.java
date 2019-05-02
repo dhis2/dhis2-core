@@ -49,7 +49,7 @@ public interface IdentifiableObject
 {
     String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName() };
 
-    int getId();
+    long getId();
 
     String getUid();
 

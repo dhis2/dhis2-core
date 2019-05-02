@@ -31,6 +31,7 @@ package org.hisp.dhis.scheduling;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -41,6 +42,7 @@ import org.hisp.dhis.schema.Property;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,14 +50,15 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.hisp.dhis.scheduling.JobType.values;
 
 /**
  * @author Henning Håkonsen
  */
-@Transactional
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
@@ -72,7 +75,8 @@ public class DefaultJobConfigurationService
     private SessionFactory sessionFactory;
 
     @Override
-    public int addJobConfiguration( JobConfiguration jobConfiguration )
+    @Transactional
+    public long addJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
@@ -87,6 +91,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
         jobConfigurations.forEach( jobConfiguration -> {
@@ -101,7 +106,8 @@ public class DefaultJobConfigurationService
     }
 
     @Override
-    public int updateJobConfiguration( JobConfiguration jobConfiguration )
+    @Transactional
+    public long updateJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
@@ -117,6 +123,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional
     public void deleteJobConfiguration( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
@@ -126,24 +133,28 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public JobConfiguration getJobConfigurationByUid( String uid )
     {
         return jobConfigurationStore.getByUid( uid );
     }
 
     @Override
-    public JobConfiguration getJobConfiguration( int jobId )
+    @Transactional(readOnly = true)
+    public JobConfiguration getJobConfiguration( long jobId )
     {
         return jobConfigurationStore.get( jobId );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JobConfiguration> getAllJobConfigurations()
     {
         return jobConfigurationStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<JobConfiguration> getAllJobConfigurationsSorted()
     {
         List<JobConfiguration> jobConfigurations = getAllJobConfigurations();
@@ -154,6 +165,7 @@ public class DefaultJobConfigurationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<String, Map<String, Property>> getJobParametersSchema()
     {
         Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
@@ -174,30 +186,29 @@ public class DefaultJobConfigurationService
                 continue;
             }
 
-            for ( Field field : clazz.getDeclaredFields() )
+            final Set<String> propertyNames = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
+                .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
+                .map( PropertyDescriptor::getName ).collect( Collectors.toSet() );
+            for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) ).collect( Collectors.toList() ) )
             {
-                if ( Arrays.stream( field.getAnnotations() )
-                    .anyMatch( f -> f instanceof JsonProperty ) )
+                Property property = new Property( Primitives.wrap( field.getType() ), null, null );
+                property.setName( field.getName() );
+                property.setFieldName( prettyPrint( field.getName() ) );
+
+                String relativeApiElements = jobType.getRelativeApiElements() != null ?
+                    jobType.getRelativeApiElements().get( field.getName() ) : "";
+                if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
                 {
-                    Property property = new Property( Primitives.wrap( field.getType() ), null, null );
-                    property.setName( field.getName() );
-                    property.setFieldName( prettyPrint( field.getName() ) );
-
-                    String relativeApiElements = jobType.getRelativeApiElements() != null ?
-                        jobType.getRelativeApiElements().get( field.getName() ) : "";
-                    if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
-                    {
-                        property.setRelativeApiEndpoint( relativeApiElements );
-                    }
-
-                    if ( Collection.class.isAssignableFrom( field.getType() ) )
-                    {
-                        property = new NodePropertyIntrospectorService()
-                            .setPropertyIfCollection( property, field, clazz );
-                    }
-
-                    jobParameters.put( property.getName(), property );
+                    property.setRelativeApiEndpoint( relativeApiElements );
                 }
+
+                if ( Collection.class.isAssignableFrom( field.getType() ) )
+                {
+                    property = new NodePropertyIntrospectorService()
+                        .setPropertyIfCollection( property, field, clazz );
+                }
+
+                jobParameters.put( property.getName(), property );
             }
             propertyMap.put( jobType.name(), jobParameters );
         }

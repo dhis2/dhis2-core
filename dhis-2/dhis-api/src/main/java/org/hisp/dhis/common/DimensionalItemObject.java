@@ -43,15 +43,15 @@ public interface DimensionalItemObject
      * Gets the dimension item identifier.
      */
     String getDimensionItem();
-    
+
     /**
      * Gets the dimension item identifier based on the given
      * identifier scheme.
-     * 
+     *
      * @param idScheme the identifier scheme.
      */
     String getDimensionItem( IdScheme idScheme );
-    
+
     /**
      * Gets the dimension type of this dimension item.
      */
@@ -66,7 +66,7 @@ public interface DimensionalItemObject
      * Gets the first legend set in the legend set list. This
      * field is derived from {@link DimensionalObject#getLegendSet()} and
      * is not persisted.
-     * 
+     *
      * Will be removed from serialization in 2.28.
      */
     LegendSet getLegendSet();
@@ -75,17 +75,17 @@ public interface DimensionalItemObject
      * Indicates whether this dimension has a legend set.
      */
     boolean hasLegendSet();
-    
+
     /**
      * Gets the aggregation type.
      */
     AggregationType getAggregationType();
-    
+
     /**
      * Indicates whether this dimension has an aggregation type.
      */
     boolean hasAggregationType();
-    
+
     /**
      * Gets the total aggregation type, meaning how total values
      * should be aggregated across multiple values.

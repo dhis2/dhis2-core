@@ -69,8 +69,6 @@ public class TrackedEntityInstance
 
     private OrganisationUnit organisationUnit;
 
-    private TrackedEntityInstance representative;
-
     private TrackedEntityType trackedEntityType;
 
     private Boolean inactive = false;
@@ -99,7 +97,10 @@ public class TrackedEntityInstance
             createdAtClient = created;
         }
 
-        lastUpdatedAtClient = lastUpdated;
+        if ( lastUpdatedAtClient == null )
+        {
+            lastUpdatedAtClient = lastUpdated;
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -199,19 +200,6 @@ public class TrackedEntityInstance
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getRepresentative()
-    {
-        return representative;
-    }
-
-    public void setRepresentative( TrackedEntityInstance representative )
-    {
-        this.representative = representative;
-    }
-
-    @JsonProperty
     @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntityType getTrackedEntityType()
@@ -290,8 +278,7 @@ public class TrackedEntityInstance
             "id=" + id +
             ", uid='" + uid + '\'' +
             ", name='" + name + '\'' +
-            ", organisationUnit=" + organisationUnit.getUid() +
-            ", representative=" + representative.getUid() +
+            ", organisationUnit=" + organisationUnit +
             ", trackedEntityType=" + trackedEntityType +
             ", inactive=" + inactive +
             ", deleted=" + deleted +

@@ -36,8 +36,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -115,18 +113,24 @@ public abstract class AbstractJdbcTableManager
     @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Resource( name = "slowQueryJdbcTemplate" )
+    @Autowired
     protected JdbcTemplate jdbcTemplate;
 
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
+    @Override
+    public Set<String> getExistingDatabaseTables()
+    {
+        return partitionManager.getAnalyticsPartitions( getAnalyticsTableType() );
+    }
+
     /**
      * Override in order to perform work before tables are being generated.
      */
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
     {
     }
 
@@ -196,13 +200,13 @@ public abstract class AbstractJdbcTableManager
     @Override
     public void dropTable( String tableName )
     {
-        executeSilently( "drop table " + tableName );
+        executeSilently( "drop table if exists " + tableName );
     }
 
     @Override
     public void dropTableCascade( String tableName )
     {
-        executeSilently( "drop table " + tableName + " cascade" );
+        executeSilently( "drop table if exists " + tableName + " cascade" );
     }
 
     @Override
@@ -257,7 +261,7 @@ public abstract class AbstractJdbcTableManager
      * Populates the given analytics table.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param table the analytics table to populate.
+     * @param partition the {@link AnalyticsTablePartition} to populate.
      */
     protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
 
@@ -351,16 +355,16 @@ public abstract class AbstractJdbcTableManager
             final String tableName = partition.getTempTableName();
             final List<String> checks = getPartitionChecks( partition );
 
-            String sqlCreate = "create table " + tableName + " ";
+            String sqlCreate = "create table " + tableName + " (";
 
             if ( !checks.isEmpty() )
             {
-                StringBuilder sqlCheck = new StringBuilder( "(" );
+                StringBuilder sqlCheck = new StringBuilder();
                 checks.stream().forEach( check -> sqlCheck.append( "check (" + check + "), " ) );
-                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() ) + ") ";
+                sqlCreate += TextUtils.removeLastComma( sqlCheck.toString() );
             }
 
-            sqlCreate += "inherits (" + table.getTempTableName() + ") " + getTableOptions();
+            sqlCreate += ") inherits (" + table.getTempTableName() + ") " + getTableOptions();
 
             log.info( String.format( "Creating partition table: %s", tableName ) );
 
@@ -391,9 +395,7 @@ public abstract class AbstractJdbcTableManager
 
         Collections.sort( dataYears );
 
-        String baseName = getAnalyticsTableType().getTableName();
-
-        AnalyticsTable table = new AnalyticsTable( baseName, dimensionColumns, valueColumns );
+        AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
         for ( Integer year : dataYears )
         {
@@ -448,20 +450,20 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Executes the given table population SQL statement, log and times the operation.
+     * Executes the given  SQL statement. Logs and times the operation.
      *
      * @param sql the SQL statement.
-     * @param tableName the table name.
+     * @param logMessage the custom log message to include in the log statement.
      */
-    protected void populateAndLog( String sql, String tableName )
+    protected void invokeTimeAndLog( String sql, String logMessage )
     {
-        log.debug( String.format( "Populate table: %s with SQL: ", tableName, sql ) );
+        log.debug( String.format( "%s with SQL: '%s'", logMessage, sql ) );
 
         Timer timer = new SystemTimer().start();
 
         jdbcTemplate.execute( sql );
 
-        log.info( String.format( "Populated table in %s: %s", timer.stop().toString(), tableName ) );
+        log.info( String.format( "%s done in: %s", logMessage, timer.stop().toString() ) );
     }
 
     // -------------------------------------------------------------------------
@@ -478,7 +480,7 @@ public abstract class AbstractJdbcTableManager
     private void swapTable( String tempTableName, String realTableName )
     {
         final String sql =
-            "drop table if exists " + realTableName + ";" +
+            "drop table if exists " + realTableName + " cascade; " +
             "alter table " + tempTableName + " rename to " + realTableName + ";";
 
         executeSilently( sql );

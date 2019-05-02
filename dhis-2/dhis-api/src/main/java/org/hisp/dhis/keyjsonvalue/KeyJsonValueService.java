@@ -82,7 +82,7 @@ public interface KeyJsonValueService
      * @param keyJsonValue the KeyJsonValue to be stored.
      * @return the id of the KeyJsonValue stored.
      */
-    int addKeyJsonValue( KeyJsonValue keyJsonValue );
+    long addKeyJsonValue( KeyJsonValue keyJsonValue );
 
     /**
      * Updates a KeyJsonValue.

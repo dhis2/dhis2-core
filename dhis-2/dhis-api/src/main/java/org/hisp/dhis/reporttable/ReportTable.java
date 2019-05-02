@@ -54,6 +54,7 @@ import java.util.*;
 import java.util.Objects;
 
 import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +67,6 @@ public class ReportTable
     public static final String PARAM_ORGANISATIONUNIT_COLUMN_NAME = "param_organisationunit_name";
     public static final String ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME = "organisation_unit_is_parent";
 
-    public static final String SEPARATOR = "_";
     public static final String DASH_PRETTY_SEPARATOR = " - ";
     public static final String SPACE = " ";
     public static final String KEY_ORGUNIT_GROUPSET = "orgunit_groupset_";
@@ -96,7 +96,7 @@ public class ReportTable
      * Indicates the criteria to apply to data measures.
      */
     private String measureCriteria;
-    
+
     /**
      * Indicates whether the ReportTable contains regression columns.
      */
@@ -151,7 +151,7 @@ public class ReportTable
      * Indicates whether to hide rows with no data values in the table.
      */
     private boolean hideEmptyRows;
-    
+
     /**
      * Indicates whether to hide columns with no data values in the table.
      */
@@ -186,7 +186,7 @@ public class ReportTable
      * The number type.
      */
     private NumberType numberType;
-    
+
     /**
      * Indicates showing organisation unit hierarchy names.
      */
@@ -358,18 +358,18 @@ public class ReportTable
     public void populateGridColumnsAndRows( Date date, User user,
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
     {
-        List<DimensionalItemObject[]> tableColumns = new ArrayList<>();
-        List<DimensionalItemObject[]> tableRows = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableColumns = new ArrayList<>();
+        List<List<DimensionalItemObject>> tableRows = new ArrayList<>();
         List<DimensionalItemObject> filterItems = new ArrayList<>();
 
         for ( String dimension : columnDimensions )
         {
-            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems().toArray( IRT ) );
+            tableColumns.add( getDimensionalObject( dimension, date, user, false, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
         }
 
         for ( String dimension : rowDimensions )
         {
-            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems().toArray( IRT ) );
+            tableRows.add( getDimensionalObject( dimension, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
         }
 
         for ( String filter : filterDimensions )
@@ -377,8 +377,8 @@ public class ReportTable
             filterItems.addAll( getDimensionalObject( filter, date, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format ).getItems() );
         }
 
-        gridColumns = new CombinationGenerator<>( tableColumns.toArray( IRT2D ) ).getCombinations();
-        gridRows = new CombinationGenerator<>( tableRows.toArray( IRT2D ) ).getCombinations();
+        gridColumns = CombinationGenerator.newInstance( tableColumns ).getCombinations();
+        gridRows = CombinationGenerator.newInstance( tableRows ).getCombinations();
 
         addListIfEmpty( gridColumns );
         addListIfEmpty( gridRows );
@@ -446,17 +446,17 @@ public class ReportTable
         {
             if ( object != null && object instanceof Period )
             {
-                buffer.append( object.getName() ).append( SEPARATOR );
+                buffer.append( object.getName() ).append( NAME_SEP );
             }
             else
             {
-                buffer.append( object != null ? ( object.getShortName() + SEPARATOR ) : EMPTY );
+                buffer.append( object != null ? ( object.getShortName() + NAME_SEP ) : EMPTY );
             }
         }
 
         String column = columnEncode( buffer.toString() );
 
-        return column.length() > 0 ? column.substring( 0, column.lastIndexOf( SEPARATOR ) ) : TOTAL_COLUMN_NAME;
+        return column != null && column.length() > 0 ? column.substring( 0, column.lastIndexOf( NAME_SEP ) ) : TOTAL_COLUMN_NAME;
     }
 
     /**
@@ -535,9 +535,7 @@ public class ReportTable
      */
     public Grid getGrid( Grid grid, Map<String, Object> valueMap, DisplayProperty displayProperty, boolean reportParamColumns )
     {
-        valueMap = new HashMap<>( valueMap );
-
-        sortKeys( valueMap );
+        valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         // ---------------------------------------------------------------------
         // Title
@@ -625,7 +623,7 @@ public class ReportTable
 
             for ( List<DimensionalItemObject> column : gridColumns )
             {
-                String key = getIdentifier( column, row );
+                String key = DimensionalObjectUtils.getKey( column, row );
 
                 Object value = valueMap.get( key );
 
@@ -638,10 +636,10 @@ public class ReportTable
             {
                 grid.removeCurrentWriteRow();
             }
-            
+
             // TODO hide empty columns
         }
-        
+
         if ( hideEmptyColumns )
         {
             grid.removeEmptyColumns();

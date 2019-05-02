@@ -47,7 +47,7 @@ public class HibernateOptionStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<Option> getOptions( int optionSetId, String key, Integer max )
+    public List<Option> getOptions( long optionSetId, String key, Integer max )
     {
         String hql = 
             "select option from OptionSet as optionset " +

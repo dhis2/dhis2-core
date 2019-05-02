@@ -45,6 +45,6 @@ public interface InterpretationStore
 
     int countReportTableInterpretations( ReportTable reportTable );
 
-    Interpretation getByChartId( int id );
+    Interpretation getByChartId( long id );
 
 }

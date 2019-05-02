@@ -36,7 +36,6 @@ import java.util.List;
  * @author Tri
  * @version $Id$
  */
-@Transactional
 public class DefaultSectionService
     implements SectionService
 {
@@ -63,7 +62,8 @@ public class DefaultSectionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addSection( Section section )
+    @Transactional
+    public long addSection( Section section )
     {
         sectionStore.save( section );
 
@@ -71,36 +71,42 @@ public class DefaultSectionService
     }
 
     @Override
+    @Transactional
     public void deleteSection( Section section )
     {
         sectionStore.delete( section );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Section> getAllSections()
     {
         return sectionStore.getAll();
     }
 
     @Override
-    public Section getSection( int id )
+    @Transactional(readOnly = true)
+    public Section getSection( long id )
     {
         return sectionStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Section getSection( String uid )
     {
         return sectionStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Section getSectionByName( String name, Integer dataSetId )
     {
         return sectionStore.getSectionByName( name, dataSetService.getDataSet( dataSetId ) );
     }
 
     @Override
+    @Transactional
     public void updateSection( Section section )
     {
         sectionStore.update( section );

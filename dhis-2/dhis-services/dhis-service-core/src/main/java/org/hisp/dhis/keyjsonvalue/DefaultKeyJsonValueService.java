@@ -36,7 +36,6 @@ import java.util.Date;
 /**
  * @author Stian Sandvold
  */
-@Transactional
 public class DefaultKeyJsonValueService
     implements KeyJsonValueService
 {
@@ -52,43 +51,50 @@ public class DefaultKeyJsonValueService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public List<String> getNamespaces()
     {
         return keyJsonValueStore.getNamespaces();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<String> getKeysInNamespace( String namespace )
     {
         return keyJsonValueStore.getKeysInNamespace( namespace );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
         return keyJsonValueStore.getKeysInNamespace( namespace, lastUpdated );
     }
 
     @Override
+    @Transactional
     public void deleteNamespace( String namespace )
     {
         keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public KeyJsonValue getKeyJsonValue( String namespace, String key )
     {
         return keyJsonValueStore.getKeyJsonValue( namespace, key );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
     {
         return keyJsonValueStore.getKeyJsonValueByNamespace( namespace );
     }
    
     @Override
-    public int addKeyJsonValue( KeyJsonValue keyJsonValue )
+    @Transactional
+    public long addKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         keyJsonValueStore.save( keyJsonValue );
 
@@ -96,18 +102,21 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
+    @Transactional
     public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         keyJsonValueStore.update( keyJsonValue );
     }
 
     @Override
+    @Transactional
     public void deleteKeyJsonValue( KeyJsonValue keyJsonValue )
     {
         keyJsonValueStore.delete( keyJsonValue );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public <T> T getValue( String namespace, String key, Class<T> clazz )
     {
         KeyJsonValue value = getKeyJsonValue( namespace, key );
@@ -121,6 +130,7 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
+    @Transactional
     public <T> void addValue( String namespace, String key, T object )
     {
         String value = JacksonUtils.toJson( object );
@@ -131,6 +141,7 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
+    @Transactional
     public <T> void updateValue( String namespace, String key, T object )
     {
         KeyJsonValue keyJsonValue = getKeyJsonValue( namespace, key );

@@ -92,7 +92,10 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
-        if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) ) return new ArrayList<>();
+        if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) )
+        {
+            return new ArrayList<>();
+        }
 
         OrganisationUnit organisationUnit = ( OrganisationUnit ) object;
 

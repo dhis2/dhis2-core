@@ -63,7 +63,7 @@ public class HibernatePeriodStore
     @Autowired
     private Environment env;
 
-    private static Cache<String, Integer> PERIOD_ID_CACHE;
+    private static Cache<String, Long> PERIOD_ID_CACHE;
     
     // -------------------------------------------------------------------------
     // Period
@@ -184,14 +184,14 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Integer id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
+        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
         
         Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
 
         return storedPeriod != null ? storedPeriod.copyTransientProperties( period ) : null;
     }
 
-    private Integer getPeriodId( Date startDate, Date endDate, PeriodType periodType )
+    private Long getPeriodId( Date startDate, Date endDate, PeriodType periodType )
     {
         Period period = getPeriod( startDate, endDate, periodType );
         

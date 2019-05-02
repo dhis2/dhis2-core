@@ -43,11 +43,11 @@ import static org.hisp.dhis.analytics.DataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Collection;
 import java.util.Date;
@@ -166,7 +166,7 @@ public class JdbcAnalyticsManager
 
             log.debug( sql );
 
-            Map<String, Object> map = null;
+            Map<String, Object> map;
 
             try
             {
@@ -226,8 +226,24 @@ public class JdbcAnalyticsManager
                 for ( DimensionalItemObject period : periods )
                 {
                     String[] keyCopy = keyArray.clone();
+
                     keyCopy[periodIndex] = ((Period) period).getIsoDate();
-                    dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+
+                    String replacementKey = TextUtils.toString( keyCopy, DIMENSION_SEP );
+
+                    if ( dataValueMap.containsKey( replacementKey )
+                        && ((Period) period).getPeriodType().spansMultipleCalendarYears() )
+                    {
+                        Object weightedAverage = AnalyticsUtils.calculateYearlyWeightedAverage(
+                            (Double) dataValueMap.get( replacementKey ), (Double) value,
+                                AnalyticsUtils.getBaseMonth( ((Period) period).getPeriodType() ) );
+
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), weightedAverage );
+                    }
+                    else
+                    {
+                        dataValueMap.put( TextUtils.toString( keyCopy, DIMENSION_SEP ), value );
+                    }
                 }
 
                 dataValueMap.remove( key );

@@ -21,6 +21,12 @@
 
         <property name="translations" type="jblTranslations"/>
 
+        <property name="bidirectional" column="bidirectional" not-null="true" />
+
+        <property name="fromToName" column="fromToName" not-null="true" />
+
+        <property name="toFromName" column="toFromName" />
+
         <many-to-one name="fromConstraint" class="org.hisp.dhis.relationship.RelationshipConstraint"
                      column="from_relationshipconstraintid"
                      foreign-key="fk_relationshiptype_from_relationshipconstraintid"
