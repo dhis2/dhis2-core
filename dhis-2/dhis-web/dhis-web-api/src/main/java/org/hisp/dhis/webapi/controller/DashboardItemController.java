@@ -55,6 +55,8 @@ import javax.servlet.http.HttpServletResponse;
 public class DashboardItemController
     extends AbstractCrudController<DashboardItem>
 {
+    //TODO this controller class is only needed for the pre 2.30 old dashboard app and should be removed
+
     @Autowired
     private DashboardService dashboardService;
 
