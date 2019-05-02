@@ -127,7 +127,7 @@ public class DefaultReportService
     {
         this.periodService = periodService;
     }
-    
+
     private I18nManager i18nManager;
 
     public void setI18nManager( I18nManager i18nManager )
@@ -154,7 +154,7 @@ public class DefaultReportService
         String organisationUnitUid, String type )
     {
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         Report report = getReport( reportUid );
 
         Map<String, Object> params = new HashMap<>();
@@ -250,9 +250,9 @@ public class DefaultReportService
         List<OrganisationUnit> organisationUnitHierarchy = new ArrayList<>();
         List<OrganisationUnit> organisationUnitChildren = new ArrayList<>();
         List<String> periods = new ArrayList<>();
-        
+
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         if ( ou != null )
         {
             organisationUnit = organisationUnitService.getOrganisationUnit( ou );
@@ -368,17 +368,5 @@ public class DefaultReportService
     public List<Report> getReportsBetweenByName( String name, int first, int max )
     {
         return reportStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public List<Report> getReportByName( String name )
-    {
-        return reportStore.getAllEqName( name );
-    }
-
-    @Override
-    public List<Report> getReportsByUid( List<String> uids )
-    {
-        return reportStore.getByUid( uids );
     }
 }

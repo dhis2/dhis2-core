@@ -38,10 +38,10 @@ import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.Parser;
-import org.hisp.dhis.parser.expression.ParserException;
+import org.hisp.dhis.parser.expression.*;
+import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -84,6 +84,8 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private TrackedEntityAttribute attributeA;
 
+    private RelationshipType relTypeA;
+
     private Date startDate = getDate( 2020, 1, 1 );
 
     private Date endDate = getDate( 2020, 12, 31 );
@@ -123,7 +125,7 @@ public class ProgramSqlGeneratorFunctionsTest
 
         dataElementB = createDataElement( 'B' );
         dataElementB.setDomainType( DataElementDomain.TRACKER );
-        dataElementB.setUid( "DataElmenB" );
+        dataElementB.setUid( "DataElmentB" );
 
         attributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         attributeA.setUid( "Attribute0A" );
@@ -152,7 +154,15 @@ public class ProgramSqlGeneratorFunctionsTest
         programIndicator.setProgram( programA );
         programIndicator.setAnalyticsType( AnalyticsType.EVENT );
 
+        relTypeA = new RelationshipType();
+        relTypeA.setUid( "RelatnTypeA");
+
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( dataElementService.getDataElement( dataElementB.getUid() ) ).thenReturn( dataElementB );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
+        when( programStageService.getProgramStage( programStageB.getUid() ) ).thenReturn( programStageB );
+        when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( relationshipTypeService.getRelationshipType( relTypeA.getUid() ) ).thenReturn( relTypeA );
         when( programIndicatorService.getAnalyticsSql( anyString(), eq(programIndicator), eq(startDate), eq(endDate) ) )
             .thenAnswer( i -> test( (String)i.getArguments()[0] ) );
     }
@@ -305,9 +315,9 @@ public class ProgramSqlGeneratorFunctionsTest
     @Test
     public void testRelationshipCountWithRelationshipId()
     {
-        String sql = test( "d2:relationshipCount('Zx7OEwPBUwD')" );
+        String sql = test( "d2:relationshipCount('RelatnTypeA')" );
         assertThat( sql, is( "(select count(*) from relationship r " +
-            "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'Zx7OEwPBUwD' " +
+            "join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatnTypeA' " +
             "join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid " +
             "join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)" ) );
     }
@@ -384,11 +394,75 @@ public class ProgramSqlGeneratorFunctionsTest
         test( "d2:zztop(#{ProgrmStagA.DataElmentA})" );
     }
 
+    @Test
+    public void testAggAvg()
+    {
+        String sql = test( "avg(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "avg(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggCount()
+    {
+        String sql = test( "count(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "count(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggMax()
+    {
+        String sql = test( "max(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "max(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggMin()
+    {
+        String sql = test( "min(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "min(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggStddev()
+    {
+        String sql = test( "stddev(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "stddev(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggSum()
+    {
+        String sql = test( "sum(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "sum(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggVariance()
+    {
+        String sql = test( "variance(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "variance(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testCompareStrings()
+    {
+        String sql = test( "'a' < \"b\"" );
+        assertThat( sql, is( "'a' < 'b'" ) );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
     private String test( String expression )
+    {
+        test( expression, new DefaultLiteral(), FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
+
+        return castString( test( expression, new SqlLiteral(), FUNCTION_GET_SQL, ITEM_GET_SQL ) );
+    }
+
+    private Object test( String expression, ExprLiteral exprLiteral,
+        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
     {
         Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "a" );
@@ -398,8 +472,8 @@ public class ProgramSqlGeneratorFunctionsTest
         CommonExpressionVisitor visitor = CommonExpressionVisitor.newBuilder()
             .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
             .withItemMap( PROGRAM_INDICATOR_ITEMS )
-            .withFunctionMethod( FUNCTION_GET_SQL )
-            .withItemMethod( ITEM_GET_SQL )
+            .withFunctionMethod( functionMethod )
+            .withItemMethod( itemMethod )
             .withConstantService( constantService )
             .withProgramIndicatorService( programIndicatorService )
             .withProgramStageService( programStageService )
@@ -410,13 +484,13 @@ public class ProgramSqlGeneratorFunctionsTest
             .withI18n( new I18n( null, null ) )
             .buildForProgramIndicatorExpressions();
 
-        visitor.setExpressionLiteral( new SqlLiteral() );
+        visitor.setExpressionLiteral( exprLiteral );
         visitor.setProgramIndicator( programIndicator );
         visitor.setReportingStartDate( startDate );
         visitor.setReportingEndDate( endDate );
         visitor.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
 
-        return castString( Parser.visit( expression, visitor ) );
+        return Parser.visit( expression, visitor );
     }
 
     private void setStartEventBoundary()

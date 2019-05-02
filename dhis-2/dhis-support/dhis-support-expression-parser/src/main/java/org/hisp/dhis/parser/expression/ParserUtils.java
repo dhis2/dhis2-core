@@ -319,16 +319,4 @@ public class ParserUtils
             throw new ParserExceptionWithoutContext( "Could not cast value to " + clazz.getSimpleName() );
         }
     }
-
-    /**
-     * Convert a quoted string to a string escaped properly for a SQL constant.
-     *
-     * @param s the quoted string
-     * @return a string escaped properly for a SQL constant
-     */
-    public static String sqlStringLiteral( String s )
-    {
-        return "'" + escapeSql( unescapeJava( trimQuotes( s ) ) ) + "'";
-    }
-
 }
