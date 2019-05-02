@@ -121,4 +121,5 @@ public interface EventService
 
     void validate( EventSearchParams params );
 
+    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 }
