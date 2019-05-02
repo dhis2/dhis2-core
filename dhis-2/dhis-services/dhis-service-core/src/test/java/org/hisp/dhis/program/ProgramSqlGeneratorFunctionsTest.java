@@ -443,6 +443,13 @@ public class ProgramSqlGeneratorFunctionsTest
         assertThat( sql, is( "variance(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
+    @Test
+    public void testCompareStrings()
+    {
+        String sql = test( "'a' < \"b\"" );
+        assertThat( sql, is( "'a' < 'b'" ) );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
