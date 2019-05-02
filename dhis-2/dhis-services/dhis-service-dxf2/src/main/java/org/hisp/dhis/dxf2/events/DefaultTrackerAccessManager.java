@@ -42,6 +42,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +63,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance )
     {
         List<String> errors = new ArrayList<>();

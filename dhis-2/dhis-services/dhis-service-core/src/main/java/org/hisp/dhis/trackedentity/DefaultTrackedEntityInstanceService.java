@@ -84,7 +84,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 /**
  * @author Abyot Asalefew Gizaw
  */
-@Transactional
+
 public class DefaultTrackedEntityInstanceService
     implements TrackedEntityInstanceService
 {
@@ -132,6 +132,7 @@ public class DefaultTrackedEntityInstanceService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
@@ -165,6 +166,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean sync )
     {        
         decideAccess( params );
@@ -183,6 +185,7 @@ public class DefaultTrackedEntityInstanceService
     // TODO lower index on attribute value?
 
     @Override
+    @Transactional(readOnly = true)
     public Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
     {        
         decideAccess( params );
@@ -318,6 +321,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
         User user = params.isInternalSearch() ? null : currentUserService.getCurrentUser();        
@@ -350,6 +354,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validate( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
     {
@@ -441,6 +446,7 @@ public class DefaultTrackedEntityInstanceService
     }
     
     @Override
+    @Transactional(readOnly = true)
     public void validateSearchScope( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
     {        
@@ -551,6 +557,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
@@ -727,6 +734,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional
     public int addTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.save( instance );
@@ -735,6 +743,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional
     public int createTrackedEntityInstance( TrackedEntityInstance instance, String representativeId,
         Integer relationshipTypeId, Set<TrackedEntityAttributeValue> attributeValues )
     {
@@ -781,12 +790,14 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityInstance( TrackedEntityInstance instance )
     {
         trackedEntityInstanceStore.update( instance );
     }
 
     @Override
+    @Transactional
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
@@ -797,24 +808,28 @@ public class DefaultTrackedEntityInstanceService
 
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityInstance getTrackedEntityInstance( int id )
     {
         return trackedEntityInstanceStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityInstance getTrackedEntityInstance( String uid )
     {
         return trackedEntityInstanceStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean trackedEntityInstanceExists( String uid )
     {
         return trackedEntityInstanceStore.exists( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ValidationCriteria validateEnrollment( TrackedEntityInstance instance, Program program )
     {
         for ( ValidationCriteria criteria : program.getValidationCriteria() )
