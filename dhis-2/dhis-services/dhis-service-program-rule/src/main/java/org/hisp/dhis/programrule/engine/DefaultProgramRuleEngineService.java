@@ -71,12 +71,12 @@ public class DefaultProgramRuleEngineService
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
-        ProgramInstance pi = programInstanceService.getProgramInstance( programInstance.getId() );
-
-        if ( pi == null )
+        if ( programInstance == null )
         {
             return ruleEffects;
         }
+
+        ProgramInstance pi = programInstanceService.getProgramInstance( programInstance.getId() );
 
         try
         {
@@ -106,12 +106,12 @@ public class DefaultProgramRuleEngineService
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstance.getId() );
-
-        if ( psi == null )
+        if ( programStageInstance == null )
         {
             return ruleEffects;
         }
+
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstance.getId() );
 
         try
         {
