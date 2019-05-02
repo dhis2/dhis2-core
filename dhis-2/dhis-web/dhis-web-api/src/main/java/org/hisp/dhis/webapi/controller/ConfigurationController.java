@@ -145,8 +145,8 @@ public class ConfigurationController
     }
 
     @PreAuthorize( "hasRole('ALL')" )
-    @ResponseStatus( value = HttpStatus.OK )
     @RequestMapping( value = "/systemId", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void setSystemId( @RequestBody( required = false ) String systemId )
     {
         systemId = ObjectUtils.firstNonNull( systemId, UUID.randomUUID().toString() );
