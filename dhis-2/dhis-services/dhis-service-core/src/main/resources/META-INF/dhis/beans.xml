@@ -1272,7 +1272,6 @@
   
    <bean id="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService"
     class="org.hisp.dhis.programstagefilter.DefaultProgramStageInstanceFilterService">
-    <property name="programStageInstanceFilterStore" ref="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore" />
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeService"
