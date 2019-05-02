@@ -254,7 +254,13 @@ public class DefaultProgramNotificationService
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramStageInstance programStageInstance )
     {
-        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( pnt, Collections.singletonList( programStageInstance ) );
+        if ( programStageInstance == null  || pnt == null )
+        {
+            return;
+        }
+
+        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateStore.get( pnt.getId() ),
+            Collections.singletonList( programStageInstanceStore.get( programStageInstance.getId() ) ) );
         sendAll( messageBatch );
     }
 

@@ -34,9 +34,7 @@ import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**

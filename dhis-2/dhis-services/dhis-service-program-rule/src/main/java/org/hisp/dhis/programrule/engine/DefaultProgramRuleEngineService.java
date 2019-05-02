@@ -32,7 +32,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,14 +60,27 @@ public class DefaultProgramRuleEngineService
     @Autowired
     private List<RuleActionImplementer> ruleActionImplementers;
 
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
     @Override
     public List<RuleEffect> evaluate( ProgramInstance programInstance )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        ProgramInstance pi = programInstanceService.getProgramInstance( programInstance.getId() );
+
+        if ( pi == null )
+        {
+            return ruleEffects;
+        }
+
         try
         {
-            ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+            ruleEffects = programRuleEngine.evaluateEnrollment( pi );
         }
         catch( Exception ex )
         {
@@ -91,9 +106,16 @@ public class DefaultProgramRuleEngineService
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstance.getId() );
+
+        if ( psi == null )
+        {
+            return ruleEffects;
+        }
+
         try
         {
-            ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+            ruleEffects = programRuleEngine.evaluateEvent( psi );
         }
         catch( Exception ex )
         {
