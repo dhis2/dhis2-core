@@ -368,6 +368,55 @@ public class ProgramSqlGeneratorFunctionsTest
         test( "d2:zztop(#{ProgrmStagA.DataElmentA})" );
     }
 
+    @Test
+    public void testAggAvg()
+    {
+        String sql = test( "avg(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "avg(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggCount()
+    {
+        String sql = test( "count(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "count(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggMax()
+    {
+        String sql = test( "max(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "max(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggMin()
+    {
+        String sql = test( "min(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "min(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggStddev()
+    {
+        String sql = test( "stddev(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "stddev(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggSum()
+    {
+        String sql = test( "sum(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "sum(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
+    @Test
+    public void testAggVariance()
+    {
+        String sql = test( "variance(#{ProgrmStagA.DataElmentA})" );
+        assertThat( sql, is( "variance(coalesce(\"DataElmentA\"::numeric,0))" ) );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

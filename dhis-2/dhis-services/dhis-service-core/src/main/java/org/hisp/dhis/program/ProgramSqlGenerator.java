@@ -319,6 +319,27 @@ public class ProgramSqlGenerator
             case D2_ZPVC:
                 return zeroPositiveValueCount( ctx.item() );
 
+            case AVG:
+                return "avg(" + castString( visit( ctx.expr( 0 ) ) ) + ")";
+
+            case COUNT:
+                return "count(" + castString( visit( ctx.expr( 0 ) ) ) + ")";
+
+            case MAX:
+                return "max(" + castString( visit( ctx.expr( 0 ) ) ) + ")";
+
+            case MIN:
+                return "min(" + castString( visit( ctx.expr( 0 ) ) ) + ")";
+
+            case STDDEV:
+                return "stddev(" + castString( visit( ctx.expr( 0 ) ) ) + ")";
+
+            case SUM:
+                return "sum(" + castString( visit( ctx.expr( 0 ) ) ) + ")";
+
+            case VARIANCE:
+                return "variance(" + castString( visit( ctx.expr( 0 ) ) ) + ")";
+
             default: // A program function defined in the grammar that is not defined here
                 throw new InternalParserException( "program function not recognized: " + ctx.getText() );
         }

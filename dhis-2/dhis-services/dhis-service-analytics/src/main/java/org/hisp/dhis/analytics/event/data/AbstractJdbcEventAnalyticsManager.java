@@ -89,8 +89,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
 
-    private final static String POSTGRES_LOWER_FUNCTION = "lower";
-
     protected final JdbcTemplate jdbcTemplate;
 
     protected final StatementBuilder statementBuilder;
@@ -247,7 +245,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                columns.add( getColumn( queryItem ) );
+                columns.add( quoteAlias( queryItem.getItemName() ) );
             }
         }
 
@@ -350,7 +348,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 for ( QueryItem queryItem : params.getItems() )
                 {
 
-                    String itemValue = rowSet.getString( queryItem.isText() ? POSTGRES_LOWER_FUNCTION : queryItem.getItemName() );
+                    String itemValue = rowSet.getString( queryItem.getItemName() );
                     String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( params, queryItem, itemValue ) : itemValue;
                     grid.addValue( gridValue );
                 }
@@ -494,7 +492,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected String getColumn( QueryItem item )
     {
         String col = quoteAlias( item.getItemName() );
-        return item.isText() ? POSTGRES_LOWER_FUNCTION + "(" + col + ")" : col;
+        return item.isText() ? "lower(" + col + ")" : col;
     }
 
     /**

@@ -29,6 +29,7 @@
 package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
@@ -92,6 +93,12 @@ public class ApiResponse
         return raw.jsonPath().getString( path );
     }
 
+    public <T> T extractObject( String path, Class<T> type )
+    {
+        return raw.jsonPath()
+            .getObject( path, type );
+    }
+
     public Object extract( String path )
     {
         return raw.jsonPath().get( path );
@@ -125,7 +132,7 @@ public class ApiResponse
 
     public JsonObject getBody()
     {
-        return raw.getBody().as( JsonObject.class, ObjectMapperType.GSON );
+        return extractJsonObject( "" );
     }
 
     public boolean isEntityCreated()
@@ -140,15 +147,20 @@ public class ApiResponse
 
     public List<ImportSummary> getImportSummaries()
     {
-        if ( this.extract( "responseType" ) != null )
+        String pathToImportSummaries = "";
+        if ( this.extract( "response.responseType" ) != null )
         {
+            pathToImportSummaries = "response.";
+        }
 
-            switch ( this.extract( "responseType" ).toString() )
+        if ( this.extract( pathToImportSummaries + "responseType" ) != null )
+        {
+            switch ( this.extract( pathToImportSummaries + "responseType" ).toString() )
             {
             case "ImportSummaries":
-                return this.extractList( "importSummaries", ImportSummary.class );
+                return this.extractList( pathToImportSummaries + "importSummaries", ImportSummary.class );
             case "ImportSummary":
-                return Arrays.asList( raw.getBody().as( ImportSummary.class ) );
+                return Arrays.asList( this.raw.jsonPath().getObject( pathToImportSummaries, ImportSummary.class ) );
             }
 
         }
@@ -174,6 +186,14 @@ public class ApiResponse
                 return is.getStatus().equalsIgnoreCase( "SUCCESS" );
             } )
             .collect( Collectors.toList() );
+    }
+
+    public void prettyPrint() {
+        raw.prettyPrint();
+    }
+
+    public String getContentType() {
+        return raw.getContentType();
     }
 
 }
