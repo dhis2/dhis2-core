@@ -188,6 +188,8 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
+
+    @Override
     @Transactional(readOnly = true)
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
@@ -486,6 +488,12 @@ public abstract class AbstractEnrollmentService
         ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
 
+        updateCoordinates( program, enrollment, programInstance );
+        updateAttributeValues( enrollment, importOptions );
+        updateDateFields( enrollment, programInstance );
+        programInstance.setFollowup( enrollment.getFollowup() );
+        programInstance.setStoredBy( storedBy );
+
         programInstanceService.addProgramInstance( programInstance );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment );
@@ -494,14 +502,6 @@ public abstract class AbstractEnrollmentService
         {
             return importSummary;
         }
-
-        updateCoordinates( program, enrollment, programInstance );
-        updateAttributeValues( enrollment, importOptions );
-        updateDateFields( enrollment, programInstance );
-        programInstance.setFollowup( enrollment.getFollowup() );
-        programInstance.setStoredBy( storedBy );
-
-        programInstanceService.updateProgramInstance( programInstance );
 
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true, true );
 
@@ -602,7 +602,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
+        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -622,6 +622,7 @@ public abstract class AbstractEnrollmentService
     @Transactional
     public ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession )
     {
+        sortEnrollmentUpdates( enrollments );
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
@@ -671,7 +672,7 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
+        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -979,9 +980,9 @@ public abstract class AbstractEnrollmentService
         return user == null || !user.isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
     }
 
-    private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
+    private Set<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
+        Set<ImportConflict> importConflicts = new HashSet<>();
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.getTrackedEntityInstance(
@@ -1003,7 +1004,7 @@ public abstract class AbstractEnrollmentService
         for ( Attribute attribute : enrollment.getAttributes() )
         {
             attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-            importConflicts.addAll( validateAttributeType( attribute, importOptions ) );
+            validateAttributeType( attribute, importOptions, importConflicts );
         }
 
         TrackedEntityInstance instance = trackedEntityInstanceService.getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
@@ -1023,8 +1024,8 @@ public abstract class AbstractEnrollmentService
             {
                 OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, instance.getOrgUnit() );
 
-                importConflicts.addAll( checkScope( trackedEntityInstance, trackedEntityAttribute,
-                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, program ) );
+                checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
+                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, importConflicts );
             }
 
             attributeValueMap.remove( trackedEntityAttribute.getUid() );
@@ -1057,25 +1058,22 @@ public abstract class AbstractEnrollmentService
         return importConflicts;
     }
 
-    private List<ImportConflict> checkScope( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
-        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit, Program program )
+    private void checkAttributeUniquenessWithinScope( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
+        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
+        Set<ImportConflict> importConflicts )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
-
-        if ( trackedEntityAttribute == null || value == null )
+        if ( value == null )
         {
-            return importConflicts;
+            return;
         }
 
-        String errorMessage = trackedEntityAttributeService.validateScope( trackedEntityAttribute, value, trackedEntityInstance,
-            organisationUnit, program );
+        String errorMessage = trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
+            trackedEntityAttribute, value, trackedEntityInstance, organisationUnit );
 
         if ( errorMessage != null )
         {
             importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
         }
-
-        return importConflicts;
     }
 
     private void updateAttributeValues( Enrollment enrollment, ImportOptions importOptions )
@@ -1130,15 +1128,15 @@ public abstract class AbstractEnrollmentService
         return entityInstance;
     }
 
-    private List<ImportConflict> validateAttributeType( Attribute attribute, ImportOptions importOptions )
+    private void validateAttributeType( Attribute attribute, ImportOptions importOptions,
+        Set<ImportConflict> importConflicts )
     {
-        List<ImportConflict> importConflicts = Lists.newArrayList();
+        //Cache is populated if it is a batch operation. Otherwise, it is not.
         TrackedEntityAttribute teAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(), attribute.getAttribute() );
 
         if ( teAttribute == null )
         {
             importConflicts.add( new ImportConflict( "Attribute.attribute", "Does not point to a valid attribute." ) );
-            return importConflicts;
         }
 
         String errorMessage = trackedEntityAttributeService.validateValueType( teAttribute, attribute.getValue() );
@@ -1147,8 +1145,6 @@ public abstract class AbstractEnrollmentService
         {
             importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
         }
-
-        return importConflicts;
     }
 
     private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment, String storedBy )
@@ -1233,6 +1229,16 @@ public abstract class AbstractEnrollmentService
         }
 
         return importOptions;
+    }
+
+    /**
+     * Sorts enrollments according to enrollment identifier.
+     *
+     * @param events the list of events.
+     */
+    private void sortEnrollmentUpdates( List<Enrollment> enrollments )
+    {
+        enrollments.sort( ( a, b ) -> a.getEnrollment().compareTo( b.getEnrollment() ) );
     }
 
     private void reloadUser(ImportOptions importOptions)

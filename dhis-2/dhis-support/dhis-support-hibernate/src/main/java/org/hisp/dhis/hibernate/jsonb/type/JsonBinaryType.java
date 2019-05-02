@@ -107,9 +107,9 @@ public class JsonBinaryType implements UserType, ParameterizedType
             {
                 content = ((PGobject) result).getValue();
             }
-            
+
             // Other types currently ignored
-            
+
             if ( content != null )
             {
                 return convertJsonToObject( content );
@@ -118,7 +118,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
         return null;
     }
-    
+
     @Override
     public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session ) throws HibernateException, SQLException
     {
@@ -138,6 +138,11 @@ public class JsonBinaryType implements UserType, ParameterizedType
     @Override
     public Object deepCopy( Object value ) throws HibernateException
     {
+        if ( value == null )
+        {
+            return null;
+        }
+
         String json = convertObjectToJson( value );
         return convertJsonToObject( json );
     }
@@ -187,7 +192,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    private void init( Class klass )
+    protected void init( Class klass )
     {
         returnedClass = klass;
         reader = MAPPER.readerFor( klass );
@@ -199,7 +204,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
         try
         {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            
+
             if ( classLoader != null )
             {
                 return classLoader.loadClass( name );
@@ -214,7 +219,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     /**
      * Serializes an object to JSON.
-     * 
+     *
      * @param object the object to convert.
      * @return JSON content.
      */
@@ -232,7 +237,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     /**
      * Deserializes JSON content to an object.
-     * 
+     *
      * @param content the JSON content.
      * @return an object.
      */

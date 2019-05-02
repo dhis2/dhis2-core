@@ -126,12 +126,16 @@ public class FileResourceCleanUpJob
 
         List<DataElement> elements = dataElementService.getAllDataElementsByValueType( ValueType.FILE_RESOURCE );
 
-        dataValueAuditService.getDataValueAudits( elements, new ArrayList<Period>(),
-            new ArrayList<OrganisationUnit>(), null, null, null ).stream()
-            .filter( audit -> new DateTime( audit.getCreated() ).plus( retentionStrategy.getRetentionTime() ).isBefore( DateTime.now() ) )
-            .map( audit -> fileResourceService.getFileResource( audit.getValue() ) )
-            .filter( fr -> fr != null )
-            .forEach( fr -> expiredFileResources.add( ImmutablePair.of( fr.getName(), fr.getUid() ) ) );
+        if( !elements.isEmpty() )
+        {
+            dataValueAuditService.getDataValueAudits( elements, new ArrayList<Period>(),
+                new ArrayList<OrganisationUnit>(), null, null, null ).stream()
+                .filter( audit -> new DateTime( audit.getCreated() ).plus( retentionStrategy.getRetentionTime() )
+                    .isBefore( DateTime.now() ) )
+                .map( audit -> fileResourceService.getFileResource( audit.getValue() ) )
+                .filter( fr -> fr != null )
+                .forEach( fr -> expiredFileResources.add( ImmutablePair.of( fr.getName(), fr.getUid() ) ) );
+        }
 
         return expiredFileResources;
     }

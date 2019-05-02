@@ -76,8 +76,9 @@ public class SchedulerStart extends AbstractStartupRoutine
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
-    private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
     private final String DEFAULT_KAFKA_TRACKER = "Kafka Tracker Consume";
+    private final String DEFAULT_KAFKA_TRACKER_UID = "ntWCT2BMalb";
+    private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
     private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
 
     @Autowired
@@ -235,6 +236,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration kafkaTracker = new JobConfiguration( DEFAULT_KAFKA_TRACKER,
                 KAFKA_TRACKER, "* * * * * ?", null, true, true );
+            kafkaTracker.setUid( DEFAULT_KAFKA_TRACKER_UID );
             addAndScheduleJob( kafkaTracker );
         }
 

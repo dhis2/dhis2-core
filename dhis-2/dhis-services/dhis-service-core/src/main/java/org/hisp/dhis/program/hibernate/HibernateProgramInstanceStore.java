@@ -47,6 +47,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.jdbc.BadSqlGrammarException;
 
 import java.util.Date;
 import java.util.List;
@@ -202,15 +203,23 @@ public class HibernateProgramInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=? and deleted is false", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        return jdbcTemplate.queryForRowSet( "select * from programinstance where uid='" + uid + "' and deleted is false limit 1;" ).next();
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=?", Integer.class, uid );
-        return result != null && result > 0;
+        if ( uid == null )
+        {
+            return false;
+        }
+
+        return jdbcTemplate.queryForRowSet( "select * from programinstance where uid='" + uid + "' limit 1;" ).next();
     }
 
 

@@ -28,16 +28,18 @@ package org.hisp.dhis.commons.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.hisp.dhis.commons.util.TextUtils.*;
+import org.junit.Test;
 
 import java.util.AbstractSequentialList;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 
-import org.hisp.dhis.commons.util.TextUtils;
-import org.junit.Test;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Lars Helge Overland
@@ -160,5 +162,13 @@ public class TextUtilsTest
         actual = TextUtils.replace( "Hi [name] and welcome to [place]", "[name]", "Frank", "[place]", "Oslo" );
         
         assertEquals( "Hi Frank and welcome to Oslo", actual );
+    }
+
+    @Test
+    public void testGetCommaDelimitedString()
+    {
+        assertThat( TextUtils.getCommaDelimitedString( Arrays.asList( 1, 2, 3, 4, 5 ) ), is( "1, 2, 3, 4, 5" ) );
+        assertThat( TextUtils.getCommaDelimitedString( Collections.singletonList( 1 ) ), is( "1" ) );
+        assertThat( TextUtils.getCommaDelimitedString( null ), is( "" ) );
     }
 }

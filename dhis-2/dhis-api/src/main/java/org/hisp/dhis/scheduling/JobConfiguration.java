@@ -34,7 +34,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
@@ -42,8 +42,7 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
 import javax.annotation.Nonnull;
 import java.util.Date;
 
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
+import static org.hisp.dhis.scheduling.JobStatus.*;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
 /**
@@ -61,8 +60,7 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = JobConfigurationDeserializer.class )
 public class JobConfiguration
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
     private String cronExpression;
 
@@ -334,7 +332,7 @@ public class JobConfiguration
         {
             return true;
         }
-        if ( jobStatus != jobConfiguration.getJobStatus() )
+        if ( !isEqualJobStatus( jobStatus, jobConfiguration.getJobStatus() ) )
         {
             return true;
         }
@@ -347,6 +345,16 @@ public class JobConfiguration
             return true;
         }
         return enabled != jobConfiguration.isEnabled();
+    }
+
+    private boolean isEqualJobStatus( JobStatus jobStatus1, JobStatus jobStatus2 )
+    {
+        if ( jobStatus1 == jobStatus2 )
+        {
+            return true;
+        }
+
+        return ( jobStatus1 == SCHEDULED || jobStatus1 == RUNNING ) && ( jobStatus2 == SCHEDULED || jobStatus2 == RUNNING );
     }
 
     @Override

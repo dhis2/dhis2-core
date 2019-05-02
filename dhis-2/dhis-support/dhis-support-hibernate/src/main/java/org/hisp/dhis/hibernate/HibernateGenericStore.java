@@ -157,7 +157,7 @@ public class HibernateGenericStore<T>
         query.setHint( HibernateUtils.HIBERNATE_CACHEABLE_HINT, cacheable );
         return query;
     }
-    
+
     /**
      * Creates a Criteria for the implementation Class type.
      * <p>
@@ -251,6 +251,18 @@ public class HibernateGenericStore<T>
         return getCriteria( expressions ).list();
     }
 
+    /**
+     * Creates a untyped SqlQuery.
+     *
+     * @param sql the SQL query String.
+     * @return a NativeQuery<T> instance.
+     */
+    protected final NativeQuery<?> getUntypedSqlQuery( String sql  )
+    {
+        return getSession().createNativeQuery( sql )
+            .setCacheable( cacheable );
+    }
+
     // -------------------------------------------------------------------------
     // GenericIdentifiableObjectStore implementation
     // -------------------------------------------------------------------------
@@ -259,33 +271,33 @@ public class HibernateGenericStore<T>
     public void save( T object )
     {
         AuditLogUtil.infoWrapper( log, object, AuditLogUtil.ACTION_CREATE );
-        
+
         getSession().save( object );
     }
-    
+
     @Override
     public void update( T object )
     {
         getSession().update( object );
     }
-    
+
     @Override
     public void delete( T object )
     {
         getSession().delete( object );
     }
-    
+
     @Override
     public T get( int id )
     {
-        T object = (T) getSession().get( getClazz(), id );
-        
+        T object = getSession().get( getClazz(), id );
+
         return postProcessObject( object );
     }
-    
+
     /**
      * Override for further processing of a retrieved object.
-     * 
+     *
      * @param object the object.
      * @return the processed object.
      */
@@ -293,14 +305,14 @@ public class HibernateGenericStore<T>
     {
         return object;
     }
-    
+
     @Override
     @SuppressWarnings( "unchecked" )
     public List<T> getAll()
     {
         return getCriteria().list();
     }
-    
+
     @Override
     @SuppressWarnings( "unchecked" )
     public List<T> getAllByAttributes( List<Attribute> attributes )
