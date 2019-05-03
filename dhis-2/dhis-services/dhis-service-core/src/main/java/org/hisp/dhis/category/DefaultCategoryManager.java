@@ -86,7 +86,7 @@ public class DefaultCategoryManager
 
             for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
             {
-                if ( optionCombo.equals( persistedOptionCombo ) || optionCombo.getUid().equals( persistedOptionCombo.getUid() ) )
+                if ( optionCombo.equals( persistedOptionCombo ) || persistedOptionCombo.getUid().equals( optionCombo.getUid() ) )
                 {
                     isDelete = false;
                     if ( !optionCombo.getName().equals( persistedOptionCombo.getName() ) )
