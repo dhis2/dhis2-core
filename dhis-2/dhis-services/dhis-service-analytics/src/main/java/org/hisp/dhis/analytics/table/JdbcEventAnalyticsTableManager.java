@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -101,6 +102,29 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
+    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists.newArrayList(
+            new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
+            new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
+            new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
+            new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ),
+            new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
+            new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
+            new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
+            new AnalyticsTableColumn( quote( "duedate" ),TIMESTAMP, "psi.duedate" ),
+            new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
+            new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
+            new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
+            new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
+            new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
+            new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ),
+            // TODO lat and lng deprecated in 2.30, should be removed after 2.33
+            new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
+            new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
+            new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
+            new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
+            new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" )
+    );
+
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
@@ -144,6 +168,11 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
+    public List<AnalyticsTableColumn> getDefaultColumns() {
+        return this.DEFAULT_COLS;
+    }
+
+    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
         return Lists.newArrayList(
@@ -158,29 +187,8 @@ public class JdbcEventAnalyticsTableManager
         final Program program = partition.getMasterTable().getProgram();
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );
         final String end = DateUtils.getMediumDateString( partition.getEndDate() );
-        final String tableName = partition.getTempTableName();
 
-        String sql = "insert into " + partition.getTempTableName() + " (";
-
-        List<AnalyticsTableColumn> columns = getDimensionColumns( program );
-
-        validateDimensionColumns( columns );
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getName() + ",";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + ") select ";
-
-        for ( AnalyticsTableColumn col : columns )
-        {
-            sql += col.getAlias() + ",";
-        }
-
-        sql = TextUtils.removeLastComma( sql ) + " ";
-
-        sql += "from programstageinstance psi " +
+        String sqlJoin = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
@@ -200,7 +208,7 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate is not null " +
             "and psi.deleted is false ";
 
-        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+        populateTableInternal( partition, getDimensionColumns( program ), sqlJoin );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
@@ -248,11 +256,7 @@ public class JdbcEventAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
-        for ( PeriodType periodType : PeriodType.getAvailablePeriodTypes() )
-        {
-            String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, TEXT, "dps." + column ) );
-        }
+        columns.addAll( addPeriodColumns( "dps" ) );
 
         for ( DataElement dataElement : program.getDataElements() )
         {
@@ -266,7 +270,7 @@ public class JdbcEventAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
-                dataClause + ") as " + quote( dataElement.getUid() );
+                dataClause + ")" + addClosingParentheses(select)  + " as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
@@ -329,28 +333,7 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "duedate" ),TIMESTAMP, "psi.duedate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ) );
-        columns.add( new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ) );
-        columns.add( new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ) );
-
-        // TODO lat and lng deprecated in 2.30, should be removed after 2.33
-        columns.add( new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ) );
-        columns.add( new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ) );
-
-        columns.add( new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ) );
-        columns.add( new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ) );
+        columns.addAll(getDefaultColumns());
 
         if ( program.isRegistration() )
         {
@@ -359,6 +342,25 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return filterDimensionColumns( columns );
+    }
+
+    private String addClosingParentheses( String selectSql )
+    {
+        int open = 0;
+
+        for ( int i = 0; i < selectSql.length(); i++ )
+        {
+            if ( selectSql.charAt( i ) == '(' )
+            {
+                open++;
+            }
+            else if ( selectSql.charAt( i ) == ')' )
+            {
+                open--;
+            }
+
+        }
+        return StringUtils.repeat(")", open);
     }
 
     private String getDataClause( String uid, ValueType valueType )

@@ -86,6 +86,9 @@ public class JdbcOrgUnitTargetTableManager
             databaseInfo, jdbcTemplate );
     }
 
+    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists
+        .newArrayList( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
+
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
@@ -164,7 +167,7 @@ public class JdbcOrgUnitTargetTableManager
             columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
+        columns.addAll( getDefaultColumns() );
 
         return filterDimensionColumns( columns );
     }
@@ -186,5 +189,10 @@ public class JdbcOrgUnitTargetTableManager
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         return ConcurrentUtils.getImmediateFuture();
+    }
+
+    @Override
+    public List<AnalyticsTableColumn> getDefaultColumns() {
+        return DEFAULT_COLS;
     }
 }

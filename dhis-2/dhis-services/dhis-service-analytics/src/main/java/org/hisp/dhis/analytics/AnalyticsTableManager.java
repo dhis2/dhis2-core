@@ -173,4 +173,6 @@ public interface AnalyticsTableManager
      * @return a future representing the asynchronous task.
      */
     Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
+
+    List<AnalyticsTableColumn> getDefaultColumns();
 }
