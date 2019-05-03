@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -45,10 +46,12 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -74,6 +77,8 @@ public class EventsAnalyticsManagerTest
     @Mock
     private SqlRowSet rowSet;
 
+    private ProgramStage programStage;
+
     @Before
     public void setUp()
     {
@@ -88,26 +93,13 @@ public class EventsAnalyticsManagerTest
     }
 
     @Test
-    public void verifyLowerFunctionIsUsedAsColumnName()
+    public void verifyGetAggregatedEventQuery()
     {
-        when( rowSet.getString( "lower" ) ).thenReturn( "alfa" );
-
-        Grid resultGrid = subject.getAggregatedEventData( createRequestParams(ValueType.TEXT), createGrid(), 200000 );
-
-        assertThat( resultGrid.getRows(), hasSize( 1 ) );
-        assertThat( resultGrid.getRow( 0 ), hasSize( 4 ) );
-        assertThat( resultGrid.getRow( 0 ).get( 0 ), is( "alfa" ) );
-        assertThat( resultGrid.getRow( 0 ).get( 1 ), is( "201701" ) );
-        assertThat( resultGrid.getRow( 0 ).get( 2 ), is( "Sierra Leone" ) );
-        assertThat( resultGrid.getRow( 0 ).get( 3 ), is( 100 ) );
-    }
-
-    @Test
-    public void verifyLowerFunctionIsNotUsedAsColumnNameWhenQueryItemIsNotText()
-    {
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
-        Grid resultGrid = subject.getAggregatedEventData( createRequestParams(ValueType.INTEGER), createGrid(), 200000 );
+        Grid resultGrid = subject.getAggregatedEventData( createRequestParams( ValueType.INTEGER ), createGrid(),
+            200000 );
 
         assertThat( resultGrid.getRows(), hasSize( 1 ) );
         assertThat( resultGrid.getRow( 0 ), hasSize( 4 ) );
@@ -115,11 +107,48 @@ public class EventsAnalyticsManagerTest
         assertThat( resultGrid.getRow( 0 ).get( 1 ), is( "201701" ) );
         assertThat( resultGrid.getRow( 0 ).get( 2 ), is( "Sierra Leone" ) );
         assertThat( resultGrid.getRow( 0 ).get( 3 ), is( 100 ) );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from analytics_event_ebayegv0exc as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid() + "' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+        assertThat( sql.getValue(), is( expected ) );
     }
 
-    private EventQueryParams createRequestParams(ValueType queryItemValueType)
+    @Test
+    public void verifyGetAggregatedEventQueryWithFilter()
+    {
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
+        when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
+
+        Grid resultGrid = subject.getAggregatedEventData( createRequestParamsWithFilter( ValueType.TEXT ), createGrid(),
+            200000 );
+
+        assertThat( resultGrid.getRows(), hasSize( 1 ) );
+        assertThat( resultGrid.getRow( 0 ), hasSize( 4 ) );
+        assertThat( resultGrid.getRow( 0 ).get( 0 ), is( "2000" ) );
+        assertThat( resultGrid.getRow( 0 ).get( 1 ), is( "201701" ) );
+        assertThat( resultGrid.getRow( 0 ).get( 2 ), is( "Sierra Leone" ) );
+        assertThat( resultGrid.getRow( 0 ).get( 3 ), is( 100 ) );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from analytics_event_ebayegv0exc as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid()
+            + "' and lower(ax.\"fWIAEtYVEGk\") > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+        assertThat( sql.getValue(), is( expected ) );
+    }
+
+    private EventQueryParams createRequestParamsWithFilter( ValueType queryItemValueType )
     {
 
+        EventQueryParams.Builder params = new EventQueryParams.Builder( createRequestParams( queryItemValueType ) );
+        QueryItem queryItem = params.build().getItems().get( 0 );
+        queryItem.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
+
+        return params.build();
+    }
+
+    private EventQueryParams createRequestParams( ValueType queryItemValueType )
+    {
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deA.setUid( "fWIAEtYVEGk" );
 
@@ -135,7 +164,8 @@ public class EventsAnalyticsManagerTest
 
         Program p = createProgram( 'A' );
         params.withProgram( p );
-        params.withProgramStage( createProgramStage( 'B', p ) );
+        this.programStage = createProgramStage( 'B', p );
+        params.withProgramStage( programStage );
 
         QueryItem queryItem = new QueryItem( dio );
         queryItem.setValueType( queryItemValueType );
@@ -149,7 +179,7 @@ public class EventsAnalyticsManagerTest
     {
         Grid grid = new ListGrid();
         grid.addHeader(
-                new GridHeader( "fWIAEtYVEGk", "Mode of discharge", ValueType.TEXT, "java.lang.String", false, true ) );
+            new GridHeader( "fWIAEtYVEGk", "Mode of discharge", ValueType.TEXT, "java.lang.String", false, true ) );
         grid.addHeader( new GridHeader( "pe", "Period", ValueType.TEXT, "java.lang.String", false, true ) );
         grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, "java.lang.Double", false, true ) );
         return grid;
