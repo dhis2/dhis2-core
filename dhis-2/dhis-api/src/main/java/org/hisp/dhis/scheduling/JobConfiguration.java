@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,17 +29,26 @@ package org.hisp.dhis.scheduling;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeId;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.jackson.JobConfigurationSanitizer;
 import org.hisp.dhis.schema.annotation.Property;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
 
+import javax.annotation.Nonnull;
 import java.util.Date;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -59,9 +68,9 @@ import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
  * @author Henning Håkonsen
  */
 @JacksonXmlRootElement( localName = "jobConfiguration", namespace = DxfNamespaces.DXF_2_0 )
-@JsonDeserialize( using = JobConfigurationDeserializer.class )
+@JsonDeserialize( converter = JobConfigurationSanitizer.class )
 public class JobConfiguration
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject implements SecondaryMetadataObject
 {
     private String cronExpression;
 
@@ -86,7 +95,7 @@ public class JobConfiguration
     private boolean inMemoryJob = false;
 
     private String userUid;
-    
+
     private boolean leaderOnlyJob = false;
 
     public JobConfiguration()
@@ -114,7 +123,7 @@ public class JobConfiguration
         this.inMemoryJob = inMemoryJob;
         constructor( name, jobType, cronExpression, jobParameters, continuousExecution, enabled );
     }
-    
+
     public JobConfiguration( String name, JobType jobType, String cronExpression, JobParameters jobParameters, boolean leaderOnlyJob)
     {
         this.leaderOnlyJob = leaderOnlyJob;
@@ -206,7 +215,7 @@ public class JobConfiguration
     {
         this.enabled = enabled;
     }
-    
+
     public void setLeaderOnlyJob( boolean leaderOnlyJob )
     {
         this.leaderOnlyJob = leaderOnlyJob;
@@ -231,34 +240,35 @@ public class JobConfiguration
 
     @JacksonXmlProperty
     @JsonProperty
+    @JsonTypeId
     public JobType getJobType()
     {
         return jobType;
     }
 
     @JacksonXmlProperty
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public JobStatus getJobStatus()
     {
         return jobStatus;
     }
 
     @JacksonXmlProperty
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public Date getLastExecuted()
     {
         return lastExecuted;
     }
 
     @JacksonXmlProperty
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public JobStatus getLastExecutedStatus()
     {
         return lastExecutedStatus;
     }
 
     @JacksonXmlProperty
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public String getLastRuntimeExecution()
     {
         return lastRuntimeExecution;
@@ -267,13 +277,21 @@ public class JobConfiguration
     @JacksonXmlProperty
     @JsonProperty
     @Property( required = FALSE )
+    @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "jobType" )
+    @JsonSubTypes( value = {
+        @JsonSubTypes.Type( value = AnalyticsJobParameters.class, name = "ANALYTICS_TABLE" ),
+        @JsonSubTypes.Type( value = MonitoringJobParameters.class, name = "MONITORING" ),
+        @JsonSubTypes.Type( value = PredictorJobParameters.class, name = "PREDICTOR" ),
+        @JsonSubTypes.Type( value = PushAnalysisJobParameters.class, name = "PUSH_ANALYSIS" ),
+        @JsonSubTypes.Type( value = SmsJobParameters.class, name = "SMS_SEND" ),
+    } )
     public JobParameters getJobParameters()
     {
         return jobParameters;
     }
 
     @JacksonXmlProperty
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public Date getNextExecutionTime()
     {
         return nextExecutionTime;
@@ -287,7 +305,7 @@ public class JobConfiguration
     }
 
     @JacksonXmlProperty
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public boolean isConfigurable()
     {
         return jobType.isConfigurable();
@@ -299,7 +317,7 @@ public class JobConfiguration
     {
         return enabled;
     }
-    
+
     @JacksonXmlProperty
     @JsonProperty
     public boolean isLeaderOnlyJob()
@@ -313,48 +331,39 @@ public class JobConfiguration
     }
 
     @JacksonXmlProperty
-    @JsonProperty
+    @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public String getUserUid()
     {
         return userUid;
     }
 
-    @Override
-    public int compareTo( IdentifiableObject jobConfiguration )
+    /**
+     * Checks if this job has changes compared to the specified job configuration that are only
+     * allowed for configurable jobs.
+     *
+     * @param jobConfiguration the job configuration that should be checked.
+     * @return <code>true</code> if this job configuration has changes in fields that are only
+     * allowed for configurable jobs, <code>false</code> otherwise.
+     */
+    public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration jobConfiguration )
     {
-        JobConfiguration compareJobConfiguration = (JobConfiguration) jobConfiguration;
-
-        if ( jobType != compareJobConfiguration.getJobType() )
+        if ( jobType != jobConfiguration.getJobType() )
         {
-            return -1;
+            return true;
         }
-
-        if ( jobStatus != compareJobConfiguration.getJobStatus() )
+        if ( jobStatus != jobConfiguration.getJobStatus() )
         {
-            return -1;
+            return true;
         }
-
-        if ( jobParameters != compareJobConfiguration.getJobParameters() )
+        if ( jobParameters != jobConfiguration.getJobParameters() )
         {
-            return -1;
+            return true;
         }
-
-        if ( continuousExecution != compareJobConfiguration.isContinuousExecution() )
+        if ( continuousExecution != jobConfiguration.isContinuousExecution() )
         {
-            return -1;
+            return true;
         }
-
-        if ( enabled != compareJobConfiguration.isEnabled() )
-        {
-            return -1;
-        }
-
-        if ( !cronExpression.equals( compareJobConfiguration.getCronExpression() ) )
-        {
-            return 1;
-        }
-
-        return -1;
+        return enabled != jobConfiguration.isEnabled();
     }
 
     @Override

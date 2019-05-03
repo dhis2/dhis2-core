@@ -85,7 +85,7 @@ public class DefaultValidationResultService
     }
 
     @Override
-    public ValidationResult getById( int id )
+    public ValidationResult getById( long id )
     {
         return validationResultStore.getById( id );
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,27 @@ package org.hisp.dhis.scheduling.parameters;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.parameters.jackson.PushAnalysisJobParametersDeserializer;
+
+import java.util.Optional;
 
 /**
  * @author Henning Håkonsen
  */
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+@JsonDeserialize( using = PushAnalysisJobParametersDeserializer.class )
 public class PushAnalysisJobParameters
     implements JobParameters
 {
     private static final long serialVersionUID = -1848833906375595488L;
 
-    @JsonProperty( required = true )
     private String pushAnalysis;
 
     public PushAnalysisJobParameters()
@@ -53,19 +61,27 @@ public class PushAnalysisJobParameters
         this.pushAnalysis = pushAnalysis;
     }
 
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getPushAnalysis()
     {
         return pushAnalysis;
     }
 
+    public void setPushAnalysis( String pushAnalysis )
+    {
+        this.pushAnalysis = pushAnalysis;
+    }
+
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
         if ( pushAnalysis == null )
         {
-            return new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" );
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, pushAnalysis, "pushAnalysis" ));
         }
 
-        return null;
+        return Optional.empty();
     }
+
 }

@@ -28,6 +28,7 @@ package org.hisp.dhis.dimension;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -387,6 +388,14 @@ public class DefaultDimensionService
     }
 
     @Override
+    public DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId )
+    {
+        Set<DimensionalItemObject> itemIds = getDataDimensionalItemObjects( Sets.newHashSet( itemId ) );
+
+        return itemIds.isEmpty() ? null : itemIds.iterator().next();
+    }
+
+    @Override
     public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds )
     {
         return new HashSet<>( getDataDimensionalItemObjectMap( itemIds ).values() );
@@ -504,7 +513,7 @@ public class DefaultDimensionService
      *                      associates each id of that class with an atomic object.
      * @return a map from the item ids to the dimension item objects.
      */
-    private Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap(Set<DimensionalItemId> itemIds,
+    private Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap( Set<DimensionalItemId> itemIds,
         MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects )
     {
         Map<DimensionalItemId, DimensionalItemObject> itemObjectMap = new HashMap<>();

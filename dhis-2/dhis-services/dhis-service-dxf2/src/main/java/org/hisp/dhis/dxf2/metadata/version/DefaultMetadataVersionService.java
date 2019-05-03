@@ -40,7 +40,6 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -54,6 +53,7 @@ import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,7 +93,7 @@ DefaultMetadataVersionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addVersion( MetadataVersion version )
+    public long addVersion( MetadataVersion version )
     {
         versionStore.save( version );
 
@@ -107,7 +107,7 @@ DefaultMetadataVersionService
     }
 
     @Override
-    public void updateVersionName( int id, String name )
+    public void updateVersionName( long id, String name )
     {
         MetadataVersion version = getVersionById( id );
 
@@ -125,7 +125,7 @@ DefaultMetadataVersionService
     }
 
     @Override
-    public MetadataVersion getVersionById( int id )
+    public MetadataVersion getVersionById( long id )
     {
         return versionStore.getVersionByKey( id );
     }

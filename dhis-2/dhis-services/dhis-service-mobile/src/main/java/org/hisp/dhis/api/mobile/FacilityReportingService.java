@@ -46,9 +46,9 @@ public interface FacilityReportingService
 
     List<DataSet> getMobileDataSetsForUnit( OrganisationUnit unit, String localeString );
 
-    DataSet getDataSet( int id );
+    DataSet getDataSet( long id );
 
-    DataSet getDataSetForLocale( int dataSetId, Locale locale );
+    DataSet getDataSetForLocale( long dataSetId, Locale locale );
 
     void saveDataSetValues( OrganisationUnit unit, DataSetValue dataSetValue )
         throws NotAllowedException;

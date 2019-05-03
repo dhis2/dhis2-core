@@ -38,7 +38,7 @@ public interface OutboundSmsStore
 
     List<OutboundSms> getAllOutboundSms( Integer min, Integer max );
 
-    OutboundSms getOutboundSmsbyId( int id );
+    OutboundSms getOutboundSmsbyId( long id );
 
     List<OutboundSms> get( OutboundSmsStatus status );
 

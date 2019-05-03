@@ -56,7 +56,6 @@ import java.util.Map;
  * @author Lars Helge Overland
  * @version $Id$
  */
-@Transactional
 public class DefaultCompleteDataSetRegistrationService
     implements CompleteDataSetRegistrationService
 {
@@ -98,6 +97,7 @@ public class DefaultCompleteDataSetRegistrationService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void saveCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         if ( registration.getAttributeOptionCombo() == null )
@@ -111,23 +111,26 @@ public class DefaultCompleteDataSetRegistrationService
         {
             messageService.sendCompletenessMessage( registration );
         }
-        
+
         notificationEventPublisher.publishEvent( registration );
     }
 
     @Override
+    @Transactional
     public void updateCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         completeDataSetRegistrationStore.updateCompleteDataSetRegistration( registration );
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistration( CompleteDataSetRegistration registration )
     {
         completeDataSetRegistrationStore.deleteCompleteDataSetRegistration( registration );
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistrations( List<CompleteDataSetRegistration> registrations )
     {
         for ( CompleteDataSetRegistration registration : registrations )
@@ -137,6 +140,7 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CompleteDataSetRegistration getCompleteDataSetRegistration( DataSet dataSet, Period period,
         OrganisationUnit source, CategoryOptionCombo attributeOptionCombo )
     {
@@ -145,24 +149,28 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations()
     {
         return completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations();
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistrations( DataSet dataSet )
     {
         completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations( dataSet );
     }
 
     @Override
+    @Transactional
     public void deleteCompleteDataSetRegistrations( OrganisationUnit unit )
     {
         completeDataSetRegistrationStore.deleteCompleteDataSetRegistrations( unit );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataElementOperand> getMissingCompulsoryFields( DataSet dataSet, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -178,7 +186,7 @@ public class DefaultCompleteDataSetRegistrationService
 
             List<DeflatedDataValue> deflatedDataValues = dataValueService.getDeflatedDataValues( params );
 
-            MapMapMap<Integer, Integer, Integer, Boolean> dataPresent = new MapMapMap<>();
+            MapMapMap<Long, Long, Long, Boolean> dataPresent = new MapMapMap<>();
 
             for ( DeflatedDataValue dv : deflatedDataValues )
             {
@@ -196,11 +204,11 @@ public class DefaultCompleteDataSetRegistrationService
                     continue;
                 }
 
-                MapMap<Integer, Integer, Boolean> ouDataPresent = dataPresent.get( organisationUnit.getId() );
+                MapMap<Long, Long, Boolean> ouDataPresent = dataPresent.get( organisationUnit.getId() );
 
                 if ( ouDataPresent != null )
                 {
-                    Map<Integer, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
+                    Map<Long, Boolean> deDataPresent = ouDataPresent.get( deo.getDataElement().getId() );
 
                     if ( deDataPresent != null && ( deo.getCategoryOptionCombo() == null || deDataPresent.get( deo.getCategoryOptionCombo().getId() ) != null ) )
                     {
@@ -216,8 +224,9 @@ public class DefaultCompleteDataSetRegistrationService
     }
 
     @Override
-    public int getCompleteDataSetCountLastUpdatedAfter( Date date )
+    @Transactional(readOnly = true)
+    public int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated )
     {
-        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedBetween( date );
+        return completeDataSetRegistrationStore.getCompleteDataSetCountLastUpdatedAfter( lastUpdated );
     }
 }

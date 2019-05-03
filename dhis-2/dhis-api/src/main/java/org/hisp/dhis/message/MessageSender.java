@@ -32,6 +32,7 @@ import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
+import org.springframework.util.concurrent.ListenableFuture;
 
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -64,6 +65,11 @@ public interface MessageSender
      * @param batch batch of messages to be processed.
      */
     OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );
+
+    /**
+     * sends message batch asynchronously
+     */
+    ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync( OutboundMessageBatch batch );
 
     /**
      * To check if given service is configured and ready to use.

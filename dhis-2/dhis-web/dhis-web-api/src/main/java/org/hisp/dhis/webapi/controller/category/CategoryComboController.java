@@ -37,14 +37,15 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.schema.descriptors.CategoryComboSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -59,7 +60,7 @@ public class CategoryComboController
     private CategoryService categoryService;
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public @ResponseBody RootNode getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, HttpServletResponse response )
+    public ResponseEntity<RootNode> getDataSetWithDependencies( @PathVariable( "uid" ) String pvUid, @RequestParam( required = false, defaultValue = "false" ) boolean download )
         throws WebMessageException, IOException
     {
         CategoryCombo categoryCombo = categoryService.getCategoryCombo( pvUid );
@@ -69,7 +70,7 @@ public class CategoryComboController
             throw new WebMessageException( WebMessageUtils.notFound( "CategoryCombo not found for uid: " + pvUid ) );
         }
 
-        return exportService.getMetadataWithDependenciesAsNode( categoryCombo );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, categoryCombo, download );
     }
 
     @Override

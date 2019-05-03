@@ -339,9 +339,9 @@ public class EventPredictionServiceTest
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
         setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
 
-        dataValueService.addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, "100", defaultCombo, defaultCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementE, periodApr, orgUnitA, "200", defaultCombo, defaultCombo ) );
-        dataValueService.addDataValue( createDataValue( dataElementE, periodMay, orgUnitA, "300", defaultCombo, defaultCombo ) );
+        dataValueService.addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100" ) );
+        dataValueService.addDataValue( createDataValue( dataElementE, periodApr, orgUnitA, defaultCombo, defaultCombo, "200" ) );
+        dataValueService.addDataValue( createDataValue( dataElementE, periodMay, orgUnitA, defaultCombo, defaultCombo, "300" ) );
     }
 
     @Override

@@ -35,7 +35,6 @@ import java.util.List;
 /**
  * @author Abyot Asalefew
  */
-@Transactional
 public class DefaultRelationshipTypeService
     implements RelationshipTypeService
 {
@@ -55,43 +54,50 @@ public class DefaultRelationshipTypeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteRelationshipType( RelationshipType relationshipType )
     {
         relationshipTypeStore.delete( relationshipType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RelationshipType> getAllRelationshipTypes()
     {
         return relationshipTypeStore.getAll();
     }
 
     @Override
-    public RelationshipType getRelationshipType( int id )
+    @Transactional(readOnly = true)
+    public RelationshipType getRelationshipType( long id )
     {
         return relationshipTypeStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RelationshipType getRelationshipType( String uid )
     {
         return relationshipTypeStore.getByUid( uid );
     }
 
     @Override
-    public int addRelationshipType( RelationshipType relationshipType )
+    @Transactional
+    public long addRelationshipType( RelationshipType relationshipType )
     {
         relationshipTypeStore.save( relationshipType );
         return relationshipType.getId();
     }
 
     @Override
+    @Transactional
     public void updateRelationshipType( RelationshipType relationshipType )
     {
         relationshipTypeStore.update( relationshipType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
     {
         return relationshipTypeStore.getRelationshipType( aIsToB, bIsToA );

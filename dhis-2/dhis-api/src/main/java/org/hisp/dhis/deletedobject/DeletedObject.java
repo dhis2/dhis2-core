@@ -42,8 +42,8 @@ import org.springframework.util.StringUtils;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -67,8 +67,9 @@ public class DeletedObject
      */
     @Id
     @Column( name = "deletedobjectid")
-    @GeneratedValue(strategy= GenerationType.AUTO)
-    private int id;
+    @GeneratedValue( generator = "deletedobject_sequence" )
+    @SequenceGenerator( name = "deletedobject_sequence", sequenceName = "deletedobject_sequence", allocationSize = 1 )
+    private long id;
 
     /**
      * Class of object that was deleted.
@@ -115,12 +116,12 @@ public class DeletedObject
         this.code = !StringUtils.isEmpty( identifiableObject.getCode() ) ? identifiableObject.getCode() : null;
     }
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

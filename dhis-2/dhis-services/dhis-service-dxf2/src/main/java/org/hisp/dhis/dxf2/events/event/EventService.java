@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -62,15 +63,17 @@ public interface EventService
 
     EventRows getEventRows( EventSearchParams params );
 
-    EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp, String orgUnit,
-        OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
-        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
-        Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
+    EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
+        String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
+        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
+        Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes,
+        Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
+        List<String> gridOrders, boolean includeAttributes, Set<String> events, AssignedUserSelectionMode assignedUserMode, 
+        Set<String> assignedUserIds, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
-    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery );
+    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery, boolean skipOwnershipCheck );
 
     List<Event> getEventsXml( InputStream inputStream ) throws IOException;
 
@@ -83,9 +86,10 @@ public interface EventService
     /**
      * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
      *
+     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
      * @return the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
      */
-    int getAnonymousEventReadyForSynchronizationCount();
+    int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore );
 
     Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
 
@@ -93,10 +97,12 @@ public interface EventService
      * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      *
      * @param pageSize Specifies the max number for the events returned.
+     * @param skipChangedBefore the point in time specifying which events will be synchronized and which not
      * @param psdesWithSkipSyncTrue Holds information about PSDEs for which the data should not be synchronized
      * @return the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
      */
-    Events getAnonymousEventsForSync( int pageSize, Map<String, Set<String>> psdesWithSkipSyncTrue );
+    Events getAnonymousEventsForSync( int pageSize, Date skipChangedBefore,
+        Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -110,11 +116,13 @@ public interface EventService
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
+        throws IOException;
 
     ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
 
-    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
+        throws IOException;
 
     // -------------------------------------------------------------------------
     // UPDATE
@@ -124,7 +132,8 @@ public interface EventService
 
     ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate );
 
-    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession );
+    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
+        boolean clearSession );
 
     void updateEventForNote( Event event );
 
@@ -133,7 +142,7 @@ public interface EventService
     /**
      * Updates a last sync timestamp on specified Events
      *
-     * @param eventsUIDs       UIDs of Events where the lastSynchronized flag should be updated
+     * @param eventsUIDs UIDs of Events where the lastSynchronized flag should be updated
      * @param lastSynchronized The date of last successful sync
      */
     void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );

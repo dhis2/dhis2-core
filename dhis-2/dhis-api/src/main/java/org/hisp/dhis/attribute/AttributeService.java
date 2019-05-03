@@ -72,12 +72,12 @@ public interface AttributeService
      * @param id the attribute id.
      * @return the attribute with the given id.
      */
-    Attribute getAttribute( int id );
+    Attribute getAttribute( long id );
 
     /**
      * Gets the attribute with the given uid.
      *
-     * @param id the attribute uid.
+     * @param uid the attribute uid.
      * @return the attribute with the given uid.
      */
     Attribute getAttribute( String uid );
@@ -142,7 +142,7 @@ public interface AttributeService
      * @param id the id.
      * @return the attribute value with the given id.
      */
-    AttributeValue getAttributeValue( int id );
+    AttributeValue getAttributeValue( long id );
 
     <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception;
 

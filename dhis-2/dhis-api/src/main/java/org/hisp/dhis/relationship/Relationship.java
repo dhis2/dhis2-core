@@ -52,8 +52,6 @@ public class Relationship
      */
     private static final long serialVersionUID = 3818815755138507997L;
 
-    private int id;
-
     private RelationshipType relationshipType;
 
     private RelationshipItem from;
@@ -77,22 +75,6 @@ public class Relationship
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    /**
-     * @return the id
-     */
-    public int getId()
-    {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId( int id )
-    {
-        this.id = id;
-    }
 
     /**
      * @return the relationshipType

@@ -36,7 +36,6 @@ import java.util.List;
 /**
  * @author Viet Nguyen
  */
-@Transactional
 public class DefaultProgramTrackedEntityAttributeGroupService
     implements ProgramTrackedEntityAttributeGroupService
 {
@@ -56,7 +55,8 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
+    @Transactional
+    public long addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
     {
         attributeGroupStore.save( attributeGroup );
 
@@ -64,30 +64,35 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     }
 
     @Override
+    @Transactional
     public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
     {
         attributeGroupStore.delete( attributeGroup );
     }
 
     @Override
+    @Transactional
     public void updateProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup attributeGroup )
     {
         attributeGroupStore.update( attributeGroup );
     }
 
     @Override
-    public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( int id )
+    @Transactional(readOnly = true)
+    public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( long id )
     {
         return attributeGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( String uid )
     {
         return attributeGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramTrackedEntityAttributeGroup> getAllProgramTrackedEntityAttributeGroups()
     {
         return attributeGroupStore.getAll();

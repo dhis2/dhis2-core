@@ -28,7 +28,7 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -48,7 +48,7 @@ public class DataValueAuditBatchHandler
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
- 
+
     public DataValueAuditBatchHandler( JdbcConfiguration config )
     {
         super( config );
@@ -75,7 +75,7 @@ public class DataValueAuditBatchHandler
     {
         return true;
     }
-    
+
     @Override
     public List<String> getIdentifierColumns()
     {
@@ -84,7 +84,7 @@ public class DataValueAuditBatchHandler
 
     @Override
     public List<Object> getIdentifierValues( DataValueAudit dataValueAudit )
-    {        
+    {
         return getObjectList( dataValueAudit.getId() );
     }
 
@@ -93,32 +93,32 @@ public class DataValueAuditBatchHandler
     {
         return getStringList();
     }
-    
+
     @Override
     public List<Object> getUniqueValues( DataValueAudit dataValueAudit )
     {
         return getObjectList();
     }
-    
+
     @Override
     public List<String> getColumns()
     {
-        return getStringList( 
-            "dataelementid", 
-            "periodid", 
-            "organisationunitid", 
-            "categoryoptioncomboid", 
-            "attributeoptioncomboid", 
-            "value", 
-            "modifiedby", 
-            "created", 
+        return getStringList(
+            "dataelementid",
+            "periodid",
+            "organisationunitid",
+            "categoryoptioncomboid",
+            "attributeoptioncomboid",
+            "value",
+            "modifiedby",
+            "created",
             "audittype" );
     }
 
     @Override
     public List<Object> getValues( DataValueAudit dataValueAudit )
     {
-        return getObjectList( 
+        return getObjectList(
             dataValueAudit.getDataElement().getId(),
             dataValueAudit.getPeriod().getId(),
             dataValueAudit.getOrganisationUnit().getId(),
@@ -135,12 +135,18 @@ public class DataValueAuditBatchHandler
         throws SQLException
     {
         DataValueAudit dva = new DataValueAudit();
-        
+
         dva.setValue( resultSet.getString( "value" ) );
         dva.setModifiedBy( resultSet.getString( "modifiedby" ) );
         dva.setCreated( resultSet.getDate( "created" ) );
         dva.setAuditType( AuditType.valueOf( resultSet.getString( "audittype" ) ) );
-        
+
         return dva;
+    }
+    
+    @Override
+    public String getIdSequenceName()
+    {
+        return "datavalueaudit_sequence";
     }
 }

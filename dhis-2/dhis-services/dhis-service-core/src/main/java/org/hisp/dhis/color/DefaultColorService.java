@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
+
 public class DefaultColorService
     implements ColorService
 {
@@ -48,13 +48,15 @@ public class DefaultColorService
     // -------------------------------------------------------------------------
     // ColorService implementation
     // -------------------------------------------------------------------------
-
-    public int addColorSet( ColorSet colorSet )
+    @Override
+    @Transactional
+    public long addColorSet( ColorSet colorSet )
     {
         colorSetStore.save( colorSet );
         return colorSet.getId();
     }
-    
+    @Override
+    @Transactional(readOnly = true)
     public ColorSet getColorSet( String uid )
     {
         return colorSetStore.getByUid( uid );

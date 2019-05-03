@@ -44,7 +44,7 @@ public interface ValidationResultStore
 {
     List<ValidationResult> getAllUnreportedValidationResults();
 
-    ValidationResult getById( int id );
+    ValidationResult getById( long id );
 
     List<ValidationResult> query( ValidationResultQuery query );
 

@@ -59,7 +59,7 @@ public interface ProgramExpressionService
      * @param programExpression The to ProgramExpression add.
      * @return A generated unique id of the added {@link ProgramExpression}.
      */
-    int addProgramExpression( ProgramExpression programExpression );
+    long addProgramExpression( ProgramExpression programExpression );
 
     /**
      * Updates an {@link ProgramExpression}.
@@ -81,7 +81,7 @@ public interface ProgramExpressionService
      * @param id the id of the ProgramExpression to return.
      * @return the ProgramExpression with the given id
      */
-    ProgramExpression getProgramExpression( int id );
+    ProgramExpression getProgramExpression( long id );
 
     /**
      * Get the description of a program expression

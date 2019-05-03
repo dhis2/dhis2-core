@@ -118,6 +118,7 @@ import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+
 import org.springframework.core.env.Environment;
 
 /**
@@ -131,6 +132,7 @@ public class DefaultEventAnalyticsService
     private static final String NAME_EVENT = "Event";
     private static final String NAME_PROGRAM_STAGE = "Program stage";
     private static final String NAME_EVENT_DATE = "Event date";
+    private static final String NAME_GEOMETRY = "Geometry";
     private static final String NAME_LONGITUDE = "Longitude";
     private static final String NAME_LATITUDE = "Latitude";
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
@@ -454,7 +456,7 @@ public class DefaultEventAnalyticsService
         if ( dhisConfig.isAnalyticsCacheEnabled() )
         {
             final EventQueryParams query = new EventQueryParams.Builder( params ).build();
-            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).get();
+            return queryCache.get( query.getKey(), key -> getAggregatedEventDataGrid( query ) ).orElseGet( () -> new ListGrid() );
         }
 
         return getAggregatedEventDataGrid( params );
@@ -518,16 +520,7 @@ public class DefaultEventAnalyticsService
 
             for ( EventQueryParams query : queries )
             {
-                //TODO As we build support for event reports with enrollment listings we will have to change this
-
-                if ( query.hasEnrollmentProgramIndicatorDimension() )
-                {
-                    enrollmentAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
-                }
-                else
-                {
-                    eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
-                }
+                eventAnalyticsManager.getAggregatedEventData( query, grid, maxLimit );
             }
 
             timer.getTime( "Got aggregated events" );
@@ -589,6 +582,7 @@ public class DefaultEventAnalyticsService
         grid.addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+            .addHeader( new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )

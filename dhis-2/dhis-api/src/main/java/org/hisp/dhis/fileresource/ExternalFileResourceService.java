@@ -1,4 +1,5 @@
 package org.hisp.dhis.fileresource;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,19 +33,19 @@ package org.hisp.dhis.fileresource;
  */
 public interface ExternalFileResourceService
 {
-
     /**
      * Retrieves ExternalFileResource based on accessToken
+     *
      * @param accessToken unique token generated to reference the different ExternalFileResources
-     * @return
+     * @return an {@link ExternalFileResource}.
      */
     ExternalFileResource getExternalFileResourceByAccessToken( String accessToken );
 
     /**
-     * Generates an accessToken before persisting the object.
-     * @param externalFileResource
-     * @return accessToken
+     * Generates an accessToken before persisting the given external file resource.
+     *
+     * @param externalFileResource the external file resource.
+     * @return an access token.
      */
     String saveExternalFileResource( ExternalFileResource externalFileResource );
-
 }

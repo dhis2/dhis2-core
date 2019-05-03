@@ -38,17 +38,18 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Ameen Mohamed
@@ -65,75 +66,42 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    public void setTrackedEntityInstanceService( TrackedEntityInstanceService trackedEntityInstanceService )
-    {
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-    }
-
     private CurrentUserService currentUserService;
 
-    @Autowired
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+
+    private final CacheProvider cacheProvider;
+
+    private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
+
+    private final ProgramOwnershipHistoryService programOwnershipHistoryService;
+
+    public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
+        TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
+        ProgramTempOwnershipAuditService programTempOwnershipAuditService,
+        ProgramOwnershipHistoryService programOwnershipHistoryService )
     {
+        checkNotNull( currentUserService );
+        checkNotNull( trackedEntityProgramOwnerService );
+        checkNotNull( cacheProvider );
+        checkNotNull( programTempOwnershipAuditService );
+        checkNotNull( programOwnershipHistoryService );
+
         this.currentUserService = currentUserService;
-    }
-
-    private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
-    @Autowired
-    public void setTrackedEntityProgramOwnerService( TrackedEntityProgramOwnerService trackedEntityProgramOwnerService )
-    {
         this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-    }
-
-    private CacheProvider cacheProvider;
-
-    @Autowired
-    public void setCacheProvider( CacheProvider cacheProvider )
-    {
         this.cacheProvider = cacheProvider;
-    }
-
-    private ProgramService programService;
-
-    @Autowired
-    public void setProgramService( ProgramService programService )
-    {
-        this.programService = programService;
-    }
-
-    private ProgramTempOwnershipAuditService programTempOwnershipAuditService;
-
-    @Autowired
-    public void setProgramTempOwnershipAuditService( ProgramTempOwnershipAuditService programTempOwnershipAuditService )
-    {
         this.programTempOwnershipAuditService = programTempOwnershipAuditService;
-    }
-
-    private ProgramOwnershipHistoryService programOwnershipHistoryService;
-
-    @Autowired
-    public void setProgramOwnershipHistoryService( ProgramOwnershipHistoryService programOwnershipHistoryService )
-    {
         this.programOwnershipHistoryService = programOwnershipHistoryService;
     }
 
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
+    /**
+     * Used only by test harness. Remove after test refactoring
+     *
+     */
+    @Deprecated
+    public void setCurrentUserService(CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
     }
-
-    public void setTemporaryTrackerOwnershipCache( Cache<Boolean> temporaryTrackerOwnershipCache )
-    {
-        this.temporaryTrackerOwnershipCache = temporaryTrackerOwnershipCache;
-    }
-   
     /**
      * Cache for storing temporary ownership grants.
      */
@@ -155,15 +123,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     // -------------------------------------------------------------------------
 
     @Override
-    public void transferOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation, boolean createIfNotExists )
-    {
-        Program program = programService.getProgram( programUid );
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitUid );
-        transferOwnership( entityInstance, program, orgUnit, skipAccessValidation, createIfNotExists );
-    }
-
-    @Override
+    @Transactional
     public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit, boolean skipAccessValidation,
         boolean createIfNotExists )
     {
@@ -197,15 +157,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
-    public void assignOwnership( String teiUid, String programUid, String orgUnitUid, boolean skipAccessValidation, boolean overwriteIfExists )
-    {
-        Program program = programService.getProgram( programUid );
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitUid );
-        assignOwnership( entityInstance, program, orgUnit, skipAccessValidation, overwriteIfExists );
-    }
-
-    @Override
+    @Transactional
     public void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit, boolean skipAccessValidation,
         boolean overwriteIfExists )
     {
@@ -239,21 +191,14 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
-    public void grantTemporaryOwnership( String teiUid, String programUid, User user, String reason )
-    {
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
-        Program program = programService.getProgram( programUid );
-        grantTemporaryOwnership( entityInstance, program, user, reason );
-    }
-
-    @Override
+    @Transactional
     public void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user, String reason )
     {
         if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
         {
             return;
         }
-        if ( user != null && program.isProtected() )
+        if (program.isProtected())
         {
             programTempOwnershipAuditService
                 .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
@@ -262,6 +207,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
     {
         if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
@@ -279,13 +225,29 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             return isInHierarchy( ou, user.getOrganisationUnits() ) || hasTemporaryAccess( entityInstance, program, user );
         }
     }
-
+    
     @Override
-    public boolean hasAccess( User user, String teiUid, String programUid )
+    @Transactional(readOnly = true)
+    public boolean hasAccess( User user, ProgramInstance programInstance )
     {
-        Program program = programService.getProgram( programUid );
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
-        return hasAccess( user, entityInstance, program );
+        Program program = programInstance.getProgram();
+        TrackedEntityInstance entityInstance = programInstance.getEntityInstance();
+        
+        if ( programInstance == null || canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        {
+            return true;
+        }
+
+        OrganisationUnit ou = getOwner( entityInstance, program );
+        
+        if ( program.isOpen() || program.isAudited() )
+        {
+            return isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() );
+        }
+        else
+        {
+            return isInHierarchy( ou, user.getOrganisationUnits() ) || hasTemporaryAccess( entityInstance, program, user );
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -296,14 +258,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * Generates a unique key for the tei-program-user combination to be put
      * into cache.
      * 
-     * @param teiUid
-     * @param programUid
-     * @param username
      * @return A unique cache key
      */
     private String tempAccessKey( String teiUid, String programUid, String username )
     {
-        return new StringBuilder().append( username ).append( COLON ).append( programUid ).append( COLON ).append( teiUid ).toString();
+        return username + COLON + programUid + COLON + teiUid;
     }
 
     /**
@@ -316,7 +275,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      */
     private OrganisationUnit getOwner( TrackedEntityInstance entityInstance, Program program )
     {
-        OrganisationUnit ou = null;
+        OrganisationUnit ou;
         TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner( entityInstance.getId(),
             program.getId() );
         if ( trackedEntityProgramOwner == null )
@@ -366,8 +325,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * Ownership check can be skipped if the user is super user or if the
      * program is without registration.
      * 
-     * @param user
-     * @param program
      * @return true if ownership check can be skipped
      */
     private boolean canSkipOwnershipCheck( User user, Program program )

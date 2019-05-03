@@ -169,7 +169,7 @@ public class NoRegistrationSingleEventServiceTest
 
         event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         assertNotNull( event );
-        assertEquals( "10", event.getDataValues().get( 0 ).getValue() );
+        assertEquals( 1, event.getDataValues().size() );
     }
 
     @Test
@@ -182,14 +182,14 @@ public class NoRegistrationSingleEventServiceTest
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
-        assertEquals( "10", event.getDataValues().get( 0 ).getValue() );
+        assertEquals( "10", event.getDataValues().iterator().next().getValue() );
 
         event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-        event.getDataValues().get( 0 ).setValue( "254" );
+        event.getDataValues().iterator().next().setValue( "254" );
         eventService.updateEvent( event, false, false );
 
         event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
-        assertEquals( "254", event.getDataValues().get( 0 ).getValue() );
+        assertEquals( "254", event.getDataValues().iterator().next().getValue() );
     }
 
     @Test

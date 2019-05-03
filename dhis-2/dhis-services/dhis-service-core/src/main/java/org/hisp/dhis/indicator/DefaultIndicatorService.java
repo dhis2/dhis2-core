@@ -36,7 +36,6 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultIndicatorService
     implements IndicatorService
 {
@@ -77,7 +76,8 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicator( Indicator indicator )
+    @Transactional
+    public long addIndicator( Indicator indicator )
     {
         indicatorStore.save( indicator );
 
@@ -85,48 +85,56 @@ public class DefaultIndicatorService
     }
 
     @Override
+    @Transactional
     public void updateIndicator( Indicator indicator )
     {
         indicatorStore.update( indicator );
     }
 
     @Override
+    @Transactional
     public void deleteIndicator( Indicator indicator )
     {
         indicatorStore.delete( indicator );
     }
 
     @Override
-    public Indicator getIndicator( int id )
+    @Transactional(readOnly = true)
+    public Indicator getIndicator( long id )
     {
         return indicatorStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Indicator getIndicator( String uid )
     {
         return indicatorStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Indicator> getAllIndicators()
     {
         return indicatorStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Indicator> getIndicatorsWithGroupSets()
     {
         return indicatorStore.getIndicatorsWithGroupSets();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Indicator> getIndicatorsWithoutGroups()
     {
         return indicatorStore.getIndicatorsWithoutGroups();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Indicator> getIndicatorsWithDataSets()
     {
         return indicatorStore.getIndicatorsWithDataSets();
@@ -137,7 +145,8 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicatorType( IndicatorType indicatorType )
+    @Transactional
+    public long addIndicatorType( IndicatorType indicatorType )
     {
         indicatorTypeStore.save( indicatorType );
 
@@ -145,30 +154,35 @@ public class DefaultIndicatorService
     }
 
     @Override
+    @Transactional
     public void updateIndicatorType( IndicatorType indicatorType )
     {
         indicatorTypeStore.update( indicatorType );
     }
 
     @Override
+    @Transactional
     public void deleteIndicatorType( IndicatorType indicatorType )
     {
         indicatorTypeStore.delete( indicatorType );
     }
 
     @Override
-    public IndicatorType getIndicatorType( int id )
+    @Transactional(readOnly = true)
+    public IndicatorType getIndicatorType( long id )
     {
         return indicatorTypeStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IndicatorType getIndicatorType( String uid )
     {
         return indicatorTypeStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<IndicatorType> getAllIndicatorTypes()
     {
         return indicatorTypeStore.getAll();
@@ -179,7 +193,8 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicatorGroup( IndicatorGroup indicatorGroup )
+    @Transactional
+    public long addIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         indicatorGroupStore.save( indicatorGroup );
 
@@ -187,30 +202,35 @@ public class DefaultIndicatorService
     }
 
     @Override
+    @Transactional
     public void updateIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         indicatorGroupStore.update( indicatorGroup );
     }
 
     @Override
+    @Transactional
     public void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         indicatorGroupStore.delete( indicatorGroup );
     }
 
     @Override
-    public IndicatorGroup getIndicatorGroup( int id )
+    @Transactional(readOnly = true)
+    public IndicatorGroup getIndicatorGroup( long id )
     {
         return indicatorGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IndicatorGroup getIndicatorGroup( String uid )
     {
         return indicatorGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<IndicatorGroup> getAllIndicatorGroups()
     {
         return indicatorGroupStore.getAll();
@@ -221,7 +241,8 @@ public class DefaultIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addIndicatorGroupSet( IndicatorGroupSet groupSet )
+    @Transactional
+    public long addIndicatorGroupSet( IndicatorGroupSet groupSet )
     {
         indicatorGroupSetStore.save( groupSet );
 
@@ -229,30 +250,35 @@ public class DefaultIndicatorService
     }
 
     @Override
+    @Transactional
     public void updateIndicatorGroupSet( IndicatorGroupSet groupSet )
     {
         indicatorGroupSetStore.update( groupSet );
     }
 
     @Override
+    @Transactional
     public void deleteIndicatorGroupSet( IndicatorGroupSet groupSet )
     {
         indicatorGroupSetStore.delete( groupSet );
     }
 
     @Override
-    public IndicatorGroupSet getIndicatorGroupSet( int id )
+    @Transactional(readOnly = true)
+    public IndicatorGroupSet getIndicatorGroupSet( long id )
     {
         return indicatorGroupSetStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IndicatorGroupSet getIndicatorGroupSet( String uid )
     {
         return indicatorGroupSetStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<IndicatorGroupSet> getAllIndicatorGroupSets()
     {
         return indicatorGroupSetStore.getAll();

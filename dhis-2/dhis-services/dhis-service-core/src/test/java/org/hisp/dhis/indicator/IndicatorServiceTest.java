@@ -71,8 +71,8 @@ public class IndicatorServiceTest
         IndicatorType typeA = new IndicatorType( "IndicatorTypeA", 100, false );
         IndicatorType typeB = new IndicatorType( "IndicatorTypeB", 1, false );
 
-        int idA = indicatorService.addIndicatorType( typeA );
-        int idB = indicatorService.addIndicatorType( typeB );
+        long idA = indicatorService.addIndicatorType( typeA );
+        long idB = indicatorService.addIndicatorType( typeB );
 
         typeA = indicatorService.getIndicatorType( idA );
         assertNotNull( typeA );
@@ -88,7 +88,7 @@ public class IndicatorServiceTest
         throws Exception
     {
         IndicatorType typeA = new IndicatorType( "IndicatorTypeA", 100, false );
-        int idA = indicatorService.addIndicatorType( typeA );
+        long idA = indicatorService.addIndicatorType( typeA );
         typeA = indicatorService.getIndicatorType( idA );
         assertEquals( typeA.getName(), "IndicatorTypeA" );
 
@@ -105,8 +105,8 @@ public class IndicatorServiceTest
         IndicatorType typeA = new IndicatorType( "IndicatorTypeA", 100, false );
         IndicatorType typeB = new IndicatorType( "IndicatorTypeB", 1, false );
 
-        int idA = indicatorService.addIndicatorType( typeA );
-        int idB = indicatorService.addIndicatorType( typeB );
+        long idA = indicatorService.addIndicatorType( typeA );
+        long idB = indicatorService.addIndicatorType( typeB );
 
         assertNotNull( indicatorService.getIndicatorType( idA ) );
         assertNotNull( indicatorService.getIndicatorType( idB ) );
@@ -148,8 +148,8 @@ public class IndicatorServiceTest
         IndicatorGroup groupA = new IndicatorGroup( "IndicatorGroupA" );
         IndicatorGroup groupB = new IndicatorGroup( "IndicatorGroupB" );
 
-        int idA = indicatorService.addIndicatorGroup( groupA );
-        int idB = indicatorService.addIndicatorGroup( groupB );
+        long idA = indicatorService.addIndicatorGroup( groupA );
+        long idB = indicatorService.addIndicatorGroup( groupB );
 
         groupA = indicatorService.getIndicatorGroup( idA );
         assertNotNull( groupA );
@@ -164,7 +164,7 @@ public class IndicatorServiceTest
     public void testUpdateIndicatorGroup()
     {
         IndicatorGroup groupA = new IndicatorGroup( "IndicatorGroupA" );
-        int idA = indicatorService.addIndicatorGroup( groupA );
+        long idA = indicatorService.addIndicatorGroup( groupA );
         groupA = indicatorService.getIndicatorGroup( idA );
         assertEquals( groupA.getName(), "IndicatorGroupA" );
 
@@ -181,8 +181,8 @@ public class IndicatorServiceTest
         IndicatorGroup groupA = new IndicatorGroup( "IndicatorGroupA" );
         IndicatorGroup groupB = new IndicatorGroup( "IndicatorGroupB" );
 
-        int idA = indicatorService.addIndicatorGroup( groupA );
-        int idB = indicatorService.addIndicatorGroup( groupB );
+        long idA = indicatorService.addIndicatorGroup( groupA );
+        long idB = indicatorService.addIndicatorGroup( groupB );
 
         assertNotNull( indicatorService.getIndicatorGroup( idA ) );
         assertNotNull( indicatorService.getIndicatorGroup( idB ) );
@@ -228,8 +228,8 @@ public class IndicatorServiceTest
         Indicator indicatorA = createIndicator( 'A', type );
         Indicator indicatorB = createIndicator( 'B', type );
 
-        int idA = indicatorService.addIndicator( indicatorA );
-        int idB = indicatorService.addIndicator( indicatorB );
+        long idA = indicatorService.addIndicator( indicatorA );
+        long idB = indicatorService.addIndicator( indicatorB );
 
         indicatorA = indicatorService.getIndicator( idA );
         assertNotNull( indicatorA );
@@ -248,7 +248,7 @@ public class IndicatorServiceTest
         indicatorService.addIndicatorType( type );
 
         Indicator indicatorA = createIndicator( 'A', type );
-        int idA = indicatorService.addIndicator( indicatorA );
+        long idA = indicatorService.addIndicator( indicatorA );
         indicatorA = indicatorService.getIndicator( idA );
         assertEq( 'A', indicatorA );
 
@@ -269,8 +269,8 @@ public class IndicatorServiceTest
         Indicator indicatorA = createIndicator( 'A', type );
         Indicator indicatorB = createIndicator( 'B', type );
 
-        int idA = indicatorService.addIndicator( indicatorA );
-        int idB = indicatorService.addIndicator( indicatorB );
+        long idA = indicatorService.addIndicator( indicatorA );
+        long idB = indicatorService.addIndicator( indicatorB );
 
         assertNotNull( indicatorService.getIndicator( idA ) );
         assertNotNull( indicatorService.getIndicator( idB ) );

@@ -41,7 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericStore<TrackedEntityProgramOwner> implements TrackedEntityProgramOwnerStore
 {
     @Override
-    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( int teiId, int programId )
+    public TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId )
     {
         return (TrackedEntityProgramOwner) getQuery( "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id="
             + teiId + " and tepo.program.id=" + programId ).uniqueResult();
@@ -49,7 +49,7 @@ public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericSto
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds )
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds )
     {
         String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
         Query q = getQuery( hql );
@@ -59,7 +59,7 @@ public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericSto
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Integer> teiIds, int programId )
+    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds, long programId )
     {
         String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
         Query q = getQuery( hql );

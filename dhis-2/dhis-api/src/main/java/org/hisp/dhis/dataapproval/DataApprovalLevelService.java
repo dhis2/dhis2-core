@@ -61,7 +61,7 @@ public interface DataApprovalLevelService
      * @param id the id.
      * @return a data approval level.
      */
-    DataApprovalLevel getDataApprovalLevel( int id );
+    DataApprovalLevel getDataApprovalLevel( long id );
 
     /**
      * Gets the data approval level with the given uid.
@@ -142,6 +142,15 @@ public interface DataApprovalLevelService
     List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow );
 
     /**
+     * Gets approval levels within a workflow to which the user has access.
+     * If there are none, at least return the lowest level (if any).
+     * @param user the user to test for.
+     * @param workflow the workflow to look within.
+     * @return all user-accessible approval levels within that workflow.
+     */
+    List<DataApprovalLevel> getUserDataApprovalLevelsOrLowestLevel( User user, DataApprovalWorkflow workflow );
+
+    /**
      * Gets data approval levels by org unit level.
      * 
      * @param orgUnitLevel the org unit level.
@@ -217,7 +226,7 @@ public interface DataApprovalLevelService
      * @param level the new level to add.
      * @return the identifier of the added level, or -1 if not well formed or duplicate.
      */
-    int addDataApprovalLevel( DataApprovalLevel level );
+    long addDataApprovalLevel( DataApprovalLevel level );
     
     /**
      * Adds a new data approval level. Sets the level explicitly.
@@ -226,7 +235,7 @@ public interface DataApprovalLevelService
      * @param level the level.
      * @return the identifier of the added level, or -1 if not well formed or duplicate.
      */
-    int addDataApprovalLevel( DataApprovalLevel approvalLevel, int level );
+    long addDataApprovalLevel( DataApprovalLevel approvalLevel, int level );
 
     /**
      * Removes a data approval level.

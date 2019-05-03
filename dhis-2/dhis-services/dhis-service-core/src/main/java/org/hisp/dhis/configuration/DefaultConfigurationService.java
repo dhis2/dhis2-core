@@ -38,7 +38,6 @@ import java.util.Iterator;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultConfigurationService
     implements ConfigurationService
 {
@@ -54,6 +53,7 @@ public class DefaultConfigurationService
     // -------------------------------------------------------------------------
     
     @Override
+    @Transactional
     public void setConfiguration( Configuration configuration )
     {
         if ( configuration != null && configuration.getId() > 0 )
@@ -67,6 +67,7 @@ public class DefaultConfigurationService
     }
     
     @Override
+    @Transactional(readOnly = true)
     public Configuration getConfiguration()
     {
         Iterator<Configuration> iterator = configurationStore.getAll().iterator();
@@ -75,12 +76,14 @@ public class DefaultConfigurationService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isCorsWhitelisted( String origin )
     {
         return getConfiguration().getCorsWhitelist().contains( origin );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isUserInFeedbackRecipientUserGroup( User user )
     {
         UserGroup feedbackRecipients = getConfiguration().getFeedbackRecipients();

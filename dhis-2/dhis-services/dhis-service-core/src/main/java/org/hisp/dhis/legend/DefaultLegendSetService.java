@@ -36,7 +36,6 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultLegendSetService
     implements LegendSetService
 {
@@ -56,7 +55,8 @@ public class DefaultLegendSetService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addLegendSet( LegendSet legend )
+    @Transactional
+    public long addLegendSet( LegendSet legend )
     {
         legendSetStore.save( legend );
 
@@ -64,30 +64,35 @@ public class DefaultLegendSetService
     }
 
     @Override
+    @Transactional
     public void updateLegendSet( LegendSet legend )
     {
         legendSetStore.update( legend );
     }
 
     @Override
-    public LegendSet getLegendSet( int id )
+    @Transactional(readOnly = true)
+    public LegendSet getLegendSet( long id )
     {
         return legendSetStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LegendSet getLegendSet( String uid )
     {
         return legendSetStore.getByUid( uid );
     }
 
     @Override
+    @Transactional
     public void deleteLegendSet( LegendSet legendSet )
     {
         legendSetStore.delete( legendSet );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<LegendSet> getAllLegendSets()
     {
         return legendSetStore.getAll();

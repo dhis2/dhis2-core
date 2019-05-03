@@ -45,7 +45,7 @@ public class MobileOrgUnitLinks
 
     private String clientVersion;
 
-    private int id;
+    private long id;
 
     private String name;
 
@@ -122,12 +122,12 @@ public class MobileOrgUnitLinks
     private String registerRelativeUrl;
 
     @XmlAttribute
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -519,7 +519,7 @@ public class MobileOrgUnitLinks
     public void serialize( DataOutputStream dataOutputStream )
         throws IOException
     {
-        dataOutputStream.writeInt( id );
+        dataOutputStream.writeLong( id );
         dataOutputStream.writeUTF( name );
         dataOutputStream.writeUTF( downloadAllUrl );
         dataOutputStream.writeUTF( updateActivityPlanUrl );
@@ -564,7 +564,7 @@ public class MobileOrgUnitLinks
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
     {
-        id = dataInputStream.readInt();
+        id = dataInputStream.readLong();
         name = dataInputStream.readUTF();
         downloadAllUrl = dataInputStream.readUTF();
         updateActivityPlanUrl = dataInputStream.readUTF();
@@ -609,7 +609,7 @@ public class MobileOrgUnitLinks
     public void serializeVersion2_8( DataOutputStream dataOutputStream )
         throws IOException
     {
-        dataOutputStream.writeInt( this.id );
+        dataOutputStream.writeLong( this.id );
         dataOutputStream.writeUTF( this.name );
         dataOutputStream.writeUTF( this.downloadAllUrl );
         dataOutputStream.writeUTF( this.updateActivityPlanUrl );
@@ -625,7 +625,7 @@ public class MobileOrgUnitLinks
     public void serializeVersion2_9( DataOutputStream dataOutputStream )
         throws IOException
     {
-        dataOutputStream.writeInt( this.id );
+        dataOutputStream.writeLong( this.id );
         dataOutputStream.writeUTF( this.name );
         dataOutputStream.writeUTF( this.downloadAllUrl );
         dataOutputStream.writeUTF( this.updateActivityPlanUrl );
@@ -652,7 +652,7 @@ public class MobileOrgUnitLinks
     public void serializeVersion2_10( DataOutputStream dataOutputStream )
         throws IOException
     {
-        dataOutputStream.writeInt( id );
+        dataOutputStream.writeLong( id );
         dataOutputStream.writeUTF( name );
         dataOutputStream.writeUTF( downloadAllUrl );
         dataOutputStream.writeUTF( updateActivityPlanUrl );

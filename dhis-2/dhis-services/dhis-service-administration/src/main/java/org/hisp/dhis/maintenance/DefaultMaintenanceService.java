@@ -158,7 +158,7 @@ public class DefaultMaintenanceService
     {
         for ( Period period : periodService.getAllPeriods() )
         {
-            int periodId = period.getId();
+            long periodId = period.getId();
             
             try
             {

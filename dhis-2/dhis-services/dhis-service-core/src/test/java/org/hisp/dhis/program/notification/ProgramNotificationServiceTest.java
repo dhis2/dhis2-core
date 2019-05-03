@@ -31,11 +31,7 @@ package org.hisp.dhis.program.notification;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -90,12 +86,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String MESSAGE = "message";
     private static final String TEMPLATE_NAME = "message";
     private static final String OU_PHONE_NUMBER = "471000000";
-    private static final String DE_PHONE_NUMBER = "47200000";
     private static final String ATT_PHONE_NUMBER = "473000000";
     private static final String USERA_PHONE_NUMBER = "47400000";
     private static final String USERB_PHONE_NUMBER = "47500000";
     private static final String ATT_EMAIL = "attr@test.org";
-    private static final String DE_EMAIL = "de@test.org";
 
     @Mock
     private MessageService messageService;
@@ -111,12 +105,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     @Mock
     private IdentifiableObjectManager manager;
-
-    @Mock
-    private ProgramInstanceStore programInstanceStore;
-
-    @Mock
-    private ProgramStageInstanceStore programStageInstanceStore;
 
     @InjectMocks
     private DefaultProgramNotificationService programNotificationService;
@@ -172,25 +160,18 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         setUpInstances();
 
         BatchResponseStatus status = new BatchResponseStatus(Collections.emptyList());
-        when( programMessageService.sendMessages( anyList() ) )
-            .thenAnswer( invocation -> {
+
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
+            {
                 sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
                 return status;
             } );
 
-        when( messageService.sendMessage( any() ) )
-            .thenAnswer( invocation -> {
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
+            {
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 40;
+                return 40l;
             } );
-
-        when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
-            .thenReturn( Lists.newArrayList( programInstances ) );
-        when( programStageInstanceStore.getWithScheduledNotifications( any(), any() ) )
-            .thenReturn( Lists.newArrayList( programStageInstances ) );
-
-        when( manager.getAll( ProgramNotificationTemplate.class ) )
-            .thenReturn( Collections.singletonList( programNotificationTemplate ) );
 
         when( programNotificationMessageRenderer.render( any(), any() ) )
             .thenReturn( notificationMessage );
@@ -469,9 +450,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         sentInternalMessages.clear();
 
-        when( manager.getAll( ProgramNotificationTemplate.class ) )
-            .thenReturn( Collections.singletonList( programNotificationTemplateForYesterday ) );
-
         programNotificationService.sendScheduledNotifications();
 
         assertEquals( 0, sentProgramMessages.size() );
@@ -589,7 +567,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         programInstance.setEntityInstance( tei );
 
         // ProgramStageInstance
-        ProgramStageInstance programStageInstance = createProgramStageInstance();
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setAutoFields();
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setOrganisationUnit( lvlTwoLeftLeft );

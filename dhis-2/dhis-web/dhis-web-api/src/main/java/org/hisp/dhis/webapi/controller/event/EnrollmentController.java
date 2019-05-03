@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -391,32 +390,8 @@ public class EnrollmentController
         return enrollment;
     }
 
-    private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
-    {
-        String idScheme = getParamValue( params, "idScheme" );
-
-        if ( idScheme != null )
-        {
-            idSchemes.setIdScheme( idScheme );
-        }
-
-        String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
-
-        if ( programStageInstanceIdScheme != null )
-        {
-            idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
-        }
-
-        return idSchemes;
-    }
-
     private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
     {
         return ContextUtils.getContextPath( request ) + "/api/" + "enrollments" + "/" + importSummary.getReference();
-    }
-
-    private String getParamValue( Map<String, List<String>> params, String key )
-    {
-        return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 }

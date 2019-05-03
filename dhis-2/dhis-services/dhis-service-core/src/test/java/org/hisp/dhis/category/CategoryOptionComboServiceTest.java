@@ -131,7 +131,7 @@ public class CategoryOptionComboServiceTest
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryOptionComboA.setCategoryOptions( categoryOptions );
 
-        int id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
 
         categoryOptionComboA = categoryService.getCategoryOptionCombo( id );
 
@@ -150,7 +150,7 @@ public class CategoryOptionComboServiceTest
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryOptionComboA.setCategoryOptions( categoryOptions );
 
-        int id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
 
         categoryOptionComboA = categoryService.getCategoryOptionCombo( id );
 
@@ -186,9 +186,9 @@ public class CategoryOptionComboServiceTest
         categoryOptionComboB.setCategoryOptions( categoryOptions );
         categoryOptionComboC.setCategoryOptions( categoryOptions );
 
-        int idA = categoryService.addCategoryOptionCombo( categoryOptionComboA );
-        int idB = categoryService.addCategoryOptionCombo( categoryOptionComboB );
-        int idC = categoryService.addCategoryOptionCombo( categoryOptionComboC );
+        long idA = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long idB = categoryService.addCategoryOptionCombo( categoryOptionComboB );
+        long idC = categoryService.addCategoryOptionCombo( categoryOptionComboC );
 
         assertNotNull( categoryService.getCategoryOptionCombo( idA ) );
         assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
@@ -268,7 +268,7 @@ public class CategoryOptionComboServiceTest
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         categoryOptionComboA.setCategoryOptions( categoryOptions );
 
-        int id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
+        long id = categoryService.addCategoryOptionCombo( categoryOptionComboA );
 
         categoryOptionComboA = categoryService.getCategoryOptionCombo( id );
 

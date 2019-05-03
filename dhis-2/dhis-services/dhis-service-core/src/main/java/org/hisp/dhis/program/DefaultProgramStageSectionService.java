@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Chau Thu Tran
  */
-@Transactional
 public class DefaultProgramStageSectionService
     implements ProgramStageSectionService
 {
@@ -53,7 +52,7 @@ public class DefaultProgramStageSectionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveProgramStageSection( ProgramStageSection programStageSection )
+    public long saveProgramStageSection( ProgramStageSection programStageSection )
     {
         programStageSectionStore.save( programStageSection );
         return programStageSection.getId();
@@ -72,7 +71,8 @@ public class DefaultProgramStageSectionService
     }
 
     @Override
-    public ProgramStageSection getProgramStageSection( int id )
+    @Transactional(readOnly = true)
+    public ProgramStageSection getProgramStageSection( long id )
     {
         return programStageSectionStore.get( id );
     }

@@ -126,7 +126,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         trackedEntityType.getUserAccesses().add( userAccess1 );
         manager.save( trackedEntityType, false );
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( 'A', organisationUnitA );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
         maleA.getUserAccesses().add( userAccess1 );
         maleA.setUser( currentUser );

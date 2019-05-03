@@ -67,15 +67,23 @@ public class ProgramIndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        String result = programIndicatorService.expressionIsValid( expression );
-
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ProgramIndicator.VALID.equals( result ) ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result ) );
 
-        if ( message.isOk() )
+        try
         {
             message.setDescription( programIndicatorService.getExpressionDescription( expression ) );
+
+            message.setStatus( Status.OK );
+
+            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
+        }
+        catch ( IllegalStateException e )
+        {
+            message.setDescription( e.getMessage() );
+
+            message.setStatus( Status.ERROR );
+
+            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
 
         webMessageService.sendJson( message, response );
@@ -87,15 +95,23 @@ public class ProgramIndicatorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        String result = programIndicatorService.filterIsValid( expression );
-
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-        message.setStatus( ProgramIndicator.VALID.equals( result ) ? Status.OK : Status.ERROR );
-        message.setMessage( i18n.getString( result ) );
 
-        if ( message.isOk() )
+        try
         {
-            message.setDescription( programIndicatorService.getExpressionDescription( expression ) );
+            message.setDescription( programIndicatorService.getFilterDescription( expression ) );
+
+            message.setStatus( Status.OK );
+
+            message.setMessage( i18n.getString( ProgramIndicator.VALID ) );
+        }
+        catch ( IllegalStateException e )
+        {
+            message.setDescription( e.getMessage() );
+
+            message.setStatus( Status.ERROR );
+
+            message.setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
         }
 
         webMessageService.sendJson( message, response );

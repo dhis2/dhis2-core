@@ -46,7 +46,7 @@ public interface TrackedEntityInstanceFilterService
      * @param trackedEntityInstanceFilter
      * @return id of added trackedEntityInstanceFilter
      */
-    int add( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    long add( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
     
     /**
      * Deletes trackedEntityInstanceFilter
@@ -67,7 +67,7 @@ public interface TrackedEntityInstanceFilterService
      * @param id id of trackedEntityInstanceFilter to be fetched
      * @return trackedEntityInstanceFilter
      */
-    TrackedEntityInstanceFilter get( int id );
+    TrackedEntityInstanceFilter get( long id );
     
     /**
      * Gets trackedEntityInstanceFilter

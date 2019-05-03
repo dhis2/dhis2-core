@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
  */
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -54,10 +53,10 @@ public interface AnalyticsTableManager
     /**
      * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
      *
-     * @param earliest the start date for the first year to generate table partitions.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      * @return the analytics table with partitions.
      */
-    List<AnalyticsTable> getAnalyticsTables( Date earliest );
+    List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params );
 
     /**
      * Returns a list of existing analytics database table names.
@@ -75,8 +74,10 @@ public interface AnalyticsTableManager
 
     /**
      * Performs work before tables are being created.
+     *
+     * @param the {@link AnalyticsTableUpdateParams}.
      */
-    void preCreateTables();
+    void preCreateTables( AnalyticsTableUpdateParams params );
 
     /**
      * Attempts to drop and then create analytics table.

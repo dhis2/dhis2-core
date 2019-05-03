@@ -31,6 +31,7 @@ package org.hisp.dhis.reservedvalue;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Henning Håkonsen
@@ -38,12 +39,8 @@ import org.hisp.dhis.scheduling.JobType;
 public class RemoveExpiredReservedValuesJob
     extends AbstractJob
 {
-    private ReservedValueStore reservedValueStore;
-
-    public void setReservedValueStore( ReservedValueStore reservedValueStore )
-    {
-        this.reservedValueStore = reservedValueStore;
-    }
+    @Autowired
+    private ReservedValueService reservedValueService;
 
     @Override
     public JobType getJobType()
@@ -55,6 +52,6 @@ public class RemoveExpiredReservedValuesJob
     public void execute( JobConfiguration jobConfiguration )
         throws Exception
     {
-        reservedValueStore.removeExpiredReservations();
+        reservedValueService.removeExpiredReservations();
     }
 }

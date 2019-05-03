@@ -38,7 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Super class for gateway configurations
- * 
+ *
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
 @JacksonXmlRootElement( localName = "smsgatewayconfig", namespace = DxfNamespaces.DXF_2_0 )
@@ -81,7 +81,7 @@ public abstract class SmsGatewayConfig
         this.name = name;
     }
 
-    @JsonProperty( value = "default" )
+    @JsonProperty( value = "isDefault" )
     public boolean isDefault()
     {
         return isDefault;
@@ -109,7 +109,8 @@ public abstract class SmsGatewayConfig
         return password;
     }
 
-    public void setPassword(String password)
+    @JsonProperty
+    public void setPassword( String password )
     {
         this.password = password;
     }
@@ -120,7 +121,7 @@ public abstract class SmsGatewayConfig
         return username;
     }
 
-    public void setUsername(String username)
+    public void setUsername( String username )
     {
         this.username = username;
     }
@@ -144,13 +145,18 @@ public abstract class SmsGatewayConfig
     }
 
     @Override
+    public int hashCode()
+    {
+        return uid.hashCode();
+    }
+
+    @Override
     public String toString()
     {
         return "SmsGatewayConfig{" +
                 "uid='" + uid + '\'' +
                 ", name='" + name + '\'' +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", isDefault=" + isDefault +
                 ", urlTemplate='" + urlTemplate + '\'' +
                 '}';

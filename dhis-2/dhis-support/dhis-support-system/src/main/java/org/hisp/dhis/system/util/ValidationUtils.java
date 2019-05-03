@@ -38,7 +38,6 @@ import org.apache.commons.validator.routines.DateValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -47,6 +46,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
+import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -561,11 +561,11 @@ public class ValidationUtils
         }
         else if ( valueType.isDate() )
         {
-            return "'2000-01-01'";
+            return "2000-01-01";
         }
         else
         {
-            return "'A'";
+            return "A";
         }
     }
 

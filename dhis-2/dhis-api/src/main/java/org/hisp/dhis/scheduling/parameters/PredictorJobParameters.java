@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling.parameters;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,30 +29,35 @@ package org.hisp.dhis.scheduling.parameters;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.parameters.jackson.PredictorJobParametersDeserializer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Henning Håkonsen
  */
+@JacksonXmlRootElement( localName = "jobParametesr", namespace = DxfNamespaces.DXF_2_0 )
+@JsonDeserialize( using = PredictorJobParametersDeserializer.class )
 public class PredictorJobParameters
     implements JobParameters
 {
     private static final long serialVersionUID = 5526554074518768146L;
 
-    @JsonProperty
     private int relativeStart;
 
-    @JsonProperty
     private int relativeEnd;
 
-    @JsonProperty
     private List<String> predictors = new ArrayList<>();
 
-    @JsonProperty
     private List<String> predictorGroups = new ArrayList<>();
 
     public PredictorJobParameters()
@@ -67,6 +72,8 @@ public class PredictorJobParameters
         this.predictorGroups = predictorGroups;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getRelativeStart()
     {
         return relativeStart;
@@ -77,6 +84,8 @@ public class PredictorJobParameters
         this.relativeStart = relativeStart;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getRelativeEnd()
     {
         return relativeEnd;
@@ -87,6 +96,9 @@ public class PredictorJobParameters
         this.relativeEnd = relativeEnd;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "predictors", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
     public List<String> getPredictors()
     {
         return predictors;
@@ -97,6 +109,9 @@ public class PredictorJobParameters
         this.predictors = predictors;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "predictorGroups", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
     public List<String> getPredictorGroups()
     {
         return predictorGroups;
@@ -108,8 +123,9 @@ public class PredictorJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
-        return null;
+        return Optional.empty();
     }
+
 }

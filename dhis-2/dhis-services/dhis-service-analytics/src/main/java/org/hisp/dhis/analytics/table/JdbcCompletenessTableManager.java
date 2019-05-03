@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,7 +50,6 @@ import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -59,6 +58,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,9 +79,9 @@ public class JdbcCompletenessTableManager
 
     @Override
     @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns(), getValueColumns() );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
@@ -152,11 +152,12 @@ public class JdbcCompletenessTableManager
             "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
             "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and cdr.date is not null";
+            "and cdr.date is not null " +
+            "and cdr.completed = true";
 
         final String sql = insert + select;
 
-        populateAndLog( sql, tableName );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns()

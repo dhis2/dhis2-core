@@ -41,7 +41,6 @@ import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -90,6 +89,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
@@ -222,7 +222,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     @Override
     public void writeCompleteDataSetRegistrationsJson( Date lastUpdated, OutputStream outputStream,
-                                                       IdSchemes idSchemes )
+        IdSchemes idSchemes )
     {
         cdsrStore.writeCompleteDataSetRegistrationsJson( lastUpdated, outputStream, idSchemes );
     }

@@ -59,7 +59,6 @@ import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
 /**
  * @author Bharath Kumar
  */
-@Transactional
 public class DefaultDataEntryFormService
     implements DataEntryFormService
 {
@@ -107,7 +106,8 @@ public class DefaultDataEntryFormService
     // ------------------------------------------------------------------------
 
     @Override
-    public int addDataEntryForm( DataEntryForm dataEntryForm )
+    @Transactional
+    public long addDataEntryForm( DataEntryForm dataEntryForm )
     {
         dataEntryForm.setFormat( DataEntryForm.CURRENT_FORMAT );
         dataEntryFormStore.save( dataEntryForm );
@@ -115,36 +115,42 @@ public class DefaultDataEntryFormService
     }
 
     @Override
+    @Transactional
     public void updateDataEntryForm( DataEntryForm dataEntryForm )
     {
         dataEntryFormStore.update( dataEntryForm );
     }
 
     @Override
+    @Transactional
     public void deleteDataEntryForm( DataEntryForm dataEntryForm )
     {
         dataEntryFormStore.delete( dataEntryForm );
     }
 
     @Override
-    public DataEntryForm getDataEntryForm( int id )
+    @Transactional(readOnly = true)
+    public DataEntryForm getDataEntryForm( long id )
     {
         return dataEntryFormStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DataEntryForm getDataEntryFormByName( String name )
     {
         return dataEntryFormStore.getDataEntryFormByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DataEntryForm> getAllDataEntryForms()
     {
         return dataEntryFormStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String prepareDataEntryFormForSave( String htmlCode )
     {
         if ( htmlCode == null )
@@ -186,6 +192,7 @@ public class DefaultDataEntryFormService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String prepareDataEntryFormForEdit( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
     {
         // ------------------------------------------------------------------------
@@ -276,6 +283,7 @@ public class DefaultDataEntryFormService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String prepareDataEntryFormForEntry( DataEntryForm dataEntryForm, DataSet dataSet, I18n i18n )
     {
         //TODO HTML encode names
@@ -445,6 +453,7 @@ public class DefaultDataEntryFormService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Set<DataElement> getDataElementsInDataEntryForm( DataSet dataSet )
     {
         if ( dataSet == null || !dataSet.hasDataEntryForm() )

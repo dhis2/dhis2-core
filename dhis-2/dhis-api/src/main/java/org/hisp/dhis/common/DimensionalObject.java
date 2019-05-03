@@ -68,6 +68,7 @@ public interface DimensionalObject
     String DIMENSION_NAME_SEP = ":";
     String OPTION_SEP = ";";
     String ITEM_SEP = "-";
+    String PROGRAMSTAGE_SEP = ".";
 
     List<String> STATIC_DIMS = ImmutableList.<String>builder().add(
         LONGITUDE_DIM_ID, LATITUDE_DIM_ID ).build();
@@ -104,6 +105,12 @@ public interface DimensionalObject
      * Gets the dimension type.
      */
     DimensionType getDimensionType();
+
+    /**
+     * Gets the data dimension type. Can be null. Only applicable for
+     * {@link DimensionType#CATEGORY}.
+     */
+    DataDimensionType getDataDimensionType();
 
     /**
      * Gets the dimension name, which corresponds to a column in the analytics

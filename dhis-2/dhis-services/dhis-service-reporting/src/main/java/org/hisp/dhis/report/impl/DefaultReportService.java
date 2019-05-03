@@ -46,7 +46,6 @@ import javax.sql.DataSource;
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -68,6 +67,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.transaction.annotation.Transactional;
@@ -315,7 +315,7 @@ public class DefaultReportService
     }
 
     @Override
-    public int saveReport( Report report )
+    public long saveReport( Report report )
     {
         reportStore.save( report );
 
@@ -335,7 +335,7 @@ public class DefaultReportService
     }
 
     @Override
-    public Report getReport( int id )
+    public Report getReport( long id )
     {
         return reportStore.get( id );
     }

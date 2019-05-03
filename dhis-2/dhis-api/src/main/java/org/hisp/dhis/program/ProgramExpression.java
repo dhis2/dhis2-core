@@ -51,7 +51,7 @@ public class ProgramExpression
     public static final String OBJECT_PROGRAM_STAGE_DATAELEMENT = "DE";
     public static final String OBJECT_PROGRAM_STAGE = "PS";
 
-    private int id;
+    private long id;
 
     private String expression;
 
@@ -136,12 +136,12 @@ public class ProgramExpression
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

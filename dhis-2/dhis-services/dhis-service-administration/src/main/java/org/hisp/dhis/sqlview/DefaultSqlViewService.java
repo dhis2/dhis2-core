@@ -73,20 +73,20 @@ public class DefaultSqlViewService
     {
         this.statementBuilder = statementBuilder;
     }
-    
+
     private DhisConfigurationProvider config;
 
     public void setConfig( DhisConfigurationProvider config )
     {
         this.config = config;
     }
-    
+
     // -------------------------------------------------------------------------
     // CRUD methods
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveSqlView( SqlView sqlView )
+    public long saveSqlView( SqlView sqlView )
     {
         sqlViewStore.save( sqlView );
 
@@ -106,7 +106,7 @@ public class DefaultSqlViewService
         {
             dropViewTable( sqlView );
         }
-        
+
         sqlViewStore.delete( sqlView );
     }
 
@@ -123,7 +123,7 @@ public class DefaultSqlViewService
     }
 
     @Override
-    public SqlView getSqlView( int viewId )
+    public SqlView getSqlView( long viewId )
     {
         return sqlViewStore.get( viewId );
     }
@@ -160,15 +160,15 @@ public class DefaultSqlViewService
     public String createViewTable( SqlView sqlView )
     {
         validateSqlView( sqlView, null, null );
-        
+
         return sqlViewStore.createViewTable( sqlView );
     }
-    
+
     @Override
     public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields  )
     {
         validateSqlView( sqlView, criteria, variables );
-        
+
         Grid grid = new ListGrid();
         grid.setTitle( sqlView.getName() );
         grid.setSubtitle( sqlView.getDescription() );
@@ -176,7 +176,7 @@ public class DefaultSqlViewService
         validateSqlView( sqlView, criteria, variables );
 
         log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
-        
+
         String sql = sqlView.isQuery() ?
             getSqlForQuery( grid, sqlView, criteria, variables, filters, fields ) :
             getSqlForView( grid, sqlView, criteria, filters, fields );
@@ -275,8 +275,7 @@ public class DefaultSqlViewService
         return sql;
     }
 
-    @Override
-    public String getCriteriaSqlClause(Map<String, String> criteria,  SqlHelper sqlHelper )
+    private String getCriteriaSqlClause( Map<String, String> criteria,  SqlHelper sqlHelper )
     {
         String sql = StringUtils.EMPTY;
 
@@ -292,32 +291,32 @@ public class DefaultSqlViewService
 
         return sql;
     }
-    
+
     @Override
     public void validateSqlView( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables )
         throws IllegalQueryException
     {
         String violation = null;
-        
+
         if ( sqlView == null || sqlView.getSqlQuery() == null )
         {
             throw new IllegalQueryException( "SQL query is null" );
         }
-        
+
         final Set<String> sqlVars = SqlViewUtils.getVariables( sqlView.getSqlQuery() );
         final String sql = sqlView.getSqlQuery().replaceAll("\\r|\\n"," ").toLowerCase();
         final boolean ignoreSqlViewTableProtection = config.isDisabled( ConfigurationKey.SYSTEM_SQL_VIEW_TABLE_PROTECTION );
-        
+
         if ( !SELECT_PATTERN.matcher( sql ).matches() )
         {
             violation = "SQL query must be a select query";
         }
-        
+
         if ( sql.contains( ";" ) && !sql.trim().endsWith( ";" ) )
         {
             violation = "SQL query can only contain a single semi-colon at the end of the query";
         }
-        
+
         if ( variables != null && variables.keySet().contains( null ) )
         {
             violation = "Variables contains null key";
@@ -332,7 +331,7 @@ public class DefaultSqlViewService
         {
             violation = "Variable params are invalid: " + SqlView.getInvalidQueryParams( variables.keySet() );
         }
-        
+
         if ( variables != null && !SqlView.getInvalidQueryValues( variables.values() ).isEmpty() )
         {
             violation = "Variables are invalid: " + SqlView.getInvalidQueryValues( variables.values() );
@@ -347,7 +346,7 @@ public class DefaultSqlViewService
         {
             violation = "Criteria params are invalid: " + SqlView.getInvalidQueryParams( criteria.keySet() );
         }
-        
+
         if ( criteria != null && !SqlView.getInvalidQueryValues( criteria.values() ).isEmpty() )
         {
             violation = "Criteria values are invalid: " + SqlView.getInvalidQueryValues( criteria.values() );
@@ -362,11 +361,11 @@ public class DefaultSqlViewService
         {
             violation = "SQL query contains illegal keywords";
         }
-        
+
         if ( violation != null )
         {
             log.warn( String.format( "Validation failed for SQL view '%s': %s", sqlView.getUid(), violation ) );
-            
+
             throw new IllegalQueryException( violation );
         }
     }
@@ -390,7 +389,7 @@ public class DefaultSqlViewService
         {
             return false;
         }
-        
+
         return sqlViewStore.refreshMaterializedView( sqlView );
     }
 }

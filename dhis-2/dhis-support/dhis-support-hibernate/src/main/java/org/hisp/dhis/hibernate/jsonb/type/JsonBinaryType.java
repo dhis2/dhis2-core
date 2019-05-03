@@ -28,15 +28,13 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Date;
-import java.util.Properties;
-
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -46,13 +44,14 @@ import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.postgresql.util.PGobject;
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.io.IOException;
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Date;
+import java.util.Properties;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,7 +60,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 @SuppressWarnings("rawtypes")
 public class JsonBinaryType implements UserType, ParameterizedType
 {
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static
     {
@@ -80,7 +79,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     ObjectReader reader;
 
-    Class returnedClass;
+    Class<?> returnedClass;
 
     @Override
     public int[] sqlTypes()
@@ -89,7 +88,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
     }
 
     @Override
-    public Class returnedClass()
+    public Class<?> returnedClass()
     {
         return returnedClass;
     }
@@ -154,6 +153,11 @@ public class JsonBinaryType implements UserType, ParameterizedType
     @Override
     public Object deepCopy( Object value ) throws HibernateException
     {
+        if ( value == null )
+        {
+            return null;
+        }
+
         String json = convertObjectToJson( value );
         return convertJsonToObject( json );
     }
@@ -203,14 +207,14 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    protected void init( Class klass )
+    protected void init( Class<?> klass )
     {
         returnedClass = klass;
         reader = MAPPER.readerFor( klass );
         writer = MAPPER.writerFor( klass );
     }
 
-    static Class classForName( String name ) throws ClassNotFoundException
+    static Class<?> classForName( String name ) throws ClassNotFoundException
     {
         try
         {

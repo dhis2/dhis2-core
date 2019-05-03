@@ -38,7 +38,6 @@ import java.util.List;
 /**
 * @author Lars Helge Overland
 */
-@Transactional
 public class DefaultEventChartService
     extends GenericAnalyticalObjectService<EventChart>
     implements EventChartService
@@ -61,7 +60,7 @@ public class DefaultEventChartService
     }
     
     @Override
-    public int saveEventChart( EventChart eventChart )
+    public long saveEventChart( EventChart eventChart )
     {
         eventChartStore.save( eventChart );
 
@@ -69,30 +68,35 @@ public class DefaultEventChartService
     }
     
     @Override
+    @Transactional
     public void updateEventChart( EventChart eventChart )
     {
         eventChartStore.update( eventChart );
     }
     
     @Override
-    public EventChart getEventChart( int id )
+    @Transactional(readOnly = true)
+    public EventChart getEventChart( long id )
     {
         return eventChartStore.get( id );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public EventChart getEventChart( String uid )
     {
         return eventChartStore.getByUid( uid );
     }
-    
+
     @Override
+    @Transactional
     public void deleteEventChart( EventChart eventChart )
     {
         eventChartStore.delete( eventChart );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<EventChart> getAllEventCharts()
     {
         return eventChartStore.getAll();

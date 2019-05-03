@@ -38,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Viet Nguyen
  */
-@Transactional
 public class DefaultProgramStageDataElementService
     implements ProgramStageDataElementService
 {
@@ -58,36 +57,42 @@ public class DefaultProgramStageDataElementService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addProgramStageDataElement( ProgramStageDataElement programStageDataElement )
     {
         programStageDataElementStore.save( programStageDataElement );
     }
 
     @Override
+    @Transactional
     public void deleteProgramStageDataElement( ProgramStageDataElement programStageDataElement )
     {
         programStageDataElementStore.delete( programStageDataElement );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramStageDataElement> getAllProgramStageDataElements()
     {
         return programStageDataElementStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
     {
         return programStageDataElementStore.get( programStage, dataElement );
     }
 
     @Override
+    @Transactional
     public void updateProgramStageDataElement( ProgramStageDataElement programStageDataElement )
     {
         programStageDataElementStore.update( programStageDataElement );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue()
     {
         return programStageDataElementStore.getProgramStageDataElementsWithSkipSynchronizationSetToTrue();

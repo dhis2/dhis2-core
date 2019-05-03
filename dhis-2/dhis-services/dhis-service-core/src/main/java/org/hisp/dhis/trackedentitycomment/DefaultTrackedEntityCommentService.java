@@ -28,6 +28,8 @@ package org.hisp.dhis.trackedentitycomment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * @author Chau Thu Tran
  */
@@ -50,7 +52,8 @@ public class DefaultTrackedEntityCommentService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addTrackedEntityComment( TrackedEntityComment comment )
+    @Transactional
+    public long addTrackedEntityComment( TrackedEntityComment comment )
     {
         commentStore.save( comment );
 
@@ -58,24 +61,29 @@ public class DefaultTrackedEntityCommentService
     }
 
     @Override
+    @Transactional
     public void deleteTrackedEntityComment( TrackedEntityComment comment )
     {
         commentStore.delete( comment );
     }
 
-    @Override public boolean trackedEntityCommentExists( String uid )
+    @Override
+    @Transactional(readOnly = true)
+    public boolean trackedEntityCommentExists( String uid )
     {
         return commentStore.exists( uid );
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityComment( TrackedEntityComment comment )
     {
         commentStore.update( comment );
     }
 
     @Override
-    public TrackedEntityComment getTrackedEntityComment( int id )
+    @Transactional(readOnly = true)
+    public TrackedEntityComment getTrackedEntityComment( long id )
     {
         return commentStore.get( id );
     }

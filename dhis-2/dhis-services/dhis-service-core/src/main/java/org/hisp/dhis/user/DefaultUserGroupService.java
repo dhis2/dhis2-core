@@ -40,7 +40,6 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultUserGroupService
     implements UserGroupService
 {
@@ -81,19 +80,22 @@ public class DefaultUserGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUserGroup( UserGroup userGroup )
+    @Transactional
+    public long addUserGroup( UserGroup userGroup )
     {
         userGroupStore.save( userGroup );
         return userGroup.getId();
     }
 
     @Override
+    @Transactional
     public void deleteUserGroup( UserGroup userGroup )
     {
         userGroupStore.delete( userGroup );
     }
 
     @Override
+    @Transactional
     public void updateUserGroup( UserGroup userGroup )
     {
         userGroupStore.update( userGroup );
@@ -104,30 +106,35 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGroup> getAllUserGroups()
     {
         return userGroupStore.getAll();
     }
 
     @Override
-    public UserGroup getUserGroup( int userGroupId )
+    @Transactional(readOnly = true)
+    public UserGroup getUserGroup( long userGroupId )
     {
         return userGroupStore.get( userGroupId );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserGroup getUserGroup( String uid )
     {
         return userGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean canAddOrRemoveMember( String uid )
     {
         return canAddOrRemoveMember( uid, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean canAddOrRemoveMember( String uid, User currentUser )
     {
         UserGroup userGroup = getUserGroup( uid );
@@ -144,12 +151,14 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional
     public void addUserToGroups( User user, Collection<String> uids )
     {
         addUserToGroups( user, uids, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional
     public void addUserToGroups( User user, Collection<String> uids, User currentUser )
     {
         for ( String uid : uids )
@@ -164,6 +173,7 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional
     public void removeUserFromGroups( User user, Collection<String> uids )
     {
         for ( String uid : uids )
@@ -178,12 +188,14 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional
     public void updateUserGroups( User user, Collection<String> uids )
     {
         updateUserGroups( user, uids, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional
     public void updateUserGroups( User user, Collection<String> uids, User currentUser )
     {
         Collection<UserGroup> updates = getUserGroupsByUid( uids );
@@ -206,36 +218,41 @@ public class DefaultUserGroupService
         }
     }
 
-    public Collection<UserGroup> getUserGroupsByUid( Collection<String> uids )
+    private Collection<UserGroup> getUserGroupsByUid(Collection<String> uids)
     {
         return userGroupStore.getByUid( uids );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGroup> getUserGroupByName( String name )
     {
         return userGroupStore.getAllEqName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getUserGroupCount()
     {
         return userGroupStore.getCount();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getUserGroupCountByName( String name )
     {
         return userGroupStore.getCountLikeName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGroup> getUserGroupsBetween( int first, int max )
     {
         return userGroupStore.getAllOrderedName( first, max );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
         return userGroupStore.getAllLikeName( name, first, max );

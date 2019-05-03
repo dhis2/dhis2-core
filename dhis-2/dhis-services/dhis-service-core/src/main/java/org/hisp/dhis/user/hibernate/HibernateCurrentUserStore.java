@@ -47,7 +47,7 @@ public class HibernateCurrentUserStore
     private SessionFactory sessionFactory;
 
     @Override
-    public User getUser( int id )
+    public User getUser( long id )
     {
         return sessionFactory.getCurrentSession().get( User.class, id );
     }

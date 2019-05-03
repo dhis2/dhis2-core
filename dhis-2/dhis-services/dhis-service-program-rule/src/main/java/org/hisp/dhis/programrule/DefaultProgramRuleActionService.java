@@ -55,7 +55,7 @@ public class DefaultProgramRuleActionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRuleAction( ProgramRuleAction programRuleAction )
+    public long addProgramRuleAction( ProgramRuleAction programRuleAction )
     {
         programRuleActionStore.save( programRuleAction );
 
@@ -75,7 +75,7 @@ public class DefaultProgramRuleActionService
     }
 
     @Override
-    public ProgramRuleAction getProgramRuleAction( int id )
+    public ProgramRuleAction getProgramRuleAction( long id )
     {
         return programRuleActionStore.get( id );
     }

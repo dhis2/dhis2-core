@@ -67,7 +67,6 @@ import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -104,9 +103,6 @@ public class DataIntegrityServiceTest
 
     private DataElement elementA;
     private DataElement elementB;
-    private DataElement elementC;
-
-    private TrackedEntityAttribute attributeA;
 
     @Mock
     private ValidationRuleService validationRuleService;
@@ -182,7 +178,8 @@ public class DataIntegrityServiceTest
     {
         subject = new DefaultDataIntegrityService( i18nManager, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
-            dataEntryFormService, categoryService, periodService, programIndicatorService, programRuleService, programRuleVariableService, programRuleActionService );
+            dataEntryFormService, categoryService, periodService, programIndicatorService,
+            programRuleService, programRuleVariableService, programRuleActionService );
         rnd = new BeanRandomizer();
         setUpFixtures();
     }
@@ -200,8 +197,6 @@ public class DataIntegrityServiceTest
 
         elementA = createDataElement( 'A' );
         elementB = createDataElement( 'B' );
-        elementC = createDataElement( 'C' );
-        attributeA = createTrackedEntityAttribute( 'A' );
 
         indicatorTypeA = createIndicatorType( 'A' );
 
@@ -233,8 +228,8 @@ public class DataIntegrityServiceTest
         dataSetA.getSources().add( unitA );
         unitA.getDataSets().add( dataSetA );
 
-        dataSetB.addDataSetElement( elementA );     
-        
+        dataSetB.addDataSetElement( elementA );
+
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
 

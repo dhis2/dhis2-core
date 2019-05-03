@@ -76,7 +76,8 @@ public class HibernateDatabaseInfoProvider
 
         boolean spatialSupport = false;
 
-        // Check if postgis is installed. If not, fail startup.
+        // Check if postgis is installed, fail startup if not
+
         if ( !SystemUtils.isTestRun(environment.getActiveProfiles()) )
         {
             spatialSupport = isSpatialSupport();
@@ -185,7 +186,8 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
-            log.error( "Exception when checking postgis version:", ex );
+            log.error( "Exception when checking postgis_full_version(), PostGIS not available" );
+            log.debug( "Exception when checking postgis_full_version()", ex );
             return false;
         }
     }

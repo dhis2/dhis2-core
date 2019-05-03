@@ -39,7 +39,6 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public class DefaultTrackedEntityDataValueAuditService
     implements TrackedEntityDataValueAuditService
 {
@@ -55,12 +54,14 @@ public class DefaultTrackedEntityDataValueAuditService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit )
     {
         trackedEntityDataValueAuditStore.addTrackedEntityDataValueAudit( trackedEntityDataValueAudit );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
@@ -68,6 +69,7 @@ public class DefaultTrackedEntityDataValueAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max )
     {
@@ -75,6 +77,7 @@ public class DefaultTrackedEntityDataValueAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
         return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType );

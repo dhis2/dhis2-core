@@ -34,21 +34,26 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.concurrent.ListenableFuture;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -58,7 +63,6 @@ import java.util.stream.Collectors;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Transactional
 public class DefaultProgramMessageService
     implements ProgramMessageService
 {
@@ -98,11 +102,18 @@ public class DefaultProgramMessageService
     @Autowired
     private AclService aclService;
 
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
+
+    @Autowired
+    private MessageSendingCallback sendingCallback;
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessageQueryParams getFromUrl( Set<String> ou, String piUid, String psiUid,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate )
     {
@@ -143,30 +154,35 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean exists( String uid )
     {
         return programMessageStore.exists( uid );
     }
 
     @Override
-    public ProgramMessage getProgramMessage( int id )
+    @Transactional(readOnly = true)
+    public ProgramMessage getProgramMessage( long id )
     {
         return programMessageStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessage getProgramMessage( String uid )
     {
         return programMessageStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramMessage> getAllProgramMessages()
     {
         return programMessageStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
     {
         hasAccess( params, currentUserService.getCurrentUser() );
@@ -176,13 +192,15 @@ public class DefaultProgramMessageService
     }
 
     @Override
-    public int saveProgramMessage( ProgramMessage programMessage )
+    @Transactional
+    public long saveProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.save( programMessage );
         return programMessage.getId();
     }
 
     @Override
+    @Transactional
     public void updateProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.update( programMessage );
@@ -195,6 +213,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
         List<ProgramMessage> populatedProgramMessages = programMessages.stream()
@@ -212,11 +231,30 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
+    public void sendMessagesAsync( List<ProgramMessage> programMessages )
+    {
+        List<ProgramMessage> populatedProgramMessages = programMessages.stream()
+                .filter( this::hasDataWriteAccess )
+                .map( this::setAttributesBasedOnStrategy )
+                .collect( Collectors.toList() );
+
+        List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
+
+        for ( OutboundMessageBatch batch : batches )
+        {
+            ListenableFuture<OutboundMessageResponseSummary> future = smsSender.sendMessageBatchAsync( batch );
+            future.addCallback( sendingCallback.getBatchCallBack() );
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public void hasAccess( ProgramMessageQueryParams params, User user )
     {
         ProgramInstance programInstance = null;
 
-        Set<Program> programs = new HashSet<>();
+        Set<Program> programs;
 
         if ( params.hasProgramInstance() )
         {
@@ -242,6 +280,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validateQueryParameters( ProgramMessageQueryParams params )
     {
         String violation = null;
@@ -260,6 +299,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validatePayload( ProgramMessage message )
     {
         String violation = null;

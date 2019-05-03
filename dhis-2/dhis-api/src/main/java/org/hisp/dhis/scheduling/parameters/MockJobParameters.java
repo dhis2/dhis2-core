@@ -33,6 +33,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
+import java.util.Optional;
+
 /**
  * @author Henning Håkonsen
  */
@@ -66,8 +68,8 @@ public class MockJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
-        return null;
+        return Optional.empty();
     }
 }

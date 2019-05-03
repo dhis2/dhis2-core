@@ -93,8 +93,7 @@ public class EnrollmentSMSListener extends NewSMSListener {
             entityInstance.setTrackedEntityAttributeValues(attributeValues);
             teiService.updateTrackedEntityInstance(entityInstance);
         } else {
-        	teiService.createTrackedEntityInstance( entityInstance,
-                    null, null, attributeValues );
+        	teiService.createTrackedEntityInstance( entityInstance, attributeValues );
         }
 
         TrackedEntityInstance tei = teiService.getTrackedEntityInstance(teiUID);

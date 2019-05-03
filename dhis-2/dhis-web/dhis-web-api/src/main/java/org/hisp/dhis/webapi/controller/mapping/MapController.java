@@ -119,20 +119,6 @@ public class MapController
     //--------------------------------------------------------------------------
 
     @Override
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
-    @ResponseStatus( HttpStatus.CREATED )
-    public void postJsonObject( HttpServletRequest request, HttpServletResponse response ) throws Exception
-    {
-        Map map = deserializeJsonEntity( request, response );
-        map.getTranslations().clear();
-
-        mappingService.addMap( map );
-
-        response.addHeader( "Location", MapSchemaDescriptor.API_ENDPOINT + "/" + map.getUid() );
-        webMessageService.send( WebMessageUtils.created( "Map created" ), response, request );
-    }
-
-    @Override
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = "application/json" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void putJsonObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response ) throws Exception
@@ -262,7 +248,10 @@ public class MapController
         dimensionService.mergeEventAnalyticalObject( view );
 
         view.getColumnDimensions().clear();
+        view.getFilterDimensions().clear();
+
         view.getColumnDimensions().addAll( getDimensions( view.getColumns() ) );
+        view.getFilterDimensions().addAll( getDimensions( view.getFilters() ) );
 
         if ( view.getLegendSet() != null )
         {
@@ -283,7 +272,7 @@ public class MapController
         {
             view.setProgramStage( programStageService.getProgramStage( view.getProgramStage().getUid() ) );
         }
-        
+
         if ( view.getTrackedEntityType() != null )
         {
             view.setTrackedEntityType( idObjectManager.get( TrackedEntityType.class, view.getTrackedEntityType().getUid() ) );

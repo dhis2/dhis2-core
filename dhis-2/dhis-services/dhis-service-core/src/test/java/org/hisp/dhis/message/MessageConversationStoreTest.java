@@ -65,7 +65,7 @@ public class MessageConversationStoreTest
 
     private User userC;
 
-    private int conversationA;
+    private long conversationA;
 
     private Collection<String> conversationIds;
 
@@ -102,13 +102,13 @@ public class MessageConversationStoreTest
         messageService.sendReply( mc, "Message 2", "Meta", false, null );
         messageService.sendReply( mc, "Message 3", "Meta", false, null );
 
-        int conversationB = messageService.sendPrivateMessage( usersA, "Subject2", "Text", "Meta", null );
+        long conversationB = messageService.sendPrivateMessage( usersA, "Subject2", "Text", "Meta", null );
         mc = messageService.getMessageConversation( conversationB );
         mc.setFollowUp( true );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
 
-        int conversationC = messageService.sendPrivateMessage( usersB, "Subject3", "Text", "Meta", null );
+        long conversationC = messageService.sendPrivateMessage( usersB, "Subject3", "Text", "Meta", null );
         mc = messageService.getMessageConversation( conversationC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );

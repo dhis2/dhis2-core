@@ -233,7 +233,7 @@ public class PredictionServiceTest
         altCategoryCombo = createCategoryCombo( 'Y', altCategory );
         categoryService.addCategoryCombo( altCategoryCombo );
 
-        altCombo = createCategoryOptionCombo( 'Z', altCategoryCombo, altCategoryOption );
+        altCombo = createCategoryOptionCombo( altCategoryCombo, altCategoryOption );
 
         optionCombos = new HashSet<>();
         optionCombos.add( categoryOptionCombo );
@@ -302,7 +302,7 @@ public class PredictionServiceTest
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo, Number value )
     {
-        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, value.toString(), defaultCombo, attributeOptionCombo ) );
+        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, defaultCombo, attributeOptionCombo, value.toString() ) );
     }
 
     private String getDataValue( DataElement dataElement, CategoryOptionCombo combo, OrganisationUnit source, Period period )
@@ -745,10 +745,8 @@ public class PredictionServiceTest
 
         categoryService.addCategoryCombo( categoryComboJL );
 
-        CategoryOptionCombo optionComboJL = createCategoryOptionCombo( 'A',
-            categoryComboJL, optionJ, optionK );
-        CategoryOptionCombo optionComboKL = createCategoryOptionCombo( 'A',
-            categoryComboJL, optionK, optionL );
+        CategoryOptionCombo optionComboJL = createCategoryOptionCombo( categoryComboJL, optionJ, optionK );
+        CategoryOptionCombo optionComboKL = createCategoryOptionCombo( categoryComboJL, optionK, optionL );
 
         categoryService.addCategoryOptionCombo( optionComboJL );
         categoryService.addCategoryOptionCombo( optionComboKL );
