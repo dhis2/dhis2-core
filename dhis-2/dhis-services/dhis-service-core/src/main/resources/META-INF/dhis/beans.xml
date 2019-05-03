@@ -766,7 +766,7 @@
     <property name="cacheable" value="true" />
   </bean>
 
-  <bean id="org.hisp.dhis.fileresource.FileResourceStore" class="org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore">
+  <bean id="org.hisp.dhis.fileresource.FileResourceStore" class="org.hisp.dhis.fileresource.hibernate.HibernateFileResourceStore">
     <property name="clazz" value="org.hisp.dhis.fileresource.FileResource" />
     <property name="sessionFactory" ref="sessionFactory" />
   </bean>

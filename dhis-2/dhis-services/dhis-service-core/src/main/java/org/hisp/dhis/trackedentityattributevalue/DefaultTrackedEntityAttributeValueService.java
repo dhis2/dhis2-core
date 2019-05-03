@@ -231,7 +231,6 @@ public class DefaultTrackedEntityAttributeValueService
         }
 
         FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
-        fileResource.setAssigned( false );
         fileResourceService.updateFileResource( fileResource );
     }
 

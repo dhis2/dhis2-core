@@ -1,7 +1,7 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.fileresource.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,34 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceStore;
+import org.joda.time.DateTime;
 
-import java.io.File;
-import java.net.URI;
 import java.util.List;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FileResourceService
+public class HibernateFileResourceStore
+    extends HibernateIdentifiableObjectStore<FileResource>
+    implements FileResourceStore
 {
-    FileResource getFileResource( String uid );
+    @Override
+    public List<FileResource> getExpiredFileResources( DateTime expires )
+    {
+        List<FileResource> results = getSession()
+            .createNativeQuery( "select fr.* " +
+                "from fileresource fr " +
+                "inner join (select dva.value " +
+                "from datavalueaudit dva " +
+                "where dva.created < :date " +
+                "and dva.audittype in ('DELETE', 'UPDATE') " +
+                "and dva.dataelementid in " +
+                "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva " +
+                "on dva.value = fr.uid " +
+                "where fr.isassigned = true; ", FileResource.class)
+            .setParameter( "date", expires.toDate() )
+            .getResultList();
 
-    List<FileResource> getFileResources( List<String> uids );
-
-    List<FileResource> getOrphanedFileResources();
-
-    String saveFileResource( FileResource fileResource, File file );
-
-    String saveFileResource( FileResource fileResource, byte[] bytes );
-
-    void deleteFileResource( String uid );
-
-    void deleteFileResource( FileResource fileResource );
-
-    ByteSource getFileResourceContent( FileResource fileResource );
-
-    boolean fileResourceExists( String uid );
-
-    void updateFileResource( FileResource fileResource );
-
-    URI getSignedGetFileResourceContentUri( String uid );
-
-    List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+        return results;
+    }
 }

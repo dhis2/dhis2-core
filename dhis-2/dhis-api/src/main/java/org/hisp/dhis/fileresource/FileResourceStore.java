@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,12 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.joda.time.DateTime;
 
-import java.io.File;
-import java.net.URI;
 import java.util.List;
 
-/**
- * @author Halvdan Hoem Grelland
- */
-public interface FileResourceService
+public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 {
-    FileResource getFileResource( String uid );
-
-    List<FileResource> getFileResources( List<String> uids );
-
-    List<FileResource> getOrphanedFileResources();
-
-    String saveFileResource( FileResource fileResource, File file );
-
-    String saveFileResource( FileResource fileResource, byte[] bytes );
-
-    void deleteFileResource( String uid );
-
-    void deleteFileResource( FileResource fileResource );
-
-    ByteSource getFileResourceContent( FileResource fileResource );
-
-    boolean fileResourceExists( String uid );
-
-    void updateFileResource( FileResource fileResource );
-
-    URI getSignedGetFileResourceContentUri( String uid );
-
-    List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+    List<FileResource> getExpiredFileResources( DateTime expires );
 }

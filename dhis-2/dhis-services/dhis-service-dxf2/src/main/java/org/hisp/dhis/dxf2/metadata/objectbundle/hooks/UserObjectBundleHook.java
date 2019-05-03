@@ -145,7 +145,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         if ( persisted.getAvatar() != null && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() ) ) )
         {
             FileResource fileResource = fileResourceService.getFileResource( persisted.getAvatar().getUid() );
-            fileResource.setAssigned( false );
             fileResourceService.updateFileResource( fileResource );
 
             if ( user.getAvatar() != null )
