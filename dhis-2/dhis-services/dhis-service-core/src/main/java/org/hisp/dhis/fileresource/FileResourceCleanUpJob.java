@@ -113,13 +113,13 @@ public class FileResourceCleanUpJob
 
         if ( !deletedOrphans.isEmpty() )
         {
-            log.warn( String.format( "Deleted %d orphaned FileResources: %s", deletedOrphans.size(),
+            log.info( String.format( "Deleted %d orphaned FileResources: %s", deletedOrphans.size(),
                 prettyPrint( deletedOrphans ) ) );
         }
 
         if ( !deletedAuditFiles.isEmpty() )
         {
-            log.warn( String.format( "Deleted %d expired FileResource audits: %s", deletedAuditFiles.size(),
+            log.info( String.format( "Deleted %d expired FileResource audits: %s", deletedAuditFiles.size(),
                 prettyPrint( deletedAuditFiles ) ) );
         }
     }
@@ -154,7 +154,6 @@ public class FileResourceCleanUpJob
      */
     private boolean safeDelete( FileResource fileResource )
     {
-        log.warn( "Deleting: " + fileResource.getUid() );
         try
         {
             fileResourceService.deleteFileResource( fileResource );
@@ -164,7 +163,6 @@ public class FileResourceCleanUpJob
         {
             fileResource.setAssigned( true );
             fileResourceService.updateFileResource( fileResource );
-            log.info( String.format( "corrected the assigned status of fileresource '%s'", fileResource.getUid() ) );
         }
 
         return false;

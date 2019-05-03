@@ -35,6 +35,5 @@ import java.util.List;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 {
-
     List<FileResource> getExpiredFileResources( DateTime expires );
 }
