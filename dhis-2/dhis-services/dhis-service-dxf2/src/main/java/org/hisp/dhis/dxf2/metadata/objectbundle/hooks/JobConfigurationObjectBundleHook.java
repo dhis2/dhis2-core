@@ -31,12 +31,14 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -218,12 +220,25 @@ public class JobConfigurationObjectBundleHook
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        if ( !JobConfiguration.class.isInstance( object ) )
+        if ( !( object instanceof JobConfiguration ) )
         {
             return;
         }
+
+        JobConfiguration jobConfiguration = (JobConfiguration) object;
+        ensureDefaultJobParametersAreUsedIfNoOtherArePresent( jobConfiguration );
+    }
+
+    @Override
+    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    {
+        if ( !( object instanceof JobConfiguration ) )
+        {
+            return;
+        }
+
         JobConfiguration newObject = (JobConfiguration) object;
         JobConfiguration persObject = (JobConfiguration) persistedObject;
 
@@ -235,6 +250,8 @@ public class JobConfigurationObjectBundleHook
         {
             newObject.setCronExpression( HOUR_CRON );
         }
+
+        ensureDefaultJobParametersAreUsedIfNoOtherArePresent( newObject );
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
     }
@@ -281,5 +298,35 @@ public class JobConfigurationObjectBundleHook
         {
             schedulingManager.scheduleJob( jobConfiguration );
         }
+    }
+
+    private void ensureDefaultJobParametersAreUsedIfNoOtherArePresent( JobConfiguration jobConfiguration )
+    {
+        if ( !jobConfiguration.isInMemoryJob() )
+        {
+            if ( jobConfiguration.getJobParameters() == null )
+            {
+                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
+            }
+        }
+    }
+
+    private JobParameters getDefaultJobParameters( JobConfiguration jobConfiguration )
+    {
+        if ( jobConfiguration.getJobType().getJobParameters() == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return jobConfiguration.getJobType().getJobParameters().newInstance();
+        }
+        catch ( InstantiationException | IllegalAccessException ex )
+        {
+            log.error( DebugUtils.getStackTrace( ex ) );
+        }
+
+        return null;
     }
 }
