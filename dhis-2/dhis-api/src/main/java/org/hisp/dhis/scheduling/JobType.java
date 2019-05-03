@@ -30,11 +30,14 @@ package org.hisp.dhis.scheduling;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 
 /**
  * Enum describing the different jobs in the system.
@@ -54,10 +57,12 @@ public enum JobType
     ) ),
     DATA_SYNC( "dataSynchJob", true, null, null ),
     PROGRAM_DATA_SYNC( "programDataSyncJob", true, null, null ),
-    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, null, null ),
-    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, null, null ),
+    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true,
+        TrackerProgramsDataSynchronizationJobParameters.class, null ),
+    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true,
+        EventProgramsDataSynchronizationJobParameters.class, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false, null, null ),
-    META_DATA_SYNC( "metadataSyncJob", true, null, null ),
+    META_DATA_SYNC( "metadataSyncJob", true, MetadataSyncJobParameters.class, null ),
     SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
     PROGRAM_NOTIFICATIONS( "programNotificationsJob", true, null, null ),
