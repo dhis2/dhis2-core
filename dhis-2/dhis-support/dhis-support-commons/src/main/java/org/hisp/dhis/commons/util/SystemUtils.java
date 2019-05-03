@@ -43,7 +43,7 @@ public class SystemUtils
     {
         return "true".equals( System.getProperty( "org.hisp.dhis.test", "false" ) );
     }
-    
+
     /**
      * Gets the number of CPU cores available to this JVM.
      * @return the number of available CPU cores.

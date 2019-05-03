@@ -505,7 +505,7 @@ public abstract class AbstractEnrollmentService
             }
         }
 
-        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
+        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -585,7 +585,7 @@ public abstract class AbstractEnrollmentService
             return new ImportSummary( ImportStatus.ERROR, errors.toString() );
         }
 
-        Set<ImportConflict> importConflicts = new HashSet<>( checkAttributes( enrollment, importOptions ) );
+        Set<ImportConflict> importConflicts = checkAttributes( enrollment, importOptions );
 
         if ( !importConflicts.isEmpty() )
         {
@@ -855,9 +855,9 @@ public abstract class AbstractEnrollmentService
         }
     }
 
-    private List<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
+    private Set<ImportConflict> checkAttributes( Enrollment enrollment, ImportOptions importOptions )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
+        Set<ImportConflict> importConflicts = new HashSet<>();
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService.getTrackedEntityInstance(
@@ -879,7 +879,7 @@ public abstract class AbstractEnrollmentService
         for ( Attribute attribute : enrollment.getAttributes() )
         {
             attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-            importConflicts.addAll( validateAttributeType( attribute, importOptions ) );
+            validateAttributeType( attribute, importOptions, importConflicts );
         }
 
         TrackedEntityInstance instance = trackedEntityInstanceService.getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
@@ -899,8 +899,8 @@ public abstract class AbstractEnrollmentService
             {
                 OrganisationUnit organisationUnit = manager.get( OrganisationUnit.class, instance.getOrgUnit() );
 
-                importConflicts.addAll( checkScope( trackedEntityInstance, trackedEntityAttribute,
-                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, program ) );
+                checkAttributeUniquenessWithinScope( trackedEntityInstance, trackedEntityAttribute,
+                    attributeValueMap.get( trackedEntityAttribute.getUid() ), organisationUnit, importConflicts );
             }
 
             attributeValueMap.remove( trackedEntityAttribute.getUid() );
@@ -933,25 +933,22 @@ public abstract class AbstractEnrollmentService
         return importConflicts;
     }
 
-    private List<ImportConflict> checkScope( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
-        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit, Program program )
+    private void checkAttributeUniquenessWithinScope( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
+        TrackedEntityAttribute trackedEntityAttribute, String value, OrganisationUnit organisationUnit,
+        Set<ImportConflict> importConflicts )
     {
-        List<ImportConflict> importConflicts = new ArrayList<>();
-
-        if ( trackedEntityAttribute == null || value == null )
+        if ( value == null )
         {
-            return importConflicts;
+            return;
         }
 
-        String errorMessage = trackedEntityAttributeService.validateScope( trackedEntityAttribute, value, trackedEntityInstance,
-            organisationUnit, program );
+        String errorMessage = trackedEntityAttributeService.validateAttributeUniquenessWithinScope(
+            trackedEntityAttribute, value, trackedEntityInstance, organisationUnit );
 
         if ( errorMessage != null )
         {
             importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
         }
-
-        return importConflicts;
     }
 
     private void updateAttributeValues( Enrollment enrollment, ImportOptions importOptions )
@@ -1006,15 +1003,15 @@ public abstract class AbstractEnrollmentService
         return entityInstance;
     }
 
-    private List<ImportConflict> validateAttributeType( Attribute attribute, ImportOptions importOptions )
+    private void validateAttributeType( Attribute attribute, ImportOptions importOptions,
+        Set<ImportConflict> importConflicts )
     {
-        List<ImportConflict> importConflicts = Lists.newArrayList();
+        //Cache is populated if it is a batch operation. Otherwise, it is not.
         TrackedEntityAttribute teAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(), attribute.getAttribute() );
 
         if ( teAttribute == null )
         {
             importConflicts.add( new ImportConflict( "Attribute.attribute", "Does not point to a valid attribute." ) );
-            return importConflicts;
         }
 
         String errorMessage = trackedEntityAttributeService.validateValueType( teAttribute, attribute.getValue() );
@@ -1023,8 +1020,6 @@ public abstract class AbstractEnrollmentService
         {
             importConflicts.add( new ImportConflict( "Attribute.value", errorMessage ) );
         }
-
-        return importConflicts;
     }
 
     private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment )
