@@ -80,10 +80,7 @@ public class DefaultQueryPlanner
     @Override
     public DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        if ( !plannerParams.getTableType().equals( AnalyticsTableType.ORG_UNIT_TARGET ) )
-        {
-            queryValidator.validate( params );
-        }
+        queryValidator.validate( params );
 
         // ---------------------------------------------------------------------
         // Group queries which can be executed together
