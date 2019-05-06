@@ -27,9 +27,6 @@ package org.hisp.dhis.db.migration.v33;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.flywaydb.core.api.FlywayException;
@@ -55,8 +52,6 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
     private static final String CHECK_COLUMN_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE " +
         "table_name = 'jobconfiguration' AND column_name = 'jobtype';";
 
-    private ObjectWriter writer;
-
     @Override
     public void migrate( final Context context ) throws Exception
     {
@@ -79,11 +74,6 @@ public class V2_33_1__Job_configuration_job_type_column_to_varchar extends BaseJ
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jobtypevarchar VARCHAR(120)" );
             }
-
-            ObjectMapper MAPPER = new ObjectMapper();
-            MAPPER.enableDefaultTyping();
-            MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-            writer = MAPPER.writerFor( JobType.class );
 
             //3. Move existing jobtype from bytearray column into varchar column
             Map<Integer, byte[]> jobTypeByteMap = new HashMap<>();

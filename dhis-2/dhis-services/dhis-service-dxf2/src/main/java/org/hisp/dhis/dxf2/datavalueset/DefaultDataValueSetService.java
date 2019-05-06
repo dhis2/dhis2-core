@@ -1249,8 +1249,6 @@ public class DefaultDataValueSetService
                         {
                             FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
 
-                            fr.setAssigned( false );
-
                             fileResourceService.updateFileResource( fr );
                         }
 

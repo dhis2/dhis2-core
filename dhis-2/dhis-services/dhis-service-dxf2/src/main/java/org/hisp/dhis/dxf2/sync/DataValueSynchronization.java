@@ -27,8 +27,6 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
@@ -43,7 +41,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.HttpClientErrorException;
@@ -53,6 +50,8 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Date;
+
 /**
  * @author David Katuscak
  */
@@ -61,14 +60,10 @@ public class DataValueSynchronization
     private static final Log log = LogFactory.getLog( DataValueSynchronization.class );
 
     private final DataValueService dataValueService;
-
     private final DataValueSetService dataValueSetService;
-
     private final SystemSettingManager systemSettingManager;
-
     private final RestTemplate restTemplate;
 
-    @Autowired
     public DataValueSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService,
         SystemSettingManager systemSettingManager, RestTemplate restTemplate )
     {
@@ -78,7 +73,7 @@ public class DataValueSynchronization
         this.restTemplate = restTemplate;
     }
 
-    public SynchronizationResult syncDataValuesData()
+    public SynchronizationResult syncDataValuesData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
@@ -114,8 +109,6 @@ public class DataValueSynchronization
         final String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
         final SystemInstance instance = new SystemInstance( syncUrl, username, password );
-
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.DATA_VALUES_SYNC_PAGE_SIZE );
 
         // Using this approach as (int) Match.ceil doesn't work until I cast int to double
         final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);

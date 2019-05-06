@@ -1,4 +1,4 @@
-package org.hisp.dhis.programstagefilter;
+package org.hisp.dhis.fileresource;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,15 +28,12 @@ package org.hisp.dhis.programstagefilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.joda.time.DateTime;
+
 import java.util.List;
 
-/**
- * @author Ameen Mohamed <ameen@dhis2.org>
- *
- */
-public interface ProgramStageInstanceFilterService
+public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 {
-    String ID = ProgramStageInstanceFilter.class.getName();
-   
-    List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter );
+    List<FileResource> getExpiredFileResources( DateTime expires );
 }

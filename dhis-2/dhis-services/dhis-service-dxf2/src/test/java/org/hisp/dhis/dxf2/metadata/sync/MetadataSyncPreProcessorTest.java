@@ -28,20 +28,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -54,6 +40,7 @@ import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.joda.time.format.DateTimeFormat;
@@ -68,6 +55,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
 
 /**
  * @author aamerm
@@ -100,6 +96,8 @@ public class MetadataSyncPreProcessorTest
     @Mock
     private MetadataVersionDelegate metadataVersionDelegate;
 
+    private final MetadataSyncJobParameters metadataSyncJobParameters = new MetadataSyncJobParameters();
+
     @Before
     public void setup()
     {
@@ -115,7 +113,7 @@ public class MetadataSyncPreProcessorTest
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
 
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
         verify( synchronizationManager, times( 1 ) ).executeDataValuePush();
     }
 
@@ -129,9 +127,9 @@ public class MetadataSyncPreProcessorTest
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         doThrow( MetadataSyncServiceException.class )
             .when( metadataSyncPreProcessor )
-            .handleDataValuePush( mockRetryContext );
+            .handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
 
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
     }
 
     @Test
@@ -142,10 +140,10 @@ public class MetadataSyncPreProcessorTest
         expectedSummary.setStatus( ImportStatus.SUCCESS );
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
-        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext );
+        doNothing().when( metadataSyncPreProcessor ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
 
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext );
-        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext );
+        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+        verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
     }
 
     @Test
