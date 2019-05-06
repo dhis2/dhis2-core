@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -60,29 +61,29 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
 public class QueryValidatorTest
-    extends DhisSpringTest
 {
-    @Autowired
-    private QueryValidator queryValidator;
+    @Mock
+    private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Autowired
-    private DataElementService dataElementService;
-
-    @Autowired
-    private DataSetService dataSetService;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    @InjectMocks
+    private DefaultQueryValidator queryValidator;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -121,24 +122,17 @@ public class QueryValidatorTest
 
     private DataElementGroupSet dgsA;
 
-    @Override
-    public void setUpTest()
+    @Before
+    public void setUp()
     {
         PeriodType pt = new MonthlyPeriodType();
 
         itA = createIndicatorType( 'A' );
 
-        idObjectManager.save( itA );
-
         inA = createIndicator( 'A', itA );
         inB = createIndicator( 'B', itA );
 
-        idObjectManager.save( inA );
-        idObjectManager.save( inB );
-
         prA = createProgram( 'A' );
-
-        idObjectManager.save( prA );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
@@ -149,27 +143,11 @@ public class QueryValidatorTest
         deG = createDataElement( 'G', ValueType.INTEGER, AggregationType.SUM );
         deH = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
 
-        dataElementService.addDataElement( deA );
-        dataElementService.addDataElement( deB );
-        dataElementService.addDataElement( deC );
-        dataElementService.addDataElement( deD );
-        dataElementService.addDataElement( deE );
-        dataElementService.addDataElement( deF );
-        dataElementService.addDataElement( deG );
-        dataElementService.addDataElement( deH );
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
 
         DataSet dsA = createDataSet( 'A', pt );
-        DataSet dsB = createDataSet( 'B', pt );
-        DataSet dsC = createDataSet( 'C', pt );
-        DataSet dsD = createDataSet( 'D', pt );
-
-        dataSetService.addDataSet( dsA );
-        dataSetService.addDataSet( dsB );
-        dataSetService.addDataSet( dsC );
-        dataSetService.addDataSet( dsD );
 
         rrA = new ReportingRate( dsA );
         peA = PeriodType.getPeriodFromIsoString( "201501" );
@@ -181,22 +159,13 @@ public class QueryValidatorTest
         ouD = createOrganisationUnit( 'D' );
         ouE = createOrganisationUnit( 'E' );
 
-        organisationUnitService.addOrganisationUnit( ouA );
-        organisationUnitService.addOrganisationUnit( ouB );
-        organisationUnitService.addOrganisationUnit( ouC );
-        organisationUnitService.addOrganisationUnit( ouD );
-        organisationUnitService.addOrganisationUnit( ouE );
-
         degA = createDataElementGroup( 'A' );
         degA.addDataElement( deA );
         degA.addDataElement( deB );
 
-        dataElementService.addDataElementGroup( degA );
-
         dgsA = createDataElementGroupSet( 'A' );
         dgsA.getMembers().add( degA );
 
-        dataElementService.addDataElementGroupSet( dgsA );
     }
 
     @Test
@@ -321,6 +290,18 @@ public class QueryValidatorTest
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA, peB ) ) )
             .withOutputFormat( OutputFormat.DATA_VALUE_SET ).build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateSuccesWithSkipDataDimensionCheck()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+                .addDimension( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA, ouB ) ) )
+                .withSkipDataDimensionValidation( true )
+                .withSkipPartitioning( true )
+                .build();
 
         queryValidator.validate( params );
     }
