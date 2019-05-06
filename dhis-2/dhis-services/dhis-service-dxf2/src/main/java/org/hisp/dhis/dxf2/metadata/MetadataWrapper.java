@@ -1,5 +1,4 @@
-package org.hisp.dhis.metadata.version;
-
+package org.hisp.dhis.dxf2.metadata;
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -29,96 +28,72 @@ package org.hisp.dhis.metadata.version;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 
-import java.io.Serializable;
-import java.util.Date;
+import java.util.Objects;
 
 /**
- * Base class for MetadataVersion
- *
- * @author vanyas
+ * @author David Katuscak
  */
-@JacksonXmlRootElement( localName = "metadataVersion", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataVersion
-    extends BaseIdentifiableObject
-    implements Serializable
+@JacksonXmlRootElement( localName = "metadataPayload", namespace = DxfNamespaces.DXF_2_0 )
+public class MetadataWrapper
 {
-    private Date importDate;
+    private String metadata;
 
-    private VersionType type;
-
-    private String hashCode;
-
-    public MetadataVersion()
+    public MetadataWrapper( )
     {
     }
 
-    public MetadataVersion( String name, VersionType type )
+    public MetadataWrapper( String metadata )
     {
-        super();
-        this.type = type;
-        this.name = name;
+        this.metadata = metadata;
     }
 
-    // -------------------------------------------------------------------------
-    // Getter and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public VersionType getType()
+    @JsonProperty( "metadata" )
+    @JacksonXmlElementWrapper( localName = "metadata", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "metadata", namespace = DxfNamespaces.DXF_2_0 )
+    public String getMetadata()
     {
-        return type;
+        return metadata;
     }
 
-    public void setType( VersionType type )
+    public void setMetadata( String metadata )
     {
-        this.type = type;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getImportDate()
-    {
-        return importDate;
-    }
-
-    public void setImportDate( Date importDate )
-    {
-        this.importDate = importDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getHashCode()
-    {
-        return hashCode;
-    }
-
-    public void setHashCode( String hashCode )
-    {
-        this.hashCode = hashCode;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getName()
-    {
-        return super.getName();
+        this.metadata = metadata;
     }
 
     @Override
-    public String toString()
+    public boolean equals( Object o )
     {
-        return "MetadataVersion{" +
-            "importDate=" + importDate +
-            ", type=" + type +
-            ", name='" + name + '\'' +
-            ", hashCode='" + hashCode + '\'' +
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        MetadataWrapper temp = (MetadataWrapper) o;
+
+        return Objects.equals( temp.getMetadata(), this.getMetadata() );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return metadata != null ? metadata.hashCode() : 0;
+    }
+
+    @Override
+    public java.lang.String toString()
+    {
+        return "MetadataWrapper{" +
+            "metadata=" + metadata +
             '}';
     }
 }

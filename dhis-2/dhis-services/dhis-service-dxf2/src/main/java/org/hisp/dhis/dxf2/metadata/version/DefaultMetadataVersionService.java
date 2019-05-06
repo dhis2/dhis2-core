@@ -32,10 +32,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
-import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
-import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.dxf2.metadata.MetadataWrapper;
+import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
+import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -44,11 +45,12 @@ import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -73,20 +75,25 @@ DefaultMetadataVersionService
     // Dependencies
     // -------------------------------------------------------------------------
     
-    @Autowired
-    private MetadataVersionStore versionStore;
+    private final MetadataVersionStore versionStore;
+    private final MetadataExportService metadataExportService;
+    private final KeyJsonValueService keyJsonValueService;
+    private final NodeService nodeService;
+    private final MetadataSystemSettingService metadataSystemSettingService;
+    private final RenderService renderService;
 
-    @Autowired
-    private MetadataExportService metadataExportService;
-
-    @Autowired
-    private KeyJsonValueService keyJsonValueService;
-
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private MetadataSystemSettingService metadataSystemSettingService;
+    public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
+        MetadataExportService metadataExportService, KeyJsonValueService keyJsonValueService,
+        NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
+        RenderService renderService )
+    {
+        this.versionStore = metadataVersionStore;
+        this.metadataExportService = metadataExportService;
+        this.keyJsonValueService = keyJsonValueService;
+        this.nodeService = nodeService;
+        this.metadataSystemSettingService = metadataSystemSettingService;
+        this.renderService = renderService;
+    }
 
     // -------------------------------------------------------------------------
     // MetadataVersionService implementation
@@ -249,7 +256,20 @@ DefaultMetadataVersionService
     public String getVersionData( String versionName )
     {
         KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, versionName );
-        return (keyJsonValue != null) ? keyJsonValue.getValue() : null;
+
+        if ( keyJsonValue != null )
+        {
+            try
+            {
+                return renderService.fromJson( keyJsonValue.getValue(), MetadataWrapper.class ).getMetadata();
+            }
+            catch ( IOException e )
+            {
+                log.error( "Exception occurred while deserializing metadata.", e );
+            }
+        }
+
+        return null;
     }
 
     @Override
@@ -263,7 +283,9 @@ DefaultMetadataVersionService
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setKey( versionName );
         keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
-        keyJsonValue.setValue( versionSnapshot );
+
+        //MetadataWrapper is used to avoid Metadata keys reordering by jsonb (jsonb does not preserve keys order)
+        keyJsonValue.setValue( renderService.toJsonAsString( new MetadataWrapper( versionSnapshot ) ) );
 
         try
         {
@@ -334,7 +356,7 @@ DefaultMetadataVersionService
 
             if ( minDate != null )
             {
-                List<String> defaultFilterList = new ArrayList<String>();
+                List<String> defaultFilterList = new ArrayList<>();
                 defaultFilterList.add( "lastUpdated:gte:" + DateUtils.getLongGmtDateString( minDate ) );
                 exportParams.setDefaultFilter( defaultFilterList );
                 metadataExportService.validate( exportParams );
