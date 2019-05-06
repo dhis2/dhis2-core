@@ -30,15 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryGroups;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -88,7 +80,10 @@ public class DefaultQueryPlanner
     @Override
     public DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams )
     {
-        queryValidator.validate( params );
+        if ( !plannerParams.getTableType().equals( AnalyticsTableType.ORG_UNIT_TARGET ) )
+        {
+            queryValidator.validate( params );
+        }
 
         // ---------------------------------------------------------------------
         // Group queries which can be executed together
