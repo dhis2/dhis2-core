@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.metadata;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -53,7 +52,6 @@ public class MetadataWrapper
     }
 
     @JsonProperty( "metadata" )
-    @JacksonXmlElementWrapper( localName = "metadata", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "metadata", namespace = DxfNamespaces.DXF_2_0 )
     public String getMetadata()
     {
