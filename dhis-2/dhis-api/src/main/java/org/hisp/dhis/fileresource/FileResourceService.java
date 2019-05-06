@@ -54,10 +54,12 @@ public interface FileResourceService
     void deleteFileResource( FileResource fileResource );
 
     ByteSource getFileResourceContent( FileResource fileResource );
-    
+
     boolean fileResourceExists( String uid );
-    
+
     void updateFileResource( FileResource fileResource );
 
     URI getSignedGetFileResourceContentUri( String uid );
+
+    List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
 }

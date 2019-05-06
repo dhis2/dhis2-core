@@ -1,4 +1,4 @@
-package org.hisp.dhis.programstagefilter;
+package org.hisp.dhis.fileresource.hibernate;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,15 +28,34 @@ package org.hisp.dhis.programstagefilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceStore;
+import org.joda.time.DateTime;
+
 import java.util.List;
 
-/**
- * @author Ameen Mohamed <ameen@dhis2.org>
- *
- */
-public interface ProgramStageInstanceFilterService
+public class HibernateFileResourceStore
+    extends HibernateIdentifiableObjectStore<FileResource>
+    implements FileResourceStore
 {
-    String ID = ProgramStageInstanceFilter.class.getName();
-   
-    List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter );
+    @Override
+    public List<FileResource> getExpiredFileResources( DateTime expires )
+    {
+        List<FileResource> results = getSession()
+            .createNativeQuery( "select fr.* " +
+                "from fileresource fr " +
+                "inner join (select dva.value " +
+                "from datavalueaudit dva " +
+                "where dva.created < :date " +
+                "and dva.audittype in ('DELETE', 'UPDATE') " +
+                "and dva.dataelementid in " +
+                "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva " +
+                "on dva.value = fr.uid " +
+                "where fr.isassigned = true; ", FileResource.class)
+            .setParameter( "date", expires.toDate() )
+            .getResultList();
+
+        return results;
+    }
 }

@@ -96,14 +96,6 @@ public interface JobConfigurationService
     List<JobConfiguration> getAllJobConfigurations();
 
     /**
-     * Get a sorted list of all job configurations based on cron expressions
-     * and the current time
-     *
-     * @return list of all job configurations in the system(sorted)
-     */
-    List<JobConfiguration> getAllJobConfigurationsSorted();
-
-    /**
      * Get a map of parameter classes with appropriate properties
      * This can be used for a frontend app or for other appropriate applications which needs information about the jobs
      * in the system.

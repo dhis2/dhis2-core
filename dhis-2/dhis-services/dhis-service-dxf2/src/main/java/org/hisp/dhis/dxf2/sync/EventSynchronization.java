@@ -73,7 +73,7 @@ public class EventSynchronization
         this.programStageDataElementService = programStageDataElementService;
     }
 
-    public SynchronizationResult syncEventProgramData()
+    public SynchronizationResult syncEventProgramData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
@@ -98,7 +98,6 @@ public class EventSynchronization
         }
 
         final SystemInstance instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.EVENTS );
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.EVENT_PROGRAM_SYNC_PAGE_SIZE );
         final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
 
         log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );
