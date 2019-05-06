@@ -79,7 +79,6 @@ import static org.mockito.Mockito.when;
  */
 public class JdbcEventAnalyticsTableManagerTest
 {
-
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -285,6 +284,8 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD2 = "(select cast(eventdatavalues #>> '{%s, value}' as null) "+ FROM_CLAUSE +"  and eventdatavalues #>> '{%s,value}' null '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD3 = "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end " + FROM_CLAUSE + " ) as \"%s\"";
         String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' null '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?(\\d{2}:\\d{2}:\\d{2})?$') as \"%s\"";
+        String aliasD5 = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+            + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
         String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' null '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
 
@@ -302,7 +303,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d2.getUid(), DOUBLE, toAlias( aliasD2, d2.getUid() ) ) // ValueType.PERCENTAGE
             .addColumn( d3.getUid(), INTEGER, toAlias( aliasD3, d3.getUid() ) ) // ValueType.BOOLEAN
             .addColumn( d4.getUid(), TIMESTAMP, toAlias( aliasD4, d4.getUid() ) ) // ValueType.DATE
-            .addColumn( d5.getUid(), TEXT, toAlias( aliasD1, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
+            .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
             .withDefaultColumns( subject.getDefaultColumns() )
@@ -330,9 +331,9 @@ public class JdbcEventAnalyticsTableManagerTest
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify(jdbcTemplate).execute(sql.capture());
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
-                "(select eventdatavalues #>> '{" + d5.getUid() + ", value}' from programstageinstance where " +
-                "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
+            + d5.getUid() + ", value}' from programstageinstance where "
+            + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
 
         assertThat(sql.getValue(), containsString(ouQuery));
 

@@ -49,11 +49,11 @@ public class AnalyticsColumnAsserter
 
     public void verify(AnalyticsTableColumn expected)
     {
-        assertThat( "Column name does not match!", actual.getName(), is( expected.getName() ) );
-        assertThat( "Column alias does not match!", actual.getAlias(), is( expected.getAlias() ) );
-        assertThat( "Column creation date does not match!", actual.getCreated(), is( expected.getCreated() ) );
-        assertThat(actual.getDataType(), is(expected.getDataType()));
-        assertThat(actual.getIndexType(), is(expected.getIndexType()));
+        assertThat( "Column name does not match!", expected.getName(), is( actual.getName() ) );
+        assertThat( "Column alias does not match!", expected.getAlias(), is( actual.getAlias() ) );
+        assertThat( "Column creation date does not match!", expected.getCreated(), is( actual.getCreated() ) );
+        assertThat(expected.getDataType(), is(actual.getDataType()));
+        assertThat(expected.getIndexType(), is(actual.getIndexType()));
         //assertThat(actual.getIndexColumns(), is(expected.getIndexColumns()));
     }
 
