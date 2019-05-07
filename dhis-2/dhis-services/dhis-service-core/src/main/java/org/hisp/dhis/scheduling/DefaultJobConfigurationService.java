@@ -35,7 +35,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +43,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,11 +73,6 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            if ( jobConfiguration.getJobParameters() == null )
-            {
-                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
-            }
-
             jobConfigurationStore.save( jobConfiguration );
         }
         return jobConfiguration.getId();
@@ -89,15 +82,7 @@ public class DefaultJobConfigurationService
     @Transactional
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach( jobConfiguration -> {
-
-            if ( jobConfiguration.getJobParameters() == null  )
-            {
-                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
-            }
-
-            jobConfigurationStore.save( jobConfiguration );
-        } );
+        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ) );
     }
 
     @Override
@@ -106,11 +91,6 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            if ( jobConfiguration.getJobParameters() == null )
-            {
-                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
-            }
-
             jobConfigurationStore.update( jobConfiguration );
         }
 
@@ -150,17 +130,6 @@ public class DefaultJobConfigurationService
 
     @Override
     @Transactional(readOnly = true)
-    public List<JobConfiguration> getAllJobConfigurationsSorted()
-    {
-        List<JobConfiguration> jobConfigurations = getAllJobConfigurations();
-
-        Collections.sort( jobConfigurations );
-
-        return jobConfigurations;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Map<String, Map<String, Property>> getJobParametersSchema()
     {
         Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
@@ -192,6 +161,16 @@ public class DefaultJobConfigurationService
                 property.setName( field.getName() );
                 property.setFieldName( prettyPrint( field.getName() ) );
 
+                try
+                {
+                    field.setAccessible( true );
+                    property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
+                }
+                catch ( IllegalAccessException | InstantiationException e )
+                {
+                    log.error( "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
+                }
+
                 String relativeApiElements = jobType.getRelativeApiElements() != null ?
                     jobType.getRelativeApiElements().get( field.getName() ) : "";
 
@@ -222,24 +201,5 @@ public class DefaultJobConfigurationService
         fieldStrings.set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
 
         return String.join( " ", fieldStrings );
-    }
-
-    private JobParameters getDefaultJobParameters( JobConfiguration jobConfiguration )
-    {
-        if ( jobConfiguration.getJobType().getJobParameters() == null )
-        {
-            return null;
-        }
-
-        try
-        {
-            return jobConfiguration.getJobType().getJobParameters().newInstance();
-        }
-        catch ( InstantiationException | IllegalAccessException ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-        }
-
-        return null;
     }
 }

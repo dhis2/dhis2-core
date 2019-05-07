@@ -976,6 +976,7 @@ public class ObjectBundleServiceTest
     }
 
     @Test
+    @Ignore
     public void testCreateDataSetNoDSEDefaults() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(

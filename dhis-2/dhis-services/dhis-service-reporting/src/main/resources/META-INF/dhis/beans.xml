@@ -35,7 +35,6 @@
   <bean id="org.hisp.dhis.reporttable.ReportTableService" class="org.hisp.dhis.reporttable.impl.DefaultReportTableService">
     <property name="analyticsService" ref="org.hisp.dhis.analytics.AnalyticsService" />
     <property name="reportTableStore" ref="org.hisp.dhis.reporttable.ReportTableStore" />
-    <property name="reportStore" ref="org.hisp.dhis.report.ReportStore" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="i18nManager" ref="org.hisp.dhis.i18n.I18nManager" />

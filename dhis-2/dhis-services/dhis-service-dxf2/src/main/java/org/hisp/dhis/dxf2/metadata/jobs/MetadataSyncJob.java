@@ -46,6 +46,7 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,11 +134,12 @@ public class MetadataSyncJob
 
         try
         {
+            MetadataSyncJobParameters jobParameters = (MetadataSyncJobParameters) jobConfiguration.getJobParameters();
             retryTemplate.execute( retryContext ->
                 {
                     metadataRetryContext.setRetryContext( retryContext );
                     clearFailedVersionSettings();
-                    runSyncTask( metadataRetryContext );
+                    runSyncTask( metadataRetryContext, jobParameters );
                     return null;
                 }
                 , retryContext ->
@@ -168,15 +170,16 @@ public class MetadataSyncJob
         return super.validate();
     }
 
-    public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException, DhisVersionMismatchException
+    synchronized void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
+        throws MetadataSyncServiceException, DhisVersionMismatchException
     {
         metadataSyncPreProcessor.setUp( context );
 
-        metadataSyncPreProcessor.handleDataValuePush( context );
+        metadataSyncPreProcessor.handleDataValuePush( context, jobParameters );
 
-        metadataSyncPreProcessor.handleEventProgramsDataPush( context );
+        metadataSyncPreProcessor.handleEventProgramsDataPush( context, jobParameters );
         metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush( context );
-        metadataSyncPreProcessor.handleTrackerProgramsDataPush( context );
+        metadataSyncPreProcessor.handleTrackerProgramsDataPush( context, jobParameters );
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
 

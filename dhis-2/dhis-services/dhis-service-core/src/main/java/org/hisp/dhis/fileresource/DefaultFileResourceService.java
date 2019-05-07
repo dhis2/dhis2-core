@@ -61,12 +61,12 @@ public class DefaultFileResourceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<FileResource> fileResourceStore;
+    private FileResourceStore fileResourceStore;
 
     @Autowired
     private SessionFactory sessionFactory;
 
-    public void setFileResourceStore( IdentifiableObjectStore<FileResource> fileResourceStore )
+    public void setFileResourceStore( FileResourceStore fileResourceStore )
     {
         this.fileResourceStore = fileResourceStore;
     }
@@ -194,6 +194,15 @@ public class DefaultFileResourceService
         }
 
         return fileResourceContentStore.getSignedGetContentUri( fileResource.getStorageKey() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<FileResource> getExpiredFileResources(
+        FileResourceRetentionStrategy retentionStrategy )
+    {
+        DateTime expires = DateTime.now().minus( retentionStrategy.getRetentionTime() );
+        return fileResourceStore.getExpiredFileResources( expires );
     }
 
     // -------------------------------------------------------------------------

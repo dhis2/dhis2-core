@@ -64,7 +64,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
  *
  * @author Lars Helge Overland
  */
-@Transactional
 public class DefaultDashboardService
     implements DashboardService
 {
@@ -103,18 +102,20 @@ public class DefaultDashboardService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public DashboardSearchResult search( String query )
     {
         return search( query, new HashSet<>() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes )
     {
         Set<String> words = Sets.newHashSet( query.split( TextUtils.SPACE ) );
 
         List<App> dashboardApps = appManager.getAppsByType( AppType.DASHBOARD_WIDGET, new HashSet<>( appManager.getApps( null ) ) );
-        
+
         DashboardSearchResult result = new DashboardSearchResult();
 
         result.setUsers( userService.getAllUsersBetweenByName( query, 0, getMax( DashboardItemType.USERS, maxTypes ) ) );
@@ -131,6 +132,7 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DashboardSearchResult search( Set<DashboardItemType> maxTypes )
     {
         DashboardSearchResult result = new DashboardSearchResult();
@@ -143,7 +145,7 @@ public class DefaultDashboardService
         result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes ) ) );
         result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET, getMax( DashboardItemType.APP, maxTypes ) ) );
-        
+
         return result;
     }
 
@@ -230,6 +232,7 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void mergeDashboard( Dashboard dashboard )
     {
         if ( dashboard.getItems() != null )
@@ -242,6 +245,7 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void mergeDashboardItem( DashboardItem item )
     {
         if ( item.getChart() != null )
@@ -291,6 +295,7 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional
     public long saveDashboard( Dashboard dashboard )
     {
         dashboardStore.save( dashboard );
@@ -299,12 +304,14 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional
     public void updateDashboard( Dashboard dashboard )
     {
         dashboardStore.update( dashboard );
     }
 
     @Override
+    @Transactional
     public void deleteDashboard( Dashboard dashboard )
     {
         dashboardStore.delete( dashboard );
@@ -316,12 +323,14 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Dashboard getDashboard( long id )
     {
         return dashboardStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Dashboard getDashboard( String uid )
     {
         return dashboardStore.getByUid( uid );
@@ -332,18 +341,21 @@ public class DefaultDashboardService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void updateDashboardItem( DashboardItem item )
     {
         dashboardItemStore.update( item );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DashboardItem getDashboardItem( String uid )
     {
         return dashboardItemStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem )
     {
         return dashboardItemStore.getDashboardFromDashboardItem( dashboardItem );
@@ -356,42 +368,49 @@ public class DefaultDashboardService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countMapDashboardItems( Map map )
     {
         return dashboardItemStore.countMapDashboardItems( map );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countChartDashboardItems( Chart chart )
     {
         return dashboardItemStore.countChartDashboardItems( chart );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countEventChartDashboardItems( EventChart eventChart )
     {
         return dashboardItemStore.countEventChartDashboardItems( eventChart );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countReportTableDashboardItems( ReportTable reportTable )
     {
         return dashboardItemStore.countReportTableDashboardItems( reportTable );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countReportDashboardItems( Report report )
     {
         return dashboardItemStore.countReportDashboardItems( report );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countDocumentDashboardItems( Document document )
     {
         return dashboardItemStore.countDocumentDashboardItems( document );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countUserDashboardItems( User user )
     {
         return dashboardItemStore.countUserDashboardItems( user );

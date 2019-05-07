@@ -69,7 +69,7 @@ public class TrackerSynchronization
         this.renderService = renderService;
     }
 
-    public SynchronizationResult syncTrackerProgramData()
+    public SynchronizationResult syncTrackerProgramData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
@@ -90,7 +90,6 @@ public class TrackerSynchronization
         }
 
         final SystemInstance instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.TRACKED_ENTITY_INSTANCES );
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_PROGRAM_SYNC_PAGE_SIZE );
         final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
 
         log.info( objectsToSynchronize + " TEIs to sync were found." );
