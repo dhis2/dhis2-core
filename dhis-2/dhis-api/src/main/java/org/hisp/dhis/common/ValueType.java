@@ -152,4 +152,9 @@ public enum ValueType
     {
         return aggregateable;
     }
+
+    public boolean isOrganisationUnit()
+    {
+        return ORGANISATION_UNIT == this;
+    }
 }
