@@ -242,13 +242,6 @@ public class StoreConfig
             jdbcTemplate, ColorSet.class, currentUserService, deletedObjectService, aclService, true );
     }
 
-    @Bean( "org.hisp.dhis.fileresource.FileResourceStore" )
-    public HibernateIdentifiableObjectStore fileResourceStore()
-    {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory, jdbcTemplate, FileResource.class,
-            currentUserService, deletedObjectService, aclService, true );
-    }
-
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     public HibernateIdentifiableObjectStore programNotificationStore()
     {
