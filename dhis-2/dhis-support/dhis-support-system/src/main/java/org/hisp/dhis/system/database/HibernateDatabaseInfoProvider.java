@@ -139,27 +139,35 @@ public class HibernateDatabaseInfoProvider
     @Nonnull
     private InternalDatabaseInfo getInternalDatabaseInfo()
     {
-        try
+        if ( SystemUtils.isH2( environment.getActiveProfiles() ) )
         {
-            final InternalDatabaseInfo internalDatabaseInfo = jdbcTemplate.queryForObject( "select version(),current_catalog,current_user", ( rs, rowNum ) -> {
-                String version = rs.getString( 1 );
-                final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher( version );
-
-                if ( versionMatcher.find() )
-                {
-                    version = versionMatcher.group( 1 );
-                }
-
-                return new InternalDatabaseInfo( version, rs.getString( 2 ), rs.getString( 3 ) );
-            } );
-
-            return internalDatabaseInfo == null ? new InternalDatabaseInfo() : internalDatabaseInfo;
-        }
-        catch ( Exception ex )
-        {
-            log.error( "An error occurred when retrieving database info.", ex );
-
             return new InternalDatabaseInfo();
+        }
+        else
+        {
+            try
+            {
+                final InternalDatabaseInfo internalDatabaseInfo = jdbcTemplate
+                    .queryForObject( "select version(),current_catalog,current_user", ( rs, rowNum ) -> {
+                        String version = rs.getString( 1 );
+                        final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher( version );
+
+                        if ( versionMatcher.find() )
+                        {
+                            version = versionMatcher.group( 1 );
+                        }
+
+                        return new InternalDatabaseInfo( version, rs.getString( 2 ), rs.getString( 3 ) );
+                    } );
+
+                return internalDatabaseInfo == null ? new InternalDatabaseInfo() : internalDatabaseInfo;
+            }
+            catch ( Exception ex )
+            {
+                log.error( "An error occurred when retrieving database info.", ex );
+
+                return new InternalDatabaseInfo();
+            }
         }
     }
 
