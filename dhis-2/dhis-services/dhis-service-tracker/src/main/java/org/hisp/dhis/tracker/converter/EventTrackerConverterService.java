@@ -93,19 +93,7 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public Event to( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
-    {
-        return null;
-    }
-
-    @Override
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
-    {
-        return null;
-    }
-
-    @Override
-    public List<Event> to( TrackerPreheat preheat, List<ProgramStageInstance> programStageInstances )
     {
         List<Event> events = new ArrayList<>();
 

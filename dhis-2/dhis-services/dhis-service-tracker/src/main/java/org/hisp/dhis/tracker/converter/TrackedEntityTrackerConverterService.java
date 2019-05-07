@@ -29,9 +29,7 @@ package org.hisp.dhis.tracker.converter;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -64,26 +62,26 @@ public class TrackedEntityTrackerConverterService
     @Override
     public TrackedEntityInstance to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
-        return null;
-    }
+        List<TrackedEntityInstance> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
 
-    @Override
-    public TrackedEntityInstance to( TrackerPreheat preheat, org.hisp.dhis.trackedentity.TrackedEntityInstance object )
-    {
-        return null;
+        if ( trackedEntities.isEmpty() )
+        {
+            return null;
+        }
+
+        return trackedEntities.get( 0 );
     }
 
     @Override
     public List<TrackedEntityInstance> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
-        return null;
-    }
+        List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
 
-    @Override
-    public List<TrackedEntityInstance> to( TrackerPreheat preheat,
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
-    {
-        return null;
+        trackedEntityInstances.forEach( tei -> {
+
+        } );
+
+        return trackedEntities;
     }
 
     @Override
@@ -123,6 +121,10 @@ public class TrackedEntityTrackerConverterService
         List<TrackedEntityInstance> trackedEntityInstances )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();
+
+        trackedEntityInstances.forEach( te -> {
+
+        } );
 
         return trackedEntities;
     }

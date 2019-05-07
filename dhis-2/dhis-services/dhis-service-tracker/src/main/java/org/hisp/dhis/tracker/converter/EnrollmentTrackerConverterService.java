@@ -64,25 +64,26 @@ public class EnrollmentTrackerConverterService
     @Override
     public Enrollment to( ProgramInstance programInstance )
     {
-        return null;
-    }
+        List<Enrollment> enrollments = to( Collections.singletonList( programInstance ) );
 
-    @Override
-    public Enrollment to( TrackerPreheat preheat, ProgramInstance object )
-    {
-        return null;
+        if ( enrollments.isEmpty() )
+        {
+            return null;
+        }
+
+        return enrollments.get( 0 );
     }
 
     @Override
     public List<Enrollment> to( List<ProgramInstance> programInstances )
     {
-        return null;
-    }
+        List<Enrollment> enrollments = new ArrayList<>();
 
-    @Override
-    public List<Enrollment> to( TrackerPreheat preheat, List<ProgramInstance> programInstances )
-    {
-        return null;
+        programInstances.forEach( tei -> {
+
+        } );
+
+        return enrollments;
     }
 
     @Override
