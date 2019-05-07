@@ -155,7 +155,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
             TrackedEntityInstance trackedEntity = trackedEntities.get( idx );
-            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService.from( trackedEntity );
+            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService.from(
+                bundle.getPreheat(), trackedEntity );
 
             Date now = new Date();
 
@@ -190,7 +191,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         for ( int idx = 0; idx < enrollments.size(); idx++ )
         {
             Enrollment enrollment = enrollments.get( idx );
-            ProgramInstance programInstance = enrollmentTrackerConverterService.from( enrollment );
+            ProgramInstance programInstance = enrollmentTrackerConverterService.from( bundle.getPreheat(), enrollment );
 
             Date now = new Date();
 
