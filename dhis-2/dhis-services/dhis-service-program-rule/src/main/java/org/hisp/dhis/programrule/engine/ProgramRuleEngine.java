@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
-@Transactional
+@Transactional( readOnly = true )
 public class ProgramRuleEngine
 {
     private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );

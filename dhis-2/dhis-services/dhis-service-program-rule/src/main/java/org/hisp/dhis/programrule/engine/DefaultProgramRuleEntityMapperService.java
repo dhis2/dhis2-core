@@ -64,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Created by zubair@dhis2.org on 19.10.17.
  */
 
-@Transactional
+@Transactional( readOnly = true )
 public class DefaultProgramRuleEntityMapperService
     implements ProgramRuleEntityMapperService
 {
