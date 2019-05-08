@@ -305,5 +305,4 @@ public class QueryValidatorTest
 
         queryValidator.validate( params );
     }
-
 }
