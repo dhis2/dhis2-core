@@ -57,6 +57,9 @@ dhis2.de.categoryCombos = {};
 // Categories for data value attributes
 dhis2.de.categories = {};
 
+// LockExceptions
+dhis2.de.lockExceptions = [];
+
 // Array with keys {dataelementid}-{optioncomboid}-min/max with min/max values
 dhis2.de.currentMinMaxValueMap = [];
 
@@ -335,7 +338,8 @@ dhis2.de.loadMetaData = function()
 	        dhis2.de.optionSets = metaData.optionSets;
 	        dhis2.de.defaultCategoryCombo = metaData.defaultCategoryCombo;
 	        dhis2.de.categoryCombos = metaData.categoryCombos;
-	        dhis2.de.categories = metaData.categories;	        
+	        dhis2.de.categories = metaData.categories;
+	        dhis2.de.lockExceptions = metaData.lockExceptions;
 	        def.resolve();
 	    }
 	} );
@@ -1776,6 +1780,10 @@ function insertDataValues( json )
         var maxDate = moment( period.endDate, dhis2.period.format.toUpperCase() ).add( parseInt(dataSet.expiryDays), 'day' );
         periodLocked = moment().isAfter( maxDate );
     }
+
+    var lockExceptionId = dhis2.de.currentOrganisationUnitId + "-" + dhis2.de.currentDataSetId + "-" + period.iso;
+
+    periodLocked = periodLocked && dhis2.de.lockExceptions.indexOf( lockExceptionId ) == -1;
 
     if ( json.locked || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 || periodLocked )
 	{
