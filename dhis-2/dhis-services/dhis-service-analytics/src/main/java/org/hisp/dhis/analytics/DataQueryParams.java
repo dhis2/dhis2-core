@@ -420,6 +420,13 @@ public class DataQueryParams
      */
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
 
+    /**
+     * Indicates whether to skip data dimension specific validation checks.
+     * Used when the DataQueryParams is built internally and does not require
+     * extensive validation.
+     */
+    protected transient boolean skipDataDimensionValidation = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -508,7 +515,7 @@ public class DataQueryParams
         params.startDateRestriction = this.startDateRestriction;
         params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
-
+        params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         return params;
     }
 
@@ -2089,6 +2096,11 @@ public class DataQueryParams
         return timely;
     }
 
+    public boolean isSkipDataDimensionValidation()
+    {
+        return skipDataDimensionValidation;
+    }
+
     public List<OrganisationUnitLevel> getOrgUnitLevels()
     {
         return orgUnitLevels;
@@ -2795,6 +2807,12 @@ public class DataQueryParams
         public Builder withTimely( boolean timely )
         {
             this.params.timely = timely;
+            return this;
+        }
+
+        public Builder withSkipDataDimensionValidation( boolean skipDataDimensionValidation )
+        {
+            this.params.skipDataDimensionValidation = skipDataDimensionValidation;
             return this;
         }
 
