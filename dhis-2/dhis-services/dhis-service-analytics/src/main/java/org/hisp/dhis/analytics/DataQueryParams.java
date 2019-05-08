@@ -421,11 +421,11 @@ public class DataQueryParams
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
 
     /**
-     * Signal the validation engine to skip Data Dimension specific validation checks.
+     * Indicates whether to skip data dimension specific validation checks.
      * Used when the DataQueryParams is built internally and does not require
-     * extensive validation
+     * extensive validation.
      */
-    protected boolean skipDataDimensionValidation = false;
+    protected transient boolean skipDataDimensionValidation = false;
 
     // -------------------------------------------------------------------------
     // Constructors
