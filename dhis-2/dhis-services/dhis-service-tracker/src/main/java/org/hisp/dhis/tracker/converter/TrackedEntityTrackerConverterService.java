@@ -157,45 +157,9 @@ public class TrackedEntityTrackerConverterService
 
             trackedEntity.setOrganisationUnit( organisationUnit );
             trackedEntity.setTrackedEntityType( trackedEntityType );
-            trackedEntity.setInactive( trackedEntity.isInactive() );
-            trackedEntity.setDeleted( trackedEntity.isDeleted() );
-
-            if ( te.getGeometry() != null )
-            {
-                FeatureType featureType = trackedEntityType.getFeatureType();
-
-                if ( featureType.equals( FeatureType.NONE ) || !featureType
-                    .equals( FeatureType.getTypeFromName( te.getGeometry().getGeometryType() ) ) )
-                {
-                    /*
-                    importSummary.getConflicts().add( new ImportConflict( te.getTrackedEntityInstance(),
-                        "Geometry does not conform to feature type '" + featureType + "'" ) );
-                    importSummary.incrementIgnored();
-                     */
-                }
-                else
-                {
-                    trackedEntity.setGeometry( te.getGeometry() );
-                }
-            }
-            else if ( !FeatureType.NONE.equals( te.getFeatureType() ) && te.getCoordinates() != null )
-            {
-                try
-                {
-                    te.setGeometry( GeoUtils.getGeometryFromCoordinatesAndType( te.getFeatureType(), te.getCoordinates() ) );
-                }
-                catch ( IOException e )
-                {
-                    /*
-                    importSummary.getConflicts().add( new ImportConflict( te.getTrackedEntityInstance(), "Could not parse coordinates" ) );
-                    importSummary.incrementIgnored();
-                    */
-                }
-            }
-            else
-            {
-                trackedEntity.setGeometry( null );
-            }
+            trackedEntity.setInactive( te.isInactive() );
+            trackedEntity.setDeleted( te.isDeleted() );
+            trackedEntity.setGeometry( te.getGeometry() );
 
             trackedEntities.add( trackedEntity );
         } );

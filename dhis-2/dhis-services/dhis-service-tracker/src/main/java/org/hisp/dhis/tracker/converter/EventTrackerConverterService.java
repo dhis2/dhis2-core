@@ -121,13 +121,6 @@ public class EventTrackerConverterService
             event.setGeometry( psi.getGeometry() );
             event.setDeleted( psi.isDeleted() );
 
-            // Lat and lnt deprecated in 2.30, remove by 2.33
-            if ( event.getGeometry() != null && event.getGeometry().getGeometryType().equals( "Point" ) )
-            {
-                com.vividsolutions.jts.geom.Coordinate geometryCoordinate = event.getGeometry().getCoordinate();
-                event.setCoordinate( new Coordinate( geometryCoordinate.x, geometryCoordinate.y ) );
-            }
-
             OrganisationUnit ou = psi.getOrganisationUnit();
 
             if ( ou != null )

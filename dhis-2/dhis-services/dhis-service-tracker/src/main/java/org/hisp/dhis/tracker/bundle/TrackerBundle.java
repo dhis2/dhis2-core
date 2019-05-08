@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.bundle;
 
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
@@ -101,6 +103,8 @@ public class TrackerBundle
      * Events to import.
      */
     private List<Event> events = new ArrayList<>();
+
+    private List<Relationship> relationships = new ArrayList<>(  );
 
     public TrackerBundle()
     {

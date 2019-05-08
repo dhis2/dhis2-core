@@ -28,18 +28,29 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.vividsolutions.jts.geom.GeometryFactory;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionUsageException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -122,6 +133,50 @@ public class EnrollmentTrackerConverterService
     public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
     {
         List<ProgramInstance> programInstances = new ArrayList<>();
+
+        enrollments.forEach( enrollment -> {
+            ProgramInstance programInstance = preheat.getEnrollment( TrackerIdentifier.UID, enrollment.getEnrollment() );
+            OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            Program program = preheat.get( TrackerIdentifier.UID, Program.class, enrollment.getProgram() );
+            TrackedEntityInstance trackedEntityInstance = preheat.getTrackedEntity( TrackerIdentifier.UID, enrollment.getTrackedEntityInstance() );
+
+            if ( programInstance == null )
+            {
+                Date now = new Date();
+
+                programInstance = new ProgramInstance();
+                programInstance.setUid( enrollment.getEnrollment() );
+                programInstance.setCreated( now );
+                programInstance.setCreatedAtClient( now );
+                programInstance.setLastUpdated( now );
+                programInstance.setLastUpdatedAtClient( now );
+
+                programInstance.setEnrollmentDate( now );
+                programInstance.setIncidentDate( now );
+            }
+
+            if ( !CodeGenerator.isValidUid( programInstance.getUid() ) )
+            {
+                programInstance.setUid( CodeGenerator.generateUid() );
+            }
+
+            programInstance.setOrganisationUnit( organisationUnit );
+            programInstance.setProgram( program );
+            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+            programInstance.setEntityInstance( trackedEntityInstance );
+            programInstance.setFollowup( enrollment.getFollowup() );
+            programInstance.setGeometry( enrollment.getGeometry() );
+
+            if ( enrollment.getStatus() == null )
+            {
+                enrollment.setStatus( EnrollmentStatus.ACTIVE );
+            }
+
+            programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
+
+
+            programInstances.add( programInstance );
+        } );
 
         return programInstances;
     }

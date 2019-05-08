@@ -37,18 +37,27 @@ import org.hisp.dhis.program.ProgramStatus;
  */
 public enum EnrollmentStatus
 {
-    ACTIVE( 0 ), COMPLETED( 1 ), CANCELLED( 2 );
+    ACTIVE( 0, ProgramStatus.ACTIVE ),
+    COMPLETED( 1, ProgramStatus.COMPLETED ),
+    CANCELLED( 2, ProgramStatus.CANCELLED );
 
     private final int value;
+    private final ProgramStatus programStatus;
 
-    EnrollmentStatus( int value )
+    EnrollmentStatus( int value, ProgramStatus programStatus )
     {
         this.value = value;
+        this.programStatus = programStatus;
     }
 
     public int getValue()
     {
         return value;
+    }
+
+    public ProgramStatus getProgramStatus()
+    {
+        return programStatus;
     }
 
     public static EnrollmentStatus fromProgramStatus( ProgramStatus programStatus )
