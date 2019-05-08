@@ -28,16 +28,26 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -123,7 +133,71 @@ public class TrackedEntityTrackerConverterService
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();
 
         trackedEntityInstances.forEach( te -> {
+            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity = preheat.getTrackedEntity(
+                TrackerIdentifier.UID, te.getTrackedEntityInstance() );
+            OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, te.getOrgUnit() );
+            TrackedEntityType trackedEntityType = preheat.get( TrackerIdentifier.UID, TrackedEntityType.class, te.getTrackedEntityType() );
 
+            if ( trackedEntity == null )
+            {
+                Date now = new Date();
+
+                trackedEntity = new org.hisp.dhis.trackedentity.TrackedEntityInstance();
+                trackedEntity.setUid( te.getTrackedEntityInstance() );
+                trackedEntity.setCreated( now );
+                trackedEntity.setCreatedAtClient( now );
+                trackedEntity.setLastUpdated( now );
+                trackedEntity.setLastUpdatedAtClient( now );
+            }
+
+            if ( !CodeGenerator.isValidUid( trackedEntity.getUid() ) )
+            {
+                trackedEntity.setUid( CodeGenerator.generateUid() );
+            }
+
+            trackedEntity.setOrganisationUnit( organisationUnit );
+            trackedEntity.setTrackedEntityType( trackedEntityType );
+            trackedEntity.setInactive( trackedEntity.isInactive() );
+            trackedEntity.setDeleted( trackedEntity.isDeleted() );
+
+            if ( te.getGeometry() != null )
+            {
+                FeatureType featureType = trackedEntityType.getFeatureType();
+
+                if ( featureType.equals( FeatureType.NONE ) || !featureType
+                    .equals( FeatureType.getTypeFromName( te.getGeometry().getGeometryType() ) ) )
+                {
+                    /*
+                    importSummary.getConflicts().add( new ImportConflict( te.getTrackedEntityInstance(),
+                        "Geometry does not conform to feature type '" + featureType + "'" ) );
+                    importSummary.incrementIgnored();
+                     */
+                }
+                else
+                {
+                    trackedEntity.setGeometry( te.getGeometry() );
+                }
+            }
+            else if ( !FeatureType.NONE.equals( te.getFeatureType() ) && te.getCoordinates() != null )
+            {
+                try
+                {
+                    te.setGeometry( GeoUtils.getGeometryFromCoordinatesAndType( te.getFeatureType(), te.getCoordinates() ) );
+                }
+                catch ( IOException e )
+                {
+                    /*
+                    importSummary.getConflicts().add( new ImportConflict( te.getTrackedEntityInstance(), "Could not parse coordinates" ) );
+                    importSummary.incrementIgnored();
+                    */
+                }
+            }
+            else
+            {
+                trackedEntity.setGeometry( null );
+            }
+
+            trackedEntities.add( trackedEntity );
         } );
 
         return trackedEntities;

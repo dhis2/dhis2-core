@@ -476,6 +476,16 @@ public class TrackerPreheat
         this.trackedEntities = trackedEntities;
     }
 
+    public TrackedEntityInstance getTrackedEntity( TrackerIdentifier identifier, String trackedEntity )
+    {
+        if ( !trackedEntities.containsKey( identifier ) )
+        {
+            return null;
+        }
+
+        return trackedEntities.get( identifier ).get( trackedEntity );
+    }
+
     public void putTrackedEntities( TrackerIdentifier identifier, List<TrackedEntityInstance> trackedEntityInstances )
     {
         trackedEntityInstances.forEach( te -> putTrackedEntity( identifier, te.getUid(), te ) );
