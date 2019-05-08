@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
@@ -187,6 +188,13 @@ public class GetMetaDataAction
         return categoryOptionMap;
     }
 
+    private List<LockException> lockExceptions;
+
+    public List<LockException> getLockExceptions()
+    {
+        return lockExceptions;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -264,6 +272,8 @@ public class GetMetaDataAction
             Collections.sort( categoryOptions );
             categoryOptionMap.put( category.getUid(), categoryOptions );
         }
+
+        lockExceptions = dataSetService.getAllLockExceptions();
 
         Collections.sort( dataSets );
         Collections.sort( categoryCombos );
