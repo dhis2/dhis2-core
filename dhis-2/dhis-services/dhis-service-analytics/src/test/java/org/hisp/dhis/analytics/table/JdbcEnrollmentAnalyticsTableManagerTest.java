@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.program.ProgramIndicator.DB_SEPARATOR_ID;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -128,6 +129,7 @@ public class JdbcEnrollmentAnalyticsTableManagerTest {
         d5.setId( 150 );
 
         ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d5 ) );
+        ps1.setId( 95 );
 
         p1.setProgramStages( Sets.newHashSet( ps1 ) );
 
@@ -136,8 +138,10 @@ public class JdbcEnrollmentAnalyticsTableManagerTest {
         subject.populateTable( PartitionUtils.getTablePartitions( subject.getAnalyticsTables( getDate( 2018, 1, 1 ) ) ).get( 0 ) );
 
         verify(jdbcTemplate).execute(sql.capture());
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select value from trackedentitydatavalue where "
-                + "programstageinstanceid=psi.programstageinstanceid and dataelementid=" + d5.getId() + ")) as \"" + d5.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = (select value from trackedentitydatavalue tedv inner join programstageinstance psi " +
+                "on psi.programstageinstanceid = tedv.programstageinstanceid where psi.executiondate is not null and psi.deleted is false and psi.programinstanceid=pi.programinstanceid  and tedv.dataelementid="
+            + d5.getId() + " and psi.programstageid=" + ps1.getId()
+            + " order by psi.executiondate desc limit 1) ) as \"" + ps1.getUid() + DB_SEPARATOR_ID + d5.getUid() + "\"";
 
         assertThat(sql.getValue(), containsString(ouQuery));
     }
