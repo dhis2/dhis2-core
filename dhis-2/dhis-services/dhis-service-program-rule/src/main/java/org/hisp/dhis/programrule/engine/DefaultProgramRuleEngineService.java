@@ -32,15 +32,19 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
+@Transactional
 public class DefaultProgramRuleEngineService 
     implements ProgramRuleEngineService
 {
@@ -56,14 +60,27 @@ public class DefaultProgramRuleEngineService
     @Autowired
     private List<RuleActionImplementer> ruleActionImplementers;
 
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
     @Override
     public List<RuleEffect> evaluate( ProgramInstance programInstance )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        if ( programInstance == null )
+        {
+            return ruleEffects;
+        }
+
+        ProgramInstance pi = programInstanceService.getProgramInstance( programInstance.getId() );
+
         try
         {
-            ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+            ruleEffects = programRuleEngine.evaluateEnrollment( pi );
         }
         catch( Exception ex )
         {
@@ -89,9 +106,16 @@ public class DefaultProgramRuleEngineService
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        if ( programStageInstance == null )
+        {
+            return ruleEffects;
+        }
+
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstance.getId() );
+
         try
         {
-            ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+            ruleEffects = programRuleEngine.evaluateEvent( psi );
         }
         catch( Exception ex )
         {

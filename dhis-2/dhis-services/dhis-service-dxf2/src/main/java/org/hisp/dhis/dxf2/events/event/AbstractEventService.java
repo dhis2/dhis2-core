@@ -95,6 +95,8 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
 import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
 import org.hisp.dhis.query.Order;
@@ -241,6 +243,9 @@ public abstract class AbstractEventService
 
     @Autowired
     protected EventSyncService eventSyncService;
+
+    @Autowired
+    private ProgramRuleVariableService ruleVariableService;
 
     protected static final int FLUSH_FREQUENCY = 100;
 
@@ -1331,6 +1336,34 @@ public abstract class AbstractEventService
         preheatDataElementsCache( event );
         eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
+
+        // trigger rule engine
+        // 1. only once for whole event
+        // 2. only if data value is associated with any ProgramRuleVariable
+
+        boolean isLinkedWithRuleVariable = false;
+
+        for ( DataValue dv :  event.getDataValues() )
+        {
+            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
+
+            if ( dataElement != null )
+            {
+                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+
+                if ( isLinkedWithRuleVariable )
+                {
+                    break;
+                }
+            }
+        }
+
+        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
+        {
+            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
+        }
+
+        sendProgramNotification( programStageInstance, importOptions );
 
         if ( !importOptions.isSkipLastUpdated() )
         {
