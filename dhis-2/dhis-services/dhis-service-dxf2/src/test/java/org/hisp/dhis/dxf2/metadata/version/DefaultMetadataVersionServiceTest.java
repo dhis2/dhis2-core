@@ -32,7 +32,6 @@ import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
@@ -205,9 +204,8 @@ public class DefaultMetadataVersionServiceTest
         assertEquals( "Version_2", metadataSystemSettingService.getSystemMetadataVersion() );
 
         //testing hash code for the given metadata string
-        KeyJsonValue metadaVersionSnap = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "Version_2" );
-        String hashCode = HashCodeGenerator.getHashCode( metadaVersionSnap.getJbPlainValue() );
-        assertEquals( hashCode, versionService.getCurrentVersion().getHashCode() );
+        MetadataVersion metadataVersionSnap = versionService.getVersionByName( "Version_2" );
+        assertEquals( metadataVersionSnap.getHashCode(), versionService.getCurrentVersion().getHashCode() );
 
         //testing if correct version is saved in keyjsonvalue table
         List<String> versions = null;
@@ -251,12 +249,7 @@ public class DefaultMetadataVersionServiceTest
     @Test
     public void testShouldGiveValidVersionDataIfExists() throws Exception
     {
-        KeyJsonValue keyJsonValue = new KeyJsonValue();
-        keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
-        keyJsonValue.setKey( "myVersion" );
-        keyJsonValue.setJbPlainValue( "myJson" );
-
-        keyJsonValueService.addKeyJsonValue( keyJsonValue );
+        versionService.createMetadataVersionInDataStore( "myVersion", "myJson" );
 
         assertEquals( "myJson", versionService.getVersionData( "myVersion" ) );
     }
@@ -272,7 +265,7 @@ public class DefaultMetadataVersionServiceTest
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "mySnapshot" );
 
-        assertEquals( "mySnapshot", keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, "myVersion" ).getJbPlainValue() );
+        assertEquals( "mySnapshot", versionService.getVersionData( "myVersion" ) );
     }
 
     @Test( expected = MetadataVersionServiceException.class )
