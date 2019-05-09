@@ -10,6 +10,12 @@
 "${dataElement.uid}"#if( $velocityCount < $size ),#end
 #end ],
 
+"lockExceptions": [
+#set( $size = $lockExceptions.size() )
+#foreach( $lockException in $lockExceptions )
+"${lockException.organisationUnit.uid}-${lockException.dataSet.uid}-${lockException.period.uid}"#if( $velocityCount < $size ),#end
+#end ],
+
 "dataElements": {
 #set( $size = $dataElements.size() )
 #foreach( $dataElement in $dataElements )
