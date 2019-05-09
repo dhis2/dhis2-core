@@ -150,9 +150,6 @@ public class EnrollmentTrackerConverterService
                 programInstance.setCreatedAtClient( now );
                 programInstance.setLastUpdated( now );
                 programInstance.setLastUpdatedAtClient( now );
-
-                programInstance.setEnrollmentDate( now );
-                programInstance.setIncidentDate( now );
             }
 
             if ( !CodeGenerator.isValidUid( programInstance.getUid() ) )
@@ -160,9 +157,10 @@ public class EnrollmentTrackerConverterService
                 programInstance.setUid( CodeGenerator.generateUid() );
             }
 
+            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
+            programInstance.setIncidentDate( enrollment.getIncidentDate() );
             programInstance.setOrganisationUnit( organisationUnit );
             programInstance.setProgram( program );
-            programInstance.setEnrollmentDate( enrollment.getEnrollmentDate() );
             programInstance.setEntityInstance( trackedEntityInstance );
             programInstance.setFollowup( enrollment.getFollowup() );
             programInstance.setGeometry( enrollment.getGeometry() );
