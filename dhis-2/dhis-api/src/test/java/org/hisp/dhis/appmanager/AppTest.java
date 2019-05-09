@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
+import static org.junit.Assert.*;
+
 /**
  * @author Saptarshi
  * @version $Id$
@@ -53,9 +55,9 @@ public class AppTest
     public void setUp()
         throws IOException
     {
-        String appJson = FileUtils.readFileToString( 
+        String appJson = FileUtils.readFileToString(
             new File( this.getClass().getResource( "/manifest.webapp" ).getFile() ), StandardCharsets.UTF_8 );
-        
+
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         this.app = mapper.readValue( appJson, App.class );
@@ -66,7 +68,7 @@ public class AppTest
     {
     }
 
-    // TODO: Verify missing property 
+    // TODO: Verify missing property
     @Test
     public void testRequiredProperties()
     {
@@ -77,7 +79,7 @@ public class AppTest
         Assert.assertEquals( "en", app.getDefaultLocale() );
     }
 
-    // TODO: Complete test for skipped optional properties 
+    // TODO: Complete test for skipped optional properties
     @Test
     public void testOptionalProperties()
     {
@@ -100,7 +102,7 @@ public class AppTest
         Assert.assertNull( app.getDeveloper().getEmail() );
         Assert.assertNull( app.getDeveloper().getCompany() );
     }
-    
+
     @Test
     public void testActivities()
     {
@@ -116,5 +118,18 @@ public class AppTest
         Set<String> authorities = app.getAuthorities();
         Assert.assertNotNull( authorities );
         Assert.assertEquals( 4, authorities.size() );
+    }
+
+    @Test
+    public void testGetUrlFriendlyName()
+    {
+        App appA = new App();
+        appA.setName( "Org [Facility] &Registry@" );
+
+        App appB = new App();
+        appB.setName( null );
+
+        assertEquals( "Org-Facility-Registry", appA.getUrlFriendlyName() );
+        assertNull( appB.getUrlFriendlyName() );
     }
 }
