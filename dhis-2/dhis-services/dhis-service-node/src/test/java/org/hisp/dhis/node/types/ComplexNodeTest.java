@@ -1,7 +1,7 @@
 package org.hisp.dhis.node.types;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,32 @@ package org.hisp.dhis.node.types;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
+import org.hisp.dhis.node.AbstractNodeTest;
 import org.hisp.dhis.schema.Property;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Unit tests for {@link ComplexNode}.
+ *
+ * @author Volker Schmidt
  */
-public class ComplexNode extends AbstractNode
+public class ComplexNodeTest
 {
-    public ComplexNode( String name )
+    @Test
+    public void createSingleChild()
     {
-        super( name, NodeType.COMPLEX );
-    }
+        final Property property = new Property( AbstractNodeTest.TestClass.class );
+        property.setName( "tests" );
+        property.setNamespace( "testUri" );
 
-    public ComplexNode( Property property, SimpleNode child )
-    {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        final SimpleNode simpleNode = new SimpleNode( "id", "My Test" );
+
+        final ComplexNode testNode = new ComplexNode( property, simpleNode );
+        Assert.assertEquals( "tests", testNode.getName() );
+        Assert.assertEquals( "testUri", testNode.getNamespace() );
+        Assert.assertEquals( AbstractNodeTest.TestClass.class, testNode.getProperty().getKlass() );
+        Assert.assertEquals( 1, testNode.getUnorderedChildren().size() );
+        Assert.assertSame( simpleNode, testNode.getUnorderedChildren().get( 0 ) );
     }
 }
