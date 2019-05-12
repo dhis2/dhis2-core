@@ -33,6 +33,8 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.node.Node;
+import org.hisp.dhis.node.NodeTransformer;
+import org.hisp.dhis.node.transformers.PluckNodeTransformer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -56,8 +58,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
@@ -83,6 +87,9 @@ public class DefaultFieldFilterServiceTest
     @Before
     public void setUp()
     {
+        final Set<NodeTransformer> nodeTransformers = new HashSet<>();
+        nodeTransformers.add( new PluckNodeTransformer() );
+
         final SchemaService schemaService = new DefaultSchemaService( new Jackson2PropertyIntrospectorService()
         {
             @Override
@@ -91,7 +98,7 @@ public class DefaultFieldFilterServiceTest
                 return Collections.emptyMap();
             }
         }, sessionFactory );
-        service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService, currentUserService );
+        service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService, currentUserService, nodeTransformers );
         service.init();
     }
 
@@ -140,6 +147,47 @@ public class DefaultFieldFilterServiceTest
         ouIds.add( String.valueOf( simpleNode.getValue() ) );
 
         Assert.assertThat( ouIds, Matchers.containsInAnyOrder( "abc1", "abc2" ) );
+    }
+
+    @Test
+    public void baseIdentifiableName()
+    {
+        final OrganisationUnit ou1 = new OrganisationUnit();
+        ou1.setUid( "abc1" );
+        ou1.setName( "OU 1" );
+
+        final OrganisationUnit ou2 = new OrganisationUnit();
+        ou2.setUid( "abc2" );
+        ou2.setName( "OU 2" );
+
+        final CategoryOption option = new CategoryOption();
+        option.setUid( "def1" );
+        option.getOrganisationUnits().add( ou1 );
+        option.getOrganisationUnits().add( ou2 );
+
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( option ), Arrays.asList( "id", "organisationUnits~pluck(name)[id,name]" ) );
+        final ComplexNode node = service.toComplexNode( params );
+
+        Assert.assertEquals( "categoryOption", node.getName() );
+        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
+        Assert.assertEquals( "def1", ( (SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" ) ).getValue() );
+        Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
+
+        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(), "organisationUnits" );
+        Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
+        final List<String> ouIds = new ArrayList<>();
+
+        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
+        SimpleNode simpleNode = (SimpleNode) collectionNode.getUnorderedChildren().get( 0 );
+        Assert.assertEquals( "name", simpleNode.getName() );
+        ouIds.add( String.valueOf( simpleNode.getValue() ) );
+
+        Assert.assertTrue( collectionNode.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
+        simpleNode = (SimpleNode) collectionNode.getUnorderedChildren().get( 1 );
+        Assert.assertEquals( "name", simpleNode.getName() );
+        ouIds.add( String.valueOf( simpleNode.getValue() ) );
+
+        Assert.assertThat( ouIds, Matchers.containsInAnyOrder( "OU 1", "OU 2" ) );
     }
 
     @Test
