@@ -91,8 +91,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final CurrentUserService currentUserService;
 
-    @Autowired( required = false )
-    private Set<NodeTransformer> nodeTransformers = new HashSet<>();
+    private Set<NodeTransformer> nodeTransformers;
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
@@ -101,12 +100,13 @@ public class DefaultFieldFilterService implements FieldFilterService
     private Property baseIdentifiableIdProperty;
 
     public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService, @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
+        this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
     }
 
     @PostConstruct
@@ -480,6 +480,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 String fieldName = matcher.group( "field" );
 
                 FieldMap value = new FieldMap();
+                value.putAll( fieldMap.get( fieldKey ) );
 
                 matcher = TRANSFORMER_PATTERN.matcher( fieldKey );
 
