@@ -60,6 +60,6 @@ public class ImportEventsTask
     @Override
     public void call()
     {
-        eventService.addEvents( events, importOptions, id );
+        eventService.processEventImport( events, importOptions, id );
     }
 }
