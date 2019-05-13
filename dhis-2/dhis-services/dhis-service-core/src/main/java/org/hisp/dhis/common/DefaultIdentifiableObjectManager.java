@@ -180,7 +180,7 @@ public class DefaultIdentifiableObjectManager
             }
         } );
 
-        BaseIdentifiableObject translatedObject = ( BaseIdentifiableObject ) persistedObject;
+        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
         translatedObject.setLastUpdated( new Date() );
         translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
 
@@ -383,7 +383,7 @@ public class DefaultIdentifiableObjectManager
             uniqueObjects.add( codeObject );
         }
 
-        uniqueObjects.addAll( getLikeName( clazz, query ) );
+        uniqueObjects.addAll( getLikeName( clazz, query, false ) );
 
         List<T> objects = new ArrayList<>( uniqueObjects );
 
@@ -580,8 +580,14 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name )
+    {
+        return getLikeName( clazz, name, true );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name, boolean caseSensitive )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
