@@ -9,7 +9,7 @@ pipeline {
     stage('Setup environment') {
       steps {
         script {
-          if (env.BRANCH_NAME !== 'master') {
+          if (env.BRANCH_NAME != 'master') {
                 IMAGE_VERSION = env.BRANCH_NAME
                 echo "Image version: ${IMAGE_VERSION}"
 
