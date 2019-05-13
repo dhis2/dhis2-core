@@ -32,8 +32,12 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,12 +55,18 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
     private final ProgramStageService programStageService;
 
+    private final AclService aclService;
+
+    private final TrackedEntityAttributeStore attributeStore;
+
     public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
-                                    ProgramStageService programStageService )
+                                    ProgramStageService programStageService, AclService aclService, TrackedEntityAttributeStore attributeStore )
     {
         this.programInstanceService = programInstanceService;
         this.programStageService = programStageService;
         this.programService = programService;
+        this.aclService = aclService;
+        this.attributeStore = attributeStore;
     }
 
     @Override
@@ -101,6 +111,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         {
             errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
         }
+
+        errors.addAll( validateAttributeSecurity( program , bundle ) );
 
         return errors;
     }
@@ -162,5 +174,38 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     private boolean isProgram( Object object )
     {
         return object instanceof Program;
+    }
+
+    private List<ErrorReport> validateAttributeSecurity( Program program, ObjectBundle bundle )
+    {
+        if ( program.getProgramAttributes().isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+        program.getProgramAttributes().forEach( attr ->
+        {
+            TrackedEntityAttribute attribute = bundle.getPreheat().get( identifier, TrackedEntityAttribute.class,
+                    attr.getAttribute().getUid() );
+
+            if ( attribute == null )
+            {
+                attribute = attributeStore.getByUidNoAcl( attr.getAttribute().getUid() );
+                bundle.getPreheat().put( identifier, attribute );
+            }
+
+            if ( ( bundle.getImportMode().isUpdate() || bundle.getImportMode().isCreateAndUpdate() )
+                    && !aclService.canRead( bundle.getUser(), attribute ) )
+            {
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                        identifier.getIdentifiersWithName( attribute ) ) );
+            }
+        });
+
+        return errorReports;
     }
 }

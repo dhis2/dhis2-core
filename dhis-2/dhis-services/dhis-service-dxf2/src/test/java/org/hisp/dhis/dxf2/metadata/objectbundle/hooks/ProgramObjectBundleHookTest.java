@@ -33,6 +33,8 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.*;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
@@ -68,6 +70,12 @@ public class ProgramObjectBundleHookTest
     private ProgramStageService programStageService;
 
     @Mock
+    private AclService aclService;
+
+    @Mock
+    private TrackedEntityAttributeStore attributeStore;
+
+    @Mock
     private SessionFactory sessionFactory;
 
     @Rule
@@ -78,7 +86,7 @@ public class ProgramObjectBundleHookTest
     @Before
     public void setUp()
     {
-        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService );
+        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService, aclService, attributeStore );
 
         programA = createProgram( 'A' );
         programA.setId( 100 );
@@ -183,6 +191,5 @@ public class ProgramObjectBundleHookTest
         assertThat( argument.getValue().getName(), is( equalToIgnoringCase("ProgramA" ) ) );
         assertThat( argument.getValue().getProgramStages().size(), is( 1 ) );
         assertThat( argument.getValue().getProgramStages().iterator().next().getName(), is( equalToIgnoringCase( "ProgramStageA" )));
-
     }
 }
