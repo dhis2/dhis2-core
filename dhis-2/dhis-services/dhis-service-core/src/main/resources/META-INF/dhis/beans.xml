@@ -792,6 +792,8 @@
 
   <bean id="org.hisp.dhis.fileresource.FileResourceUploadCallback" class="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
 
+  <bean id="org.hisp.dhis.fileresource.ImageResizeService" class="org.hisp.dhis.fileresource.DefaultImageResizeService" />
+
   <bean id="fileResourceCleanUpJob" class="org.hisp.dhis.fileresource.FileResourceCleanUpJob" />
 
   <!-- Service definitions -->
@@ -809,6 +811,7 @@
     <property name="fileResourceContentStore" ref="org.hisp.dhis.fileresource.FileResourceContentStore" />
     <property name="schedulingManager" ref="org.hisp.dhis.scheduling.SchedulingManager" />
     <property name="uploadCallback" ref="org.hisp.dhis.fileresource.FileResourceUploadCallback" />
+    <property name="imageResizeService" ref="org.hisp.dhis.fileresource.ImageResizeService" />
   </bean>
 
   <bean id="org.hisp.dhis.fileresource.ExternalFileResourceService" class="org.hisp.dhis.fileresource.DefaultExternalFileResourceService">

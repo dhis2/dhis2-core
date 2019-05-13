@@ -30,7 +30,6 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.io.ByteSource;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -42,6 +41,7 @@ import org.springframework.util.concurrent.ListenableFuture;
 import java.io.File;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -92,6 +92,13 @@ public class DefaultFileResourceService
         this.uploadCallback = uploadCallback;
     }
 
+    private ImageResizeService imageResizeService;
+
+    public void setImageResizeService( ImageResizeService imageResizeService )
+    {
+        this.imageResizeService = imageResizeService;
+    }
+
     // -------------------------------------------------------------------------
     // FileResourceService implementation
     // -------------------------------------------------------------------------
@@ -124,6 +131,13 @@ public class DefaultFileResourceService
     @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
+        if ( fileResource.isSaveMultipleSizes() )
+        {
+            Map<String, File> imageFiles = imageResizeService.createImages( fileResource, file );
+
+            saveFileResourceInternal( imageFiles, fileResource );
+        }
+
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
     }
 
@@ -208,6 +222,21 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    private String saveFileResourceInternal( Map<String, File> imageFiles, FileResource fileResource )
+    {
+        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+        fileResourceStore.save( fileResource );
+        sessionFactory.getCurrentSession().flush();
+
+        final String uid = fileResource.getUid();
+
+        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( () -> fileResourceContentStore.saveFileResourceContent( fileResource, imageFiles ) );
+
+        saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
+
+        return uid;
+    }
 
     private String saveFileResourceInternal( FileResource fileResource, Callable<String> saveCallable )
     {

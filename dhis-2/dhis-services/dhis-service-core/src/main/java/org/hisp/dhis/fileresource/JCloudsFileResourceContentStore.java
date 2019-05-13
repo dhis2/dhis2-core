@@ -31,6 +31,7 @@ package org.hisp.dhis.fileresource;
 import com.google.common.hash.HashCode;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,6 +65,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -239,7 +241,7 @@ public class JCloudsFileResourceContentStore
     @Override
     public String saveFileResourceContent( FileResource fileResource, File file )
     {
-        Blob blob = createBlob( fileResource, file );
+        Blob blob = createBlob( fileResource, StringUtils.EMPTY, file );
 
         if ( blob == null )
         {
@@ -258,6 +260,35 @@ public class JCloudsFileResourceContentStore
         }
 
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
+
+        return fileResource.getStorageKey();
+    }
+
+    @Override
+    public String saveFileResourceContent( FileResource fileResource, Map<String, File> imageFiles )
+    {
+        Blob blob = null;
+
+        for ( Map.Entry<String, File> entry : imageFiles.entrySet() )
+        {
+            File file = entry.getValue();
+
+            blob = createBlob( fileResource, entry.getKey(), file );
+
+            if ( blob != null )
+            {
+                blobStore.putBlob( config.container, blob );
+
+                try
+                {
+                    Files.deleteIfExists( file.toPath() );
+                }
+                catch ( IOException ioe )
+                {
+                    log.warn( String.format( "Temporary file '%s' could not be deleted.", file.toPath() ), ioe );
+                }
+            }
+        }
 
         return fileResource.getStorageKey();
     }
@@ -328,9 +359,9 @@ public class JCloudsFileResourceContentStore
             .build();
     }
 
-    private Blob createBlob( FileResource fileResource, File file )
+    private Blob createBlob( FileResource fileResource, String fileDimension, File file )
     {
-        return blobStore.blobBuilder( fileResource.getStorageKey() )
+        return blobStore.blobBuilder( fileResource.getStorageKey() + fileDimension )
             .payload( file )
             .contentLength( fileResource.getContentLength() )
             .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )

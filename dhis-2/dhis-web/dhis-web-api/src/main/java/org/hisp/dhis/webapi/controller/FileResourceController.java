@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.FilenameUtils;
@@ -67,6 +68,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -81,6 +83,11 @@ public class FileResourceController
     private static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
     private final static Log log = LogFactory.getLog( FileResourceController.class );
+
+    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
+        .add( "image/jpg" )
+        .add( "image/png" )
+        .build();
 
     // ---------------------------------------------------------------------
     // Dependencies
@@ -202,7 +209,7 @@ public class FileResourceController
 
         FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
 
-        if ( contentType == "" ) //Todo check if contentType is image
+        if ( IMAGE_CONTENT_TYPES.contains( contentType ) ) //Todo check if contentType is image
         {
             fileResource.setSaveMultipleSizes( true );
         }
