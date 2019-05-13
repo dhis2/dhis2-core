@@ -53,7 +53,7 @@ import java.util.Locale;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
-@RequestMapping( "/metadata" )
+@RequestMapping( "/metadataExport" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class MetadataExportController
 {
