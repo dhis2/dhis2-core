@@ -14,6 +14,8 @@ services:
     build:
       dockerfile: Dockerfile
       context: ../..
+    environment:
+      CATALINA_OPTS: "-Dcontext.path=''"
     volumes:
       - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     depends_on:
