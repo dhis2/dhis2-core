@@ -25,15 +25,21 @@ pipeline {
     }
 
     stage('Run api tests') {
+      steps {
       dir("dhis-2/dhis-e2e-test") {
           withMaven {
              sh "mvn clean test -DbaseUrl=http://localhost:8070/api -DsuperUserUsername=taadmin -DsuperUserPsw=Test1212?"
           }
       }
+      }
+      
     }
 
     stage('Publish image') {
-       sh "docker push $DOCKER_HUB_REPOSITORY/dhis2-core:$DOCKER_IMAGE_TAG"
+      steps {
+        sh "docker push $DOCKER_HUB_REPOSITORY/dhis2-core:$DOCKER_IMAGE_TAG"
+      }
+       
 
     }
 
