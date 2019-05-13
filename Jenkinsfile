@@ -14,10 +14,10 @@ pipeline {
                 echo "Image version: ${IMAGE_VERSION}"
 
            }
-            DOCKER_IMAGE_TAG = $IMAGE_VERSION + '-canary-alpine'
+          DOCKER_IMAGE_TAG = ${IMAGE_VERSION} + '-canary-alpine'
             echo "Will tag image as ${DOCKER_IMAGE_TAG}"
             dir ("dhis-2/dhis-e2e-test") {
-               sh "TAG=$DOCKER_IMAGE_TAG docker-compose up -d --build"
+              sh "TAG=${DOCKER_IMAGE_TAG} docker-compose up -d --build"
             }
         }
          
@@ -37,7 +37,7 @@ pipeline {
 
     stage('Publish image') {
       steps {
-        sh "docker push $DOCKER_HUB_REPOSITORY/dhis2-core:$DOCKER_IMAGE_TAG"
+        sh "docker push ${DOCKER_HUB_REPOSITORY}/dhis2-core:${DOCKER_IMAGE_TAG}"
       }
        
 
