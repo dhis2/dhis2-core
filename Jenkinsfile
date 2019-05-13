@@ -35,6 +35,7 @@ pipeline {
 
     stage('Publish image') {
       steps {
+        sh "docker tag dhis2-core:${DOCKER_IMAGE_TAG} ${DOCKER_HUB_REPOSITORY}/dhis2-core:${DOCKER_IMAGE_TAG}"
         sh "docker push ${DOCKER_HUB_REPOSITORY}/dhis2-core:${DOCKER_IMAGE_TAG}"
       }
        
