@@ -238,6 +238,6 @@ public class DefaultUserGroupService
     @Override
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
-        return userGroupStore.getAllLikeName( name, first, max );
+        return userGroupStore.getAllLikeName( name, first, max, false );
     }
 }
