@@ -150,6 +150,14 @@ public interface IdentifiableObjectStore<T>
     /**
      * Retrieves a List of objects where the name is like the given name.
      *
+     * @param name the name.
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( String name, boolean caseSensitive );
+
+    /**
+     * Retrieves a List of objects where the name is like the given name.
+     *
      * @param name  the name.
      * @param first the first result object to return.
      * @param max   the max number of result objects to return.
