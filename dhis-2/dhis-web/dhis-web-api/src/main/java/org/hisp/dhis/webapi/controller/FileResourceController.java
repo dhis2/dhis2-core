@@ -202,6 +202,11 @@ public class FileResourceController
 
         FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
 
+        if ( contentType == "" ) //Todo check if contentType is image
+        {
+            fileResource.setSaveMultipleSizes( true );
+        }
+
         File tmpFile = FileResourceUtils.toTempFile( file );
 
         String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
