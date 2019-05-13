@@ -63,7 +63,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Lars Helge Overland
  */
-public abstract class HibernateGenericStore<T>
+public class HibernateGenericStore<T>
     implements GenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
@@ -138,10 +138,11 @@ public abstract class HibernateGenericStore<T>
     /**
      * Creates a Query for given HQL query string. Return type is casted
      * to generic type T of the Store class.
+     *
      * @param hql the HQL query.
      * @return a Query instance with return type is the object type T of the store class
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     protected final Query<T> getQuery( String hql )
     {
         return getSession().createQuery( hql )
@@ -151,10 +152,11 @@ public abstract class HibernateGenericStore<T>
     /**
      * Creates a Query for given HQL query string. Must specify the return
      * type of the Query variable.
+     *
      * @param hql the HQL query.
      * @return a Query instance with return type specified in the Query<Y>
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     protected final <V> Query<V> getTypedQuery( String hql )
     {
         return getSession()
@@ -205,8 +207,9 @@ public abstract class HibernateGenericStore<T>
     /**
      * Get executable Typed Query from Criteria Query.
      * Apply cache if needed.
+     *
      * @param criteriaQuery
-     * @return  executable TypedQuery
+     * @return executable TypedQuery
      */
     public final TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
     {
@@ -217,6 +220,7 @@ public abstract class HibernateGenericStore<T>
 
     /**
      * Method for adding additional Predicates into where clause
+     *
      * @param builder
      * @param predicates
      */
@@ -226,10 +230,11 @@ public abstract class HibernateGenericStore<T>
 
     /**
      * Get single result from executable typedQuery
+     *
      * @param Executable TypedQuery
      * @return single object
      */
-   protected <V> V getSingleResult( TypedQuery<V> typedQuery )
+    protected <V> V getSingleResult( TypedQuery<V> typedQuery )
     {
         List<V> list = typedQuery.getResultList();
 
@@ -243,6 +248,7 @@ public abstract class HibernateGenericStore<T>
 
     /**
      * Get List objects returned by executable TypedQuery
+     *
      * @param typedQuery
      * @return list result
      */
@@ -253,6 +259,7 @@ public abstract class HibernateGenericStore<T>
 
     /**
      * Get List objects return by querying given JpaQueryParameters
+     *
      * @param builder
      * @param parameters JpaQueryParameters
      * @return list objects
@@ -264,6 +271,7 @@ public abstract class HibernateGenericStore<T>
 
     /**
      * Get executable TypedQuery from JpaQueryParameter.
+     *
      * @param builder
      * @param parameters
      * @return executable TypedQuery
@@ -308,11 +316,12 @@ public abstract class HibernateGenericStore<T>
 
     /**
      * Count number of objects based on given parameters
+     *
      * @param builder
      * @param parameters JpaQueryParameters
      * @return number of objects
      */
-    protected final Long getCount( CriteriaBuilder builder, JpaQueryParameters<T> parameters  )
+    protected final Long getCount( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
 
@@ -326,7 +335,7 @@ public abstract class HibernateGenericStore<T>
         {
             if ( countExpressions.size() > 1 )
             {
-                query.multiselect( countExpressions.stream().map( c -> c.apply( root ) ).collect( Collectors.toList()) ) ;
+                query.multiselect( countExpressions.stream().map( c -> c.apply( root ) ).collect( Collectors.toList() ) );
             }
             else
             {
@@ -335,7 +344,7 @@ public abstract class HibernateGenericStore<T>
         }
         else
         {
-            query.select(  parameters.isUseDistinct() ?  builder.countDistinct( root ) :  builder.count( root ) );
+            query.select( parameters.isUseDistinct() ? builder.countDistinct( root ) : builder.count( root ) );
         }
 
         if ( !predicateProviders.isEmpty() )
@@ -355,7 +364,7 @@ public abstract class HibernateGenericStore<T>
      * @param parameters
      * @return an object of the implementation Class type.
      */
-    protected T getSingleResult( CriteriaBuilder builder,  JpaQueryParameters<T> parameters )
+    protected T getSingleResult( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
     {
         return getSingleResult( getTypedQuery( builder, parameters ) );
     }
@@ -370,7 +379,7 @@ public abstract class HibernateGenericStore<T>
      * @param sql the SQL query String.
      * @return a NativeQuery<T> instance.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     protected final NativeQuery<T> getSqlQuery( String sql )
     {
         return getSession().createNativeQuery( sql )
@@ -383,7 +392,7 @@ public abstract class HibernateGenericStore<T>
      * @param sql the SQL query String.
      * @return a NativeQuery<T> instance.
      */
-    protected final NativeQuery<?> getUntypedSqlQuery( String sql  )
+    protected final NativeQuery<?> getUntypedSqlQuery( String sql )
     {
         return getSession().createNativeQuery( sql )
             .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable );
@@ -444,7 +453,7 @@ public abstract class HibernateGenericStore<T>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicate( root ->  root.join( "attributeValues", JoinType.INNER ).get( "attribute" ).in( attributes )  );
+            .addPredicate( root -> root.join( "attributeValues", JoinType.INNER ).get( "attribute" ).in( attributes ) );
 
         return getList( builder, parameters );
     }
@@ -464,7 +473,7 @@ public abstract class HibernateGenericStore<T>
         CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
         Root<T> root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ( "attributeValues" ), JoinType.INNER );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
         query.select( root.get( "attributeValues" ) );
         query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
 
@@ -478,7 +487,7 @@ public abstract class HibernateGenericStore<T>
         CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
         Root<T> root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ( "attributeValues" ), JoinType.INNER );
+        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
         query.select( root.get( "attributeValues" ) );
         query.where(
             builder.and(
@@ -504,6 +513,7 @@ public abstract class HibernateGenericStore<T>
 
     /**
      * Create new instance of JpaQueryParameters
+     *
      * @return JpaQueryParameters<T>
      */
     protected JpaQueryParameters<T> newJpaParameters()
