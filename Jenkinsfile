@@ -3,6 +3,7 @@ pipeline {
   environment {
     DOCKER_HUB_REPOSITORY = "$DOCKER_HUB_OWNER"
     DOCKER_IMAGE_TAG = ''
+    DOCKER_IMAGE_NAME = ''
     IMAGE_VERSION = 'dev'
   }
   stages {
@@ -19,6 +20,8 @@ pipeline {
             dir ("dhis-2/dhis-e2e-test") {
               sh "TAG=${DOCKER_IMAGE_TAG} docker-compose up -d --build"
             }
+          
+          DOCKER_IMAGE_NAME = "dhis2-core:${DOCKER_IMAGE_TAG}"
         }
          
       }
@@ -35,8 +38,8 @@ pipeline {
 
     stage('Publish image') {
       steps {
-        sh "docker tag dhis2-core:${DOCKER_IMAGE_TAG} ${DOCKER_HUB_REPOSITORY}/dhis2-core:${DOCKER_IMAGE_TAG}"
-        sh "docker push ${DOCKER_HUB_REPOSITORY}/dhis2-core:${DOCKER_IMAGE_TAG}"
+        sh "docker tag ${DOCKER_IMAGE_NAME} ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_NAME}"
+        sh "docker push ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_NAME}"
       }
        
 
