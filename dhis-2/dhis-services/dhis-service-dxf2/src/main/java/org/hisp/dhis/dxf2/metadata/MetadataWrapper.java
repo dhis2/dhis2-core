@@ -1,5 +1,4 @@
-package org.hisp.dhis.dxf2.events.event;
-
+package org.hisp.dhis.dxf2.metadata;
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,37 +27,71 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
-import java.util.List;
+import java.util.Objects;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author David Katuscak
  */
-public class ImportEventTask
-    extends SecurityContextRunnable
+@JacksonXmlRootElement( localName = "metadataPayload", namespace = DxfNamespaces.DXF_2_0 )
+public class MetadataWrapper
 {
-    private final List<Event> events;
+    private String metadata;
 
-    private final EventService eventService;
-
-    private final ImportOptions importOptions;
-
-    private final JobConfiguration jobId;
-
-    public ImportEventTask( List<Event> events, EventService eventService, ImportOptions importOptions, JobConfiguration jobId )
+    public MetadataWrapper( )
     {
-        this.events = events;
-        this.eventService = eventService;
-        this.importOptions = importOptions;
-        this.jobId = jobId;
+    }
+
+    public MetadataWrapper( String metadata )
+    {
+        this.metadata = metadata;
+    }
+
+    @JsonProperty( "metadata" )
+    @JacksonXmlProperty( localName = "metadata", namespace = DxfNamespaces.DXF_2_0 )
+    public String getMetadata()
+    {
+        return metadata;
+    }
+
+    public void setMetadata( String metadata )
+    {
+        this.metadata = metadata;
     }
 
     @Override
-    public void call()
+    public boolean equals( Object o )
     {
-        eventService.addEvents( events, importOptions, jobId );
+        if ( this == o )
+        {
+            return true;
+        }
+
+        if ( o == null || getClass() != o.getClass() )
+        {
+            return false;
+        }
+
+        MetadataWrapper temp = (MetadataWrapper) o;
+
+        return Objects.equals( temp.getMetadata(), this.getMetadata() );
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return metadata != null ? metadata.hashCode() : 0;
+    }
+
+    @Override
+    public java.lang.String toString()
+    {
+        return "MetadataWrapper{" +
+            "metadata=" + metadata +
+            '}';
     }
 }
