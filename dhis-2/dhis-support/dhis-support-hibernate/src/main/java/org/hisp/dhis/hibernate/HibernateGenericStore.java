@@ -63,7 +63,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * @author Lars Helge Overland
  */
-public class HibernateGenericStore<T>
+public abstract class HibernateGenericStore<T>
     implements GenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
