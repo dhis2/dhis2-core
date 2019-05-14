@@ -40,7 +40,7 @@ public class TableCreator
     extends AbstractStartupRoutine
 {
     private static final Log log = LogFactory.getLog( TableCreator.class );
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -58,18 +58,23 @@ public class TableCreator
 
     @Override
     public void execute()
-    {        
+    {
         createSilently( "create unique index dataapproval_unique on dataapproval(datasetid,periodid,organisationunitid,attributeoptioncomboid,dataapprovallevelid)", "dataapproval_unique" );
         createSilently( "create index in_datavalueaudit on datavalueaudit(dataelementid,periodid,organisationunitid,categoryoptioncomboid,attributeoptioncomboid)", "in_datavalueaudit" );
         createSilently( "create index in_trackedentityattributevalue_attributeid on trackedentityattributevalue(trackedentityattributeid)", "in_trackedentityattributevalue_attributeid" );
+
+        // Creates covering index for querying categories from category options
+        // Since the index is required just for a backport the covering part of the index is ordered descendant,
+        // which enables an easy exchange in version 2.33.
+        createSilently( "CREATE INDEX in_categories_categoryoptions_coid_bp ON categories_categoryoptions(categoryoptionid, categoryid DESC)", "in_categories_categoryoptions_coid_bp" );
     }
-    
+
     private void createSilently( final String sql, final String name )
     {
         try
         {
             jdbcTemplate.execute( sql );
-            
+
             log.info( "Created table/index " + name );
         }
         catch ( Exception ex )

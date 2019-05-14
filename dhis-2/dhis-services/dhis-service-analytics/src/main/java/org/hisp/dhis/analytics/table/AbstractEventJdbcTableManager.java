@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
@@ -120,6 +121,10 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || value || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
+        else if ( valueType.isOrganisationUnit() )
+        {
+            return "ou.name from organisationunit ou where ou.uid = (select value";
+        }
         else
         {
             return "value";
@@ -137,5 +142,24 @@ public abstract class AbstractEventJdbcTableManager
         }
 
         return null;
+    }
+
+    String addClosingParentheses( String selectSql )
+    {
+        int open = 0;
+
+        for ( int i = 0; i < selectSql.length(); i++ )
+        {
+            if ( selectSql.charAt( i ) == '(' )
+            {
+                open++;
+            }
+            else if ( selectSql.charAt( i ) == ')' )
+            {
+                open--;
+            }
+
+        }
+        return StringUtils.repeat(")", open);
     }
 }

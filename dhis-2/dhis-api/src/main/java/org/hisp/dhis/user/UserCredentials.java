@@ -28,6 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -47,6 +48,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -151,6 +153,18 @@ public class UserCredentials
      */
     private boolean disabled;
 
+    /**
+     * Cached all authorities {@link #getAllAuthorities()}.
+     */
+    @JsonIgnore
+    private transient volatile Set<String> cachedAllAuthorities;
+
+    /**
+     * Cached state if user is super user {@link #isSuper()}.
+     */
+    @JsonIgnore
+    private transient volatile Boolean cachedSuper;
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -181,12 +195,23 @@ public class UserCredentials
      */
     public Set<String> getAllAuthorities()
     {
+        // cached all authorities can be reset to null by different thread and must be assigned before evaluation
+        final Set<String> resultingAuthorities = cachedAllAuthorities;
+
+        if ( resultingAuthorities != null )
+        {
+            return resultingAuthorities;
+        }
+
         Set<String> authorities = new HashSet<>();
 
         for ( UserAuthorityGroup group : userAuthorityGroups )
         {
             authorities.addAll( group.getAuthorities() );
         }
+
+        authorities = Collections.unmodifiableSet( authorities );
+        cachedAllAuthorities = authorities;
 
         return authorities;
     }
@@ -244,15 +269,18 @@ public class UserCredentials
      */
     public boolean isSuper()
     {
-        for ( UserAuthorityGroup group : userAuthorityGroups )
+        final Boolean superUser = cachedSuper;
+
+        if ( superUser != null )
         {
-            if ( group.isSuper() )
-            {
-                return true;
-            }
+            return superUser;
         }
 
-        return false;
+        final boolean resultingSuper = userAuthorityGroups.stream().anyMatch( UserAuthorityGroup::isSuper );
+
+        cachedSuper = resultingSuper;
+
+        return resultingSuper;
     }
 
     /**
@@ -538,6 +566,8 @@ public class UserCredentials
     public void setUserAuthorityGroups( Set<UserAuthorityGroup> userAuthorityGroups )
     {
         this.userAuthorityGroups = userAuthorityGroups;
+        this.cachedSuper = null;
+        this.cachedAllAuthorities = null;
     }
 
     @JsonProperty

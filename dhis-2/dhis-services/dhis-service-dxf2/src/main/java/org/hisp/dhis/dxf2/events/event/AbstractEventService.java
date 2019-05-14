@@ -1258,7 +1258,15 @@ public abstract class AbstractEventService
             dataValues.forEach( dataValueService::deleteTrackedEntityDataValue );
         }
 
-        importSummary.setStatus( importSummary.getConflicts().isEmpty() ? ImportStatus.SUCCESS : ImportStatus.WARNING );
+        if ( importSummary.getConflicts().size() > 0 )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+        }
+        else
+        {
+            importSummary.setStatus( ImportStatus.SUCCESS );
+            importSummary.incrementUpdated();
+        }
 
         return importSummary;
     }

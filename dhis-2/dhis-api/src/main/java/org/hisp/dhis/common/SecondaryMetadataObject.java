@@ -1,7 +1,7 @@
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,38 +28,13 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-
-import java.util.List;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * More installation specific metadata object, that will not be exported by default.
+ * In some cases it is meaningful that this metadata can also be transferred between
+ * system installations.
+ *
+ * @author Volker Schmidt
  */
-public class ImportEventsTask
-    extends SecurityContextRunnable
+public interface SecondaryMetadataObject extends MetadataObject
 {
-    private final List<Event> events;
-
-    private final EventService eventService;
-
-    private final ImportOptions importOptions;
-
-    private final JobConfiguration id;
-
-    public ImportEventsTask( List<Event> events, EventService eventService, ImportOptions importOptions, JobConfiguration id )
-    {
-        super();
-        this.events = events;
-        this.eventService = eventService;
-        this.importOptions = importOptions;
-        this.id = id;
-    }
-
-    @Override
-    public void call()
-    {
-        eventService.processEventImport( events, importOptions, id );
-    }
 }
