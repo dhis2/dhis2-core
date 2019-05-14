@@ -501,9 +501,9 @@ public abstract class AbstractEventService
                 }
                 
                 programInstance = programInstances.get( 0 );
-            }            
-            
-            if ( !programStage.getRepeatable() && programInstance.hasActiveProgramStageInstance( programStage ) )
+            }
+
+            if ( !programStage.getRepeatable() && programInstance.hasProgramStageInstance( programStage ) )
             {
                 return new ImportSummary( ImportStatus.ERROR, "Program stage is not repeatable and an event already exists" )
                     .setReference( event.getEvent() ).incrementIgnored();
@@ -1748,6 +1748,11 @@ public abstract class AbstractEventService
         String completedBy, ProgramStageInstance programStageInstance, DataElementCategoryOptionCombo aoc,
         ImportOptions importOptions )
     {
+        if ( programInstance.getProgram().isRegistration() )
+        {
+            programInstance.getProgramStageInstances().add( programStageInstance );
+        }
+
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setDueDate( dueDate );
