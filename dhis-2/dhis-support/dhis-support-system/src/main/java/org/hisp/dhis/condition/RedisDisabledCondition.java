@@ -45,7 +45,12 @@ public class RedisDisabledCondition extends PropertiesAwareConfigurationConditio
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        return !getConfiguration().getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+        if ( !isTestRun( context ) )
+        {
+            return !getConfiguration().getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+        }
+
+        return true;
     }
 
     @Override

@@ -28,11 +28,14 @@
 
 package org.hisp.dhis.condition;
 
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.config.ServiceConfig;
 import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.ConfigurationCondition;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Loads the DHIS2 configuration provider within the context of a Spring
@@ -48,7 +51,6 @@ public abstract class PropertiesAwareConfigurationCondition
 {
     protected DhisConfigurationProvider getConfiguration()
     {
-
         DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
         locationManager.init();
         DefaultDhisConfigurationProvider dhisConfigurationProvider = new DefaultDhisConfigurationProvider(
@@ -56,5 +58,10 @@ public abstract class PropertiesAwareConfigurationCondition
         dhisConfigurationProvider.init();
 
         return dhisConfigurationProvider;
+    }
+
+    protected boolean isTestRun( ConditionContext context )
+    {
+        return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
     }
 }

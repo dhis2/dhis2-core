@@ -54,7 +54,7 @@ public class DefaultLocationManager
 
     private static final String DEFAULT_DHIS2_HOME = "/opt/dhis2";
 
-    private String externalDir = null;
+    private String externalDir;
 
     private String environmentVariable;
 
@@ -137,9 +137,7 @@ public class DefaultLocationManager
         
         try
         {
-            InputStream in = new BufferedInputStream( new FileInputStream( file ) );
-            
-            return in;
+            return new BufferedInputStream( new FileInputStream( file ) );
         }
         catch ( FileNotFoundException ex )
         {
@@ -193,9 +191,7 @@ public class DefaultLocationManager
         
         try
         {
-            OutputStream out = new BufferedOutputStream( new FileOutputStream( file ) );
-            
-            return out;
+            return new BufferedOutputStream( new FileOutputStream( file ) );
         }
         catch ( FileNotFoundException ex )
         {
@@ -224,10 +220,8 @@ public class DefaultLocationManager
         {
             throw new LocationManagerException( "Directory " + directory.getAbsolutePath() + " cannot be created" );
         }
-        
-        File file = new File( directory, fileName );
-        
-        return file;
+
+        return new File( directory, fileName );
     }
     
     @Override
@@ -239,11 +233,11 @@ public class DefaultLocationManager
             throw new LocationManagerException( "External directory not set" );
         }
         
-        StringBuffer directoryPath = new StringBuffer( externalDir + separator );
+        StringBuilder directoryPath = new StringBuilder( externalDir + separator );
                 
         for ( String dir : directories )
         {
-            directoryPath.append( dir + separator );
+            directoryPath.append( dir ).append( separator );
         }
         
         return new File( directoryPath.toString() );
