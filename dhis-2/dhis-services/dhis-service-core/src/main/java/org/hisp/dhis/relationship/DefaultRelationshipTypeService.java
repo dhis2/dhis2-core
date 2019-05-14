@@ -28,13 +28,17 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.relationship.RelationshipTypeService" )
 public class DefaultRelationshipTypeService
     implements RelationshipTypeService
 {
@@ -42,10 +46,11 @@ public class DefaultRelationshipTypeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private RelationshipTypeStore relationshipTypeStore;
+    private final RelationshipTypeStore relationshipTypeStore;
 
-    public void setRelationshipTypeStore( RelationshipTypeStore relationshipTypeStore )
+    public DefaultRelationshipTypeService( RelationshipTypeStore relationshipTypeStore )
     {
+        checkNotNull( relationshipTypeStore );
         this.relationshipTypeStore = relationshipTypeStore;
     }
 

@@ -39,6 +39,8 @@ import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -46,9 +48,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.reporttable.ReportTableService" )
 public class DefaultReportTableService
     extends GenericAnalyticalObjectService<ReportTable>
     implements ReportTableService
@@ -57,38 +62,31 @@ public class DefaultReportTableService
     // Dependencies
     // ---------------------------------------------------------------------
 
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
-    public void setAnalyticsService( AnalyticsService analyticsService )
-    {
-        this.analyticsService = analyticsService;
-    }
-
-    private AnalyticalObjectStore<ReportTable> reportTableStore;
-
-    public void setReportTableStore( AnalyticalObjectStore<ReportTable> reportTableStore )
-    {
-        this.reportTableStore = reportTableStore;
-    }
+    private final AnalyticalObjectStore<ReportTable> reportTableStore;
 
     private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
+    private final CurrentUserService currentUserService;
+
+    private final I18nManager i18nManager;
+
+    public DefaultReportTableService( AnalyticsService analyticsService,
+        @Qualifier( "org.hisp.dhis.reporttable.ReportTableStore" ) AnalyticalObjectStore<ReportTable> reportTableStore,
+       OrganisationUnitService organisationUnitService,
+        CurrentUserService currentUserService, I18nManager i18nManager )
     {
+        checkNotNull( analyticsService );
+        checkNotNull( reportTableStore );
+        checkNotNull( organisationUnitService );
+        checkNotNull( currentUserService );
+        checkNotNull( i18nManager );
+
+        this.analyticsService = analyticsService;
+        this.reportTableStore = reportTableStore;
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
         this.i18nManager = i18nManager;
     }
 

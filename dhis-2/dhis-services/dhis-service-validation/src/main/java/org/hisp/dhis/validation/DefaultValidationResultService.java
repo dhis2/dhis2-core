@@ -32,6 +32,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -39,18 +40,28 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  */
 @Transactional
+@Service( "org.hisp.dhis.validation.ValidationResultService" )
 public class DefaultValidationResultService
     implements ValidationResultService
 {
-    @Autowired
-    private ValidationResultStore validationResultStore;
+    private final ValidationResultStore validationResultStore;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
+
+    public DefaultValidationResultService( ValidationResultStore validationResultStore, PeriodService periodService )
+    {
+        checkNotNull( validationResultStore );
+        checkNotNull( periodService );
+
+        this.validationResultStore = validationResultStore;
+        this.periodService = periodService;
+    }
 
     @Override
     public void saveValidationResults( Collection<ValidationResult> validationResults )

@@ -96,10 +96,12 @@ import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService" )
 public class DefaultCompleteDataSetRegistrationExchangeService
     implements
     CompleteDataSetRegistrationExchangeService

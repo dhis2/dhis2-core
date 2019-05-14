@@ -30,17 +30,33 @@ package org.hisp.dhis.dataelement.hibernate;
 
 import java.util.List;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperandStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.dataelement.DataElementOperandStore" )
 public class HibernateDataElementOperandStore
     extends HibernateIdentifiableObjectStore<DataElementOperand>
     implements DataElementOperandStore
 {
+    public HibernateDataElementOperandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, DataElementOperand.class, currentUserService, deletedObjectService, aclService, false );
+
+        transientIdentifiableProperties = true;
+    }
+
     @Override
     public List<DataElementOperand> getAllOrderedName()
     {

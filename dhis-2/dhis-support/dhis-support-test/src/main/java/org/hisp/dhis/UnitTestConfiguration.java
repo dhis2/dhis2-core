@@ -30,6 +30,7 @@ package org.hisp.dhis;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 
@@ -38,6 +39,7 @@ import org.springframework.context.annotation.ImportResource;
  */
 @Configuration
 @ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/security.xml" } )
+@ComponentScan("org.hisp.dhis")
 public class UnitTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )

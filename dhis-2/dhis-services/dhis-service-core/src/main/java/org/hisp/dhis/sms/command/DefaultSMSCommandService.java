@@ -35,14 +35,23 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Service( "org.hisp.dhis.sms.command.SMSCommandService" )
 public class DefaultSMSCommandService
     implements SMSCommandService
 {
-    @Autowired
     private SMSCommandStore smsCommandStore;
+
+    public DefaultSMSCommandService( SMSCommandStore smsCommandStore )
+    {
+        checkNotNull( smsCommandStore );
+
+        this.smsCommandStore = smsCommandStore;
+    }
 
     @Override
     public List<SMSCommand> getSMSCommands()

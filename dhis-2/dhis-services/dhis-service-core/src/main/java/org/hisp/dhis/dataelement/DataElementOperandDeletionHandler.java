@@ -31,17 +31,23 @@ package org.hisp.dhis.dataelement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Jim Grace
  */
+@Component( "org.hisp.dhis.dataelement.DataElementOperandDeletionHandler" )
 public class DataElementOperandDeletionHandler
     extends DeletionHandler
 {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public DataElementOperandDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
+
         this.jdbcTemplate = jdbcTemplate;
     }
 

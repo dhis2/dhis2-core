@@ -32,24 +32,33 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.ImmutableMap;
+import org.springframework.stereotype.Repository;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Dang Duy Hieu
  */
+@Repository( "org.hisp.dhis.sqlview.SqlViewStore" )
 public class HibernateSqlViewStore
     extends HibernateIdentifiableObjectStore<SqlView>
     implements SqlViewStore
@@ -62,28 +71,25 @@ public class HibernateSqlViewStore
     private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = 
         ImmutableMap.of( SqlViewType.VIEW, "DROP VIEW ", SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final StatementBuilder statementBuilder;
 
-    private StatementBuilder statementBuilder;
+    private final JdbcTemplate readOnlyJdbcTemplate;
 
-    public void setStatementBuilder( StatementBuilder statementBuilder )
+    private final SystemSettingManager systemSettingManager;
+    
+    public HibernateSqlViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        StatementBuilder statementBuilder, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate,
+        SystemSettingManager systemSettingManager )
     {
+        super( sessionFactory, jdbcTemplate, SqlView.class, currentUserService, deletedObjectService, aclService, false );
+
+        checkNotNull( statementBuilder );
+        checkNotNull( readOnlyJdbcTemplate );
+        checkNotNull( systemSettingManager );
+
         this.statementBuilder = statementBuilder;
-    }
-    
-    private JdbcTemplate readOnlyJdbcTemplate;
-
-    public void setReadOnlyJdbcTemplate( JdbcTemplate readOnlyJdbcTemplate )
-    {
         this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
-    }
-    
-    private SystemSettingManager systemSettingManager;
-    
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
         this.systemSettingManager = systemSettingManager;
     }
 
@@ -155,11 +161,7 @@ public class HibernateSqlViewStore
 
             jdbcTemplate.execute( "DROP VIEW IF EXISTS " + viewName );
         }
-        catch ( BadSqlGrammarException ex )
-        {
-            return ex.getCause().getMessage();
-        }
-        catch ( UncategorizedSQLException ex )
+        catch ( BadSqlGrammarException | UncategorizedSQLException ex )
         {
             return ex.getCause().getMessage();
         }

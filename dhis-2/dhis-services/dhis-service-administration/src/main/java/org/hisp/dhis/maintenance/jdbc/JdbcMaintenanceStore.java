@@ -31,10 +31,14 @@ package org.hisp.dhis.maintenance.jdbc;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.maintenance.MaintenanceStore" )
 public class JdbcMaintenanceStore
     implements MaintenanceStore
 {
@@ -42,8 +46,14 @@ public class JdbcMaintenanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private JdbcTemplate jdbcTemplate;
+
+    public JdbcMaintenanceStore( JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( jdbcTemplate );
+
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // MaintenanceStore implementation

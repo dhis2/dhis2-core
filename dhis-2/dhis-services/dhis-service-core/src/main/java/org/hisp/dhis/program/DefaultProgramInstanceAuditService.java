@@ -31,11 +31,13 @@ package org.hisp.dhis.program;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Service( "org.hisp.dhis.program.ProgramInstanceAuditService" )
 public class DefaultProgramInstanceAuditService
     implements ProgramInstanceAuditService
 {

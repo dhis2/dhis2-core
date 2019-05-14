@@ -29,7 +29,6 @@ package org.hisp.dhis.eventreport;
  */
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
@@ -40,12 +39,14 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.eventreport.EventReportDeletionHandler" )
 public class EventReportDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<EventReport>
 {
@@ -53,8 +54,13 @@ public class EventReportDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private EventReportService eventReportService;
+    private final EventReportService eventReportService;
+
+    public EventReportDeletionHandler( EventReportService eventReportService )
+    {
+        checkNotNull( eventReportService );
+        this.eventReportService = eventReportService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -85,16 +91,10 @@ public class EventReportDeletionHandler
         
         for ( EventReport report : eventReports )
         {
-            Iterator<TrackedEntityDataElementDimension> dimensions = report.getDataElementDimensions().iterator();
-            
-            while ( dimensions.hasNext() )
-            {
-                if ( dimensions.next().getDataElement().equals( dataElement ) )
-                {
-                    dimensions.remove();
-                }
-            }
-            
+            report.getDataElementDimensions()
+                .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
+                    .equals( dataElement ) );
+
             eventReportService.update( report );
         }
     }

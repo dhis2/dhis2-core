@@ -31,16 +31,15 @@ package org.hisp.dhis.i18n.ui.resourcebundle;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.commons.util.PathUtils;
+import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +51,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -67,17 +68,16 @@ public class DefaultResourceBundleManager
     // Configuration
     // -------------------------------------------------------------------------
 
-    private String globalResourceBundleName;
+    private final String globalResourceBundleName;
 
-    public void setGlobalResourceBundleName( String globalResourceBundleName )
+    private final String specificResourceBundleName;
+
+    public DefaultResourceBundleManager( String globalResourceBundleName, String specificResourceBundleName )
     {
+        checkNotNull( globalResourceBundleName );
+        checkNotNull( specificResourceBundleName );
+        
         this.globalResourceBundleName = globalResourceBundleName;
-    }
-
-    private String specificResourceBundleName;
-
-    public void setSpecificResourceBundleName( String specificResourceBundleName )
-    {
         this.specificResourceBundleName = specificResourceBundleName;
     }
 
@@ -139,7 +139,7 @@ public class DefaultResourceBundleManager
             throw new ResourceBundleManagerException( "Failed to find global resource bundle" );
         }
 
-        List<Locale> locales = null;
+        List<Locale> locales;
         
         if ( url.toExternalForm().startsWith( "jar:" ) )
         {
@@ -152,7 +152,7 @@ public class DefaultResourceBundleManager
             locales = new ArrayList<>( getAvailableLocalesFromDir( dirPath ) );
         }
         
-        Collections.sort( locales, LocaleNameComparator.INSTANCE );
+        locales.sort(LocaleNameComparator.INSTANCE);
         
         return locales;
     }
@@ -160,7 +160,7 @@ public class DefaultResourceBundleManager
     private Collection<Locale> getAvailableLocalesFromJar( URL url )
         throws ResourceBundleManagerException
     {
-        JarFile jar = null;
+        JarFile jar;
 
         Set<Locale> availableLocales = new HashSet<>();
 
@@ -199,14 +199,8 @@ public class DefaultResourceBundleManager
         File dir = new File( dirPath );
         Set<Locale> availableLocales = new HashSet<>();
         
-        File[] files = dir.listFiles( new FilenameFilter()
-        {
-            @Override
-            public boolean accept( File dir, String name )
-            {
-                return name.startsWith( globalResourceBundleName ) && name.endsWith( EXT_RESOURCE_BUNDLE );
-            }
-        } );
+        File[] files = dir.listFiles(
+            ( dir1, name ) -> name.startsWith( globalResourceBundleName ) && name.endsWith( EXT_RESOURCE_BUNDLE ) );
 
         if ( files != null )
         {

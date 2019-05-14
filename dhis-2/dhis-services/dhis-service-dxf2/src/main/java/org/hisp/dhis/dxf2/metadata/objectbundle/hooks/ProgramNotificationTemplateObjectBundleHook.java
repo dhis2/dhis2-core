@@ -37,12 +37,14 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Component
 public class ProgramNotificationTemplateObjectBundleHook
     extends AbstractObjectBundleHook
 {

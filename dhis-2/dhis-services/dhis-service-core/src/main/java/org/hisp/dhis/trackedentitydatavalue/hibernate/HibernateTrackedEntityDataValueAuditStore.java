@@ -35,6 +35,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -46,6 +47,7 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore" )
 public class HibernateTrackedEntityDataValueAuditStore
     implements TrackedEntityDataValueAuditStore
 {
@@ -55,7 +57,7 @@ public class HibernateTrackedEntityDataValueAuditStore
 
     private SessionFactory sessionFactory;
 
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateTrackedEntityDataValueAuditStore( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
     }

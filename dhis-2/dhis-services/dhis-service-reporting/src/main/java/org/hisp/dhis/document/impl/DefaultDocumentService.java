@@ -39,6 +39,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
@@ -49,6 +50,7 @@ import java.util.List;
  * @version $Id$
  */
 @Transactional
+@Service( "org.hisp.dhis.document.DocumentService" )
 public class DefaultDocumentService
     implements DocumentService
 {

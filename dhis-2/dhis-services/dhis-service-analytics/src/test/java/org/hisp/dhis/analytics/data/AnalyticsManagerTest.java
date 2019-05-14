@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.data;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,11 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsManager;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
@@ -52,6 +49,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
@@ -82,7 +80,7 @@ public class AnalyticsManagerTest
         @Before
         public void setUp()
         {
-            analyticsManager = new JdbcAnalyticsManager();
+            analyticsManager = new JdbcAnalyticsManager( mock( QueryPlanner.class ), mock( JdbcTemplate.class ) );
         }
 
         @Test
@@ -123,7 +121,8 @@ public class AnalyticsManagerTest
         @Test
         public void testReplaceDataPeriodsWithAggregationPeriods()
         {
-            AnalyticsManager analyticsManager = new JdbcAnalyticsManager();
+            AnalyticsManager analyticsManager = new JdbcAnalyticsManager( mock( QueryPlanner.class ),
+                mock( JdbcTemplate.class ) );
             Period y2012 = createPeriod( "2012" );
 
             AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(

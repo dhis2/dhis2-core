@@ -28,12 +28,18 @@ package org.hisp.dhis.relationship.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -41,10 +47,18 @@ import java.util.List;
 /**
  * @author Abyot Asalefew
  */
+@Repository( "org.hisp.dhis.relationship.RelationshipStore" )
 public class HibernateRelationshipStore
     extends HibernateIdentifiableObjectStore<Relationship>
     implements RelationshipStore
 {
+    public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, Relationship.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
+
     @Override
     public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
     {

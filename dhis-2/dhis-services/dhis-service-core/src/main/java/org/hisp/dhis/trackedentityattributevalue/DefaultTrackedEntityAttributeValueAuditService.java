@@ -32,12 +32,14 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService" )
 public class DefaultTrackedEntityAttributeValueAuditService
     implements TrackedEntityAttributeValueAuditService
 {

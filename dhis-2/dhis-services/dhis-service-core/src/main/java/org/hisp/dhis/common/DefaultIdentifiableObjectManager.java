@@ -52,6 +52,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -66,6 +67,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
 /**
@@ -75,6 +77,7 @@ import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
  *
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.common.IdentifiableObjectManager" )
 public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
@@ -85,23 +88,43 @@ public class DefaultIdentifiableObjectManager
      */
     private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
-    @Autowired
-    private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
+    private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
-    @Autowired
-    private Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores;
+    private final Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    protected SchemaService schemaService;
+    protected final SchemaService schemaService;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
+
+    private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
+
+    private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
+
+
+    public DefaultIdentifiableObjectManager(
+        Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
+        Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
+        SessionFactory sessionFactory, CurrentUserService currentUserService, SchemaService schemaService,
+        Environment env )
+    {
+        checkNotNull( identifiableObjectStores );
+        checkNotNull( dimensionalObjectStores );
+        checkNotNull( sessionFactory );
+        checkNotNull( currentUserService );
+        checkNotNull( schemaService );
+        checkNotNull( env );
+
+        this.identifiableObjectStores = identifiableObjectStores;
+        this.dimensionalObjectStores = dimensionalObjectStores;
+        this.sessionFactory = sessionFactory;
+        this.currentUserService = currentUserService;
+        this.schemaService = schemaService;
+        this.env = env;
+    }
 
     @PostConstruct
     public void init()
@@ -112,10 +135,6 @@ public class DefaultIdentifiableObjectManager
             .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
             .build();
     }
-
-    private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
-
-    private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
 
     //--------------------------------------------------------------------------
     // IdentifiableObjectManager implementation

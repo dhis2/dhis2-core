@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Component
 public class DataSetObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override

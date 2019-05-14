@@ -29,12 +29,14 @@ package org.hisp.dhis.program;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
+@Service( "org.hisp.dhis.program.ProgramOwnershipHistoryService" )
 @Transactional
 public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService
 {

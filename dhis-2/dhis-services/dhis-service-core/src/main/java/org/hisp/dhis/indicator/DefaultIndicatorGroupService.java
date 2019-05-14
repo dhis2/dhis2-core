@@ -28,18 +28,21 @@ package org.hisp.dhis.indicator;
  */
 
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
  */
 @Transactional(readOnly = true)
+@Service( "org.hisp.dhis.indicator.IndicatorGroupService" )
 public class DefaultIndicatorGroupService implements IndicatorGroupService
 {
     private HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
-    public void setIndicatorGroupStore(
-        HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
+    public DefaultIndicatorGroupService(
+        @Qualifier( "org.hisp.dhis.program.ProgramIndicatorGroupStore" ) HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
     {
         this.indicatorGroupStore = indicatorGroupStore;
     }

@@ -29,17 +29,25 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.user.UserCredentialsDeletionHandler" )
 public class UserCredentialsDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private UserCredentialsStore userCredentialsStore;
-    
+    private final UserCredentialsStore userCredentialsStore;
+
+    public UserCredentialsDeletionHandler( UserCredentialsStore userCredentialsStore )
+    {
+        checkNotNull( userCredentialsStore );
+        this.userCredentialsStore = userCredentialsStore;
+    }
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
