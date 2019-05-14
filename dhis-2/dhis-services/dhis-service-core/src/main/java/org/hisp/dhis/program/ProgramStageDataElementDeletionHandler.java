@@ -31,15 +31,17 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.program.ProgramStageDataElementDeletionHandler" )
 public class ProgramStageDataElementDeletionHandler
     extends DeletionHandler
 {
@@ -47,8 +49,14 @@ public class ProgramStageDataElementDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramStageDataElementService programStageDataElementService;
+    private final ProgramStageDataElementService programStageDataElementService;
+
+    public ProgramStageDataElementDeletionHandler( ProgramStageDataElementService programStageDataElementService )
+    {
+        checkNotNull( programStageDataElementService );
+
+        this.programStageDataElementService = programStageDataElementService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -77,15 +85,9 @@ public class ProgramStageDataElementDeletionHandler
     {
         if ( DataElementDomain.TRACKER == dataElement.getDomainType() )
         {
-            Iterator<ProgramStageDataElement> iterator = programStageDataElementService.getAllProgramStageDataElements().iterator();
-
-            while ( iterator.hasNext() )
-            {
-                ProgramStageDataElement element = iterator.next();
-
-                if ( element.getDataElement() != null && element.getDataElement().equals( dataElement ) )
-                {
-                    programStageDataElementService.deleteProgramStageDataElement( element );
+            for (ProgramStageDataElement element : programStageDataElementService.getAllProgramStageDataElements()) {
+                if (element.getDataElement() != null && element.getDataElement().equals(dataElement)) {
+                    programStageDataElementService.deleteProgramStageDataElement(element);
                 }
             }
         }

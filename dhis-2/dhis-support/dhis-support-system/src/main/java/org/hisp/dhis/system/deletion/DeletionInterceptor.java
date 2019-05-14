@@ -29,25 +29,30 @@ package org.hisp.dhis.system.deletion;
  */
 
 import org.aspectj.lang.JoinPoint;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "deletionInterceptor" )
 public class DeletionInterceptor
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DeletionManager deletionManager;
+    private final DeletionManager deletionManager;
 
-    public void setDeletionManager( DeletionManager deletionManager )
+    public DeletionInterceptor( DeletionManager deletionManager )
     {
+        checkNotNull( deletionManager );
         this.deletionManager = deletionManager;
     }
 
-    public void intercept( JoinPoint joinPoint )
+    public void intercept(JoinPoint joinPoint )
     {
         if ( joinPoint.getArgs() != null && joinPoint.getArgs().length > 0 )
         {

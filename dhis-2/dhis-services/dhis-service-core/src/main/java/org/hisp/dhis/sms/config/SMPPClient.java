@@ -54,6 +54,7 @@ import org.jsmpp.session.SMPPSession;
 import org.jsmpp.util.AbsoluteTimeFormatter;
 import org.jsmpp.util.DeliveryReceiptState;
 import org.jsmpp.util.TimeFormatter;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -63,9 +64,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
-
+@Component( "org.hisp.dhis.sms.config.SMPPClient" )
 public class SMPPClient
 {
     private static final Log log = LogFactory.getLog( SMPPClient.class );

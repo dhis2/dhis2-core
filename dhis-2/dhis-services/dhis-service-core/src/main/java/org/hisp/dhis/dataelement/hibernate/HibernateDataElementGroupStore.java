@@ -28,12 +28,25 @@ package org.hisp.dhis.dataelement.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
+@Repository( "org.hisp.dhis.dataelement.DataElementGroupStore" )
 public class HibernateDataElementGroupStore
     extends HibernateIdentifiableObjectStore<DataElementGroup>
     implements DataElementGroupStore
 {
+    public HibernateDataElementGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, DataElementGroup.class, currentUserService, deletedObjectService, aclService, false );
+    }
 }

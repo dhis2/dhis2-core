@@ -33,12 +33,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
 /**
  * @author Henning Håkonsen
  */
+@Component( "org.hisp.dhis.scheduling.JobInstance" )
 public class DefaultJobInstance 
     implements JobInstance
 {

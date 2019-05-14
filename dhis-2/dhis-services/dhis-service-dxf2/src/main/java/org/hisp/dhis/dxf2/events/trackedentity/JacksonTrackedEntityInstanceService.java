@@ -44,6 +44,9 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -57,6 +60,8 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService" )
+@Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 @Transactional
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService
 {

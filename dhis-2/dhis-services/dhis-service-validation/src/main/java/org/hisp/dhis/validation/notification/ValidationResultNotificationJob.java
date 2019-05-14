@@ -35,23 +35,35 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
  */
+@Component( "validationResultNotificationJob" )
 public class ValidationResultNotificationJob
     extends AbstractJob
 {
-    @Autowired
-    private ValidationNotificationService notificationService;
+    private final ValidationNotificationService notificationService;
 
-    @Autowired
-    private MessageService messageService;
+    private final MessageService messageService;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
+
+    public ValidationResultNotificationJob( ValidationNotificationService notificationService,
+        MessageService messageService, Notifier notifier )
+    {
+        checkNotNull( notificationService );
+        checkNotNull( messageService );
+        checkNotNull( notifier );
+
+        this.notificationService = notificationService;
+        this.messageService = messageService;
+        this.notifier = notifier;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

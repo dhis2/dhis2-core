@@ -32,13 +32,17 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService" )
 public class DefaultTrackedEntityDataValueAuditService
     implements TrackedEntityDataValueAuditService
 {
@@ -46,8 +50,15 @@ public class DefaultTrackedEntityDataValueAuditService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
+    private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
+
+    public DefaultTrackedEntityDataValueAuditService(
+        TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore )
+    {
+        checkNotNull( trackedEntityDataValueAuditStore );
+
+        this.trackedEntityDataValueAuditStore = trackedEntityDataValueAuditStore;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

@@ -66,9 +66,12 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -83,38 +86,60 @@ public abstract class AbstractJdbcTableManager
     public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
-    @Autowired
     protected IdentifiableObjectManager idObjectManager;
 
-    @Autowired
     protected OrganisationUnitService organisationUnitService;
 
-    @Autowired
     protected CategoryService categoryService;
 
-    @Autowired
     protected SystemSettingManager systemSettingManager;
 
-    @Autowired
     protected DataApprovalLevelService dataApprovalLevelService;
 
-    @Autowired
     protected ResourceTableService resourceTableService;
-
-    @Autowired
+    
     private AnalyticsTableHookService tableHookService;
 
-    @Autowired
     protected StatementBuilder statementBuilder;
 
-    @Autowired
     protected PartitionManager partitionManager;
 
-    @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Autowired
     protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate )
+    {
+
+        checkNotNull( idObjectManager );
+        checkNotNull( organisationUnitService );
+        checkNotNull( categoryService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( dataApprovalLevelService );
+        checkNotNull( resourceTableService );
+        checkNotNull( tableHookService );
+        checkNotNull( statementBuilder );
+        checkNotNull( partitionManager );
+        checkNotNull( databaseInfo );
+
+        this.idObjectManager = idObjectManager;
+        this.organisationUnitService = organisationUnitService;
+        this.categoryService = categoryService;
+        this.systemSettingManager = systemSettingManager;
+        this.dataApprovalLevelService = dataApprovalLevelService;
+        this.resourceTableService = resourceTableService;
+        this.tableHookService = tableHookService;
+        this.statementBuilder = statementBuilder;
+        this.partitionManager = partitionManager;
+        this.databaseInfo = databaseInfo;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

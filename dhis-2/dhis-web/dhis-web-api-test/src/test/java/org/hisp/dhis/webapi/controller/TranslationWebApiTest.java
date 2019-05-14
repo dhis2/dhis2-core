@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.translation.Translation;
@@ -63,8 +64,10 @@ public class TranslationWebApiTest
         Locale locale = Locale.FRENCH;
 
         MockHttpSession session = getSession( "ALL" );
+        CategoryCombo categoryCombo = createCategoryCombo('C');
+        identifiableObjectManager.save( categoryCombo );
 
-        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementA = createDataElement( 'A', categoryCombo );
 
         identifiableObjectManager.save( dataElementA );
 

@@ -39,6 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
@@ -48,9 +49,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Jim Grace
  */
+@Service( "org.hisp.dhis.dataapproval.DataApprovalAuditService" )
 public class DefaultDataApprovalAuditService
     implements DataApprovalAuditService
 {
@@ -58,37 +62,40 @@ public class DefaultDataApprovalAuditService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataApprovalAuditStore dataApprovalAuditStore;
+    private final DataApprovalAuditStore dataApprovalAuditStore;
 
-    public void setDataApprovalAuditStore( DataApprovalAuditStore dataApprovalAuditStore )
-    {
-        this.dataApprovalAuditStore = dataApprovalAuditStore;
-    }
-
-    private DataApprovalLevelService dataApprovalLevelService;
-
-    public void setDataApprovalLevelService( DataApprovalLevelService dataApprovalLevelService )
-    {
-        this.dataApprovalLevelService = dataApprovalLevelService;
-    }
+    private final DataApprovalLevelService dataApprovalLevelService;
 
     private CurrentUserService currentUserService;
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    private final AclService aclService;
+
+    public DefaultDataApprovalAuditService( DataApprovalAuditStore dataApprovalAuditStore,
+        DataApprovalLevelService dataApprovalLevelService, CurrentUserService currentUserService,
+        AclService aclService )
     {
+        checkNotNull( dataApprovalAuditStore );
+        checkNotNull( dataApprovalLevelService );
+        checkNotNull( currentUserService );
+        checkNotNull( aclService );
+
+        this.dataApprovalAuditStore = dataApprovalAuditStore;
+        this.dataApprovalLevelService = dataApprovalLevelService;
         this.currentUserService = currentUserService;
-    }
-
-    private AclService aclService;
-
-    public void setAclService( AclService aclService )
-    {
         this.aclService = aclService;
     }
 
     // -------------------------------------------------------------------------
     // DataValueAuditService implementation
     // -------------------------------------------------------------------------
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setCurrentUserService(CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
+    }
 
     @Override
     @Transactional

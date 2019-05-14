@@ -56,64 +56,100 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Jim Grace
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.validation.ValidationService" )
 @Transactional
 public class DefaultValidationService
     implements ValidationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationService.class );
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
 
-    @Autowired
-    private DimensionService dimensionService;
+    private final DimensionService dimensionService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    @Autowired
-    private ValidationNotificationService notificationService;
+    private final ValidationNotificationService notificationService;
 
-    @Autowired
-    private ValidationRuleService validationRuleService;
+    private final ValidationRuleService validationRuleService;
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
-    @Autowired
-    private ValidationResultService validationResultService;
+    private final ValidationResultService validationResultService;
 
     private AnalyticsService analyticsService;
+    
+    private CurrentUserService currentUserService;
 
+    public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
+        ExpressionService expressionService, DimensionService dimensionService, DataValueService dataValueService,
+        CategoryService categoryService, ConstantService constantService,
+        ValidationNotificationService notificationService, ValidationRuleService validationRuleService,
+        ApplicationContext applicationContext, ValidationResultService validationResultService,
+        AnalyticsService analyticsService, CurrentUserService currentUserService )
+    {
+        checkNotNull( periodService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( expressionService );
+        checkNotNull( dimensionService );
+        checkNotNull( dataValueService );
+        checkNotNull( categoryService );
+        checkNotNull( constantService );
+        checkNotNull( notificationService );
+        checkNotNull( validationRuleService );
+        checkNotNull( applicationContext );
+        checkNotNull( validationResultService );
+        checkNotNull( analyticsService );
+        checkNotNull( currentUserService );
+
+        this.periodService = periodService;
+        this.organisationUnitService = organisationUnitService;
+        this.expressionService = expressionService;
+        this.dimensionService = dimensionService;
+        this.dataValueService = dataValueService;
+        this.categoryService = categoryService;
+        this.constantService = constantService;
+        this.notificationService = notificationService;
+        this.validationRuleService = validationRuleService;
+        this.applicationContext = applicationContext;
+        this.validationResultService = validationResultService;
+        this.analyticsService = analyticsService;
+        this.currentUserService = currentUserService;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
     }
 
-    private CurrentUserService currentUserService;
-
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;

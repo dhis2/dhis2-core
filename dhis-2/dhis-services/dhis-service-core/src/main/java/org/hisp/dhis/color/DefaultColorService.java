@@ -29,19 +29,26 @@ package org.hisp.dhis.color;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
-
+@Service( "org.hisp.dhis.color.ColorService" )
 public class DefaultColorService
     implements ColorService
 {
-    private IdentifiableObjectStore<ColorSet> colorSetStore;
+    private final IdentifiableObjectStore<ColorSet> colorSetStore;
 
-    public void setColorSetStore( IdentifiableObjectStore<ColorSet> colorSetStore )
+    public DefaultColorService(
+        @Qualifier( "org.hisp.dhis.color.ColorSetStore" ) IdentifiableObjectStore<ColorSet> colorSetStore )
     {
+        checkNotNull( colorSetStore );
+
         this.colorSetStore = colorSetStore;
     }
 

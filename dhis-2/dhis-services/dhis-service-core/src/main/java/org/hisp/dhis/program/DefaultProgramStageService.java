@@ -29,13 +29,17 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.program.ProgramStageService" )
 public class DefaultProgramStageService
     implements ProgramStageService
 {
@@ -43,10 +47,11 @@ public class DefaultProgramStageService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageStore programStageStore;
+    private final ProgramStageStore programStageStore;
 
-    public void setProgramStageStore( ProgramStageStore programStageStore )
+    public DefaultProgramStageService( ProgramStageStore programStageStore )
     {
+        checkNotNull( programStageStore );
         this.programStageStore = programStageStore;
     }
 

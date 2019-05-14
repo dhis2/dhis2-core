@@ -40,31 +40,32 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Repository( "CompleteDataSetRegistrationStore" )
 public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericStore<CompleteDataSetRegistration>
     implements CompleteDataSetRegistrationStore
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final PeriodStore periodStore;
 
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateCompleteDataSetRegistrationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        PeriodStore periodStore )
     {
-        this.sessionFactory = sessionFactory;
-    }
+        super( sessionFactory, jdbcTemplate, CompleteDataSetRegistration.class, false );
 
-    private PeriodStore periodStore;
+        checkNotNull( periodStore );
 
-    public void setPeriodStore( PeriodStore periodStore )
-    {
         this.periodStore = periodStore;
     }
 

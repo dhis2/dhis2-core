@@ -47,7 +47,10 @@ import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -59,6 +62,8 @@ import java.util.List;
  *
  * @author aamerm
  */
+@Component( "metadataSyncPreProcessor" )
+@Scope("prototype")
 public class MetadataSyncPreProcessor
 {
     private static final Log log = LogFactory.getLog( MetadataSyncPreProcessor.class );
@@ -71,7 +76,6 @@ public class MetadataSyncPreProcessor
     private final DataValueSynchronization dataValueSync;
     private final CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync;
 
-    @Autowired
     public MetadataSyncPreProcessor(
         SystemSettingManager systemSettingManager,
         MetadataVersionService metadataVersionService,
@@ -81,6 +85,14 @@ public class MetadataSyncPreProcessor
         DataValueSynchronization dataValueSync,
         CompleteDataSetRegistrationSynchronization completeDataSetRegistrationSync )
     {
+        checkNotNull( systemSettingManager );
+        checkNotNull( metadataVersionService );
+        checkNotNull( metadataVersionDelegate );
+        checkNotNull( trackerSync );
+        checkNotNull( eventSync );
+        checkNotNull( dataValueSync );
+        checkNotNull( completeDataSetRegistrationSync );
+
         this.systemSettingManager = systemSettingManager;
         this.metadataVersionService = metadataVersionService;
         this.metadataVersionDelegate = metadataVersionDelegate;
@@ -89,7 +101,6 @@ public class MetadataSyncPreProcessor
         this.dataValueSync = dataValueSync;
         this.completeDataSetRegistrationSync = completeDataSetRegistrationSync;
     }
-
 
     public void setUp( MetadataRetryContext context )
     {
@@ -136,7 +147,7 @@ public class MetadataSyncPreProcessor
     {
         log.debug( "Fetching the list of remote versions" );
 
-        List<MetadataVersion> metadataVersionList = new ArrayList<>();
+        List<MetadataVersion> metadataVersionList;
 
         try
         {
@@ -207,7 +218,7 @@ public class MetadataSyncPreProcessor
     public MetadataVersion handleCurrentMetadataVersion( MetadataRetryContext context )
     {
         log.debug( "Getting the current version of the system" );
-        MetadataVersion metadataVersion = null;
+        MetadataVersion metadataVersion;
 
         try
         {
@@ -229,7 +240,7 @@ public class MetadataSyncPreProcessor
 
     private MetadataVersion getLatestVersion( List<MetadataVersion> metadataVersionList )
     {
-        Collection<Date> dateCollection = new ArrayList<Date>();
+        Collection<Date> dateCollection = new ArrayList<>();
 
         for ( MetadataVersion metadataVersion : metadataVersionList )
         {

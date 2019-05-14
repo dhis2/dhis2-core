@@ -30,19 +30,19 @@ package org.hisp.dhis.sms.config;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
+@Component( "org.hisp.dhis.sms.config.SMPPGateway" )
 public class SMPPGateway extends SmsGateway
 {
     private final SMPPClient smppClient;
 
-    @Autowired
     public SMPPGateway( SMPPClient smppClient )
     {
         this.smppClient = smppClient;

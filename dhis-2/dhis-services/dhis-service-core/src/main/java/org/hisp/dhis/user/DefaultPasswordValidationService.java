@@ -31,10 +31,12 @@ package org.hisp.dhis.user;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Created by zubair.
  */
+@Service( "org.hisp.dhis.user.PasswordValidationService" )
 public class DefaultPasswordValidationService
         implements PasswordValidationService
 {

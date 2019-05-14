@@ -31,17 +31,27 @@ package org.hisp.dhis.dataset.notifications;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 20.07.17.
  */
+@Service( "org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateService" )
 public class DefaultDataSetNotificationTemplateService
     implements DataSetNotificationTemplateService
 {
-    @Autowired
-    private DataSetNotificationTemplateStore store;
+    private final DataSetNotificationTemplateStore store;
+
+    public DefaultDataSetNotificationTemplateService( DataSetNotificationTemplateStore store )
+    {
+        checkNotNull( store );
+
+        this.store = store;
+    }
 
     @Override
     public DataSetNotificationTemplate get( long id )

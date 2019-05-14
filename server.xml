@@ -151,11 +151,8 @@
           name="localhost"
           appBase="webapps"
           unpackWARs="true"
-          autoDeploy="false"
-          deployOnStartup="false"
+          autoDeploy="true"
       >
-
-        <Context path="${context.path}" docBase="ROOT/" />
 
         <!-- SingleSignOn valve, share authentication between web applications
              Documentation at: /docs/config/valve.html -->

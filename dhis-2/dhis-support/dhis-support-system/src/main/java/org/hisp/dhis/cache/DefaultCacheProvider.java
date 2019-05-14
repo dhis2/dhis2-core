@@ -30,6 +30,7 @@ package org.hisp.dhis.cache;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * Provides cache builder to build instances.
@@ -37,6 +38,7 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @author Ameen Mohamed
  *
  */
+@Component( "cacheProvider" )
 public class DefaultCacheProvider implements CacheProvider
 {
     private DhisConfigurationProvider configurationProvider;

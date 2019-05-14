@@ -76,7 +76,7 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
+@Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" )
 @Transactional
 public class DefaultObjectBundleValidationService implements ObjectBundleValidationService
 {

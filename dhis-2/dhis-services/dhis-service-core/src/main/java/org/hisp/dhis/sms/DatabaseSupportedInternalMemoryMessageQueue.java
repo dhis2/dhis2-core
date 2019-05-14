@@ -34,8 +34,11 @@ import java.util.List;
 
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.sms.MessageQueue" )
 public class DatabaseSupportedInternalMemoryMessageQueue
     implements MessageQueue
 {
@@ -45,8 +48,13 @@ public class DatabaseSupportedInternalMemoryMessageQueue
     // Dependencies
     // -------------------------------------------------------------------------
     
-    @Autowired
-    private IncomingSmsService incomingSmsService;
+    private final IncomingSmsService incomingSmsService;
+
+    public DatabaseSupportedInternalMemoryMessageQueue( IncomingSmsService incomingSmsService )
+    {
+        checkNotNull( incomingSmsService );
+        this.incomingSmsService = incomingSmsService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

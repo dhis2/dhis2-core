@@ -31,13 +31,17 @@ package org.hisp.dhis.trackedentityattributevalue;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Iterator;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler" )
 public class TrackedEntityAttributeValueDeletionHandler
     extends DeletionHandler
 {
@@ -45,10 +49,11 @@ public class TrackedEntityAttributeValueDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private TrackedEntityAttributeValueService attributeValueService;
+    private final TrackedEntityAttributeValueService attributeValueService;
 
-    public void setAttributeValueService( TrackedEntityAttributeValueService attributeValueService )
+    public TrackedEntityAttributeValueDeletionHandler( TrackedEntityAttributeValueService attributeValueService )
     {
+        checkNotNull( attributeValueService );
         this.attributeValueService = attributeValueService;
     }
 
@@ -68,12 +73,8 @@ public class TrackedEntityAttributeValueDeletionHandler
         Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
             .getTrackedEntityAttributeValues( instance );
 
-        Iterator<TrackedEntityAttributeValue> iterator = attributeValues.iterator();
-
-        while ( iterator.hasNext() )
+        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
         {
-            TrackedEntityAttributeValue attributeValue = iterator.next();
-
             attributeValueService.deleteTrackedEntityAttributeValue( attributeValue );
         }
     }

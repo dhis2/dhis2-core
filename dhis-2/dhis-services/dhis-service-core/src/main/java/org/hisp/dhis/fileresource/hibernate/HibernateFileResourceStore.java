@@ -28,17 +28,31 @@ package org.hisp.dhis.fileresource.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.joda.time.DateTime;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository( "org.hisp.dhis.fileresource.FileResourceStore" )
 public class HibernateFileResourceStore
     extends HibernateIdentifiableObjectStore<FileResource>
     implements FileResourceStore
 {
+    public HibernateFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, FileResource.class, currentUserService, deletedObjectService, aclService, false );
+    }
+
     @Override
     public List<FileResource> getExpiredFileResources( DateTime expires )
     {

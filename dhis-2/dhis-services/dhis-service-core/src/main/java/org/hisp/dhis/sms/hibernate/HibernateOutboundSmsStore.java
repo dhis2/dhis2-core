@@ -28,20 +28,30 @@ package org.hisp.dhis.sms.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
 import java.util.List;
 
+@Repository( "org.hisp.dhis.sms.hibernate.OutboundSmsStore" )
 public class HibernateOutboundSmsStore
     extends HibernateGenericStore<OutboundSms>
     implements OutboundSmsStore
 {
+    public HibernateOutboundSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    {
+        super( sessionFactory, jdbcTemplate, OutboundSms.class, false );
+    }
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------

@@ -37,20 +37,26 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.program.EventSyncStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.stereotype.Repository;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
+@Repository( "org.hisp.dhis.program.EventSyncStore" )
 public class HibernateEventSyncStore implements EventSyncStore
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateEventSyncStore( SessionFactory sessionFactory )
     {
+        checkNotNull( sessionFactory );
+
         this.sessionFactory = sessionFactory;
     }
 

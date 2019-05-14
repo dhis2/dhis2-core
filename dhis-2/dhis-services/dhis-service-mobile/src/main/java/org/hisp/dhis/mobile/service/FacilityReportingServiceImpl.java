@@ -47,7 +47,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
+import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DailyPeriodType;
@@ -58,11 +60,10 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Required;
 
 import com.google.common.collect.Sets;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,6 +76,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Service( "org.hisp.dhis.mobile.api.FacilityReportingService" )
 public class FacilityReportingServiceImpl
     implements FacilityReportingService
 {
@@ -86,33 +90,43 @@ public class FacilityReportingServiceImpl
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    private org.hisp.dhis.datavalue.DataValueService dataValueService;
+    private final org.hisp.dhis.datavalue.DataValueService dataValueService;
 
-    private org.hisp.dhis.dataset.DataSetService dataSetService;
+    private final org.hisp.dhis.dataset.DataSetService dataSetService;
 
-    private CompleteDataSetRegistrationService registrationService;
+    private final CompleteDataSetRegistrationService registrationService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    private OrganisationUnitService oUnitService;
+    private final OrganisationUnitService oUnitService;
 
-    private ProgramService programService;
-
-    public ProgramService getProgramService()
+    public FacilityReportingServiceImpl( PeriodService periodService, CategoryService categoryService,
+        DataValueService dataValueService, DataSetService dataSetService,
+        CompleteDataSetRegistrationService registrationService, CurrentUserService currentUserService,
+        OrganisationUnitService oUnitService )
     {
-        return programService;
+        checkNotNull( periodService );
+        checkNotNull( categoryService );
+        checkNotNull( dataValueService );
+        checkNotNull( dataSetService );
+        checkNotNull( registrationService );
+        checkNotNull( currentUserService );
+        checkNotNull( oUnitService );
+
+        this.periodService = periodService;
+        this.categoryService = categoryService;
+        this.dataValueService = dataValueService;
+        this.dataSetService = dataSetService;
+        this.registrationService = registrationService;
+        this.currentUserService = currentUserService;
+        this.oUnitService = oUnitService;
     }
 
-    public void setProgramService( ProgramService programService )
-    {
-        this.programService = programService;
-    }
-
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // Service methods
     // -------------------------------------------------------------------------
 
@@ -241,12 +255,7 @@ public class FacilityReportingServiceImpl
         ds.setName( name );
         ds.setVersion( 1 );
 
-        Integer version = dataSet.getVersion();
-
-        if ( version != null )
-        {
-            ds.setVersion( version );
-        }
+        ds.setVersion( dataSet.getVersion() );
 
         ds.setPeriodType( dataSet.getPeriodType().getName() );
 
@@ -265,7 +274,7 @@ public class FacilityReportingServiceImpl
             Section section = new Section();
             section.setId( 0 );
             section.setName( "" );
-            section.setDataElements( getDataElements( locale, dataElements ) );
+            section.setDataElements( getDataElements( dataElements ) );
             sectionList.add( section );
         }
         else
@@ -281,7 +290,7 @@ public class FacilityReportingServiceImpl
 
                 // Remove grey fields in order to not display them on mobile
 
-                List<DataElement> dataElementList = getDataElements( locale, des );
+                List<DataElement> dataElementList = getDataElements( des );
 
                 List<DataElement> dataElementListFinal = new ArrayList<>( dataElementList );
 
@@ -292,11 +301,9 @@ public class FacilityReportingServiceImpl
                     List<Model> categoryOptionCombos = dataElementList.get( i ).getCategoryOptionCombos().getModels();
                     List<Model> newCategoryOptionCombos = new ArrayList<>();
 
-                    for ( int j = 0; j < categoryOptionCombos.size(); j++ )
-                    {
-                        if ( !isGreyField( sec, dataElementList.get( i ).getId(), categoryOptionCombos.get( j ).getId() ) )
-                        {
-                            newCategoryOptionCombos.add( categoryOptionCombos.get( j ) );
+                    for (Model categoryOptionCombo : categoryOptionCombos) {
+                        if (!isGreyField(sec, dataElementList.get(i).getId(), categoryOptionCombo.getId())) {
+                            newCategoryOptionCombos.add(categoryOptionCombo);
                         }
                     }
 
@@ -320,7 +327,7 @@ public class FacilityReportingServiceImpl
         return ds;
     }
 
-    private List<DataElement> getDataElements( Locale locale, List<org.hisp.dhis.dataelement.DataElement> dataElements )
+    private List<DataElement> getDataElements( List<org.hisp.dhis.dataelement.DataElement> dataElements )
     {
         List<DataElement> dataElementList = new ArrayList<>();
 
@@ -408,9 +415,7 @@ public class FacilityReportingServiceImpl
     }
 
     @Override
-    public DataSetValueList getDataSetValues( OrganisationUnit unit, DataSetList dataSetList )
-        throws NotAllowedException
-    {
+    public DataSetValueList getDataSetValues( OrganisationUnit unit, DataSetList dataSetList ) {
         DataSetValueList dataSetValueList = new DataSetValueList();
         List<DataSet> dataSets = dataSetList.getCurrentDataSets();
 
@@ -548,51 +553,6 @@ public class FacilityReportingServiceImpl
         return false;
     }
 
-    // -------------------------------------------------------------------------
-    // Dependency setters
-    // -------------------------------------------------------------------------
-
-    @Required
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
-    @Required
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
-
-    @Required
-    public void setDataValueService( org.hisp.dhis.datavalue.DataValueService dataValueService )
-    {
-        this.dataValueService = dataValueService;
-    }
-
-    @Required
-    public void setDataSetService( org.hisp.dhis.dataset.DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
-    }
-
-    @Required
-    public void setRegistrationService( CompleteDataSetRegistrationService registrationService )
-    {
-        this.registrationService = registrationService;
-    }
-
-    @Required
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    @Required
-    public void setoUnitService( OrganisationUnitService oUnitService )
-    {
-        this.oUnitService = oUnitService;
-    }
 
     @Override
     public Contact updateContactForMobile()
@@ -601,7 +561,7 @@ public class FacilityReportingServiceImpl
 
         List<String> listOfContacts = new ArrayList<>();
 
-        List<OrganisationUnit> listOfOrgUnit = (List<OrganisationUnit>) oUnitService.getAllOrganisationUnits();
+        List<OrganisationUnit> listOfOrgUnit = oUnitService.getAllOrganisationUnits();
 
         for ( OrganisationUnit each : listOfOrgUnit )
         {

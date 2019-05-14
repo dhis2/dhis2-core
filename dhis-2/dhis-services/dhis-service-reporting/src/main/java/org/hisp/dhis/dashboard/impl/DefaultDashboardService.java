@@ -50,13 +50,15 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 /**
@@ -64,6 +66,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
  *
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dashboard.DashboardService" )
 public class DefaultDashboardService
     implements DashboardService
 {
@@ -74,24 +77,33 @@ public class DefaultDashboardService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private HibernateIdentifiableObjectStore<Dashboard> dashboardStore;
+    private final HibernateIdentifiableObjectStore<Dashboard> dashboardStore;
 
-    public void setDashboardStore( HibernateIdentifiableObjectStore<Dashboard> dashboardStore )
+    private final IdentifiableObjectManager objectManager;
+
+    private final UserService userService;
+
+    private final DashboardItemStore dashboardItemStore;
+
+    private final AppManager appManager;
+
+    public DefaultDashboardService(
+        @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" ) HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
+        IdentifiableObjectManager objectManager, UserService userService, DashboardItemStore dashboardItemStore,
+        AppManager appManager )
     {
+        checkNotNull( dashboardStore );
+        checkNotNull( objectManager );
+        checkNotNull( userService );
+        checkNotNull( dashboardItemStore );
+        checkNotNull( appManager );
+
         this.dashboardStore = dashboardStore;
+        this.objectManager = objectManager;
+        this.userService = userService;
+        this.dashboardItemStore = dashboardItemStore;
+        this.appManager = appManager;
     }
-
-    @Autowired
-    private IdentifiableObjectManager objectManager;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private DashboardItemStore dashboardItemStore;
-
-    @Autowired
-    private AppManager appManager;
 
     // -------------------------------------------------------------------------
     // DashboardService implementation

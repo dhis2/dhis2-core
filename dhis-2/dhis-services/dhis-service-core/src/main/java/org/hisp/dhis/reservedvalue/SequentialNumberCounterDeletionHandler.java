@@ -30,7 +30,9 @@ package org.hisp.dhis.reservedvalue;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Component;
 
+@Component( "org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" )
 public class SequentialNumberCounterDeletionHandler
     extends DeletionHandler
 {

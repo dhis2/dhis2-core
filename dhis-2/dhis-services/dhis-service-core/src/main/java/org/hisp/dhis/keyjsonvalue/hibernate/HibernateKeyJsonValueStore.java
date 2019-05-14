@@ -28,10 +28,16 @@ package org.hisp.dhis.keyjsonvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
@@ -40,10 +46,18 @@ import java.util.List;
 /**
  * @author Stian Sandvold
  */
+@Repository( "org.hisp.dhis.keyjsonvalue.KeyJsonValueStore" )
 public class HibernateKeyJsonValueStore
     extends HibernateIdentifiableObjectStore<KeyJsonValue>
     implements KeyJsonValueStore
 {
+    public HibernateKeyJsonValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, KeyJsonValue.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
+
     @Override
     public List<String> getNamespaces()
     {

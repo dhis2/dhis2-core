@@ -1396,7 +1396,7 @@
   <properties>
     <rootDir></rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spring.version>4.3.22.RELEASE</spring.version>
+    <spring.version>4.3.23.RELEASE</spring.version>
     <spring-security.version>4.2.12.RELEASE</spring-security.version>
     <spring-security-oauth2.version>2.3.5.RELEASE</spring-security-oauth2.version>
     <spring-session-data-redis.version>1.3.5.RELEASE</spring-session-data-redis.version>

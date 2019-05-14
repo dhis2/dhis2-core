@@ -33,12 +33,14 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.springframework.stereotype.Component;
 
 import java.util.function.Consumer;
 
 /**
  * @Author Zubair Asghar.
  */
+@Component
 public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHook
 {
     private final ImmutableMap<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>

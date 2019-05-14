@@ -35,7 +35,9 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook" )
 public class RelationshipObjectBundleHook
     extends AbstractObjectBundleHook
 {

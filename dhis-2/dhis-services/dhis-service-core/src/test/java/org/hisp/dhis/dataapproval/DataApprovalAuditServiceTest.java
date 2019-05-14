@@ -71,6 +71,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Jim Grace
  */
+// FIXME refactor this test to use mocks
 public class DataApprovalAuditServiceTest
     extends DhisTest
 {
@@ -384,7 +385,7 @@ public class DataApprovalAuditServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testDeleteDataApprovalAudits() throws Exception
+    public void testDeleteDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
@@ -401,7 +402,7 @@ public class DataApprovalAuditServiceTest
     }
 
     @Test
-    public void TestGetDataApprovalAudits() throws Exception
+    public void TestGetDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;

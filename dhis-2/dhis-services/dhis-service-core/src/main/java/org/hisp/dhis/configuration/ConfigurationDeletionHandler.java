@@ -38,10 +38,14 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.configuration.ConfigurationDeletionHandler" )
 public class ConfigurationDeletionHandler
     extends DeletionHandler
 {
@@ -49,9 +53,15 @@ public class ConfigurationDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ConfigurationService configService;
-    
+    private final ConfigurationService configService;
+
+    public ConfigurationDeletionHandler( ConfigurationService configService )
+    {
+        checkNotNull( configService );
+
+        this.configService = configService;
+    }
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------

@@ -28,9 +28,12 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Component;
+
 /**
  * @author Henning Håkonsen
  */
+@Component( "mockJob" )
 public class MockJob
     extends AbstractJob
 {

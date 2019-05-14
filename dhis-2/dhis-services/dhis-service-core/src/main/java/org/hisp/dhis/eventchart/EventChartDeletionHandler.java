@@ -29,7 +29,6 @@ package org.hisp.dhis.eventchart;
  */
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
@@ -40,12 +39,14 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.eventchart.EventChartDeletionHandler" )
 public class EventChartDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<EventChart>
 {
@@ -53,8 +54,13 @@ public class EventChartDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private EventChartService eventChartService;
+    private final EventChartService eventChartService;
+
+    public EventChartDeletionHandler( EventChartService eventChartService )
+    {
+        checkNotNull( eventChartService );
+        this.eventChartService = eventChartService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -85,16 +91,10 @@ public class EventChartDeletionHandler
         
         for ( EventChart chart : eventCharts )
         {
-            Iterator<TrackedEntityDataElementDimension> dimensions = chart.getDataElementDimensions().iterator();
-            
-            while ( dimensions.hasNext() )
-            {
-                if ( dimensions.next().getDataElement().equals( dataElement ) )
-                {
-                    dimensions.remove();
-                }
-            }
-            
+            chart.getDataElementDimensions()
+                .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
+                    .equals( dataElement ) );
+
             eventChartService.update( chart );
         }
     }

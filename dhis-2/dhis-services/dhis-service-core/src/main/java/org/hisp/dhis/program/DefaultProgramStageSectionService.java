@@ -28,11 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Service( "org.hisp.dhis.program.ProgramStageSectionService" )
 public class DefaultProgramStageSectionService
     implements ProgramStageSectionService
 {
@@ -40,10 +44,12 @@ public class DefaultProgramStageSectionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageSectionStore programStageSectionStore;
+    private final ProgramStageSectionStore programStageSectionStore;
 
-    public void setProgramStageSectionStore( ProgramStageSectionStore programStageSectionStore )
+    public DefaultProgramStageSectionService( ProgramStageSectionStore programStageSectionStore )
     {
+        checkNotNull( programStageSectionStore );
+
         this.programStageSectionStore = programStageSectionStore;
     }
 

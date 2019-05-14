@@ -44,7 +44,7 @@ import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceExcep
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,6 +53,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author vanyas
  */
+@Service( "org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService" )
 public class DefaultMetadataSyncService
     implements MetadataSyncService
 {
@@ -66,7 +67,6 @@ public class DefaultMetadataSyncService
 
     private MetadataSyncImportHandler metadataSyncImportHandler;
 
-    @Autowired
     public DefaultMetadataSyncService( MetadataVersionDelegate metadataVersionDelegate,
         MetadataVersionService metadataVersionService, MetadataSyncDelegate metadataSyncDelegate,
         MetadataSyncImportHandler metadataSyncImportHandler )
@@ -183,11 +183,7 @@ public class DefaultMetadataSyncService
         {
             metadataVersionSnapshot = metadataVersionDelegate.downloadMetadataVersionSnapshot( version );
         }
-        catch ( MetadataVersionServiceException e )
-        {
-            throw new MetadataSyncServiceException( e.getMessage(), e );
-        }
-        catch( RemoteServerUnavailableException e)
+        catch ( MetadataVersionServiceException | RemoteServerUnavailableException e )
         {
             throw new MetadataSyncServiceException( e.getMessage(), e );
         }

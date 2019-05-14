@@ -50,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -60,9 +61,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Service( "org.hisp.dhis.program.message.ProgramMessageService" )
 public class DefaultProgramMessageService
     implements ProgramMessageService
 {
@@ -72,35 +76,54 @@ public class DefaultProgramMessageService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+    protected final IdentifiableObjectManager manager;
 
-    @Autowired
-    private ProgramMessageStore programMessageStore;
+    private final ProgramMessageStore programMessageStore;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
 
-    @Autowired
-    private OutboundMessageBatchService messageBatchService;
+    private final OutboundMessageBatchService messageBatchService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private List<DeliveryChannelStrategy> strategies;
+    private final List<DeliveryChannelStrategy> strategies;
 
-    @Autowired
-    private List<MessageBatchCreatorService> batchCreators;
+    private final List<MessageBatchCreatorService> batchCreators;
 
-    @Autowired
-    private AclService aclService;
+    private final AclService aclService;
+
+    public DefaultProgramMessageService( IdentifiableObjectManager manager, ProgramMessageStore programMessageStore,
+        OrganisationUnitService organisationUnitService, TrackedEntityInstanceService trackedEntityInstanceService,
+        ProgramService programService, OutboundMessageBatchService messageBatchService,
+        CurrentUserService currentUserService, List<DeliveryChannelStrategy> strategies,
+        List<MessageBatchCreatorService> batchCreators, AclService aclService )
+    {
+        checkNotNull( manager );
+        checkNotNull( programMessageStore );
+        checkNotNull( organisationUnitService );
+        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( programService );
+        checkNotNull( messageBatchService );
+        checkNotNull( currentUserService );
+        checkNotNull( strategies );
+        checkNotNull( batchCreators );
+        checkNotNull( aclService );
+
+        this.manager = manager;
+        this.programMessageStore = programMessageStore;
+        this.organisationUnitService = organisationUnitService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.programService = programService;
+        this.messageBatchService = messageBatchService;
+        this.currentUserService = currentUserService;
+        this.strategies = strategies;
+        this.batchCreators = batchCreators;
+        this.aclService = aclService;
+    }
 
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
