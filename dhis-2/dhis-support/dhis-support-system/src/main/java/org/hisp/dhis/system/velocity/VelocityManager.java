@@ -32,9 +32,11 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
+import org.springframework.stereotype.Component;
 
 import java.io.StringWriter;
 
+@Component( "org.hisp.dhis.system.velocity.VelocityManager" )
 public class VelocityManager
 {
     public static final String CONTEXT_KEY = "object";

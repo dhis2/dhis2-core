@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -49,12 +50,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  *
  * NB! This class is mostly code from pre 2.28's DefaultAppManager. This is to support apps
  * installed before 2.28. post 2.28, all installations using DHIS2 will use JCloudsAppStorageService.
  */
+@Service( "org.hisp.dhis.appmanager.LocalAppStorageService" )
 public class LocalAppStorageService
     implements AppStorageService
 {
@@ -66,8 +70,14 @@ public class LocalAppStorageService
 
     private Map<String, App> reservedNamespaces = new HashMap<>();
 
-    @Autowired
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
+
+    public LocalAppStorageService( LocationManager locationManager )
+    {
+        checkNotNull( locationManager );
+
+        this.locationManager = locationManager;
+    }
 
     @Override
     public Map<String, App> discoverInstalledApps()

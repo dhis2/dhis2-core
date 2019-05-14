@@ -35,9 +35,10 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -45,14 +46,23 @@ import java.util.Calendar;
 public class ProgramNotificationJob
     extends AbstractJob
 {
-    @Autowired
-    private ProgramNotificationService programNotificationService;
+    private final ProgramNotificationService programNotificationService;
 
-    @Autowired
-    private MessageService messageService;
+    private final MessageService messageService;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
+
+    public ProgramNotificationJob( ProgramNotificationService programNotificationService, MessageService messageService,
+        Notifier notifier )
+    {
+        checkNotNull( programNotificationService );
+        checkNotNull( messageService );
+        checkNotNull( notifier );
+
+        this.programNotificationService = programNotificationService;
+        this.messageService = messageService;
+        this.notifier = notifier;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

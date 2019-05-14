@@ -41,11 +41,14 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Implementation of QueryEngine that uses Hibernate Criteria and
@@ -53,6 +56,7 @@ import java.util.Map;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class CriteriaQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
@@ -68,6 +72,10 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     public CriteriaQueryEngine( CurrentUserService currentUserService, QueryPlanner queryPlanner,
         List<InternalHibernateGenericStore<T>> hibernateGenericStores )
     {
+        checkNotNull( currentUserService );
+        checkNotNull( queryPlanner );
+        checkNotNull( hibernateGenericStores );
+
         this.currentUserService = currentUserService;
         this.queryPlanner = queryPlanner;
         this.hibernateGenericStores = hibernateGenericStores;

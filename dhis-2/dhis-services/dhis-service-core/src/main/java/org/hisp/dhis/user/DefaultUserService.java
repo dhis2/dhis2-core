@@ -45,6 +45,8 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.UserAuthorityGroupCanIssueFilter;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
@@ -55,9 +57,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Chau Thu Tran
  */
+@Lazy
+@Service( "org.hisp.dhis.user.UserService" )
 public class DefaultUserService
     implements UserService
 {
@@ -69,52 +75,38 @@ public class DefaultUserService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private UserStore userStore;
+    private final UserStore userStore;
 
-    public void setUserStore( UserStore userStore )
+    private final UserGroupService userGroupService;
+
+    private final UserCredentialsStore userCredentialsStore;
+
+    private final UserAuthorityGroupStore userAuthorityGroupStore;
+
+    private final CurrentUserService currentUserService;
+
+    private final SystemSettingManager systemSettingManager;
+
+    private final PasswordManager passwordManager;
+
+    public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
+        UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
+        CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
+        @Lazy PasswordManager passwordManager )
     {
+        checkNotNull( userStore );
+        checkNotNull( userGroupService );
+        checkNotNull( userCredentialsStore );
+        checkNotNull( userAuthorityGroupStore );
+        checkNotNull( systemSettingManager );
+        checkNotNull( passwordManager );
+        
         this.userStore = userStore;
-    }
-
-    private UserGroupService userGroupService;
-
-    public void setUserGroupService( UserGroupService userGroupService )
-    {
         this.userGroupService = userGroupService;
-    }
-
-    private UserCredentialsStore userCredentialsStore;
-
-    public void setUserCredentialsStore( UserCredentialsStore userCredentialsStore )
-    {
         this.userCredentialsStore = userCredentialsStore;
-    }
-
-    private UserAuthorityGroupStore userAuthorityGroupStore;
-
-    public void setUserAuthorityGroupStore( UserAuthorityGroupStore userAuthorityGroupStore )
-    {
         this.userAuthorityGroupStore = userAuthorityGroupStore;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
         this.systemSettingManager = systemSettingManager;
-    }
-
-    private PasswordManager passwordManager;
-
-    public void setPasswordManager( PasswordManager passwordManager )
-    {
         this.passwordManager = passwordManager;
     }
 

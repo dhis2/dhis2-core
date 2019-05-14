@@ -30,10 +30,16 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryStore;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -41,10 +47,17 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.category.CategoryStore" )
 public class HibernateCategoryStore
     extends HibernateIdentifiableObjectStore<Category>
     implements CategoryStore
 {
+    public HibernateCategoryStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, Category.class, currentUserService, deletedObjectService, aclService, true );
+    }
+
     @Override
     public List<Category> getCategoriesByDimensionType( DataDimensionType dataDimensionType )
     {

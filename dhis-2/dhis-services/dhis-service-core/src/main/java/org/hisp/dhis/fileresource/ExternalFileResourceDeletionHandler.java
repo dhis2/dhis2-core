@@ -30,17 +30,22 @@ package org.hisp.dhis.fileresource;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Kristian Wærstad <kristian@dhis2.org>
  */
+@Component( "org.hisp.dhis.fileresource.ExternalFileResourceDeletionHandler" )
 public class ExternalFileResourceDeletionHandler
     extends DeletionHandler
 {
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public ExternalFileResourceDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;
     }
 

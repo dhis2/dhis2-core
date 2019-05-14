@@ -44,21 +44,26 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.CompletenessMethod;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
 import org.jfree.util.Log;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -67,6 +72,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+@Component( "org.hisp.dhis.sms.listener.DataValueSMSListener" )
 @Transactional
 public class DataValueSMSListener
     extends BaseSMSListener
@@ -77,27 +83,36 @@ public class DataValueSMSListener
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private CompleteDataSetRegistrationService registrationService;
+    private final CompleteDataSetRegistrationService registrationService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private CategoryService dataElementCategoryService;
+    private final CategoryService dataElementCategoryService;
 
-    @Autowired
-    private SMSCommandService smsCommandService;
+    private final SMSCommandService smsCommandService;
 
-    @Autowired
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
-    @Autowired
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
+    public DataValueSMSListener( ProgramInstanceService programInstanceService,
+        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender,
+        CompleteDataSetRegistrationService registrationService, DataValueService dataValueService,
+        CategoryService dataElementCategoryService1, SMSCommandService smsCommandService, DataSetService dataSetService,
+        DataElementService dataElementService )
+    {
+        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+            currentUserService, incomingSmsService, smsSender );
+
+        this.registrationService = registrationService;
+        this.dataValueService = dataValueService;
+        this.dataElementCategoryService = dataElementCategoryService1;
+        this.smsCommandService = smsCommandService;
+        this.dataSetService = dataSetService;
+        this.dataElementService = dataElementService;
+    }
 
     @Override
     protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
@@ -130,8 +145,7 @@ public class DataValueSMSListener
         {
             if ( parsedMessage.containsKey( code.getCode() ) )
             {
-                valueStored = storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, date,
-                    smsCommand.getDataset() );
+                valueStored = storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, date );
             }
         }
 
@@ -158,7 +172,7 @@ public class DataValueSMSListener
             }
         }
 
-        markCompleteDataSet( sms, orgUnit, parsedMessage, smsCommand, date );
+        markCompleteDataSet( sms, orgUnit, smsCommand, date );
         sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit );
 
         update( sms, SmsMessageStatus.PROCESSED, true );
@@ -172,7 +186,7 @@ public class DataValueSMSListener
 
     private Period getPeriod( SMSCommand command, Date date )
     {
-        Period period = null;
+        Period period;
         period = command.getDataset().getPeriodType().createPeriod();
         PeriodType periodType = period.getPeriodType();
 
@@ -198,7 +212,7 @@ public class DataValueSMSListener
     // -------------------------------------------------------------------------
 
     private boolean storeDataValue( IncomingSms sms, OrganisationUnit orgunit, Map<String, String> parsedMessage,
-        SMSCode code, SMSCommand command, Date date, DataSet dataSet )
+        SMSCode code, SMSCommand command, Date date )
     {
         String sender = sms.getOriginator();
         String storedBy = SmsUtils.getUser( sender, command, Collections.singletonList( getUser( sms ) ) )
@@ -287,7 +301,7 @@ public class DataValueSMSListener
             {
                 String formula = code.getFormula();
 
-                String targetDataElementId = formula.substring( 1, formula.length() );
+                String targetDataElementId = formula.substring( 1 );
                 String operation = String.valueOf( formula.charAt( 0 ) );
 
                 DataElement targetDataElement = dataElementService
@@ -353,8 +367,7 @@ public class DataValueSMSListener
         return true;
     }
 
-    private void markCompleteDataSet( IncomingSms sms, OrganisationUnit orgunit, Map<String, String> parsedMessage,
-        SMSCommand command, Date date )
+    private void markCompleteDataSet( IncomingSms sms, OrganisationUnit orgunit, SMSCommand command, Date date )
     {
         String sender = sms.getOriginator();
 
@@ -416,7 +429,7 @@ public class DataValueSMSListener
         String reportBack = "Thank you! Values entered: ";
         String notInReport = "Missing values for: ";
 
-        Period period = null;
+        Period period;
 
         Map<String, DataValue> codesWithDataValues = new TreeMap<>();
         List<String> codesWithoutDataValues = new ArrayList<>();

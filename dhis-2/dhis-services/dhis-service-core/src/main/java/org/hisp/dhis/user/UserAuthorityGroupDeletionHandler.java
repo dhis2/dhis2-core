@@ -29,10 +29,14 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.user.UserAuthorityGroupDeletionHandler" )
 public class UserAuthorityGroupDeletionHandler
     extends DeletionHandler
 {
@@ -40,14 +44,16 @@ public class UserAuthorityGroupDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private UserService userService;
+    private final UserService userService;
 
-    public void setUserService( UserService userService )
+    public UserAuthorityGroupDeletionHandler( UserService userService )
     {
+        checkNotNull( userService );
+
         this.userService = userService;
     }
 
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
 

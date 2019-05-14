@@ -30,15 +30,15 @@ package org.hisp.dhis.category;
  *
  */
 
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.category.CategoryOptionGroupDeletionHandler" )
 public class CategoryOptionGroupDeletionHandler
     extends DeletionHandler
 {
@@ -46,8 +46,14 @@ public class CategoryOptionGroupDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryOptionGroupDeletionHandler( CategoryService categoryService )
+    {
+        checkNotNull( categoryService );
+
+        this.categoryService = categoryService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation

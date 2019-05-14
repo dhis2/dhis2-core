@@ -36,11 +36,12 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.MessageBatchCreatorService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.springframework.stereotype.Service;
 
 /**
 * @author Zubair <rajazubair.asghar@gmail.com>
 */
-
+@Service( "org.hisp.dhis.email.EmailMessageBatchCreator" )
 public class EmailMessageBatchCreatorService
     implements MessageBatchCreatorService
 {
@@ -49,7 +50,7 @@ public class EmailMessageBatchCreatorService
     {
         List<OutboundMessage> messages = programMessages.parallelStream()
             .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
-            .map( pm -> createEmailMessage( pm ) )
+            .map(this::createEmailMessage)
             .collect( Collectors.toList() );
         
         return new OutboundMessageBatch( messages, DeliveryChannel.EMAIL );

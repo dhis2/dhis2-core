@@ -31,15 +31,25 @@ package org.hisp.dhis.dataapproval;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.dataapproval.DataApprovalWorkflowDeletionHandler" )
 public class DataApprovalWorkflowDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
+
+    public DataApprovalWorkflowDeletionHandler( IdentifiableObjectManager idObjectManager )
+    {
+        checkNotNull( idObjectManager );
+
+        this.idObjectManager = idObjectManager;
+    }
 
     @Override
     public String getClassName()

@@ -28,14 +28,18 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Tri
  * @version $Id$
  */
+@Service( "org.hisp.dhis.dataset.SectionService" )
 public class DefaultSectionService
     implements SectionService
 {
@@ -45,15 +49,14 @@ public class DefaultSectionService
 
     private SectionStore sectionStore;
 
-    public void setSectionStore( SectionStore sectionStore )
-    {
-        this.sectionStore = sectionStore;
-    }
-
     private DataSetService dataSetService;
 
-    public void setDataSetService( DataSetService dataSetService )
-    {
+    public DefaultSectionService(SectionStore sectionStore, DataSetService dataSetService) {
+
+        checkNotNull( sectionStore );
+        checkNotNull( dataSetService );
+
+        this.sectionStore = sectionStore;
         this.dataSetService = dataSetService;
     }
 

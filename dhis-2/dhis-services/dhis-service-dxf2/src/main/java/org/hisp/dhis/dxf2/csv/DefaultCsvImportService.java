@@ -73,12 +73,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.csvreader.CsvReader;
 import com.google.api.client.util.Lists;
+import org.springframework.stereotype.Service;
 
 /**
  * TODO Unit testing
  *
  * @author Lars Helge Overland
  */
+@Service ( "org.hisp.dhis.dxf2.csv.CsvImportService" )
 public class DefaultCsvImportService
     implements CsvImportService
 {

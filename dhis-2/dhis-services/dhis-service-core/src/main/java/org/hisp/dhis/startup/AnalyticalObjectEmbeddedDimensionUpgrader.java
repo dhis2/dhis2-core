@@ -59,6 +59,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.util.Assert;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
 * @author Lars Helge Overland
 */
@@ -67,11 +69,18 @@ public class AnalyticalObjectEmbeddedDimensionUpgrader
 {
     private static final Log log = LogFactory.getLog( AnalyticalObjectEmbeddedDimensionUpgrader.class );
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
+
+    public AnalyticalObjectEmbeddedDimensionUpgrader( JdbcTemplate jdbcTemplate,
+        IdentifiableObjectManager idObjectManager )
+    {
+        checkNotNull( jdbcTemplate );
+        checkNotNull( idObjectManager );
+        this.jdbcTemplate = jdbcTemplate;
+        this.idObjectManager = idObjectManager;
+    }
 
     @Override
     public void executeInTransaction()

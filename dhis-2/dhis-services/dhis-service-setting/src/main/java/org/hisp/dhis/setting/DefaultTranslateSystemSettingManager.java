@@ -29,15 +29,18 @@ package org.hisp.dhis.setting;
  */
 
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Service;
 
 import java.util.Hashtable;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 /**
  * @author James Chang
  */
+@Service( "org.hisp.dhis.setting.TranslateSystemSettingManager" )
 public class DefaultTranslateSystemSettingManager
     implements TranslateSystemSettingManager
 {
@@ -47,8 +50,10 @@ public class DefaultTranslateSystemSettingManager
 
     private SystemSettingManager systemSettingManager;
 
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    public DefaultTranslateSystemSettingManager( SystemSettingManager systemSettingManager )
     {
+        checkNotNull( systemSettingManager );
+
         this.systemSettingManager = systemSettingManager;
     }
 

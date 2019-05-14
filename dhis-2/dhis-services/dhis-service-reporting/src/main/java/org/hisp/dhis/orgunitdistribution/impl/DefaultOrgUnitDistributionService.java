@@ -50,13 +50,17 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.plot.PlotOrientation;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.orgunitdistribution.OrgUnitDistributionService" )
 public class DefaultOrgUnitDistributionService
     implements OrgUnitDistributionService
 {
@@ -68,17 +72,16 @@ public class DefaultOrgUnitDistributionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
+    
+    private final ChartService chartService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
+    public DefaultOrgUnitDistributionService( OrganisationUnitService organisationUnitService,
+        ChartService chartService )
     {
+        checkNotNull( organisationUnitService );
+        checkNotNull( chartService );
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private ChartService chartService;
-
-    public void setChartService( ChartService chartService )
-    {
         this.chartService = chartService;
     }
 

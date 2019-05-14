@@ -50,10 +50,15 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair on 29.03.17.
  */
+@Component( "credentialsExpiryAlertJob" )
 public class CredentialsExpiryAlertJob
     extends AbstractJob
 {
@@ -69,15 +74,23 @@ public class CredentialsExpiryAlertJob
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private UserService userService;
 
-    @Autowired
-    @Resource ( name = "emailMessageSender" )
     private MessageSender emailMessageSender;
 
-    @Autowired
     private SystemSettingManager systemSettingManager;
+
+    public CredentialsExpiryAlertJob( UserService userService,
+        @Qualifier( "emailMessageSender" ) MessageSender emailMessageSender, SystemSettingManager systemSettingManager )
+    {
+        checkNotNull( userService );
+        checkNotNull( emailMessageSender );
+        checkNotNull( systemSettingManager );
+
+        this.userService = userService;
+        this.emailMessageSender = emailMessageSender;
+        this.systemSettingManager = systemSettingManager;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

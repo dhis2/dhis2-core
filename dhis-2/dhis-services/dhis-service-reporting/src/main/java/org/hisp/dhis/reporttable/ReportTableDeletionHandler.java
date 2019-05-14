@@ -31,12 +31,16 @@ package org.hisp.dhis.reporttable;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.legend.LegendSet;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.reporttable.ReportTableDeletionHandler" )
 public class ReportTableDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<ReportTable>
 {
@@ -44,10 +48,11 @@ public class ReportTableDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ReportTableService reportTableService;
+    private final ReportTableService reportTableService;
 
-    public void setReportTableService( ReportTableService reportTableService )
+    public ReportTableDeletionHandler( ReportTableService reportTableService )
     {
+        checkNotNull( reportTableService );
         this.reportTableService = reportTableService;
     }
 

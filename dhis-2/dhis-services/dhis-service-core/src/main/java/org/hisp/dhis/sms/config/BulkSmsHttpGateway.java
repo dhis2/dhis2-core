@@ -35,6 +35,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 
 import java.util.Base64;
 import java.util.List;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Component( "org.hisp.dhis.sms.config.BulkSmsGateway" )
 public class BulkSmsHttpGateway
     extends SmsGateway
 {

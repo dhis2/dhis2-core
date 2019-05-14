@@ -62,6 +62,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 import org.xml.sax.SAXParseException;
@@ -95,6 +96,7 @@ import com.vividsolutions.jts.geom.Geometry;
  *
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.dxf2.gml.GmlImportService" )
 public class DefaultGmlImportService
     implements GmlImportService
 {
@@ -118,11 +120,6 @@ public class DefaultGmlImportService
 
     private MergeService mergeService;
 
-    // -------------------------------------------------------------------------
-    // GmlImportService implementation
-    // -------------------------------------------------------------------------
-
-    @Autowired
     public DefaultGmlImportService( RenderService renderService, IdentifiableObjectManager idObjectManager,
         SchemaService schemaService, MetadataImportService importService, Notifier notifier, MergeService mergeService )
     {
@@ -140,6 +137,10 @@ public class DefaultGmlImportService
         this.notifier = notifier;
         this.mergeService = mergeService;
     }
+
+    // -------------------------------------------------------------------------
+    // GmlImportService implementation
+    // -------------------------------------------------------------------------
 
     @Transactional
     @Override

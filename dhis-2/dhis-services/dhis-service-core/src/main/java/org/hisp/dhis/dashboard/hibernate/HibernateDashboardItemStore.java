@@ -28,25 +28,39 @@ package org.hisp.dhis.dashboard.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dashboard.DashboardItemStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.dashboard.DashboardItemStore" )
 public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStore<DashboardItem>
     implements DashboardItemStore
 {
+    public HibernateDashboardItemStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, DashboardItem.class, currentUserService, deletedObjectService, aclService, false );
+    }
+
     @Override
     public int countMapDashboardItems( Map map )
     {

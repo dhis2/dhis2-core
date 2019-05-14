@@ -36,10 +36,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Component( "org.hisp.dhis.program.message.EmailDeliveryChannelStrategy" )
 public class EmailDeliveryChannelStrategy
     extends DeliveryChannelStrategy
 {

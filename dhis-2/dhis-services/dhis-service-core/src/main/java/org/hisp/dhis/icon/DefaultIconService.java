@@ -30,6 +30,7 @@ package org.hisp.dhis.icon;
 
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
 /**
  * @author Kristian Wærstad
  */
+@Service( "org.hisp.dhis.icon.IconService" )
 public class DefaultIconService
     implements IconService
 {

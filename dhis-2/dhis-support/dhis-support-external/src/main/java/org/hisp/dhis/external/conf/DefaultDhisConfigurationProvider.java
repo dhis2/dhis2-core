@@ -41,6 +41,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
 import javax.crypto.Cipher;
 
 import org.apache.commons.lang3.StringUtils;
@@ -50,16 +51,22 @@ import org.apache.commons.text.StrSubstitutor;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Profile("!test")
+@Component( "dhisConfigurationProvider" )
 public class DefaultDhisConfigurationProvider
     implements DhisConfigurationProvider
 {
@@ -75,10 +82,11 @@ public class DefaultDhisConfigurationProvider
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
 
-    public void setLocationManager( LocationManager locationManager )
+    public DefaultDhisConfigurationProvider( LocationManager locationManager )
     {
+        checkNotNull( locationManager );
         this.locationManager = locationManager;
     }
 
@@ -92,6 +100,7 @@ public class DefaultDhisConfigurationProvider
      */
     private Optional<GoogleCredential> googleCredential = Optional.empty();
 
+    @PostConstruct
     public void init()
     {
         // ---------------------------------------------------------------------

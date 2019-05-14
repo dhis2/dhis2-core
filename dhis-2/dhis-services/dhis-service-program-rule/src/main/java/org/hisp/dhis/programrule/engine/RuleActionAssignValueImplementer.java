@@ -36,15 +36,18 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @Author Zubair Asghar.
  */
-
+@Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
 public class RuleActionAssignValueImplementer implements RuleActionImplementer
 {
     private static final Log log = LogFactory.getLog( RuleActionAssignValueImplementer.class );
@@ -53,8 +56,13 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
     private static final Pattern PATTERN = Pattern.compile( REGEX, Pattern.CASE_INSENSITIVE );
 
-    @Autowired
     private RuleVariableInMemoryMap variableMap;
+
+    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap )
+    {
+        checkNotNull( variableMap );
+        this.variableMap = variableMap;
+    }
 
     @Override
     public boolean accept( RuleAction ruleAction )

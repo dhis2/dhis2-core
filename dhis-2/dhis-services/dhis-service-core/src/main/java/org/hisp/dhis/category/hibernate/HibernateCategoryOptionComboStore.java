@@ -31,6 +31,7 @@ package org.hisp.dhis.category.hibernate;
  */
 
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -38,7 +39,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Set;
@@ -46,12 +51,21 @@ import java.util.Set;
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.category.CategoryOptionComboStore" )
 public class HibernateCategoryOptionComboStore
     extends HibernateIdentifiableObjectStore<CategoryOptionCombo>
     implements CategoryOptionComboStore
 {
-    @Autowired
     private DbmsManager dbmsManager;
+
+    public HibernateCategoryOptionComboStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, DbmsManager dbmsManager )
+    {
+        super( sessionFactory, jdbcTemplate, CategoryOptionCombo.class, currentUserService, deletedObjectService,
+            aclService, true );
+        this.dbmsManager = dbmsManager;
+    }
 
     @Override
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )

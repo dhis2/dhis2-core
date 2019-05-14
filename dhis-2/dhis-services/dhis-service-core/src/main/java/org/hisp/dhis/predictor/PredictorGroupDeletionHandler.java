@@ -31,15 +31,25 @@ package org.hisp.dhis.predictor;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Jim Grace
  */
+@Component( "org.hisp.dhis.predictor.PredictorGroupDeletionHandler" )
 public class PredictorGroupDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
+
+    public PredictorGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
+    {
+        checkNotNull( idObjectManager );
+
+        this.idObjectManager = idObjectManager;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation

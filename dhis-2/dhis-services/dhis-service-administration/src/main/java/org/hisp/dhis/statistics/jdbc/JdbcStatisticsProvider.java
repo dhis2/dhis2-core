@@ -30,15 +30,20 @@ package org.hisp.dhis.statistics.jdbc;
 
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.statistics.StatisticsProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Service( "org.hisp.dhis.statistics.StatisticsProvider" )
 public class JdbcStatisticsProvider
     implements StatisticsProvider
 {
@@ -49,10 +54,11 @@ public class JdbcStatisticsProvider
     /**
      * Read only JDBC template.
      */
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public JdbcStatisticsProvider( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;
     }
 

@@ -28,7 +28,6 @@ package org.hisp.dhis.dxf2.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -44,11 +43,13 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Component
 public class CategoryUtils
 {
 
@@ -96,41 +97,34 @@ public class CategoryUtils
             }
         }
 
-        Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
-
-        while ( iterator.hasNext() )
+        for ( CategoryOptionCombo optionCombo : persistedOptionCombos )
         {
-            CategoryOptionCombo optionCombo = iterator.next();
-
             if ( !generatedOptionCombos.contains( optionCombo ) )
             {
-                try
-                {
-                    categoryService.deleteCategoryOptionCombo( optionCombo );                    
+                try {
+                    categoryService.deleteCategoryOptionCombo( optionCombo );
                     categoryCombo.getOptionCombos().remove( optionCombo );
-                    
-                    log.info( "Deleted obsolete category option combo: " + optionCombo.getName() + " for category combo: " + categoryCombo.getName() );
-                    
-                    ImportSummary importSummary = new ImportSummary();                
-                    importSummary.setDescription( "Deleted obsolete category option combo: (" + optionCombo.getName() + ") for category combo: " + categoryCombo.getName() );
+
+                    log.info("Deleted obsolete category option combo: " + optionCombo.getName() + " for category combo: " + categoryCombo.getName());
+
+                    ImportSummary importSummary = new ImportSummary();
+                    importSummary.setDescription( "Deleted obsolete category option combo: (" + optionCombo.getName()
+                        + ") for category combo: " + categoryCombo.getName() );
                     importSummary.incrementDeleted();
-                    
+
                     importSummaries.addImportSummary( importSummary );
-                    
+
                     modified = true;
-                }
-                catch ( Exception ex )
-                {
+                } catch (Exception ex) {
                     log.warn( "Could not delete category option combo: " + optionCombo );
-                    
+
                     ImportSummary importSummary = new ImportSummary();
                     importSummary.setStatus( ImportStatus.WARNING );
-                    importSummary.setDescription( "Could not delete category option combo: (" + optionCombo.getName() + ")");
+                    importSummary
+                        .setDescription( "Could not delete category option combo: (" + optionCombo.getName() + ")" );
                     importSummary.incrementIgnored();
-                    
+
                     importSummaries.addImportSummary( importSummary );
-                    
-                    continue;
                 }
             }
         }

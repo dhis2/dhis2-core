@@ -28,10 +28,16 @@ package org.hisp.dhis.document.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -40,9 +46,17 @@ import javax.persistence.criteria.Root;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Repository( "org.hisp.dhis.document.DocumentStore" )
 public class HibernateDocumentStore
     extends HibernateIdentifiableObjectStore<Document> implements DocumentStore
 {
+    public HibernateDocumentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, Document.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
+
     @Override
     public long getCountByUser( User user )
     {

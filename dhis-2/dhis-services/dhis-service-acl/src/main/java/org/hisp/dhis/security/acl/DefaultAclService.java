@@ -41,11 +41,14 @@ import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
@@ -53,12 +56,15 @@ import static org.springframework.util.CollectionUtils.containsAny;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.security.acl.AclService" )
 public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
     public DefaultAclService( SchemaService schemaService )
     {
+        checkNotNull( schemaService );
+
         this.schemaService = schemaService;
     }
 

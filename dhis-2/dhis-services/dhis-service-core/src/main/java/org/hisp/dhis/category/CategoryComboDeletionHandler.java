@@ -30,16 +30,16 @@ package org.hisp.dhis.category;
  *
  */
 
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.category.CategoryComboDeletionHandler" )
 public class CategoryComboDeletionHandler
     extends DeletionHandler
 {
@@ -47,10 +47,11 @@ public class CategoryComboDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    public CategoryComboDeletionHandler( CategoryService categoryService )
     {
+        checkNotNull( categoryService );
         this.categoryService = categoryService;
     }
 
