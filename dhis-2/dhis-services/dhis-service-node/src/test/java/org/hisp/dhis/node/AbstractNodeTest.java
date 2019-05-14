@@ -1,7 +1,7 @@
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.node;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,45 @@ package org.hisp.dhis.node.types;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
+import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Unit tests for {@link AbstractNode}.
+ *
+ * @author Volker Schmidt
  */
-public class ComplexNode extends AbstractNode
+public class AbstractNodeTest
 {
-    public ComplexNode( String name )
+    @Test
+    public void createSingleChild()
     {
-        super( name, NodeType.COMPLEX );
+        final SimpleNode simpleNode = new SimpleNode( "id", "My Test" );
+        final TestNode testNode = new TestNode( "tests", NodeType.COMPLEX, new Property( TestClass.class ), simpleNode );
+        Assert.assertEquals( "tests", testNode.getName() );
+        Assert.assertEquals( NodeType.COMPLEX, testNode.nodeType );
+        Assert.assertEquals( TestClass.class, testNode.getProperty().getKlass() );
+        Assert.assertEquals( 1, testNode.getUnorderedChildren().size() );
+        Assert.assertSame( simpleNode, testNode.getUnorderedChildren().get( 0 ) );
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    public static class TestNode extends AbstractNode
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        public TestNode( String name, NodeType nodeType )
+        {
+            super( name, nodeType );
+        }
+
+        public TestNode( String name, NodeType nodeType, Property property, AbstractNode child )
+        {
+            super( name, nodeType, property, child );
+        }
+    }
+
+    public static class TestClass
+    {
+        // nothing to define
     }
 }
