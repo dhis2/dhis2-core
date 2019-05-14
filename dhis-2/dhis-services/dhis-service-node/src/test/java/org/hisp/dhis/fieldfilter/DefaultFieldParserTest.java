@@ -1,7 +1,7 @@
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,37 @@ package org.hisp.dhis.node.types;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Unit tests for {@link DefaultFieldParser}.
+ *
+ * @author Volker Schmidt
  */
-public class ComplexNode extends AbstractNode
+public class DefaultFieldParserTest
 {
-    public ComplexNode( String name )
+    private final DefaultFieldParser parser = new DefaultFieldParser();
+
+    @Test
+    public void parseWithTransformer()
     {
-        super( name, NodeType.COMPLEX );
+        final FieldMap fieldMap = parser.parse( "id,organisationUnits~pluck" );
+        Assert.assertEquals( 2, fieldMap.size() );
+        Assert.assertTrue( fieldMap.containsKey( "id" ) );
+        Assert.assertTrue( fieldMap.containsKey( "organisationUnits~pluck" ) );
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    @Test
+    public void parseWithTransformerArgAndFields()
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        final FieldMap fieldMap = parser.parse( "id,organisationUnits~pluck(name)[id,name]" );
+        Assert.assertEquals( 2, fieldMap.size() );
+        Assert.assertTrue( fieldMap.containsKey( "id" ) );
+        Assert.assertTrue( fieldMap.containsKey( "organisationUnits~pluck(name)" ) );
+
+        final FieldMap innerFieldMap = fieldMap.get( "organisationUnits~pluck(name)" );
+        Assert.assertTrue( innerFieldMap.containsKey( "id" ) );
+        Assert.assertTrue( innerFieldMap.containsKey( "name" ) );
     }
 }
