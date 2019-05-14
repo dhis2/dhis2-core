@@ -40,7 +40,7 @@ pipeline {
       steps {
         sh "docker tag ${DOCKER_IMAGE_NAME} ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_NAME}"
         
-        withDockerRegistry([ credentialsId: "docker-hub-credentials" ]) {
+        withDockerRegistry([ credentialsId: "docker-hub-credentials", url: "" ]) {
          sh "docker push ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_NAME}"
         }
       }
