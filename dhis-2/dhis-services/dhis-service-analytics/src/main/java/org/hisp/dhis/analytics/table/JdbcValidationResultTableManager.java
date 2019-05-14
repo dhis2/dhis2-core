@@ -138,7 +138,7 @@ public class JdbcValidationResultTableManager
     {
         final String tableName = partition.getTempTableName();
 
-        StringBuilder insert = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+        String insert = "insert into " + partition.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
@@ -147,10 +147,10 @@ public class JdbcValidationResultTableManager
 
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
-            insert.append(col.getName()).append(",");
+            insert += col.getName() + ",";
         }
 
-        insert = new StringBuilder(TextUtils.removeLastComma(insert.toString()) + ") ");
+        insert = TextUtils.removeLastComma( insert ) + ") ";
 
         String select = "select ";
 

@@ -124,7 +124,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         final Program program = partition.getMasterTable().getProgram();
         final String tableName = partition.getTempTableName();
 
-        StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+        String sql = "insert into " + partition.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = getDimensionColumns( program );
 
@@ -132,21 +132,33 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         for ( AnalyticsTableColumn col : columns )
         {
-            sql.append(col.getName()).append(",");
+            sql += col.getName() + ",";
         }
 
-        sql = new StringBuilder(TextUtils.removeLastComma(sql.toString()) + ") select ");
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
-            sql.append(col.getAlias()).append(",");
+            sql += col.getAlias() + ",";
         }
 
-        sql = new StringBuilder(TextUtils.removeLastComma(sql.toString()) + " ");
+        sql = TextUtils.removeLastComma( sql ) + " ";
 
-        sql.append("from programinstance pi " + "inner join program pr on pi.programid=pr.programid " + "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " + "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " + "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " + "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " + "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " + "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " + "where pr.programid=").append(program.getId()).append(" ").append("and pi.organisationunitid is not null ").append("and pi.lastupdated <= '").append(getLongDateString(params.getStartTime())).append("' ").append("and pi.incidentdate is not null ").append("and pi.deleted is false ");
+        sql += "from programinstance pi " +
+            "inner join program pr on pi.programid=pr.programid " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " +
+            "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
+            "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
+                "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " +
+            "where pr.programid=" + program.getId() + " " +
+            "and pi.organisationunitid is not null " +
+            "and pi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and pi.incidentdate is not null " +
+            "and pi.deleted is false ";
 
-        invokeTimeAndLog(sql.toString(), tableName );
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )

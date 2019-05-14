@@ -117,7 +117,7 @@ public class JdbcOrgUnitTargetTableManager
     {
         final String tableName = partition.getTempTableName();
 
-        StringBuilder sql = new StringBuilder("insert into " + partition.getTempTableName() + " (");
+        String sql = "insert into " + partition.getTempTableName() + " (";
 
         List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
         List<AnalyticsTableColumn> values = partition.getMasterTable().getValueColumns();
@@ -126,22 +126,24 @@ public class JdbcOrgUnitTargetTableManager
 
         for ( AnalyticsTableColumn col : ListUtils.union( columns, values ) )
         {
-            sql.append(col.getName()).append(",");
+            sql += col.getName() + ",";
         }
 
-        sql = new StringBuilder(TextUtils.removeLastComma(sql.toString()) + ") select ");
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
 
         for ( AnalyticsTableColumn col : columns )
         {
-            sql.append(col.getAlias()).append(",");
+            sql += col.getAlias() + ",";
         }
 
-        sql.append( "1 as value " + "from orgunitgroupmembers ougm "
-            + "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid "
-            + "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid "
-            + "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid" );
+        sql +=
+            "1 as value " +
+            "from orgunitgroupmembers ougm " +
+            "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
+            "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
+            "left join _organisationunitgroupsetstructure ougs on ougm.organisationunitid=ougs.organisationunitid";
 
-        invokeTimeAndLog( sql.toString(), tableName );
+        invokeTimeAndLog( sql, tableName );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns()

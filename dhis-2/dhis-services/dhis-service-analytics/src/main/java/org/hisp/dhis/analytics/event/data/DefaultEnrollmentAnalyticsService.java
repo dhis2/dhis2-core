@@ -71,7 +71,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
@@ -102,7 +101,7 @@ public class DefaultEnrollmentAnalyticsService
     private final EventQueryValidator queryValidator;
 
     public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
-                                              AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator )
+        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator )
     {
         checkNotNull( enrollmentAnalyticsManager );
         checkNotNull( securityManager );
