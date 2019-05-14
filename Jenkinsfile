@@ -10,7 +10,7 @@ pipeline {
     stage('Setup environment') {
       steps {
         script {
-          pom = readMavenPom file: 'pom.xml'
+          pom = readMavenPom file: 'dhis-2/pom.xml'
           IMAGE_VERSION = pom.version.toLowerCase()
           echo "Image version: ${IMAGE_VERSION}"
           
