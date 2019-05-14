@@ -39,6 +39,7 @@ pipeline {
     stage('Publish image') {
       steps {
         sh "docker tag ${DOCKER_IMAGE_NAME} ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_NAME}"
+        sh "docker login"
         sh "docker push ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_NAME}"
       }
        
