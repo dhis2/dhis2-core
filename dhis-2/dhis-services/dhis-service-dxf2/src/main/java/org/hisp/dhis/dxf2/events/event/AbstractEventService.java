@@ -1147,6 +1147,12 @@ public abstract class AbstractEventService
             return importSummary.incrementIgnored();
         }
 
+        if (  programStageInstance != null && ( programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
+                    .setReference( event.getEvent() ).incrementIgnored();
+        }
+
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
