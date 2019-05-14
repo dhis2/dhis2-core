@@ -73,8 +73,9 @@ public class TrackedEntityAttributeValueDeletionHandler
         Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
             .getTrackedEntityAttributeValues( instance );
 
-        for (TrackedEntityAttributeValue attributeValue : attributeValues) {
-            attributeValueService.deleteTrackedEntityAttributeValue(attributeValue);
+        for ( TrackedEntityAttributeValue attributeValue : attributeValues )
+        {
+            attributeValueService.deleteTrackedEntityAttributeValue( attributeValue );
         }
     }
 

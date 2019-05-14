@@ -85,9 +85,9 @@ public abstract class AbstractPropertyIntrospectorService
         .put( AnalyticalObject.class, BaseAnalyticalObject.class )
         .build();
 
-    protected final Map<Class<?>, Map<String, Property>> classMapCache = new HashMap<>();
+    private final Map<Class<?>, Map<String, Property>> classMapCache = new HashMap<>();
 
-    protected final Map<String, String> roleToRole = new HashMap<>();
+    private final Map<String, String> roleToRole = new HashMap<>();
 
     @Autowired
     protected ApplicationContext context;
@@ -140,21 +140,27 @@ public abstract class AbstractPropertyIntrospectorService
         SessionFactoryImplementor sessionFactoryImplementor = (SessionFactoryImplementor) sessionFactory;
         MetamodelImplementor metamodelImplementor = sessionFactoryImplementor.getMetamodel();
 
-        for (CollectionPersister collectionPersister : metamodelImplementor.collectionPersisters().values()) {
+        for ( CollectionPersister collectionPersister : metamodelImplementor.collectionPersisters().values() )
+        {
             CollectionType collectionType = collectionPersister.getCollectionType();
 
-            if (collectionPersister.isManyToMany() && collectionType.isAssociationType()) {
-                Joinable associatedJoinable = collectionType.getAssociatedJoinable(sessionFactoryImplementor);
+            if ( collectionPersister.isManyToMany() && collectionType.isAssociationType() )
+            {
+                Joinable associatedJoinable = collectionType.getAssociatedJoinable( sessionFactoryImplementor );
 
-                if (!joinTableToRoles.containsKey(associatedJoinable.getTableName())) {
-                    joinTableToRoles.put(associatedJoinable.getTableName(), new ArrayList<>());
+                if ( !joinTableToRoles.containsKey( associatedJoinable.getTableName() ) )
+                {
+                    joinTableToRoles.put( associatedJoinable.getTableName(), new ArrayList<>() );
                 }
 
-                joinTableToRoles.get(associatedJoinable.getTableName()).add(collectionPersister.getRole());
-            } else if (collectionPersister.isInverse()) {
-                if (collectionType instanceof SetType) {
+                joinTableToRoles.get( associatedJoinable.getTableName() ).add( collectionPersister.getRole() );
+            }
+            else if ( collectionPersister.isInverse() )
+            {
+                if ( collectionType instanceof SetType )
+                {
                     SetType setType = (SetType) collectionType;
-                    setType.getAssociatedJoinable(sessionFactoryImplementor);
+                    setType.getAssociatedJoinable( sessionFactoryImplementor );
                 }
             }
         }

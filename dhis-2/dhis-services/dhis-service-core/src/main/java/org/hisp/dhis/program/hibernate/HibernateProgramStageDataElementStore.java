@@ -54,11 +54,11 @@ public class HibernateProgramStageDataElementStore
     extends HibernateIdentifiableObjectStore<ProgramStageDataElement>
     implements ProgramStageDataElementStore
 {
-    public HibernateProgramStageDataElementStore(SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-                                                 CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    public HibernateProgramStageDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, ProgramStageDataElement.class, currentUserService, deletedObjectService,
-            aclService, false);
+            aclService, false );
     }
 
     @Override

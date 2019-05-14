@@ -126,10 +126,10 @@ public class DataSetDeletionHandler
     @Override
     public void deleteIndicator( Indicator indicator )
     {
-
-        for (DataSet dataSet : indicator.getDataSets()) {
-            dataSet.getIndicators().remove(indicator);
-            idObjectManager.updateNoAcl(dataSet);
+        for ( DataSet dataSet : indicator.getDataSets() )
+        {
+            dataSet.getIndicators().remove( indicator );
+            idObjectManager.updateNoAcl( dataSet );
         }
     }
     
@@ -183,10 +183,10 @@ public class DataSetDeletionHandler
     @Override
     public void deleteOrganisationUnit( OrganisationUnit unit )
     {
-
-        for (DataSet dataSet : unit.getDataSets()) {
-            dataSet.getSources().remove(unit);
-            idObjectManager.updateNoAcl(dataSet);
+        for ( DataSet dataSet : unit.getDataSets() )
+        {
+            dataSet.getSources().remove( unit );
+            idObjectManager.updateNoAcl( dataSet );
         }
     }
 
@@ -205,10 +205,10 @@ public class DataSetDeletionHandler
     @Override
     public void deleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
-
-        for (DataSet dataSet : workflow.getDataSets()) {
-            dataSet.setWorkflow(null);
-            idObjectManager.updateNoAcl(dataSet);
+        for ( DataSet dataSet : workflow.getDataSets() )
+        {
+            dataSet.setWorkflow( null );
+            idObjectManager.updateNoAcl( dataSet );
         }
-    }    
+    }
 }

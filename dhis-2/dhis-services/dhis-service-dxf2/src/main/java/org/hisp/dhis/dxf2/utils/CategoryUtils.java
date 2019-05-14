@@ -97,30 +97,34 @@ public class CategoryUtils
             }
         }
 
-        for (CategoryOptionCombo optionCombo : persistedOptionCombos) {
-            if (!generatedOptionCombos.contains(optionCombo)) {
+        for ( CategoryOptionCombo optionCombo : persistedOptionCombos )
+        {
+            if ( !generatedOptionCombos.contains( optionCombo ) )
+            {
                 try {
-                    categoryService.deleteCategoryOptionCombo(optionCombo);
-                    categoryCombo.getOptionCombos().remove(optionCombo);
+                    categoryService.deleteCategoryOptionCombo( optionCombo );
+                    categoryCombo.getOptionCombos().remove( optionCombo );
 
                     log.info("Deleted obsolete category option combo: " + optionCombo.getName() + " for category combo: " + categoryCombo.getName());
 
                     ImportSummary importSummary = new ImportSummary();
-                    importSummary.setDescription("Deleted obsolete category option combo: (" + optionCombo.getName() + ") for category combo: " + categoryCombo.getName());
+                    importSummary.setDescription( "Deleted obsolete category option combo: (" + optionCombo.getName()
+                        + ") for category combo: " + categoryCombo.getName() );
                     importSummary.incrementDeleted();
 
-                    importSummaries.addImportSummary(importSummary);
+                    importSummaries.addImportSummary( importSummary );
 
                     modified = true;
                 } catch (Exception ex) {
-                    log.warn("Could not delete category option combo: " + optionCombo);
+                    log.warn( "Could not delete category option combo: " + optionCombo );
 
                     ImportSummary importSummary = new ImportSummary();
-                    importSummary.setStatus(ImportStatus.WARNING);
-                    importSummary.setDescription("Could not delete category option combo: (" + optionCombo.getName() + ")");
+                    importSummary.setStatus( ImportStatus.WARNING );
+                    importSummary
+                        .setDescription( "Could not delete category option combo: (" + optionCombo.getName() + ")" );
                     importSummary.incrementIgnored();
 
-                    importSummaries.addImportSummary(importSummary);
+                    importSummaries.addImportSummary( importSummary );
                 }
             }
         }

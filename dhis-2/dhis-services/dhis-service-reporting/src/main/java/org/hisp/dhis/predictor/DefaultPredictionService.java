@@ -127,18 +127,17 @@ public class DefaultPredictionService
         IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService, Notifier notifier,
         BatchHandlerFactory batchHandlerFactory, CurrentUserService currentUserService )
     {
-        checkNotNull(predictorService);
-        checkNotNull(constantService);
-        checkNotNull(expressionService);
-        checkNotNull(dataValueService);
-        checkNotNull(categoryService);
-        checkNotNull(periodService);
-        checkNotNull(idObjectManager);
-        checkNotNull(analyticsService);
-        checkNotNull(notifier);
-        checkNotNull(batchHandlerFactory);
-        checkNotNull(currentUserService);
-
+        checkNotNull( predictorService );
+        checkNotNull( constantService );
+        checkNotNull( expressionService );
+        checkNotNull( dataValueService );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+        checkNotNull( idObjectManager );
+        checkNotNull( analyticsService );
+        checkNotNull( notifier );
+        checkNotNull( batchHandlerFactory );
+        checkNotNull( currentUserService );
 
         this.predictorService = predictorService;
         this.constantService = constantService;

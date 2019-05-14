@@ -54,8 +54,8 @@ public class DefaultSmsConsumerService
 
     private final SmsPublisher smsPublisher;
 
-    public DefaultSmsConsumerService(SmsPublisher smsPublisher) {
-
+    public DefaultSmsConsumerService( SmsPublisher smsPublisher )
+    {
         checkNotNull( smsPublisher );
 
         this.smsPublisher = smsPublisher;
