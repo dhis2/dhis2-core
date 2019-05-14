@@ -48,6 +48,9 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
+      <!-- use different version for tests in this artifact due to version conflict (solved for project in 2.32) -->
+      <version>1.10.19</version>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
