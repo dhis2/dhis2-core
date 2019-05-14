@@ -1,7 +1,5 @@
-package org.hisp.dhis.condition;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,28 +26,35 @@ package org.hisp.dhis.condition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+package org.hisp.dhis.condition;
+
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.config.ServiceConfig;
+import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.springframework.context.annotation.ConfigurationCondition;
 
 /**
- * Condition that matches to true if redis.enabled property is set to true in
- * dhis.conf
- *
- * @author Ameen Mohamed
- *
+ * Loads the DHIS2 configuration provider within the context of a Spring
+ * Configuration condition. This is required, since the
+ * {@see DefaultDhisConfigurationProvider} is not available as Spring Bean when
+ * the condition is evaluated.
+ * 
+ * @author Luciano Fiandesio
  */
-public class RedisEnabledCondition extends PropertiesAwareConfigurationCondition
+public abstract class PropertiesAwareConfigurationCondition
+    implements
+    ConfigurationCondition
 {
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
+    protected DhisConfigurationProvider getConfiguration()
     {
-        return getConfiguration().getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
-    }
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.REGISTER_BEAN;
+        DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
+        locationManager.init();
+        DefaultDhisConfigurationProvider dhisConfigurationProvider = new DefaultDhisConfigurationProvider(
+            locationManager );
+        dhisConfigurationProvider.init();
+
+        return dhisConfigurationProvider;
     }
 }
