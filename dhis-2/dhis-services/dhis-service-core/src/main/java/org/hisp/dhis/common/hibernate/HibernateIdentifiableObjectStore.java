@@ -493,11 +493,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public List<T> getAllLikeName( String name )
     {
+        return getAllLikeName( name, true );
+    }
+
+    @Override
+    public List<T> getAllLikeName( String name, boolean caseSensitive )
+    {
         CriteriaBuilder builder = getCriteriaBuilder();
+
+        Function<Root<T>, Predicate> likePredicate;
+
+        if ( caseSensitive )
+        {
+            likePredicate = root -> builder.like( root.get( "name" ), "%" + name + "%" );
+        }
+        else
+        {
+            likePredicate = root -> builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" );
+        }
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.like( root.get( "name" ), "%" + name + "%" ) )
+            .addPredicate( likePredicate )
             .addOrder( root -> builder.asc( root.get( "name" ) ) );
 
         return getList( builder, param );
@@ -506,11 +523,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public List<T> getAllLikeName( String name, int first, int max )
     {
+        return getAllLikeName( name, first, max, true );
+    }
+
+    @Override
+    public List<T> getAllLikeName( String name, int first, int max, boolean caseSensitive )
+    {
         CriteriaBuilder builder = getCriteriaBuilder();
+
+        Function<Root<T>, Predicate> likePredicate;
+
+        if ( caseSensitive )
+        {
+            likePredicate = root -> builder.like( root.get( "name" ), "%" + name + "%" );
+        }
+        else
+        {
+            likePredicate = root -> builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" );
+        }
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.like( root.get( "name" ), "%" + name + "%" ) )
+            .addPredicate( likePredicate )
             .addOrder( root -> builder.asc( root.get( "name" ) ) )
             .setFirstResult( first )
             .setMaxResults( max );
