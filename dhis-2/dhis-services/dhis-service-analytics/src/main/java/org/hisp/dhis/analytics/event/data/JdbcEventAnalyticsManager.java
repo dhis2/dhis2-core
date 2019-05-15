@@ -98,6 +98,8 @@ public class JdbcEventAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
 
+    private List<String> COLUMNS = Lists.newArrayList( "psi", "ps", "executiondate", "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
+
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService )
     {
@@ -109,33 +111,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        String sql = getSelectClause( params );
-
-        sql += getFromClause( params );
-
-        sql += getWhereClause( params );
-
-        sql += getSortClause( params );
-
-        sql += getPagingClause( params, maxLimit );
-
-        // ---------------------------------------------------------------------
-        // Grid
-        // ---------------------------------------------------------------------
-
-        try
-        {
-            getEvents( params, grid, sql );
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
-        }
-        catch ( DataAccessResourceFailureException ex )
-        {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-        }
+        withExceptionHandling( () -> getEvents( params, grid, getEventsOrEnrollmentsSql(COLUMNS, params, maxLimit) ) );
 
         return grid;
     }
