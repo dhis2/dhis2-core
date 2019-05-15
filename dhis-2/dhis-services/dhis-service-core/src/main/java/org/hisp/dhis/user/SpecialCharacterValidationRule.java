@@ -28,11 +28,14 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Component;
+
 import java.util.regex.Pattern;
 
 /**
  * Created by zubair on 16.03.17.
  */
+@Component( "org.hisp.dhis.user.SpecialCharacterValidationRule" )
 public class SpecialCharacterValidationRule
     implements PasswordValidationRule
 {

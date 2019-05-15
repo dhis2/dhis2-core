@@ -39,15 +39,19 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "logInitializer" )
 public class Log4JLogConfigInitializer
     implements LogConfigInitializer
 {
@@ -64,12 +68,19 @@ public class Log4JLogConfigInitializer
 
     private static final Log log = LogFactory.getLog( Log4JLogConfigInitializer.class );
 
-    @Autowired
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
 
-    @Autowired
-    private DhisConfigurationProvider config;
+    private final DhisConfigurationProvider config;
 
+    public Log4JLogConfigInitializer( LocationManager locationManager, DhisConfigurationProvider config )
+    {
+        checkNotNull( locationManager );
+        checkNotNull( config );
+        this.locationManager = locationManager;
+        this.config = config;
+    }
+
+    @PostConstruct
     @Override
     public void initConfig()
     {

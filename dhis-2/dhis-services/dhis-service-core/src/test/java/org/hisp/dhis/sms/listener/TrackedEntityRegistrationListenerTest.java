@@ -30,14 +30,12 @@ package org.hisp.dhis.sms.listener;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -47,12 +45,12 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -62,7 +60,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 {
@@ -76,6 +74,27 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
+    private ProgramInstanceService programInstanceService;
+
+    @Mock
+    private CategoryService dataElementCategoryService;
+
+    @Mock
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Mock
+    private UserService userService;
+
+    @Mock
+    private CurrentUserService currentUserService;
+
+    @Mock
+    private IncomingSmsService incomingSmsService;
+
+    @Mock
+    private MessageSender smsSender;
+
+    @Mock
     private SMSCommandService smsCommandService;
 
     @Mock
@@ -84,20 +103,8 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @Mock
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Mock
-    private ProgramInstanceService programInstanceService;
 
-    @Mock
-    private UserService userService;
-
-    @Mock
-    private MessageSender smsSender;
-
-    @Mock
-    private IncomingSmsService incomingSmsService;
-
-    @InjectMocks
-    private TrackedEntityRegistrationSMSListener trackedEntityRegistrationSMSListener;
+    private TrackedEntityRegistrationSMSListener subject;
 
     private TrackedEntityType trackedEntityType;
     private TrackedEntityInstance trackedEntityInstance;
@@ -122,13 +129,14 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @Before
     public void initTest()
     {
+        subject = new TrackedEntityRegistrationSMSListener( programInstanceService, dataElementCategoryService,
+                programStageInstanceService, userService, currentUserService, incomingSmsService, smsSender, smsCommandService,
+                trackedEntityTypeService, trackedEntityInstanceService, programInstanceService);
+
         setUpInstances();
 
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( teiRegistrationCommand );
-
-        // Mock for trackedEntityTypeService
-        when( trackedEntityTypeService.getTrackedEntityByName( anyString() ) ).thenReturn( trackedEntityType );
 
         // Mock for trackedEntityInstanceService
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1l );
@@ -158,7 +166,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @Test
     public void testTeiRegistration()
     {
-        trackedEntityRegistrationSMSListener.receive( incomingSms );
+        subject.receive( incomingSms );
 
         assertNotNull( updatedIncomingSms );
         assertTrue( updatedIncomingSms.isParsed() );
@@ -173,7 +181,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         Program programA = createProgram( 'P' );
 
         teiRegistrationCommand.setProgram( programA );
-        trackedEntityRegistrationSMSListener.receive( incomingSms );
+        subject.receive( incomingSms );
 
         verify( trackedEntityTypeService, never() ).getTrackedEntityByName( anyString() );
     }

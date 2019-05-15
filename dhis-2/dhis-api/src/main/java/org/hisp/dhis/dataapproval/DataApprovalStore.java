@@ -35,6 +35,7 @@ import org.hisp.dhis.period.Period;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -152,5 +153,5 @@ public interface DataApprovalStore
     List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
         Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
         CategoryCombo attributeCombo,
-        Set<CategoryOptionCombo> attributeOptionCombos );
+        Set<CategoryOptionCombo> attributeOptionCombos, List<DataApprovalLevel> userApprovalLevels, Map<Integer, DataApprovalLevel> levelMap );
 }

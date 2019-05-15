@@ -29,6 +29,7 @@ package org.hisp.dhis.jdbc.batchhandler;
  */
 
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.ProxyUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -41,6 +42,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Test;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -165,8 +167,10 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         completeDataSetRegistrations.add( regD );
 
         when( completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations() ).thenReturn( completeDataSetRegistrations );
-        registrationService = new DefaultCompleteDataSetRegistrationService();
-        ( ( DefaultCompleteDataSetRegistrationService ) registrationService ).setCompleteDataSetRegistrationStore( completeDataSetRegistrationStore );
+
+        DefaultCompleteDataSetRegistrationService target = ProxyUtils.getProxyTarget(registrationService);
+
+        target.setCompleteDataSetRegistrationStore( completeDataSetRegistrationStore );
 
         batchHandler.flush();
 

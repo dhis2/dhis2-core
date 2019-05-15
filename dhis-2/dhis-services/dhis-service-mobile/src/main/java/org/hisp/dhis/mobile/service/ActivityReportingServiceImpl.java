@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.api.mobile.ActivityReportingService;
-import org.hisp.dhis.api.mobile.NotAllowedException;
 import org.hisp.dhis.api.mobile.model.Interpretation;
 import org.hisp.dhis.api.mobile.model.InterpretationComment;
 import org.hisp.dhis.chart.Chart;
@@ -51,7 +50,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Service( "org.hisp.dhis.mobile.api.ActivityReportingService" )
 public class ActivityReportingServiceImpl
     implements ActivityReportingService
 {
@@ -67,25 +70,34 @@ public class ActivityReportingServiceImpl
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private MessageService messageService;
+    private final MessageService messageService;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private InterpretationService interpretationService;
+    private final InterpretationService interpretationService;
 
-    @Autowired
-    private ChartService chartService;
+    private final ChartService chartService;
+
+    public ActivityReportingServiceImpl( CurrentUserService currentUserService, MessageService messageService,
+        UserService userService, InterpretationService interpretationService, ChartService chartService )
+    {
+        checkNotNull( currentUserService );
+        checkNotNull( messageService );
+        checkNotNull( userService );
+        checkNotNull( interpretationService );
+        checkNotNull( chartService );
+
+        this.currentUserService = currentUserService;
+        this.messageService = messageService;
+        this.userService = userService;
+        this.interpretationService = interpretationService;
+        this.chartService = chartService;
+    }
 
     @Override
-    public String sendFeedback( org.hisp.dhis.api.mobile.model.Message message )
-        throws NotAllowedException
-    {
+    public String sendFeedback( org.hisp.dhis.api.mobile.model.Message message ) {
 
         String subject = message.getSubject();
         String text = message.getText();
@@ -97,10 +109,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Collection<org.hisp.dhis.api.mobile.model.User> findUser( String keyword )
-        throws NotAllowedException
-    {
-        Collection<User> users = new HashSet<>();
+    public Collection<org.hisp.dhis.api.mobile.model.User> findUser( String keyword ) {
+        Collection<User> users;
 
         Collection<org.hisp.dhis.api.mobile.model.User> userList = new HashSet<>();
 
@@ -137,29 +147,25 @@ public class ActivityReportingServiceImpl
     {
         Calendar calendar = Calendar.getInstance();
 
-        if ( adjustment.equals( "1 day" ) )
-        {
-            calendar.add( Calendar.DATE, operation );
-        }
-        else if ( adjustment.equals( "3 days" ) )
-        {
-            calendar.add( Calendar.DATE, operation * 3 );
-        }
-        else if ( adjustment.equals( "1 week" ) )
-        {
-            calendar.add( Calendar.DATE, operation * 7 );
-        }
-        else if ( adjustment.equals( "1 month" ) )
-        {
-            calendar.add( Calendar.DATE, operation * 30 );
+        switch (adjustment) {
+            case "1 day":
+                calendar.add(Calendar.DATE, operation);
+                break;
+            case "3 days":
+                calendar.add(Calendar.DATE, operation * 3);
+                break;
+            case "1 week":
+                calendar.add(Calendar.DATE, operation * 7);
+                break;
+            case "1 month":
+                calendar.add(Calendar.DATE, operation * 30);
+                break;
         }
         return calendar.getTime();
     }
 
     @Override
-    public String sendMessage( org.hisp.dhis.api.mobile.model.Message message )
-        throws NotAllowedException
-    {
+    public String sendMessage( org.hisp.dhis.api.mobile.model.Message message ) {
         String subject = message.getSubject();
         String text = message.getText();
         String metaData = MessageService.META_USER_AGENT;
@@ -179,10 +185,8 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Collection<org.hisp.dhis.api.mobile.model.MessageConversation> downloadMessageConversation()
-        throws NotAllowedException
-    {
-        Collection<MessageConversation> conversations = new HashSet<>();
+    public Collection<org.hisp.dhis.api.mobile.model.MessageConversation> downloadMessageConversation() {
+        Collection<MessageConversation> conversations;
 
         Collection<org.hisp.dhis.api.mobile.model.MessageConversation> mobileConversationList = new HashSet<>();
 
@@ -204,9 +208,7 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Collection<org.hisp.dhis.api.mobile.model.Message> getMessage( String conversationId )
-        throws NotAllowedException
-    {
+    public Collection<org.hisp.dhis.api.mobile.model.Message> getMessage( String conversationId ) {
 
         MessageConversation conversation = messageService.getMessageConversation( Integer.parseInt( conversationId ) );
         List<Message> messageList = new ArrayList<>( conversation.getMessages() );
@@ -231,9 +233,7 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public String replyMessage( org.hisp.dhis.api.mobile.model.Message message )
-        throws NotAllowedException
-    {
+    public String replyMessage( org.hisp.dhis.api.mobile.model.Message message ) {
         String metaData = MessageService.META_USER_AGENT;
 
         MessageConversation conversation = messageService
@@ -245,9 +245,7 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public Interpretation getInterpretation( String uId )
-        throws NotAllowedException
-    {
+    public Interpretation getInterpretation( String uId ) {
         Chart chart = chartService.getChart( uId );
         org.hisp.dhis.interpretation.Interpretation interpretationCore = interpretationService
             .getInterpretationByChart( chart.getId() );
@@ -272,24 +270,17 @@ public class ActivityReportingServiceImpl
 
     private org.hisp.dhis.interpretation.Interpretation interpretation;
 
-    public void setInterpretation( org.hisp.dhis.interpretation.Interpretation interpretation )
+    private void setInterpretation(org.hisp.dhis.interpretation.Interpretation interpretation)
     {
         this.interpretation = interpretation;
     }
 
-    public org.hisp.dhis.interpretation.Interpretation getInterpretation()
-    {
-        return interpretation;
-    }
-
     @Override
-    public String postInterpretation( String data )
-        throws NotAllowedException
-    {
+    public String postInterpretation( String data ) {
 
         String uId = data.substring( 0, 11 );
 
-        String interpretation = data.substring( 11, data.length() - 0 );
+        String interpretation = data.substring( 11 );
 
         Chart c = chartService.getChart( uId );
 
@@ -304,11 +295,9 @@ public class ActivityReportingServiceImpl
     }
 
     @Override
-    public String postInterpretationComment( String data )
-        throws NotAllowedException
-    {
+    public String postInterpretationComment( String data ) {
         int interpretationId = Integer.parseInt( data.substring( 0, 7 ) );
-        String comment = data.substring( 7, data.length() - 0 );
+        String comment = data.substring( 7 );
 
         setInterpretation( interpretationService.getInterpretation( interpretationId ) );
         interpretationService.addInterpretationComment( interpretation.getUid(), comment );

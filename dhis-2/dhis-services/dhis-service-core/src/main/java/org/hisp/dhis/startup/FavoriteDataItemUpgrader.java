@@ -43,9 +43,10 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
 * @author Lars Helge Overland
@@ -55,15 +56,17 @@ public class FavoriteDataItemUpgrader
 {
     private static final Log log = LogFactory.getLog( FavoriteDataItemUpgrader.class );
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    private final IdentifiableObjectManager idObjectManager;
+
+    public FavoriteDataItemUpgrader( JdbcTemplate jdbcTemplate, IdentifiableObjectManager idObjectManager )
     {
+        checkNotNull( jdbcTemplate );
+        checkNotNull( idObjectManager );
         this.jdbcTemplate = jdbcTemplate;
+        this.idObjectManager = idObjectManager;
     }
-
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
 
     @Override
     public void executeInTransaction()
@@ -88,16 +91,15 @@ public class FavoriteDataItemUpgrader
         catch ( Exception ex )
         {
             log.debug( "Error during data item upgrade of favorites, probably because upgrade was already done", ex );
-            return;
         }
     }
 
     private void upgradeFavorites( Class<? extends BaseAnalyticalObject> favoriteClass, String favoriteTablename,
         Class<? extends IdentifiableObject> objectClass, String objectTablename )
     {
-        String linkTablename = favoriteTablename + "_" + objectTablename + "s";
+        String linkTableName = favoriteTablename + "_" + objectTablename + "s";
 
-        String selectSql = "select " + favoriteTablename + "id, " + objectTablename + "id from " + linkTablename + " " +
+        String selectSql = "select " + favoriteTablename + "id, " + objectTablename + "id from " + linkTableName + " " +
             "order by " + favoriteTablename + "id, sort_order";
 
         SqlRowSet rs = jdbcTemplate.queryForRowSet( selectSql );
@@ -117,10 +119,10 @@ public class FavoriteDataItemUpgrader
             log.debug( "Upgraded " + favoriteTablename + " " + favorite.getUid() + " for " + objectTablename + " " + object.getUid() );
         }
 
-        String dropSql = "drop table " + linkTablename;
+        String dropSql = "drop table " + linkTableName;
 
         jdbcTemplate.update( dropSql );
 
-        log.info( "Update done, dropped table " + linkTablename );
+        log.info( "Update done, dropped table " + linkTableName );
     }
 }

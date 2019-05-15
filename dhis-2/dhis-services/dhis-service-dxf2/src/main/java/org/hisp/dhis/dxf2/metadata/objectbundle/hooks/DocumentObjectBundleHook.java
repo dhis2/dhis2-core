@@ -38,6 +38,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,6 +47,7 @@ import java.util.regex.Pattern;
 /**
  * @author Kristian Wærstad <kristian@dhis2.com>
  */
+@Component
 public class DocumentObjectBundleHook extends AbstractObjectBundleHook {
 
     private static final Pattern URL_PATTERN = Pattern.compile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");

@@ -66,6 +66,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -88,6 +89,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore
     implements EventStore
 {

@@ -35,12 +35,14 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class EmbeddedObjectObjectBundleHook
     extends AbstractObjectBundleHook
 {

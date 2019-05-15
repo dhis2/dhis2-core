@@ -54,10 +54,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.google.common.collect.ImmutableMap;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Repository( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeStore" )
 public class JdbcCompleteDataSetRegistrationExchangeStore
         implements CompleteDataSetRegistrationExchangeStore
 {

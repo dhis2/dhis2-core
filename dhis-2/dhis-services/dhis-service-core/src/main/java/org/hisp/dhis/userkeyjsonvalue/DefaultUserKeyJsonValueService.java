@@ -29,26 +29,26 @@ package org.hisp.dhis.userkeyjsonvalue;
  */
 
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueService" )
 public class DefaultUserKeyJsonValueService
     implements UserKeyJsonValueService
 {
-    private UserKeyJsonValueStore userKeyJsonValueStore;
+    private final UserKeyJsonValueStore userKeyJsonValueStore;
 
-    public void setUserKeyJsonValueStore( UserKeyJsonValueStore userKeyJsonValueStore )
+    public DefaultUserKeyJsonValueService( UserKeyJsonValueStore userKeyJsonValueStore )
     {
+        checkNotNull( userKeyJsonValueStore );
         this.userKeyJsonValueStore = userKeyJsonValueStore;
-    }
-
-    public UserKeyJsonValueStore getUserKeyJsonValueStore()
-    {
-        return this.userKeyJsonValueStore;
     }
 
     @Override

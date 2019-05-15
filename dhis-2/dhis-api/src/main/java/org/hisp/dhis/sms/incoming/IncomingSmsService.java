@@ -56,8 +56,6 @@ public interface IncomingSmsService
 
     int save( String message, String originator, String gateway, Date receivedTime, User user );
 
-    void setIncomingSmsQueue( MessageQueue incomingSmsQueue );
-
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );

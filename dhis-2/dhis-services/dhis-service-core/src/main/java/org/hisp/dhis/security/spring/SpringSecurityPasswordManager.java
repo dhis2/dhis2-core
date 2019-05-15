@@ -30,11 +30,15 @@ package org.hisp.dhis.security.spring;
 
 import org.hisp.dhis.security.PasswordManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
  * @author Halvdan Hoem Grelland
  */
+@Component( "org.hisp.dhis.security.PasswordManager" )
 public class SpringSecurityPasswordManager
     implements PasswordManager
 {
@@ -42,10 +46,12 @@ public class SpringSecurityPasswordManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
-    public void setPasswordEncoder( PasswordEncoder passwordEncoder )
+    public SpringSecurityPasswordManager( PasswordEncoder passwordEncoder )
     {
+        checkNotNull( passwordEncoder );
+
         this.passwordEncoder = passwordEncoder;
     }
 

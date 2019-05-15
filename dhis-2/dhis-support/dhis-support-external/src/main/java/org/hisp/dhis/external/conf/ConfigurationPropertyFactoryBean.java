@@ -63,7 +63,6 @@ public class ConfigurationPropertyFactoryBean
 
     @Override
     public Object getObject()
-        throws Exception
     {
         Assert.notNull( key, "Configuration key must be specified" );
         

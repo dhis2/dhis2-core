@@ -70,10 +70,12 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vividsolutions.jts.util.Assert;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Markus Bekken
  */
+@Component( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
 public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EnrollmentAnalyticsManager

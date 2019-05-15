@@ -28,16 +28,19 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  *
  */
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService" )
 public class DefaultTrackedEntityInstanceAuditService
     implements TrackedEntityInstanceAuditService
 {
@@ -45,10 +48,15 @@ public class DefaultTrackedEntityInstanceAuditService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    @Autowired 
-    private TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
-    
-    
+    private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+
+    public DefaultTrackedEntityInstanceAuditService( TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore )
+    {
+        checkNotNull( trackedEntityInstanceAuditStore );
+
+        this.trackedEntityInstanceAuditStore = trackedEntityInstanceAuditStore;
+    }
+
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceAuditService implementation
     // -------------------------------------------------------------------------

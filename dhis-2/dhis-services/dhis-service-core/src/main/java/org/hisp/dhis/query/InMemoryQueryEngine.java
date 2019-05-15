@@ -40,15 +40,19 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.query.InMemoryQueryEngine" )
 public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
@@ -59,6 +63,10 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     @Autowired
     public InMemoryQueryEngine( SchemaService schemaService, AclService aclService, CurrentUserService currentUserService )
     {
+        checkNotNull( schemaService );
+        checkNotNull( aclService );
+        checkNotNull( currentUserService );
+
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;

@@ -28,19 +28,33 @@ package org.hisp.dhis.relationship.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Repository( "org.hisp.dhis.relationship.RelationshipTypeStore" )
 public class HibernateRelationshipTypeStore
     extends HibernateIdentifiableObjectStore<RelationshipType>
     implements RelationshipTypeStore
 {
+    public HibernateRelationshipTypeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, RelationshipType.class, currentUserService, deletedObjectService,
+            aclService, true );
+    }
+
     @Override
     public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
     {

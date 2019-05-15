@@ -38,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -50,9 +51,12 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.attribute.AttributeService" )
 public class DefaultAttributeService
     implements AttributeService
 {
@@ -64,22 +68,23 @@ public class DefaultAttributeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private AttributeStore attributeStore;
+    private final AttributeStore attributeStore;
 
-    public void setAttributeStore( AttributeStore attributeStore )
+    private final AttributeValueStore attributeValueStore;
+
+    private final IdentifiableObjectManager manager;
+
+    public DefaultAttributeService( AttributeStore attributeStore, AttributeValueStore attributeValueStore,
+        IdentifiableObjectManager manager )
     {
+        checkNotNull( attributeStore );
+        checkNotNull( attributeValueStore );
+        checkNotNull( manager );
+
         this.attributeStore = attributeStore;
-    }
-
-    private AttributeValueStore attributeValueStore;
-
-    public void setAttributeValueStore( AttributeValueStore attributeValueStore )
-    {
         this.attributeValueStore = attributeValueStore;
+        this.manager = manager;
     }
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     // -------------------------------------------------------------------------
     // Attribute implementation

@@ -32,11 +32,15 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" )
 public class MinMaxDataElementDeletionHandler
     extends DeletionHandler
 {
@@ -46,11 +50,13 @@ public class MinMaxDataElementDeletionHandler
 
     private MinMaxDataElementService minMaxDataElementService;
 
-    public void setMinMaxDataElementService( MinMaxDataElementService minMaxDataElementService )
+    public MinMaxDataElementDeletionHandler( MinMaxDataElementService minMaxDataElementService )
     {
+        checkNotNull(minMaxDataElementService);
+
         this.minMaxDataElementService = minMaxDataElementService;
     }
-    
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------

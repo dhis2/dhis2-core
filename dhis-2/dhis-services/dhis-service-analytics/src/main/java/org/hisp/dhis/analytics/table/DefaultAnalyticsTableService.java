@@ -45,6 +45,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,6 +53,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -63,25 +66,34 @@ public class DefaultAnalyticsTableService
 
     private AnalyticsTableManager tableManager;
 
-    public void setTableManager( AnalyticsTableManager tableManager )
-    {
-        this.tableManager = tableManager;
-    }
-
-    @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    @Autowired
     private DataElementService dataElementService;
 
-    @Autowired
     private ResourceTableService resourceTableService;
 
-    @Autowired
     private Notifier notifier;
 
-    @Autowired
     private SystemSettingManager systemSettingManager;
+
+    public DefaultAnalyticsTableService( AnalyticsTableManager tableManager,
+        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
+        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
+    {
+        checkNotNull( tableManager );
+        checkNotNull( organisationUnitService );
+        checkNotNull( dataElementService );
+        checkNotNull( resourceTableService );
+        checkNotNull( notifier );
+        checkNotNull( systemSettingManager );
+
+        this.tableManager = tableManager;
+        this.organisationUnitService = organisationUnitService;
+        this.dataElementService = dataElementService;
+        this.resourceTableService = resourceTableService;
+        this.notifier = notifier;
+        this.systemSettingManager = systemSettingManager;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

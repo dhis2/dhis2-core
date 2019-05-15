@@ -30,10 +30,14 @@ package org.hisp.dhis.programrule;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author markusbekken
  */
+@Component( "org.hisp.dhis.programrule.ProgramRuleVariableDeletionHandler" )
 public class ProgramRuleVariableDeletionHandler
     extends DeletionHandler 
 {
@@ -41,13 +45,14 @@ public class ProgramRuleVariableDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramRuleVariableService programRuleVariableService;
+    private final ProgramRuleVariableService programRuleVariableService;
 
-    public void setProgramRuleVariableService( ProgramRuleVariableService programRuleVariableService )
+    public ProgramRuleVariableDeletionHandler( ProgramRuleVariableService programRuleVariableService )
     {
+        checkNotNull( programRuleVariableService );
         this.programRuleVariableService = programRuleVariableService;
     }
-    
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------

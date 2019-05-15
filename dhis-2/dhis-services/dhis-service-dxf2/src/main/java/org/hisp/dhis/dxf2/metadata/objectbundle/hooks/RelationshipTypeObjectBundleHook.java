@@ -43,6 +43,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,10 +54,10 @@ import static org.hisp.dhis.relationship.RelationshipEntity.*;
 /**
  * @author Stian Sandvold
  */
+@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipTypeObjectBundleHook" )
 public class RelationshipTypeObjectBundleHook
     extends AbstractObjectBundleHook
 {
-
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final ProgramService programService;

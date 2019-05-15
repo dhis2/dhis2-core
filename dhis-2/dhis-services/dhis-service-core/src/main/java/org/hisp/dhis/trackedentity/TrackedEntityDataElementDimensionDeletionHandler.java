@@ -33,17 +33,26 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class TrackedEntityDataElementDimensionDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
+
+    public TrackedEntityDataElementDimensionDeletionHandler( SessionFactory sessionFactory )
+    {
+        checkNotNull( sessionFactory );
+        this.sessionFactory = sessionFactory;
+    }
 
     @Override
     protected String getClassName()
