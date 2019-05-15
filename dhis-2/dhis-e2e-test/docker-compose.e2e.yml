@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  e2e-test:
+    stdin_open: true
+    image: dhis2-e2e:${TAG}
+    build:
+      dockerfile: Dockerfile
+      context: .
+
+    command: ./wait-for-it.sh e2e-test-web:8080 -- mvn test -DbaseUrl=http://e2e-test-web:8080/api -DsuperUserUsername=taadmin -DsuperUserPsw=Test1212?
