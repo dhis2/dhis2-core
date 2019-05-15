@@ -66,7 +66,7 @@ public class DefaultImageResizeService implements ImageProcessingService
             {
                 ImageSize size = IMAGE_FILE_DIMENSIONS.get( dimension );
 
-                BufferedImage resizedImage = resize( image, Scalr.Method.QUALITY, size );
+                BufferedImage resizedImage = resize( image, size );
 
                 File tempFile = new File( file.getPath() + dimension.getDimension() );
 
@@ -85,9 +85,9 @@ public class DefaultImageResizeService implements ImageProcessingService
         return images;
     }
 
-    private BufferedImage resize( BufferedImage image, Scalr.Method method, ImageSize dimensions )
+    private BufferedImage resize( BufferedImage image, ImageSize dimensions )
     {
-        return  Scalr.resize( image, method, dimensions.width, dimensions.height );
+        return  Scalr.resize( image, Scalr.Method.QUALITY, dimensions.width, dimensions.height );
     }
 
     private static class ImageSize

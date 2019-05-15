@@ -36,10 +36,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
@@ -65,6 +67,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -102,6 +105,12 @@ import com.google.common.io.ByteSource;
 public class DataValueController
 {
     public static final String RESOURCE_PATH = "/dataValues";
+
+    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
+        .add( "image/jpg" )
+        .add( "image/png" )
+        .add( "image/jpeg" )
+        .build();
 
     // ---------------------------------------------------------------------
     // Dependencies
@@ -506,7 +515,9 @@ public class DataValueController
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response, HttpServletRequest request )
+        @RequestParam String ou,
+        @RequestParam ( required = false ) ImageFileDimension dimension,
+        HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
         // ---------------------------------------------------------------------
@@ -567,6 +578,20 @@ public class DataValueController
             webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
 
             throw new WebMessageException( webMessage );
+        }
+
+        // ---------------------------------------------------------------------
+        // If file is of image type then dimension will determine which size the image need to be downloaded.
+        // ---------------------------------------------------------------------
+
+        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) )
+        {
+            if ( dimension == null )
+            {
+                dimension = ImageFileDimension.MEDIUM;
+            }
+
+            fileResource.setStorageKey( fileResource.getStorageKey() + dimension.getDimension() );
         }
 
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );
