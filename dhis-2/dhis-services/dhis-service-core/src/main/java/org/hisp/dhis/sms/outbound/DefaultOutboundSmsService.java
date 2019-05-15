@@ -29,9 +29,12 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Simple {@link OutboundSmsService sms service} storing the sms in a store and
@@ -39,6 +42,7 @@ import java.util.List;
  * service} for sending.
  */
 
+@Service( "org.hisp.dhis.sms.outbound.OutboundSmsService" )
 @Transactional
 public class DefaultOutboundSmsService
     implements OutboundSmsService
@@ -47,10 +51,12 @@ public class DefaultOutboundSmsService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private OutboundSmsStore outboundSmsStore;
+    private final OutboundSmsStore outboundSmsStore;
 
-    public void setOutboundSmsStore( OutboundSmsStore outboundSmsStore )
+    public DefaultOutboundSmsService( OutboundSmsStore outboundSmsStore )
     {
+        checkNotNull( outboundSmsStore );
+
         this.outboundSmsStore = outboundSmsStore;
     }
 

@@ -36,16 +36,19 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
 
 @Transactional
+@Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
 public class DefaultProgramRuleEngineService 
     implements ProgramRuleEngineService
 {
@@ -55,17 +58,28 @@ public class DefaultProgramRuleEngineService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramRuleEngine programRuleEngine;
+    private final ProgramRuleEngine programRuleEngine;
 
-    @Autowired
-    private List<RuleActionImplementer> ruleActionImplementers;
+    private final List<RuleActionImplementer> ruleActionImplementers;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private final ProgramStageInstanceService programStageInstanceService;
+    
+    public DefaultProgramRuleEngineService( ProgramRuleEngine programRuleEngine,
+        List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService )
+    {
+        checkNotNull( programRuleEngine );
+        checkNotNull( ruleActionImplementers );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+
+        this.programRuleEngine = programRuleEngine;
+        this.ruleActionImplementers = ruleActionImplementers;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+    }
 
     @Override
     public List<RuleEffect> evaluateEnrollment( long programInstance )

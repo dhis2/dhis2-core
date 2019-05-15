@@ -28,12 +28,16 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.util.Map;
 
 /**
  * @Author Zubair Asghar.
  */
+
+@Service( "org.hisp.dhis.fileresource.ImageResizeService" )
 public class DefaultImageResizeService implements ImageResizeService
 {
     @Override

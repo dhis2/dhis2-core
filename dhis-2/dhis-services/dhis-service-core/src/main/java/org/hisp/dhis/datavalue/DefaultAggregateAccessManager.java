@@ -42,6 +42,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -53,6 +54,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Service( "org.hisp.dhis.datavalue.DataAccessManager" )
 public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {

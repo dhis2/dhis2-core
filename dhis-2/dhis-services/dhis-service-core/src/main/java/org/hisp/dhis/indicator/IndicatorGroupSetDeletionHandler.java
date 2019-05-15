@@ -30,17 +30,26 @@ package org.hisp.dhis.indicator;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.indicator.IndicatorGroupSetDeletionHandler" )
 public class IndicatorGroupSetDeletionHandler
-    extends DeletionHandler
+    extends
+    DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-    
+    private final IdentifiableObjectManager idObjectManager;
+
+    public IndicatorGroupSetDeletionHandler( IdentifiableObjectManager idObjectManager )
+    {
+        checkNotNull( idObjectManager );
+        this.idObjectManager = idObjectManager;
+    }
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
@@ -50,12 +59,12 @@ public class IndicatorGroupSetDeletionHandler
     {
         return IndicatorGroupSet.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         IndicatorGroupSet groupSet = indicatorGroup.getGroupSet();
-        
+
         if ( groupSet != null )
         {
             groupSet.getMembers().remove( indicatorGroup );

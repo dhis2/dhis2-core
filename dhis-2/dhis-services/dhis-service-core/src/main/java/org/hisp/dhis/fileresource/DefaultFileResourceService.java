@@ -34,7 +34,7 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
@@ -46,9 +46,12 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.fileresource.FileResourceService" )
 public class DefaultFileResourceService
     implements FileResourceService
 {
@@ -63,32 +66,28 @@ public class DefaultFileResourceService
 
     private FileResourceStore fileResourceStore;
 
-    @Autowired
     private SessionFactory sessionFactory;
-
-    public void setFileResourceStore( FileResourceStore fileResourceStore )
-    {
-        this.fileResourceStore = fileResourceStore;
-    }
 
     private FileResourceContentStore fileResourceContentStore;
 
-    public void setFileResourceContentStore( FileResourceContentStore fileResourceContentStore )
-    {
-        this.fileResourceContentStore = fileResourceContentStore;
-    }
-
     private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        this.schedulingManager = schedulingManager;
-    }
 
     private FileResourceUploadCallback uploadCallback;
 
-    public void setUploadCallback( FileResourceUploadCallback uploadCallback )
+    public DefaultFileResourceService( FileResourceStore fileResourceStore,
+        SessionFactory sessionFactory, FileResourceContentStore fileResourceContentStore,
+        SchedulingManager schedulingManager, FileResourceUploadCallback uploadCallback )
     {
+        checkNotNull( fileResourceStore );
+        checkNotNull( sessionFactory );
+        checkNotNull( fileResourceContentStore );
+        checkNotNull( schedulingManager );
+        checkNotNull( uploadCallback );
+
+        this.fileResourceStore = fileResourceStore;
+        this.sessionFactory = sessionFactory;
+        this.fileResourceContentStore = fileResourceContentStore;
+        this.schedulingManager = schedulingManager;
         this.uploadCallback = uploadCallback;
     }
 

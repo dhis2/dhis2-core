@@ -43,19 +43,21 @@ import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
-
 @Transactional( readOnly = true )
+@Component( "org.hisp.dhis.programrule.engine.ProgramRuleEngine" )
 public class ProgramRuleEngine
 {
     private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
@@ -67,28 +69,47 @@ public class ProgramRuleEngine
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
-    @Autowired
-    private ProgramRuleEntityMapperService programRuleEntityMapperService;
+    private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = ProgramRuleActionType.getImplementedActions();
 
-    @Autowired
-    private ProgramRuleExpressionEvaluator programRuleExpressionEvaluator;
+    private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+    private final ProgramRuleExpressionEvaluator programRuleExpressionEvaluator;
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+    private final ProgramRuleService programRuleService;
 
-    @Autowired
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private RuleVariableInMemoryMap inMemoryMap;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final RuleVariableInMemoryMap inMemoryMap;
 
-    public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
+    private final CurrentUserService currentUserService;
+
+    public ProgramRuleEngine( ProgramRuleEntityMapperService programRuleEntityMapperService,
+        ProgramRuleExpressionEvaluator programRuleExpressionEvaluator, ProgramRuleService programRuleService,
+        ProgramRuleVariableService programRuleVariableService,
+        OrganisationUnitGroupService organisationUnitGroupService, RuleVariableInMemoryMap inMemoryMap,
+        CurrentUserService currentUserService )
+    {
+
+        checkNotNull( programRuleEntityMapperService );
+        checkNotNull( programRuleExpressionEvaluator );
+        checkNotNull( programRuleService );
+        checkNotNull( programRuleVariableService );
+        checkNotNull( organisationUnitGroupService );
+        checkNotNull( currentUserService );
+        checkNotNull( inMemoryMap );
+
+        this.programRuleEntityMapperService = programRuleEntityMapperService;
+        this.programRuleExpressionEvaluator = programRuleExpressionEvaluator;
+        this.programRuleService = programRuleService;
+        this.programRuleVariableService = programRuleVariableService;
+        this.organisationUnitGroupService = organisationUnitGroupService;
+        this.inMemoryMap = inMemoryMap;
+        this.currentUserService = currentUserService;
+    }
+
+    public List<RuleEffect> evaluateEnrollment(ProgramInstance enrollment )
     {
         if ( enrollment == null )
         {
@@ -221,7 +242,7 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
-        List<ProgramRule> permittedRules = new ArrayList<>();
+        List<ProgramRule> permittedRules;
 
         permittedRules = programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNotificationLinkedTypes() );
 

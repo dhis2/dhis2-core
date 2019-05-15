@@ -28,13 +28,17 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.schema.audit.MetadataAuditService" )
 @Transactional
 public class DefaultMetadataAuditService implements MetadataAuditService
 {
@@ -42,6 +46,7 @@ public class DefaultMetadataAuditService implements MetadataAuditService
 
     public DefaultMetadataAuditService( MetadataAuditStore auditStore )
     {
+        checkNotNull( auditStore );
         this.auditStore = auditStore;
     }
 

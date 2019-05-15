@@ -40,10 +40,14 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author David Katuscak
  */
+@Component( "eventProgramsDataSyncJob" )
 public class EventProgramsDataSynchronizationJob extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( EventProgramsDataSynchronizationJob.class );
@@ -56,6 +60,10 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
     public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
         EventSynchronization eventSync, SynchronizationManager synchronizationManager )
     {
+        checkNotNull( notifier );
+        checkNotNull( messageService );
+        checkNotNull( eventSync );
+
         this.notifier = notifier;
         this.messageService = messageService;
         this.eventSync = eventSync;

@@ -37,6 +37,8 @@ import org.hisp.dhis.query.Restriction;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
@@ -45,15 +47,21 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.query.planner.QueryPlanner" )
 public class DefaultQueryPlanner implements QueryPlanner
 {
     private final SchemaService schemaService;
 
+    @Autowired
     public DefaultQueryPlanner( SchemaService schemaService )
     {
+        checkNotNull( schemaService );
+
         this.schemaService = schemaService;
     }
 

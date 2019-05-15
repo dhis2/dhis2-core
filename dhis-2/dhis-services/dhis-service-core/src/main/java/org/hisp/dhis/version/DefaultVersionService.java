@@ -28,14 +28,18 @@ package org.hisp.dhis.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author mortenoh
  */
+@Service( "org.hisp.dhis.version.VersionService" )
 public class DefaultVersionService
     implements VersionService
 {
@@ -43,10 +47,12 @@ public class DefaultVersionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private VersionStore versionStore;
+    private final VersionStore versionStore;
 
-    public void setVersionStore( VersionStore versionStore )
+    public DefaultVersionService( VersionStore versionStore )
     {
+        checkNotNull( versionStore );
+
         this.versionStore = versionStore;
     }
 

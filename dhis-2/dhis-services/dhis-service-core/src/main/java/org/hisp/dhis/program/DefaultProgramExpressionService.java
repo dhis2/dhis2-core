@@ -31,6 +31,8 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -38,6 +40,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
 import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE;
 import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT;
@@ -48,6 +51,7 @@ import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
 /**
  * @author Chau Thu Tran
  */
+@Service( "org.hisp.dhis.program.ProgramExpressionService" )
 public class DefaultProgramExpressionService
     implements ProgramExpressionService
 {
@@ -59,24 +63,22 @@ public class DefaultProgramExpressionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericStore<ProgramExpression> programExpressionStore;
+    private final GenericStore<ProgramExpression> programExpressionStore;
 
-    public void setProgramExpressionStore( GenericStore<ProgramExpression> programExpressionStore )
+    private final ProgramStageService programStageService;
+
+    private final DataElementService dataElementService;
+
+    public DefaultProgramExpressionService(
+        @Qualifier( "org.hisp.dhis.program.ProgramExpressionStore" ) GenericStore<ProgramExpression> programExpressionStore,
+        ProgramStageService programStageService, DataElementService dataElementService )
     {
+        checkNotNull( programExpressionStore );
+        checkNotNull( programStageService );
+        checkNotNull( dataElementService );
+
         this.programExpressionStore = programExpressionStore;
-    }
-
-    private ProgramStageService programStageService;
-
-    public void setProgramStageService( ProgramStageService programStageService )
-    {
         this.programStageService = programStageService;
-    }
-
-    private DataElementService dataElementService;
-
-    public void setDataElementService( DataElementService dataElementService )
-    {
         this.dataElementService = dataElementService;
     }
 

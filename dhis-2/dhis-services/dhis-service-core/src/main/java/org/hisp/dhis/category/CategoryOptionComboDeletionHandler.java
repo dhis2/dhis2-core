@@ -38,11 +38,15 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.category.CategoryOptionComboDeletionHandler" )
 public class CategoryOptionComboDeletionHandler
     extends DeletionHandler
 {
@@ -50,17 +54,16 @@ public class CategoryOptionComboDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    public void setCategoryService( CategoryService categoryService )
+    private final JdbcTemplate jdbcTemplate;
+
+    public CategoryOptionComboDeletionHandler( CategoryService categoryService, JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( categoryService );
+        checkNotNull( jdbcTemplate );
+
         this.categoryService = categoryService;
-    }
-
-    private JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
         this.jdbcTemplate = jdbcTemplate;
     }
 

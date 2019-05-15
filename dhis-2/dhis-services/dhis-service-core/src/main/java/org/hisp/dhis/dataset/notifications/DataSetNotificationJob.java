@@ -36,25 +36,37 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobType.DATA_SET_NOTIFICATION;
 
 /**
  * Created by zubair@dhis2.org on 21.07.17.
  */
+@Component( "dataSetNotificationJob" )
 public class DataSetNotificationJob
     extends AbstractJob
 {
-    @Autowired
     private DataSetNotificationService dataSetNotificationService;
 
-    @Autowired
     private MessageService messageService;
 
-    @Autowired
     private Notifier notifier;
+
+    public DataSetNotificationJob( DataSetNotificationService dataSetNotificationService, MessageService messageService,
+        Notifier notifier )
+    {
+        checkNotNull( dataSetNotificationService );
+        checkNotNull( messageService );
+        checkNotNull( notifier );
+
+        this.dataSetNotificationService = dataSetNotificationService;
+        this.messageService = messageService;
+        this.notifier = notifier;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

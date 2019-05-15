@@ -80,10 +80,14 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.RadioCheckField;
 import com.lowagie.text.pdf.TextField;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 /**
  * @author James Chang
  */
+@Service( "pdfDataEntryFormService" )
+@Scope("prototype")
 public class DefaultPdfDataEntryFormService
     implements PdfDataEntryFormService
 {

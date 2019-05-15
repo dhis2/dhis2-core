@@ -28,18 +28,18 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -47,7 +47,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -56,9 +59,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by zubair@dhis2.org on 11.08.17.
  */
+@Component( "org.hisp.dhis.sms.listener.ProgramStageDataEntrySMSListener" )
 @Transactional
 public class ProgramStageDataEntrySMSListener
     extends BaseSMSListener
@@ -71,17 +77,36 @@ public class ProgramStageDataEntrySMSListener
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Autowired
-    private SMSCommandService smsCommandService;
+    private final SMSCommandService smsCommandService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
+
+    public ProgramStageDataEntrySMSListener( ProgramInstanceService programInstanceService,
+        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender,
+        TrackedEntityInstanceService trackedEntityInstanceService,
+        TrackedEntityAttributeService trackedEntityAttributeService, SMSCommandService smsCommandService,
+        ProgramInstanceService programInstanceService1 )
+    {
+        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+            currentUserService, incomingSmsService, smsSender );
+
+        checkNotNull( trackedEntityAttributeService );
+        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( smsCommandService );
+        checkNotNull( programInstanceService );
+
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
+        this.smsCommandService = smsCommandService;
+        this.programInstanceService = programInstanceService1;
+    }
+
 
     // -------------------------------------------------------------------------
     // IncomingSmsListener implementation

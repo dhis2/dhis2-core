@@ -30,24 +30,38 @@ package org.hisp.dhis.analytics.hibernate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.analytics.AnalyticsTableHookStore" )
 public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
     implements AnalyticsTableHookStore
 {
     private static final Log log = LogFactory.getLog( HibernateAnalyticsTableHookStore.class );
-    
+
+    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, AnalyticsTableHook.class, currentUserService, deletedObjectService, aclService, false );
+    }
+
     @Override
     public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {

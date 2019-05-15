@@ -52,9 +52,9 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,34 +64,52 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.system.SystemService" )
 public class DefaultSystemService
     implements SystemService, InitializingBean
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
 
-    @Autowired
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
 
-    @Autowired
-    private DatabaseInfo databaseInfo;
+    private final DatabaseInfo databaseInfo;
 
-    @Autowired
-    private ConfigurationService configurationService;
+    private final ConfigurationService configurationService;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
+    private final DhisConfigurationProvider dhisConfig;
 
-    @Autowired
-    private CalendarService calendarService;
+    private final CalendarService calendarService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private DataSourceManager dataSourceManager;
+    private final DataSourceManager dataSourceManager;
+
+    public DefaultSystemService( LocationManager locationManager, DatabaseInfo databaseInfo,
+        ConfigurationService configurationService, DhisConfigurationProvider dhisConfig,
+        CalendarService calendarService, SystemSettingManager systemSettingManager,
+        DataSourceManager dataSourceManager )
+    {
+        checkNotNull( locationManager );
+        checkNotNull( databaseInfo );
+        checkNotNull( configurationService );
+        checkNotNull( dhisConfig );
+        checkNotNull( calendarService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( dataSourceManager );
+
+        this.locationManager = locationManager;
+        this.databaseInfo = databaseInfo;
+        this.configurationService = configurationService;
+        this.dhisConfig = dhisConfig;
+        this.calendarService = calendarService;
+        this.systemSettingManager = systemSettingManager;
+        this.dataSourceManager = dataSourceManager;
+    }
 
     /**
      * Variable holding fixed system info state.
@@ -99,8 +117,7 @@ public class DefaultSystemService
     private SystemInfo systemInfo = null;
 
     @Override
-    public void afterPropertiesSet() throws Exception
-    {
+    public void afterPropertiesSet() {
         systemInfo = getFixedSystemInfo();
 
         List<String> info = ImmutableList.<String>builder()

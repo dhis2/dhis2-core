@@ -34,10 +34,14 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Component( "org.hisp.dhis.dimension.DataDimensionItemDeletionHandler" )
 public class DataDimensionItemDeletionHandler
     extends DeletionHandler
 {
@@ -45,10 +49,11 @@ public class DataDimensionItemDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public DataDimensionItemDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;
     }
 

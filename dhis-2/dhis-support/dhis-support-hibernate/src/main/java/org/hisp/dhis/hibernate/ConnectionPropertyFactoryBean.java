@@ -68,7 +68,6 @@ public class ConnectionPropertyFactoryBean
 
     @Override
     public String getObject()
-        throws Exception
     {
         String value = hibernateConfigurationProvider.getConfiguration().getProperty( hibernateProperty );
         

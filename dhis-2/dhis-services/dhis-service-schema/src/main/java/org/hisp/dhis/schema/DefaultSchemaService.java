@@ -28,6 +28,7 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.*;
@@ -44,11 +45,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.OrderComparator;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -56,6 +57,7 @@ import com.google.common.collect.Maps;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com> descriptors
  */
+@Service( "org.hisp.dhis.schema.SchemaService" )
 public class DefaultSchemaService
     implements SchemaService
 {
@@ -186,9 +188,8 @@ public class DefaultSchemaService
     public DefaultSchemaService( PropertyIntrospectorService propertyIntrospectorService,
         SessionFactory sessionFactory )
     {
-
-        Preconditions.checkNotNull( propertyIntrospectorService );
-        Preconditions.checkNotNull( sessionFactory );
+        checkNotNull( propertyIntrospectorService );
+        checkNotNull( sessionFactory );
 
         this.propertyIntrospectorService = propertyIntrospectorService;
         this.sessionFactory = sessionFactory;

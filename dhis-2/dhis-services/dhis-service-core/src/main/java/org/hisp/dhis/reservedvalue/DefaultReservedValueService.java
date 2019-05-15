@@ -39,8 +39,8 @@ import org.hisp.dhis.textpattern.TextPatternMethodUtils;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,22 +51,34 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.reservedvalue.ReservedValueService" )
 public class DefaultReservedValueService
     implements ReservedValueService
 {
     private static final long GENERATION_TIMEOUT = (1000 * 30); // 30 seconds
 
-    @Autowired
     private TextPatternService textPatternService;
 
-    @Autowired
     private ReservedValueStore reservedValueStore;
 
-    @Autowired
     private SequentialNumberCounterStore sequentialNumberCounterStore;
+
+    public DefaultReservedValueService( TextPatternService textPatternService, ReservedValueStore reservedValueStore,
+        SequentialNumberCounterStore sequentialNumberCounterStore )
+    {
+        checkNotNull( textPatternService );
+        checkNotNull( reservedValueStore );
+        checkNotNull( sequentialNumberCounterStore );
+
+        this.textPatternService = textPatternService;
+        this.reservedValueStore = reservedValueStore;
+        this.sequentialNumberCounterStore = sequentialNumberCounterStore;
+    }
 
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 

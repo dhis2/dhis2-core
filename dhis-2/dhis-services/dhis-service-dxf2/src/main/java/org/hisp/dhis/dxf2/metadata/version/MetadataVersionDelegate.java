@@ -47,8 +47,9 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -57,6 +58,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author anilkumk
  */
+@Component( "org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate" )
+@Scope("prototype")
 public class MetadataVersionDelegate
 {
     private static final Log log = LogFactory.getLog( MetadataVersionDelegate.class );
@@ -69,7 +72,6 @@ public class MetadataVersionDelegate
 
     private MetadataVersionService metadataVersionService;
 
-    @Autowired
     public MetadataVersionDelegate( DefaultMetadataSystemSettingService metadataSystemSettingService,
         SynchronizationManager synchronizationManager, RenderService renderService,
         MetadataVersionService metadataVersionService )
@@ -197,7 +199,7 @@ public class MetadataVersionDelegate
         String password = metadataSystemSettingService.getRemoteInstancePassword();
 
         log.info( "Remote server metadata version  URL: " + url + ", username: " + username );
-        DhisHttpResponse dhisHttpResponse = null;
+        DhisHttpResponse dhisHttpResponse;
 
         try
         {

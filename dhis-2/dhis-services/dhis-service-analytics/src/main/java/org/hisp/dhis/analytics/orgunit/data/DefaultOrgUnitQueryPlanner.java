@@ -36,10 +36,12 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner" )
 public class DefaultOrgUnitQueryPlanner
     implements OrgUnitQueryPlanner
 {

@@ -50,15 +50,19 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.resourcetable.table.*;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.resourcetable.ResourceTableService" )
 public class DefaultResourceTableService
     implements ResourceTableService
 {
@@ -70,60 +74,45 @@ public class DefaultResourceTableService
 
     private ResourceTableStore resourceTableStore;
 
-    public void setResourceTableStore( ResourceTableStore resourceTableStore )
-    {
-        this.resourceTableStore = resourceTableStore;
-    }
-    
     private IdentifiableObjectManager idObjectManager;
-
-    public void setIdObjectManager( IdentifiableObjectManager idObjectManager )
-    {
-        this.idObjectManager = idObjectManager;
-    }
 
     private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
 
     private PeriodService periodService;
 
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
     private SqlViewService sqlViewService;
-
-    public void setSqlViewService( SqlViewService sqlViewService )
-    {
-        this.sqlViewService = sqlViewService;
-    }
 
     private DataApprovalLevelService dataApprovalLevelService;
 
-    public void setDataApprovalLevelService( DataApprovalLevelService dataApprovalLevelService )
-    {
-        this.dataApprovalLevelService = dataApprovalLevelService;
-    }
-    
     private CategoryService categoryService;
     
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
-
     private StatementBuilder statementBuilder;
     
-    public void setStatementBuilder( StatementBuilder statementBuilder )
+    public DefaultResourceTableService( ResourceTableStore resourceTableStore,
+        IdentifiableObjectManager idObjectManager, OrganisationUnitService organisationUnitService,
+        PeriodService periodService, SqlViewService sqlViewService, DataApprovalLevelService dataApprovalLevelService,
+        CategoryService categoryService, StatementBuilder statementBuilder )
     {
+        checkNotNull( resourceTableStore );
+        checkNotNull( idObjectManager );
+        checkNotNull( organisationUnitService );
+        checkNotNull( periodService );
+        checkNotNull( sqlViewService );
+        checkNotNull( dataApprovalLevelService );
+        checkNotNull( categoryService );
+        checkNotNull( statementBuilder );
+
+        this.resourceTableStore = resourceTableStore;
+        this.idObjectManager = idObjectManager;
+        this.organisationUnitService = organisationUnitService;
+        this.periodService = periodService;
+        this.sqlViewService = sqlViewService;
+        this.dataApprovalLevelService = dataApprovalLevelService;
+        this.categoryService = categoryService;
         this.statementBuilder = statementBuilder;
     }
-    
+
     // -------------------------------------------------------------------------
     // ResourceTableService implementation
     // -------------------------------------------------------------------------

@@ -28,6 +28,7 @@ package org.hisp.dhis.validation.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
@@ -53,7 +54,7 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.api.client.util.Lists;
@@ -63,23 +64,35 @@ import com.google.api.client.util.Sets;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
+@Component( "monitoringJob" )
 public class MonitoringJob
     extends AbstractJob
 {
-    @Autowired
-    private ValidationService validationService;
+    private final ValidationService validationService;
 
-    @Autowired
-    private ValidationRuleService validationRuleService;
+    private final ValidationRuleService validationRuleService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    @Autowired
-    private MessageService messageService;
+    private final MessageService messageService;
+
+    public MonitoringJob( ValidationService validationService, ValidationRuleService validationRuleService,
+        PeriodService periodService, Notifier notifier, MessageService messageService )
+    {
+        checkNotNull( validationRuleService );
+        checkNotNull( validationService );
+        checkNotNull( periodService );
+        checkNotNull( notifier );
+        checkNotNull( messageService );
+
+        this.validationService = validationService;
+        this.validationRuleService = validationRuleService;
+        this.periodService = periodService;
+        this.notifier = notifier;
+        this.messageService = messageService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -115,7 +128,7 @@ public class MonitoringJob
             else
             {
                 validationRules = groupUIDs.stream()
-                    .map( ( uid ) -> validationRuleService.getValidationRuleGroup( uid ) )
+                    .map(validationRuleService::getValidationRuleGroup)
                     .filter( Objects::nonNull )
                     .map( ValidationRuleGroup::getMembers )
                     .filter( Objects::nonNull )

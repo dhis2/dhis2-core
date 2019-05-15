@@ -33,11 +33,15 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.dataset.CompleteDataSetRegistrationDeletionHandler" )
 public class CompleteDataSetRegistrationDeletionHandler
     extends DeletionHandler
 {
@@ -46,16 +50,16 @@ public class CompleteDataSetRegistrationDeletionHandler
     // -------------------------------------------------------------------------
 
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
-
-    public void setCompleteDataSetRegistrationService( CompleteDataSetRegistrationService completeDataSetRegistrationService )
-    {
-        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
-    }
-
+    
     private JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public CompleteDataSetRegistrationDeletionHandler(
+        CompleteDataSetRegistrationService completeDataSetRegistrationService, JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( completeDataSetRegistrationService );
+        checkNotNull( jdbcTemplate );
+
+        this.completeDataSetRegistrationService = completeDataSetRegistrationService;
         this.jdbcTemplate = jdbcTemplate;
     }
 

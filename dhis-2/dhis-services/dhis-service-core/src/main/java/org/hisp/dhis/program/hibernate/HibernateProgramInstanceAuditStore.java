@@ -35,6 +35,8 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.program.ProgramInstanceAuditQueryParams;
 import org.hisp.dhis.program.ProgramInstanceAuditStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -47,18 +49,14 @@ import java.util.function.Function;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Repository( "org.hisp.dhis.program.ProgramInstanceAuditStore" )
 public class HibernateProgramInstanceAuditStore
     extends HibernateGenericStore<ProgramInstanceAudit>
     implements ProgramInstanceAuditStore
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateProgramInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
     {
-        this.sessionFactory = sessionFactory;
+        super( sessionFactory, jdbcTemplate, ProgramInstanceAudit.class, false );
     }
     
     // -------------------------------------------------------------------------

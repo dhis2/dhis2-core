@@ -46,6 +46,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -57,11 +58,13 @@ import java.util.stream.Collectors;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
 public class DefaultOrganisationUnitService
     implements OrganisationUnitService
 {
@@ -73,46 +76,44 @@ public class DefaultOrganisationUnitService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private Environment env;
+    private final Environment env;
 
-    public void setEnv( Environment env )
-    {
-        this.env = env;
-    }
+    private final OrganisationUnitStore organisationUnitStore;
 
-    private OrganisationUnitStore organisationUnitStore;
+    private final DataSetService dataSetService;
 
-    public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
-    {
-        this.organisationUnitStore = organisationUnitStore;
-    }
-
-    private DataSetService dataSetService;
-
-    public void setDataSetService( DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
-    }
-
-    private OrganisationUnitLevelStore organisationUnitLevelStore;
-
-    public void setOrganisationUnitLevelStore( OrganisationUnitLevelStore organisationUnitLevelStore )
-    {
-        this.organisationUnitLevelStore = organisationUnitLevelStore;
-    }
+    private final OrganisationUnitLevelStore organisationUnitLevelStore;
 
     private CurrentUserService currentUserService;
 
+    private final ConfigurationService configurationService;
+
+    public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
+        DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
+        CurrentUserService currentUserService, ConfigurationService configurationService )
+    {
+        checkNotNull( env );
+        checkNotNull( organisationUnitStore );
+        checkNotNull( dataSetService );
+        checkNotNull( organisationUnitLevelStore );
+        checkNotNull( currentUserService );
+        checkNotNull( configurationService );
+
+        this.env = env;
+        this.organisationUnitStore = organisationUnitStore;
+        this.dataSetService = dataSetService;
+        this.organisationUnitLevelStore = organisationUnitLevelStore;
+        this.currentUserService = currentUserService;
+        this.configurationService = configurationService;
+    }
+
+    /**
+     * Used only by test harness. Remove after test refactoring
+     */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
-    }
-
-    private ConfigurationService configurationService;
-
-    public void setConfigurationService( ConfigurationService configurationService )
-    {
-        this.configurationService = configurationService;
     }
 
     @PostConstruct

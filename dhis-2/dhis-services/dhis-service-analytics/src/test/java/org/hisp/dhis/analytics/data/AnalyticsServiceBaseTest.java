@@ -46,8 +46,7 @@ import org.springframework.core.env.Environment;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Luciano Fiandesio
@@ -67,7 +66,7 @@ public abstract class AnalyticsServiceBaseTest {
     @Mock
     private QueryPlanner queryPlanner;
 
-    @Spy
+
     private DefaultQueryValidator queryValidator;
 
     @Mock
@@ -102,6 +101,11 @@ public abstract class AnalyticsServiceBaseTest {
     @Before
     public void baseSetUp()
     {
+
+        DefaultQueryValidator qv = new DefaultQueryValidator( systemSettingManager );
+
+        queryValidator = spy( qv );
+
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
             eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );

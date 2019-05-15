@@ -33,11 +33,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
+@Component( "org.hisp.dhis.sms.config.SMSSendingCallback" )
 public class MessageSendingCallback
 {
     private static final Log log = LogFactory.getLog( MessageSendingCallback.class );

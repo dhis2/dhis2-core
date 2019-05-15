@@ -34,7 +34,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.datavalue.DataValueAuditDeletionHandler" )
 public class DataValueAuditDeletionHandler
     extends DeletionHandler
 {
@@ -42,10 +46,11 @@ public class DataValueAuditDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public DataValueAuditDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;
     }
 

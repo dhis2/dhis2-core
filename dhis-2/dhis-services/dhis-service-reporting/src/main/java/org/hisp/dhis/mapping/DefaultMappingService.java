@@ -38,13 +38,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Jan Henrik Overland
  */
+@Service( "org.hisp.dhis.mapping.MappingService" )
 public class DefaultMappingService
     extends GenericAnalyticalObjectService<MapView>
     implements MappingService
@@ -53,45 +57,34 @@ public class DefaultMappingService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MapStore mapStore;
+    private final MapStore mapStore;
+    
+    private final MapViewStore mapViewStore;
 
-    public void setMapStore( MapStore mapStore )
+    private final ExternalMapLayerStore externalMapLayerStore;
+
+    private final OrganisationUnitService organisationUnitService;
+    
+    private final IndicatorService indicatorService;
+    
+    private final PeriodService periodService;
+
+    public DefaultMappingService( MapStore mapStore, MapViewStore mapViewStore,
+        ExternalMapLayerStore externalMapLayerStore, OrganisationUnitService organisationUnitService,
+        IndicatorService indicatorService, PeriodService periodService )
     {
+        checkNotNull( mapStore );
+        checkNotNull( mapViewStore );
+        checkNotNull( externalMapLayerStore );
+        checkNotNull( organisationUnitService );
+        checkNotNull( indicatorService );
+        checkNotNull( periodService );
+
         this.mapStore = mapStore;
-    }
-
-    private MapViewStore mapViewStore;
-
-    public void setMapViewStore( MapViewStore mapViewStore )
-    {
         this.mapViewStore = mapViewStore;
-    }
-
-    private ExternalMapLayerStore externalMapLayerStore;
-
-    public void setExternalMapLayerStore( ExternalMapLayerStore externalMapLayerStore )
-    {
         this.externalMapLayerStore = externalMapLayerStore;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private IndicatorService indicatorService;
-
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
         this.indicatorService = indicatorService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
         this.periodService = periodService;
     }
 
@@ -194,9 +187,7 @@ public class DefaultMappingService
     @Transactional(readOnly = true)
     public MapView getMapView( String uid )
     {
-        MapView mapView = mapViewStore.getByUid( uid );
-
-        return mapView;
+        return mapViewStore.getByUid( uid );
     }
 
     @Override

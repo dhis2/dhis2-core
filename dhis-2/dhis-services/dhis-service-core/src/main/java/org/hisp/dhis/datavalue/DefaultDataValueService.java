@@ -28,6 +28,7 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 
@@ -48,6 +49,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -57,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Kristian Nordal
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.datavalue.DataValueService" )
 public class DefaultDataValueService
     implements DataValueService
 {
@@ -66,31 +69,25 @@ public class DefaultDataValueService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataValueStore dataValueStore;
+    private final DataValueStore dataValueStore;
 
-    public void setDataValueStore( DataValueStore dataValueStore )
+    private final DataValueAuditService dataValueAuditService;
+
+    private final CurrentUserService currentUserService;
+
+    private final CategoryService categoryService;
+
+    public DefaultDataValueService( DataValueStore dataValueStore, DataValueAuditService dataValueAuditService,
+        CurrentUserService currentUserService, CategoryService categoryService )
     {
+        checkNotNull( dataValueAuditService );
+        checkNotNull( dataValueStore );
+        checkNotNull( currentUserService );
+        checkNotNull( categoryService );
+
         this.dataValueStore = dataValueStore;
-    }
-
-    private DataValueAuditService dataValueAuditService;
-
-    public void setDataValueAuditService( DataValueAuditService dataValueAuditService )
-    {
         this.dataValueAuditService = dataValueAuditService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private CategoryService categoryService;
-
-    public void setCategoryService( CategoryService categoryService )
-    {
         this.categoryService = categoryService;
     }
 
