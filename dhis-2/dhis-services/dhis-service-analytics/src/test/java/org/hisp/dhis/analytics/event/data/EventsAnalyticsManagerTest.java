@@ -32,8 +32,6 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,13 +40,14 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Before;
 import org.junit.Rule;
@@ -59,12 +58,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventsAnalyticsManagerTest
+public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -80,10 +78,11 @@ public class EventsAnalyticsManagerTest
 
     private JdbcEventAnalyticsManager subject;
 
-    @Mock
-    private SqlRowSet rowSet;
-
-    private ProgramStage programStage;
+    @Captor
+    private ArgumentCaptor<String> sql;
+    
+    private final String TABLE_NAME = "analytics_event";
+    private final String DEFAULT_COLUMNS = "psi,ps,executiondate,ST_AsGeoJSON(psigeometry, 6),longitude,latitude,ouname,oucode";
 
     @Before
     public void setUp()
@@ -96,13 +95,113 @@ public class EventsAnalyticsManagerTest
     }
 
     @Test
+    public void verifyGetEventSqlWithProgram()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParams(), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
+    public void verifyGetEventsSqlWithProgramAndProgramStage()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParams( programStage ), createGrid(),
+                100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid() + "' limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
+    public void verifyGetEventsWithProgramStageAndNumericDataElement()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParams( programStage, ValueType.INTEGER ), createGrid(),
+                100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid() + "' limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
+    public void verifyGetEventsWithProgramStageAndNumericDataElementAndFilter()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParamsWithFilter( programStage, ValueType.INTEGER ), createGrid(),
+                100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid() + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+    
+
+    @Test
+    public void verifyGetEventsWithProgramStageAndTextDataElement()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParams( programStage, ValueType.TEXT ), createGrid(),
+                100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid() + "' limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
+    public void verifyGetEventsWithProgramStageAndTextDataElementAndFilter()
+    {
+        mockEmptyRowSet();
+
+        subject.getEvents( createRequestParamsWithFilter( programStage, ValueType.TEXT ), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\"  from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+            + programStage.getUid() + "' and lower(ax.\"fWIAEtYVEGk\") > '10' limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
+
+    @Test
     public void verifyGetAggregatedEventQuery()
     {
         mockRowSet();
 
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
-        Grid resultGrid = subject.getAggregatedEventData( createRequestParams( ValueType.INTEGER ), createGrid(),
+        Grid resultGrid = subject.getAggregatedEventData( createRequestParams( programStage, ValueType.INTEGER ), createGrid(),
             200000 );
 
         assertThat( resultGrid.getRows(), hasSize( 1 ) );
@@ -113,19 +212,22 @@ public class EventsAnalyticsManagerTest
         assertThat( resultGrid.getRow( 0 ).get( 3 ), is( 100 ) );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
-        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from analytics_event_ebayegv0exc as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+
+        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from " + getTable( programA.getUid() )
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
             + programStage.getUid() + "' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+
         assertThat( sql.getValue(), is( expected ) );
     }
 
     @Test
     public void verifyGetAggregatedEventQueryWithFilter()
     {
-        mockRowSet();
-
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
 
-        Grid resultGrid = subject.getAggregatedEventData( createRequestParamsWithFilter( ValueType.TEXT ), createGrid(),
+        mockRowSet();
+
+        Grid resultGrid = subject.getAggregatedEventData( createRequestParamsWithFilter( programStage, ValueType.TEXT ), createGrid(),
             200000 );
 
         assertThat( resultGrid.getRows(), hasSize( 1 ) );
@@ -136,11 +238,10 @@ public class EventsAnalyticsManagerTest
         assertThat( resultGrid.getRow( 0 ).get( 3 ), is( 100 ) );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
-        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from analytics_event_ebayegv0exc as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
+        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from " + getTable( programA.getUid() )
+                + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
             + programStage.getUid()
             + "' and lower(ax.\"fWIAEtYVEGk\") > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
-        assertThat( sql.getValue(), is( expected ) );
-    }
 
     @Test
     public void verifyFirstAggregationTypeSubquery()
@@ -213,6 +314,8 @@ public class EventsAnalyticsManagerTest
         params.addItem( queryItem );
 
         return params.build();
+
+        assertThat( sql.getValue(), is( expected ) );
     }
 
     private Grid createGrid()
@@ -232,5 +335,16 @@ public class EventsAnalyticsManagerTest
         when( rowSet.getString( "monthly" ) ).thenReturn( "201701" );
         when( rowSet.getString( "ou" ) ).thenReturn( "Sierra Leone" );
         when( rowSet.getInt( "value" ) ).thenReturn( 100 );
+    }
+
+    private void assertSql( String actual, String expected )
+    {
+        assertThat( "select " + DEFAULT_COLUMNS + "," + actual, is( expected ) );
+    }
+
+    @Override
+    String getTableName()
+    {
+        return this.TABLE_NAME;
     }
 }

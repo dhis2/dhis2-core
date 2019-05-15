@@ -81,6 +81,9 @@ public class JdbcEnrollmentAnalyticsManager
         implements EnrollmentAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcEnrollmentAnalyticsManager.class );
+    
+    private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
+        "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService )
@@ -91,37 +94,7 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit ) 
     {
-        List<String> fixedCols = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
-
-        List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-
-        String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
-
-        sql += getFromClause( params );
-
-        sql += getWhereClause( params );
-
-        sql += getSortClause( params );
-
-        sql += getPagingClause( params, maxLimit );
-
-        // ---------------------------------------------------------------------
-        // Grid
-        // ---------------------------------------------------------------------
-
-        try
-        {
-            getEnrollments( params, grid, sql );
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
-        }
-        catch ( DataAccessResourceFailureException ex )
-        {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-        }
+        withExceptionHandling( () -> getEnrollments( params, grid, getEventsOrEnrollmentsSql(COLUMNS, params, maxLimit) ) );
     }
 
     private void getEnrollments( EventQueryParams params, Grid grid, String sql )
@@ -350,6 +323,14 @@ public class JdbcEnrollmentAnalyticsManager
         return sql;
     }
 
+    @Override
+    protected String getSelectClause( EventQueryParams params )
+    {
+        List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params ) );
+
+        return  "select " + StringUtils.join( selectCols, "," ) + " ";
+    }
+
     /**
      * Returns an encoded column name wrapped in lower directive if not numeric
      * or boolean.
@@ -366,7 +347,7 @@ public class JdbcEnrollmentAnalyticsManager
             colName = quote( colName );
             Assert.isTrue( item.hasProgram(), "Can not query item with program stage but no program:" + item.getItemName() );
             String eventTableName = "analytics_event_" + item.getProgram().getUid();
-            return "(select " + ( item.isText() ? "lower(" + colName + ")" : colName ) + " from " + eventTableName +
+            return "(select " +  colName  + " from " + eventTableName +
             " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " + 
             "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
             "order by executiondate " + "desc limit 1 )";
