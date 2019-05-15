@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSOWRD: dhis
 
   e2e-test-web:
-    image: "dhis2-core:${TAG}"
+    image: "${IMAGE_NAME}"
     build:
       dockerfile: Dockerfile
       context: ../..
