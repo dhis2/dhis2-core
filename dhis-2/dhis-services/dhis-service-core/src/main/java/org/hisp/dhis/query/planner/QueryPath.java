@@ -66,7 +66,14 @@ public class QueryPath
 
     public String getPath()
     {
-        return haveAlias() ? PATH_JOINER.join( alias ) + "." + property.getFieldName() : property.getFieldName();
+        String fieldName = property.getFieldName();
+
+        if ( fieldName == null )
+        {
+            fieldName = property.getName();
+        }
+
+        return haveAlias() ? PATH_JOINER.join( alias ) + "." + fieldName : fieldName;
     }
 
     public boolean isPersisted()
