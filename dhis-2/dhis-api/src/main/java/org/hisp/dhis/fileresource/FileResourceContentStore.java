@@ -71,7 +71,7 @@ public interface FileResourceContentStore
      * @param imageFile will map image dimension to its associated file.
      * @return the key on success or null if saving failed.
      */
-    String saveFileResourceContent( FileResource fileResource, Map<String, File> imageFile );
+    String saveFileResourceContent( FileResource fileResource, Map<ImageFileDimension, File> imageFile );
 
     /**
      * Delete the content bytes of a file resource.

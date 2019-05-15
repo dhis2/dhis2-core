@@ -87,6 +87,7 @@ public class FileResourceController
     private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
         .add( "image/jpg" )
         .add( "image/png" )
+        .add( "image/jpeg" )
         .build();
 
     // ---------------------------------------------------------------------
@@ -209,7 +210,7 @@ public class FileResourceController
 
         FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
 
-        if ( IMAGE_CONTENT_TYPES.contains( contentType ) ) //Todo check if contentType is image
+        if ( IMAGE_CONTENT_TYPES.contains( contentType ) )
         {
             fileResource.setSaveMultipleSizes( true );
         }

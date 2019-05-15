@@ -28,21 +28,77 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.imgscalr.Scalr;
 import org.springframework.stereotype.Service;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * @Author Zubair Asghar.
  */
 
-@Service( "org.hisp.dhis.fileresource.ImageResizeService" )
-public class DefaultImageResizeService implements ImageResizeService
+@Service( "org.hisp.dhis.fileresource.ImageProcessingService" )
+public class DefaultImageResizeService implements ImageProcessingService
 {
+    private static final ImmutableMap<ImageFileDimension, ImageSize> IMAGE_FILE_DIMENSIONS = new ImmutableMap.Builder<ImageFileDimension, ImageSize>()
+        .put( ImageFileDimension.SMALL, new ImageSize( 256, 256 ) )
+        .put( ImageFileDimension.MEDIUM, new ImageSize( 512, 512 ) )
+        .put( ImageFileDimension.LARGE, new ImageSize( 1024, 1024 ) )
+        .build();
+
     @Override
-    public Map<String, File> createImages( FileResource fileResource, File file )
+    public Map<ImageFileDimension, File> createImages( FileResource fileResource, File file )
     {
-        return null;
+        Map<ImageFileDimension, File> images = new HashMap<>();
+
+        try
+        {
+            BufferedImage image = ImageIO.read( file );
+
+            for ( ImageFileDimension dimension : ImageFileDimension.values() )
+            {
+                ImageSize size = IMAGE_FILE_DIMENSIONS.get( dimension );
+
+                BufferedImage resizedImage = resize( image, Scalr.Method.QUALITY, size );
+
+                File tempFile = new File( file.getPath() + dimension.getDimension() );
+
+                ImageIO.write( resizedImage, fileResource.getFormat(), tempFile );
+
+                images.put( dimension, tempFile );
+            }
+
+        }
+        catch ( IOException e )
+        {
+            DebugUtils.getStackTrace( e );
+            return new HashMap<>();
+        }
+
+        return images;
+    }
+
+    private BufferedImage resize( BufferedImage image, Scalr.Method method, ImageSize dimensions )
+    {
+        return  Scalr.resize( image, method, dimensions.width, dimensions.height );
+    }
+
+    private static class ImageSize
+    {
+        int width;
+        int height;
+
+        ImageSize(int width, int height )
+        {
+            this.width = width;
+            this.height = height;
+        }
     }
 }

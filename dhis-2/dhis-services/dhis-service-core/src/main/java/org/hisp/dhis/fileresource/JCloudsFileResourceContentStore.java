@@ -269,15 +269,15 @@ public class JCloudsFileResourceContentStore
     }
 
     @Override
-    public String saveFileResourceContent( FileResource fileResource, Map<String, File> imageFiles )
+    public String saveFileResourceContent( FileResource fileResource, Map<ImageFileDimension, File> imageFiles )
     {
         Blob blob = null;
 
-        for ( Map.Entry<String, File> entry : imageFiles.entrySet() )
+        for ( Map.Entry<ImageFileDimension, File> entry : imageFiles.entrySet() )
         {
             File file = entry.getValue();
 
-            blob = createBlob( fileResource, entry.getKey(), file );
+            blob = createBlob( fileResource, entry.getKey().getDimension(), file );
 
             if ( blob != null )
             {

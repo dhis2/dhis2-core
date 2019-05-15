@@ -64,38 +64,35 @@ public class DefaultFileResourceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private FileResourceStore fileResourceStore;
+    private final FileResourceStore fileResourceStore;
 
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-    private FileResourceContentStore fileResourceContentStore;
+    private final FileResourceContentStore fileResourceContentStore;
 
-    private SchedulingManager schedulingManager;
+    private final SchedulingManager schedulingManager;
 
-    private FileResourceUploadCallback uploadCallback;
+    private final FileResourceUploadCallback uploadCallback;
+
+    private final ImageProcessingService imageProcessingService;
 
     public DefaultFileResourceService( FileResourceStore fileResourceStore,
         SessionFactory sessionFactory, FileResourceContentStore fileResourceContentStore,
-        SchedulingManager schedulingManager, FileResourceUploadCallback uploadCallback )
+        SchedulingManager schedulingManager, FileResourceUploadCallback uploadCallback, ImageProcessingService imageProcessingService )
     {
         checkNotNull( fileResourceStore );
         checkNotNull( sessionFactory );
         checkNotNull( fileResourceContentStore );
         checkNotNull( schedulingManager );
         checkNotNull( uploadCallback );
+        checkNotNull( imageProcessingService );
 
         this.fileResourceStore = fileResourceStore;
         this.sessionFactory = sessionFactory;
         this.fileResourceContentStore = fileResourceContentStore;
         this.schedulingManager = schedulingManager;
         this.uploadCallback = uploadCallback;
-    }
-
-    private ImageResizeService imageResizeService;
-
-    public void setImageResizeService( ImageResizeService imageResizeService )
-    {
-        this.imageResizeService = imageResizeService;
+        this.imageProcessingService = imageProcessingService;
     }
 
     // -------------------------------------------------------------------------
@@ -132,7 +129,7 @@ public class DefaultFileResourceService
     {
         if ( fileResource.isSaveMultipleSizes() )
         {
-            Map<String, File> imageFiles = imageResizeService.createImages( fileResource, file );
+            Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
             saveFileResourceInternal( imageFiles, fileResource );
         }
@@ -222,7 +219,7 @@ public class DefaultFileResourceService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private String saveFileResourceInternal( Map<String, File> imageFiles, FileResource fileResource )
+    private String saveFileResourceInternal( Map<ImageFileDimension, File> imageFiles, FileResource fileResource )
     {
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceStore.save( fileResource );
