@@ -11,6 +11,8 @@ services:
 
   e2e-test-web:
     image: "${IMAGE_NAME}"
+    logging:
+      driver: "json-file"
     build:
       dockerfile: Dockerfile
       context: ../..
