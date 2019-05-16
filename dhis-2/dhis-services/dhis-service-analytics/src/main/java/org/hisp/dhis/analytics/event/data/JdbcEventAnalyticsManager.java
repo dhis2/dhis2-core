@@ -291,7 +291,7 @@ public class JdbcEventAnalyticsManager
             cols.add( "enrollmentdate", "incidentdate" );
         }
 
-        cols.add( "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
+        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
 
         List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
 
