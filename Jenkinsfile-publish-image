@@ -33,7 +33,9 @@ pipeline {
                     DOCKER_IMAGE_FULL_NAME = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
                     echo "Image full name: ${DOCKER_IMAGE_FULL_NAME}"
                     
-                    sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d --build"
+                    dir("dhis-2/dhis-e2e-test") {
+                        sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d --build"
+                    }   
                 }
             }
         }
