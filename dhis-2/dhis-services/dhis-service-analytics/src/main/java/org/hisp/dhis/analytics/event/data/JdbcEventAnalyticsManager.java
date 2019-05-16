@@ -106,23 +106,6 @@ public class JdbcEventAnalyticsManager
 
     //TODO introduce dedicated "year" partition column
 
-    private String getSelectClause( EventQueryParams params )
-    {
-        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate" );
-
-        if ( params.getProgram().isRegistration() )
-        {
-            cols.add( "enrollmentdate", "incidentdate" );
-        }
-
-        cols.add( "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
-
-        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
-
-        return "select " + StringUtils.join( selectCols, "," ) + " ";
-    }
-
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
@@ -292,6 +275,28 @@ public class JdbcEventAnalyticsManager
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns a select SQL clause for the given query.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getSelectClause( EventQueryParams params )
+    {
+        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
+            .add( "psi", "ps", "executiondate" );
+
+        if ( params.getProgram().isRegistration() )
+        {
+            cols.add( "enrollmentdate", "incidentdate" );
+        }
+
+        cols.add( "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
+
+        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
+
+        return "select " + StringUtils.join( selectCols, "," ) + " ";
+    }
 
     /**
      * Returns a from SQL clause for the given analytics table partition. If the
