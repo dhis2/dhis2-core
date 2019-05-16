@@ -82,6 +82,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -105,14 +106,27 @@ public class JdbcEventAnalyticsManager
 
     //TODO introduce dedicated "year" partition column
 
+    private String getSelectClause( EventQueryParams params )
+    {
+        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
+            .add( "psi", "ps", "executiondate" );
+
+        if ( params.getProgram().isRegistration() )
+        {
+            cols.add( "enrollmentdate", "incidentdate" );
+        }
+
+        cols.add( "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
+
+        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
+
+        return "select " + StringUtils.join( selectCols, "," ) + " ";
+    }
+
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
-
-        List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-
-        String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
+        String sql = getSelectClause( params );
 
         sql += getFromClause( params );
 

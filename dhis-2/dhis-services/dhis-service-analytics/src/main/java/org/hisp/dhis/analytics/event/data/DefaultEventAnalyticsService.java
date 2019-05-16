@@ -127,6 +127,8 @@ public class DefaultEventAnalyticsService
     private static final String NAME_EVENT = "Event";
     private static final String NAME_PROGRAM_STAGE = "Program stage";
     private static final String NAME_EVENT_DATE = "Event date";
+    private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
+    private static final String NAME_INCIDENT_DATE = "Incident date";
     private static final String NAME_GEOMETRY = "Geometry";
     private static final String NAME_LONGITUDE = "Longitude";
     private static final String NAME_LATITUDE = "Latitude";
@@ -599,6 +601,12 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
+
+        if ( params.getProgram().isRegistration() )
+        {
+            grid.addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) );
+        }
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
