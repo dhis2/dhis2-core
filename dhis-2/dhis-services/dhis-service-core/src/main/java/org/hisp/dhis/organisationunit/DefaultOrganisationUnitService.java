@@ -28,9 +28,18 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+
+import java.awt.geom.Point2D;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -45,21 +54,15 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+import com.google.common.collect.Sets;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -88,9 +91,11 @@ public class DefaultOrganisationUnitService
 
     private final ConfigurationService configurationService;
 
+    private final UserSettingService userSettingService;
+
     public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
-        CurrentUserService currentUserService, ConfigurationService configurationService )
+        CurrentUserService currentUserService, ConfigurationService configurationService,  UserSettingService userSettingService )
     {
         checkNotNull( env );
         checkNotNull( organisationUnitStore );
@@ -98,6 +103,7 @@ public class DefaultOrganisationUnitService
         checkNotNull( organisationUnitLevelStore );
         checkNotNull( currentUserService );
         checkNotNull( configurationService );
+        checkNotNull( userSettingService );
 
         this.env = env;
         this.organisationUnitStore = organisationUnitStore;
@@ -105,6 +111,7 @@ public class DefaultOrganisationUnitService
         this.organisationUnitLevelStore = organisationUnitLevelStore;
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
+        this.userSettingService = userSettingService;
     }
 
     /**
@@ -334,6 +341,7 @@ public class DefaultOrganisationUnitService
         params.setParents( Sets.newHashSet( organisationUnit ) );
         params.setMaxLevels( levels );
         params.setFetchChildren( true );
+        params.setOrderBy( SortProperty.fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() ) );
 
         return organisationUnitStore.getOrganisationUnits( params );
     }

@@ -28,20 +28,20 @@ package org.hisp.dhis.commons.action;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.opensymphony.xwork2.Action;
+import java.util.*;
+
+import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.version.Version;
 import org.hisp.dhis.version.VersionService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,6 +74,13 @@ public class GetOrganisationUnitTreeAction
         this.versionService = versionService;
     }
 
+    private UserSettingService userSettingService;
+
+    public void setUserSettingService( UserSettingService userSettingService )
+    {
+        this.userSettingService = userSettingService;
+    }
+
     // -------------------------------------------------------------------------
     // Input & Output
     // -------------------------------------------------------------------------
@@ -104,6 +111,13 @@ public class GetOrganisationUnitTreeAction
     public String getUsername()
     {
         return username;
+    }
+
+    private SortProperty sortBy;
+
+    public SortProperty getSortBy()
+    {
+        return sortBy;
     }
 
     private boolean versionOnly;
@@ -164,6 +178,8 @@ public class GetOrganisationUnitTreeAction
         version = getVersionString();
 
         username = currentUserService.getCurrentUsername();
+
+        sortBy = SortProperty.fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         User user = currentUserService.getCurrentUser();
 
@@ -237,7 +253,8 @@ public class GetOrganisationUnitTreeAction
 
             for ( OrganisationUnit unit : rootOrganisationUnits )
             {
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( unit.getId(), offlineLevels ) );
+                organisationUnits
+                    .addAll( organisationUnitService.getOrganisationUnitWithChildren( unit.getId(), offlineLevels ) );
             }
         }
 
@@ -284,7 +301,8 @@ public class GetOrganisationUnitTreeAction
             return null;
         }
 
-        Integer level = offlineLevel != null ? offlineLevel : organisationUnitService.getOfflineOrganisationUnitLevels();
+        Integer level =
+            offlineLevel != null ? offlineLevel : organisationUnitService.getOfflineOrganisationUnitLevels();
 
         return level == 1 ? 2 : level;
     }
