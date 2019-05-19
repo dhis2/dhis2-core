@@ -161,7 +161,7 @@ public class HibernateOrganisationUnitStore
             hql += hlp.whereAnd() + " o.hierarchyLevel <= :maxLevels ";
         }
 
-        hql += "order by o.name";
+        hql += "order by o." +  params.getOrderBy().getName();
 
         Query query = getQuery( hql );
 
