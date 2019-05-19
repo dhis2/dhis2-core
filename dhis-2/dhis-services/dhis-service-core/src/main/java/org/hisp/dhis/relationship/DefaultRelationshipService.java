@@ -31,13 +31,17 @@ package org.hisp.dhis.relationship;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.relationship.RelationshipService" )
 public class DefaultRelationshipService
     implements RelationshipService
 {
@@ -45,10 +49,12 @@ public class DefaultRelationshipService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private RelationshipStore relationshipStore;
+    private final RelationshipStore relationshipStore;
 
-    public void setRelationshipStore( RelationshipStore relationshipStore )
+    public DefaultRelationshipService( RelationshipStore relationshipStore )
     {
+        checkNotNull( relationshipStore );
+
         this.relationshipStore = relationshipStore;
     }
 

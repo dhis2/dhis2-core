@@ -28,12 +28,14 @@ package org.hisp.dhis.dataelement;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Sandvold
  */
 @Transactional(readOnly = true)
+@Service( "org.hisp.dhis.dataelement.DataElementGroupService" )
 public class DefaultDataElementGroupService
     implements DataElementGroupService
 {

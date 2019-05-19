@@ -29,6 +29,7 @@ package org.hisp.dhis.textpattern;
  */
 
 import com.google.common.collect.ImmutableMap;
+import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.textpattern.TextPatternService" )
 public class DefaultTextPatternService
     implements TextPatternService
 {

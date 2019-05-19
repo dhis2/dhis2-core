@@ -42,6 +42,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
@@ -49,9 +50,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author David Katuscak
  */
+@Component
 public class TrackerSynchronization
 {
     private static final Log log = LogFactory.getLog( TrackerSynchronization.class );
@@ -63,13 +67,18 @@ public class TrackerSynchronization
 
     public TrackerSynchronization( TrackedEntityInstanceService teiService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService )
     {
+        checkNotNull( teiService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( restTemplate );
+        checkNotNull( renderService );
+
         this.teiService = teiService;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;
         this.renderService = renderService;
     }
 
-    public SynchronizationResult syncTrackerProgramData()
+    public SynchronizationResult syncTrackerProgramData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
@@ -90,7 +99,6 @@ public class TrackerSynchronization
         }
 
         final SystemInstance instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.TRACKED_ENTITY_INSTANCES );
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.TRACKER_PROGRAM_SYNC_PAGE_SIZE );
         final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
 
         log.info( objectsToSynchronize + " TEIs to sync were found." );

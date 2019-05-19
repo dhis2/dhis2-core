@@ -28,16 +28,23 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -45,9 +52,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
+@Component( "org.hisp.dhis.sms.listener.SingleEventListener" )
 @Transactional
 public class SingleEventListener
     extends BaseSMSListener
@@ -56,11 +66,25 @@ public class SingleEventListener
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private SMSCommandService smsCommandService;
+    private final SMSCommandService smsCommandService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
+
+    public SingleEventListener( ProgramInstanceService programInstanceService,
+        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
+        ProgramInstanceService programInstanceService1 )
+    {
+        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+            currentUserService, incomingSmsService, smsSender );
+
+        checkNotNull( smsCommandService );
+        checkNotNull( programInstanceService1 );
+
+        this.smsCommandService = smsCommandService;
+        this.programInstanceService = programInstanceService1;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

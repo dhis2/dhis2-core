@@ -42,6 +42,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
@@ -55,33 +57,31 @@ public class DefaultStyleManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
-    }
+    private final SystemSettingManager systemSettingManager;
     
-    private UserSettingService userSettingService;
-
-    public void setUserSettingService( UserSettingService userSettingService )
-    {
-        this.userSettingService = userSettingService;
-    }
-
+    private final UserSettingService userSettingService;
+    
     /**
      * Map for styles. The key refers to the user setting key and the value refers
      * to the path to the CSS file of the style relative to /dhis-web-commons/.
      */
-    private SortedMap<String, String> styles;
+    private final SortedMap<String, String> styles;
 
-    public void setStyles( SortedMap<String, String> styles )
+    private final I18nManager i18nManager;
+
+    public DefaultStyleManager( SystemSettingManager systemSettingManager, UserSettingService userSettingService,
+        SortedMap<String, String> styles, I18nManager i18nManager )
     {
+        checkNotNull( systemSettingManager );
+        checkNotNull( userSettingService );
+        checkNotNull( styles );
+        checkNotNull( i18nManager );
+
+        this.systemSettingManager = systemSettingManager;
+        this.userSettingService = userSettingService;
         this.styles = styles;
+        this.i18nManager = i18nManager;
     }
-    
-    @Autowired
-    private I18nManager i18nManager;
 
     // -------------------------------------------------------------------------
     // StyleManager implementation

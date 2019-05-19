@@ -51,6 +51,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -66,6 +67,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.program.ProgramInstanceService" )
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
 {

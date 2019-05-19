@@ -75,7 +75,7 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
+@Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
 @Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {

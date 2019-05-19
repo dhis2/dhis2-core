@@ -28,14 +28,18 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author markusbekken
  */
 @Transactional
+@Service( "org.hisp.dhis.programrule.ProgramRuleActionService" )
 public class DefaultProgramRuleActionService
     implements ProgramRuleActionService
 {
@@ -45,8 +49,10 @@ public class DefaultProgramRuleActionService
 
     private ProgramRuleActionStore programRuleActionStore;
 
-    public void setProgramRuleActionStore( ProgramRuleActionStore programRuleActionStore )
+    public DefaultProgramRuleActionService( ProgramRuleActionStore programRuleActionStore )
     {
+        checkNotNull( programRuleActionStore );
+
         this.programRuleActionStore = programRuleActionStore;
     }
 

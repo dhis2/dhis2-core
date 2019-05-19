@@ -33,15 +33,19 @@ import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Kristian Nordal
  */
+@Service( "org.hisp.dhis.dataelement.DataElementService" )
 public class DefaultDataElementService
     implements DataElementService
 {
@@ -51,22 +55,20 @@ public class DefaultDataElementService
 
     private DataElementStore dataElementStore;
 
-    public void setDataElementStore( DataElementStore dataElementStore )
-    {
-        this.dataElementStore = dataElementStore;
-    }
-
     private IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
-
-    public void setDataElementGroupStore( IdentifiableObjectStore<DataElementGroup> dataElementGroupStore )
-    {
-        this.dataElementGroupStore = dataElementGroupStore;
-    }
 
     private GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
 
-    public void setDataElementGroupSetStore( GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
+    public DefaultDataElementService( DataElementStore dataElementStore,
+        IdentifiableObjectStore<DataElementGroup> dataElementGroupStore,
+        GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
     {
+        checkNotNull( dataElementStore  );
+        checkNotNull( dataElementGroupStore  );
+        checkNotNull( dataElementGroupSetStore  );
+
+        this.dataElementStore = dataElementStore;
+        this.dataElementGroupStore = dataElementGroupStore;
         this.dataElementGroupSetStore = dataElementGroupSetStore;
     }
 

@@ -30,20 +30,29 @@ import java.util.List;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed
  */
+@Repository( "org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore" )
 public class HibernateTrackedEntityProgramOwnerStore extends HibernateGenericStore<TrackedEntityProgramOwner> implements TrackedEntityProgramOwnerStore
 {
+    public HibernateTrackedEntityProgramOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    {
+        super( sessionFactory, jdbcTemplate, TrackedEntityProgramOwner.class, false );
+    }
+
     @Override
     public TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId )
     {
-        return (TrackedEntityProgramOwner) getQuery( "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id="
+        return getQuery( "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id="
             + teiId + " and tepo.program.id=" + programId ).uniqueResult();
     }
 

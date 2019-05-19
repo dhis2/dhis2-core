@@ -35,7 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Component;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -46,6 +46,7 @@ import java.util.List;
  * 
  * @author Lars Helge Overland
  */
+@Component( "deletionManager" )
 public class DefaultDeletionManager
     implements DeletionManager
 {

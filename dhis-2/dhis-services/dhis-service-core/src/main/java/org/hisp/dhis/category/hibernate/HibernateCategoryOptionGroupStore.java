@@ -30,11 +30,17 @@ package org.hisp.dhis.category.hibernate;
  *
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Join;
@@ -43,10 +49,19 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.category.CategoryOptionGroupStore" )
 public class HibernateCategoryOptionGroupStore
     extends HibernateIdentifiableObjectStore<CategoryOptionGroup>
     implements CategoryOptionGroupStore
 {
+    public HibernateCategoryOptionGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, CategoryOptionGroup.class, currentUserService, deletedObjectService,
+            aclService, true );
+    }
+
     @Override
     public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
     {

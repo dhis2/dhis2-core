@@ -33,11 +33,13 @@ import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
+import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Component( "org.hisp.dhis.fileresource.FileResourceUploadCallback" )
 public class FileResourceUploadCallback
 {
     private Log log = LogFactory.getLog( FileResourceUploadCallback.class );

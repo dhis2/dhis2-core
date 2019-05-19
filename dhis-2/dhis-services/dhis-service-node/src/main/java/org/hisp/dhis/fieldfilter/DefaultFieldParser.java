@@ -30,6 +30,7 @@ package org.hisp.dhis.fieldfilter;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.fieldfilter.FieldParser" )
 public class DefaultFieldParser implements FieldParser
 {
     @Override
@@ -79,11 +81,10 @@ public class DefaultFieldParser implements FieldParser
                     }
                     else if ( (insideParameters && c.equals( ")" )) ) // end
                     {
-                        insideParameters = false;
                         builder.append( c );
                         break;
                     }
-                    else if ( c.equals( "," ) ) // rewind and break
+                    else if ( c.equals( "," ) || ( c.equals( "[" ) && !insideParameters ) ) // rewind and break
                     {
                         i--;
                         break;
@@ -130,7 +131,7 @@ public class DefaultFieldParser implements FieldParser
     {
         if ( fields == null )
         {
-            fields = new LinkedList<String>();
+            fields = new LinkedList<>();
         }
 
         return fields.stream()

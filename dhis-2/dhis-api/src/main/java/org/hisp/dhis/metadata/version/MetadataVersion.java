@@ -114,10 +114,11 @@ public class MetadataVersion
     @Override
     public String toString()
     {
-        return "{" +
-            "\"importDate\": \"" + importDate + "\"" +
-            ", \"type\": \"" + type + "\"" +
-            ", \"name\": \"" + name + "\"" +
-            "}";
+        return "MetadataVersion{" +
+            "importDate=" + importDate +
+            ", type=" + type +
+            ", name='" + name + '\'' +
+            ", hashCode='" + hashCode + '\'' +
+            '}';
     }
 }

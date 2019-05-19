@@ -316,5 +316,4 @@ public interface StatementBuilder
      */
     String getProgramIndicatorEventColumnSql( String programStageUid, String columnName, Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator );
-
 }

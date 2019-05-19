@@ -259,7 +259,7 @@ public class TrackedEntityAttributeValueServiceTest
         attributeValueService.deleteTrackedEntityAttributeValue( attributeValueA );
         attributeValueService.deleteTrackedEntityAttributeValue( attributeValueB );
 
-        assertFalse( fileResourceA.isAssigned() );
-        assertFalse( fileResourceB.isAssigned() );
+        assertTrue( fileResourceA.isAssigned() );
+        assertTrue( fileResourceB.isAssigned() );
     }
 }

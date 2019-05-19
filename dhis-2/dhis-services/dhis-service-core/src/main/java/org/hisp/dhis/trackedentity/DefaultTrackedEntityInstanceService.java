@@ -57,7 +57,8 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -70,12 +71,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceService" )
 public class DefaultTrackedEntityInstanceService
     implements TrackedEntityInstanceService
 {
@@ -85,38 +88,61 @@ public class DefaultTrackedEntityInstanceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    @Autowired
-    private TrackedEntityAttributeValueService attributeValueService;
+    private final TrackedEntityAttributeValueService attributeValueService;
 
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
+    private final TrackedEntityAttributeService attributeService;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+    private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private TrackedEntityAttributeValueAuditService attributeValueAuditService;
+    private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
-    @Autowired
-    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
-    @Autowired
-    private AclService aclService;
+    private final AclService aclService;
 
-    @Autowired
-    private TrackerOwnershipManager trackerOwnershipAccessManager;
+    private final TrackerOwnershipManager trackerOwnershipAccessManager;
+    // FIXME luciano using @Lazy here because we have circular dependencies:
+    // TrackedEntityInstanceService --> TrackerOwnershipManager --> TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
+    public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
+        TrackedEntityAttributeValueService attributeValueService, TrackedEntityAttributeService attributeService,
+        TrackedEntityTypeService trackedEntityTypeService, ProgramService programService,
+        OrganisationUnitService organisationUnitService, CurrentUserService currentUserService,
+        TrackedEntityAttributeValueAuditService attributeValueAuditService,
+        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService, AclService aclService,
+        @Lazy TrackerOwnershipManager trackerOwnershipAccessManager )
+    {
+        checkNotNull( trackedEntityInstanceStore );
+        checkNotNull( attributeValueService );
+        checkNotNull( attributeService );
+        checkNotNull( trackedEntityTypeService );
+        checkNotNull( programService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( currentUserService );
+        checkNotNull( attributeValueAuditService );
+        checkNotNull( trackedEntityInstanceAuditService );
+        checkNotNull( aclService );
+        checkNotNull( trackerOwnershipAccessManager );
+
+        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
+        this.attributeValueService = attributeValueService;
+        this.attributeService = attributeService;
+        this.trackedEntityTypeService = trackedEntityTypeService;
+        this.programService = programService;
+        this.organisationUnitService = organisationUnitService;
+        this.currentUserService = currentUserService;
+        this.attributeValueAuditService = attributeValueAuditService;
+        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
+        this.aclService = aclService;
+        this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -149,6 +175,8 @@ public class DefaultTrackedEntityInstanceService
             params.setDefaultPaging();
         }
 
+        params.handleCurrentUserSelectionMode();
+        
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getTrackedEntityInstances( params );
 
         String accessedBy = user.getUsername();
@@ -179,6 +207,8 @@ public class DefaultTrackedEntityInstanceService
 
         params.setUser( currentUserService.getCurrentUser() );
 
+        params.handleCurrentUserSelectionMode();
+        
         return trackedEntityInstanceStore.countTrackedEntityInstances( params );
     }
 
@@ -198,6 +228,7 @@ public class DefaultTrackedEntityInstanceService
         // ---------------------------------------------------------------------
 
         params.conform();
+        params.handleCurrentUserSelectionMode();
 
         // ---------------------------------------------------------------------
         // Grid headers

@@ -37,11 +37,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -55,7 +51,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.util.MathUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -67,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.system.util.MathUtils.*;
 
@@ -77,6 +75,8 @@ import static org.hisp.dhis.system.util.MathUtils.*;
  *
  * @author Jim Grace
  */
+@Component( "validationTask" )
+@Scope( "prototype" )
 public class DataValidationTask
     implements ValidationTask
 {
@@ -86,17 +86,27 @@ public class DataValidationTask
 
     public final static String NON_AOC = ""; // String that is not an Attribute Option Combo
 
-    @Autowired
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
+
+    public DataValidationTask( ExpressionService expressionService, DataValueService dataValueService,
+        CategoryService categoryService, PeriodService periodService )
+    {
+        checkNotNull( expressionService );
+        checkNotNull( dataValueService );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+
+        this.expressionService = expressionService;
+        this.dataValueService = dataValueService;
+        this.categoryService = categoryService;
+        this.periodService = periodService;
+    }
 
     // (wired through constructor)
     private AnalyticsService analyticsService;
@@ -654,9 +664,9 @@ public class DataValidationTask
         int vlInx = grid.getWidth() - 1;
 
         Map<String, OrganisationUnit> ouLookup = orgUnits.stream()
-            .collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
+            .collect( Collectors.toMap(BaseIdentifiableObject::getUid, o -> o ) );
         Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream()
-            .collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
+            .collect( Collectors.toMap(DimensionalItemObject::getDimensionItem, d -> d ) );
 
         for ( List<Object> row : grid.getRows() )
         {

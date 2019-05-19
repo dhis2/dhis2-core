@@ -41,6 +41,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -48,31 +49,47 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Saptarshi Purkayastha
  */
+@Component( "org.hisp.dhis.appmanager.AppManager" )
 public class DefaultAppManager
     implements AppManager
 {
     private static final Log log = LogFactory.getLog( DefaultAppManager.class );
 
-    @Autowired
-    private SystemSettingManager settingManager;
+    private final SystemSettingManager settingManager;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private LocalAppStorageService localAppStorageService;
+    private final LocalAppStorageService localAppStorageService;
 
-    @Autowired
-    private JCloudsAppStorageService jCloudsAppStorageService;
+    private final JCloudsAppStorageService jCloudsAppStorageService;
 
-    @Autowired
-    private KeyJsonValueService keyJsonValueService;
+    private final KeyJsonValueService keyJsonValueService;
 
-    @Autowired
-    private CacheProvider cacheProvider;
+    private final CacheProvider cacheProvider;
+
+    public DefaultAppManager( SystemSettingManager settingManager, CurrentUserService currentUserService,
+        LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
+        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+    {
+        checkNotNull( settingManager );
+        checkNotNull( currentUserService );
+        checkNotNull( localAppStorageService );
+        checkNotNull( jCloudsAppStorageService );
+        checkNotNull( keyJsonValueService );
+        checkNotNull( cacheProvider );
+
+        this.settingManager = settingManager;
+        this.currentUserService = currentUserService;
+        this.localAppStorageService = localAppStorageService;
+        this.jCloudsAppStorageService = jCloudsAppStorageService;
+        this.keyJsonValueService = keyJsonValueService;
+        this.cacheProvider = cacheProvider;
+    }
 
     private Cache<App> appCache;
 

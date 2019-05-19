@@ -28,11 +28,14 @@ package org.hisp.dhis.attribute.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.AttributeValueStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -40,10 +43,16 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.attribute.AttributeValueStore" )
 public class HibernateAttributeValueStore
     extends HibernateGenericStore<AttributeValue>
     implements AttributeValueStore
 {
+    public HibernateAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    {
+        super( sessionFactory, jdbcTemplate, AttributeValue.class, true );
+    }
+
     @Override
     public List<AttributeValue> getAllByAttributes( List<Attribute> attributes )
     {

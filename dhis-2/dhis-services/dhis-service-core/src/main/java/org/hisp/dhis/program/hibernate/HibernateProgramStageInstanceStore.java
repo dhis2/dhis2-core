@@ -31,8 +31,10 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
@@ -40,7 +42,11 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -54,6 +60,7 @@ import java.util.function.Function;
 /**
  * @author Abyot Asalefew
  */
+@Repository( "org.hisp.dhis.program.ProgramStageInstanceStore" )
 public class HibernateProgramStageInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
@@ -63,6 +70,13 @@ public class HibernateProgramStageInstanceStore
             NotificationTrigger.getAllApplicableToProgramStageInstance(),
             NotificationTrigger.getAllScheduledTriggers()
         );
+
+    public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, ProgramStageInstance.class, currentUserService, deletedObjectService,
+            aclService, false );
+    }
 
     @Override
     public ProgramStageInstance get( ProgramInstance programInstance, ProgramStage programStage )
@@ -105,7 +119,7 @@ public class HibernateProgramStageInstanceStore
 
         return getCount( builder, newJpaParameters()
             .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), time ) )
-            .count( root -> builder.countDistinct( root ) ) );
+            .count(builder::countDistinct) );
     }
 
     @Override

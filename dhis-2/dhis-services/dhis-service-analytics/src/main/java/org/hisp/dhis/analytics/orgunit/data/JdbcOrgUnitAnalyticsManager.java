@@ -1,5 +1,6 @@
 package org.hisp.dhis.analytics.orgunit.data;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
@@ -42,22 +43,29 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Component;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" )
 public class JdbcOrgUnitAnalyticsManager
     implements OrgUnitAnalyticsManager
 {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public JdbcOrgUnitAnalyticsManager( JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( jdbcTemplate );
+
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params )

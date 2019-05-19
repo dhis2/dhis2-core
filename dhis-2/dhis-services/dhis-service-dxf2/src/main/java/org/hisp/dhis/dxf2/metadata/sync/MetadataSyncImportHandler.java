@@ -45,6 +45,8 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,6 +59,8 @@ import java.util.Map;
  *
  * @author anilkumk
  */
+@Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataImportHandler" )
+@Scope("prototype")
 public class MetadataSyncImportHandler
 {
     private static final Log log = LogFactory.getLog( MetadataSyncImportHandler.class );

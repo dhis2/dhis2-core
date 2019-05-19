@@ -39,28 +39,39 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.dataset.DataSetDeletionHandler" )
 public class DataSetDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private DataSetService dataSetService;
+    private final DataSetService dataSetService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public DataSetDeletionHandler( IdentifiableObjectManager idObjectManager, DataSetService dataSetService,
+        CategoryService categoryService )
+    {
+        checkNotNull( idObjectManager );
+        checkNotNull( dataSetService );
+        checkNotNull( categoryService );
+
+        this.idObjectManager = idObjectManager;
+        this.dataSetService = dataSetService;
+        this.categoryService = categoryService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -115,11 +126,8 @@ public class DataSetDeletionHandler
     @Override
     public void deleteIndicator( Indicator indicator )
     {
-        Iterator<DataSet> iterator = indicator.getDataSets().iterator();
-        
-        while ( iterator.hasNext() )
+        for ( DataSet dataSet : indicator.getDataSets() )
         {
-            DataSet dataSet = iterator.next();
             dataSet.getIndicators().remove( indicator );
             idObjectManager.updateNoAcl( dataSet );
         }
@@ -175,11 +183,8 @@ public class DataSetDeletionHandler
     @Override
     public void deleteOrganisationUnit( OrganisationUnit unit )
     {
-        Iterator<DataSet> iterator = unit.getDataSets().iterator();
-        
-        while ( iterator.hasNext() )
+        for ( DataSet dataSet : unit.getDataSets() )
         {
-            DataSet dataSet = iterator.next();
             dataSet.getSources().remove( unit );
             idObjectManager.updateNoAcl( dataSet );
         }
@@ -200,13 +205,10 @@ public class DataSetDeletionHandler
     @Override
     public void deleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
-        Iterator<DataSet> iterator = workflow.getDataSets().iterator();
-        
-        while ( iterator.hasNext() )
+        for ( DataSet dataSet : workflow.getDataSets() )
         {
-            DataSet dataSet = iterator.next();
             dataSet.setWorkflow( null );
             idObjectManager.updateNoAcl( dataSet );
         }
-    }    
+    }
 }

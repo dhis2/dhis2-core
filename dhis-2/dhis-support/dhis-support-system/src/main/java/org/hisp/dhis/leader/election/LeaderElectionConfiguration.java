@@ -62,8 +62,6 @@ public class LeaderElectionConfiguration
     @Qualifier( "leaderManager" )
     @Conditional( RedisEnabledCondition.class )
     public LeaderManager redisLeaderManager()
-        throws NumberFormatException,
-        Exception
     {
         return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate );
     }

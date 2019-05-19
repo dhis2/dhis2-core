@@ -31,14 +31,19 @@ package org.hisp.dhis.program;
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.parser.expression.Parser;
-import org.hisp.dhis.parser.expression.ParserException;
+import org.hisp.dhis.parser.expression.*;
+import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
+import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.Before;
@@ -53,7 +58,9 @@ import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.parser.expression.ParserUtils.castString;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_FUNCTIONS;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.mockito.Mockito.when;
 
 /**
@@ -64,11 +71,15 @@ public class ProgramSqlGeneratorItemsTest
 {
     private ProgramIndicator programIndicator;
 
+    private ProgramStage programStageA;
+
     private Program programA;
 
     private DataElement dataElementA;
 
     private TrackedEntityAttribute attributeA;
+
+    private Constant constantA;
 
     private Map<String, Double> constantMap;
 
@@ -86,10 +97,19 @@ public class ProgramSqlGeneratorItemsTest
     private ProgramIndicatorService programIndicatorService;
 
     @Mock
+    private ConstantService constantService;
+
+    @Mock
+    private ProgramStageService programStageService;
+
+    @Mock
     private DataElementService dataElementService;
 
     @Mock
     private TrackedEntityAttributeService attributeService;
+
+    @Mock
+    private RelationshipTypeService relationshipTypeService;
 
     private StatementBuilder statementBuilder;
 
@@ -103,11 +123,18 @@ public class ProgramSqlGeneratorItemsTest
         attributeA = createTrackedEntityAttribute( 'A', ValueType.NUMBER );
         attributeA.setUid( "Attribute0A" );
 
+        constantA = new Constant( "Constant A", 123.456 );
+        constantA.setUid( "constant00A" );
+
         constantMap = new ImmutableMap.Builder<String, Double>()
             .put( "constant00A", 123.456 )
             .build();
 
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
+
+        programStageA = new ProgramStage( "StageA", programA );
+        programStageA.setSortOrder( 1 );
+        programStageA.setUid( "ProgrmStagA" );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnit );
         programA.setUid( "Program000A" );
@@ -120,6 +147,8 @@ public class ProgramSqlGeneratorItemsTest
 
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
+        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
+        when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
     }
 
     @Test
@@ -191,10 +220,41 @@ public class ProgramSqlGeneratorItemsTest
 
     private String test( String expression )
     {
-        ProgramSqlGenerator programSqlGenerator = new ProgramSqlGenerator( programIndicator, startDate, endDate,
-            new HashSet<>(), constantMap, programIndicatorService, statementBuilder,
-            dataElementService, attributeService );
+        test( expression, new DefaultLiteral(), FUNCTION_EVALUATE, ITEM_GET_DESCRIPTIONS );
 
-        return castString( Parser.visit( expression, programSqlGenerator ) );
+        return castString( test( expression, new SqlLiteral(), FUNCTION_GET_SQL, ITEM_GET_SQL ) );
+    }
+
+    private Object test( String expression, ExprLiteral exprLiteral,
+        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    {
+        Set<String> dataElementsAndAttributesIdentifiers = new LinkedHashSet<>();
+        dataElementsAndAttributesIdentifiers.add( BASE_UID + "a" );
+        dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
+        dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
+
+        CommonExpressionVisitor visitor = CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
+            .withItemMap( PROGRAM_INDICATOR_ITEMS )
+            .withFunctionMethod( functionMethod )
+            .withItemMethod( itemMethod )
+            .withConstantService( constantService )
+            .withProgramIndicatorService( programIndicatorService )
+            .withProgramStageService( programStageService )
+            .withDataElementService( dataElementService )
+            .withAttributeService( attributeService )
+            .withRelationshipTypeService( relationshipTypeService )
+            .withStatementBuilder( statementBuilder )
+            .withI18n( new I18n( null, null ) )
+            .buildForProgramIndicatorExpressions();
+
+        visitor.setExpressionLiteral( exprLiteral );
+        visitor.setProgramIndicator( programIndicator );
+        visitor.setReportingStartDate( startDate );
+        visitor.setReportingEndDate( endDate );
+        visitor.setConstantMap( constantMap );
+        visitor.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
+
+        return Parser.visit( expression, visitor );
     }
 }

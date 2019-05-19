@@ -351,6 +351,7 @@ public class OrganisationUnit
         return children == null || children.isEmpty();
     }
 
+    @Override
     public boolean hasDescendantsWithCoordinates()
     {
         return CoordinateUtils.hasDescendantsWithCoordinates( children );
@@ -566,7 +567,7 @@ public class OrganisationUnit
         }
 
         String[] ancestors = path.substring( 1 ).split( PATH_SEP ); // Skip first delimiter, root unit first
-        int lastIndex = ancestors.length - 2; // Skip this unit        
+        int lastIndex = ancestors.length - 2; // Skip this unit
         List<String> uids = Lists.newArrayList();
 
         for ( int i = lastIndex; i >= 0; i-- )
@@ -786,7 +787,7 @@ public class OrganisationUnit
 
     /**
      * Used by persistence layer. Purpose is to have a column for use in database
-     * queries. For application use see {@link #getLevel()} which has better performance.
+     * queries. For application use see {@link OrganisationUnit#getLevel()} which has better performance.
      */
     public Integer getHierarchyLevel()
     {
@@ -1032,6 +1033,7 @@ public class OrganisationUnit
         return extractCoordinates( this.getGeometry() );
     }
 
+    @Override
     public boolean hasCoordinates()
     {
         return this.geometry != null;

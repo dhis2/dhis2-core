@@ -33,10 +33,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
+import org.springframework.stereotype.Service;
+
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "clientDetailsUserService" )
 public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDetailsService
 {
     public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )

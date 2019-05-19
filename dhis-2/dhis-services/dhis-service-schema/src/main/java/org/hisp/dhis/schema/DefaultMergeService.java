@@ -30,6 +30,7 @@ package org.hisp.dhis.schema;
 
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,11 +40,9 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.schema.MergeService" )
 public class DefaultMergeService implements MergeService
 {
-    private static final List<String> SHARING_PROPS = Arrays.asList(
-        "publicAccess", "externalAccess", "userGroupAccesses", "userAccesses" );
-
     private final SchemaService schemaService;
 
     public DefaultMergeService( SchemaService schemaService )
@@ -63,12 +62,12 @@ public class DefaultMergeService implements MergeService
         {
             if ( schema.isIdentifiableObject() )
             {
-                if ( mergeParams.isSkipSharing() && isSharingProperty( property ) )
+                if ( mergeParams.isSkipSharing() && ReflectionUtils.isSharingProperty( property ) )
                 {
                     continue;
                 }
 
-                if ( mergeParams.isSkipTranslation() && isTranslationProperty( property ) )
+                if ( mergeParams.isSkipTranslation() && ReflectionUtils.isTranslationProperty( property ) )
                 {
                     continue;
                 }
@@ -141,15 +140,5 @@ public class DefaultMergeService implements MergeService
         }
 
         return null;
-    }
-
-    private boolean isSharingProperty( Property property )
-    {
-        return SHARING_PROPS.contains( property.getName() ) || SHARING_PROPS.contains( property.getCollectionName() );
-    }
-
-    private boolean isTranslationProperty( Property property )
-    {
-        return "translations".equals( property.getName() ) || "translations".equals( property.getCollectionName() );
     }
 }

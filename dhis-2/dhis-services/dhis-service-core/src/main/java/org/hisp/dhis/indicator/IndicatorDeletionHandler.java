@@ -35,13 +35,17 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.indicator.IndicatorDeletionHandler" )
 public class IndicatorDeletionHandler
     extends DeletionHandler
 {
@@ -49,17 +53,16 @@ public class IndicatorDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IndicatorService indicatorService;
+    private final IndicatorService indicatorService;
 
-    public void setIndicatorService( IndicatorService indicatorService )
+    private final ExpressionService expressionService;
+
+    public IndicatorDeletionHandler( IndicatorService indicatorService, ExpressionService expressionService )
     {
+        checkNotNull( indicatorService );
+        checkNotNull( expressionService );
+
         this.indicatorService = indicatorService;
-    }
-
-    private ExpressionService expressionService;
-
-    public void setExpressionService( ExpressionService expressionService )
-    {
         this.expressionService = expressionService;
     }
 

@@ -31,21 +31,29 @@ package org.hisp.dhis.eventreport;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
 * @author Lars Helge Overland
 */
+@Service( "org.hisp.dhis.eventreport.EventReportService" )
 public class DefaultEventReportService
     extends GenericAnalyticalObjectService<EventReport>
     implements EventReportService
 {
-    private HibernateAnalyticalObjectStore<EventReport> eventReportStore;
+    private final HibernateAnalyticalObjectStore<EventReport> eventReportStore;
 
-    public void setEventReportStore( HibernateAnalyticalObjectStore<EventReport> eventReportStore )
+    public DefaultEventReportService(
+        @Qualifier( "org.hisp.dhis.eventreport.EventReportStore" ) HibernateAnalyticalObjectStore<EventReport> eventReportStore )
     {
+        checkNotNull( eventReportStore );
+
         this.eventReportStore = eventReportStore;
     }
 

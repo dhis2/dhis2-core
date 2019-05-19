@@ -41,7 +41,7 @@ import java.util.concurrent.Future;
  */
 public interface AnalyticsTableManager
 {
-    public static final String TABLE_TEMP_SUFFIX = "_temp";
+    String TABLE_TEMP_SUFFIX = "_temp";
 
     /**
      * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.

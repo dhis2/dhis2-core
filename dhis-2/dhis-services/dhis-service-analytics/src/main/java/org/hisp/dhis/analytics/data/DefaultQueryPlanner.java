@@ -58,6 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +72,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.QueryPlanner" )
 public class DefaultQueryPlanner
     implements QueryPlanner
 {

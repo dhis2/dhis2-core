@@ -29,20 +29,25 @@ package org.hisp.dhis.fileresource;
  */
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.fileresource.ExternalFileResourceService" )
 public class DefaultExternalFileResourceService
     implements ExternalFileResourceService
 {
-    private ExternalFileResourceStore externalFileResourceStore;
+    private final ExternalFileResourceStore externalFileResourceStore;
 
-    public void setExternalFileResourceStore(
-        ExternalFileResourceStore externalFileResourceStore )
+    public DefaultExternalFileResourceService( ExternalFileResourceStore externalFileResourceStore )
     {
+        checkNotNull( externalFileResourceStore );
+
         this.externalFileResourceStore = externalFileResourceStore;
     }
 

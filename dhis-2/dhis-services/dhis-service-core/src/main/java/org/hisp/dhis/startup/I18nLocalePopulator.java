@@ -39,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Populates default I18nLocales if none exists.
  *
@@ -49,8 +51,14 @@ public class I18nLocalePopulator
 {
     private static final Log log = LogFactory.getLog( I18nLocalePopulator.class );
 
-    @Autowired
-    private I18nLocaleService localeService;
+    private final I18nLocaleService localeService;
+
+    public I18nLocalePopulator( I18nLocaleService localeService )
+    {
+        checkNotNull( localeService );
+
+        this.localeService = localeService;
+    }
 
     private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of(
         "af","ar","bi","am","de","dz","en","es","fa","fr","gu","hi","id","it",

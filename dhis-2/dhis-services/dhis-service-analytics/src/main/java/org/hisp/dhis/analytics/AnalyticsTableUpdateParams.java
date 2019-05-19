@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics;
 
 import com.google.common.base.MoreObjects;
 
-import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;

@@ -60,12 +60,13 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.DataQueryService" )
 public class DefaultDataQueryService
     implements DataQueryService
 {
@@ -85,7 +86,6 @@ public class DefaultDataQueryService
 
     private I18nManager i18nManager;
 
-    @Autowired
     public DefaultDataQueryService( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, DimensionService dimensionService,
         AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager, AclService aclService,
