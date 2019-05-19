@@ -277,11 +277,20 @@ public class JCloudsFileResourceContentStore
         {
             File file = entry.getValue();
 
-            blob = createBlob( fileResource, entry.getKey().getDimension(), file );
+            if ( ImageFileDimension.ORIGINAL.equals( entry.getKey() ) )
+            {
+                blob = createBlob( fileResource, StringUtils.EMPTY , file );
+            }
+            else
+            {
+                blob = createBlob( fileResource, entry.getKey().getDimension(), file );
+            }
 
             if ( blob != null )
             {
                 blobStore.putBlob( config.container, blob );
+
+                blob = null;
 
                 try
                 {
@@ -365,7 +374,7 @@ public class JCloudsFileResourceContentStore
 
     private Blob createBlob( FileResource fileResource, String fileDimension, File file )
     {
-        return blobStore.blobBuilder( fileResource.getStorageKey() + fileDimension )
+        return blobStore.blobBuilder( fileResource.getStorageKey() + "-" + fileDimension )
             .payload( file )
             .contentLength( fileResource.getContentLength() )
             .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )

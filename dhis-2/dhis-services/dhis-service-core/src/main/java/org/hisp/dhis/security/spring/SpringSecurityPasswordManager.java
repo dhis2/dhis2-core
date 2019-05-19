@@ -29,6 +29,7 @@ package org.hisp.dhis.security.spring;
  */
 
 import org.hisp.dhis.security.PasswordManager;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +49,7 @@ public class SpringSecurityPasswordManager
 
     private final PasswordEncoder passwordEncoder;
 
-    public SpringSecurityPasswordManager( PasswordEncoder passwordEncoder )
+    public SpringSecurityPasswordManager( @Lazy PasswordEncoder passwordEncoder )
     {
         checkNotNull( passwordEncoder );
 

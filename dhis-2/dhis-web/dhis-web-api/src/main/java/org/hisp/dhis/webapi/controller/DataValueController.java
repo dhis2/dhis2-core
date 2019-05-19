@@ -36,6 +36,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -516,7 +517,7 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam ( required = false ) ImageFileDimension dimension,
+        @RequestParam ( required = false, defaultValue = "original" ) String dimension,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -586,12 +587,11 @@ public class DataValueController
 
         if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) )
         {
-            if ( dimension == null )
-            {
-                dimension = ImageFileDimension.MEDIUM;
-            }
+            Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
 
-            fileResource.setStorageKey( fileResource.getStorageKey() + dimension.getDimension() );
+            ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
+
+            fileResource.setStorageKey( fileResource.getStorageKey() + imageFileDimension.getDimension() );
         }
 
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );

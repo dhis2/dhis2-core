@@ -64,6 +64,12 @@ public class DefaultImageResizeService implements ImageProcessingService
 
             for ( ImageFileDimension dimension : ImageFileDimension.values() )
             {
+                if ( ImageFileDimension.ORIGINAL.equals( dimension ) )
+                {
+                    images.put( dimension, file );
+                    continue;
+                }
+
                 ImageSize size = IMAGE_FILE_DIMENSIONS.get( dimension );
 
                 BufferedImage resizedImage = resize( image, size );
