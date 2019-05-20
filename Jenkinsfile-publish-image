@@ -37,8 +37,10 @@ pipeline {
         }
 
         stage('Start instance') {
-            dir("dhis-2/dhis-e2e-test") {
-               sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
+            steps {
+                dir("dhis-2/dhis-e2e-test") {
+                    sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
+                }
             }
         }
 
