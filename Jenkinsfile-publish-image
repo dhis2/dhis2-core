@@ -8,8 +8,7 @@ pipeline {
 
     environment {
         DHIS2_VERSION = ''
-        DOCKER_HUB_REPOSITORY = "$DOCKER_HUB_OWNER"
-        DOCKER_IMAGE_NAME = 'core'
+        DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core"
         DOCKER_IMAGE_TAG = ''
         DOCKER_IMAGE_FULL_NAME = ''
         COMPOSE_PARAMETER = ''
@@ -28,32 +27,33 @@ pipeline {
                     echo "Docker compose parameter: ${COMPOSE_PARAMETER}"
 
                     DOCKER_IMAGE_TAG = "${DHIS2_VERSION}-alpine"
+
+                    DOCKER_IMAGE_FULL_NAME = ${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}
                     echo "Will tag image as ${DOCKER_IMAGE_TAG}"
 
-                    DOCKER_IMAGE_FULL_NAME = "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-                    echo "Image full name: ${DOCKER_IMAGE_FULL_NAME}"
-                    
-                    dir("dhis-2/dhis-e2e-test") {
-                        sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d --build"
-                    }   
+                    sh "docker build -t ${DOCKER_IMAGE_FULL_NAME}"
                 }
+            }
+        }
+
+        stage('Start instance') {
+            dir("dhis-2/dhis-e2e-test") {
+               sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} up -d"
             }
         }
 
         stage('Run api tests') {
             steps {
                 dir("dhis-2/dhis-e2e-test") {
-                    sh "TAG=${DOCKER_IMAGE_TAG} docker-compose -p ${COMPOSE_PARAMETER} -f docker-compose.e2e.yml up --build --exit-code-from e2e-test"
+                    sh "IMAGE_TAG=${DOCKER_IMAGE_TAG} docker-compose -p ${COMPOSE_PARAMETER} -f docker-compose.e2e.yml up --build --exit-code-from e2e-test"
                 }
             }
         }
 
         stage('Publish image') {
             steps {
-                sh "docker tag ${DOCKER_IMAGE_FULL_NAME} ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_FULL_NAME}"
-
                 withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
-                    sh "docker push ${DOCKER_HUB_REPOSITORY}/${DOCKER_IMAGE_FULL_NAME}"
+                    sh "docker push ${DOCKER_IMAGE_FULL_NAME}"
                 }
             }
         }
@@ -63,7 +63,7 @@ pipeline {
         always {
             dir("dhis-2/dhis-e2e-test") {
                 sh "IMAGE_NAME=${DOCKER_IMAGE_FULL_NAME} docker-compose -p ${COMPOSE_PARAMETER} down"
-                sh "TAG=${DOCKER_IMAGE_TAG} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down"
+                sh "IMAGE_TAG=${DOCKER_IMAGE_TAG} docker-compose -f docker-compose.e2e.yml -p ${COMPOSE_PARAMETER} down"
                 sh "docker image prune --force --filter 'until=2h' --filter label=stage=intermediate"
             }
         }
