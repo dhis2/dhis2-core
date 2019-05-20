@@ -31,7 +31,7 @@ pipeline {
                     DOCKER_IMAGE_FULL_NAME = "${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}"
                     echo "Will tag image as ${DOCKER_IMAGE_TAG}"
 
-                    sh "docker build -t ${DOCKER_IMAGE_FULL_NAME}"
+                    sh "docker build -t ${DOCKER_IMAGE_FULL_NAME} ."
                 }
             }
         }
