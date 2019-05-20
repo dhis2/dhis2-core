@@ -45,7 +45,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */

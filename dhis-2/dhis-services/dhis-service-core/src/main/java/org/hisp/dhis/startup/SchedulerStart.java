@@ -38,7 +38,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -88,7 +87,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     private final JobConfigurationService jobConfigurationService;
 
     private final SchedulingManager schedulingManager;
-    
+
     private final MessageService messageService;
 
     public SchedulerStart( SystemSettingManager systemSettingManager, String redisEnabled, String leaderElectionTime,

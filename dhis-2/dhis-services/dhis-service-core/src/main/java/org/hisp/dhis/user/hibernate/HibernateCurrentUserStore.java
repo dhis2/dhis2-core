@@ -33,7 +33,6 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.user.CurrentUserStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.Query;

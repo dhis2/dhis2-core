@@ -66,7 +66,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -97,7 +96,7 @@ public abstract class AbstractJdbcTableManager
     protected DataApprovalLevelService dataApprovalLevelService;
 
     protected ResourceTableService resourceTableService;
-    
+
     private AnalyticsTableHookService tableHookService;
 
     protected StatementBuilder statementBuilder;

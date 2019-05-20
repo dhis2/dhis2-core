@@ -62,17 +62,17 @@ public class StoreConfig
     private AclService aclService;
 
     @Bean( "org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore" )
-    public HibernateIdentifiableObjectStore programNotificationInstanceStore()
+    public HibernateIdentifiableObjectStore<ValidationNotificationTemplate> programNotificationInstanceStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
+        return new HibernateIdentifiableObjectStore<ValidationNotificationTemplate>(
             sessionFactory, jdbcTemplate, ValidationNotificationTemplate.class, currentUserService,
             deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.validation.ValidationRuleGroupStore" )
-    public HibernateIdentifiableObjectStore validationRuleGroupStore()
+    public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
+        return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
             sessionFactory, jdbcTemplate, ValidationRuleGroup.class, currentUserService, deletedObjectService,
             aclService, true );
     }
