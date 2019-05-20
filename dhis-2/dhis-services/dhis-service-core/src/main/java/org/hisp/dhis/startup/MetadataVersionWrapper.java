@@ -75,7 +75,6 @@ public MetadataVersionWrapper( KeyJsonValueService keyJsonValueService,
     @Override
     public void execute() throws Exception
     {
-//        List<MetadataVersion> metadataVersions = metadataVersionService.getAllVersions();
         List<MetadataVersion> metadataVersions = versionStore.getAll();
 
         for ( MetadataVersion metadataVersion : metadataVersions )
@@ -94,7 +93,6 @@ public MetadataVersionWrapper( KeyJsonValueService keyJsonValueService,
 
                 metadataVersion.setHashCode( getHashCode( keyJsonValue.getValue() ) );
 
-//                metadataVersionService.updateVersion( metadataVersion );
                 versionStore.update( metadataVersion );
             }
         }
