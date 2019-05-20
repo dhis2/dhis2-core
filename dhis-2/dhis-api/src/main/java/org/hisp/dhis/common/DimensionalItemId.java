@@ -100,6 +100,7 @@ public class DimensionalItemId
         switch ( dimensionItemType )
         {
             case DATA_ELEMENT:
+            case INDICATOR:
             case PROGRAM_INDICATOR:
                 return id0 != null && id1 == null && id2 == null;
 

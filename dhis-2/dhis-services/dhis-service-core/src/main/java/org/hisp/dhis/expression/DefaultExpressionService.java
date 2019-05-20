@@ -115,6 +115,7 @@ public class DefaultExpressionService
         .put(C_BRACE, new ItemConstant() )
         .put(D_BRACE, new DimItemProgramDataElement() )
         .put(I_BRACE, new DimItemProgramIndicator() )
+        .put(N_BRACE, new DimItemIndicator() )
         .put(OUG_BRACE, new ItemOrgUnitGroup() )
         .put(R_BRACE, new DimItemReportingRate() )
         .put(DAYS, new ItemDays() )

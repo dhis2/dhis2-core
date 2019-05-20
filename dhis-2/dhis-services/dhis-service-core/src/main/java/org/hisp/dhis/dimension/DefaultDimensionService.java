@@ -67,6 +67,7 @@ import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -468,6 +469,10 @@ public class DefaultDimensionService
                     }
                     break;
 
+                case INDICATOR:
+                    atomicIds.putValue( Indicator.class, id.getId0() );
+                    break;
+
                 case REPORTING_RATE:
                     atomicIds.putValue( DataSet.class, id.getId0() );
                     break;
@@ -548,6 +553,14 @@ public class DefaultDimensionService
                     if ( dataElement != null )
                     {
                         itemObjectMap.put( id, dataElement );
+                    }
+                    break;
+
+                case INDICATOR:
+                    Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
+                    if (indicator != null)
+                    {
+                        itemObjectMap.put( id, indicator );
                     }
                     break;
 

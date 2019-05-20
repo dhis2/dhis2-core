@@ -1324,6 +1324,8 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
+        indicators.forEach(params::addResolvedExpressionItem);
+
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( indicators ) );
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
@@ -1335,7 +1337,9 @@ public class DefaultAnalyticsService
             .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
+            .withResolvedExpressionItems( items )
             .withSkipMeta( true ).build();
+
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
 
