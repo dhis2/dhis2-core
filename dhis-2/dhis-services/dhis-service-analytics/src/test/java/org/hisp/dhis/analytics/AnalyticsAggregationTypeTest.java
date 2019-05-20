@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapping;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,48 +26,35 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.analytics;
 
-import java.util.Iterator;
+import org.junit.Test;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hisp.dhis.analytics.AggregationType.*;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.junit.Assert.*;
 
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
  */
-@Component( "org.hisp.dhis.mapping.MapDeletionHandler")
-public class MapDeletionHandler
-    extends DeletionHandler
+public class AnalyticsAggregationTypeTest
 {
-    private final MappingService mappingService;
-
-    public MapDeletionHandler( MappingService mappingService )
+    @Test
+    public void verifyFromAggregationType()
     {
-        checkNotNull( mappingService );
-        this.mappingService = mappingService;
+        assertAggregationType( fromAggregationType( AVERAGE_SUM_ORG_UNIT ), SUM, AVERAGE );
+        assertAggregationType( fromAggregationType( LAST ), SUM, LAST );
+        assertAggregationType( fromAggregationType( LAST_AVERAGE_ORG_UNIT ), AVERAGE, LAST );
+        assertAggregationType( fromAggregationType( FIRST ), SUM, FIRST );
+        assertAggregationType( fromAggregationType( FIRST_AVERAGE_ORG_UNIT ), AVERAGE, FIRST );
+        assertAggregationType( fromAggregationType( SUM ), SUM, SUM );
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected String getClassName()
+    private void assertAggregationType( AnalyticsAggregationType analyticsAggregationType,
+        AggregationType aggregationType, AggregationType periodAggregationType )
     {
-        return Map.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteMap( Map map )
-    {
-        Iterator<MapView> views = map.getMapViews().iterator();
-
-        while ( views.hasNext() )
-        {
-            MapView view = views.next();
-            views.remove();
-            mappingService.deleteMapView( view );
-        }
+        assertThat( analyticsAggregationType.getAggregationType(), is( aggregationType ) );
+        assertThat( analyticsAggregationType.getPeriodAggregationType(), is( periodAggregationType ) );
     }
 }

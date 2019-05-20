@@ -51,7 +51,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Repository( "CompleteDataSetRegistrationStore" )
 public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericStore<CompleteDataSetRegistration>
