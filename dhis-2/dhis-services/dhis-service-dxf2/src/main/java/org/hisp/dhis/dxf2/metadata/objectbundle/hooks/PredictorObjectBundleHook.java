@@ -32,10 +32,13 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.predictor.Predictor;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Ken Haase
  */
+
+@Component
 public class PredictorObjectBundleHook
     extends AbstractObjectBundleHook
 {

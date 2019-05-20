@@ -35,20 +35,29 @@ import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ConfigurationPopulator
     extends TransactionContextStartupRoutine
 {
-    @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
-
     private static final Log log = LogFactory.getLog( ConfigurationPopulator.class );
+
+    private final ConfigurationService configurationService;
+
+    private final DhisConfigurationProvider dhisConfigurationProvider;
+
+    public ConfigurationPopulator( ConfigurationService configurationService,
+        DhisConfigurationProvider dhisConfigurationProvider )
+    {
+        checkNotNull( configurationService );
+        checkNotNull( dhisConfigurationProvider );
+
+        this.configurationService = configurationService;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
+    }
 
     @Override
     public void executeInTransaction()

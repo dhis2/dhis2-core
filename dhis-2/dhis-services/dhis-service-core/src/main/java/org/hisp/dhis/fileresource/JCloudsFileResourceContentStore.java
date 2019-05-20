@@ -54,6 +54,7 @@ import org.jclouds.http.HttpResponseException;
 import org.jclouds.rest.AuthorizationException;
 import org.jclouds.s3.reference.S3Constants;
 import org.joda.time.Minutes;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -67,9 +68,12 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.fileresource.FileResourceContentStore" )
 public class JCloudsFileResourceContentStore
     implements FileResourceContentStore
 {
@@ -98,19 +102,19 @@ public class JCloudsFileResourceContentStore
 
     private LocationManager locationManager;
 
-    public void setLocationManager( LocationManager locationManager )
-    {
-        this.locationManager = locationManager;
-    }
-
     private DhisConfigurationProvider configurationProvider;
 
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    public JCloudsFileResourceContentStore( LocationManager locationManager,
+        DhisConfigurationProvider configurationProvider )
     {
+        checkNotNull( locationManager );
+        checkNotNull( configurationProvider );
+
+        this.locationManager = locationManager;
         this.configurationProvider = configurationProvider;
     }
 
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // Life cycle management
     // -------------------------------------------------------------------------
 

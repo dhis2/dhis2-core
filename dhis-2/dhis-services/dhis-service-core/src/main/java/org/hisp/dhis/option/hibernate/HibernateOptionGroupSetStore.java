@@ -28,15 +28,28 @@ package org.hisp.dhis.option.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupSetStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Repository( "org.hisp.dhis.option.OptionGroupSetStore" )
 public class HibernateOptionGroupSetStore
     extends HibernateIdentifiableObjectStore<OptionGroupSet>
     implements OptionGroupSetStore
 {
+    public HibernateOptionGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, OptionGroupSet.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
 }

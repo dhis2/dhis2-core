@@ -29,19 +29,24 @@ package org.hisp.dhis.mapping;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.mapping.MapDeletionHandler")
 public class MapDeletionHandler
     extends DeletionHandler
 {
-    private MappingService mappingService;
+    private final MappingService mappingService;
 
-    public void setMappingService( MappingService mappingService )
+    public MapDeletionHandler( MappingService mappingService )
     {
+        checkNotNull( mappingService );
         this.mappingService = mappingService;
     }
 

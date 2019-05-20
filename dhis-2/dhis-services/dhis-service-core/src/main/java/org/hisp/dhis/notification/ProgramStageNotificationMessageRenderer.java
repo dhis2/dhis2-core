@@ -44,10 +44,12 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Component
 public class ProgramStageNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ProgramStageInstance>
 {
@@ -70,14 +72,6 @@ public class ProgramStageNotificationMessageRenderer
     // -------------------------------------------------------------------------
 
     public static final ProgramStageNotificationMessageRenderer INSTANCE = new ProgramStageNotificationMessageRenderer();
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    private ProgramStageNotificationMessageRenderer()
-    {
-    }
 
     // -------------------------------------------------------------------------
     // Overrides

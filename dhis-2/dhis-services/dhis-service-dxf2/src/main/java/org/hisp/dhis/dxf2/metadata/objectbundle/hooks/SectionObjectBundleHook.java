@@ -34,6 +34,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,6 +42,7 @@ import java.util.Set;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Component
 public class SectionObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override

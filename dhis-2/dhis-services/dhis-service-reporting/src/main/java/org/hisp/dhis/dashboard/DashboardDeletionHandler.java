@@ -29,15 +29,23 @@ package org.hisp.dhis.dashboard;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.dashboard.DashboardDeletionHandler" )
 public class DashboardDeletionHandler extends DeletionHandler
 {
-    @Autowired
-    private DashboardService dashboardService;
+    private final DashboardService dashboardService;
+
+    public DashboardDeletionHandler( DashboardService dashboardService )
+    {
+        checkNotNull( dashboardService );
+        this.dashboardService = dashboardService;
+    }
 
     @Override
     protected String getClassName()

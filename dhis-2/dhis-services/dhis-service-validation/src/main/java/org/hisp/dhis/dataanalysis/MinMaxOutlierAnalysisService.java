@@ -52,10 +52,14 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
 
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService" )
 public class MinMaxOutlierAnalysisService
     implements MinMaxDataAnalysisService
 {
@@ -65,24 +69,21 @@ public class MinMaxOutlierAnalysisService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataAnalysisStore dataAnalysisStore;
+    private final DataAnalysisStore dataAnalysisStore;
 
-    public void setDataAnalysisStore( DataAnalysisStore dataAnalysisStore )
+    private final MinMaxDataElementService minMaxDataElementService;
+
+    private final BatchHandlerFactory batchHandlerFactory;
+
+    public MinMaxOutlierAnalysisService( DataAnalysisStore dataAnalysisStore,
+        MinMaxDataElementService minMaxDataElementService, BatchHandlerFactory batchHandlerFactory )
     {
+        checkNotNull( dataAnalysisStore );
+        checkNotNull( minMaxDataElementService );
+        checkNotNull( batchHandlerFactory );
+
         this.dataAnalysisStore = dataAnalysisStore;
-    }
-
-    private MinMaxDataElementService minMaxDataElementService;
-
-    public void setMinMaxDataElementService( MinMaxDataElementService minMaxDataElementService )
-    {
         this.minMaxDataElementService = minMaxDataElementService;
-    }
-
-    private BatchHandlerFactory batchHandlerFactory;
-
-    public void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory )
-    {
         this.batchHandlerFactory = batchHandlerFactory;
     }
 

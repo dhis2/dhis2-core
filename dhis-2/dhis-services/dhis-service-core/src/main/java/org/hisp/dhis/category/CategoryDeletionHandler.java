@@ -30,23 +30,29 @@ package org.hisp.dhis.category;
  *
  */
 
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Dang Duy Hieu
  */
+@Component( "org.hisp.dhis.category.CategoryDeletionHandler" )
 public class CategoryDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
-    
+    private final IdentifiableObjectManager idObjectManager;
+
+    public CategoryDeletionHandler( IdentifiableObjectManager idObjectManager )
+    {
+        checkNotNull( idObjectManager );
+        this.idObjectManager = idObjectManager;
+    }
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------

@@ -34,19 +34,25 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * Job that attempts to elect the current instance as the leader of the cluster.
  * 
  * @author Ameen Mohamed
  */
+@Service
 public class LeaderElectionJob extends AbstractJob
 {
-    @Autowired
     private LeaderManager leaderManager;
 
-    @Autowired
     private Notifier notifier;
+    
+    public LeaderElectionJob( LeaderManager leaderManager, Notifier notifier )
+    {
+        this.leaderManager = leaderManager;
+        this.notifier = notifier;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

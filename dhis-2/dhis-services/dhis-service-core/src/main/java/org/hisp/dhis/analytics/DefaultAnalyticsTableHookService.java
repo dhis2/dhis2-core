@@ -29,19 +29,28 @@ package org.hisp.dhis.analytics;
  */
 
 import org.hisp.dhis.resourcetable.ResourceTableType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.AnalyticsTableHookService" )
 public class DefaultAnalyticsTableHookService
     implements AnalyticsTableHookService
 {
-    @Autowired
-    private AnalyticsTableHookStore analyticsTableHookStore;
+    private final AnalyticsTableHookStore analyticsTableHookStore;
+
+    public DefaultAnalyticsTableHookService( AnalyticsTableHookStore analyticsTableHookStore )
+    {
+        checkNotNull( analyticsTableHookStore );
+
+        this.analyticsTableHookStore = analyticsTableHookStore;
+    }
 
     @Override
     @Transactional(readOnly = true)

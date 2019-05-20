@@ -34,16 +34,19 @@ import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Service( "org.hisp.dhis.category.CategoryManager" )
 public class DefaultCategoryManager
     implements CategoryManager
 {
@@ -53,8 +56,14 @@ public class DefaultCategoryManager
 
     private static final Log log = LogFactory.getLog( DefaultCategoryManager.class );
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public DefaultCategoryManager( CategoryService categoryService )
+    {
+        checkNotNull( categoryService );
+
+        this.categoryService = categoryService;
+    }
 
     // -------------------------------------------------------------------------
     // CategoryOptionCombo

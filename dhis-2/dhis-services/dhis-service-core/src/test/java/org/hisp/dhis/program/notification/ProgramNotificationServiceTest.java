@@ -47,9 +47,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.notification.NotificationMessage;
-import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
-import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
+import org.hisp.dhis.notification.*;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Program;
@@ -67,18 +65,17 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
 
 import com.google.common.collect.Sets;
+import org.mockito.junit.MockitoRule;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
-@RunWith( MockitoJUnitRunner.class )
 public class ProgramNotificationServiceTest extends DhisConvenienceTest
 {
     private static final String SUBJECT = "subject";
@@ -90,6 +87,15 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String USERB_PHONE_NUMBER = "47500000";
     private static final String ATT_EMAIL = "attr@test.org";
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private ProgramMessageService programMessageService;
+
+    @Mock
+    private MessageService messageService;
+
     @Mock
     private ProgramInstanceStore programInstanceStore;
 
@@ -97,21 +103,17 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private ProgramStageInstanceStore programStageInstanceStore;
 
     @Mock
-    private MessageService messageService;
-
-    @Mock
-    private ProgramMessageService programMessageService;
-
-    @Mock
-    private ProgramNotificationMessageRenderer programNotificationMessageRenderer;
-
-    @Mock
-    private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
-
-    @Mock
     private IdentifiableObjectManager manager;
 
-    @InjectMocks
+    @Mock
+    private NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
+
+    @Mock
+    private NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
+
+    @Mock
+    private ProgramNotificationTemplateStore notificationTemplateStore;
+
     private DefaultProgramNotificationService programNotificationService;
 
     private Set<ProgramInstance> programInstances = new HashSet<>();
@@ -158,8 +160,9 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     @SuppressWarnings("unchecked")
     public void initTest()
     {
-        programNotificationService.setProgramStageNotificationRenderer( programStageNotificationMessageRenderer );
-        programNotificationService.setProgramNotificationRenderer( programNotificationMessageRenderer );
+        programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
+            this.messageService, this.programInstanceStore, this.programStageInstanceStore, this.manager,
+            this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateStore );
 
         setUpInstances();
 
@@ -174,14 +177,16 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
             {
                 sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 40l;
+                return 40L;
             } );
 
-        when( programNotificationMessageRenderer.render( any(), any() ) )
-            .thenReturn( notificationMessage );
+        when( programNotificationRenderer.render( any( ProgramInstance.class ),
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
-        when( programStageNotificationMessageRenderer.render( any(), any() ) )
-            .thenReturn( notificationMessage );
+        when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
+            any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
+
+
     }
 
     // -------------------------------------------------------------------------

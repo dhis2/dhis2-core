@@ -29,11 +29,17 @@ package org.hisp.dhis.program.hibernate;
  */
 
 import com.google.common.collect.Lists;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -41,10 +47,17 @@ import java.util.List;
 /**
  * @author Chau Thu Tran
  */
+@Repository( "org.hisp.dhis.program.ProgramStageStore" )
 public class HibernateProgramStageStore
     extends HibernateIdentifiableObjectStore<ProgramStage>
     implements ProgramStageStore
 {
+    public HibernateProgramStageStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, ProgramStage.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
     // -------------------------------------------------------------------------
     // Implemented methods
     // -------------------------------------------------------------------------

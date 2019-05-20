@@ -29,17 +29,25 @@ package org.hisp.dhis.dataset.notifications;
  */
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
-
+@Component( "org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher" )
 public class DataSetNotificationEventPublisher
 {
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
+
+    public DataSetNotificationEventPublisher( ApplicationEventPublisher publisher )
+    {
+        checkNotNull( publisher );
+
+        this.publisher = publisher;
+    }
 
     public void publishEvent( CompleteDataSetRegistration registration )
     {

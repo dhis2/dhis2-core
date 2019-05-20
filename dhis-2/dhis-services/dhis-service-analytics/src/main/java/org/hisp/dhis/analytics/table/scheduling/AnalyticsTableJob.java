@@ -1,5 +1,6 @@
 package org.hisp.dhis.analytics.table.scheduling;
 
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -34,16 +35,26 @@ import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component
 public class AnalyticsTableJob
     extends AbstractJob
 {
-    @Autowired
-    private AnalyticsTableGenerator analyticsTableGenerator;
+    private final AnalyticsTableGenerator analyticsTableGenerator;
+
+    public AnalyticsTableJob( AnalyticsTableGenerator analyticsTableGenerator )
+    {
+
+        checkNotNull( analyticsTableGenerator );
+
+        this.analyticsTableGenerator = analyticsTableGenerator;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

@@ -35,15 +35,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
@@ -52,12 +53,16 @@ import com.google.common.collect.Lists;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Repository( "org.hisp.dhis.datastatistics.DataStatisticsEventStore" )
 public class HibernateDataStatisticsEventStore
     extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore
 {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+
+    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    {
+        super( sessionFactory, jdbcTemplate, DataStatisticsEvent.class, false);
+    }
 
     @Override
     public Map<DataStatisticsEventType, Double> getDataStatisticsEventCount( Date startDate, Date endDate )

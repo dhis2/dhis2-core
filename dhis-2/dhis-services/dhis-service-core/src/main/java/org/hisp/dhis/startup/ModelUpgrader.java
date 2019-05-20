@@ -31,7 +31,8 @@ package org.hisp.dhis.startup;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -39,11 +40,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ModelUpgrader
     extends TransactionContextStartupRoutine
 {
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public ModelUpgrader( OrganisationUnitService organisationUnitService, CategoryService categoryService )
+    {
+        checkNotNull( organisationUnitService );
+        checkNotNull( categoryService );
+        this.organisationUnitService = organisationUnitService;
+        this.categoryService = categoryService;
+    }
 
     // -------------------------------------------------------------------------
     // Execute

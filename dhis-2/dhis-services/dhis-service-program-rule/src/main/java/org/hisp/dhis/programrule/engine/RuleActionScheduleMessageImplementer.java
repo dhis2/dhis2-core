@@ -42,12 +42,15 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
+@Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
 public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
 {
     private static final Log log = LogFactory.getLog( RuleActionScheduleMessageImplementer.class );
@@ -56,11 +59,20 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private NotificationLoggingService notificationLoggingService;
+    private final NotificationLoggingService notificationLoggingService;
 
-    @Autowired @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" )
-    private IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+    private final IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore;
+
+    public RuleActionScheduleMessageImplementer( NotificationLoggingService notificationLoggingService,
+        @Qualifier( "org.hisp.dhis.program.notification.ProgramNotificationInstanceStore" ) IdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore )
+    {
+
+        checkNotNull( notificationLoggingService );
+        checkNotNull( programNotificationInstanceStore );
+
+        this.notificationLoggingService = notificationLoggingService;
+        this.programNotificationInstanceStore = programNotificationInstanceStore;
+    }
 
     @Override
     public boolean accept( RuleAction ruleAction )

@@ -30,12 +30,14 @@ package org.hisp.dhis.user;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
  * Created by zubair on 08.03.17.
  */
+@Component( "org.hisp.dhis.user.PasswordHistoryValidationRule" )
 public class PasswordHistoryValidationRule implements PasswordValidationRule
 {
     private static final int HISTORY_LIMIT = 24;

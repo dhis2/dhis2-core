@@ -31,9 +31,9 @@ package org.hisp.dhis.sms.config;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,10 +41,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
+@Service( "org.hisp.dhis.sms.config.GatewayAdministrationService" )
 public class DefaultGatewayAdministrationService
     implements GatewayAdministrationService
 {
@@ -58,9 +60,10 @@ public class DefaultGatewayAdministrationService
 
     private final SmsConfigurationManager smsConfigurationManager;
 
-    @Autowired
     public DefaultGatewayAdministrationService( SmsConfigurationManager smsConfigurationManager )
     {
+        checkNotNull( smsConfigurationManager );
+
         this.smsConfigurationManager = smsConfigurationManager;
     }
 

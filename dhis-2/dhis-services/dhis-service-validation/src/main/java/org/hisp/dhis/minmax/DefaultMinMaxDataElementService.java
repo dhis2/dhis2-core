@@ -31,16 +31,20 @@ package org.hisp.dhis.minmax;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
 @Transactional
+@Service( "org.hisp.dhis.minmax.MinMaxDataElementService" )
 public class DefaultMinMaxDataElementService
     implements MinMaxDataElementService
 {
@@ -48,10 +52,12 @@ public class DefaultMinMaxDataElementService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MinMaxDataElementStore minMaxDataElementStore;
+    private final MinMaxDataElementStore minMaxDataElementStore;
 
-    public void setMinMaxDataElementStore( MinMaxDataElementStore minMaxDataElementStore )
+    public DefaultMinMaxDataElementService( MinMaxDataElementStore minMaxDataElementStore )
     {
+        checkNotNull(minMaxDataElementStore);
+
         this.minMaxDataElementStore = minMaxDataElementStore;
     }
 

@@ -46,6 +46,7 @@ import javax.persistence.criteria.Root;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -65,10 +66,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.Sets;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Repository( "org.hisp.dhis.datavalue.DataValueStore" )
 public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     implements DataValueStore
 {
@@ -80,22 +83,13 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
     private PeriodStore periodStore;
 
-    public void setPeriodStore( PeriodStore periodStore )
-    {
-        this.periodStore = periodStore;
-    }
-
-    private JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     private StatementBuilder statementBuilder;
 
-    public void setStatementBuilder( StatementBuilder statementBuilder )
+    public HibernateDataValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        PeriodStore periodStore, StatementBuilder statementBuilder )
     {
+        super( sessionFactory, jdbcTemplate, DataValue.class, false );
+        this.periodStore = periodStore;
         this.statementBuilder = statementBuilder;
     }
 

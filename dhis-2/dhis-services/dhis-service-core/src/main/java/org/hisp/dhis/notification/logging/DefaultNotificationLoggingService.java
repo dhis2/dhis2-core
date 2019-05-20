@@ -28,21 +28,30 @@ package org.hisp.dhis.notification.logging;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 10.01.18.
  */
 
 @Transactional
+@Service( "org.hisp.dhis.notification.logging.NotificationLoggingService" )
 public class DefaultNotificationLoggingService
     implements NotificationLoggingService
 {
-    @Autowired
-    private NotificationLoggingStore notificationLoggingStore;
+    private final NotificationLoggingStore notificationLoggingStore;
+
+    public DefaultNotificationLoggingService( NotificationLoggingStore notificationLoggingStore )
+    {
+        checkNotNull( notificationLoggingStore );
+
+        this.notificationLoggingStore = notificationLoggingStore;
+    }
 
     @Override
     public ExternalNotificationLogEntry get(String uid )

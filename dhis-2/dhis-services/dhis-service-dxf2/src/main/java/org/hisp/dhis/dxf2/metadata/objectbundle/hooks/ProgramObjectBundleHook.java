@@ -35,6 +35,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.springframework.stereotype.Component;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
@@ -47,6 +48,7 @@ import java.util.Objects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
     private final ProgramInstanceService programInstanceService;

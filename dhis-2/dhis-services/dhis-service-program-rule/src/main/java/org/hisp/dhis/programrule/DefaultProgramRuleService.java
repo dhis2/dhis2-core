@@ -29,15 +29,19 @@ package org.hisp.dhis.programrule;
  */
 
 import org.hisp.dhis.program.Program;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author markusbekken
  */
 @Transactional
+@Service( "org.hisp.dhis.programrule.ProgramRuleService" )
 public class DefaultProgramRuleService
     implements ProgramRuleService
 {
@@ -47,12 +51,14 @@ public class DefaultProgramRuleService
 
     private ProgramRuleStore programRuleStore;
 
-    public void setProgramRuleStore( ProgramRuleStore programRuleStore )
+    public DefaultProgramRuleService( ProgramRuleStore programRuleStore )
     {
+        checkNotNull( programRuleStore );
+
         this.programRuleStore = programRuleStore;
     }
 
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // ProgramRule implementation
     // -------------------------------------------------------------------------
 

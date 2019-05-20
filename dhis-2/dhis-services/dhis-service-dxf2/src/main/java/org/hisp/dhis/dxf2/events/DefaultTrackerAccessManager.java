@@ -48,10 +48,14 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.dxf2.events.TrackerAccessManager" )
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
@@ -59,6 +63,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
     public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager )
     {
+        checkNotNull( aclService );
+        checkNotNull( ownershipAccessManager );
+
         this.aclService = aclService;
         this.ownershipAccessManager = ownershipAccessManager;
     }

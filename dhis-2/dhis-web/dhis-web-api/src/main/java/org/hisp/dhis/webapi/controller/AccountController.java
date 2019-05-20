@@ -322,7 +322,7 @@ public class AccountController
             // ---------------------------------------------------------------------
 
             RecaptchaResponse recaptchaResponse = securityService.verifyRecaptcha( recapResponse, request.getRemoteAddr() );
-            
+
             if ( !recaptchaResponse.success() )
             {
                 log.warn( "Recaptcha validation failed: " + recaptchaResponse.getErrorCodes() );

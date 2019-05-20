@@ -35,6 +35,8 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +53,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author Stian Sandvold
  */
+@Component( " org.hisp.dhis.validation.ValidationRunContext" )
+@Scope( "prototype" )
 public class ValidationRunContext
 {
     public static final int ORG_UNITS_PER_TASK = 500;
@@ -83,7 +87,7 @@ public class ValidationRunContext
 
     private MapMapMap<OrganisationUnit, ValidationRule, Period, List<ValidationResult>> initialValidationResults = new MapMapMap<>();
 
-    public ValidationRunContext()
+    private ValidationRunContext()
     {
         validationResults = new ConcurrentLinkedQueue<>();
     }

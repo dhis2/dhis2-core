@@ -39,12 +39,16 @@ import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Component( "org.hisp.dhis.dataelementhistory.HistoryRetriever" )
 public class DefaultHistoryRetriever
     implements HistoryRetriever
 {
@@ -52,24 +56,21 @@ public class DefaultHistoryRetriever
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MinMaxDataElementService minMaxDataElementService;
+    private final MinMaxDataElementService minMaxDataElementService;
+    
+    private final DataValueService dataValueService;
+    
+    private final PeriodService periodService;
 
-    public void setMinMaxDataElementService( MinMaxDataElementService minMaxDataElementService )
+    public DefaultHistoryRetriever( MinMaxDataElementService minMaxDataElementService,
+        DataValueService dataValueService, PeriodService periodService )
     {
+        checkNotNull( minMaxDataElementService );
+        checkNotNull( dataValueService );
+        checkNotNull( periodService );
+
         this.minMaxDataElementService = minMaxDataElementService;
-    }
-
-    private DataValueService dataValueService;
-
-    public void setDataValueService( DataValueService dataValueService )
-    {
         this.dataValueService = dataValueService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
         this.periodService = periodService;
     }
 

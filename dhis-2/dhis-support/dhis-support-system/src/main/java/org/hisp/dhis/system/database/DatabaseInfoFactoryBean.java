@@ -29,24 +29,28 @@ package org.hisp.dhis.system.database;
  */
 
 import org.springframework.beans.factory.FactoryBean;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "databaseInfo" )
 public class DatabaseInfoFactoryBean
     implements FactoryBean<DatabaseInfo>
 {
-    private DatabaseInfoProvider databaseInfoProvider;
+    private final DatabaseInfoProvider databaseInfoProvider;
 
-    public void setDatabaseInfoProvider( DatabaseInfoProvider databaseInfoProvider )
+    public DatabaseInfoFactoryBean( DatabaseInfoProvider databaseInfoProvider )
     {
+        checkNotNull( databaseInfoProvider );
+
         this.databaseInfoProvider = databaseInfoProvider;
     }
 
     @Override
-    public DatabaseInfo getObject()
-        throws Exception
-    {
+    public DatabaseInfo getObject() {
         return databaseInfoProvider.getDatabaseInfo();
     }
 

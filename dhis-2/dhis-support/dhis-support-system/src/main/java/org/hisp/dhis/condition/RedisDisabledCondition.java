@@ -29,9 +29,7 @@ package org.hisp.dhis.condition;
  */
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
@@ -41,14 +39,18 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Ameen Mohamed
  *
  */
-public class RedisDisabledCondition implements ConfigurationCondition
+public class RedisDisabledCondition extends PropertiesAwareConfigurationCondition
 {
+
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
-            .getBean( "dhisConfigurationProvider" );
-        return !dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+        if ( !isTestRun( context ) )
+        {
+            return !getConfiguration().getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+        }
+
+        return true;
     }
 
     @Override

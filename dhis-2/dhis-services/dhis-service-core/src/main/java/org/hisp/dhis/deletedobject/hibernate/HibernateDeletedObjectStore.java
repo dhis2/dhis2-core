@@ -35,7 +35,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.deletedobject.DeletedObject;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -46,11 +46,16 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.deletedobject.DeletedObjectStore" )
 public class HibernateDeletedObjectStore
     implements DeletedObjectStore
 {
-    @Autowired
     private SessionFactory sessionFactory;
+
+    public HibernateDeletedObjectStore( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
+    }
 
     @Override
     public long save( DeletedObject deletedObject )

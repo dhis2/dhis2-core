@@ -69,7 +69,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
@@ -77,6 +77,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dataintegrity.DataIntegrityService" )
 @Transactional
 public class DefaultDataIntegrityService
     implements DataIntegrityService
@@ -119,7 +120,6 @@ public class DefaultDataIntegrityService
 
     private final ProgramIndicatorService programIndicatorService;
 
-    @Autowired
     public DefaultDataIntegrityService( I18nManager i18nManager, DataElementService dataElementService,
         IndicatorService indicatorService, DataSetService dataSetService,
         OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,

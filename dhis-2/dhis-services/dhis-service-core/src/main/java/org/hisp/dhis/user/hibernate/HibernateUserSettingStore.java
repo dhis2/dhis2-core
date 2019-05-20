@@ -36,10 +36,12 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.user.UserSettingStore" )
 public class HibernateUserSettingStore
     implements UserSettingStore
 {
@@ -51,7 +53,7 @@ public class HibernateUserSettingStore
 
     private SessionFactory sessionFactory;
 
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateUserSettingStore( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
     }

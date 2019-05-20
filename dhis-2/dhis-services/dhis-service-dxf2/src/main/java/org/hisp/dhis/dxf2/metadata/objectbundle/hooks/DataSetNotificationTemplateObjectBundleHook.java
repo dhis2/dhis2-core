@@ -31,10 +31,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by zubair on 29.06.17.
  */
+@Component
 public class DataSetNotificationTemplateObjectBundleHook
     extends AbstractObjectBundleHook
 {

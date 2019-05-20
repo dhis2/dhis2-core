@@ -38,13 +38,13 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.*;
@@ -78,42 +78,35 @@ public class SchedulerStart extends AbstractStartupRoutine
     private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
     private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private String redisEnabled;
+    private final String redisEnabled;
 
-    private String leaderElectionTime;
+    private final String leaderElectionTime;
 
-    private JobConfigurationService jobConfigurationService;
+    private final JobConfigurationService jobConfigurationService;
 
-    public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
+    private final SchedulingManager schedulingManager;
+
+    private final MessageService messageService;
+
+    public SchedulerStart( SystemSettingManager systemSettingManager, String redisEnabled, String leaderElectionTime,
+        JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager,
+        MessageService messageService )
     {
-        this.jobConfigurationService = jobConfigurationService;
-    }
+        checkNotNull( systemSettingManager );
+        checkNotNull( jobConfigurationService );
+        checkNotNull( schedulingManager );
+        checkNotNull( messageService );
+        checkNotNull( leaderElectionTime );
+        checkNotNull( redisEnabled );
 
-    private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        this.schedulingManager = schedulingManager;
-    }
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
-
-    public void setRedisEnabled( String redisEnabled )
-    {
+        this.systemSettingManager = systemSettingManager;
         this.redisEnabled = redisEnabled;
-    }
-
-    public void setLeaderElectionTime( String leaderElectionTime )
-    {
         this.leaderElectionTime = leaderElectionTime;
+        this.jobConfigurationService = jobConfigurationService;
+        this.schedulingManager = schedulingManager;
+        this.messageService = messageService;
     }
 
     @Override
@@ -267,7 +260,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     }
 
 
-    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, SettingKey systemKey )
+    private static void portJob(SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, SettingKey systemKey)
     {
         Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
 

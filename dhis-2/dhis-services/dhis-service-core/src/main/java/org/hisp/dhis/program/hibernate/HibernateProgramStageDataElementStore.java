@@ -28,16 +28,19 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
-import org.springframework.jdbc.core.RowCallbackHandler;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,10 +49,18 @@ import java.util.Set;
 /**
  * @author Viet Nguyen
  */
+@Repository( "org.hisp.dhis.program.ProgramStageDataElementStore" )
 public class HibernateProgramStageDataElementStore
     extends HibernateIdentifiableObjectStore<ProgramStageDataElement>
     implements ProgramStageDataElementStore
 {
+    public HibernateProgramStageDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, ProgramStageDataElement.class, currentUserService, deletedObjectService,
+            aclService, false );
+    }
+
     @Override
     public ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement )
     {
@@ -70,17 +81,12 @@ public class HibernateProgramStageDataElementStore
             "and psde.skipsynchronization = true";
 
         final Map<String, Set<String>> psdesWithSkipSync = new HashMap<>();
-        jdbcTemplate.query( sql, new RowCallbackHandler()
-        {
-            @Override
-            public void processRow( ResultSet rs ) throws SQLException
-            {
-                String programStageUid = rs.getString( "ps_uid" );
-                String dataElementUid = rs.getString( "de_uid" );
+        jdbcTemplate.query( sql, rs -> {
+            String programStageUid = rs.getString( "ps_uid" );
+            String dataElementUid = rs.getString( "de_uid" );
 
-                psdesWithSkipSync.computeIfAbsent( programStageUid, p -> new HashSet<>() ).add( dataElementUid );
-            }
-        } );
+            psdesWithSkipSync.computeIfAbsent( programStageUid, p -> new HashSet<>() ).add( dataElementUid );
+        });
 
         return psdesWithSkipSync;
     }

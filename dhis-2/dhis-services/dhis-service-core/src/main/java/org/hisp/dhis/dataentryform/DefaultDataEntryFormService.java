@@ -43,6 +43,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Maps;
@@ -54,11 +55,13 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.text.StringEscapeUtils.escapeHtml3;
 
 /**
  * @author Bharath Kumar
  */
+@Service( "org.hisp.dhis.dataentryform.DataEntryFormService" )
 public class DefaultDataEntryFormService
     implements DataEntryFormService
 {
@@ -73,31 +76,26 @@ public class DefaultDataEntryFormService
     // Dependencies
     // ------------------------------------------------------------------------
 
-    private DataEntryFormStore dataEntryFormStore;
+    private final DataEntryFormStore dataEntryFormStore;
 
-    public void setDataEntryFormStore( DataEntryFormStore dataEntryFormStore )
+    private final IdentifiableObjectManager idObjectManager;
+
+    private final DataElementService dataElementService;
+
+    private final IndicatorService indicatorService;
+
+    public DefaultDataEntryFormService( DataEntryFormStore dataEntryFormStore,
+        IdentifiableObjectManager idObjectManager, DataElementService dataElementService,
+        IndicatorService indicatorService )
     {
+        checkNotNull( dataEntryFormStore );
+        checkNotNull( idObjectManager );
+        checkNotNull( dataElementService );
+        checkNotNull( indicatorService );
+
         this.dataEntryFormStore = dataEntryFormStore;
-    }
-
-    private IdentifiableObjectManager idObjectManager;
-
-    public void setIdObjectManager( IdentifiableObjectManager idObjectManager )
-    {
         this.idObjectManager = idObjectManager;
-    }
-
-    private DataElementService dataElementService;
-
-    public void setDataElementService( DataElementService dataElementService )
-    {
         this.dataElementService = dataElementService;
-    }
-
-    private IndicatorService indicatorService;
-
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
         this.indicatorService = indicatorService;
     }
 

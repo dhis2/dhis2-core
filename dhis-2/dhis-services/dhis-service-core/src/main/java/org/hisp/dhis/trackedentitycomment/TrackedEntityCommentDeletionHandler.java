@@ -42,8 +42,8 @@ public class TrackedEntityCommentDeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
-    // -------------------------------------------------------------------------    
- 
+    // -------------------------------------------------------------------------
+
     @Autowired
     TrackedEntityCommentService commentService;
 
@@ -65,7 +65,7 @@ public class TrackedEntityCommentDeletionHandler
             commentService.deleteTrackedEntityComment( comment );
         }
     }
-    
+
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {

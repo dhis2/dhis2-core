@@ -32,14 +32,17 @@ import org.hisp.dhis.dataelement.DataElement;
 
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Ken Haase
  */
+@Component( "org.hisp.dhis.predictor.PredictorDeletionHandler" )
 public class PredictorDeletionHandler
     extends DeletionHandler
 {
@@ -47,8 +50,14 @@ public class PredictorDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private PredictorService predictorService;
+    private final PredictorService predictorService;
+
+    public PredictorDeletionHandler( PredictorService predictorService )
+    {
+        checkNotNull( predictorService );
+
+        this.predictorService = predictorService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation

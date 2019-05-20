@@ -39,7 +39,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -50,11 +49,13 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.core.env.Environment;
 import com.google.common.collect.Lists;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -67,6 +68,13 @@ import com.google.common.collect.Lists;
 public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
+    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
+            SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+
+    /**
+     * Cache for system settings. Does not accept nulls. Disabled during test phase.
+     */
+    private Cache<Serializable> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -76,35 +84,32 @@ public class DefaultSystemSettingManager
 
     private SystemSettingStore systemSettingStore;
 
-    /**
-     * Cache for system settings. Does not accept nulls. Disabled during test phase.
-     */
-    private Cache<Serializable> settingCache;
-
-    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
-
-    @Autowired
     private TransactionTemplate transactionTemplate;
 
-    @Resource( name = "tripleDesStringEncryptor" )
     private PBEStringEncryptor pbeStringEncryptor;
 
-    @Autowired
     private CacheProvider cacheProvider;
 
-    @Autowired
     private Environment environment;
-
-    public void setSystemSettingStore( SystemSettingStore systemSettingStore )
-    {
-        this.systemSettingStore = systemSettingStore;
-    }
 
     private List<String> flags;
 
-    public void setFlags( List<String> flags )
+    public DefaultSystemSettingManager( SystemSettingStore systemSettingStore, TransactionTemplate transactionTemplate,
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
+        Environment environment, List<String> flags )
     {
+        checkNotNull( systemSettingStore );
+        checkNotNull( transactionTemplate );
+        checkNotNull( pbeStringEncryptor );
+        checkNotNull( cacheProvider );
+        checkNotNull( environment );
+        checkNotNull( flags );
+
+        this.systemSettingStore = systemSettingStore;
+        this.transactionTemplate = transactionTemplate;
+        this.pbeStringEncryptor = pbeStringEncryptor;
+        this.cacheProvider = cacheProvider;
+        this.environment = environment;
         this.flags = flags;
     }
 
