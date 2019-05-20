@@ -57,17 +57,13 @@ public class MetadataVersionWrapper extends AbstractStartupRoutine
     private static final String WRAPPED_METADATA_PREFIX = "{\"metadata\":";
 
     private final KeyJsonValueService keyJsonValueService;
-//    private final MetadataVersionService metadataVersionService;
     private final RenderService renderService;
     private final MetadataVersionStore versionStore;
 
-//    public MetadataVersionWrapper( KeyJsonValueService keyJsonValueService,
-//        MetadataVersionService metadataVersionService, RenderService renderService, MetadataVersionStore versionStore )
 public MetadataVersionWrapper( KeyJsonValueService keyJsonValueService,
     RenderService renderService, MetadataVersionStore versionStore )
     {
         this.keyJsonValueService = keyJsonValueService;
-//        this.metadataVersionService = metadataVersionService;
         this.renderService = renderService;
         this.versionStore = versionStore;
     }
