@@ -42,7 +42,7 @@ public class DefaultIndicatorGroupService implements IndicatorGroupService
     private HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
     public DefaultIndicatorGroupService(
-        @Qualifier( "org.hisp.dhis.program.IndicatorGroupStore" ) HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
+        @Qualifier( "org.hisp.dhis.indicator.IndicatorGroupStore" ) HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
     {
         this.indicatorGroupStore = indicatorGroupStore;
     }
