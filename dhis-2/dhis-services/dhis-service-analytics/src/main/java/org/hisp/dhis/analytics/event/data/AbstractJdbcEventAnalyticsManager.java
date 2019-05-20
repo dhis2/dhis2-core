@@ -581,17 +581,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * Template method that generates a SQL query for retrieving Events or
      * Enrollments
      * 
-     * @param fixedCols list of columns for the SELECT statement
      * @param params an {@see EventQueryParams} to drive the query generation
      * @param maxLimit max number of hits returned
      * 
      * @return a SQL query
      */
-    String getEventsOrEnrollmentsSql(List<String> fixedCols, EventQueryParams params, int maxLimit) {
+    String getEventsOrEnrollmentsSql( EventQueryParams params, int maxLimit )
+    {
 
-        List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-
-        String sql = getSelectClause( params ); //"select " + StringUtils.join( selectCols, "," ) + " ";
+        String sql = getSelectClause( params );
 
         sql += getFromClause( params );
 

@@ -92,9 +92,9 @@ public class JdbcEnrollmentAnalyticsManager
     }
 
     @Override
-    public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit ) 
+    public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit )
     {
-        withExceptionHandling( () -> getEnrollments( params, grid, getEventsOrEnrollmentsSql(COLUMNS, params, maxLimit) ) );
+        withExceptionHandling( () -> getEnrollments( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
     }
 
     private void getEnrollments( EventQueryParams params, Grid grid, String sql )

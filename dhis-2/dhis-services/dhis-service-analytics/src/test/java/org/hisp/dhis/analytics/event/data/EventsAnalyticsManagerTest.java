@@ -48,6 +48,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Before;
 import org.junit.Rule;
@@ -82,7 +83,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     private ArgumentCaptor<String> sql;
     
     private final String TABLE_NAME = "analytics_event";
-    private final String DEFAULT_COLUMNS = "psi,ps,executiondate,ST_AsGeoJSON(psigeometry, 6),longitude,latitude,ouname,oucode";
+    private final String DEFAULT_COLUMNS = "psi,ps,executiondate,enrollmentdate,incidentdate,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
     @Before
     public void setUp()
@@ -94,6 +95,23 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }
 
+    @Test
+    public void verifyGetEventSqlWithProgramWithNoRegistration()
+    {
+        mockEmptyRowSet();
+        
+        this.programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+
+        subject.getEvents( createRequestParams(), createGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "select psi,ps,executiondate,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode,ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+                + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) limit 101";
+
+        assertThat( sql.getValue(), is(expected) );
+    }
+    
     @Test
     public void verifyGetEventSqlWithProgram()
     {
