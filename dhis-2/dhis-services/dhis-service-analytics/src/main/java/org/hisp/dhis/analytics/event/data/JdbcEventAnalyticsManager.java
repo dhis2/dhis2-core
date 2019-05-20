@@ -82,6 +82,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -108,11 +109,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
-
-        List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-
-        String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
+        String sql = getSelectClause( params );
 
         sql += getFromClause( params );
 
@@ -278,6 +275,28 @@ public class JdbcEventAnalyticsManager
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns a select SQL clause for the given query.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    private String getSelectClause( EventQueryParams params )
+    {
+        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
+            .add( "psi", "ps", "executiondate" );
+
+        if ( params.getProgram().isRegistration() )
+        {
+            cols.add( "enrollmentdate", "incidentdate" );
+        }
+
+        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
+
+        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
+
+        return "select " + StringUtils.join( selectCols, "," ) + " ";
+    }
 
     /**
      * Returns a from SQL clause for the given analytics table partition. If the
