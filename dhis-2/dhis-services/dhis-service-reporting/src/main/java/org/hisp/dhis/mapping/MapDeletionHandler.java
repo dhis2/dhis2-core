@@ -29,8 +29,6 @@ package org.hisp.dhis.mapping;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 import java.util.Iterator;

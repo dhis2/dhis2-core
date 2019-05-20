@@ -94,7 +94,7 @@ public class DefaultQueryValidator
         final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
         params.getProgramDataElements().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
         final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
-        
+
         if ( !params.isSkipDataDimensionValidation() )
         {
             if ( params.getDimensions().isEmpty() )

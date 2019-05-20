@@ -30,7 +30,6 @@ package org.hisp.dhis.validation;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -60,7 +59,7 @@ public class ValidationRuleGroupDeletionHandler
     {
         return ValidationRuleGroup.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteValidationRule( ValidationRule validationRule )
     {
