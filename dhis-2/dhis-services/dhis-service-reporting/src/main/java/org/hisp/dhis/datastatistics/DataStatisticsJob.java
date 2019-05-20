@@ -33,7 +33,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,7 +46,7 @@ public class DataStatisticsJob
     extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( DataStatisticsJob.class );
-    
+
     private final DataStatisticsService dataStatisticsService;
 
     public DataStatisticsJob( DataStatisticsService dataStatisticsService )

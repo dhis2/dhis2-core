@@ -34,7 +34,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.Iterator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

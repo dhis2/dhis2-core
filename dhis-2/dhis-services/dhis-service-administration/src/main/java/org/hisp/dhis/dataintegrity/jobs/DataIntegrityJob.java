@@ -37,7 +37,6 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -71,7 +70,7 @@ public class DataIntegrityJob
     {
         return JobType.DATA_INTEGRITY;
     }
-    
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------

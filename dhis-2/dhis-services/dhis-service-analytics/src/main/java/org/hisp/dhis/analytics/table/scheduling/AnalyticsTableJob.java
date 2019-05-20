@@ -1,5 +1,6 @@
 package org.hisp.dhis.analytics.table.scheduling;
 
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
