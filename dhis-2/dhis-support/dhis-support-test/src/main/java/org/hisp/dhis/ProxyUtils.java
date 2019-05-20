@@ -48,6 +48,7 @@ public class ProxyUtils
         return getTarget( targetSource );
     }
 
+    @SuppressWarnings("unchecked")
     private static <T> T getTarget( TargetSource targetSource )
     {
         try

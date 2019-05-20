@@ -148,7 +148,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
-        ArgumentCaptor<ProgramInstance> argumentInstanceCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
@@ -179,7 +178,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
-        ArgumentCaptor<ProgramStageInstance> argumentStageInstanceCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 

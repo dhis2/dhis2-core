@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset.notifications;
  */
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +49,7 @@ public class DataSetNotificationEventPublisher
         this.publisher = publisher;
     }
 
-    public void publishEvent(CompleteDataSetRegistration registration )
+    public void publishEvent( CompleteDataSetRegistration registration )
     {
         DataSetNotificationEvent event = new DataSetNotificationEvent( this, registration );
         publisher.publishEvent( event );
