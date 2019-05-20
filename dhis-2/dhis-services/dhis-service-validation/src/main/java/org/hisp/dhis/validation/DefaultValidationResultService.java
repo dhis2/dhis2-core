@@ -31,7 +31,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,6 +71,7 @@ public class DefaultValidationResultService
         } );
     }
 
+    @Override
     public List<ValidationResult> getAllValidationResults()
     {
         return validationResultStore.getAll();

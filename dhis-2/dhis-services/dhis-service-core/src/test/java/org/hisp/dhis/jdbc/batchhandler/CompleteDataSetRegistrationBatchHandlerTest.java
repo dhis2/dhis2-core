@@ -42,7 +42,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Test;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
