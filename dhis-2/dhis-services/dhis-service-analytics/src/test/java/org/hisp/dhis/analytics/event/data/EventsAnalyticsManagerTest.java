@@ -93,7 +93,6 @@ public class EventsAnalyticsManagerTest
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
-
     }
 
     @Test
@@ -156,7 +155,7 @@ public class EventsAnalyticsManagerTest
     }
 
 
-    private void verifyFirstOrLastAggregationTypeSubquery(AnalyticsAggregationType analyticsAggregationType)
+    private void verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType analyticsAggregationType )
     {
         DataElement programDataElement = createDataElement( 'U' );
 
@@ -205,8 +204,8 @@ public class EventsAnalyticsManagerTest
         params.withTableName( "analytics_event_ebayegv0exc" );
 
         Program p = createProgram('P');
-        params.withProgram(p);
-        this.programStage = createProgramStage( 'B', p);
+        params.withProgram( p );
+        this.programStage = createProgramStage( 'B', p );
         params.withProgramStage( programStage );
 
         QueryItem queryItem = new QueryItem( dio );
@@ -229,7 +228,7 @@ public class EventsAnalyticsManagerTest
 
     private void mockRowSet()
     {
-        // simulate one row only
+        // Simulate one row only
         when( rowSet.next() ).thenReturn( true ).thenReturn( false );
 
         when( rowSet.getString( "monthly" ) ).thenReturn( "201701" );

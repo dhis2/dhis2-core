@@ -551,12 +551,12 @@ public class JdbcAnalyticsManager
             sql += col + ",";
         }
 
-        String sqlOrderClause = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
+        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         sql +=
             "row_number() over (" +
                 "partition by dx, ou, co, ao " +
-                "order by peenddate " + sqlOrderClause + ", pestartdate " + sqlOrderClause + ") as pe_rank " +
+                "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "' " +

@@ -70,7 +70,6 @@ public class AnalyticsServiceProgramDataElementTest
     extends
     AnalyticsServiceBaseTest
 {
-
     /**
      * This test verifies that a call to the Analytics Service with a Data Element
      * of type Program Data Element, triggers a call to the Event Analytics Service
@@ -85,11 +84,8 @@ public class AnalyticsServiceProgramDataElementTest
         ProgramDataElementDimensionItem pded1 = new ProgramDataElementDimensionItem( pr1, de1 );
 
         DataQueryParams params = DataQueryParams.newBuilder().withAggregationType( AnalyticsAggregationType.AVERAGE )
-            // PERIOD
             .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
-            // DATA ELEMENTS
             .withDataElements( newArrayList( pded1 ) ).withIgnoreLimit( true )
-            // FILTERS (OU)
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )

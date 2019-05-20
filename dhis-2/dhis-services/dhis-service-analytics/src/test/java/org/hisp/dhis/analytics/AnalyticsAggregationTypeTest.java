@@ -40,7 +40,6 @@ import static org.junit.Assert.*;
  */
 public class AnalyticsAggregationTypeTest
 {
-
     @Test
     public void verifyFromAggregationType()
     {

@@ -598,13 +598,12 @@ public class EventQueryParams
     {
         return getAggregationType() != null && getAggregationType().isFirstPeriodAggregationType();
     }
-    
+
     public boolean isFirstOrLastPeriodAggregationType()
     {
-
         return isFirstPeriodAggregationType() || isLastPeriodAggregationType();
     }
-    
+
     /**
      * Returns true if a program indicator exists with non-default analytics period boundaries.
      */

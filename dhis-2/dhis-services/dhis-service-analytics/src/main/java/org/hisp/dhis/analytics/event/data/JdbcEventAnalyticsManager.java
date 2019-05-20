@@ -556,7 +556,7 @@ public class JdbcEventAnalyticsManager
         List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String alias = "iax";
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
-        String sqlOrderClause = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
+        String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         String sql = "(select ";
 
@@ -568,7 +568,7 @@ public class JdbcEventAnalyticsManager
         sql +=
             "row_number() over (" +
                 "partition by ou, ao " +
-                "order by " + timeCol + " " + sqlOrderClause +") as pe_rank " +
+                "order by " + timeCol + " " + order +") as pe_rank " +
             "from " + params.getTableName() + " " + alias + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
             "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +

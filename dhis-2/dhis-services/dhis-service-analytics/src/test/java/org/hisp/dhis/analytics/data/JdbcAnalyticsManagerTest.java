@@ -65,7 +65,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 public class JdbcAnalyticsManagerTest
 {
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -121,7 +120,7 @@ public class JdbcAnalyticsManagerTest
 
     private void mockRowSet()
     {
-        // simulate no rows
+        // Simulate no rows
         when( rowSet.next() ).thenReturn( false );
     }
 
@@ -138,7 +137,7 @@ public class JdbcAnalyticsManagerTest
                 .addFilter( new BaseDimensionalObject( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList( ouA ) ) )
                 .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
     }
-    
+
     private void assertExpectedSql(String sortOrder) {
 
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
@@ -147,8 +146,6 @@ public class JdbcAnalyticsManagerTest
             + sortOrder + ") as pe_rank "
             + "from analytics as ax where pestartdate >= '2005-01-31' and pestartdate <= '2015-01-31' "
             + "and (value is not null or textvalue is not null))";
-
-        System.out.println(sql.getValue());
 
         assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
     }

@@ -61,10 +61,9 @@ import org.mockito.junit.MockitoRule;
 public class AnalyticsManagerTest
     extends DhisConvenienceTest
 {
-
     @RunWith(Parameterized.class)
-    public static class Parametrized {
-
+    public static class Parametrized
+    {
         private AnalyticsManager analyticsManager;
 
         @Mock
@@ -75,13 +74,13 @@ public class AnalyticsManagerTest
 
         @Rule
         public MockitoRule mockitoRule = MockitoJUnit.rule();
-        
+
         @Parameterized.Parameter
         public String financialYear;
 
         @Parameterized.Parameter(1)
         public Double weightedAverage;
-        
+
         @Parameterized.Parameters
         public static Collection<Object[]> data()
         {
@@ -96,7 +95,7 @@ public class AnalyticsManagerTest
         }
 
         @Test
-        public void testWeightedAverage() 
+        public void testWeightedAverage()
         {
             AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
                 AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
@@ -128,8 +127,8 @@ public class AnalyticsManagerTest
         }
     }
 
-    public static class SingleExecution {
-
+    public static class SingleExecution
+    {
         @Mock
         private QueryPlanner queryPlanner;
 
@@ -138,7 +137,7 @@ public class AnalyticsManagerTest
 
         @Rule
         public MockitoRule mockitoRule = MockitoJUnit.rule();
-        
+
         @Test
         public void testReplaceDataPeriodsWithAggregationPeriods()
         {
