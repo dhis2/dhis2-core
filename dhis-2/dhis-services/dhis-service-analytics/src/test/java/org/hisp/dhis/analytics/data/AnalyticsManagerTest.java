@@ -91,7 +91,7 @@ public class AnalyticsManagerTest
         @Before
         public void setUp()
         {
-            analyticsManager = new JdbcAnalyticsManager(queryPlanner, jdbcTemplate);
+            analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
         }
 
         @Test
