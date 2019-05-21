@@ -79,17 +79,20 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
         mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
     }
 
-    @Override public boolean supports( final Event event, final Context context )
+    @Override
+    public boolean supports( final Event event, final Context context )
     {
         return event == Event.BEFORE_MIGRATE;
     }
 
-    @Override public boolean canHandleInTransaction( final Event event, final Context context )
+    @Override
+    public boolean canHandleInTransaction( final Event event, final Context context )
     {
         return true;
     }
 
-    @Override public void handle( final Event event, final Context context )
+    @Override
+    public void handle( final Event event, final Context context )
     {
         try
         {
