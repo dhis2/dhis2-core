@@ -51,7 +51,7 @@ public class RelationshipTypeSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( RelationshipType.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1450 );
+        schema.setOrder( 1600 );
 
         schema.setDataShareable( true );
 
