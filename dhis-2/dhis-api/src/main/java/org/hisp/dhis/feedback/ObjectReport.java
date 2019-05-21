@@ -196,7 +196,6 @@ public class ObjectReport
         return errorReportsByCode.size();
     }
 
-
     @Override
     public String toString()
     {

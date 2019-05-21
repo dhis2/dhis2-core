@@ -1,4 +1,4 @@
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.tracker;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -31,7 +31,15 @@ package org.hisp.dhis.feedback;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum Status
+public enum TrackerBundleReportMode
 {
-    OK, WARNING, ERROR
+    /**
+     * Gives full tracker bundle report, including object reports for valid objects.
+     */
+    FULL,
+
+    /**
+     * Returns tracker bundle report where valid object report has been filtered out.
+     */
+    ERRORS
 }

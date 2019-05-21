@@ -1,4 +1,4 @@
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.tracker;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -31,7 +31,7 @@ package org.hisp.dhis.feedback;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum Status
+public enum TrackerType
 {
-    OK, WARNING, ERROR
+    TRACKED_ENTITY, ENROLLMENT, EVENT
 }

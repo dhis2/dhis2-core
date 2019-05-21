@@ -110,10 +110,7 @@ public class TypeReport
     @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
     public List<ObjectReport> getObjectReports()
     {
-        List<ObjectReport> objectReports = new ArrayList<>();
-        objectReportMap.values().forEach( objectReports::add );
-
-        return objectReports;
+        return new ArrayList<>( objectReportMap.values() );
     }
 
     public List<ErrorReport> getErrorReports()

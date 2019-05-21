@@ -34,7 +34,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,53 +43,28 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackerBundleReport", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackerBundleReport
+@JacksonXmlRootElement( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackerTypeReport
 {
-    private TrackerBundleParams bundleParams;
-
-    private TrackerStatus status = TrackerStatus.OK;
+    private final TrackerType trackerType;
 
     private TrackerStats stats = new TrackerStats();
 
-    private Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
+    private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
 
-    public TrackerBundleReport()
+    public TrackerTypeReport( TrackerType trackerType )
     {
+        this.trackerType = trackerType;
     }
 
-    public TrackerBundleReport( TrackerBundleParams bundleParams )
+    public TrackerType getTrackerType()
     {
-        this.bundleParams = bundleParams;
+        return trackerType;
     }
 
     //-----------------------------------------------------------------------------------
     // Getters and Setters
     //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleParams getBundleParams()
-    {
-        return bundleParams;
-    }
-
-    public void setBundleParams( TrackerBundleParams bundleParams )
-    {
-        this.bundleParams = bundleParams;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStatus getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus( TrackerStatus status )
-    {
-        this.status = status;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -105,20 +79,23 @@ public class TrackerBundleReport
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerTypeReport> getTypeReports()
+    @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackerObjectReport> getObjectReports()
     {
-        return new ArrayList<>( typeReportMap.values() );
+        return new ArrayList<>( objectReportMap.values() );
     }
 
-    public Map<TrackerType, TrackerTypeReport> getTypeReportMap()
+    public List<TrackerErrorReport> getErrorReports()
     {
-        return typeReportMap;
+        List<TrackerErrorReport> errorReports = new ArrayList<>();
+        objectReportMap.values().forEach( objectReport -> errorReports.addAll( objectReport.getErrorReports() ) );
+
+        return errorReports;
     }
 
-    public int size()
+    public Map<Integer, TrackerObjectReport> getObjectReportMap()
     {
-        return typeReportMap.size();
+        return objectReportMap;
     }
 }

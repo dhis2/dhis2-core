@@ -1,4 +1,4 @@
-package org.hisp.dhis.feedback;
+package org.hisp.dhis.tracker.report;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,10 +28,22 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum Status
+public class TrackerBundleReportTest
 {
-    OK, WARNING, ERROR
+    @Test
+    public void testEmptyReport()
+    {
+        TrackerBundleReport report = new TrackerBundleReport();
+        assertEquals( TrackerStatus.OK, report.getStatus() );
+        assertNull( report.getBundleParams() );
+        assertNotNull( report.getTypeReportMap() );
+        assertEquals( 0, report.size() );
+    }
 }

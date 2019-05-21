@@ -31,10 +31,9 @@ package org.hisp.dhis.tracker.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.tracker.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,81 +43,89 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackerBundleReport", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackerBundleReport
+public class TrackerObjectReport
 {
-    private TrackerBundleParams bundleParams;
+    /**
+     * Type of object this @{@link TrackerObjectReport} represents.
+     */
+    private final TrackerType trackerType;
 
-    private TrackerStatus status = TrackerStatus.OK;
+    /**
+     * Index into list.
+     */
+    private Integer index;
 
-    private TrackerStats stats = new TrackerStats();
+    /**
+     * UID of object (if object is id object).
+     */
+    private String uid;
 
-    private Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
+    private Map<TrackerErrorCode, List<TrackerErrorReport>> errorReportsByCode = new HashMap<>();
 
-    public TrackerBundleReport()
+    public TrackerObjectReport( TrackerType trackerType )
     {
-    }
-
-    public TrackerBundleReport( TrackerBundleParams bundleParams )
-    {
-        this.bundleParams = bundleParams;
-    }
-
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleParams getBundleParams()
-    {
-        return bundleParams;
-    }
-
-    public void setBundleParams( TrackerBundleParams bundleParams )
-    {
-        this.bundleParams = bundleParams;
+        this.trackerType = trackerType;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStatus getStatus()
+    @JacksonXmlProperty( isAttribute = true )
+    public TrackerType getTrackerType()
     {
-        return status;
-    }
-
-    public void setStatus( TrackerStatus status )
-    {
-        this.status = status;
+        return trackerType;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStats getStats()
+    @JacksonXmlProperty( isAttribute = true )
+    public Integer getIndex()
     {
-        return stats;
+        return index;
     }
 
-    public void setStats( TrackerStats stats )
+    public void setIndex( Integer index )
     {
-        this.stats = stats;
+        this.index = index;
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerTypeReport> getTypeReports()
+    @JacksonXmlProperty( isAttribute = true )
+    public String getUid()
     {
-        return new ArrayList<>( typeReportMap.values() );
+        return uid;
     }
 
-    public Map<TrackerType, TrackerTypeReport> getTypeReportMap()
+    public void setUid( String uid )
     {
-        return typeReportMap;
+        this.uid = uid;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackerErrorReport> getErrorReports()
+    {
+        List<TrackerErrorReport> errorReports = new ArrayList<>();
+        errorReportsByCode.values().forEach( errorReports::addAll );
+
+        return errorReports;
+    }
+
+    public List<TrackerErrorCode> getErrorCodes()
+    {
+        return new ArrayList<>( errorReportsByCode.keySet() );
+    }
+
+    public Map<TrackerErrorCode, List<TrackerErrorReport>> getErrorReportsByCode()
+    {
+        return errorReportsByCode;
+    }
+
+    public boolean isEmpty()
+    {
+        return errorReportsByCode.isEmpty();
     }
 
     public int size()
     {
-        return typeReportMap.size();
+        return errorReportsByCode.size();
     }
 }

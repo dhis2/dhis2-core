@@ -29,39 +29,39 @@ package org.hisp.dhis.tracker.report;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "trackerBundleReport", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackerBundleReport
+@JacksonXmlRootElement( localName = "stats", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackerStats
 {
-    private TrackerBundleParams bundleParams;
+    private int created;
 
-    private TrackerStatus status = TrackerStatus.OK;
+    private int updated;
 
-    private TrackerStats stats = new TrackerStats();
+    private int deleted;
 
-    private Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
+    private int ignored;
 
-    public TrackerBundleReport()
+    public TrackerStats()
     {
     }
 
-    public TrackerBundleReport( TrackerBundleParams bundleParams )
+    //-----------------------------------------------------------------------------------
+    // Utility Methods
+    //-----------------------------------------------------------------------------------
+
+    public void merge( TrackerStats stats )
     {
-        this.bundleParams = bundleParams;
+        created += stats.getCreated();
+        updated += stats.getUpdated();
+        deleted += stats.getDeleted();
+        ignored += stats.getIgnored();
     }
 
     //-----------------------------------------------------------------------------------
@@ -70,55 +70,78 @@ public class TrackerBundleReport
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerBundleParams getBundleParams()
+    public int getTotal()
     {
-        return bundleParams;
-    }
-
-    public void setBundleParams( TrackerBundleParams bundleParams )
-    {
-        this.bundleParams = bundleParams;
+        return created + updated + deleted + ignored;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStatus getStatus()
+    public int getCreated()
     {
-        return status;
+        return created;
     }
 
-    public void setStatus( TrackerStatus status )
+    public void incCreated()
     {
-        this.status = status;
+        created++;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerStats getStats()
+    public int getUpdated()
     {
-        return stats;
+        return updated;
     }
 
-    public void setStats( TrackerStats stats )
+    public void incUpdated()
     {
-        this.stats = stats;
+        updated++;
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackerTypeReport> getTypeReports()
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getDeleted()
     {
-        return new ArrayList<>( typeReportMap.values() );
+        return deleted;
     }
 
-    public Map<TrackerType, TrackerTypeReport> getTypeReportMap()
+    public void incDeleted()
     {
-        return typeReportMap;
+        deleted++;
     }
 
-    public int size()
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getIgnored()
     {
-        return typeReportMap.size();
+        return ignored;
+    }
+
+    public void incIgnored()
+    {
+        ignored++;
+    }
+
+    public void ignored()
+    {
+        ignored += created;
+        ignored += updated;
+        ignored += deleted;
+
+        created = 0;
+        updated = 0;
+        deleted = 0;
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "created", created )
+            .add( "updated", updated )
+            .add( "deleted", deleted )
+            .add( "ignored", ignored )
+            .toString();
     }
 }
