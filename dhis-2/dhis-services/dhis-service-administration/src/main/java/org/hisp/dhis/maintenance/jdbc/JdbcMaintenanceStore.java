@@ -29,7 +29,6 @@ package org.hisp.dhis.maintenance.jdbc;
  */
 
 import org.hisp.dhis.maintenance.MaintenanceStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -84,7 +83,7 @@ public class JdbcMaintenanceStore
 
         /*
          * Delete event values, event value audits, event comments, events
-         * 
+         *
          */
         String[] sqlStmts = new String[] {
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
@@ -106,7 +105,7 @@ public class JdbcMaintenanceStore
         /*
          * Delete event values, event value audits, event comments, events,
          * enrollment comments, enrollments
-         * 
+         *
          */
         String[] sqlStmts = new String[] {
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
@@ -136,7 +135,7 @@ public class JdbcMaintenanceStore
          * Delete event values, event audits, event comments, events, enrollment
          * comments, enrollments, tei attribtue values, tei attribtue value
          * audits, teis
-         * 
+         *
          */
         String[] sqlStmts = new String[] {
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,

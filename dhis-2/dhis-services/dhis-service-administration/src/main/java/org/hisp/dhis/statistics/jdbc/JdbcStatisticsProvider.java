@@ -30,7 +30,6 @@ package org.hisp.dhis.statistics.jdbc;
 
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.statistics.StatisticsProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -65,12 +64,12 @@ public class JdbcStatisticsProvider
     // -------------------------------------------------------------------------
     // StatisticsProvider implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     public Map<Objects, Integer> getObjectCounts()
     {
         final Map<Objects, Integer> objectCounts = new HashMap<>();
-        
+
         objectCounts.put( Objects.DATAELEMENT, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM dataelement", Integer.class ) );
         objectCounts.put( Objects.DATAELEMENTGROUP, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM dataelementgroup", Integer.class ) );
         objectCounts.put( Objects.INDICATORTYPE, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM indicatortype", Integer.class ) );
@@ -86,11 +85,11 @@ public class JdbcStatisticsProvider
         objectCounts.put( Objects.REPORTTABLE, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM reporttable", Integer.class ) );
         objectCounts.put( Objects.CHART, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM chart", Integer.class ) );
         objectCounts.put( Objects.MAP, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM map", Integer.class ) );
-        objectCounts.put( Objects.DASHBOARD, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM dashboard", Integer.class ) );        
+        objectCounts.put( Objects.DASHBOARD, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM dashboard", Integer.class ) );
         objectCounts.put( Objects.DATAVALUE, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM datavalue dv where dv.deleted is false", Integer.class ) );
         objectCounts.put( Objects.PROGRAM, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM program", Integer.class ) );
         objectCounts.put( Objects.PROGRAMSTAGEINSTANCE, jdbcTemplate.queryForObject( "SELECT COUNT(*) FROM programstageinstance psi where psi.deleted is false", Integer.class ) );
-        
+
         return objectCounts;
     }
 }
