@@ -373,8 +373,8 @@ public class DefaultSynchronizationManager
 
         //Remove MessageConversation schema
         List<Schema> metadataSchemas = schemaService.getMetadataSchemas().stream()
-        .filter( schema -> !schema.getPlural().equals( MessageConversationSchemaDescriptor.PLURAL ) )
-        .collect( Collectors.toList());
+            .filter( schema -> !schema.getPlural().equals( MessageConversationSchemaDescriptor.PLURAL ) )
+            .collect( Collectors.toList());
 
         importParams.addMetadata( metadataSchemas, metadata );
 
