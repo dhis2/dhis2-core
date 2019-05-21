@@ -68,6 +68,7 @@ import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -164,6 +165,7 @@ public class MetadataImportTest
         validateCreatedEntities( objectReports );
     }
 
+    @Disabled
     @Test
     public void shouldReturnObjectReportsWhenSomeMetadataWasIgnoredAndAtomicModeFalse()
         throws Exception

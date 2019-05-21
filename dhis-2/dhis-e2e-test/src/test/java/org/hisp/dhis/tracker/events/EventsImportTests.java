@@ -12,6 +12,7 @@ import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -87,6 +88,7 @@ public class EventsImportTests
         assertThat( importSummaries, Matchers.everyItem( hasProperty( "status", Matchers.equalTo( "SUCCESS" ) ) ) );
     }
 
+    @Disabled
     @Test
     public void eventsImportDeletedEventShouldFail()
     {

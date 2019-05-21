@@ -64,6 +64,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -84,6 +85,7 @@ public class OptionSetTests
         loginActions.loginAsSuperUser();
     }
 
+    @Disabled
     @Test
     public void shouldNotBeRemovedWithAssociatedData()
     {
@@ -98,6 +100,7 @@ public class OptionSetTests
         response.validate().statusCode( 404 );
     }
 
+    @Disabled
     @Test
     public void shouldBeAbleToReferenceWithOption()
     {
