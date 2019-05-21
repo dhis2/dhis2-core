@@ -26,6 +26,7 @@
 # Build the DHIS2 Core server from source (Maven)
 ##########
 FROM maven:3.5.3-jdk-8-slim as build
+LABEL stage=intermediate
 #NB - maven-frontend-plugin breaks on Alpine linux, so we use Debian Slim instead
 #NB - maven-surefire-plugin fails with maven:3.5.4-jdk-8-slim and later.
 #     This is a recent issue possibly traced to an OpenJDK bug - https://github.com/carlossg/docker-maven/issues/90
