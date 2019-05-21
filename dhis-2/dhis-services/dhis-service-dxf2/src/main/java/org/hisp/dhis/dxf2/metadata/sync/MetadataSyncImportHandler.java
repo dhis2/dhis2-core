@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.version.MetadataVersionDelegate;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderFormat;
@@ -92,6 +93,9 @@ public class MetadataSyncImportHandler
         // Job configurations should not be imported from any source
         // (neither by normal metadata import nor by sync).
         classListMap.remove( JobConfiguration.class );
+
+        //MessageConversations are not considered metadata anymore.
+        classListMap.remove( MessageConversation.class );
         importParams.setObjects( classListMap );
 
         ImportReport importReport = null;
