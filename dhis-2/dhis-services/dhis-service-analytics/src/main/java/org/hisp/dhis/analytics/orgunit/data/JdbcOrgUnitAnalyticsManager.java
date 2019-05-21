@@ -1,20 +1,7 @@
 package org.hisp.dhis.analytics.orgunit.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
-import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +27,19 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;

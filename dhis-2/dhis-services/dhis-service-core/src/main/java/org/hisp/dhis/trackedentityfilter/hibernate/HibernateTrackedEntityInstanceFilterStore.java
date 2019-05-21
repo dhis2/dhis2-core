@@ -15,7 +15,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
