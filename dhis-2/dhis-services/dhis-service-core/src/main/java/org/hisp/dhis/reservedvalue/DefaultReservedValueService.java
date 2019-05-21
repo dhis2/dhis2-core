@@ -71,7 +71,7 @@ public class DefaultReservedValueService
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
         Date expires )
         throws ReserveValueException, TextPatternService.TextPatternGenerationException
@@ -129,7 +129,7 @@ public class DefaultReservedValueService
 
                 while ( generatedValues.size() < numberOfValuesLeftToGenerate && maxGenerateAttempts-- > 0 )
                 {
-                    generatedValues.addAll( generateValues( textPattern, numberOfReservations - resultList.size() ) );
+                    generatedValues.addAll( generateValues( textPattern, key, numberOfReservations - resultList.size() ) );
                     generatedValues.removeAll( usedGeneratedValues );
                 }
 
@@ -185,7 +185,7 @@ public class DefaultReservedValueService
             .orElse( null );
     }
 
-    private List<String> generateValues( TextPattern textPattern, int numberOfValues )
+    private List<String> generateValues( TextPattern textPattern, String key, int numberOfValues )
     {
         List<String> generatedValues = new ArrayList<>();
         TextPatternSegment segment = getGeneratedSegment( textPattern );
@@ -193,7 +193,7 @@ public class DefaultReservedValueService
         if ( segment.getMethod().equals( TextPatternMethod.SEQUENTIAL ) )
         {
             generatedValues.addAll( sequentialNumberCounterStore
-                .getNextValues( textPattern.getOwnerUid(), segment.getParameter(), numberOfValues )
+                .getNextValues( textPattern.getOwnerUid(), key, numberOfValues )
                 .stream()
                 .map( ( n ) -> String.format( "%0" + segment.getParameter().length() + "d", n ) )
                 .collect( Collectors.toList() ) );
