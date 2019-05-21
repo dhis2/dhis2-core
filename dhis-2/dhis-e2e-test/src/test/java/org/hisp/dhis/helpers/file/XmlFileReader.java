@@ -56,7 +56,7 @@ import java.util.function.Function;
 public class XmlFileReader
     implements FileReader
 {
-    Document document;
+    private Document document;
 
     public XmlFileReader( File file )
         throws ParserConfigurationException, IOException, SAXException

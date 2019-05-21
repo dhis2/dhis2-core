@@ -34,7 +34,7 @@ import static org.hamcrest.core.Every.everyItem;
 public class EventsImportTests
     extends ApiTest
 {
-    List<String> createdEvents = new ArrayList<>();
+    private List<String> createdEvents = new ArrayList<>();
 
     private EventActions eventActions = new EventActions();
 

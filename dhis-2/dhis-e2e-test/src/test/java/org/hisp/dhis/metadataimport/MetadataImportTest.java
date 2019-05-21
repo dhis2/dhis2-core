@@ -119,8 +119,8 @@ public class MetadataImportTest
         response.validate()
             .statusCode( 200 )
             .body( "stats.total", greaterThan( 0 ) )
-            .body( "stats.created", Matchers.equalTo( 0 ) )
-            .body( "stats.deleted", Matchers.equalTo( 0 ) )
+            .body( "stats.created", equalTo( 0 ) )
+            .body( "stats.deleted", equalTo( 0 ) )
             .body( "stats.total", equalTo( response.extract( "stats." + expected ) ) );
 
         List<HashMap> typeReports = response.extractList( "typeReports.stats" );
@@ -149,9 +149,9 @@ public class MetadataImportTest
         response.validate()
             .statusCode( 200 )
             .body( "stats.total", greaterThan( 0 ) )
-            .body( "typeReports", Matchers.notNullValue() )
-            .body( "typeReports.stats", Matchers.notNullValue() )
-            .body( "typeReports.objectReports", Matchers.notNullValue() );
+            .body( "typeReports", notNullValue() )
+            .body( "typeReports.stats", notNullValue() )
+            .body( "typeReports.objectReports", notNullValue() );
 
         List<HashMap> stats = response.extractList( "typeReports.stats" );
 

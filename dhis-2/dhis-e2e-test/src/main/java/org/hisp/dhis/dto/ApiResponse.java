@@ -29,8 +29,6 @@
 package org.hisp.dhis.dto;
 
 import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
-import io.restassured.mapper.ObjectMapperType;
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;

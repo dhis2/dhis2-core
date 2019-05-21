@@ -28,13 +28,10 @@
 
 package org.hisp.dhis.actions;
 
-import com.google.gson.JsonObject;
 import io.restassured.RestAssured;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.ConfigurationHelper;
 
-import static io.restassured.RestAssured.enableLoggingOfRequestAndResponseIfValidationFails;
-import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.preemptive;
 
 /**
