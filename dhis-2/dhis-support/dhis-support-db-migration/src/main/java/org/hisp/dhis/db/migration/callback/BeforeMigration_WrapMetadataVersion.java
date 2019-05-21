@@ -33,7 +33,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import javafx.util.Pair;
 import org.flywaydb.core.api.callback.Callback;
 import org.flywaydb.core.api.callback.Context;
 import org.flywaydb.core.api.callback.Event;
@@ -49,8 +48,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -90,19 +91,18 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
 
     @Override public void handle( final Event event, final Context context )
     {
-        //TODO: check that hashCode is calculated in the same way also in the metadata import/sync
         try
         {
             if ( necessaryToRunMigration( context ) )
             {
-                log.info( "Migration necessary" );
+                log.info( "Wrapping payloads of metadata versions before migrating to 2.31 started" );
                 List<MetadataVersion> metadataVersions = getMetadataVersions( context );
 
                 log.info( metadataVersions.size() + " metadataVersions found" );
 
                 for ( MetadataVersion metadataVersion : metadataVersions )
                 {
-                    Pair<String, String> keyJsonValueUidAndValue = getKeyJsonValue( context, metadataVersion );
+                    Map.Entry<String, String> keyJsonValueUidAndValue = getKeyJsonValue( context, metadataVersion );
 
                     if ( keyJsonValueUidAndValue != null )
                     {
@@ -113,9 +113,12 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
 
                             //MetadataWrapper is used to avoid Metadata keys reordering by jsonb (jsonb does not preserve keys order)
                             String newWrappedValue = toJsonAsString( metadataWrapper );
-                            String newHashCode = getHashCode( newWrappedValue );
 
-                            Pair<String, String> updatedKeyJsonValueUidAndValue = new Pair<>( keyJsonValueUidAndValue.getKey(), newWrappedValue );
+                            // HashCode should be the same as before. But to be sure, I am recalculating it.
+                            String newHashCode = getHashCode( value );
+
+                            Map.Entry<String, String> updatedKeyJsonValueUidAndValue =
+                                new AbstractMap.SimpleImmutableEntry<>( keyJsonValueUidAndValue.getKey(), newWrappedValue );
 
                             metadataVersion.setHashCode( newHashCode );
 
@@ -129,14 +132,16 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
                     }
                     else
                     {
-                        log.info( "No keyjsonvalue entry (metadata payload) found for metadataVersion: " +
+                        log.error( "No keyjsonvalue entry (metadata payload) found for metadataVersion: " +
                             metadataVersion.getName() );
                     }
                 }
+
+                log.info( "Wrapping payloads of metadata versions done." );
             }
             else
             {
-                log.info( "Migration NOT necessary" );
+                log.info( "Wrapping payloads of metadata versions is not necessary" );
             }
         }
         catch ( SQLException | NoSuchAlgorithmException | JsonProcessingException e )
@@ -187,7 +192,7 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
         }
     }
 
-    private Pair<String, String> getKeyJsonValue( final Context context, MetadataVersion metadataVersion )
+    private Map.Entry<String, String> getKeyJsonValue( final Context context, MetadataVersion metadataVersion )
         throws SQLException
     {
         List<String> temp = new ArrayList<>();
@@ -208,13 +213,13 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
 
         if ( !temp.isEmpty() )
         {
-            return new Pair<>( temp.get( 0 ), temp.get( 1 ) );
+            return new AbstractMap.SimpleImmutableEntry<>( temp.get( 0 ), temp.get( 1 ) );
         }
 
         return null;
     }
 
-    private void updateKeyJsonValue( final Context context, Pair<String, String> updatedKeyJsonValueUidAndValue )
+    private void updateKeyJsonValue( final Context context, Map.Entry<String, String> updatedKeyJsonValueUidAndValue )
         throws SQLException
     {
         try ( PreparedStatement stm = context.getConnection().prepareStatement( UPDATE_KEYJSONVALUE_SQL ) )
