@@ -124,7 +124,7 @@ public class DefaultUserSettingService implements UserSettingService
     public void init()
     {
         userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
-            .expireAfterWrite( 4, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
+            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
     
     }
 
