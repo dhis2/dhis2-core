@@ -18,10 +18,6 @@ jobs:
         - mvn clean install -DskipTests=false -q --update-snapshots -f ./dhis-2/pom.xml
         - mvn clean install -DskipTests=false -q --update-snapshots -f ./dhis-2/dhis-web/pom.xml
         
-    - name: integration
-      script: 
-        - mvn clean install -Pintegration -f ./dhis-2/pom.xml
-        
 branches:
   only:
   - master
