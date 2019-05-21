@@ -126,6 +126,7 @@ public class MetadataImportController
         else
         {
             ImportReport importReport = metadataImportService.importMetadata( params );
+            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
             renderService.toJson( response.getOutputStream(), importReport );
         }
     }
