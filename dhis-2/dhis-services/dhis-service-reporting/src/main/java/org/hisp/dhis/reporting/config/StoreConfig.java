@@ -45,11 +45,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class StoreConfig
 {
     @Bean( "org.hisp.dhis.pushanalysis.PushAnalysisStore" )
-    public HibernateIdentifiableObjectStore indicatorTypeStore( SessionFactory sessionFactory,
+    public HibernateIdentifiableObjectStore<PushAnalysis> indicatorTypeStore( SessionFactory sessionFactory,
         JdbcTemplate jdbcTemplate, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
         AclService aclService )
     {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
+        return new HibernateIdentifiableObjectStore<PushAnalysis>( sessionFactory,
             jdbcTemplate, PushAnalysis.class, currentUserService, deletedObjectService, aclService, false );
     }
 }

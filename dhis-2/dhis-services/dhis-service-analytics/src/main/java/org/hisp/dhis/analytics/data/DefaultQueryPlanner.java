@@ -45,7 +45,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -55,6 +54,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -69,11 +69,18 @@ public class DefaultQueryPlanner
 {
     private static final Log log = LogFactory.getLog( DefaultQueryPlanner.class );
 
-    @Autowired
-    private QueryValidator queryValidator;
+    private final QueryValidator queryValidator;
 
-    @Autowired
-    private PartitionManager partitionManager;
+    private final PartitionManager partitionManager;
+
+    public DefaultQueryPlanner( QueryValidator queryValidator, PartitionManager partitionManager )
+    {
+        checkNotNull( queryValidator );
+        checkNotNull( partitionManager );
+
+        this.queryValidator = queryValidator;
+        this.partitionManager = partitionManager;
+    }
 
     // -------------------------------------------------------------------------
     // QueryPlanner implementation
@@ -191,7 +198,7 @@ public class DefaultQueryPlanner
         {
             DimensionalObject dim = query.getDimension( dimension );
 
-            List<DimensionalItemObject> values = null;
+            List<DimensionalItemObject> values;
 
             if ( dim == null || (values = dim.getItems()) == null || values.isEmpty() )
             {
@@ -584,7 +591,7 @@ public class DefaultQueryPlanner
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
-        if ( params.getAggregationType().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )
             {

@@ -33,7 +33,6 @@ import org.hisp.dhis.common.ServiceProvider;
 import org.hisp.dhis.completeness.DataSetCompletenessService;
 import org.hisp.dhis.completeness.impl.CompulsoryDataSetCompletenessService;
 import org.hisp.dhis.completeness.impl.RegistrationDataSetCompletenessService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

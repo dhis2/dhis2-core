@@ -35,12 +35,12 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
@@ -66,7 +66,6 @@ public abstract class AnalyticsServiceBaseTest {
     @Mock
     private QueryPlanner queryPlanner;
 
-
     private DefaultQueryValidator queryValidator;
 
     @Mock
@@ -82,7 +81,7 @@ public abstract class AnalyticsServiceBaseTest {
     private SystemSettingManager systemSettingManager;
 
     @Mock
-    private EventAnalyticsService eventAnalyticsService;
+    protected EventAnalyticsService eventAnalyticsService;
 
     @Mock
     private DataQueryService dataQueryService;
@@ -101,16 +100,13 @@ public abstract class AnalyticsServiceBaseTest {
     @Before
     public void baseSetUp()
     {
-
-        DefaultQueryValidator qv = new DefaultQueryValidator( systemSettingManager );
-
-        queryValidator = spy( qv );
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
 
         target = new DefaultAnalyticsService( analyticsManager, rawAnalyticsManager, securityManager, queryPlanner,
             queryValidator, constantService, expressionService, organisationUnitService, systemSettingManager,
             eventAnalyticsService, dataQueryService, dhisConfig, cacheProvider, environment );
 
-        doNothing().when( queryValidator ).validateMaintenanceMode();
+        when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
         when( dhisConfig.getAnalyticsCacheExpiration() ).thenReturn( 0L );
     }
 
