@@ -1445,8 +1445,6 @@
     <property name="leaderElectionTime" ref="leaderElectionTime" />
   </bean>
 
-  <bean id="metadataVersionWrapper" class="org.hisp.dhis.startup.MetadataVersionWrapper" />
-
   <bean id="redisEnabled" class="org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean">
     <constructor-arg value="REDIS_ENABLED" />
   </bean>
