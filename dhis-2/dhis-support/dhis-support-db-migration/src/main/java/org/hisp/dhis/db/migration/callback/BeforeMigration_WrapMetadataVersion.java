@@ -63,8 +63,8 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
 
     private static final String WRAPPED_METADATA_PREFIX = "{\"metadata\":";
 
-    private static final String VALUE_COLUMN_EXISTS_SQL = "SELECT count(0) FROM information_schema.columns " +
-        "WHERE table_schema = 'public' AND table_name = 'keyjsonvalue' AND column_name = 'value';";
+    private static final String TABLE_EXISTS_SQL = "SELECT count(0) FROM information_schema.tables WHERE table_name = 'flyway_schema_history';";
+    private static final String CRITICAL_MIGRATION_APPLIED_SQL = "SELECT count(0) FROM flyway_schema_history WHERE version = '2.30.0'";
 
     private static final String GET_ALL_METADATA_VERSIONS_SQL = "SELECT uid, name, hashcode FROM metadataversion";
     private static final String UPDATE_METADATA_VERSION_SQL = "UPDATE metadataversion SET hashcode = ? WHERE uid = ?";
@@ -155,11 +155,23 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
 
     private boolean necessaryToRunMigration( final Context context ) throws SQLException
     {
+        //Check whether table exists at all (it did during testing, but just to be sure)
         try ( Statement stm = context.getConnection().createStatement();
-        ResultSet rs = stm.executeQuery( VALUE_COLUMN_EXISTS_SQL ))
+              ResultSet rs = stm.executeQuery( TABLE_EXISTS_SQL ))
         {
             rs.next();
-            return rs.getInt( "count" ) == 1;
+            if ( rs.getInt( "count" ) == 0 )
+            {
+                return true;
+            }
+        }
+
+        //Check whether migration that corrupts metadata was already applied. If yes, it means also this fix was applied -> skip
+        try ( Statement stm = context.getConnection().createStatement();
+              ResultSet rs = stm.executeQuery( CRITICAL_MIGRATION_APPLIED_SQL ))
+        {
+            rs.next();
+            return rs.getInt( "count" ) == 0;
         }
     }
 
@@ -276,7 +288,8 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
             this.metadata = metadata;
         }
 
-        @Override public boolean equals( Object o )
+        @Override
+        public boolean equals( Object o )
         {
             if ( this == o )
             {
@@ -293,12 +306,14 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
             return Objects.equals( temp.getMetadata(), this.getMetadata() );
         }
 
-        @Override public int hashCode()
+        @Override
+        public int hashCode()
         {
             return metadata != null ? metadata.hashCode() : 0;
         }
 
-        @Override public java.lang.String toString()
+        @Override
+        public java.lang.String toString()
         {
             return "MetadataWrapper{" + "metadata=" + metadata + '}';
         }
@@ -306,6 +321,6 @@ public class BeforeMigration_WrapMetadataVersion implements Callback
 
     private String toJsonAsString( Object value ) throws JsonProcessingException
     {
-            return mapper.writeValueAsString( value );
+        return mapper.writeValueAsString( value );
     }
 }
