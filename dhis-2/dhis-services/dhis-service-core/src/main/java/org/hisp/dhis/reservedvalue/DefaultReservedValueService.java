@@ -71,7 +71,7 @@ public class DefaultReservedValueService
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
         Date expires )
         throws ReserveValueException, TextPatternService.TextPatternGenerationException
