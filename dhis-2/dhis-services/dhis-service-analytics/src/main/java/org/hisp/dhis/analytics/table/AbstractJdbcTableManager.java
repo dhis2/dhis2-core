@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
@@ -97,7 +96,7 @@ public abstract class AbstractJdbcTableManager
     protected DataApprovalLevelService dataApprovalLevelService;
 
     protected ResourceTableService resourceTableService;
-    
+
     private AnalyticsTableHookService tableHookService;
 
     protected StatementBuilder statementBuilder;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,7 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -345,9 +345,9 @@ public class JdbcAnalyticsManager
     {
         String sql = "from ";
 
-        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() )
         {
-            sql += getLastValueSubquerySql( params );
+            sql += getFirstOrLastValueSubquerySql( params );
         }
         else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
@@ -507,7 +507,7 @@ public class JdbcAnalyticsManager
         // Period rank restriction to get last value only
         // ---------------------------------------------------------------------
 
-        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
@@ -537,11 +537,11 @@ public class JdbcAnalyticsManager
      * attribute option combo. A column {@code pe_rank} defines the rank. Only data
      * for the last 10 years relative to the period end date is included.
      */
-    private String getLastValueSubquerySql( DataQueryParams params )
+    private String getFirstOrLastValueSubquerySql(DataQueryParams params )
     {
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        List<String> columns = getLastValueSubqueryQuotedColumns( params );
+        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select ";
@@ -551,10 +551,12 @@ public class JdbcAnalyticsManager
             sql += col + ",";
         }
 
+        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
+
         sql +=
             "row_number() over (" +
                 "partition by dx, ou, co, ao " +
-                "order by peenddate desc, pestartdate desc) as pe_rank " +
+                "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
@@ -569,7 +571,7 @@ public class JdbcAnalyticsManager
      * data analytics. The period dimension is replaced by the name of the single period
      * in the given query.
      */
-    private List<String> getLastValueSubqueryQuotedColumns( DataQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns(DataQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
@@ -729,7 +731,7 @@ public class JdbcAnalyticsManager
     {
         Assert.notNull( params.getDataType(), "Data type must be present" );
         Assert.notNull( params.getAggregationType(), "Aggregation type must be present" );
-        Assert.isTrue( !( params.getAggregationType().isLastPeriodAggregationType() && params.getPeriods().size() > 1 ),
+        Assert.isTrue( !( params.getAggregationType().isFirstOrLastPeriodAggregationType() && params.getPeriods().size() > 1 ),
             "Max one dimension period can be present per query for last period aggregation" );
     }
 }

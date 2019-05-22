@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>

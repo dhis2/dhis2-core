@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -584,11 +584,24 @@ public class EventQueryParams
     }
 
     /**
-     * Returns true if an aggregation type is defined, and this is type is {@link #AggregationType.LAST}
+     * Returns true if an aggregation type is defined, and this is type is {@link AggregationType} LAST
      */
     public boolean isLastPeriodAggregationType()
     {
         return getAggregationType() != null && getAggregationType().isLastPeriodAggregationType();
+    }
+
+    /**
+     * Returns true if an aggregation type is defined, and this is type is {@link AggregationType} FIRST
+     */
+    public boolean isFirstPeriodAggregationType()
+    {
+        return getAggregationType() != null && getAggregationType().isFirstPeriodAggregationType();
+    }
+
+    public boolean isFirstOrLastPeriodAggregationType()
+    {
+        return isFirstPeriodAggregationType() || isLastPeriodAggregationType();
     }
 
     /**

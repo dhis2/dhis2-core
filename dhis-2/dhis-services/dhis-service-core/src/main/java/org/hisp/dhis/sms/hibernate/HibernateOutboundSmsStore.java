@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;

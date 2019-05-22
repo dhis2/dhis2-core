@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
 

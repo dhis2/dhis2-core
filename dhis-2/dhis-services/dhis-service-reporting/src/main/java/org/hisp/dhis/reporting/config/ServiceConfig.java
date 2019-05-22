@@ -1,3 +1,5 @@
+package org.hisp.dhis.reporting.config;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,14 +28,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.reporting.config;
-
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.ServiceProvider;
 import org.hisp.dhis.completeness.DataSetCompletenessService;
 import org.hisp.dhis.completeness.impl.CompulsoryDataSetCompletenessService;
 import org.hisp.dhis.completeness.impl.RegistrationDataSetCompletenessService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

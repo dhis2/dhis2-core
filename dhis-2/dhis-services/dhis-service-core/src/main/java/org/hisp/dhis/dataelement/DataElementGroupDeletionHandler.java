@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -60,7 +59,7 @@ public class DataElementGroupDeletionHandler
     {
         return DataElementGroup.class.getSimpleName();
     }
-    
+
     @Override
     public void deleteDataElement( DataElement dataElement )
     {

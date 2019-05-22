@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -293,7 +293,7 @@ public class DefaultAclService implements AclService
                 return true;
             }
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) )
+        else if ( schema.isImplicitPrivateAuthority() && ( checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ) ) )
         {
             return true;
         }
@@ -559,7 +559,7 @@ public class DefaultAclService implements AclService
         List<ErrorReport> errorReports = new ArrayList<>();
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) )
+        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ) )
         {
             return errorReports;
         }

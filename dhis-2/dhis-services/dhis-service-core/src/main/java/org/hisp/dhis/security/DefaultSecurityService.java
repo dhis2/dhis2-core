@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -122,7 +123,7 @@ public class DefaultSecurityService
     private final I18nManager i18nManager;
 
     public DefaultSecurityService( CurrentUserService currentUserService, UserSettingService userSettingService,
-        AclService aclService, RestTemplate restTemplate, CacheProvider cacheProvider, PasswordManager passwordManager,
+        AclService aclService, RestTemplate restTemplate, CacheProvider cacheProvider, @Lazy PasswordManager passwordManager,
         MessageSender emailMessageSender, UserService userService, SystemSettingManager systemSettingManager,
         I18nManager i18nManager )
     {

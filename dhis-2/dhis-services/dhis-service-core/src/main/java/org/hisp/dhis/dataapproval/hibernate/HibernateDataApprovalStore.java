@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
@@ -114,7 +113,7 @@ public class HibernateDataApprovalStore
     private final SystemSettingManager systemSettingManager;
 
     private final StatementBuilder statementBuilder;
-    
+
     private final Environment env;
 
     public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -144,10 +143,12 @@ public class HibernateDataApprovalStore
 
     /**
      * Used only for testing, remove when test is refactored
+     *
      * @param currentUserService
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
         this.currentUserService = currentUserService;
     }
 

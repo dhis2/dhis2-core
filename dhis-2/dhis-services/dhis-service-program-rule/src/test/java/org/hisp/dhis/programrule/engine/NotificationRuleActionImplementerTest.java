@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -148,7 +148,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
-        ArgumentCaptor<ProgramInstance> argumentInstanceCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
@@ -179,7 +178,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
-        ArgumentCaptor<ProgramStageInstance> argumentStageInstanceCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
