@@ -150,7 +150,7 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
     @Test
     public void verifyWithProgramStageAndTextualDataElementAndFilter() {
 
-        EventQueryParams params = createRequestParamsWithFilter(programStage, ValueType.TEXT);
+        EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.TEXT );
 
         subject.getEnrollments( params, new ListGrid(), 10000 );
 
