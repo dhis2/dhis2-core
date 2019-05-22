@@ -281,7 +281,7 @@ public class RegistrationMultiEventsServiceTest
         event.setEvent( importSummary.getReference() );
 
         importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
         event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
