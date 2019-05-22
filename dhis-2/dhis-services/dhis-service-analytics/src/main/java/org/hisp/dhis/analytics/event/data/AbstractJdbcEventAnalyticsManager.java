@@ -162,7 +162,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * When grouping with non-default analytics period boundaries, all periods are skipped in the group
      * clause, as non default boundaries is defining their own period groups within their where clause.
      */
-    private List<String> getGroupByColumnNames(EventQueryParams params)
+    private List<String> getGroupByColumnNames( EventQueryParams params )
     {
         return getSelectColumns( params, true );
     }
