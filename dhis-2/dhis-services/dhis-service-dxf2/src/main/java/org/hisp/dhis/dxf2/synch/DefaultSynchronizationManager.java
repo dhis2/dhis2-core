@@ -52,7 +52,9 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
@@ -72,6 +74,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -365,7 +369,13 @@ public class DefaultSynchronizationManager
         MetadataImportParams importParams = new MetadataImportParams();
         importParams.setSkipSharing( true );
         importParams.setAtomicMode( AtomicMode.NONE );
-        importParams.addMetadata( schemaService.getMetadataSchemas(), metadata );
+
+        //Remove MessageConversation schema
+        List<Schema> metadataSchemas = schemaService.getMetadataSchemas().stream()
+            .filter( schema -> !schema.getPlural().equals( MessageConversationSchemaDescriptor.PLURAL ) )
+            .collect( Collectors.toList());
+
+        importParams.addMetadata( metadataSchemas, metadata );
 
         return importService.importMetadata( importParams );
     }
