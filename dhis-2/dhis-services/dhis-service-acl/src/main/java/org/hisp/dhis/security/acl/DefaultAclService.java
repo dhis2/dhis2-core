@@ -559,7 +559,7 @@ public class DefaultAclService implements AclService
         List<ErrorReport> errorReports = new ArrayList<>();
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) )
+        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) || checkSharingPermission( user, object, Permission.READ ) )
         {
             return errorReports;
         }
