@@ -32,11 +32,11 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
@@ -46,7 +46,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -73,9 +72,6 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     @Mock
     private ProgramIndicatorService programIndicatorService;
-
-    @Captor
-    private ArgumentCaptor<String> sql;
 
     private JdbcEventAnalyticsManager subject;
 
@@ -239,27 +235,29 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetAggregatedEventQueryWithFilter()
-    {
-        when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
+    public void verifyGetAggregatedEventQueryWithFilter() {
+
+        when(rowSet.getString("fWIAEtYVEGk")).thenReturn("2000");
 
         mockRowSet();
 
-        Grid resultGrid = subject.getAggregatedEventData( createRequestParamsWithFilter( programStage, ValueType.TEXT ), createGrid(),
-            200000 );
+        Grid resultGrid = subject.getAggregatedEventData(createRequestParamsWithFilter(programStage, ValueType.TEXT), createGrid(),
+                200000);
 
-        assertThat( resultGrid.getRows(), hasSize( 1 ) );
-        assertThat( resultGrid.getRow( 0 ), hasSize( 4 ) );
-        assertThat( resultGrid.getRow( 0 ).get( 0 ), is( "2000" ) );
-        assertThat( resultGrid.getRow( 0 ).get( 1 ), is( "201701" ) );
-        assertThat( resultGrid.getRow( 0 ).get( 2 ), is( "Sierra Leone" ) );
-        assertThat( resultGrid.getRow( 0 ).get( 3 ), is( 100 ) );
+        assertThat(resultGrid.getRows(), hasSize(1));
+        assertThat(resultGrid.getRow(0), hasSize(4));
+        assertThat(resultGrid.getRow(0).get(0), is("2000"));
+        assertThat(resultGrid.getRow(0).get(1), is("201701"));
+        assertThat(resultGrid.getRow(0).get(2), is("Sierra Leone"));
+        assertThat(resultGrid.getRow(0).get(3), is(100));
 
-        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
-        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from " + getTable( programA.getUid() )
+        verify(jdbcTemplate).queryForRowSet(sql.capture());
+        String expected = "select count(ax.\"psi\") as value,ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" from " + getTable(programA.getUid())
                 + " as ax where ax.\"monthly\" in ('2000Q1') and (ax.\"uidlevel0\" = 'ouabcdefghA' ) and ax.\"ps\" = '"
-            + programStage.getUid()
-            + "' and lower(ax.\"fWIAEtYVEGk\") > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+                + programStage.getUid()
+                + "' and lower(ax.\"fWIAEtYVEGk\") > '10' group by ax.\"monthly\",ax.\"ou\",ax.\"fWIAEtYVEGk\" limit 200001";
+        assertThat( sql.getValue(), is( expected ) );
+    }
 
     @Test
     public void verifyFirstAggregationTypeSubquery()
@@ -290,7 +288,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
             + "\",cast('2000Q1' as text) as \"monthly\",\"ou\","
             + "row_number() over (partition by ou, ao order by iax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
-            + "from analytics_event_ebayegv0exc iax where iax.\"executiondate\" >= '1990-03-31' "
+            + "from " + getTable( programA.getUid() ) + " iax where iax.\"executiondate\" >= '1990-03-31' "
             + "and iax.\"executiondate\" <= '2000-03-31' and \"" + programDataElement.getUid() + "\" is not null)";
 
         assertThat( sql.getValue(), containsString( expectedLastSubquery ) );
@@ -304,36 +302,6 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
         queryItem.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
 
         return params.build();
-    }
-
-    private EventQueryParams createRequestParams( ValueType queryItemValueType )
-    {
-        DataElement deA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
-        deA.setUid( "fWIAEtYVEGk" );
-
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-
-        DimensionalItemObject dio = new BaseDimensionalItemObject( deA.getUid() );
-
-        EventQueryParams.Builder params = new EventQueryParams.Builder();
-
-        params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
-        params.withOrganisationUnits( getList( ouA ) );
-        params.withTableName( "analytics_event_ebayegv0exc" );
-
-        Program p = createProgram('P');
-        params.withProgram( p );
-        this.programStage = createProgramStage( 'B', p );
-        params.withProgramStage( programStage );
-
-        QueryItem queryItem = new QueryItem( dio );
-        queryItem.setValueType( queryItemValueType );
-
-        params.addItem( queryItem );
-
-        return params.build();
-
-        assertThat( sql.getValue(), is( expected ) );
     }
 
     private Grid createGrid()
