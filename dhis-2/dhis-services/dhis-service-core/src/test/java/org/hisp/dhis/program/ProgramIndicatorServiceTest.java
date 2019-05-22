@@ -471,4 +471,16 @@ public class ProgramIndicatorServiceTest
         assertFalse( programIndicatorService.filterIsValid( filterC ) );
         assertFalse( programIndicatorService.filterIsValid( filterD ) );
     }
+
+    @Test
+    public void testValueCount()
+    {
+        String expected = "coalesce(\"DataElmentA\"::numeric,0)" +
+            " + coalesce(\"Attribute0A\"::numeric,0)" +
+            " + nullif(cast((case when \"DataElmentA\" is not null then 1 else 0 end + case when \"Attribute0A\" is not null then 1 else 0 end) as double),0)";
+
+        String expression = "#{ProgrmStagA.DataElmentA} + A{Attribute0A} + V{value_count}";
+
+        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, indicatorA, new Date(), new Date() ) );
+    }
 }
