@@ -561,7 +561,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param params the event query parameters.
      * @param dimensionType the dimension type.
      */
-    private String getAlias(EventQueryParams params, DimensionType dimensionType)
+    private String getAlias( EventQueryParams params, DimensionType dimensionType )
     {
         if ( params.hasTimeField() && DimensionType.PERIOD == dimensionType )
         {
