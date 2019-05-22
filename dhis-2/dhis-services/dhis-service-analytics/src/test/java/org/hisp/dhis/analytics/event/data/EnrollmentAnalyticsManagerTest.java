@@ -184,7 +184,7 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
                 + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
                 + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
 
-        assertSql( expected, sql.getValue()   );
+        assertSql( expected, sql.getValue() );
     }
 
 
