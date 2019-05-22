@@ -170,7 +170,7 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
     @Test
     public void verifyWithProgramStageAndNumericDataElementAndFilter2() {
 
-        EventQueryParams params = createRequestParamsWithFilter(programStage, ValueType.NUMBER);
+        EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.NUMBER );
 
         subject.getEnrollments( params, new ListGrid(), 10000);
 
