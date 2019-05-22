@@ -132,7 +132,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
-    private String getSortClause(EventQueryParams params)
+    private String getSortClause( EventQueryParams params )
     {
         String sql = "";
 
