@@ -128,7 +128,7 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
         verifyWithProgramStageAndNumericDataElement( ValueType.TEXT );
     }
 
-    private  void verifyWithProgramStageAndNumericDataElement(ValueType valueType) {
+    private  void verifyWithProgramStageAndNumericDataElement( ValueType valueType ) {
 
         EventQueryParams params = createRequestParams( this.programStage, valueType );
 
