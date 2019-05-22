@@ -152,7 +152,7 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
 
         EventQueryParams params = createRequestParamsWithFilter(programStage, ValueType.TEXT);
 
-        subject.getEnrollments( params, new ListGrid(), 10000);
+        subject.getEnrollments( params, new ListGrid(), 10000 );
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
