@@ -314,11 +314,11 @@ public class DefaultProgramMessageService
 
             if ( message.hasProgramInstance() )
             {
-                object = message.getProgramInstance();
+                object = message.getProgramInstance().getProgram();
             }
             else if( message.hasProgramStageInstance() )
             {
-                object = message.getProgramStageInstance();
+                object = message.getProgramStageInstance().getProgramStage();
             }
 
             if ( object != null )
