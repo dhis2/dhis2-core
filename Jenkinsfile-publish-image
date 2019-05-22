@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         DHIS2_VERSION = ''
-        DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core"
+        DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = ''
         DOCKER_IMAGE_FULL_NAME = ''
         COMPOSE_PARAMETER = ''
@@ -16,18 +16,41 @@ pipeline {
     }
 
     stages {
+        stage('Prepare env for release deployment') {
+            when{
+                buildingTag()
+            }
+            steps {
+                script {
+                    DOCKER_HUB_REPOSITORY = "${DOCKER_HUB_OWNER}/core"
+                    pom = readMavenPom file: 'dhis-2/pom.xml'
+                    DHIS2_VERSION = pom.version.toLowerCase()
+
+                    echo "DHIS2 version: ${DHIS2_VERSION}"
+
+                    DOCKER_IMAGE_TAG = "${DHIS2_VERSION}"
+                }
+            }
+        }
+
+        stage('Prepare env for dev deployment') {
+            when {
+                not {
+                    buildingTag()
+                }
+            }
+
+            steps {
+                script {
+                    DOCKER_IMAGE_TAG = "${env.BRANCH_NAME}"
+                }
+            }
+        }
         stage('Build image') {
             steps {
                 script {
-                    pom = readMavenPom file: 'dhis-2/pom.xml'
-
-                    DHIS2_VERSION = pom.version.toLowerCase()
-                    echo "DHIS2 version: ${DHIS2_VERSION}"
-
                     COMPOSE_PARAMETER = "${env.JOB_NAME}"
                     echo "Docker compose parameter: ${COMPOSE_PARAMETER}"
-
-                    DOCKER_IMAGE_TAG = "${DHIS2_VERSION}-alpine"
 
                     DOCKER_IMAGE_FULL_NAME = "${DOCKER_HUB_REPOSITORY}:${DOCKER_IMAGE_TAG}"
                     echo "Will tag image as ${DOCKER_IMAGE_FULL_NAME}"
