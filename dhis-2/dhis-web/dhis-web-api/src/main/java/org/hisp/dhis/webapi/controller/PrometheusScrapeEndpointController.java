@@ -58,8 +58,7 @@ public class PrometheusScrapeEndpointController {
         this.collectorRegistry = collectorRegistry;
     }
 
-    //@PreAuthorize( "hasRole('ALL')" )
-    @RequestMapping(value = "/prometheus", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004)
+    @RequestMapping(value = "/metrics", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004)
     @ResponseBody
     public String scrape() {
         try {

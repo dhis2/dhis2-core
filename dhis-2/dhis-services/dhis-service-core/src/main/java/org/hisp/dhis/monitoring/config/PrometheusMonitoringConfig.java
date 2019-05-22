@@ -41,7 +41,6 @@ import io.prometheus.client.CollectorRegistry;
  * @author Luciano Fiandesio
  */
 @Configuration
-@EnableAspectJAutoProxy
 public class PrometheusMonitoringConfig
 {
     @Bean
