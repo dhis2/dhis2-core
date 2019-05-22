@@ -119,7 +119,7 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
     @Test
     public void verifyWithProgramStageAndNumericDataElement()
     {
-        verifyWithProgramStageAndNumericDataElement(ValueType.NUMBER);
+        verifyWithProgramStageAndNumericDataElement( ValueType.NUMBER );
     }
 
     @Test
