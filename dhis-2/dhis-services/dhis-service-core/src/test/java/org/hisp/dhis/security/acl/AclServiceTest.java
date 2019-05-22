@@ -482,6 +482,95 @@ public class AclServiceTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
+        dashboard.setAutoFields();
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        assertFalse( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCanUpdateDeleteSharedDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        dashboard.setAutoFields();
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        UserAccess userAccess = new UserAccess(  );
+        userAccess.setUser( user2 );
+        userAccess.setAccess( AccessStringHelper.READ_WRITE );
+        dashboard.getUserAccesses().add( userAccess );
+
+        assertTrue( aclService.canRead( user2, dashboard ) );
+        assertTrue( aclService.canUpdate( user2, dashboard ) );
+        assertTrue( aclService.canDelete( user2, dashboard ) );
+        assertTrue( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCantUpdateDeletePrivateDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        dashboard.setAutoFields();
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        UserAccess userAccess = new UserAccess(  );
+        userAccess.setUser( user2 );
+        userAccess.setAccess( AccessStringHelper.READ );
+        dashboard.getUserAccesses().add( userAccess );
+
+        assertTrue( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCantReadPrivateDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        dashboard.setAutoFields();
 
         manager.save( dashboard );
 
