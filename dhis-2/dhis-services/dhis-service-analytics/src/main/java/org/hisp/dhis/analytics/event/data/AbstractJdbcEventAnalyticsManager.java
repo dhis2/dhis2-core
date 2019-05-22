@@ -111,7 +111,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
-    private String getPagingClause(EventQueryParams params, int maxLimit)
+    private String getPagingClause( EventQueryParams params, int maxLimit )
     {
         String sql = "";
 
