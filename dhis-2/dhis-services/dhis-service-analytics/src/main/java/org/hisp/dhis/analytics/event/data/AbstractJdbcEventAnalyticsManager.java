@@ -173,7 +173,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * In the case of non-default boundaries{@link EventQueryParams#hasNonDefaultBoundaries},
      * the period is hard coded into the select statement with "(isoPeriod) as (periodType)".
      */
-    protected List<String> getSelectColumns(EventQueryParams params)
+    protected List<String> getSelectColumns( EventQueryParams params )
     {
         return getSelectColumns( params, false );
     }
