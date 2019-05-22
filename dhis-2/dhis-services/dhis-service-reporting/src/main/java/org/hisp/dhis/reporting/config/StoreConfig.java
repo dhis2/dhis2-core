@@ -1,3 +1,5 @@
+package org.hisp.dhis.reporting.config;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.reporting.config;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -45,11 +45,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class StoreConfig
 {
     @Bean( "org.hisp.dhis.pushanalysis.PushAnalysisStore" )
-    public HibernateIdentifiableObjectStore indicatorTypeStore( SessionFactory sessionFactory,
+    public HibernateIdentifiableObjectStore<PushAnalysis> indicatorTypeStore( SessionFactory sessionFactory,
         JdbcTemplate jdbcTemplate, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
         AclService aclService )
     {
-        return new HibernateIdentifiableObjectStore<>( sessionFactory,
+        return new HibernateIdentifiableObjectStore<PushAnalysis>( sessionFactory,
             jdbcTemplate, PushAnalysis.class, currentUserService, deletedObjectService, aclService, false );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
@@ -58,9 +57,9 @@ public class DefaultStyleManager
     // -------------------------------------------------------------------------
 
     private final SystemSettingManager systemSettingManager;
-    
+
     private final UserSettingService userSettingService;
-    
+
     /**
      * Map for styles. The key refers to the user setting key and the value refers
      * to the path to the CSS file of the style relative to /dhis-web-commons/.
@@ -92,7 +91,7 @@ public class DefaultStyleManager
     {
         systemSettingManager.saveSystemSetting( SettingKey.STYLE, style );
     }
-    
+
     @Override
     public void setUserStyle( String style )
     {
@@ -103,10 +102,10 @@ public class DefaultStyleManager
     public String getCurrentStyle()
     {
         String style = (String) userSettingService.getUserSetting( UserSettingKey.STYLE );
-        
+
         return ObjectUtils.firstNonNull( style, getSystemStyle() );
     }
-    
+
     @Override
     public String getSystemStyle()
     {
@@ -135,16 +134,16 @@ public class DefaultStyleManager
     public List<StyleObject> getStyles()
     {
         I18n i18n = i18nManager.getI18n();
-        
+
         List<StyleObject> list = Lists.newArrayList();
-        
+
         for ( Entry<String, String> entry : styles.entrySet() )
         {
             String name = i18n.getString( entry.getKey() );
-            
+
             list.add( new StyleObject( name, entry.getKey(), entry.getValue() ) );
         }
-        
+
         return list;
     }
 }

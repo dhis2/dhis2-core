@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.dataset.notifications;
  */
 
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
@@ -50,7 +49,7 @@ public class DataSetNotificationEventPublisher
         this.publisher = publisher;
     }
 
-    public void publishEvent(CompleteDataSetRegistration registration )
+    public void publishEvent( CompleteDataSetRegistration registration )
     {
         DataSetNotificationEvent event = new DataSetNotificationEvent( this, registration );
         publisher.publishEvent( event );

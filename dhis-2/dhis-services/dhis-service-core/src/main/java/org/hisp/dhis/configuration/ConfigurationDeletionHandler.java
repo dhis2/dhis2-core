@@ -1,7 +1,7 @@
 package org.hisp.dhis.configuration;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -76,7 +75,7 @@ public class ConfigurationDeletionHandler
     public String allowDeleteUserGroup( UserGroup userGroup )
     {
         UserGroup feedbackRecipients = configService.getConfiguration().getFeedbackRecipients();
-        
+
         return ( feedbackRecipients != null && feedbackRecipients.equals( userGroup ) ) ? StringUtils.EMPTY : null;
     }
 
@@ -84,26 +83,26 @@ public class ConfigurationDeletionHandler
     public String allowDeleteDataElementGroup( DataElementGroup dataElementGroup )
     {
         DataElementGroup infrastructuralDataElements = configService.getConfiguration().getInfrastructuralDataElements();
-        
+
         return ( infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ) ) ? StringUtils.EMPTY : null;
     }
-    
+
     @Override
     public String allowDeleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         IndicatorGroup infrastructuralIndicators = configService.getConfiguration().getInfrastructuralIndicators();
-        
+
         return ( infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ) ) ? StringUtils.EMPTY : null;
     }
-    
+
     @Override
     public String allowDeleteOrganisationUnitLevel( OrganisationUnitLevel level )
     {
         OrganisationUnitLevel offlineLevel = configService.getConfiguration().getOfflineOrganisationUnitLevel();
-        
+
         return ( offlineLevel != null && offlineLevel.equals( level ) ) ? StringUtils.EMPTY : null;
     }
-    
+
     @Override
     public String allowDeleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
@@ -116,7 +115,7 @@ public class ConfigurationDeletionHandler
     public String allowDeleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
-        
+
         return ( selfRegRole != null && selfRegRole.equals( userAuthorityGroup ) ) ? StringUtils.EMPTY : null;
-    }    
+    }
 }

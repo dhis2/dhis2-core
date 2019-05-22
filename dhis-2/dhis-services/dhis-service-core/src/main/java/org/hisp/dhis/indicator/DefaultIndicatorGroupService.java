@@ -1,6 +1,6 @@
 package org.hisp.dhis.indicator;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ public class DefaultIndicatorGroupService implements IndicatorGroupService
     private HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
 
     public DefaultIndicatorGroupService(
-        @Qualifier( "org.hisp.dhis.program.ProgramIndicatorGroupStore" ) HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
+        @Qualifier( "org.hisp.dhis.indicator.IndicatorGroupStore" ) HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
     {
         this.indicatorGroupStore = indicatorGroupStore;
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc.batchhandler;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.jdbc.batchhandler;
  */
 
 import org.hisp.dhis.DhisTest;
-import org.hisp.dhis.ProxyUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -42,15 +41,12 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.junit.Test;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
 
 /**
  * @author Lars Helge Overland
@@ -96,8 +92,6 @@ public class CompleteDataSetRegistrationBatchHandlerTest
 
     private String storedBy = "johndoe";
     private String lastUpdatedBy = "johndoe";
-
-    private CompleteDataSetRegistrationStore completeDataSetRegistrationStore = mock( CompleteDataSetRegistrationStore.class );
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -159,18 +153,6 @@ public class CompleteDataSetRegistrationBatchHandlerTest
         batchHandler.addObject( regB );
         batchHandler.addObject( regC );
         batchHandler.addObject( regD );
-
-        List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
-        completeDataSetRegistrations.add( regA );
-        completeDataSetRegistrations.add( regB );
-        completeDataSetRegistrations.add( regC );
-        completeDataSetRegistrations.add( regD );
-
-        when( completeDataSetRegistrationStore.getAllCompleteDataSetRegistrations() ).thenReturn( completeDataSetRegistrations );
-
-        DefaultCompleteDataSetRegistrationService target = ProxyUtils.getProxyTarget(registrationService);
-
-        target.setCompleteDataSetRegistrationStore( completeDataSetRegistrationStore );
 
         batchHandler.flush();
 

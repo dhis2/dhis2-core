@@ -1,3 +1,5 @@
+package org.hisp.dhis.validation.config;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.validation.config;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -62,17 +62,17 @@ public class StoreConfig
     private AclService aclService;
 
     @Bean( "org.hisp.dhis.validation.notification.ValidationNotificationTemplateStore" )
-    public HibernateIdentifiableObjectStore programNotificationInstanceStore()
+    public HibernateIdentifiableObjectStore<ValidationNotificationTemplate> programNotificationInstanceStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
+        return new HibernateIdentifiableObjectStore<ValidationNotificationTemplate>(
             sessionFactory, jdbcTemplate, ValidationNotificationTemplate.class, currentUserService,
             deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.validation.ValidationRuleGroupStore" )
-    public HibernateIdentifiableObjectStore validationRuleGroupStore()
+    public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore()
     {
-        return new HibernateIdentifiableObjectStore<>(
+        return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
             sessionFactory, jdbcTemplate, ValidationRuleGroup.class, currentUserService, deletedObjectService,
             aclService, true );
     }

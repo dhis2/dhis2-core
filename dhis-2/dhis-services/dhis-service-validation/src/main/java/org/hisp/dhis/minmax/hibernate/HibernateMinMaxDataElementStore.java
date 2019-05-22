@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -156,37 +155,37 @@ public class HibernateMinMaxDataElementStore
             .setUseDistinct( true ) )
             .intValue();
     }
-    
+
     @Override
     public void delete( OrganisationUnit organisationUnit )
     {
         String hql = "delete from MinMaxDataElement m where m.source = :source";
-        
+
         getQuery( hql ).setParameter( "source", organisationUnit ).executeUpdate();
     }
-    
+
     @Override
     public void delete( DataElement dataElement )
     {
         String hql = "delete from MinMaxDataElement m where m.dataElement = :dataElement";
-        
+
         getQuery( hql ).setParameter( "dataElement", dataElement ).executeUpdate();
     }
-    
+
     @Override
     public void delete( CategoryOptionCombo optionCombo )
     {
         String hql = "delete from MinMaxDataElement m where m.optionCombo = :optionCombo";
-        
+
         getQuery( hql ).setParameter( "optionCombo", optionCombo ).executeUpdate();
     }
-    
+
     @Override
     public void delete( Collection<DataElement> dataElements, OrganisationUnit parent )
     {
         String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) " +
             "and m.source in (select ou from OrganisationUnit ou where path like :path)";
-        
+
         getQuery( hql )
             .setParameterList( "dataElements", dataElements )
             .setParameter( "path", parent.getPath() + "%" )

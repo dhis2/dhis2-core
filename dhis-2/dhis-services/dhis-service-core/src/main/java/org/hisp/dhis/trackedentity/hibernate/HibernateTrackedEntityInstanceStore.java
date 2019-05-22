@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,6 +74,7 @@ import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+
 /**
  * @author Abyot Asalefew Gizaw
  */

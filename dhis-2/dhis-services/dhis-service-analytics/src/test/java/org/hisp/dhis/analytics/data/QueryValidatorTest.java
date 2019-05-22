@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,36 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroupSet;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -69,7 +70,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
@@ -97,12 +97,6 @@ public class QueryValidatorTest
 
     private DataElement deA;
     private DataElement deB;
-    private DataElement deC;
-    private DataElement deD;
-    private DataElement deE;
-    private DataElement deF;
-    private DataElement deG;
-    private DataElement deH;
 
     private ProgramDataElementDimensionItem pdeA;
     private ProgramDataElementDimensionItem pdeB;
@@ -114,9 +108,6 @@ public class QueryValidatorTest
 
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
-    private OrganisationUnit ouC;
-    private OrganisationUnit ouD;
-    private OrganisationUnit ouE;
 
     private DataElementGroup degA;
 
@@ -136,13 +127,6 @@ public class QueryValidatorTest
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM );
-        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
-        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT );
-        deE = createDataElement( 'E', ValueType.TEXT, AggregationType.NONE );
-        deF = createDataElement( 'F', ValueType.TEXT, AggregationType.NONE );
-        deG = createDataElement( 'G', ValueType.INTEGER, AggregationType.SUM );
-        deH = createDataElement( 'H', ValueType.INTEGER, AggregationType.SUM );
-
 
         pdeA = new ProgramDataElementDimensionItem( prA, deA );
         pdeB = new ProgramDataElementDimensionItem( prA, deB );
@@ -155,9 +139,6 @@ public class QueryValidatorTest
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        ouD = createOrganisationUnit( 'D' );
-        ouE = createOrganisationUnit( 'E' );
 
         degA = createDataElementGroup( 'A' );
         degA.addDataElement( deA );
@@ -165,7 +146,6 @@ public class QueryValidatorTest
 
         dgsA = createDataElementGroupSet( 'A' );
         dgsA.getMembers().add( degA );
-
     }
 
     @Test
