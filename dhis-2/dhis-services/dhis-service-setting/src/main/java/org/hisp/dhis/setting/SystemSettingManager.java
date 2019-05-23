@@ -42,36 +42,36 @@ public interface SystemSettingManager
     /**
      * Saves the given system setting key and value.
      *
-     * @param settingKey the system setting key.
+     * @param key the system setting key.
      * @param value the system setting value.
      */
-    void saveSystemSetting( SettingKey settingKey, Serializable value );
+    void saveSystemSetting( SettingKey key, Serializable value );
 
     /**
      * Deletes the system setting with the given key.
      *
-     * @param settingKey the system setting key.
+     * @param key the system setting key.
      */
-    void deleteSystemSetting( SettingKey settingKey );
+    void deleteSystemSetting( SettingKey key );
 
     /**
      * Returns the system setting value for the given key. If no value exists, returns
      * the default value as defined by {@link SettingKey#defaultValue}. If not,
      * returns null.
      *
-     * @param settingKey the system setting key.
+     * @param key the system setting key.
      * @return the setting value.
      */
-    Serializable getSystemSetting( SettingKey settingKey );
+    Serializable getSystemSetting( SettingKey key );
 
     /**
      * Returns the system setting value for the given key. If no value exists, returns
      * the default value as defined by the given default value.
      *
-     * @param settingKey the system setting key.
+     * @param key the system setting key.
      * @return the setting value.
      */
-    Serializable getSystemSetting( SettingKey settingKey, Serializable defaultValue );
+    Serializable getSystemSetting( SettingKey key, Serializable defaultValue );
 
     /**
      * Returns all system settings.
@@ -92,10 +92,10 @@ public interface SystemSettingManager
      * where the key is string representation of the {@link SettingKey}, and the
      * value is the setting value.
      *
-     * @param settingKeys the collection of setting keys.
+     * @param keys the collection of setting keys.
      * @return a map of system settings.
      */
-    Map<String, Serializable> getSystemSettings( Collection<SettingKey> settingKeys );
+    Map<String, Serializable> getSystemSettings( Collection<SettingKey> keys );
 
     /**
      * Invalidates the currently cached system settings.
