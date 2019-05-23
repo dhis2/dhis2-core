@@ -1,7 +1,7 @@
 package org.hisp.dhis.node.types;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,75 +28,30 @@ package org.hisp.dhis.node.types;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.node.exception.InvalidTypeException;
+import org.hisp.dhis.node.AbstractNodeTest;
 import org.hisp.dhis.schema.Property;
-
-import java.util.Objects;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Unit tests for {@link SimpleNode}.
+ *
+ * @author Volker Schmidt
  */
-public class SimpleNode extends AbstractNode
+public class SimpleNodeTest
 {
-    /**
-     * Value of this node.
-     */
-    private final Object value;
-
-    /**
-     * Is this node considered a attribute.
-     */
-    private boolean attribute;
-
-    public SimpleNode( String name, Object value )
+    @Test
+    public void createWithProperty()
     {
-        super( name, NodeType.SIMPLE );
-        this.value = value;
-        this.attribute = false;
-    }
+        final Property property = new Property( AbstractNodeTest.TestClass.class );
+        property.setName( "test" );
+        property.setNamespace( "testUri" );
+        property.setAttribute( true );
 
-    public SimpleNode( String name, Property property, Object value )
-    {
-        super( name, NodeType.SIMPLE );
-        this.value = value;
-        this.attribute = property.isAttribute();
-        this.namespace = property.getNamespace();
-        this.property = property;
-    }
-
-    public SimpleNode( String name, Object value, boolean attribute )
-    {
-        this( name, value );
-        this.attribute = attribute;
-    }
-
-    public Object getValue()
-    {
-        return value;
-    }
-
-    public boolean isAttribute()
-    {
-        return attribute;
-    }
-
-    public void setAttribute( boolean attribute )
-    {
-        this.attribute = attribute;
-    }
-
-    @Override
-    public <T extends Node> T addChild( T child )
-    {
-        throw new InvalidTypeException();
-    }
-
-    @Override
-    public <T extends Node> void addChildren( Iterable<T> children )
-    {
-        throw new InvalidTypeException();
+        final SimpleNode simpleNode = new SimpleNode( "id", property, "My Test" );
+        Assert.assertEquals( "id", simpleNode.getName() );
+        Assert.assertEquals( "testUri", simpleNode.getNamespace() );
+        Assert.assertTrue( simpleNode.isAttribute() );
+        Assert.assertEquals( "My Test", simpleNode.getValue() );
     }
 }
