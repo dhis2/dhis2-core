@@ -1,7 +1,7 @@
 package org.hisp.dhis.query.planner;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,14 @@ public class QueryPath
 
     public String getPath()
     {
-        return haveAlias() ? PATH_JOINER.join( alias ) + "." + property.getFieldName() : property.getFieldName();
+        String fieldName = property.getFieldName();
+
+        if ( fieldName == null )
+        {
+            fieldName = property.getName();
+        }
+
+        return haveAlias() ? PATH_JOINER.join( alias ) + "." + fieldName : fieldName;
     }
 
     public boolean isPersisted()

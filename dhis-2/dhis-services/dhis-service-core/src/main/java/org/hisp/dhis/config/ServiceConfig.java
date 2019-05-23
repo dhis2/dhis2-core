@@ -1,3 +1,5 @@
+package org.hisp.dhis.config;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.config;
 
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.i18n.I18nManager;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -288,12 +288,15 @@ public class DefaultProgramIndicatorService
             return null;
         }
 
+        Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
+
         CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
 
         visitor.setExpressionLiteral( new SqlLiteral() );
         visitor.setProgramIndicator( programIndicator );
         visitor.setReportingStartDate( startDate );
         visitor.setReportingEndDate( endDate );
+        visitor.setDataElementAndAttributeIdentifiers( uids );
 
         return castString( Parser.visit( expression, visitor ) );
     }

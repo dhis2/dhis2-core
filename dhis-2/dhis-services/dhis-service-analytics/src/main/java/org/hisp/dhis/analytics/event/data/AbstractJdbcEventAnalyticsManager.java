@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
@@ -79,8 +80,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( AbstractJdbcEventAnalyticsManager.class );
 
-    protected static final String ITEM_NAME_SEP = ": ";
-    protected static final String NA = "[N/A]";
+    private static final String ITEM_NAME_SEP = ": ";
+    private static final String NA = "[N/A]";
     protected static final String COL_COUNT = "count";
     protected static final String COL_EXTENT = "extent";
     protected static final int COORD_DEC = 6;
@@ -110,7 +111,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
-    protected String getPagingClause( EventQueryParams params, int maxLimit )
+    private String getPagingClause( EventQueryParams params, int maxLimit )
     {
         String sql = "";
 
@@ -131,7 +132,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
-    protected String getSortClause( EventQueryParams params )
+    private String getSortClause( EventQueryParams params )
     {
         String sql = "";
 
@@ -161,7 +162,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * When grouping with non-default analytics period boundaries, all periods are skipped in the group
      * clause, as non default boundaries is defining their own period groups within their where clause.
      */
-    protected List<String> getGroupByColumnNames( EventQueryParams params )
+    private List<String> getGroupByColumnNames( EventQueryParams params )
     {
         return getSelectColumns( params, true );
     }
@@ -243,7 +244,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else
             {
-                columns.add( quoteAlias( queryItem.getItemName() ) );
+                columns.add( getColumn( queryItem ) );
             }
         }
 
@@ -347,7 +348,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 {
 
                     String itemValue = rowSet.getString( queryItem.getItemName() );
-                    String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( params, queryItem, itemValue ) : itemValue;
+                    String gridValue = params.isCollapseDataDimensions() ? getCollapsedDataItemValue( queryItem, itemValue ) : itemValue;
                     grid.addValue( gridValue );
                 }
             }
@@ -454,11 +455,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * item value is treated as a code and substituted with the matching option
      * name.
      *
-     * @param params the {@link EventQueryParams}..
      * @param item the {@link QueryItem}.
      * @param itemValue the item value.
      */
-    private String getCollapsedDataItemValue( EventQueryParams params, QueryItem item, String itemValue )
+    private String getCollapsedDataItemValue( QueryItem item, String itemValue )
     {
         String value = item.getItem().getDisplayShortName() + ITEM_NAME_SEP;
 
@@ -482,15 +482,24 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns an encoded column name wrapped in lower directive if not numeric
-     * or boolean.
+     * Returns an encoded column name
      *
      * @param item the {@link QueryItem}.
      */
     protected String getColumn( QueryItem item )
     {
-        String col = quoteAlias( item.getItemName() );
-        return item.isText() ? "lower(" + col + ")" : col;
+        return quoteAlias( item.getItemName() );
+    }
+
+    /**
+     * Wraps the provided column name in Postgres 'lower' directive
+     * 
+     * @param column a column name
+     * @return a String
+     */
+    private String wrapLower( String column )
+    {
+        return "lower(" + column + ")";
     }
 
     /**
@@ -509,7 +518,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            return getColumn( item );
+            return item.isText() ? wrapLower( getColumn( item ) ) : getColumn( item );
         }
     }
 
@@ -552,7 +561,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @param params the event query parameters.
      * @param dimensionType the dimension type.
      */
-    protected String getAlias( EventQueryParams params, DimensionType dimensionType )
+    private String getAlias( EventQueryParams params, DimensionType dimensionType )
     {
         if ( params.hasTimeField() && DimensionType.PERIOD == dimensionType )
         {
@@ -567,6 +576,61 @@ public abstract class AbstractJdbcEventAnalyticsManager
             return ANALYTICS_TBL_ALIAS;
         }
     }
+
+    /**
+     * Template method that generates a SQL query for retrieving Events or
+     * Enrollments
+     * 
+     * @param params an {@see EventQueryParams} to drive the query generation
+     * @param maxLimit max number of hits returned
+     * 
+     * @return a SQL query
+     */
+    String getEventsOrEnrollmentsSql( EventQueryParams params, int maxLimit )
+    {
+
+        String sql = getSelectClause( params );
+
+        sql += getFromClause( params );
+
+        sql += getWhereClause( params );
+
+        sql += getSortClause( params );
+
+        sql += getPagingClause( params, maxLimit );
+
+        return sql;
+    }
+
+    /**
+     * Wraps the provided interface around a common exception handling strategy
+     * 
+     * @param r a {@see Runnable} interface containing the code block to execute and
+     *        wrap around the exception handling
+     */
+    void withExceptionHandling( Runnable r )
+    {
+        try
+        {
+            r.run();
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new org.hisp.dhis.common.QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+        }
+    }
+
+    /**
+     * Returns a select SQL clause for the given query.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    protected abstract String getSelectClause( EventQueryParams params );
 
     /**
      * Generate the SQL for the from-clause. Generally this means which analytics table to get data from.
