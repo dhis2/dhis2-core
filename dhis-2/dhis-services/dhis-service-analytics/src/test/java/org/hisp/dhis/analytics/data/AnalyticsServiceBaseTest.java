@@ -66,8 +66,6 @@ public abstract class AnalyticsServiceBaseTest {
     @Mock
     private QueryPlanner queryPlanner;
 
-    private DefaultQueryValidator queryValidator;
-
     @Mock
     private ExpressionService expressionService;
 
