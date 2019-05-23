@@ -29,17 +29,19 @@
 package org.hisp.dhis.common;
 
 /**
+ * Exception thrown when a dependency loop is found between two Dimensional Items.
+ *
  * @author Luciano Fiandesio
  */
-public class CyclicDependencyInDimensionItemsException
+public class CyclicReferenceException
     extends RuntimeException
 {
-    public CyclicDependencyInDimensionItemsException(String message )
+    public CyclicReferenceException(String message )
     {
         super( message );
     }
 
-    public CyclicDependencyInDimensionItemsException(String message, Throwable throwable )
+    public CyclicReferenceException(String message, Throwable throwable )
     {
         super( message, throwable );
     }

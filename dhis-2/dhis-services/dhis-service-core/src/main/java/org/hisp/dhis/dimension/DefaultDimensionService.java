@@ -558,7 +558,7 @@ public class DefaultDimensionService
 
                 case INDICATOR:
                     Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
-                    if (indicator != null)
+                    if ( indicator != null )
                     {
                         itemObjectMap.put( id, indicator );
                     }

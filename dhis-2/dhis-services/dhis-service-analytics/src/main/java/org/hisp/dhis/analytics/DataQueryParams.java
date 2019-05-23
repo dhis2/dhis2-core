@@ -43,16 +43,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -1701,22 +1692,28 @@ public class DataQueryParams
         }
     }
 
-    public void addResolvedExpressionItem(DimensionalItemObject d)
+    public void addResolvedExpressionItem( DimensionalItemObject item)
     {
-        if ( !resolvedExpressionItems.contains( d ) )
+        if ( !resolvedExpressionItems.contains(item) )
         {
-            resolvedExpressionItems.add( d );
+            resolvedExpressionItems.add(item);
         }
         else
         {
-            throw new CyclicDependencyInDimensionItemsException(
-                "Item with uid " + d.getUid() + " has a cyclic connection with another item" );
+            throw new CyclicReferenceException(
+                "Item of type " + item.getDimensionItemType().name()
+                + " with uid " + item.getUid() + " has a cyclic reference to another item" );
         }
     }
 
-    private void addResolvedExpressionItems(List<DimensionalItemObject> dimensionalItemObjectList)
+    private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )
     {
         dimensionalItemObjectList.forEach( this::addResolvedExpressionItem );
+    }
+
+    public void removeResolvedExpressionItem( DimensionalItemObject item )
+    {
+        this.resolvedExpressionItems.remove( item );
     }
 
     // -------------------------------------------------------------------------

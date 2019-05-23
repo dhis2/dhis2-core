@@ -57,7 +57,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  * <li>Program data elements on the form D{programuid.dataelementuid}</li>
  * <li>Program tracked entity attribute on the form A{programuid.attributeuid}</li>
  * <li>Program indicators on the form I{programindicatoruid}</li>
- * <li>Indicators on the form I{indicatoruid}</li>
+ * <li>Indicators on the form N{indicatoruid}</li>
  * <li>Constants on the form C{constantuid}</li>
  * <li>Organisation unit group member counts on the form OUG{orgunitgroupuid}</li>
  * <li>Days in aggregation period as the symbol [days]</li>

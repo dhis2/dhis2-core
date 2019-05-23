@@ -483,7 +483,7 @@ public class DefaultAnalyticsService
             Map<String, Map<String, Integer>> permutationOrgUnitTargetMap = getOrgUnitTargetMap( dataSourceParams, indicators );
 
             List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
-
+        
             Map<String, Map<DimensionalItemObject, Double>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
 
             handleEmptyDimensionItemPermutations( dimensionItemPermutations );
@@ -1306,6 +1306,8 @@ public class DefaultAnalyticsService
     private Map<String, Map<DimensionalItemObject, Double>> getPermutationDimensionItemValueMap( DataQueryParams params )
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
+        
+        indicators.forEach( params::removeResolvedExpressionItem );
 
         Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );
 
@@ -1317,6 +1319,7 @@ public class DefaultAnalyticsService
      * query and list of indicators. The dimensional items part of the indicator
      * numerators and denominators are used as dimensional item for the aggregated
      * values being retrieved.
+     * In case of circular references between Indicators, an exception is thrown.
      *
      * @param params the {@link DataQueryParams}.
      * @param indicators the list of indicators.
@@ -1324,7 +1327,7 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
-        indicators.forEach(params::addResolvedExpressionItem);
+        indicators.forEach( params::addResolvedExpressionItem );
 
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( indicators ) );
 
@@ -1339,7 +1342,6 @@ public class DefaultAnalyticsService
             .withSkipHeaders( true )
             .withResolvedExpressionItems( items )
             .withSkipMeta( true ).build();
-
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );
 

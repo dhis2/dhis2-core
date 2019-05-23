@@ -35,7 +35,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext
 import org.hisp.dhis.common.DimensionalItemId;
 
 /**
- * Expression item ProgramIndicator
+ * Expression item Indicator
  *
  * @author Luciano Fiandesio
  */
