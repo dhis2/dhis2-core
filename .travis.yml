@@ -29,6 +29,7 @@ deploy:
 
 after_deploy:
   - aws s3api put-object-acl --acl public-read --bucket eha-eidsr-sl --key dhis2_wars/dhis2_eha-sms.war
+  - ./trigger-travis.sh --pro --branch staging eHealthAfrica dhis2 $TRAVIS_ACCESS_TOKEN
 
 branches:
   only:
