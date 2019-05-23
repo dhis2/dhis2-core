@@ -33,6 +33,8 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.UserOverrideMode;
+import org.hisp.dhis.feedback.ObjectIndexProvider;
+import org.hisp.dhis.feedback.TypedIndexedObjectContainer;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -41,6 +43,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,7 +54,7 @@ import java.util.Set;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectBundle
+public class ObjectBundle implements ObjectIndexProvider
 {
     /**
      * User to use for import job (important for threaded imports).
@@ -133,6 +136,11 @@ public class ObjectBundle
      * Objects to import.
      */
     private Map<Boolean, Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>>> objects = new HashMap<>();
+
+    /**
+     * Contains the indexes of the objects to be imported grouped by their type.
+     */
+    private final TypedIndexedObjectContainer typedIndexedObjectContainer = new TypedIndexedObjectContainer();
 
     /**
      * Pre-scanned map of all object references (mainly used for object book hundle).
@@ -264,6 +272,13 @@ public class ObjectBundle
         return preheat;
     }
 
+    @Nonnull
+    @Override
+    public Integer mergeObjectIndex( @Nonnull IdentifiableObject object )
+    {
+        return typedIndexedObjectContainer.mergeObjectIndex( object );
+    }
+
     private void addObject( IdentifiableObject object )
     {
         if ( object == null )
@@ -290,6 +305,8 @@ public class ObjectBundle
             objects.get( Boolean.FALSE ).get( object.getClass() ).add( object );
 
         }
+
+        typedIndexedObjectContainer.add( object );
     }
 
     private void addObject( List<IdentifiableObject> objects )
