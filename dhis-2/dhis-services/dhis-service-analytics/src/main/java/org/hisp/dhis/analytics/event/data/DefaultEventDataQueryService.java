@@ -36,13 +36,13 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.legend.LegendSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
@@ -57,8 +57,6 @@ import java.util.List;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 
 /**
@@ -82,26 +80,25 @@ public class DefaultEventDataQueryService
 
     private final DataElementService dataElementService;
 
+    private final QueryItemLocator queryItemLocator;
+
     private final TrackedEntityAttributeService attributeService;
-
-    private final ProgramIndicatorService programIndicatorService;
-
-    private final LegendSetService legendSetService;
 
     private final DataQueryService dataQueryService;
 
     private final I18nManager i18nManager;
 
     public DefaultEventDataQueryService( ProgramService programService, ProgramStageService programStageService,
-        DataElementService dataElementService, TrackedEntityAttributeService attributeService,
-        ProgramIndicatorService programIndicatorService, LegendSetService legendSetService,
-        DataQueryService dataQueryService, I18nManager i18nManager )
+        DataElementService dataElementService, QueryItemLocator queryItemLocator,
+        TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
+        LegendSetService legendSetService, DataQueryService dataQueryService, I18nManager i18nManager )
     {
         checkNotNull( programService );
         checkNotNull( programStageService );
         checkNotNull( dataElementService );
         checkNotNull( attributeService );
         checkNotNull( programIndicatorService );
+        checkNotNull( queryItemLocator );
         checkNotNull( legendSetService );
         checkNotNull( dataQueryService );
         checkNotNull( i18nManager );
@@ -110,8 +107,7 @@ public class DefaultEventDataQueryService
         this.programStageService = programStageService;
         this.dataElementService = dataElementService;
         this.attributeService = attributeService;
-        this.programIndicatorService = programIndicatorService;
-        this.legendSetService = legendSetService;
+        this.queryItemLocator = queryItemLocator;
         this.dataQueryService = dataQueryService;
         this.i18nManager = i18nManager;
     }
@@ -348,12 +344,12 @@ public class DefaultEventDataQueryService
     {
         String[] split = dimensionString.split( DIMENSION_NAME_SEP );
 
-        if ( split == null || (split.length % 2 != 1) )
+        if ( split.length % 2 != 1 )
         {
             throw new IllegalQueryException( "Query item or filter is invalid: " + dimensionString );
         }
 
-        QueryItem queryItem = getQueryItemFromDimension( split[0], program, type );
+        QueryItem queryItem = queryItemLocator.getQueryItemFromDimension( split[0], program, type );
 
         if ( split.length > 1 ) // Filters specified
         {
@@ -385,74 +381,6 @@ public class DefaultEventDataQueryService
         }
 
         return queryItem.getItem();
-    }
-
-    private QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type )
-    {
-        String[] legendSplit = dimension.split( ITEM_SEP );
-
-        LegendSet legendSet = legendSplit.length > 1 && legendSplit[1] != null ? legendSetService.getLegendSet( legendSplit[1] ) : null;
-
-        String[] programStageSplit = legendSplit[0].split( "\\" + PROGRAMSTAGE_SEP );
-
-        if( programStageSplit.length == 0 )
-        {
-            throw new IllegalQueryException( "Dimension: " + dimension + " could not be translated into a valid query item" );
-        }
-
-        String item = programStageSplit.length > 1 ? programStageSplit[1] : programStageSplit[0];
-
-        DataElement de = dataElementService.getDataElement( item );
-
-        ProgramStage programStage = programStageSplit.length > 1 ? programStageService.getProgramStage( programStageSplit[0] ) : null;
-
-        if( programStageSplit.length > 1 && programStage == null )
-        {
-            throw new IllegalQueryException( "Dimension: " + dimension + " did not have a valid program stage" );
-        }
-
-        QueryItem qi = null;
-
-        if ( de != null && program.containsDataElement( de ) )
-        {
-            ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
-
-            qi = new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
-            if ( programStage != null )
-            {
-                qi.setProgramStage( programStage );
-            }
-            else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
-            {
-                throw new IllegalQueryException( "For enrollment analytics queries," + 
-                    "program stage is mandatory for data element dimensions: " + dimension );
-            }
-        }
-
-        TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
-
-        if ( at != null && program.containsAttribute( at ) )
-        {
-            ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
-
-            qi = new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
-        }
-
-        ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( item );
-
-        if ( pi != null && program.getProgramIndicators().contains( pi ) )
-        {
-            qi = new QueryItem( pi, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
-        }
-
-        if ( qi != null )
-        {
-            qi.setProgram( program );   
-            return qi;
-        }
-
-        throw new IllegalQueryException(
-            "Item identifier does not reference any data element, attribute or indicator part of the program: " + item );
     }
 
     private DimensionalItemObject getValueDimension( String value )

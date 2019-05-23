@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,7 +40,10 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Before;
@@ -53,6 +56,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+
+import java.util.Date;
 
 /**
  * @author Luciano Fiandesio
@@ -187,6 +192,38 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
         assertSql( expected, sql.getValue() );
     }
 
+    @Test
+    public void verifyWithProgramIndicatorAndRelationshipType()
+    {
+        Date startDate = getDate( 2015, 1, 1 );
+        Date endDate = getDate( 2017, 4, 8 );
+
+        String piSubquery = "SELECT * FROM analytics_enrollment_" + programA.getUid() + " WHERE analytics_enrollment_"
+            + programA.getUid() + ".pi = ax.pi ";
+
+        ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+
+        RelationshipType relationshipTypeA = new BeanRandomizer().randomObject( RelationshipType.class );
+
+        EventQueryParams.Builder params = new EventQueryParams.Builder(
+            createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
+                .withEndDate( endDate );
+
+        when (programIndicatorService.getAnalyticsSql("", programIndicatorA, getDate( 2000, 1, 1 ), getDate( 2017, 4, 8 ))).thenReturn( piSubquery );
+
+        subject.getEnrollments( params.build(), new ListGrid(), 100 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+        String expected = "ax.\"monthly\",ax.\"ou\",(" +
+                piSubquery + " AND ax.tei in (select tei.uid from trackedentityinstance tei " +
+                "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
+                "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid " +
+                "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
+                "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + ")) as \"" + programIndicatorA.getUid() + "\"  " +
+                "from analytics_enrollment_" + programA.getUid() + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
+
+        assertSql( expected, sql.getValue() );
+    }
 
     @Override
     String getTableName()

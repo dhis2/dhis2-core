@@ -36,6 +36,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.ArrayList;
@@ -67,6 +68,8 @@ public class QueryItem
 
     private ProgramStage programStage;
 
+    private RelationshipType relationshipType;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -83,6 +86,27 @@ public class QueryItem
         this.valueType = valueType;
         this.aggregationType = aggregationType;
         this.optionSet = optionSet;
+    }
+
+    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
+    {
+        this( item, legendSet, valueType, aggregationType, optionSet );
+        this.relationshipType = relationshipType;
+    }
+
+
+    public QueryItem( DimensionalItemObject item, Program program, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet )
+    {
+        this( item, legendSet, valueType, aggregationType, optionSet );
+
+        this.program = program;
+    }
+
+    public QueryItem( DimensionalItemObject item, Program program, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet, RelationshipType relationshipType )
+    {
+        this( item, program, legendSet, valueType, aggregationType, optionSet );
+
+        this.relationshipType = relationshipType;
     }
 
     public QueryItem( DimensionalItemObject item, QueryOperator operator, String filter, ValueType valueType, AggregationType aggregationType, OptionSet optionSet )
@@ -198,6 +222,11 @@ public class QueryItem
         return DimensionItemType.PROGRAM_INDICATOR.equals( item.getDimensionItemType() );
     }
 
+    public boolean hasRelationshipType()
+    {
+        return this.getRelationshipType() != null;
+    }
+    
     /**
      * Returns filter items for all filters associated with this
      * query item. If no filter items are specified, return all
@@ -423,5 +452,10 @@ public class QueryItem
     public void setProgramStage( ProgramStage programStage )
     {
         this.programStage = programStage;
+    }
+
+    public RelationshipType getRelationshipType()
+    {
+        return relationshipType;
     }
 }

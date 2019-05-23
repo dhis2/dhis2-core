@@ -232,7 +232,19 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
 
                 String asClause = " as " + quote( in.getUid() );
-                columns.add( "(" + programIndicatorService.getAnalyticsSql( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
+
+                String piSql = programIndicatorService.getAnalyticsSql( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() );
+
+                if ( queryItem.hasRelationshipType() )
+                {
+                    piSql += " AND ax.tei in (select tei.uid from " + "trackedentityinstance tei"
+                        + " LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
+                        + " LEFT JOIN relationship r on r.relationshipid = ri.relationshipid"
+                        + " LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid"
+                        + " WHERE rty.relationshiptypeid = " + queryItem.getRelationshipType().getId() + ")";
+                }
+
+                columns.add( "(" + piSql + ")" + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
