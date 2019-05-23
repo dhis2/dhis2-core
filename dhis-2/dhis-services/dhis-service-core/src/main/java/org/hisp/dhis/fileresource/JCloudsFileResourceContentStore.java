@@ -29,12 +29,14 @@ package org.hisp.dhis.fileresource;
  */
 
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -277,14 +279,23 @@ public class JCloudsFileResourceContentStore
         {
             File file = entry.getValue();
 
-            if ( ImageFileDimension.ORIGINAL.equals( entry.getKey() ) )
+            fileResource.setContentLength( file.length() );
+
+            ByteSource bytes = com.google.common.io.Files.asByteSource( file );
+
+            String contentMd5 = null;
+
+            try
             {
-                blob = createBlob( fileResource, StringUtils.EMPTY , file );
+                contentMd5 = bytes.hash( Hashing.md5() ).toString();
             }
-            else
+            catch ( IOException e )
             {
-                blob = createBlob( fileResource, entry.getKey().getDimension(), file );
+                DebugUtils.getStackTrace( e );
             }
+
+            fileResource.setContentMd5( contentMd5 );
+            blob = createBlob( fileResource, entry.getKey().getDimension(), file );
 
             if ( blob != null )
             {
@@ -374,12 +385,12 @@ public class JCloudsFileResourceContentStore
 
     private Blob createBlob( FileResource fileResource, String fileDimension, File file )
     {
-        return blobStore.blobBuilder( fileResource.getStorageKey() + "-" + fileDimension )
+        return blobStore.blobBuilder( StringUtils.join( Arrays.asList( fileResource.getStorageKey(), fileDimension ), '-' ) )
             .payload( file )
             .contentLength( fileResource.getContentLength() )
             .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )
             .contentType( fileResource.getContentType() )
-            .contentDisposition( "filename=" + fileResource.getName() )
+            .contentDisposition( "filename=" + fileResource.getName() + fileDimension )
             .build();
     }
 

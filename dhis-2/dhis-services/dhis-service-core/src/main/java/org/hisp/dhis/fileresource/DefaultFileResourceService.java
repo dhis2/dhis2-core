@@ -131,7 +131,7 @@ public class DefaultFileResourceService
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
-            saveFileResourceInternal( imageFiles, fileResource );
+            return saveFileResourceInternal( imageFiles, fileResource );
         }
 
         return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
