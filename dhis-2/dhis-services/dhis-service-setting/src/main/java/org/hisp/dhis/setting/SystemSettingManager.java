@@ -35,17 +35,49 @@ import java.util.Map;
 
 /**
  * @author Stian Strandli
+ * @author Lars Helge Overland
  */
 public interface SystemSettingManager
 {
-    void saveSystemSetting( SettingKey setting, Serializable value );
+    /**
+     * Saves the given system setting key and value.
+     *
+     * @param key the system setting key.
+     * @param value the system setting value.
+     */
+    void saveSystemSetting( SettingKey key, Serializable value );
 
-    void deleteSystemSetting( SettingKey setting );
+    /**
+     * Deletes the system setting with the given key.
+     *
+     * @param key the system setting key.
+     */
+    void deleteSystemSetting( SettingKey key );
 
-    Serializable getSystemSetting( SettingKey setting );
+    /**
+     * Returns the system setting value for the given key. If no value exists, returns
+     * the default value as defined by {@link SettingKey#defaultValue}. If not,
+     * returns null.
+     *
+     * @param key the system setting key.
+     * @return the setting value.
+     */
+    Serializable getSystemSetting( SettingKey key );
 
-    Serializable getSystemSetting( SettingKey setting, Serializable defaultValue );
+    /**
+     * Returns the system setting value for the given key. If no value exists, returns
+     * the default value as defined by the given default value.
+     *
+     * @param key the system setting key.
+     * @return the setting value.
+     */
+    Serializable getSystemSetting( SettingKey key, Serializable defaultValue );
 
+    /**
+     * Returns all system settings.
+     *
+     * @return a list of all system settings.
+     */
     List<SystemSetting> getAllSystemSettings();
 
     /**
@@ -55,8 +87,19 @@ public interface SystemSettingManager
      */
     Map<String, Serializable> getSystemSettingsAsMap();
 
-    Map<String, Serializable> getSystemSettings( Collection<SettingKey> settings );
+    /**
+     * Returns system settings for the given collection of setting keys as a map,
+     * where the key is string representation of the {@link SettingKey}, and the
+     * value is the setting value.
+     *
+     * @param keys the collection of setting keys.
+     * @return a map of system settings.
+     */
+    Map<String, Serializable> getSystemSettings( Collection<SettingKey> keys );
 
+    /**
+     * Invalidates the currently cached system settings.
+     */
     void invalidateCache();
 
     // -------------------------------------------------------------------------
@@ -80,7 +123,7 @@ public interface SystemSettingManager
     boolean accountRecoveryEnabled();
 
     boolean selfRegistrationNoRecaptcha();
-    
+
     boolean emailConfigured();
 
     boolean systemNotificationEmailValid();
