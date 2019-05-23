@@ -169,7 +169,7 @@ public class ProgramSqlGeneratorItemsTest
     public void testDataElementNotFound()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "#{ProgrmStagA.NotElementA}" );
+        test( "#{ProgrmStagA.NotElementA}" );
     }
 
     @Test
@@ -190,7 +190,7 @@ public class ProgramSqlGeneratorItemsTest
     public void testAttributeNotFound()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "A{NoAttribute}" );
+        test( "A{NoAttribute}" );
     }
 
     @Test
@@ -204,14 +204,14 @@ public class ProgramSqlGeneratorItemsTest
     public void testConstantNotFound()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "C{notConstant}" );
+        test( "C{notConstant}" );
     }
 
     @Test
     public void testInvalidItemType()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "I{notValidItm}" );
+        test( "I{notValidItm}" );
     }
 
     // -------------------------------------------------------------------------

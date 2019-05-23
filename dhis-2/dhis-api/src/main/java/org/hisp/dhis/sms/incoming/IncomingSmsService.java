@@ -31,7 +31,6 @@ package org.hisp.dhis.sms.incoming;
 import java.util.List;
 import java.util.Date;
 
-import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
 
 /**
@@ -59,7 +58,6 @@ public interface IncomingSmsService
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
-    
-    List<IncomingSms> getAllUnparsedMessages( );
 
+    List<IncomingSms> getAllUnparsedMessages( );
 }
