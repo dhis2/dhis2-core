@@ -282,14 +282,20 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         }
 
         org.hibernate.criterion.Order criteriaOrder;
+        String fieldName = order.getProperty().getFieldName();
+
+        if ( fieldName == null )
+        {
+            fieldName = order.getProperty().getName();
+        }
 
         if ( order.isAscending() )
         {
-            criteriaOrder = org.hibernate.criterion.Order.asc( order.getProperty().getFieldName() );
+            criteriaOrder = org.hibernate.criterion.Order.asc( fieldName );
         }
         else
         {
-            criteriaOrder = org.hibernate.criterion.Order.desc( order.getProperty().getFieldName() );
+            criteriaOrder = org.hibernate.criterion.Order.desc( fieldName );
         }
 
         if ( order.isIgnoreCase() )
