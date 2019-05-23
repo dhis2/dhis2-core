@@ -70,7 +70,6 @@ public class ProgramTrackedEntityAttribute
      */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
-
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
 
     private Boolean searchable = false;

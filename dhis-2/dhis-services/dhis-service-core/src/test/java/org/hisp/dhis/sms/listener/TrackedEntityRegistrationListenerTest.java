@@ -196,7 +196,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( 'Q' );
+        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( program, trackedEntityAttribute );
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
         program.getProgramAttributes().add( programTrackedEntityAttribute );
         program.getOrganisationUnits().add( organisationUnit );

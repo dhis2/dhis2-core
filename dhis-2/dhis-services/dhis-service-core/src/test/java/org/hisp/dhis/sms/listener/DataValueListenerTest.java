@@ -126,18 +126,16 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
     @Mock
     private DataSetService dataSetService;
-    
+
     @Mock
     private DataElementService dataElementService;
-    
+
     private DataValueSMSListener subject;
 
     private CompleteDataSetRegistration fetchedCompleteDataSetRegistration;
-    private CompleteDataSetRegistration savedCompleteDataSetRegistration;
     private CompleteDataSetRegistration deletedCompleteDataSetRegistration;
 
     private DataValue fetchedDataValue;
-    private DataValue addedDataValue;
     private DataValue updatedDataValue;
 
     private DataElement dataElement;
