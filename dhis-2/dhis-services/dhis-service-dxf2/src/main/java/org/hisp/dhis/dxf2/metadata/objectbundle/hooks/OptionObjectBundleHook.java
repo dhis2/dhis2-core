@@ -32,10 +32,12 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Volker Schmidt
  */
+@Component
 public class OptionObjectBundleHook
     extends AbstractObjectBundleHook
 {

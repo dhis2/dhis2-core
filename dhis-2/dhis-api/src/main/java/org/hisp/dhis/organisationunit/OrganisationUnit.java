@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,6 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.*;
-
-import org.apache.commons.lang3.StringUtils;
-import org.geotools.geojson.geom.GeometryJSON;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.Coordinate.CoordinateObject;
-import org.hisp.dhis.common.Coordinate.CoordinateUtils;
-import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.user.User;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -54,6 +37,35 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.vividsolutions.jts.geom.Geometry;
+import org.apache.commons.lang3.StringUtils;
+import org.geotools.geojson.geom.GeometryJSON;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.Coordinate.CoordinateObject;
+import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.user.User;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Kristian Nordal
@@ -612,11 +624,16 @@ public class OrganisationUnit
         return set;
     }
 
-    @JsonProperty( "level" )
+    @JsonProperty( value = "level", access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( localName = "level", isAttribute = true )
     public int getLevel()
     {
         return StringUtils.countMatches( path, PATH_SEP );
+    }
+
+    protected void setLevel( int level )
+    {
+        // ignored, just used by persistence framework
     }
 
     /**
