@@ -89,8 +89,8 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService );
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
 
         // data init
 

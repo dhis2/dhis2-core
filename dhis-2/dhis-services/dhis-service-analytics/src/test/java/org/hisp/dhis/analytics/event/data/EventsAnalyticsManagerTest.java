@@ -83,8 +83,10 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
+        ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
 
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, mock( ProgramIndicatorService.class ) );
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }

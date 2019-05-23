@@ -61,6 +61,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -92,17 +93,22 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final StatementBuilder statementBuilder;
 
     protected final ProgramIndicatorService programIndicatorService;
-
-    public AbstractJdbcEventAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService )
+    
+    protected final DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
+    
+    public AbstractJdbcEventAnalyticsManager(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
+                                             StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
+                                             DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
         checkNotNull( programIndicatorService );
+        checkNotNull( programIndicatorSubqueryBuilder );
 
         this.jdbcTemplate = jdbcTemplate;
         this.statementBuilder = statementBuilder;
         this.programIndicatorService = programIndicatorService;
+        this.programIndicatorSubqueryBuilder = programIndicatorSubqueryBuilder;
     }
 
     /**
@@ -231,7 +237,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 ProgramIndicator in = (ProgramIndicator) queryItem.getItem();
 
                 String asClause = " as " + quote( in.getUid() );
-                columns.add( "(" + programIndicatorService.getAnalyticsSql( in.getExpression(), in, params.getEarliestStartDate(), params.getLatestEndDate() ) + ")" + asClause );
+
+//                if ( queryItem.hasRelationshipType() )
+//                {
+//                    piSql += RelationshipTypeJoinGenerator.generate( queryItem.getRelationshipType() );
+//                }
+
+                columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                    AnalyticsType.ENROLLMENT, params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -249,7 +262,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         return columns;
     }
+    
+    private String getProgramIndicatorAggregationSql( ProgramIndicator pi, String expression, EventQueryParams params )
+    {
+        return programIndicatorService.getAnalyticsSql( expression, pi, params.getEarliestStartDate(),
+            params.getLatestEndDate() );
 
+    }
+    
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
         String countClause = getAggregateClause( params );
@@ -444,7 +464,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
         }
     }
-
+    
     /**
      * Returns an item value for the given query, query item and value. Assumes that
      * data dimensions are collapsed for the given query. Returns the short name

@@ -59,7 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Chau Thu Tran
  */
 @Service( "org.hisp.dhis.program.ProgramIndicatorService" )
-public class DefaultProgramIndicatorService
+public class  DefaultProgramIndicatorService
     implements ProgramIndicatorService
 {
     // -------------------------------------------------------------------------

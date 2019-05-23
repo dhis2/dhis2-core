@@ -85,10 +85,11 @@ public class JdbcEnrollmentAnalyticsManager
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
-    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService )
+    public JdbcEnrollmentAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+                                          ProgramIndicatorService programIndicatorService,
+                                          DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService );
+        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
 
     @Override

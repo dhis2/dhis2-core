@@ -98,10 +98,11 @@ public class JdbcEventAnalyticsManager
 {
     private static final Log log = LogFactory.getLog( JdbcEventAnalyticsManager.class );
 
-    public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
-        ProgramIndicatorService programIndicatorService )
+    public JdbcEventAnalyticsManager(JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+                                     ProgramIndicatorService programIndicatorService,
+                                     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
-        super( jdbcTemplate, statementBuilder, programIndicatorService );
+        super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
     }
 
     //TODO introduce dedicated "year" partition column
