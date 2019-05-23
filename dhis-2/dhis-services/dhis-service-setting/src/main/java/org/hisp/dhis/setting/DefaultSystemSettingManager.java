@@ -178,10 +178,10 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional} on cache miss.
      */
     @Override
-    public Serializable getSystemSetting( SettingKey setting )
+    public Serializable getSystemSetting( SettingKey settingKey )
     {
-        Optional<Serializable> value = settingCache.get( setting.getName(),
-            key -> getSystemSettingOptional( key, setting.getDefaultValue() ).orElse( null ) );
+        Optional<Serializable> value = settingCache.get( settingKey.getName(),
+            key -> getSystemSettingOptional( key, settingKey.getDefaultValue() ).orElse( null ) );
 
         return value.orElse( null );
     }
@@ -191,9 +191,9 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional}.
      */
     @Override
-    public Serializable getSystemSetting( SettingKey setting, Serializable defaultValue )
+    public Serializable getSystemSetting( SettingKey settingKey, Serializable defaultValue )
     {
-        return getSystemSettingOptional( setting.getName(), defaultValue ).orElse( null );
+        return getSystemSettingOptional( settingKey.getName(), defaultValue ).orElse( null );
     }
 
     /**
@@ -278,11 +278,11 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    public Map<String, Serializable> getSystemSettings( Collection<SettingKey> settings )
+    public Map<String, Serializable> getSystemSettings( Collection<SettingKey> settingKeys )
     {
         Map<String, Serializable> map = new HashMap<>();
 
-        for ( SettingKey setting : settings )
+        for ( SettingKey setting : settingKeys )
         {
             Serializable value = getSystemSetting( setting );
 
