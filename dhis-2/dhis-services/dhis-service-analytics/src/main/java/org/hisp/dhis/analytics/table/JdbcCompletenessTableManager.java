@@ -91,7 +91,7 @@ public class JdbcCompletenessTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists.newArrayList(
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
         new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
 
@@ -227,7 +227,7 @@ public class JdbcCompletenessTableManager
         String timelyAlias = "(select (" + timelyDateDiff + ") <= ds.timelydays) as timely";
 
         columns.add( new AnalyticsTableColumn( quote( "timely" ), BOOLEAN, timelyAlias ) );
-        columns.addAll( getDefaultColumns() );
+        columns.addAll( getFixedColumns() );
         return filterDimensionColumns( columns );
     }
 
@@ -267,7 +267,8 @@ public class JdbcCompletenessTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDefaultColumns() {
-        return DEFAULT_COLS;
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }

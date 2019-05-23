@@ -93,7 +93,7 @@ public class JdbcValidationResultTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists.newArrayList(
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
         new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
         new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
@@ -240,7 +240,7 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, TEXT, "ps." + column ) );
         }
 
-        columns.addAll( getDefaultColumns() );
+        columns.addAll( getFixedColumns() );
         return filterDimensionColumns( columns );
     }
 
@@ -262,7 +262,8 @@ public class JdbcValidationResultTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDefaultColumns() {
-        return DEFAULT_COLS;
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }

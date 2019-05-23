@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.addClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -59,7 +60,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -102,7 +102,7 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists.newArrayList(
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
             new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
             new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
             new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
@@ -168,8 +168,9 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDefaultColumns() {
-        return this.DEFAULT_COLS;
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return this.FIXED_COLS;
     }
 
     @Override
@@ -333,7 +334,7 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        columns.addAll(getDefaultColumns());
+        columns.addAll(getFixedColumns());
 
         if ( program.isRegistration() )
         {
@@ -342,25 +343,6 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return filterDimensionColumns( columns );
-    }
-
-    private String addClosingParentheses( String selectSql )
-    {
-        int open = 0;
-
-        for ( int i = 0; i < selectSql.length(); i++ )
-        {
-            if ( selectSql.charAt( i ) == '(' )
-            {
-                open++;
-            }
-            else if ( selectSql.charAt( i ) == ')' )
-            {
-                open--;
-            }
-
-        }
-        return StringUtils.repeat(")", open);
     }
 
     private String getDataClause( String uid, ValueType valueType )

@@ -174,5 +174,10 @@ public interface AnalyticsTableManager
      */
     Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
 
-    List<AnalyticsTableColumn> getDefaultColumns();
+    /**
+     * Returns a list of non-dynamic {@see AnalyticsTableColumn}
+     *
+     * @return a List of {@see AnalyticsTableColumn}
+     */
+    List<AnalyticsTableColumn> getFixedColumns();
 }

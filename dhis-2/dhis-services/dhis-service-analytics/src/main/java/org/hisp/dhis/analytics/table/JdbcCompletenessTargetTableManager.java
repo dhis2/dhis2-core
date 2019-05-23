@@ -88,7 +88,7 @@ public class JdbcCompletenessTargetTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists.newArrayList(
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
         new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
         new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
@@ -201,7 +201,7 @@ public class JdbcCompletenessTargetTableManager
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11, "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
-        columns.addAll( getDefaultColumns() );
+        columns.addAll( getFixedColumns() );
 
         return filterDimensionColumns( columns );
     }
@@ -226,7 +226,8 @@ public class JdbcCompletenessTargetTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDefaultColumns() {
-        return DEFAULT_COLS;
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }

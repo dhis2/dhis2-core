@@ -86,7 +86,7 @@ public class JdbcOrgUnitTargetTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists
         .newArrayList( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
 
     @Override
@@ -167,7 +167,7 @@ public class JdbcOrgUnitTargetTableManager
             columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        columns.addAll( getDefaultColumns() );
+        columns.addAll( getFixedColumns() );
 
         return filterDimensionColumns( columns );
     }
@@ -192,7 +192,8 @@ public class JdbcOrgUnitTargetTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDefaultColumns() {
-        return DEFAULT_COLS;
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }

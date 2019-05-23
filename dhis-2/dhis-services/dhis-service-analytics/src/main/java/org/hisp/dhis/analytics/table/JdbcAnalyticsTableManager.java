@@ -116,7 +116,7 @@ public class JdbcAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists.newArrayList(
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "de.uid" ),
         new AnalyticsTableColumn( quote( "co" ), CHARACTER_11, NOT_NULL, "co.uid" )
             .withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ),
@@ -392,7 +392,7 @@ public class JdbcAnalyticsTableManager
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
         columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), INTEGER, approvalCol ) );
-        columns.addAll( getDefaultColumns() );
+        columns.addAll( getFixedColumns() );
 
         return filterDimensionColumns( columns );
     }
@@ -485,8 +485,9 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDefaultColumns() {
-        return this.DEFAULT_COLS;
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return this.FIXED_COLS;
     }
 
     /**

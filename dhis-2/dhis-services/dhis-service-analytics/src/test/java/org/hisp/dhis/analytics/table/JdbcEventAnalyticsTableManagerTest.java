@@ -160,7 +160,7 @@ public class JdbcEventAnalyticsTableManagerTest
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) ).withTableType( AnalyticsTableType.EVENT )
-            .withColumnSize( 41 ).withDefaultColumns( subject.getDefaultColumns() )
+            .withColumnSize( 41 ).withDefaultColumns( subject.getFixedColumns() )
             .addColumns(periodColumns)
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
             .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() ).build()
@@ -188,7 +188,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( 40 )
-            .withDefaultColumns( subject.getDefaultColumns() )
+            .withDefaultColumns( subject.getFixedColumns() )
             .addColumns(periodColumns)
             .addColumn( PREFIX_ORGUNITLEVEL + ouLevel.getLevel(), CHARACTER_11, "ous.", ouLevel.getCreated() )
             .build().verify();
@@ -219,7 +219,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( 41 )
-            .withDefaultColumns( subject.getDefaultColumns() )
+            .withDefaultColumns( subject.getFixedColumns() )
             .addColumns(periodColumns)
             .addColumn( ouGroupSetA.getUid(), CHARACTER_11, "ougs.", ouGroupSetA.getCreated() )
             .addColumn( ouGroupSetB.getUid(), CHARACTER_11, "ougs.", ouGroupSetB.getCreated() )
@@ -254,7 +254,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( 41 )
             .addColumns(periodColumns)
-            .withDefaultColumns( subject.getDefaultColumns() )
+            .withDefaultColumns( subject.getFixedColumns() )
             .addColumn( categoryOptionGroupSetA.getUid(), CHARACTER_11, "acs.", categoryOptionGroupSetA.getCreated() )
             .addColumn( categoryOptionGroupSetB.getUid(), CHARACTER_11, "acs.", categoryOptionGroupSetB.getCreated() )
             .build().verify();
@@ -306,7 +306,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .withDefaultColumns( subject.getDefaultColumns() )
+            .withDefaultColumns( subject.getFixedColumns() )
             .build().verify();
     }
     

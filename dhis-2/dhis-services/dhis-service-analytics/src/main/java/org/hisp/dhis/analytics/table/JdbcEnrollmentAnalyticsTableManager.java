@@ -93,7 +93,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private List<AnalyticsTableColumn> DEFAULT_COLS = Lists.newArrayList(
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
@@ -198,7 +198,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
 
-        columns.addAll(getDefaultColumns());
+        columns.addAll(getFixedColumns());
 
         if ( program.isRegistration() )
         {
@@ -209,7 +209,8 @@ public class JdbcEnrollmentAnalyticsTableManager
     }
 
     @Override
-    public List<AnalyticsTableColumn> getDefaultColumns() {
-        return DEFAULT_COLS;
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }
