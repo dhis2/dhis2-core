@@ -288,11 +288,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programService.addProgram( programA );
         programService.addProgram( programS );
 
-        ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( 'A' );
+        ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( programS, attributeB );
         attribute.setUid( "ATTR-UID" );
-        attribute.setAttribute( attributeB );
-        attribute.setProgram( programA );
-        attribute.setProgram( programS );
 
         programTrackedEntityAttributeStore.save( attribute );
 
