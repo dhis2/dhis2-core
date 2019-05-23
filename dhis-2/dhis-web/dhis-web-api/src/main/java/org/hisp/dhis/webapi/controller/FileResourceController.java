@@ -45,6 +45,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -68,6 +69,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -89,7 +92,7 @@ public class FileResourceController
         .add( "image/png" )
         .add( "image/jpeg" )
         .build();
-
+    
     // ---------------------------------------------------------------------
     // Dependencies
     // ---------------------------------------------------------------------
@@ -105,7 +108,7 @@ public class FileResourceController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}" )
-    public FileResource getFileResource( @PathVariable String uid )
+    public FileResource getFileResource( @PathVariable String uid, @RequestParam ( defaultValue = "original" ) String dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -114,12 +117,14 @@ public class FileResourceController
         {
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
+
+        setFileResourceDimensions( fileResource, dimension );
 
         return fileResource;
     }
 
     @GetMapping( value = "/{uid}/data" )
-    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response )
+    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response, @RequestParam ( defaultValue = "original" ) String dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -128,6 +133,8 @@ public class FileResourceController
         {
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
+
+        setFileResourceDimensions( fileResource, dimension );
 
         if ( !checkSharing( fileResource ) )
         {
@@ -210,11 +217,6 @@ public class FileResourceController
 
         FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
 
-        if ( IMAGE_CONTENT_TYPES.contains( contentType ) )
-        {
-            fileResource.setSaveMultipleSizes( true );
-        }
-
         File tmpFile = FileResourceUtils.toTempFile( file );
 
         String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
@@ -254,6 +256,18 @@ public class FileResourceController
         }
 
         return false;
+    }
+
+    private void setFileResourceDimensions( FileResource fileResource, String dimension )
+    {
+        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) )
+        {
+            Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
+
+            ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
+
+            fileResource.setStorageKey( StringUtils.join( Arrays.asList( fileResource.getStorageKey(), imageFileDimension.getDimension() ), '-' ) );
+        }
     }
 
     // -------------------------------------------------------------------------

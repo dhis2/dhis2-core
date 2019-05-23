@@ -84,11 +84,6 @@ public class FileResource
      */
     private transient FileResourceStorageStatus storageStatus = FileResourceStorageStatus.NONE;
 
-    /**
-     * Flag indicates if file resource has been saved in more than one sizes specifically in case of images.
-     */
-    private boolean saveMultipleSizes;
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -217,17 +212,5 @@ public class FileResource
     public String getFormat()
     {
         return this.contentType.split("[/;]" )[1];
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSaveMultipleSizes()
-    {
-        return saveMultipleSizes;
-    }
-
-    public void setSaveMultipleSizes( boolean saveMultipleSizes )
-    {
-        this.saveMultipleSizes = saveMultipleSizes;
     }
 }
