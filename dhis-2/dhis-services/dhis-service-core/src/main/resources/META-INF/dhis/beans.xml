@@ -1383,6 +1383,9 @@
   <bean id="org.hisp.dhis.sms.listener.SimpleEventSMSListener" 
   	class="org.hisp.dhis.sms.listener.SimpleEventSMSListener" />  	
 
+  <bean id="org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" 
+  	class="org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" />
+
   <!-- Notification renderer -->
 
   <bean id="programNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramNotificationMessageRenderer" />
