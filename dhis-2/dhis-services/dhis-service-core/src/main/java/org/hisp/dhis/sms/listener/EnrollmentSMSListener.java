@@ -9,8 +9,8 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.SMSParserException;
-import org.hisp.dhis.smscompression.Consts;
-import org.hisp.dhis.smscompression.models.AttributeValue;
+import org.hisp.dhis.smscompression.models.SMSAttributeValue;
+import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.trackedentity.*;
@@ -82,7 +82,7 @@ public class EnrollmentSMSListener extends NewSMSListener {
             entityInstance.setTrackedEntityType(entityType);
         }
 
-        Set<TrackedEntityAttributeValue> attributeValues = getAttributeValues(subm, entityInstance);
+        Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues(subm, entityInstance);
 
         if (attributeValues.isEmpty()) {
             sendFeedback(NO_TRACKED_ATTRIBUTES_FOUND, sender, WARNING);
@@ -106,11 +106,11 @@ public class EnrollmentSMSListener extends NewSMSListener {
     }
 
     @Override
-    protected boolean handlesType(Consts.SubmissionType type) {
-        return (type == Consts.SubmissionType.ENROLLMENT);
+    protected boolean handlesType(SubmissionType type) {
+        return (type == SubmissionType.ENROLLMENT);
     }
 
-    private Set<TrackedEntityAttributeValue> getAttributeValues(EnrollmentSMSSubmission submission, TrackedEntityInstance entityInstance) {
+    private Set<TrackedEntityAttributeValue> getSMSAttributeValues(EnrollmentSMSSubmission submission, TrackedEntityInstance entityInstance) {
         return submission.getValues()
                 .stream()
                 .filter(this::isValidAttribute)
@@ -118,12 +118,12 @@ public class EnrollmentSMSListener extends NewSMSListener {
                 .collect(Collectors.toSet());
     }
 
-    private TrackedEntityAttributeValue createTrackedEntityValue(AttributeValue attributeValue, TrackedEntityInstance tei) {
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute(attributeValue.getAttribute());
+    private TrackedEntityAttributeValue createTrackedEntityValue(SMSAttributeValue SMSAttributeValue, TrackedEntityInstance tei) {
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute(SMSAttributeValue.getAttribute());
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute(attribute);
         trackedEntityAttributeValue.setEntityInstance(tei);
-        trackedEntityAttributeValue.setValue(attributeValue.getValue());
+        trackedEntityAttributeValue.setValue(SMSAttributeValue.getValue());
         return trackedEntityAttributeValue;
     }
 
@@ -131,7 +131,7 @@ public class EnrollmentSMSListener extends NewSMSListener {
         return user.getOrganisationUnits().contains(ou);
     }
 
-    private boolean isValidAttribute(AttributeValue value) {
+    private boolean isValidAttribute(SMSAttributeValue value) {
         return value.getValue() != null && value.getAttribute() != null;
     }
 }
