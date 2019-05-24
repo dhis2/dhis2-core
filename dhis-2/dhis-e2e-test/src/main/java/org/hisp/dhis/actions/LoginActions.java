@@ -46,7 +46,7 @@ public class LoginActions
     {
         ApiResponse loggedInUser =  getLoggedInUserInfo();
 
-        if (loggedInUser.getContentType().contains( "json" ) && loggedInUser.extract( "userCredentials.username" ) != null && loggedInUser.extract( "userCredentials.username" ).equals( username )) {
+        if ( loggedInUser.getContentType().contains( "json" ) && loggedInUser.extract( "userCredentials.username" ) != null && loggedInUser.extract( "userCredentials.username" ).equals( username ) ) {
             return;
         }
 
