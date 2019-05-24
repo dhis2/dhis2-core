@@ -47,7 +47,7 @@ import java.util.Map;
 @Service( "org.hisp.dhis.fileresource.ImageProcessingService" )
 public class DefaultImageResizeService implements ImageProcessingService
 {
-    private static final ImmutableMap<ImageFileDimension, ImageSize> IMAGE_FILE_DIMENSIONS = new ImmutableMap.Builder<ImageFileDimension, ImageSize>()
+    private static final ImmutableMap<ImageFileDimension, ImageSize> IMAGE_FILE_SIZE = new ImmutableMap.Builder<ImageFileDimension, ImageSize>()
         .put( ImageFileDimension.SMALL, new ImageSize( 256, 256 ) )
         .put( ImageFileDimension.MEDIUM, new ImageSize( 512, 512 ) )
         .put( ImageFileDimension.LARGE, new ImageSize( 1024, 1024 ) )
@@ -70,7 +70,7 @@ public class DefaultImageResizeService implements ImageProcessingService
                     continue;
                 }
 
-                ImageSize size = IMAGE_FILE_DIMENSIONS.get( dimension );
+                ImageSize size = IMAGE_FILE_SIZE.get( dimension );
 
                 BufferedImage resizedImage = resize( image, size );
 

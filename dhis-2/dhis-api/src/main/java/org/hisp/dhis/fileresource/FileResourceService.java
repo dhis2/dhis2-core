@@ -61,5 +61,7 @@ public interface FileResourceService
 
     URI getSignedGetFileResourceContentUri( String uid );
 
+    URI getSignedGetFileResourceContentUri( FileResource fileResource );
+
     List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
 }

@@ -38,7 +38,7 @@ public enum ImageFileDimension
     SMALL( "small "),
     MEDIUM( "medium" ),
     LARGE( "large" ),
-    ORIGINAL( "original" );
+    ORIGINAL( "" );
 
     private String dimension;
 

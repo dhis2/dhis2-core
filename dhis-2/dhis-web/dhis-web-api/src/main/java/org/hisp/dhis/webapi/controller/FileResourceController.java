@@ -69,9 +69,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -87,12 +84,6 @@ public class FileResourceController
 
     private final static Log log = LogFactory.getLog( FileResourceController.class );
 
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
-    
     // ---------------------------------------------------------------------
     // Dependencies
     // ---------------------------------------------------------------------
@@ -118,7 +109,7 @@ public class FileResourceController
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
 
-        setFileResourceDimensions( fileResource, dimension );
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
 
         return fileResource;
     }
@@ -134,7 +125,7 @@ public class FileResourceController
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
 
-        setFileResourceDimensions( fileResource, dimension );
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
 
         if ( !checkSharing( fileResource ) )
         {
@@ -154,7 +145,7 @@ public class FileResourceController
         // Attempt to build signed URL request for content and redirect
         // ---------------------------------------------------------------------
 
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource.getUid() );
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource );
 
         if ( signedGetUri != null )
         {
@@ -176,7 +167,7 @@ public class FileResourceController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        try (InputStream in = content.openStream())
+        try ( InputStream in = content.openStream() )
         {
             IOUtils.copy( in, response.getOutputStream() );
         }
@@ -256,18 +247,6 @@ public class FileResourceController
         }
 
         return false;
-    }
-
-    private void setFileResourceDimensions( FileResource fileResource, String dimension )
-    {
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) )
-        {
-            Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
-
-            ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
-
-            fileResource.setStorageKey( StringUtils.join( Arrays.asList( fileResource.getStorageKey(), imageFileDimension.getDimension() ), '-' ) );
-        }
     }
 
     // -------------------------------------------------------------------------

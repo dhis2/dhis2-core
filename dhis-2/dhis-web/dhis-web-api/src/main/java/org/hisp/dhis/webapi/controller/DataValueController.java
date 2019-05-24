@@ -81,6 +81,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -106,12 +107,6 @@ import com.google.common.io.ByteSource;
 public class DataValueController
 {
     public static final String RESOURCE_PATH = "/dataValues";
-
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
 
     // ---------------------------------------------------------------------
     // Dependencies
@@ -585,14 +580,7 @@ public class DataValueController
         // If file is of image type then dimension will determine which size the image need to be downloaded.
         // ---------------------------------------------------------------------
 
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) )
-        {
-            Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
-
-            ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
-
-            fileResource.setStorageKey( fileResource.getStorageKey() + imageFileDimension.getDimension() );
-        }
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
 
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );
 
@@ -605,7 +593,7 @@ public class DataValueController
         // Attempt to build signed URL request for content and redirect
         // ---------------------------------------------------------------------
 
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( uid );
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource );
 
         if ( signedGetUri != null )
         {

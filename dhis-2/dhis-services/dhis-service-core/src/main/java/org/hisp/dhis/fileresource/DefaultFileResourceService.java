@@ -28,8 +28,11 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
@@ -41,12 +44,16 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -66,6 +73,11 @@ public class DefaultFileResourceService
         .add( "image/jpg" )
         .add( "image/png" )
         .add( "image/jpeg" )
+        .build();
+
+    private static final Set<FileResourceDomain> RESOURCE_DOMAINS = new ImmutableSet.Builder<FileResourceDomain>()
+        .add( FileResourceDomain.DATA_VALUE )
+        .add( FileResourceDomain.USER_AVATAR )
         .build();
 
     // -------------------------------------------------------------------------
@@ -135,7 +147,7 @@ public class DefaultFileResourceService
     @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) )
+        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && RESOURCE_DOMAINS.contains( fileResource.getDomain() ) )
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
@@ -175,7 +187,17 @@ public class DefaultFileResourceService
             return;
         }
 
-        fileResourceContentStore.deleteFileResourceContent( fileResource.getStorageKey() );
+        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && RESOURCE_DOMAINS.contains( fileResource.getDomain() ) )
+        {
+            String storageKey = fileResource.getStorageKey();
+
+            Stream.of( ImageFileDimension.values() ).forEach( d -> fileResourceContentStore.deleteFileResourceContent( StringUtils.join( storageKey, d.getDimension() ) ) );
+        }
+        else
+        {
+            fileResourceContentStore.deleteFileResourceContent( fileResource.getStorageKey() );
+        }
+
         fileResourceStore.delete( fileResource );
     }
 
@@ -206,6 +228,18 @@ public class DefaultFileResourceService
     {
         FileResource fileResource = getFileResource( uid );
 
+        if ( fileResource == null )
+        {
+            return null;
+        }
+
+        return fileResourceContentStore.getSignedGetContentUri( fileResource.getStorageKey() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public URI getSignedGetFileResourceContentUri( FileResource fileResource )
+    {
         if ( fileResource == null )
         {
             return null;
