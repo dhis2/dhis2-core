@@ -28,9 +28,7 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.common.io.ByteSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -44,12 +42,9 @@ import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.net.URI;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
