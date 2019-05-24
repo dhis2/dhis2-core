@@ -770,12 +770,6 @@ public class AnalyticsUtils
                 DECIMALS_NO_ROUNDING );
     }
 
-    /**
-     * Returns the base month of the year for the period type, zero-based.
-     *
-     * @param periodType the period type.
-     * @return the base month.
-     */
     public static Double getBaseMonth( PeriodType periodType )
     {
         if ( periodType instanceof FinancialPeriodType)

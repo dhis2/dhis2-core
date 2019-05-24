@@ -31,6 +31,8 @@ package org.hisp.dhis.leader.election;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -42,6 +44,9 @@ public class LeaderElectionJob extends AbstractJob
 {
     @Autowired
     private LeaderManager leaderManager;
+
+    @Autowired
+    private Notifier notifier;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -56,6 +61,15 @@ public class LeaderElectionJob extends AbstractJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-       leaderManager.electLeader();
+        try
+        {
+            leaderManager.electLeader();
+        }
+        catch ( Exception e )
+        {
+            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Leader election failed:" + e.getMessage() );
+        }
+
+        notifier.notify( jobConfiguration, NotificationLevel.INFO, "Leader election completed", true );
     }
 }
