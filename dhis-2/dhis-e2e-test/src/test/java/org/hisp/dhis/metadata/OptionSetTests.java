@@ -85,7 +85,6 @@ public class OptionSetTests
         loginActions.loginAsSuperUser();
     }
 
-    @Disabled
     @Test
     public void shouldNotBeRemovedWithAssociatedData()
     {
@@ -100,7 +99,6 @@ public class OptionSetTests
         response.validate().statusCode( 404 );
     }
 
-    @Disabled
     @Test
     public void shouldBeAbleToReferenceWithOption()
     {
