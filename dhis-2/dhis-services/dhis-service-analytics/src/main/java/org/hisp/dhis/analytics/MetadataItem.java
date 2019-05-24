@@ -30,14 +30,19 @@ package org.hisp.dhis.analytics;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.util.Date;
+
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.TotalAggregationType;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
  * Item part of meta data analytics response.
@@ -66,6 +71,10 @@ public class MetadataItem
     private AggregationType aggregationType;
 
     private TotalAggregationType totalAggregationType;
+
+    private Date startDate;
+
+    private Date endDate;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -147,6 +156,34 @@ public class MetadataItem
         this.description = dimensionalItemObject.getDescription();
         this.aggregationType = dimensionalItemObject.getAggregationType();
         this.totalAggregationType = dimensionalItemObject.getTotalAggregationType();
+
+        if ( dimensionalItemObject.hasLegendSet() )
+        {
+            this.legendSet = dimensionalItemObject.getLegendSet().getUid();
+        }
+
+        // TODO common interface
+
+        if ( dimensionalItemObject instanceof DataElement )
+        {
+            DataElement dataElement = (DataElement) dimensionalItemObject;
+            this.valueType = dataElement.getValueType().asSimplifiedValueType();
+        }
+
+        if ( dimensionalItemObject instanceof TrackedEntityAttribute)
+        {
+            TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
+            this.valueType = attribute.getValueType().asSimplifiedValueType();
+        }
+
+        // TODO introduce start/end date marker interface instead
+
+        if ( dimensionalItemObject instanceof Period)
+        {
+            Period period = (Period) dimensionalItemObject;
+            this.startDate = period.getStartDate();
+            this.endDate = period.getEndDate();
+        }
     }
 
     private void setDataItem( DimensionalObject dimensionalObject )
