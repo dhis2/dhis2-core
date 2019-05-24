@@ -32,6 +32,9 @@ import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeType;
 import org.hisp.dhis.node.exception.InvalidTypeException;
+import org.hisp.dhis.schema.Property;
+
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,6 +56,15 @@ public class SimpleNode extends AbstractNode
         super( name, NodeType.SIMPLE );
         this.value = value;
         this.attribute = false;
+    }
+
+    public SimpleNode( String name, Property property, Object value )
+    {
+        super( name, NodeType.SIMPLE );
+        this.value = value;
+        this.attribute = property.isAttribute();
+        this.namespace = property.getNamespace();
+        this.property = property;
     }
 
     public SimpleNode( String name, Object value, boolean attribute )
