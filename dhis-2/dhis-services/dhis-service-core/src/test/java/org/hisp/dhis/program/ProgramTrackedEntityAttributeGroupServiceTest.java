@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -52,18 +53,29 @@ public class ProgramTrackedEntityAttributeGroupServiceTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    private Program prA;
+
+    private TrackedEntityAttribute teaA;
+    private TrackedEntityAttribute teaB;
+
     private ProgramTrackedEntityAttribute attrA;
-
     private ProgramTrackedEntityAttribute attrB;
-
     private ProgramTrackedEntityAttributeGroup group;
 
 
     @Override
     public void setUpTest()
     {
-        attrA = createProgramTrackedEntityAttribute( 'A' );
-        attrB = createProgramTrackedEntityAttribute( 'B' );
+        prA = createProgram( 'A' );
+        manager.save( prA );
+
+        teaA = createTrackedEntityAttribute( 'A' );
+        teaB = createTrackedEntityAttribute( 'B' );
+        manager.save( teaA );
+        manager.save( teaB );
+
+        attrA = createProgramTrackedEntityAttribute( prA, teaA );
+        attrB = createProgramTrackedEntityAttribute( prA, teaB );
         Set<ProgramTrackedEntityAttribute> attributes = new HashSet<>();
         attributes.add( attrA );
         attributes.add( attrB );

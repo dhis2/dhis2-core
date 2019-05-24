@@ -1630,14 +1630,15 @@ public abstract class DhisConvenienceTest
         return attribute;
     }
 
-    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( char uniqueChar )
+    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute )
     {
-        ProgramTrackedEntityAttribute attribute = new ProgramTrackedEntityAttribute();
-        attribute.setAutoFields();
+        ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
+        ptea.setAutoFields();
 
-        attribute.setName( "Attribute" + uniqueChar );
+        ptea.setProgram( program );
+        ptea.setAttribute( attribute );
 
-        return attribute;
+        return ptea;
     }
 
     public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar, Set<ProgramTrackedEntityAttribute> attributes )

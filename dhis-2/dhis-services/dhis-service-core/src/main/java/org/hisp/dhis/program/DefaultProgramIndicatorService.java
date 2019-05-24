@@ -288,12 +288,15 @@ public class DefaultProgramIndicatorService
             return null;
         }
 
+        Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
+
         CommonExpressionVisitor visitor = newVisitor( FUNCTION_GET_SQL, ITEM_GET_SQL );
 
         visitor.setExpressionLiteral( new SqlLiteral() );
         visitor.setProgramIndicator( programIndicator );
         visitor.setReportingStartDate( startDate );
         visitor.setReportingEndDate( endDate );
+        visitor.setDataElementAndAttributeIdentifiers( uids );
 
         return castString( Parser.visit( expression, visitor ) );
     }

@@ -67,6 +67,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.ResponseDocumentation;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
@@ -425,14 +426,18 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( uniqueName );
 
-            ProgramTrackedEntityAttribute attr = createProgramTrackedEntityAttribute( uniqueName );
+            Program pr = createProgram( 'A' );
+            TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );
+            ProgramTrackedEntityAttribute attr = createProgramTrackedEntityAttribute( pr, tea );
             group.addAttribute( attr );
 
             return (T) group;
         }
         else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( clazz ))
         {
-            return (T) createProgramTrackedEntityAttribute( uniqueName );
+            Program pr = createProgram( 'A' );
+            TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );
+            return (T) createProgramTrackedEntityAttribute( pr, tea );
         }
         else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( clazz ) )
         {
