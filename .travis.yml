@@ -9,9 +9,15 @@ addons:
     - oracle-java8-installer
 before_install:
 - rm ~/.m2/settings.xml
-script:
-  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -q --update-snapshots -f  ./dhis-2/pom.xml
-  -  mvn clean install -DskipTests=false -DargLine="-Xmx512m -Xms256m" -q --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+
+jobs: 
+  include:
+    - stage: tests 
+      name: unit
+      script: 
+        - mvn clean install -DskipTests=false -q --update-snapshots -f ./dhis-2/pom.xml
+        - mvn clean install -DskipTests=false -q --update-snapshots -f ./dhis-2/dhis-web/pom.xml
+        
 branches:
   only:
   - master
