@@ -27,8 +27,8 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.hisp.dhis.smscompression.Consts.SubmissionType;
-import org.hisp.dhis.smscompression.models.DataValue;
+import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
+import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.SimpleEventSMSSubmission;
 import org.hisp.dhis.user.User;
@@ -122,7 +122,7 @@ public class SimpleEventSMSListener extends NewSMSListener {
         programStageInstance.setStoredBy( user.getUsername() );
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
-        for ( DataValue dv : subm.getValues() )
+        for ( SMSDataValue dv : subm.getValues() )
         {
         	DataElement de = dataElementService.getDataElement( dv.getDataElement() );
             EventDataValue eventDataValue = new EventDataValue( dv.getDataElement(), dv.getValue(), user.getUsername() );

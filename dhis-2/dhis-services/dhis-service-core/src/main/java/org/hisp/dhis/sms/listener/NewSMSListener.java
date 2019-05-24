@@ -20,9 +20,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.smscompression.Consts.SubmissionType;
+import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
-import org.hisp.dhis.smscompression.models.Metadata;
+import org.hisp.dhis.smscompression.models.SMSMetadata;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
 import org.hisp.dhis.system.util.SmsUtils;
@@ -34,6 +34,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 @Transactional
 public abstract class NewSMSListener extends BaseSMSListener {
@@ -83,8 +86,13 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		try {
 			SMSSubmissionReader reader = new SMSSubmissionReader();
 			SMSSubmissionHeader header = reader.readHeader(SmsUtils.getBytes(sms));
-			Metadata meta = getMetadata(header.getLastSyncDate());
+			SMSMetadata meta = getMetadata(header.getLastSyncDate());
 			SMSSubmission submission = reader.readSubmission(SmsUtils.getBytes(sms), meta);
+			
+			//TODO: Debugging line to check SMS submissions
+			Gson gson = new GsonBuilder().setPrettyPrinting().create();
+			log.info("New received SMS submissiond decoded as: " + gson.toJson(submission));
+			
 			postProcess(sms, submission);
 		} catch ( Exception e ) {
 			log.error(e.getMessage());
@@ -104,8 +112,8 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		}
 	}
 
-	public Metadata getMetadata( Date lastSyncDate ) {
-		Metadata meta = new Metadata();
+	public SMSMetadata getMetadata( Date lastSyncDate ) {
+		SMSMetadata meta = new SMSMetadata();
 		meta.dataElements = getAllDataElements(lastSyncDate);
 		meta.categoryOptionCombos = getAllCatOptionCombos(lastSyncDate);
 		meta.organisationUnits = getAllUserIds(lastSyncDate);
@@ -117,7 +125,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		return meta;
 	}
 
-    public List<Metadata.ID> getAllUserIds (Date lastSyncDate) {
+    public List<SMSMetadata.ID> getAllUserIds (Date lastSyncDate) {
         List<User> users = userService.getAllUsers();
 
         return users
@@ -127,7 +135,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.collect(Collectors.toList());
     }
 
-    public List<Metadata.ID> getAllTrackedEntityTypeIds (Date lastSyncDate) {
+    public List<SMSMetadata.ID> getAllTrackedEntityTypeIds (Date lastSyncDate) {
         List<TrackedEntityType> teTypes = trackedEntityTypeService.getAllTrackedEntityType();
 
         return teTypes
@@ -137,7 +145,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.collect(Collectors.toList());
     }
 
-    public List<Metadata.ID> getAllTrackedEntityAttributeIds (Date lastSyncDate) {
+    public List<SMSMetadata.ID> getAllTrackedEntityAttributeIds (Date lastSyncDate) {
         List<TrackedEntityAttribute> teiAttributes = trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
         return teiAttributes
@@ -147,7 +155,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.collect(Collectors.toList());
     }
 
-    public List<Metadata.ID> getAllProgramIds (Date lastSyncDate) {
+    public List<SMSMetadata.ID> getAllProgramIds (Date lastSyncDate) {
         List<Program> programs = programService.getAllPrograms();
 
         return programs
@@ -157,7 +165,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.collect(Collectors.toList());
     }
 
-    public List<Metadata.ID> getAllOrgUnitIds (Date lastSyncDate) {
+    public List<SMSMetadata.ID> getAllOrgUnitIds (Date lastSyncDate) {
         List<OrganisationUnit> orgUnits = organisationUnitService.getAllOrganisationUnits();
 
         return orgUnits
@@ -167,7 +175,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.collect(Collectors.toList());
     }
 
-    public List<Metadata.ID> getAllDataElements (Date lastSyncDate) {
+    public List<SMSMetadata.ID> getAllDataElements (Date lastSyncDate) {
         List<DataElement> dataElements = dataElementService.getAllDataElements();
 
         return dataElements
@@ -177,7 +185,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.collect(Collectors.toList());
     }
 
-    public List<Metadata.ID> getAllCatOptionCombos (Date lastSyncDate) {
+    public List<SMSMetadata.ID> getAllCatOptionCombos (Date lastSyncDate) {
         List<CategoryOptionCombo> catOptionCombos = categoryService.getAllCategoryOptionCombos();
 
         return catOptionCombos
@@ -187,11 +195,11 @@ public abstract class NewSMSListener extends BaseSMSListener {
         		.collect(Collectors.toList());
     }
 
-    public Metadata.ID getIdFromMetadata(IdentifiableObject obj, Date lastSyncDate) {
+    public SMSMetadata.ID getIdFromMetadata(IdentifiableObject obj, Date lastSyncDate) {
     	if ( obj.getCreated().after(lastSyncDate) ) {
     		return null;
     	} else {
-			Metadata.ID id = new Metadata.ID(obj.getUid());
+			SMSMetadata.ID id = new SMSMetadata.ID(obj.getUid());
 			return id;
     	}
     }
