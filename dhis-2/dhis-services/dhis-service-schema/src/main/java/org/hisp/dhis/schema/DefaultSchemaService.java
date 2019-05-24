@@ -179,16 +179,11 @@ public class DefaultSchemaService
 
     private Map<Class<?>, Schema> dynamicClassSchemaMap = new HashMap<>();
 
+    @Autowired
     private PropertyIntrospectorService propertyIntrospectorService;
 
+    @Autowired
     private SessionFactory sessionFactory;
-
-    public DefaultSchemaService( @Autowired PropertyIntrospectorService propertyIntrospectorService,
-        @Autowired SessionFactory sessionFactory )
-    {
-        this.propertyIntrospectorService = propertyIntrospectorService;
-        this.sessionFactory = sessionFactory;
-    }
 
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )

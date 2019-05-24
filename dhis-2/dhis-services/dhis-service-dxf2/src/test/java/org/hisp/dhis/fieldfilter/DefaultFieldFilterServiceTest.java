@@ -50,7 +50,6 @@ import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,7 +78,7 @@ public class DefaultFieldFilterServiceTest
     @Before
     public void setUp() throws Exception
     {
-        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService, new HashSet<>() );
+        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService );
     }
 
     @Test

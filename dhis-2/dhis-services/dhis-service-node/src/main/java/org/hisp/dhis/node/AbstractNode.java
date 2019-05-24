@@ -58,7 +58,7 @@ public abstract class AbstractNode implements Node
 
     protected String comment;
 
-    protected List<Node> children;
+    protected List<Node> children = Lists.newArrayList();
 
     protected ImmutableList<Node> sortedChildren;
 
@@ -75,19 +75,6 @@ public abstract class AbstractNode implements Node
         this.name = name;
         this.nodeType = nodeType;
         this.property = property;
-    }
-
-    protected AbstractNode( String name, NodeType nodeType, Property property, AbstractNode child )
-    {
-        this.name = name;
-        this.nodeType = nodeType;
-        this.property = property;
-
-        if ( child != null && child.getName() != null )
-        {
-            children = Lists.newArrayList( child );
-            child.setParent( this );
-        }
     }
 
     @Override
@@ -200,11 +187,6 @@ public abstract class AbstractNode implements Node
             return null;
         }
 
-        if ( children == null )
-        {
-            children = Lists.newArrayList();
-        }
-
         children.add( child );
         ((AbstractNode) child).setParent( this );
 
@@ -216,7 +198,7 @@ public abstract class AbstractNode implements Node
     @Override
     public <T extends Node> void removeChild( T child )
     {
-        if ( children != null && children.contains( child ) )
+        if ( children.contains( child ) )
         {
             children.remove( child );
         }
@@ -234,32 +216,13 @@ public abstract class AbstractNode implements Node
     }
 
     @Override
-    public List<Node> getUnorderedChildren()
-    {
-        return children == null ? Collections.emptyList() : children;
-    }
-
-    @Override
     public List<Node> getChildren()
     {
         if ( sortedChildren == null )
         {
-            final int size = children == null ? 0 : children.size();
-
-            if ( size > 1 )
-            {
-                List<Node> clone = Lists.newArrayList( children );
-                Collections.sort( clone, OrderComparator.INSTANCE );
-                sortedChildren = ImmutableList.copyOf( clone );
-            }
-            else if ( size == 1 )
-            {
-                sortedChildren = ImmutableList.of( children.get( 0 ) );
-            }
-            else
-            {
-                sortedChildren = ImmutableList.of();
-            }
+            List<Node> clone = Lists.newArrayList( children );
+            Collections.sort( clone, OrderComparator.INSTANCE );
+            sortedChildren = ImmutableList.copyOf( clone );
         }
 
         return sortedChildren;

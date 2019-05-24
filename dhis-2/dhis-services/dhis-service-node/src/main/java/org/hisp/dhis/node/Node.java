@@ -155,9 +155,4 @@ public interface Node extends Ordered
      * @return List of child nodes associated with this node
      */
     List<Node> getChildren();
-
-    /**
-     * @return the unordered children that are associated with this node.
-     */
-    List<Node> getUnorderedChildren();
 }

@@ -618,7 +618,12 @@ public class Schema implements Ordered, Klass
     @JsonIgnore
     public Property getProperty( String name )
     {
-        return propertyMap.get( name );
+        if ( propertyMap.containsKey( name ) )
+        {
+            return propertyMap.get( name );
+        }
+
+        return null;
     }
 
     @JsonIgnore

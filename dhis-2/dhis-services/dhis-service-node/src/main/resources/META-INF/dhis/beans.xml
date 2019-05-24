@@ -16,8 +16,6 @@
 
   <bean class="org.hisp.dhis.node.transformers.SizeNodeTransformer" />
 
-  <bean class="org.hisp.dhis.node.transformers.PluckNodeTransformer" />
-
   <bean class="org.hisp.dhis.node.serializers.CsvNodeSerializer" scope="prototype">
     <aop:scoped-proxy proxy-target-class="false" />
   </bean>

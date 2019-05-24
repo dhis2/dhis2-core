@@ -28,7 +28,6 @@ package org.hisp.dhis.node.types;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.node.AbstractNode;
 import org.hisp.dhis.node.NodeType;
 
@@ -47,16 +46,6 @@ public class CollectionNode extends AbstractNode
     public CollectionNode( String name )
     {
         super( name, NodeType.COLLECTION );
-    }
-
-    public CollectionNode( String name, int initialChildSize )
-    {
-        super( name, NodeType.COLLECTION );
-
-        if ( initialChildSize > 0 )
-        {
-            children = Lists.newArrayListWithCapacity( initialChildSize );
-        }
     }
 
     public CollectionNode( String name, boolean wrapping )
