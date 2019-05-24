@@ -34,7 +34,7 @@ import java.util.Map;
 
 /**
  * creates images with pre-defined sizes
- * 
+ *
  * @Author Zubair Asghar.
  */
 public interface ImageProcessingService
