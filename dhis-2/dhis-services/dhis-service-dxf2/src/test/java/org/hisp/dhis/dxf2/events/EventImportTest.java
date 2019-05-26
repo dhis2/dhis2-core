@@ -70,7 +70,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class EventImportTest extends DhisSpringTest
+public class EventImportTest
+    extends DhisSpringTest
 {
     @Autowired
     private EventService eventService;
@@ -176,8 +177,8 @@ public class EventImportTest extends DhisSpringTest
         programStageDataElementService.addProgramStageDataElement( programStageDataElement );
 
         ProgramStageDataElement programStageDataElementA2 = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA2 );
-        programStageDataElement.setProgramStage( programStageA2 );
+        programStageDataElementA2.setDataElement( dataElementA2 );
+        programStageDataElementA2.setProgramStage( programStageA2 );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementA2 );
 
         ProgramStageDataElement programStageDataElementB = new ProgramStageDataElement();

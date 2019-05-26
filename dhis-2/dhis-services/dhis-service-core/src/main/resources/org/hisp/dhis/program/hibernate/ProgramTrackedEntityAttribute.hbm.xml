@@ -13,11 +13,11 @@
     </id>
     &identifiableProperties;
 
-    <many-to-one name="program" class="org.hisp.dhis.program.Program"
-      column="programid" foreign-key="fk_programtrackedentityattribute_programid" unique-key="programtrackedentityattribute_unique_key" />
+    <many-to-one name="program" class="org.hisp.dhis.program.Program" column="programid" 
+      foreign-key="fk_programtrackedentityattribute_programid" unique-key="programtrackedentityattribute_unique_key" />
 
-    <many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
-      column="trackedentityattributeid" foreign-key="fk_program_attributeid" unique-key="programtrackedentityattribute_unique_key" />
+    <many-to-one name="attribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute" column="trackedentityattributeid"
+      not-null="true" foreign-key="fk_program_attributeid" unique-key="programtrackedentityattribute_unique_key" />
 
     <property name="displayInList" column="displayinlist" />
 
