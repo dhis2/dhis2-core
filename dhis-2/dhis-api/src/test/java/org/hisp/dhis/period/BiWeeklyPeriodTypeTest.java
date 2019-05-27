@@ -56,8 +56,8 @@ public class BiWeeklyPeriodTypeTest
     public void testCreatePeriod()
     {
         startDate = new DateTime( 2018, 1, 1, 0, 0 );
-        endDate = new DateTime(2018, 1, 14, 0, 0 );
-        testDate = new DateTime(2018, 1, 8, 0, 0 );
+        endDate = new DateTime( 2018, 1, 14, 0, 0 );
+        testDate = new DateTime( 2018, 1, 8, 0, 0 );
 
 
         Period period = periodType.createPeriod( testDate.toDate() );
@@ -135,5 +135,33 @@ public class BiWeeklyPeriodTypeTest
         assertEquals( periodType.createPeriod( new DateTime( 2017, 3, 14, 0, 0 ).toDate() ), periods.get( 4 ) );
         assertEquals( periodType.createPeriod( new DateTime( 2017, 3, 29, 0, 0 ).toDate() ), periods.get( 5 ) );
         assertEquals( periodType.createPeriod( testDate.toDate() ), periods.get( periods.size() - 1 ) );
+    }
+
+    @Test
+    public void testToIsoDate()
+    {
+        testDate = new DateTime( 2018, 1, 1, 0, 0 );
+        List<Period> periods = periodType.generateRollingPeriods( testDate.toDate() );
+
+        assertEquals( "2017BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2018BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
+
+        testDate = new DateTime( 2019, 1, 1, 0, 0 );
+        periods = periodType.generateRollingPeriods( testDate.toDate() );
+
+        assertEquals( "2018BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2019BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
+
+        testDate = new DateTime( 2010, 1, 1, 0, 0 );
+        periods = periodType.generateRollingPeriods( testDate.toDate() );
+
+        assertEquals( "2009BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2009BiW27", periodType.getIsoDate( periods.get( 25 ) ) );
+
+        testDate = new DateTime( 2020, 1, 1, 0, 0 );
+        periods = periodType.generateRollingPeriods( testDate.toDate() );
+
+        assertEquals( "2019BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2020BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
     }
 }
