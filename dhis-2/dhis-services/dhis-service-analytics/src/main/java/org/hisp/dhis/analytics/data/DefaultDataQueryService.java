@@ -39,6 +39,7 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.calendar.Calendar;
@@ -427,13 +428,13 @@ public class DefaultDataQueryService
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
             DimensionalKeywords dimensionalKeywords = null;
+            
             if ( !levels.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
                 dimensionalKeywords = new DimensionalKeywords(
                     levels.stream().map( l -> organisationUnitService.getOrganisationUnitLevelByLevel( l ) )
                         .filter( Objects::nonNull ).collect( Collectors.toList() ) );
-
             }
 
             if ( !groups.isEmpty() )
@@ -451,6 +452,15 @@ public class DefaultDataQueryService
             if ( levels.isEmpty() && groups.isEmpty() )
             {
                 orgUnits.addAll( ous );
+            }
+
+            // Add the boundary OUs ou as keywords
+            if ( dimensionalKeywords != null )
+            {
+                for ( OrganisationUnit ou : ousList )
+                {
+                    dimensionalKeywords.addGroupBy( ou );
+                }
             }
 
             if ( orgUnits.isEmpty() )
