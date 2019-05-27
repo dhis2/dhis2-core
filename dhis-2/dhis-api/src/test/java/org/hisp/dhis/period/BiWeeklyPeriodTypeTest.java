@@ -156,12 +156,12 @@ public class BiWeeklyPeriodTypeTest
         periods = periodType.generateRollingPeriods( testDate.toDate() );
 
         assertEquals( "2009BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2010BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
+        assertEquals( "2009BiW27", periodType.getIsoDate( periods.get( 25 ) ) );
 
         testDate = new DateTime( 2020, 1, 1, 0, 0 );
         periods = periodType.generateRollingPeriods( testDate.toDate() );
 
         assertEquals( "2019BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2020iW1", periodType.getIsoDate( periods.get( 25 ) ) );
+        assertEquals( "2020BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
     }
 }
