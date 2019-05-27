@@ -9,6 +9,7 @@ import javax.annotation.Resource;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.pattern.LogEvent;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -20,6 +21,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.SMSMetadata;
@@ -41,6 +43,36 @@ import com.google.gson.GsonBuilder;
 @Transactional
 public abstract class NewSMSListener extends BaseSMSListener {
 
+	//TODO: Should this be here?
+	public enum SMSResponse {
+		SUCCESS(0, "Submission has been processed successfully"),
+		INVALID_USER(1, "User does not exist"),
+		INVALID_ORGUNIT(2, "Organisation unit does not exist"),
+		USER_NOTIN_OU(1, "User does not not belong to organisation unit"),
+		;
+	
+		private final int code;
+		private final String description;
+	
+		private SMSResponse(int code, String description) {
+			this.code = code;
+			this.description = description;
+		}
+	
+		public String getDescription() {
+		   return description;
+		}
+		
+		public int getCode() {
+		   return code;
+		}
+		
+		@Override
+		public String toString() {
+		  return code + ": " + description;
+		}
+	}
+		
 	private static final Log log = LogFactory.getLog( NewSMSListener.class );
 	static final String SUCCESS_MESSAGE = "Submission has been processed successfully";
 	static final String NO_OU_FOR_PROGRAM = "Program is not assigned to organisation unit.";
@@ -83,23 +115,48 @@ public abstract class NewSMSListener extends BaseSMSListener {
 
 	@Override
 	public void receive( IncomingSms sms ) {
+		SMSSubmissionHeader header = null;
+		
 		try {
 			SMSSubmissionReader reader = new SMSSubmissionReader();
-			SMSSubmissionHeader header = reader.readHeader(SmsUtils.getBytes(sms));
+			header = reader.readHeader(SmsUtils.getBytes(sms));
 			SMSMetadata meta = getMetadata(header.getLastSyncDate());
-			SMSSubmission submission = reader.readSubmission(SmsUtils.getBytes(sms), meta);
-			
+			SMSSubmission subm = reader.readSubmission(SmsUtils.getBytes(sms), meta);
+						
 			//TODO: Debugging line to check SMS submissions
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			log.info("New received SMS submissiond decoded as: " + gson.toJson(submission));
+			log.info("New received SMS submission decoded as: " + gson.toJson(subm));
 			
-			postProcess(sms, submission);
+			checkUserAndOrgUnit(subm);
+			postProcess(sms, subm);
+		} catch ( SMSProcessingException e ) {
+			log.error(e.getMessage());
+			sendSMSResponse(e.getResp(), sms.getOriginator(), header.getSubmissionID());
 		} catch ( Exception e ) {
+			//Exceptions caught here will come from reading the header and submission
+			//itself. We may not even have a submission ID to respond to the app with.
+			//TODO: We can handle exceptions in read submission with assuming we 
+			// 		have a valid header. We can't do anything about CRC checks though.
 			log.error(e.getMessage());
 			e.printStackTrace();
 		}
+
 	}
 
+	private void checkUserAndOrgUnit( SMSSubmission subm )
+	{
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
+        User user = userService.getUser(subm.getUserID());
+
+        if (ou == null) {
+        	throw new SMSProcessingException(SMSResponse.INVALID_ORGUNIT);
+        } else if (user == null) {
+        	throw new SMSProcessingException(SMSResponse.INVALID_USER);
+        } else if (!user.getOrganisationUnits().contains(ou)) {
+        	throw new SMSProcessingException(SMSResponse.USER_NOTIN_OU);
+        }
+	}
+	
 	private SMSSubmissionHeader getHeader( IncomingSms sms ) {
 		byte[] smsBytes = SmsUtils.getBytes(sms);
 		SMSSubmissionReader reader = new SMSSubmissionReader();

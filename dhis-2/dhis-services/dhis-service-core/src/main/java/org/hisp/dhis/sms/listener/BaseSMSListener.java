@@ -11,6 +11,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsListener;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.listener.NewSMSListener.SMSResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +46,18 @@ public abstract class BaseSMSListener implements IncomingSmsListener {
         if( smsSender.isConfigured() )
         {
             smsSender.sendMessage( null, message, sender );
+            return;
+        }
+
+        LOGGER.getOrDefault( WARNING, log::info ).accept(  NO_SMS_CONFIG );
+    }
+    
+    protected void sendSMSResponse(SMSResponse resp, String recipient, int messageID)
+    {
+        if( smsSender.isConfigured() )
+        {
+        	String msg = String.format("%d:%d:%s", messageID, resp.getCode(), resp.getDescription());
+            smsSender.sendMessage( null, msg, recipient );
             return;
         }
 

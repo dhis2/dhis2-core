@@ -100,7 +100,7 @@ public class EnrollmentSMSListener extends NewSMSListener {
 
         Date enrollmentDate = new Date();
         programInstanceService.enrollTrackedEntityInstance(tei, program, enrollmentDate, submissionTimestamp, ou);
-
+        
         update(sms, SmsMessageStatus.PROCESSED, true);
         sendFeedback(SUCCESS_MESSAGE, sender, INFO);
     }
