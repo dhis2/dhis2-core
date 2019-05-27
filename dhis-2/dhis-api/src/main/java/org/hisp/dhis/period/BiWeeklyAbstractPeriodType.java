@@ -216,4 +216,3 @@ public class BiWeeklyAbstractPeriodType
         return dateTimeUnit;
     }
 }
-

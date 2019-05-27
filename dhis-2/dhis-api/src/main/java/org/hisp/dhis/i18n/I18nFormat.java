@@ -28,7 +28,9 @@ package org.hisp.dhis.i18n;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyAbstractPeriodType;
@@ -40,6 +42,7 @@ import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -246,6 +249,38 @@ public class I18nFormat
             year += dateTime.dayOfWeek().getAsShortText() + " " + year;
 
             return String.format( "W%s %s", week, year );
+        }
+        else if ( periodType instanceof BiWeeklyAbstractPeriodType )
+        {
+            int year;
+            int week;
+
+            Calendar calendar = PeriodType.getCalendar();
+            BiWeeklyAbstractPeriodType biWeeklyAbstractPeriodType = (BiWeeklyAbstractPeriodType) periodType;
+            DateTimeUnit dateTimeUnit = DateTimeUnit.fromJdkDate( period.getStartDate() );
+
+            if ( calendar.isIso8601() )
+            {
+                LocalDate date = LocalDate.of( dateTimeUnit.getYear(), dateTimeUnit.getMonth(), dateTimeUnit.getDay() );
+                WeekFields weekFields = WeekFields.of( DayOfWeek.MONDAY, 4 );
+
+                year = date.get( weekFields.weekBasedYear() );
+                week = (date.get( weekFields.weekOfWeekBasedYear() ) / 2) + 1;
+            }
+            else
+            {
+                DateTimeUnit date = biWeeklyAbstractPeriodType.adjustToStartOfBiWeek( dateTimeUnit, calendar );
+                week = calendar.week( date );
+
+                if ( week == 1 && date.getMonth() == calendar.monthsInYear() )
+                {
+                    date.setYear( date.getYear() + 1 );
+                }
+
+                year = date.getYear();
+            }
+
+            return String.format( "BiW%s %s", week, year );
         }
 
         String keyStartDate = "format." + typeName + ".startDate";
