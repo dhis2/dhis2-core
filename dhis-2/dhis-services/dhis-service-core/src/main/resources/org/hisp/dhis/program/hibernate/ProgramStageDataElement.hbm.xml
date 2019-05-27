@@ -17,7 +17,7 @@
       foreign-key="fk_programstagedataelement_programstageid" unique-key="programstagedataelement_unique_key" />
 
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"
-      foreign-key="fk_programstagedataelement_dataelementid" unique-key="programstagedataelement_unique_key" />
+      not-null="true" foreign-key="fk_programstagedataelement_dataelementid" unique-key="programstagedataelement_unique_key" />
 
     <property name="compulsory" column="compulsory" not-null="true" />
 

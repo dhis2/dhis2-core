@@ -1,5 +1,7 @@
 package org.hisp.dhis.webapi.documentation.controller.program;
 
+import org.hisp.dhis.program.Program;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -30,6 +32,7 @@ package org.hisp.dhis.webapi.documentation.controller.program;
 
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
 import org.hisp.dhis.webapi.documentation.controller.AbstractWebApiTest;
 import org.junit.Test;
@@ -47,13 +50,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ProgramTrackedEntityAttributeGroupDocumentation
     extends AbstractWebApiTest<ProgramTrackedEntityAttributeGroup>
 {
-
     @Test
     public void testAddAndRemoveMember() throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
-        ProgramTrackedEntityAttribute attrA = createProgramTrackedEntityAttribute( 'A' );
+        Program pr = createProgram( 'A' );
+        manager.save( pr );
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );
+        manager.save( tea );
+        ProgramTrackedEntityAttribute attrA = createProgramTrackedEntityAttribute( pr, tea );
         manager.save( attrA );
 
         ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( 'A' );
