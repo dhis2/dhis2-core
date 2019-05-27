@@ -31,7 +31,6 @@ package org.hisp.dhis.i18n.ui.resourcebundle;
 import org.hisp.dhis.common.comparator.LocaleNameComparator;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.commons.util.PathUtils;
-import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,7 +75,7 @@ public class DefaultResourceBundleManager
     {
         checkNotNull( globalResourceBundleName );
         checkNotNull( specificResourceBundleName );
-        
+
         this.globalResourceBundleName = globalResourceBundleName;
         this.specificResourceBundleName = specificResourceBundleName;
     }
@@ -140,7 +139,7 @@ public class DefaultResourceBundleManager
         }
 
         List<Locale> locales;
-        
+
         if ( url.toExternalForm().startsWith( "jar:" ) )
         {
             locales = new ArrayList<>( getAvailableLocalesFromJar( url ) );
@@ -151,9 +150,9 @@ public class DefaultResourceBundleManager
 
             locales = new ArrayList<>( getAvailableLocalesFromDir( dirPath ) );
         }
-        
+
         locales.sort(LocaleNameComparator.INSTANCE);
-        
+
         return locales;
     }
 
@@ -171,13 +170,13 @@ public class DefaultResourceBundleManager
             jar = connection.getJarFile();
 
             Enumeration<JarEntry> e = jar.entries();
-    
+
             while ( e.hasMoreElements() )
             {
                 JarEntry entry = e.nextElement();
-    
+
                 String name = entry.getName();
-    
+
                 if ( name.startsWith( globalResourceBundleName ) && name.endsWith( EXT_RESOURCE_BUNDLE ) )
                 {
                     availableLocales.add( getLocaleFromName( name ) );
@@ -188,7 +187,7 @@ public class DefaultResourceBundleManager
         {
             throw new ResourceBundleManagerException( "Failed to get jar file: " + url, e );
         }
-        
+
         return availableLocales;
     }
 
@@ -198,7 +197,7 @@ public class DefaultResourceBundleManager
 
         File dir = new File( dirPath );
         Set<Locale> availableLocales = new HashSet<>();
-        
+
         File[] files = dir.listFiles(
             ( dir1, name ) -> name.startsWith( globalResourceBundleName ) && name.endsWith( EXT_RESOURCE_BUNDLE ) );
 
