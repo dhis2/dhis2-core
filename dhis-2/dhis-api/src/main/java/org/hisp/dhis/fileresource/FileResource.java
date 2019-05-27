@@ -79,6 +79,8 @@ public class FileResource
      */
     private FileResourceDomain domain;
 
+    private boolean hasMultipleStorageFiles;
+
     /**
      * Current storage status of content.
      */
@@ -212,5 +214,17 @@ public class FileResource
     public String getFormat()
     {
         return this.contentType.split("[/;]" )[1];
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isHasMultipleStorageFiles()
+    {
+        return hasMultipleStorageFiles;
+    }
+
+    public void setHasMultipleStorageFiles( boolean hasMultipleStorageFiles )
+    {
+        this.hasMultipleStorageFiles = hasMultipleStorageFiles;
     }
 }

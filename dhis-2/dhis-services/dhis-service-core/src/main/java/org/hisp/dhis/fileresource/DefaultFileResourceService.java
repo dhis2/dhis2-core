@@ -61,18 +61,13 @@ public class DefaultFileResourceService
 {
     private static final Duration IS_ORPHAN_TIME_DELTA = Hours.TWO.toStandardDuration();
 
-    private static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
+    public static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
         ( fr -> !fr.isAssigned() );
 
     private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
         .add( "image/jpg" )
         .add( "image/png" )
         .add( "image/jpeg" )
-        .build();
-
-    private static final Set<FileResourceDomain> RESOURCE_DOMAINS = new ImmutableSet.Builder<FileResourceDomain>()
-        .add( FileResourceDomain.DATA_VALUE )
-        .add( FileResourceDomain.USER_AVATAR )
         .build();
 
     // -------------------------------------------------------------------------
@@ -142,7 +137,7 @@ public class DefaultFileResourceService
     @Transactional
     public String saveFileResource( FileResource fileResource, File file )
     {
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && RESOURCE_DOMAINS.contains( fileResource.getDomain() ) )
+        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
@@ -182,7 +177,7 @@ public class DefaultFileResourceService
             return;
         }
 
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && RESOURCE_DOMAINS.contains( fileResource.getDomain() ) )
+        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             String storageKey = fileResource.getStorageKey();
 
@@ -252,6 +247,13 @@ public class DefaultFileResourceService
         return fileResourceStore.getExpiredFileResources( expires );
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public List<FileResource> getAllUnProcessedImagesFiles()
+    {
+        return fileResourceStore.getAllUnProcessedImages();
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -259,6 +261,8 @@ public class DefaultFileResourceService
     private String saveFileResourceInternal( Map<ImageFileDimension, File> imageFiles, FileResource fileResource )
     {
         fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+        fileResource.setHasMultipleStorageFiles( true );
+
         fileResourceStore.save( fileResource );
         sessionFactory.getCurrentSession().flush();
 

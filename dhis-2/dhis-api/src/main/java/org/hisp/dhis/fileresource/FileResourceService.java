@@ -64,4 +64,6 @@ public interface FileResourceService
     URI getSignedGetFileResourceContentUri( FileResource fileResource );
 
     List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+
+    List<FileResource> getAllUnProcessedImagesFiles();
 }

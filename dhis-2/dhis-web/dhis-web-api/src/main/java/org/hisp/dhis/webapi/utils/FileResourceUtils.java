@@ -71,11 +71,6 @@ public class FileResourceUtils
         .add( "image/jpeg" )
         .build();
 
-    public static final Set<FileResourceDomain> RESOURCE_DOMAIN = new ImmutableSet.Builder<FileResourceDomain>()
-        .add( FileResourceDomain.USER_AVATAR )
-        .add( FileResourceDomain.DATA_VALUE )
-        .build();
-
     @Autowired
     private FileResourceService fileResourceService;
 
@@ -140,7 +135,7 @@ public class FileResourceUtils
 
     public static void setImageFileDimensions( FileResource fileResource, String dimension )
     {
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && RESOURCE_DOMAIN.contains( fileResource.getDomain() ) )
+        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
 
