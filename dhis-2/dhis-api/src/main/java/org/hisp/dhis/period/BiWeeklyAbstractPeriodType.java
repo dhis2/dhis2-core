@@ -167,13 +167,7 @@ public class BiWeeklyAbstractPeriodType
             WeekFields weekFields = WeekFields.of( DayOfWeek.MONDAY, 4 );
 
             year = date.get( weekFields.weekBasedYear() );
-            week = date.get( weekFields.weekOfWeekBasedYear() ) / 2;
-
-            if ( week == 0 )
-            {
-                year--;
-                week = 26;
-            }
+            week = (date.get( weekFields.weekOfWeekBasedYear() ) / 2) + 1;
         }
         else
         {

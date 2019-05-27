@@ -143,19 +143,25 @@ public class BiWeeklyPeriodTypeTest
         testDate = new DateTime( 2018, 1, 1, 0, 0 );
         List<Period> periods = periodType.generateRollingPeriods( testDate.toDate() );
 
-        assertEquals( "2017BiW1", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2017BiW26", periodType.getIsoDate( periods.get( 25 ) ) );
+        assertEquals( "2017BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2018BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
 
         testDate = new DateTime( 2019, 1, 1, 0, 0 );
         periods = periodType.generateRollingPeriods( testDate.toDate() );
 
-        assertEquals( "2018BiW1", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2018BiW26", periodType.getIsoDate( periods.get( 25 ) ) );
+        assertEquals( "2018BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2019BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
 
         testDate = new DateTime( 2010, 1, 1, 0, 0 );
         periods = periodType.generateRollingPeriods( testDate.toDate() );
 
-        assertEquals( "2009BiW1", periodType.getIsoDate( periods.get( 0 ) ) );
-        assertEquals( "2009BiW26", periodType.getIsoDate( periods.get( 25 ) ) );
+        assertEquals( "2009BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2010BiW1", periodType.getIsoDate( periods.get( 25 ) ) );
+
+        testDate = new DateTime( 2020, 1, 1, 0, 0 );
+        periods = periodType.generateRollingPeriods( testDate.toDate() );
+
+        assertEquals( "2019BiW2", periodType.getIsoDate( periods.get( 0 ) ) );
+        assertEquals( "2020iW1", periodType.getIsoDate( periods.get( 25 ) ) );
     }
 }
