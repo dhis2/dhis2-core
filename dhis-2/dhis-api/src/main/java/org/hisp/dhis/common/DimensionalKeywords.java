@@ -78,7 +78,7 @@ public class DimensionalKeywords
 
     private List<Keyword> groupBy;
 
-    public DimensionalKeywords( List<BaseIdentifiableObject> groupBy )
+    public DimensionalKeywords( List<IdentifiableObject> groupBy )
     {
         this.groupBy = new ArrayList<>();
 
