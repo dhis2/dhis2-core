@@ -76,6 +76,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -441,6 +442,11 @@ public class DefaultPushAnalysisService
 
         BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 578, 440, user );
 
+        if ( image == null )
+        {
+            image = createErrorImage( "No data" );
+        }
+
         ImageIO.write( image, "PNG", baos );
 
         return uploadImage( map.getUid(), baos.toByteArray() );
@@ -592,4 +598,21 @@ public class DefaultPushAnalysisService
         }
     }
 
+    /**
+     * Creates an image with text indicating an error.
+     */
+    private static BufferedImage createErrorImage( String error )
+    {
+        String str = "Error creating map image: " + error;
+        BufferedImage image = new BufferedImage( 500, 25, BufferedImage.TYPE_INT_RGB );
+        Graphics2D graphics = image.createGraphics();
+
+        graphics.setColor( Color.WHITE );
+        graphics.fill( new Rectangle( 500, 25 ) );
+
+        graphics.setColor( Color.RED );
+        graphics.drawString( str, 1, 12 );
+
+        return image;
+    }
 }
