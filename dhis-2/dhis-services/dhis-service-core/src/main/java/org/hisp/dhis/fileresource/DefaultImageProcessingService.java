@@ -101,7 +101,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
         int width;
         int height;
 
-        ImageSize(int width, int height )
+        ImageSize( int width, int height )
         {
             this.width = width;
             this.height = height;

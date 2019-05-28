@@ -281,17 +281,17 @@ public class JCloudsFileResourceContentStore
 
             fileResource.setContentLength( file.length() );
 
-            ByteSource bytes = com.google.common.io.Files.asByteSource( file );
-
             String contentMd5 = null;
 
             try
             {
-                contentMd5 = bytes.hash( Hashing.md5() ).toString();
+                HashCode hash = com.google.common.io.Files.hash( file, Hashing.md5() );
+                contentMd5 = hash.toString();
             }
             catch ( IOException e )
             {
                 DebugUtils.getStackTrace( e );
+                log.error( "Hashing error " + e.getMessage() );
             }
 
             fileResource.setContentMd5( contentMd5 );

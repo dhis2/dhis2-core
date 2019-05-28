@@ -28,13 +28,17 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFutureCallback;
+
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -43,6 +47,19 @@ import org.springframework.util.concurrent.ListenableFutureCallback;
 public class FileResourceUploadCallback
 {
     private Log log = LogFactory.getLog( FileResourceUploadCallback.class );
+
+    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
+        .add( "image/jpg" )
+        .add( "image/png" )
+        .add( "image/jpeg" )
+        .build();
+
+    private final FileResourceService fileResourceService;
+
+    public FileResourceUploadCallback( FileResourceService fileResourceService )
+    {
+        this.fileResourceService = fileResourceService;
+    }
 
     public ListenableFutureCallback<String> newInstance( String fileResourceUid )
     {
@@ -54,12 +71,27 @@ public class FileResourceUploadCallback
             public void onFailure( Throwable ex )
             {
                 log.error( "Saving content for file resource '" + fileResourceUid + "' failed", ex );
+
+                FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+
+                fileResource.setHasMultipleStorageFiles( false );
+
+                fileResourceService.updateFileResource( fileResource );
             }
 
             @Override
             public void onSuccess( String result )
             {
                 Period timeDiff = new Period( startTime, DateTime.now() );
+
+                FileResource fileResource = fileResourceService.getFileResource( fileResourceUid );
+
+                if ( FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) && IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) )
+                {
+                    fileResource.setHasMultipleStorageFiles( true );
+
+                    fileResourceService.updateFileResource( fileResource );
+                }
 
                 log.info( "File stored with key: '" + result + "'. Upload finished in " + timeDiff.toString( PeriodFormat.getDefault() ) );
             }
