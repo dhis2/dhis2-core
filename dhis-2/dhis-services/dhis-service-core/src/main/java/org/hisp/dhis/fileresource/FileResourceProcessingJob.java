@@ -38,7 +38,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -84,25 +83,16 @@ public class FileResourceProcessingJob extends AbstractJob
         {
             String key = fileResource.getStorageKey();
 
-            URI uri = fileResourceContentStore.getSignedGetContentUri( key );
+            ByteSource content = fileResourceContentStore.getFileResourceContent( key );
 
-            if ( uri != null )
+            if ( content == null )
             {
-                tmpFile = new File( uri );
+                log.error( "The referenced file could not be found" );
+                continue;
             }
-            else
-            {
-                ByteSource content = fileResourceContentStore.getFileResourceContent( key );
 
-                if ( content == null )
-                {
-                    log.error( "The referenced file could not be found" );
-                    continue;
-                }
-
-                tmpFile = new File( UUID.randomUUID().toString() );
-                FileUtils.copyInputStreamToFile( content.openStream(), tmpFile );
-            }
+            tmpFile = new File( UUID.randomUUID().toString() );
+            FileUtils.copyInputStreamToFile( content.openStream(), tmpFile );
 
             String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
 

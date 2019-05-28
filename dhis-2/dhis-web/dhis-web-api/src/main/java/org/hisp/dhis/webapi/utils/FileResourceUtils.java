@@ -137,11 +137,14 @@ public class FileResourceUtils
     {
         if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
-            Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
+            if ( fileResource.isHasMultipleStorageFiles() )
+            {
+                Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
 
-            ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
+                ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
 
-            fileResource.setStorageKey( StringUtils.join( fileResource.getStorageKey(), imageFileDimension.getDimension() ) );
+                fileResource.setStorageKey( StringUtils.join( fileResource.getStorageKey(), imageFileDimension.getDimension() ) );
+            }
         }
     }
 
