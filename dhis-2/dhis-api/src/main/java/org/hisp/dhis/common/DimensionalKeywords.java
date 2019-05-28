@@ -113,8 +113,8 @@ public class DimensionalKeywords
         return groupBy;
     }
 
-    private Keyword toKeyword( IdentifiableObject bio )
+    private Keyword toKeyword( IdentifiableObject object )
     {
-        return new Keyword( bio.getUid(), bio.getUid(), bio.getName(), bio.getCode() );
+        return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
     }
 }
