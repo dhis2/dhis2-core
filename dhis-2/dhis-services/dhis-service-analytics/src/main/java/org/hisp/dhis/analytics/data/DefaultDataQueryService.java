@@ -39,7 +39,6 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 import java.util.*;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.calendar.Calendar;
@@ -460,10 +459,7 @@ public class DefaultDataQueryService
 
             if ( dimensionalKeywords != null )
             {
-                for ( OrganisationUnit ou : ousList )
-                {
-                    dimensionalKeywords.addGroupBy( ou );
-                }
+                dimensionalKeywords.addGroupBy( ousList );
             }
 
             if ( orgUnits.isEmpty() )

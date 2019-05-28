@@ -90,9 +90,17 @@ public class DimensionalKeywords
         this.groupBy = new ArrayList<>();
     }
 
-    public void addGroupBy( BaseIdentifiableObject groupByItem )
+    public void addGroupBy( IdentifiableObject groupByItem )
     {
         this.groupBy.add( toKeyword( groupByItem ) );
+    }
+
+    public void addGroupBy( List<? extends IdentifiableObject> groupByItems )
+    {
+        for ( IdentifiableObject item : groupByItems )
+        {
+            this.addGroupBy( item );
+        }
     }
 
     public void addGroupBy( String key, String name )
@@ -105,7 +113,7 @@ public class DimensionalKeywords
         return groupBy;
     }
 
-    private Keyword toKeyword( BaseIdentifiableObject bio )
+    private Keyword toKeyword( IdentifiableObject bio )
     {
         return new Keyword( bio.getUid(), bio.getUid(), bio.getName(), bio.getCode() );
     }
