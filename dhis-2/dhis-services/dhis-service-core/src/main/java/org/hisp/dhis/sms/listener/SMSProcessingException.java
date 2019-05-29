@@ -4,6 +4,10 @@ import org.hisp.dhis.sms.listener.NewSMSListener.SMSResponse;
 
 public class SMSProcessingException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 353425388316643481L;
 	private SMSResponse resp;
 	
 	public SMSProcessingException(SMSResponse resp)

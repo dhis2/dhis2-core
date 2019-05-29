@@ -1,36 +1,37 @@
 package org.hisp.dhis.sms.listener;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.hisp.dhis.sms.parse.SMSParserException;
-import org.hisp.dhis.smscompression.models.SMSAttributeValue;
-import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
-import org.hisp.dhis.smscompression.models.SMSSubmission;
-import org.hisp.dhis.trackedentity.*;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
+import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
+import org.hisp.dhis.smscompression.models.SMSAttributeValue;
+import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.jfree.util.Log;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.cronutils.utils.StringUtils;
 
 @Transactional
 public class EnrollmentSMSListener extends NewSMSListener {
     @Autowired
     private TrackedEntityInstanceService teiService;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -53,40 +54,47 @@ public class EnrollmentSMSListener extends NewSMSListener {
 
         Date submissionTimestamp = subm.getTimestamp();
         String teiUID = subm.getTrackedEntityInstance();
-        String sender = StringUtils.replace(sms.getOriginator(), "+", "");
-        Program program = programService.getProgram(subm.getTrackerProgram());
-        OrganisationUnit ou = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
-        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType(subm.getTrackedEntityType());
-        User user = userService.getUser(subm.getUserID());
-
-        if (!program.hasOrganisationUnit(ou)) {
-            sendFeedback(NO_OU_FOR_PROGRAM, sender, WARNING);
-            //TODO: Change the exception with one better suited
-            throw new SMSParserException(NO_OU_FOR_PROGRAM);
+        String progid = subm.getTrackerProgram();
+        String tetid = subm.getTrackedEntityType();
+        String ouid = subm.getOrgUnit();
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid);
+        
+        Program program = programService.getProgram(progid);
+        if (program == null)
+        {
+        	throw new SMSProcessingException(SMSResponse.INVALID_PROGRAM.set(progid));
+        }
+        
+        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType(tetid);
+        if (entityType == null) 
+        {
+        	throw new SMSProcessingException(SMSResponse.INVALID_TETYPE.set(tetid));
         }
 
-        if (!userHasOrgUnit(user, ou)) {
-            sendFeedback(NO_OU_FOR_USER, sender, WARNING);
-            throw new SMSParserException(NO_OU_FOR_USER);
+        if (!program.hasOrganisationUnit(orgUnit)) 
+        {
+        	throw new SMSProcessingException(SMSResponse.OU_NOTIN_PROGRAM.set(ouid, progid));
         }
 
         TrackedEntityInstance entityInstance;
         boolean existsOnServer = teiService.trackedEntityInstanceExists(teiUID);
 
         if (existsOnServer) {
+        	Log.info("Given TEI (" + teiUID + ") exists. Updating...");
             entityInstance = teiService.getTrackedEntityInstance(teiUID);
         } else {
+        	Log.info("Given TEI (" + teiUID + ") does not exist. Creating...");
             entityInstance = new TrackedEntityInstance();
             entityInstance.setUid(teiUID);
-            entityInstance.setOrganisationUnit(ou);
+            entityInstance.setOrganisationUnit(orgUnit);
             entityInstance.setTrackedEntityType(entityType);
         }
 
         Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues(subm, entityInstance);
 
         if (attributeValues.isEmpty()) {
-            sendFeedback(NO_TRACKED_ATTRIBUTES_FOUND, sender, WARNING);
-            // TODO: Should we throw an error here or continue as is?
+        	//TODO: Should look for attributes that were not found and report them
+            //TODO: Should we throw an error here or continue as is?
         }
 
         if (existsOnServer) {
@@ -99,10 +107,11 @@ public class EnrollmentSMSListener extends NewSMSListener {
         TrackedEntityInstance tei = teiService.getTrackedEntityInstance(teiUID);
 
         Date enrollmentDate = new Date();
-        programInstanceService.enrollTrackedEntityInstance(tei, program, enrollmentDate, submissionTimestamp, ou);
-        
-        update(sms, SmsMessageStatus.PROCESSED, true);
-        sendFeedback(SUCCESS_MESSAGE, sender, INFO);
+        //TODO: Should we check if the TEI is already enrolled? If so do we skip this?
+        ProgramInstance enrollment = programInstanceService.enrollTrackedEntityInstance(tei, program, enrollmentDate, submissionTimestamp, orgUnit);
+        if (enrollment == null) {
+        	throw new SMSProcessingException(SMSResponse.ENROLL_FAILED.set(teiUID,progid));
+        }
     }
 
     @Override
@@ -113,25 +122,27 @@ public class EnrollmentSMSListener extends NewSMSListener {
     private Set<TrackedEntityAttributeValue> getSMSAttributeValues(EnrollmentSMSSubmission submission, TrackedEntityInstance entityInstance) {
         return submission.getValues()
                 .stream()
-                .filter(this::isValidAttribute)
                 .map(v -> createTrackedEntityValue(v, entityInstance))
                 .collect(Collectors.toSet());
     }
 
     private TrackedEntityAttributeValue createTrackedEntityValue(SMSAttributeValue SMSAttributeValue, TrackedEntityInstance tei) {
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute(SMSAttributeValue.getAttribute());
+    	String attribUID = SMSAttributeValue.getAttribute();
+        String val = SMSAttributeValue.getValue();
+
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute(attribUID);
+        if (attribute == null) {
+        	//TODO: We need to add this to the response
+        	Log.warn("Given attribute [" + attribUID + "] could not be found. Continuing with submission...");
+        	return null;
+        } else if (val == null || StringUtils.isEmpty(val)) {
+        	Log.warn("Value for atttribute [" + attribUID + "] is null or empty. Continuing with submission...");
+        	return null;
+        }
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute(attribute);
         trackedEntityAttributeValue.setEntityInstance(tei);
-        trackedEntityAttributeValue.setValue(SMSAttributeValue.getValue());
+        trackedEntityAttributeValue.setValue(val);
         return trackedEntityAttributeValue;
-    }
-
-    private boolean userHasOrgUnit(User user, OrganisationUnit ou) {
-        return user.getOrganisationUnits().contains(ou);
-    }
-
-    private boolean isValidAttribute(SMSAttributeValue value) {
-        return value.getValue() != null && value.getAttribute() != null;
     }
 }

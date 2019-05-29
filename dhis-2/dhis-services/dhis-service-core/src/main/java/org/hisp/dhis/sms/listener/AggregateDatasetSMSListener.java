@@ -2,6 +2,7 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.Date;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -17,20 +18,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.SmsMessageStatus;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.models.AggregateDatasetSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class AggregateDatasetSMSListener extends NewSMSListener {
 
-	private static final String DATASET_LOCKED = "Dataset: %s is locked for period: %s";
-	
     @Autowired
     private OrganisationUnitService organisationUnitService;    
 	
@@ -56,22 +54,68 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
 	protected void postProcess(IncomingSms sms, SMSSubmission submission) {
 		AggregateDatasetSMSSubmission subm = ( AggregateDatasetSMSSubmission ) submission;
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
-        DataSet dataSet = dataSetService.getDataSet(subm.getDataSet());
-        Period period = PeriodType.getPeriodFromIsoString(subm.getPeriod());
+		String ouid = subm.getOrgUnit();
+		String dsid = subm.getDataSet();
+		String per = subm.getPeriod();
+		String aocid = subm.getAttributeOptionCombo();
+		
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid);
 		User user = userService.getUser(subm.getUserID());
-		CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(subm.getAttributeOptionCombo());
+
+        DataSet dataSet = dataSetService.getDataSet(dsid);
+        if (dataSet == null) 
+        {
+        	throw new SMSProcessingException(SMSResponse.INVALID_DATASET.set(dsid));
+        }
         
+        Period period = PeriodType.getPeriodFromIsoString(per);
+        if (period == null) 
+        {
+        	throw new SMSProcessingException(SMSResponse.INVALID_PERIOD.set(per));
+        }
+        
+		CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid);
+		if (aoc == null) {
+			throw new SMSProcessingException(SMSResponse.INVALID_AOC.set(aocid));
+		}
+        
+		//TODO: This seems a bit backwards, why is there no dataSet.hasOrganisationUnit?
+		if (!orgUnit.getDataSets().contains(dataSet))
+		{
+			throw new SMSProcessingException(SMSResponse.OU_NOTIN_DATASET.set(ouid, dsid));
+		}
+		
         if ( dataSetService.isLocked( null, dataSet, period, orgUnit, aoc, null ) )
         {
-            sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(), ERROR );
-
-            throw new SMSParserException( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ) );
+        	throw new SMSProcessingException(SMSResponse.DATASET_LOCKED.set(dsid, per));
         }
 
         for (SMSDataValue smsdv : subm.getValues()) {
-        	DataElement de = dataElementService.getDataElement(smsdv.getDataElement());
-        	CategoryOptionCombo coc = categoryService.getCategoryOptionCombo(smsdv.getCategoryOptionCombo());
+        	String deid = smsdv.getDataElement();
+        	String cocid = smsdv.getCategoryOptionCombo();
+        	
+        	DataElement de = dataElementService.getDataElement(deid);
+        	if (de == null)
+        	{
+        		//TODO: We need to add this to response
+        		Log.warn("Data element [" + deid + "] does not exist. Continuing with submission...");
+        		continue;
+        	}
+        	
+        	CategoryOptionCombo coc = categoryService.getCategoryOptionCombo(cocid);
+        	if (coc == null)
+        	{
+        		Log.warn("Category Option Combo [" + cocid + "] does not exist. Continuing with submission...");
+        		continue;        		
+        	}
+        	
+        	String val = smsdv.getValue();
+        	if (val == null || StringUtils.isEmpty(val))
+        	{
+        		Log.warn("Value for [" + deid + "-" + cocid + "]  is null or empty. Continuing with submission...");
+        		continue;
+        	}
+        	
         	DataValue dv = dataValueService.getDataValue(de, period, orgUnit, coc, aoc);
         	
             boolean newDataValue = false;
@@ -86,7 +130,7 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
                 newDataValue = true;
             }
             
-            dv.setValue( smsdv.getValue() );
+            dv.setValue( val );
             dv.setLastUpdated( new java.util.Date() );
             dv.setStoredBy( user.getUsername() );
             
@@ -110,9 +154,6 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
         	CompleteDataSetRegistration newReg = new CompleteDataSetRegistration( dataSet, period, orgUnit, aoc, now, username, now, username, true );
         	registrationService.saveCompleteDataSetRegistration(newReg);
         }
-        sendFeedback( SUCCESS_MESSAGE, sms.getOriginator(), INFO );
-
-        update( sms, SmsMessageStatus.PROCESSED, true );
 	}
 	
 	@Override
