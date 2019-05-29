@@ -48,10 +48,10 @@ import java.util.stream.Stream;
 /**
  * @Author Zubair Asghar.
  */
-@Component( "org.hisp.dhis.fileresource.FileSaveEventListener" )
-public class FileSaveEventListener
+@Component( "org.hisp.dhis.fileresource.FileResourceEventListener" )
+public class FileResourceEventListener
 {
-    private static final Log log = LogFactory.getLog( FileSaveEventListener.class );
+    private static final Log log = LogFactory.getLog( FileResourceEventListener.class );
 
     private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
         .add( "image/jpg" )
@@ -63,14 +63,10 @@ public class FileSaveEventListener
 
     private final FileResourceContentStore fileResourceContentStore;
 
-    private final ApplicationEventPublisher postFileSaveEventPublisher;
-
-
-    public FileSaveEventListener( FileResourceService fileResourceService, FileResourceContentStore contentStore, ApplicationEventPublisher postFileSaveEventPublisher )
+    public FileResourceEventListener(FileResourceService fileResourceService, FileResourceContentStore contentStore )
     {
         this.fileResourceService = fileResourceService;
         this.fileResourceContentStore = contentStore;
-        this.postFileSaveEventPublisher = postFileSaveEventPublisher;
     }
 
     @TransactionalEventListener
