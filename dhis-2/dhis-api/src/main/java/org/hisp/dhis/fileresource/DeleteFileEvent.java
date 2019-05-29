@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,41 +28,27 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-import org.joda.time.format.PeriodFormat;
-import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFutureCallback;
+import org.springframework.context.ApplicationEvent;
+
+import java.io.File;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @Author Zubair Asghar.
  */
-@Component( "org.hisp.dhis.fileresource.FileResourceUploadCallback" )
-public class FileResourceUploadCallback
+public class DeleteFileEvent extends ApplicationEvent
 {
-    private Log log = LogFactory.getLog( FileResourceUploadCallback.class );
+    private String fileResource;
 
-    public ListenableFutureCallback<String> newInstance( String fileResourceUid )
+    private File file;
+
+    public DeleteFileEvent( Object source, String fileResource )
     {
-        return new ListenableFutureCallback<String>()
-        {
-            DateTime startTime = DateTime.now();
+        super(source);
+        this.fileResource = fileResource;
+    }
 
-            @Override
-            public void onFailure( Throwable ex )
-            {
-                log.error( "Saving content for file resource '" + fileResourceUid + "' failed", ex );
-            }
-
-            @Override
-            public void onSuccess( String result )
-            {
-                Period timeDiff = new Period( startTime, DateTime.now() );
-
-                log.info( "File stored with key: '" + result + "'. Upload finished in " + timeDiff.toString( PeriodFormat.getDefault() ) );
-            }
-        };
+    public String getFileResource()
+    {
+        return fileResource;
     }
 }

@@ -45,7 +45,7 @@ public interface FileResourceService
 
     List<FileResource> getOrphanedFileResources();
 
-    String saveFileResource( FileResource fileResource, File file );
+    void saveFileResource( FileResource fileResource, File file );
 
     String saveFileResource( FileResource fileResource, byte[] bytes );
 

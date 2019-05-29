@@ -227,14 +227,9 @@ public class FileResourceUtils
 
         File tmpFile = toTempFile( file );
 
-        String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
+       fileResourceService.saveFileResource( fileResource, tmpFile );
 
-        if ( uid == null )
-        {
-            throw new WebMessageException( WebMessageUtils.error( "Saving the file failed." ) );
-        }
-
-        return fileResource;
+       return fileResource;
     }
 
     // -------------------------------------------------------------------------

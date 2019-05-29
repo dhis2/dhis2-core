@@ -208,12 +208,7 @@ public class FileResourceController
 
         File tmpFile = FileResourceUtils.toTempFile( file );
 
-        String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
-
-        if ( uid == null )
-        {
-            throw new WebMessageException( WebMessageUtils.error( "Saving the file failed." ) );
-        }
+        fileResourceService.saveFileResource( fileResource, tmpFile );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );

@@ -36,6 +36,7 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
@@ -86,9 +87,11 @@ public class DefaultFileResourceService
 
     private final ImageProcessingService imageProcessingService;
 
+    private final ApplicationEventPublisher fileEventPublisher;
+
     public DefaultFileResourceService( FileResourceStore fileResourceStore,
         SessionFactory sessionFactory, FileResourceContentStore fileResourceContentStore,
-        SchedulingManager schedulingManager, FileResourceUploadCallback uploadCallback, ImageProcessingService imageProcessingService )
+        SchedulingManager schedulingManager, FileResourceUploadCallback uploadCallback, ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher )
     {
         checkNotNull( fileResourceStore );
         checkNotNull( sessionFactory );
@@ -96,6 +99,7 @@ public class DefaultFileResourceService
         checkNotNull( schedulingManager );
         checkNotNull( uploadCallback );
         checkNotNull( imageProcessingService );
+        checkNotNull( fileEventPublisher );
 
         this.fileResourceStore = fileResourceStore;
         this.sessionFactory = sessionFactory;
@@ -103,6 +107,7 @@ public class DefaultFileResourceService
         this.schedulingManager = schedulingManager;
         this.uploadCallback = uploadCallback;
         this.imageProcessingService = imageProcessingService;
+        this.fileEventPublisher = fileEventPublisher;
     }
 
     // -------------------------------------------------------------------------
@@ -135,16 +140,21 @@ public class DefaultFileResourceService
 
     @Override
     @Transactional
-    public String saveFileResource( FileResource fileResource, File file )
+    public void saveFileResource( FileResource fileResource, File file )
     {
+        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+        fileResourceStore.save( fileResource );
+        sessionFactory.getCurrentSession().flush();
+
         if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
-            return saveFileResourceInternal( imageFiles, fileResource );
+            fileEventPublisher.publishEvent( new ImageFileSaveEvent( this, fileResource.getUid(), imageFiles ) );
+            return;
         }
 
-        return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, file ) );
+        fileEventPublisher.publishEvent( new FileSaveEvent( this, fileResource.getUid(), file ) );
     }
 
     @Override
@@ -177,18 +187,7 @@ public class DefaultFileResourceService
             return;
         }
 
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
-        {
-            String storageKey = fileResource.getStorageKey();
-
-            Stream.of( ImageFileDimension.values() ).forEach( d -> fileResourceContentStore.deleteFileResourceContent( StringUtils.join( storageKey, d.getDimension() ) ) );
-        }
-        else
-        {
-            fileResourceContentStore.deleteFileResourceContent( fileResource.getStorageKey() );
-        }
-
-        fileResourceStore.delete( fileResource );
+        fileEventPublisher.publishEvent( new DeleteFileEvent( this, fileResource.getUid() ) );
     }
 
     @Override
@@ -257,23 +256,6 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private String saveFileResourceInternal( Map<ImageFileDimension, File> imageFiles, FileResource fileResource )
-    {
-        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
-        fileResource.setHasMultipleStorageFiles( true );
-
-        fileResourceStore.save( fileResource );
-        sessionFactory.getCurrentSession().flush();
-
-        final String uid = fileResource.getUid();
-
-        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( () -> fileResourceContentStore.saveFileResourceContent( fileResource, imageFiles ) );
-
-        saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
-
-        return uid;
-    }
 
     private String saveFileResourceInternal( FileResource fileResource, Callable<String> saveCallable )
     {
