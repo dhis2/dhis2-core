@@ -36,12 +36,13 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.SchedulingManager;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -63,19 +64,16 @@ public class FileResourceProcessingJob extends AbstractJob
 
     private final FileResourceService fileResourceService;
 
-    private final FileResourceUploadCallback uploadCallback;
-
-    private final SchedulingManager schedulingManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     private final ImageProcessingService imageProcessingService;
 
     public FileResourceProcessingJob( FileResourceContentStore fileResourceContentStore, FileResourceService fileResourceService,
-        FileResourceUploadCallback uploadCallback, SchedulingManager schedulingManager, ImageProcessingService imageProcessingService )
+        ApplicationEventPublisher eventPublisher, ImageProcessingService imageProcessingService )
     {
         this.fileResourceContentStore = fileResourceContentStore;
         this.fileResourceService = fileResourceService;
-        this.uploadCallback = uploadCallback;
-        this.schedulingManager = schedulingManager;
+        this.eventPublisher = eventPublisher;
         this.imageProcessingService = imageProcessingService;
     }
 
@@ -92,7 +90,7 @@ public class FileResourceProcessingJob extends AbstractJob
 
         File tmpFile = null;
 
-        String uid = null;
+        String storageKey = null;
 
         int count = 0;
 
@@ -110,7 +108,6 @@ public class FileResourceProcessingJob extends AbstractJob
 
                 ByteSource content = Resources.asByteSource( fileResourceContentStore.getSignedGetContentUri( key ).toURL() );
 
-
                 tmpFile = new File( UUID.randomUUID().toString() );
 
                 FileOutputStream fileOutputStream = new FileOutputStream( tmpFile );
@@ -119,35 +116,36 @@ public class FileResourceProcessingJob extends AbstractJob
 
                 Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, tmpFile );
 
-                uid = saveFileResourceInternal( imageFiles, fileResource );
+                storageKey = fileResourceContentStore.saveFileResourceContent( fileResource, imageFiles );
+
+                if ( storageKey != null )
+                {
+                    fileResource.setHasMultipleStorageFiles( true );
+                    fileResourceService.updateFileResource( fileResource );
+                    count++;
+                }
             }
             catch ( Exception e )
             {
                 DebugUtils.getStackTrace( e );
                 e.printStackTrace();
             }
-
-            if ( uid == null )
+            finally
             {
-                log.warn( "Error in saving file" );
-            }
-            else
-            {
-                count++;
+                try
+                {
+                    if ( tmpFile != null )
+                    {
+                        Files.deleteIfExists( tmpFile.toPath() );
+                    }
+                }
+                catch ( IOException ioe )
+                {
+                    log.warn( String.format( "Temporary file '%s' could not be deleted.", tmpFile.toPath() ), ioe );
+                }
             }
         }
 
-        log.info( String.format( "Number of file resources processed: %d", count ) );
-    }
-
-    private String saveFileResourceInternal( Map<ImageFileDimension, File> imageFiles, FileResource fileResource )
-    {
-        final String uid = fileResource.getUid();
-
-        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( () -> fileResourceContentStore.saveFileResourceContent( fileResource, imageFiles ) );
-
-        saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
-
-        return uid;
+        log.info( String.format( "Number of FileResources processed: %d", count ) );
     }
 }
