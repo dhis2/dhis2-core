@@ -44,7 +44,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -53,7 +52,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "org.hisp.dhis.calendar.CalendarService" )
-public class DefaultCalendarService 
+public class DefaultCalendarService
     implements CalendarService
 {
     private SystemSettingManager settingManager;
@@ -65,7 +64,7 @@ public class DefaultCalendarService
     {
         checkNotNull( settingManager );
         checkNotNull( calendars );
-        
+
         this.settingManager = settingManager;
         this.calendars = calendars;
     }
@@ -129,7 +128,7 @@ public class DefaultCalendarService
 
         return calendar;
     }
-    
+
     @Override
     public DateFormat getSystemDateFormat()
     {

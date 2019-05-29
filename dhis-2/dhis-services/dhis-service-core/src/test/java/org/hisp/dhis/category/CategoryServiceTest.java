@@ -370,7 +370,6 @@ public class CategoryServiceTest
     }
 
     @Test
-    @Ignore // FIXME luciano temporarily ignored
     public void testAddAndPruneAllCategoryCombos()
     {
         categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );

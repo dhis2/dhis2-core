@@ -571,8 +571,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         trackedEntityAttributeEmail = createTrackedEntityAttribute( 'E' );
         trackedEntityAttribute.setValueType( ValueType.PHONE_NUMBER );
         trackedEntityAttribute.setValueType( ValueType.EMAIL );
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( 'O' );
-        programTrackedEntityAttributeEmail = createProgramTrackedEntityAttribute( 'L' );
+        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, trackedEntityAttribute );
+        programTrackedEntityAttributeEmail = createProgramTrackedEntityAttribute( programA, trackedEntityAttributeEmail );
         programTrackedEntityAttribute.setAttribute( trackedEntityAttribute );
         programTrackedEntityAttributeEmail.setAttribute( trackedEntityAttributeEmail );
 
