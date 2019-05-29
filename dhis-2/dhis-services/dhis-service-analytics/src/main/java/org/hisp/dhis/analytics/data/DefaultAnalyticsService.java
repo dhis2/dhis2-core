@@ -33,6 +33,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 import org.apache.commons.logging.Log;
@@ -1305,6 +1306,11 @@ public class DefaultAnalyticsService
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getDimensionalItemObjectsInIndicators( indicators ) );
+
+        if ( items.isEmpty() )
+        {
+            return Maps.newHashMap();
+        }
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 
