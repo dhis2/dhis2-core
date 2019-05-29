@@ -83,10 +83,8 @@ public class RelationshipDeletionHandler
     @Override
     public String allowDeleteRelationshipType( RelationshipType relationshipType )
     {
-
         Collection<Relationship> relationships = relationshipService.getRelationshipsByRelationshipType( relationshipType );
 
         return relationships.isEmpty() ? null : ERROR;
-
     }
 }

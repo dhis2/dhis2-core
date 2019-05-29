@@ -279,7 +279,6 @@ public class HibernateDbmsManager
         emptyTable( "expressionoptioncombo" );
         emptyTable( "calculateddataelement" );
 
-
         emptyTable( "dataelementgroupsetmembers" );
         emptyTable( "dataelementgroupsetusergroupaccesses" );
         emptyTable( "dataelementgroupset" );
