@@ -35,7 +35,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.event.ImportEventTask;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -172,7 +171,7 @@ public class ImportEventAction
                 events = eventService.getEventsXml( in );
             }
 
-            schedulingManager.executeJob( new ImportEventTask( events, eventService, importOptions, jobId ) );
+            schedulingManager.executeJob( new ImportEventsTask( events, eventService, importOptions, jobId ) );
         }
 
         return SUCCESS;
