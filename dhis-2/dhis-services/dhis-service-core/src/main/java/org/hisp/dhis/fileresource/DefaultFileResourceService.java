@@ -182,12 +182,16 @@ public class DefaultFileResourceService
     @Transactional
     public void deleteFileResource( FileResource fileResource )
     {
-        if ( fileResource == null )
+        if ( fileResource == null || fileResourceStore.get( fileResource.getId() ) == null )
         {
             return;
         }
 
-        fileEventPublisher.publishEvent( new DeleteFileEvent( this, fileResource.getUid() ) );
+        DeleteFileEvent deleteFileEvent = new DeleteFileEvent( this , fileResource.getStorageKey(), fileResource.getContentType(), fileResource.getDomain() );
+
+        fileResourceStore.delete( fileResource );
+
+        fileEventPublisher.publishEvent( deleteFileEvent );
     }
 
     @Override

@@ -118,27 +118,22 @@ public class FileResourceEventListener
     @Async
     public void deleteFile( DeleteFileEvent deleteFileEvent )
     {
-        String uid = deleteFileEvent.getFileResource();
-
-        FileResource fileResource = fileResourceService.getFileResource( uid );
-
-        if ( fileResource == null )
+        if ( !fileResourceContentStore.fileResourceContentExists( deleteFileEvent.getStorageKey() ) )
         {
-            log.error( String.format( "FileResource not found: %s", uid ) );
+            log.error( String.format( "No file exist for key: %s", deleteFileEvent.getStorageKey() ) );
+            return;
         }
 
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+        if ( IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
         {
-            String storageKey = fileResource.getStorageKey();
+            String storageKey = deleteFileEvent.getStorageKey();
 
             Stream.of( ImageFileDimension.values() ).forEach(d -> fileResourceContentStore.deleteFileResourceContent( StringUtils.join( storageKey, d.getDimension() ) ) );
         }
         else
         {
-            fileResourceContentStore.deleteFileResourceContent( fileResource.getStorageKey() );
+            fileResourceContentStore.deleteFileResourceContent( deleteFileEvent.getStorageKey() );
         }
-
-        fileResourceService.deleteFileResource( fileResource );
     }
 
     private void logMessage( String storageId, FileResource fileResource, Period timeDiff )

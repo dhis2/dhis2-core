@@ -30,25 +30,37 @@ package org.hisp.dhis.fileresource;
 
 import org.springframework.context.ApplicationEvent;
 
-import java.io.File;
-
 /**
  * @Author Zubair Asghar.
  */
 public class DeleteFileEvent extends ApplicationEvent
 {
-    private String fileResource;
+    private String storageKey;
 
-    private File file;
+    private String contentType;
 
-    public DeleteFileEvent( Object source, String fileResource )
+    private FileResourceDomain domain;
+
+    public DeleteFileEvent( Object source, String storageKey, String contentType, FileResourceDomain domain )
     {
         super(source);
-        this.fileResource = fileResource;
+        this.storageKey = storageKey;
+        this.contentType = contentType;
+        this.domain = domain;
     }
 
-    public String getFileResource()
+    public String getStorageKey()
     {
-        return fileResource;
+        return storageKey;
+    }
+
+    public String getContentType()
+    {
+        return contentType;
+    }
+
+    public FileResourceDomain getDomain()
+    {
+        return domain;
     }
 }
