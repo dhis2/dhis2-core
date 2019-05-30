@@ -20,6 +20,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.SMSMetadata;
@@ -41,11 +42,57 @@ import com.google.gson.GsonBuilder;
 @Transactional
 public abstract class NewSMSListener extends BaseSMSListener {
 
+	//TODO: Should this be here?
+	public enum SMSResponse {
+		SUCCESS(0, "Submission has been processed successfully"),
+		UNKNOWN_ERROR(101, "An unknown error occurred"),
+		INVALID_USER(201, "User [%s] does not exist"),
+		INVALID_ORGUNIT(202, "Organisation unit [%s] does not exist"),
+		INVALID_PROGRAM(203, "Program [%s] does not exist"),
+		INVALID_TETYPE(204, "Tracked Entity Type [%s] does not exist"),
+		INVALID_DATASET(205, "DataSet [%s] does not exist"),
+		INVALID_PERIOD(206, "Period [%s] is invalid"),
+		INVALID_AOC(207, "Attribute Option Combo [%s] does not exist"),
+		INVALID_TEI(208, "Tracked Entity Instance [%s] does not exist"),
+		INVALID_STAGE(209, "Program stage [%s] does not exist"),
+		USER_NOTIN_OU(301, "User [%s] does not not belong to organisation unit [%s]"),
+		OU_NOTIN_PROGRAM(302, "Organisation unit [%s] is not assigned to program [%s]"),
+		OU_NOTIN_DATASET(303, "Organisation unit [%s] is not assigned to dataSet [%s]"),
+		ENROLL_FAILED(304, "Enrollment of TEI [%s] in program [%s] failed"),
+		DATASET_LOCKED(305, "Dataset [%s] is locked for period [%s]"),
+		MULTI_PROGRAMS(306, "Multiple active program instances exists for program [%s]"),
+		MULTI_STAGES(307, "Multiple program stages found for event capture program [%s]"),
+		NO_PROGINST(308, "No program instance was found for tracked entity instance [%s] in program stage [%s]"),
+		;
+	
+		private final int code;
+		private String description;
+	
+		private SMSResponse(int code, String description) {
+			this.code = code;
+			this.description = description;
+		}
+	
+		public SMSResponse set(Object... args) {
+			this.description = String.format(description, args);
+			return this;
+		}
+		
+		public String getDescription() {
+		   return description;
+		}
+		
+		public int getCode() {
+		   return code;
+		}
+		
+		@Override
+		public String toString() {
+		  return code + ": " + description;
+		}
+	}
+		
 	private static final Log log = LogFactory.getLog( NewSMSListener.class );
-	static final String SUCCESS_MESSAGE = "Submission has been processed successfully";
-	static final String NO_OU_FOR_PROGRAM = "Program is not assigned to organisation unit.";
-	static final String NO_OU_FOR_USER = "User is not associated with organisation unit";
-	static final String NO_TRACKED_ATTRIBUTES_FOUND = "No TrackedEntityAttributes found";
 
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
@@ -83,23 +130,56 @@ public abstract class NewSMSListener extends BaseSMSListener {
 
 	@Override
 	public void receive( IncomingSms sms ) {
+		SMSSubmissionHeader header = null;
+		
 		try {
 			SMSSubmissionReader reader = new SMSSubmissionReader();
-			SMSSubmissionHeader header = reader.readHeader(SmsUtils.getBytes(sms));
+			header = reader.readHeader(SmsUtils.getBytes(sms));
 			SMSMetadata meta = getMetadata(header.getLastSyncDate());
-			SMSSubmission submission = reader.readSubmission(SmsUtils.getBytes(sms), meta);
-			
-			//TODO: Debugging line to check SMS submissions
+			SMSSubmission subm = reader.readSubmission(SmsUtils.getBytes(sms), meta);
+						
+			//TODO: Can be removed - debugging line to check SMS submissions
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			log.info("New received SMS submissiond decoded as: " + gson.toJson(submission));
+			log.info("New received SMS submission decoded as: " + gson.toJson(subm));
 			
-			postProcess(sms, submission);
-		} catch ( Exception e ) {
+			checkUserAndOrgUnit(subm);
+			postProcess(sms, subm);
+			
+	        update(sms, SmsMessageStatus.PROCESSED, true);
+	        sendSMSResponse(SMSResponse.SUCCESS, sms.getOriginator(), header.getSubmissionID());
+		} catch ( SMSProcessingException e ) {
 			log.error(e.getMessage());
-			e.printStackTrace();
+			update(sms, SmsMessageStatus.FAILED, true);
+			sendSMSResponse(e.getResp(), sms.getOriginator(), header.getSubmissionID());
+		} catch ( Exception e ) {
+			//Exceptions caught here will come from reading the header and submission
+			//itself. We may not even have a submission ID to respond to the app with.
+			//TODO: We can handle exceptions in read submission assuming we have a
+			// 		valid header. We can't do anything about CRC checks though.
+			log.error(e.getMessage());
+			update(sms, SmsMessageStatus.FAILED, true);
+			if (header != null) {
+				sendSMSResponse(SMSResponse.UNKNOWN_ERROR, sms.getOriginator(), header.getSubmissionID());
+			}
 		}
 	}
 
+	private void checkUserAndOrgUnit( SMSSubmission subm )
+	{
+		String ouid = subm.getOrgUnit();
+		String userid = subm.getUserID();
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit(ouid);
+        User user = userService.getUser(userid);
+
+        if (ou == null) {
+        	throw new SMSProcessingException(SMSResponse.INVALID_ORGUNIT.set(ouid));
+        } else if (user == null) {
+        	throw new SMSProcessingException(SMSResponse.INVALID_USER.set(userid));
+        } else if (!user.getOrganisationUnits().contains(ou)) {
+        	throw new SMSProcessingException(SMSResponse.USER_NOTIN_OU.set(userid, ouid));
+        }
+	}
+	
 	private SMSSubmissionHeader getHeader( IncomingSms sms ) {
 		byte[] smsBytes = SmsUtils.getBytes(sms);
 		SMSSubmissionReader reader = new SMSSubmissionReader();

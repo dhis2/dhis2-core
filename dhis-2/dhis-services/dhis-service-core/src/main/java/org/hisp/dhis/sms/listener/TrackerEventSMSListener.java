@@ -1,8 +1,10 @@
 package org.hisp.dhis.sms.listener;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -14,8 +16,9 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
@@ -24,19 +27,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Transactional
 public class TrackerEventSMSListener extends NewSMSListener {
 
-	private static final Log log = LogFactory.getLog( TrackerEventSMSListener.class );
-
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ProgramStageService programStageService;
     
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
@@ -57,45 +59,49 @@ public class TrackerEventSMSListener extends NewSMSListener {
 	protected void postProcess(IncomingSms sms, SMSSubmission submission) {
 		TrackerEventSMSSubmission subm = ( TrackerEventSMSSubmission ) submission;
 		
-		TrackedEntityInstance tei = trackedEntityInstanceService
-				.getTrackedEntityInstance(subm.getTrackedEntityInstance());
+		String ouid = subm.getOrgUnit();
+		String stageid = subm.getProgramStage();
+		String teiid = subm.getTrackedEntityInstance();
+		String aocid = subm.getAttributeOptionCombo();
 		
-		if ( tei == null )
-		{
-			log.error("Given TEI ID cannot be found: " + subm.getTrackedEntityInstance());
-			return;
-		}
-
-		ProgramInstance programInstance = null;
-		ProgramStage programStage = null;
-		
-		for ( ProgramInstance pi : tei.getProgramInstances() )
-		{
-			for ( ProgramStage ps : pi.getProgram().getProgramStages() )
-			{
-				if ( ps.getUid().equals(subm.getProgramStage()) )
-				{
-					programInstance = pi;
-					programStage = ps;
-				}
-			}
-		}
-		
-		if ( programInstance == null || programStage == null )
-		{
-			log.error("In given TEI, cannot find Program Stage: " + subm.getProgramStage());
-			return;			
-		}
-		
-		OrganisationUnit ou = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
+		OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid);
 		User user = userService.getUser(subm.getUserID());
-		CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(subm.getAttributeOptionCombo());
 		
-		//TODO: Check whether this ou is valid for this program / user?
+		TrackedEntityInstance tei = trackedEntityInstanceService
+				.getTrackedEntityInstance(teiid);
+		if (tei == null)
+		{
+			throw new SMSProcessingException(SMSResponse.INVALID_TEI.set(teiid));
+		}
 		
+		ProgramStage programStage = programStageService.getProgramStage(stageid);
+		if (programStage == null)
+		{
+			throw new SMSProcessingException(SMSResponse.INVALID_STAGE.set(teiid));
+		}
+		
+		CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid);
+		if (aoc == null) {
+			throw new SMSProcessingException(SMSResponse.INVALID_AOC.set(aocid));
+		}
+		
+		
+		Optional<ProgramInstance> res = tei.getProgramInstances()
+				.stream()
+				.filter(pi -> pi.getStatus() == ProgramStatus.ACTIVE)
+				.filter(pi -> pi.getProgram().getProgramStages().contains(programStage))
+				.findFirst();
+				
+		if (!res.isPresent())
+		{
+			throw new SMSProcessingException(SMSResponse.NO_PROGINST.set(teiid, stageid));
+		}
+		ProgramInstance programInstance = res.get();
+				
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( subm.getEvent() );
-        programStageInstance.setOrganisationUnit( ou );
+        //If we aren't given a UID for the event, it will be auto-generated
+        if (subm.getEvent() != null) programStageInstance.setUid( subm.getEvent() ); 
+        programStageInstance.setOrganisationUnit( orgUnit );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setExecutionDate( sms.getSentDate() );
@@ -108,22 +114,26 @@ public class TrackerEventSMSListener extends NewSMSListener {
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSDataValue dv : subm.getValues() )
         {
-        	DataElement de = dataElementService.getDataElement( dv.getDataElement() );
-            EventDataValue eventDataValue = new EventDataValue( dv.getDataElement(), dv.getValue(), user.getUsername() );
-            eventDataValue.setAutoFields();
+        	String deid = dv.getDataElement();
+        	String val = dv.getValue(); 
 
-            //Filter empty values out -> this is "adding/saving/creating", therefore, empty values are ignored
-            if ( !StringUtils.isEmpty( eventDataValue.getValue() ))
-            {
-                dataElementsAndEventDataValues.put( de, eventDataValue );
+        	DataElement de = dataElementService.getDataElement( deid );
+        	if (de == null)
+        	{
+            	//TODO: We need to add this to the response
+            	Log.warn("Given data element [" + deid + "] could not be found. Continuing with submission...");
+            	continue;
+        	} else if (val == null || StringUtils.isEmpty(val)) {
+            	Log.warn("Value for atttribute [" + deid + "] is null or empty. Continuing with submission...");
+            	continue;
             }
+
+            EventDataValue eventDataValue = new EventDataValue( deid, dv.getValue(), user.getUsername() );
+            eventDataValue.setAutoFields();
+            dataElementsAndEventDataValues.put( de, eventDataValue );
         }
 
         programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
-
-        update( sms, SmsMessageStatus.PROCESSED, true );
-
-        sendFeedback( SUCCESS_MESSAGE, sms.getOriginator(), INFO );
 	}
 	
 	

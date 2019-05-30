@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -26,18 +24,16 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.SimpleEventSMSSubmission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class SimpleEventSMSListener extends NewSMSListener {
-
-	private static final Log log = LogFactory.getLog( SimpleEventSMSListener.class );
 	
     @Autowired
     private UserService userService;
@@ -64,11 +60,28 @@ public class SimpleEventSMSListener extends NewSMSListener {
 	protected void postProcess(IncomingSms sms, SMSSubmission submission) {
 		SimpleEventSMSSubmission subm = ( SimpleEventSMSSubmission ) submission;
 		
+		String ouid = subm.getOrgUnit();
+		String aocid = subm.getAttributeOptionCombo();
+		String progid = subm.getEventProgram();
+		
+		OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(ouid);
+		User user = userService.getUser(subm.getUserID());
+		
 		Program program = programService.getProgram(subm.getEventProgram());
-		if ( program == null ) {
-			log.error("No program found for given UID: " + subm.getEventProgram());
-			return;
+        if (program == null)
+        {
+        	throw new SMSProcessingException(SMSResponse.INVALID_PROGRAM.set(progid));
+        }
+        
+		CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(aocid);
+		if (aoc == null) {
+			throw new SMSProcessingException(SMSResponse.INVALID_AOC.set(aocid));
 		}
+		
+        if (!program.hasOrganisationUnit(orgUnit)) 
+        {
+        	throw new SMSProcessingException(SMSResponse.OU_NOTIN_PROGRAM.set(ouid, progid));
+        }
 		
         List<ProgramInstance> programInstances = new ArrayList<>(
                 programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ) );
@@ -89,29 +102,22 @@ public class SimpleEventSMSListener extends NewSMSListener {
         }
         else if ( programInstances.size() > 1 )
         {
-            update( sms, SmsMessageStatus.FAILED, false );
-
-            sendFeedback( "Multiple active program instances exists for program: " + program.getUid(),
-                sms.getOriginator(), ERROR );
-
-            return;
+        	//TODO: Are we sure this is a problem we can't recover from?
+        	throw new SMSProcessingException(SMSResponse.MULTI_PROGRAMS.set(progid));
         }
         
 		ProgramInstance programInstance = programInstances.get( 0 );
 		Set<ProgramStage> programStages = programInstance.getProgram().getProgramStages();
-		if ( programStages.size() > 1 ) {
-			log.error("Multiple program stages found for program: " + subm.getEventProgram());
-			return;
+		if ( programStages.size() > 1 ) 
+		{
+			throw new SMSProcessingException(SMSResponse.MULTI_STAGES.set(progid));
 		}
 		ProgramStage programStage = programStages.iterator().next();
-		
-		OrganisationUnit ou = organisationUnitService.getOrganisationUnit(subm.getOrgUnit());
-		User user = userService.getUser(subm.getUserID());
-		CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo(subm.getAttributeOptionCombo());
-		
+				
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( subm.getEvent() );
-        programStageInstance.setOrganisationUnit( ou );
+        //If we aren't given a UID for the event, it will be auto-generated
+        if (subm.getEvent() != null) programStageInstance.setUid( subm.getEvent() ); 
+        programStageInstance.setOrganisationUnit( orgUnit );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setExecutionDate( sms.getSentDate() );
@@ -124,22 +130,26 @@ public class SimpleEventSMSListener extends NewSMSListener {
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSDataValue dv : subm.getValues() )
         {
-        	DataElement de = dataElementService.getDataElement( dv.getDataElement() );
-            EventDataValue eventDataValue = new EventDataValue( dv.getDataElement(), dv.getValue(), user.getUsername() );
-            eventDataValue.setAutoFields();
+        	String deid = dv.getDataElement();
+        	String val = dv.getValue(); 
 
-            //Filter empty values out -> this is "adding/saving/creating", therefore, empty values are ignored
-            if ( !StringUtils.isEmpty( eventDataValue.getValue() ))
-            {
-                dataElementsAndEventDataValues.put( de, eventDataValue );
+        	DataElement de = dataElementService.getDataElement( deid );
+        	if (de == null)
+        	{
+            	//TODO: We need to add this to the response
+            	Log.warn("Given data element [" + deid + "] could not be found. Continuing with submission...");
+            	continue;
+        	} else if (val == null || StringUtils.isEmpty(val)) {
+            	Log.warn("Value for atttribute [" + deid + "] is null or empty. Continuing with submission...");
+            	continue;
             }
+
+            EventDataValue eventDataValue = new EventDataValue( deid, dv.getValue(), user.getUsername() );
+            eventDataValue.setAutoFields();
+            dataElementsAndEventDataValues.put( de, eventDataValue );
         }
 
         programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
-
-        update( sms, SmsMessageStatus.PROCESSED, true );
-
-        sendFeedback( SUCCESS_MESSAGE, sms.getOriginator(), INFO );
 	}
 
 	@Override
