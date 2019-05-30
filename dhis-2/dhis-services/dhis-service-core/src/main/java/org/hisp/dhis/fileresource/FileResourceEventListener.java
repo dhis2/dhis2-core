@@ -32,10 +32,13 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.fileresource.events.BinaryFileSaveEvent;
+import org.hisp.dhis.fileresource.events.DeleteFileEvent;
+import org.hisp.dhis.fileresource.events.FileSaveEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSaveEvent;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -75,11 +78,9 @@ public class FileResourceEventListener
     {
         DateTime startTime = DateTime.now();
 
-        String uid = fileSaveEvent.getFileResource();
-
         File file = fileSaveEvent.getFile();
 
-        FileResource fileResource = fileResourceService.getFileResource( uid );
+        FileResource fileResource = fileResourceService.getFileResource( fileSaveEvent.getFileResource() );
 
         String storageId = fileResourceContentStore.saveFileResourceContent( fileResource, file );
 
@@ -94,11 +95,9 @@ public class FileResourceEventListener
     {
         DateTime startTime = DateTime.now();
 
-        String uid = imageFileSaveEvent.getFileResource();
-
         Map<ImageFileDimension, File> imageFiles = imageFileSaveEvent.getImageFiles();
 
-        FileResource fileResource = fileResourceService.getFileResource( uid );
+        FileResource fileResource = fileResourceService.getFileResource( imageFileSaveEvent.getFileResource() );
 
         String storageId = fileResourceContentStore.saveFileResourceContent( fileResource, imageFiles );
 
@@ -108,6 +107,23 @@ public class FileResourceEventListener
 
             fileResourceService.updateFileResource( fileResource );
         }
+
+        Period timeDiff = new Period( startTime, DateTime.now() );
+
+        logMessage( storageId, fileResource, timeDiff );
+    }
+
+    @TransactionalEventListener
+    @Async
+    public void saveBinaryFile( BinaryFileSaveEvent binaryFileSaveEvent )
+    {
+        DateTime startTime = DateTime.now();
+
+        byte[] bytes = binaryFileSaveEvent.getBytes();
+
+        FileResource fileResource = fileResourceService.getFileResource( binaryFileSaveEvent.getFileResource() );
+
+        String storageId = fileResourceContentStore.saveFileResourceContent( fileResource, bytes );
 
         Period timeDiff = new Period( startTime, DateTime.now() );
 

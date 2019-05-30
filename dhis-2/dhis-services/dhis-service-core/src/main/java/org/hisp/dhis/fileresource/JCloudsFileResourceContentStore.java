@@ -237,7 +237,15 @@ public class JCloudsFileResourceContentStore
             return null;
         }
 
-        blobStore.putBlob( config.container, blob );
+        try
+        {
+            blobStore.putBlob( config.container, blob );
+        }
+        catch ( Exception e )
+        {
+            log.error( "File upload failed: ", e );
+            return null;
+        }
 
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 

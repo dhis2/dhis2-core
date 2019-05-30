@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.fileresource.events;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -31,22 +31,21 @@ package org.hisp.dhis.fileresource;
 import org.springframework.context.ApplicationEvent;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * @Author Zubair Asghar.
  */
-public class ImageFileSaveEvent extends ApplicationEvent
+public class FileSaveEvent extends ApplicationEvent
 {
     private String fileResource;
 
-    private Map<ImageFileDimension, File> imageFiles;
+    private File file;
 
-    public ImageFileSaveEvent( Object source, String fileResource, Map<ImageFileDimension, File> imageFiles )
+    public FileSaveEvent( Object source, String fileResource, File file )
     {
-        super(source);
+        super( source );
         this.fileResource = fileResource;
-        this.imageFiles = imageFiles;
+        this.file = file;
     }
 
     public String getFileResource()
@@ -54,8 +53,8 @@ public class ImageFileSaveEvent extends ApplicationEvent
         return fileResource;
     }
 
-    public Map<ImageFileDimension, File> getImageFiles()
+    public File getFile()
     {
-        return imageFiles;
+        return file;
     }
 }

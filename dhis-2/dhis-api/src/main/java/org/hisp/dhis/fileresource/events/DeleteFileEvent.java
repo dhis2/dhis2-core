@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.fileresource.events;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -28,33 +28,40 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.springframework.context.ApplicationEvent;
-
-import java.io.File;
 
 /**
  * @Author Zubair Asghar.
  */
-public class FileSaveEvent extends ApplicationEvent
+public class DeleteFileEvent extends ApplicationEvent
 {
-    private String fileResource;
+    private String storageKey;
 
-    private File file;
+    private String contentType;
 
-    public FileSaveEvent( Object source, String fileResource, File file )
+    private FileResourceDomain domain;
+
+    public DeleteFileEvent( Object source, String storageKey, String contentType, FileResourceDomain domain )
     {
-        super( source );
-        this.fileResource = fileResource;
-        this.file = file;
+        super(source);
+        this.storageKey = storageKey;
+        this.contentType = contentType;
+        this.domain = domain;
     }
 
-    public String getFileResource()
+    public String getStorageKey()
     {
-        return fileResource;
+        return storageKey;
     }
 
-    public File getFile()
+    public String getContentType()
     {
-        return file;
+        return contentType;
+    }
+
+    public FileResourceDomain getDomain()
+    {
+        return domain;
     }
 }

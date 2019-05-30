@@ -30,8 +30,11 @@ package org.hisp.dhis.fileresource;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.fileresource.events.BinaryFileSaveEvent;
+import org.hisp.dhis.fileresource.events.DeleteFileEvent;
+import org.hisp.dhis.fileresource.events.FileSaveEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSaveEvent;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
@@ -39,17 +42,14 @@ import org.joda.time.Hours;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -83,21 +83,18 @@ public class DefaultFileResourceService
 
     private final SchedulingManager schedulingManager;
 
-    private final FileResourceUploadCallback uploadCallback;
-
     private final ImageProcessingService imageProcessingService;
 
     private final ApplicationEventPublisher fileEventPublisher;
 
     public DefaultFileResourceService( FileResourceStore fileResourceStore,
         SessionFactory sessionFactory, FileResourceContentStore fileResourceContentStore,
-        SchedulingManager schedulingManager, FileResourceUploadCallback uploadCallback, ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher )
+        SchedulingManager schedulingManager, ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher )
     {
         checkNotNull( fileResourceStore );
         checkNotNull( sessionFactory );
         checkNotNull( fileResourceContentStore );
         checkNotNull( schedulingManager );
-        checkNotNull( uploadCallback );
         checkNotNull( imageProcessingService );
         checkNotNull( fileEventPublisher );
 
@@ -105,7 +102,6 @@ public class DefaultFileResourceService
         this.sessionFactory = sessionFactory;
         this.fileResourceContentStore = fileResourceContentStore;
         this.schedulingManager = schedulingManager;
-        this.uploadCallback = uploadCallback;
         this.imageProcessingService = imageProcessingService;
         this.fileEventPublisher = fileEventPublisher;
     }
@@ -161,7 +157,16 @@ public class DefaultFileResourceService
     @Transactional
     public String saveFileResource( FileResource fileResource, byte[] bytes )
     {
-        return saveFileResourceInternal( fileResource, () -> fileResourceContentStore.saveFileResourceContent( fileResource, bytes ) );
+
+        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
+        fileResourceStore.save( fileResource );
+        sessionFactory.getCurrentSession().flush();
+
+        final String uid = fileResource.getUid();
+
+        fileEventPublisher.publishEvent( new BinaryFileSaveEvent( this, fileResource.getUid(), bytes ) );
+
+        return uid;
     }
 
     @Override
@@ -260,21 +265,6 @@ public class DefaultFileResourceService
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private String saveFileResourceInternal( FileResource fileResource, Callable<String> saveCallable )
-    {
-        fileResource.setStorageStatus( FileResourceStorageStatus.PENDING );
-        fileResourceStore.save( fileResource );
-        sessionFactory.getCurrentSession().flush();
-
-        final String uid = fileResource.getUid();
-
-        final ListenableFuture<String> saveContentTask = schedulingManager.executeJob( saveCallable );
-
-        saveContentTask.addCallback( uploadCallback.newInstance( uid ) );
-
-        return uid;
-    }
 
     private FileResource checkStorageStatus( FileResource fileResource )
     {

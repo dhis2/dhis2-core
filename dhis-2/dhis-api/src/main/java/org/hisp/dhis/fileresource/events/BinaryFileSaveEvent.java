@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.fileresource.events;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -33,34 +33,26 @@ import org.springframework.context.ApplicationEvent;
 /**
  * @Author Zubair Asghar.
  */
-public class DeleteFileEvent extends ApplicationEvent
+public class BinaryFileSaveEvent extends ApplicationEvent
 {
-    private String storageKey;
+    private String fileResource;
 
-    private String contentType;
+    private byte[] bytes;
 
-    private FileResourceDomain domain;
-
-    public DeleteFileEvent( Object source, String storageKey, String contentType, FileResourceDomain domain )
+    public BinaryFileSaveEvent( Object source, String fileResource, byte[] bytes )
     {
         super(source);
-        this.storageKey = storageKey;
-        this.contentType = contentType;
-        this.domain = domain;
+        this.fileResource = fileResource;
+        this.bytes = bytes;
     }
 
-    public String getStorageKey()
+    public String getFileResource()
     {
-        return storageKey;
+        return fileResource;
     }
 
-    public String getContentType()
+    public byte[] getBytes()
     {
-        return contentType;
-    }
-
-    public FileResourceDomain getDomain()
-    {
-        return domain;
+        return bytes;
     }
 }
