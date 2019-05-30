@@ -56,6 +56,8 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		INVALID_TEI(208, "Tracked Entity Instance [%s] does not exist"),
 		INVALID_STAGE(209, "Program stage [%s] does not exist"),
 		INVALID_EVENT(210, "Event [%s] does not exist"),
+		INVALID_RELTYPE(211, "Relationship Type [%s] does not exist"),
+		INVALID_ENROLL(212, "Enrollment [%s] does not exist"),
 		USER_NOTIN_OU(301, "User [%s] does not not belong to organisation unit [%s]"),
 		OU_NOTIN_PROGRAM(302, "Organisation unit [%s] is not assigned to program [%s]"),
 		OU_NOTIN_DATASET(303, "Organisation unit [%s] is not assigned to dataSet [%s]"),
