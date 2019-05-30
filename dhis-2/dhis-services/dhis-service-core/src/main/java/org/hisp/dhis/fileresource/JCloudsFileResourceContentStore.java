@@ -273,6 +273,11 @@ public class JCloudsFileResourceContentStore
     @Override
     public String saveFileResourceContent( FileResource fileResource, Map<ImageFileDimension, File> imageFiles )
     {
+        if ( imageFiles.isEmpty() )
+        {
+            return null;
+        }
+
         Blob blob;
 
         for ( Map.Entry<ImageFileDimension, File> entry : imageFiles.entrySet() )
@@ -314,6 +319,10 @@ public class JCloudsFileResourceContentStore
                 {
                     log.warn( String.format( "Temporary file '%s' could not be deleted: ", file.toPath() ), ioe );
                 }
+            }
+            else
+            {
+                return null;
             }
         }
 

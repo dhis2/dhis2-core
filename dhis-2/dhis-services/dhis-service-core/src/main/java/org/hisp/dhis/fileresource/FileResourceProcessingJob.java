@@ -132,7 +132,6 @@ public class FileResourceProcessingJob extends AbstractJob
             catch ( Exception e )
             {
                 DebugUtils.getStackTrace( e );
-                e.printStackTrace();
             }
             finally
             {

@@ -141,6 +141,7 @@ public class FileResourceEventListener
         if ( storageId == null )
         {
             log.error( String.format( "Saving content for file resource failed: %s", fileResource.getUid() ) );
+            return;
         }
 
         log.info( String.format( "File stored with key: %s'. Upload finished in %s", storageId, timeDiff.toString( PeriodFormat.getDefault() ) ) );
