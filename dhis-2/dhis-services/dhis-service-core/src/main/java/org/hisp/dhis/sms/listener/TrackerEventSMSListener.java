@@ -94,7 +94,7 @@ public class TrackerEventSMSListener extends NewSMSListener {
 				
 		if (!res.isPresent())
 		{
-			throw new SMSProcessingException(SMSResponse.NO_PROGINST.set(teiid, stageid));
+			throw new SMSProcessingException(SMSResponse.NO_ENROLL.set(teiid, stageid));
 		}
 		ProgramInstance programInstance = res.get();
 				
