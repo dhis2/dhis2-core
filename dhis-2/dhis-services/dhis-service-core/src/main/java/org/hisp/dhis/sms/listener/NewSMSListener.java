@@ -55,6 +55,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		INVALID_AOC(207, "Attribute Option Combo [%s] does not exist"),
 		INVALID_TEI(208, "Tracked Entity Instance [%s] does not exist"),
 		INVALID_STAGE(209, "Program stage [%s] does not exist"),
+		INVALID_EVENT(210, "Event [%s] does not exist"),
 		USER_NOTIN_OU(301, "User [%s] does not not belong to organisation unit [%s]"),
 		OU_NOTIN_PROGRAM(302, "Organisation unit [%s] is not assigned to program [%s]"),
 		OU_NOTIN_DATASET(303, "Organisation unit [%s] is not assigned to dataSet [%s]"),
@@ -62,7 +63,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		DATASET_LOCKED(305, "Dataset [%s] is locked for period [%s]"),
 		MULTI_PROGRAMS(306, "Multiple active program instances exists for program [%s]"),
 		MULTI_STAGES(307, "Multiple program stages found for event capture program [%s]"),
-		NO_PROGINST(308, "No program instance was found for tracked entity instance [%s] in program stage [%s]"),
+		NO_ENROLL(308, "No enrollment was found for tracked entity instance [%s] in program stage [%s]"),
 		;
 	
 		private final int code;
