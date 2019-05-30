@@ -84,13 +84,13 @@ public class FileResourceProcessingJob extends AbstractJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration ) throws Exception
+    public void execute( JobConfiguration jobConfiguration )
     {
         List<FileResource> fileResources = fileResourceService.getAllUnProcessedImagesFiles();
 
         File tmpFile = null;
 
-        String storageKey = null;
+        String storageKey;
 
         int count = 0;
 
@@ -123,6 +123,10 @@ public class FileResourceProcessingJob extends AbstractJob
                     fileResource.setHasMultipleStorageFiles( true );
                     fileResourceService.updateFileResource( fileResource );
                     count++;
+                }
+                else
+                {
+                    log.error( "File upload failed" );
                 }
             }
             catch ( Exception e )

@@ -36,7 +36,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -44,6 +43,7 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
@@ -104,9 +104,9 @@ public class JCloudsFileResourceContentStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
 
-    private DhisConfigurationProvider configurationProvider;
+    private final DhisConfigurationProvider configurationProvider;
 
     public JCloudsFileResourceContentStore( LocationManager locationManager,
         DhisConfigurationProvider configurationProvider )
@@ -273,7 +273,7 @@ public class JCloudsFileResourceContentStore
     @Override
     public String saveFileResourceContent( FileResource fileResource, Map<ImageFileDimension, File> imageFiles )
     {
-        Blob blob = null;
+        Blob blob;
 
         for ( Map.Entry<ImageFileDimension, File> entry : imageFiles.entrySet() )
         {
@@ -281,7 +281,7 @@ public class JCloudsFileResourceContentStore
 
             fileResource.setContentLength( file.length() );
 
-            String contentMd5 = null;
+            String contentMd5;
 
             try
             {
@@ -290,8 +290,8 @@ public class JCloudsFileResourceContentStore
             }
             catch ( IOException e )
             {
-                DebugUtils.getStackTrace( e );
-                log.error( "Hashing error " + e.getMessage() );
+                log.error( "Hashing error: " + e.getMessage(), e );
+                return null;
             }
 
             fileResource.setContentMd5( contentMd5 );
@@ -299,17 +299,20 @@ public class JCloudsFileResourceContentStore
 
             if ( blob != null )
             {
-                blobStore.putBlob( config.container, blob );
-
-                blob = null;
-
                 try
                 {
+                    blobStore.putBlob( config.container, blob );
+
                     Files.deleteIfExists( file.toPath() );
+                }
+                catch ( ContainerNotFoundException e )
+                {
+                    log.error( "Container not found", e );
+                    return null;
                 }
                 catch ( IOException ioe )
                 {
-                    log.warn( String.format( "Temporary file '%s' could not be deleted.", file.toPath() ), ioe );
+                    log.warn( String.format( "Temporary file '%s' could not be deleted: ", file.toPath() ), ioe );
                 }
             }
         }
