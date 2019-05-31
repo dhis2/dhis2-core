@@ -51,7 +51,7 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
     private CompleteDataSetRegistrationService registrationService;
     
 	@Override
-	protected void postProcess(IncomingSms sms, SMSSubmission submission) {
+	protected SMSResponse postProcess(IncomingSms sms, SMSSubmission submission) {
 		AggregateDatasetSMSSubmission subm = ( AggregateDatasetSMSSubmission ) submission;
 
 		String ouid = subm.getOrgUnit();
@@ -154,6 +154,8 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
         	CompleteDataSetRegistration newReg = new CompleteDataSetRegistration( dataSet, period, orgUnit, aoc, now, username, now, username, true );
         	registrationService.saveCompleteDataSetRegistration(newReg);
         }
+        
+        return SMSResponse.SUCCESS;
 	}
 	
 	@Override

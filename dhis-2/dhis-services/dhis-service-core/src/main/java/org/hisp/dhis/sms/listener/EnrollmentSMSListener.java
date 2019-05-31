@@ -26,8 +26,6 @@ import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cronutils.utils.StringUtils;
-
 @Transactional
 public class EnrollmentSMSListener extends NewSMSListener {
     @Autowired
@@ -49,7 +47,7 @@ public class EnrollmentSMSListener extends NewSMSListener {
     private ProgramInstanceService programInstanceService;
 
     @Override
-    protected void postProcess(IncomingSms sms, SMSSubmission submission) {
+    protected SMSResponse postProcess(IncomingSms sms, SMSSubmission submission) {
         EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
 
         Date submissionTimestamp = subm.getTimestamp();
@@ -93,7 +91,6 @@ public class EnrollmentSMSListener extends NewSMSListener {
         Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues(subm, entityInstance);
 
         if (attributeValues.isEmpty()) {
-        	//TODO: Should look for attributes that were not found and report them
             //TODO: Should we throw an error here or continue as is?
         }
 
@@ -112,6 +109,8 @@ public class EnrollmentSMSListener extends NewSMSListener {
         if (enrollment == null) {
         	throw new SMSProcessingException(SMSResponse.ENROLL_FAILED.set(teiUID,progid));
         }
+        
+        return SMSResponse.SUCCESS;
     }
 
     @Override
@@ -132,12 +131,9 @@ public class EnrollmentSMSListener extends NewSMSListener {
 
         TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute(attribUID);
         if (attribute == null) {
-        	//TODO: We need to add this to the response
-        	Log.warn("Given attribute [" + attribUID + "] could not be found. Continuing with submission...");
-        	return null;
-        } else if (val == null || StringUtils.isEmpty(val)) {
-        	Log.warn("Value for atttribute [" + attribUID + "] is null or empty. Continuing with submission...");
-        	return null;
+        	throw new SMSProcessingException(SMSResponse.INVALID_ATTRIB.set(attribUID));
+        } else if (val == null) {
+        	throw new SMSProcessingException(SMSResponse.NULL_ATTRIBVAL.set(attribUID));
         }
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute(attribute);
