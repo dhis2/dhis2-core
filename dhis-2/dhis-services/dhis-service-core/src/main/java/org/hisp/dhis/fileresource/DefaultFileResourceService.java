@@ -35,7 +35,6 @@ import org.hisp.dhis.fileresource.events.BinaryFileSaveEvent;
 import org.hisp.dhis.fileresource.events.DeleteFileEvent;
 import org.hisp.dhis.fileresource.events.FileSaveEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSaveEvent;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -81,27 +80,23 @@ public class DefaultFileResourceService
 
     private final FileResourceContentStore fileResourceContentStore;
 
-    private final SchedulingManager schedulingManager;
-
     private final ImageProcessingService imageProcessingService;
 
     private final ApplicationEventPublisher fileEventPublisher;
 
     public DefaultFileResourceService( FileResourceStore fileResourceStore,
         SessionFactory sessionFactory, FileResourceContentStore fileResourceContentStore,
-        SchedulingManager schedulingManager, ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher )
+        ImageProcessingService imageProcessingService, ApplicationEventPublisher fileEventPublisher )
     {
         checkNotNull( fileResourceStore );
         checkNotNull( sessionFactory );
         checkNotNull( fileResourceContentStore );
-        checkNotNull( schedulingManager );
         checkNotNull( imageProcessingService );
         checkNotNull( fileEventPublisher );
 
         this.fileResourceStore = fileResourceStore;
         this.sessionFactory = sessionFactory;
         this.fileResourceContentStore = fileResourceContentStore;
-        this.schedulingManager = schedulingManager;
         this.imageProcessingService = imageProcessingService;
         this.fileEventPublisher = fileEventPublisher;
     }
