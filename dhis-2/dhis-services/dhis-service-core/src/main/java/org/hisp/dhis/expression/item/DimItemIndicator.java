@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,9 +26,32 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface IncomingSmsListener
-{
-    boolean accept( IncomingSms sms );
+package org.hisp.dhis.expression.item;
 
-    void receive( IncomingSms sms );
+import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
+import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
+
+import org.hisp.dhis.common.DimensionalItemId;
+
+/**
+ * Expression item Indicator
+ *
+ * @author Luciano Fiandesio
+ */
+public class DimItemIndicator
+    extends
+    DimensionalItem
+{
+    @Override
+    public DimensionalItemId getDimensionalItemId( ItemContext ctx )
+    {
+        return new DimensionalItemId( INDICATOR, ctx.uid0.getText() );
+    }
+
+    @Override
+    public String getId( ItemContext ctx )
+    {
+        return ctx.uid0.getText();
+    }
 }

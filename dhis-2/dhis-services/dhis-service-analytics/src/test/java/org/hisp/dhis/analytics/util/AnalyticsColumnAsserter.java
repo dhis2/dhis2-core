@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,9 +26,49 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface IncomingSmsListener
-{
-    boolean accept( IncomingSms sms );
+package org.hisp.dhis.analytics.util;
 
-    void receive( IncomingSms sms );
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class AnalyticsColumnAsserter
+{
+    private AnalyticsTableColumn actual;
+
+    private void setActual( AnalyticsTableColumn actual )
+    {
+        this.actual = actual;
+    }
+
+    public void verify( AnalyticsTableColumn expected )
+    {
+        assertThat( "Column name does not match!", expected.getName(), is( actual.getName() ) );
+        assertThat( "Column alias does not match!", expected.getAlias(), is( actual.getAlias() ) );
+        assertThat( "Column creation date does not match!", expected.getCreated(), is( actual.getCreated() ) );
+        assertThat( expected.getDataType(), is( actual.getDataType() ) );
+        assertThat( expected.getIndexType(), is( actual.getIndexType() ) );
+        // assertThat(actual.getIndexColumns(), is(expected.getIndexColumns()));
+    }
+
+    public static class Builder
+    {
+        AnalyticsTableColumn _column;
+
+        public Builder( AnalyticsTableColumn column )
+        {
+            _column = column;
+        }
+
+        public AnalyticsColumnAsserter build()
+        {
+            AnalyticsColumnAsserter asserter = new AnalyticsColumnAsserter();
+            asserter.setActual( _column );
+            return asserter;
+        }
+    }
 }

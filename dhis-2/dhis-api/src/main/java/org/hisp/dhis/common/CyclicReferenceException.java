@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,9 +26,23 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface IncomingSmsListener
-{
-    boolean accept( IncomingSms sms );
+package org.hisp.dhis.common;
 
-    void receive( IncomingSms sms );
+/**
+ * Exception thrown when a dependency loop is found between dimensional item objects.
+ *
+ * @author Luciano Fiandesio
+ */
+public class CyclicReferenceException
+    extends RuntimeException
+{
+    public CyclicReferenceException( String message )
+    {
+        super( message );
+    }
+
+    public CyclicReferenceException( String message, Throwable throwable )
+    {
+        super( message, throwable );
+    }
 }
