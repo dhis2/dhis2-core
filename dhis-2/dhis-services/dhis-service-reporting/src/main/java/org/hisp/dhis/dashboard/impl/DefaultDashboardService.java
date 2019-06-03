@@ -50,6 +50,7 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -446,7 +447,9 @@ public class DefaultDashboardService
 
     private int getMax( DashboardItemType type, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
     {
-        return maxTypes != null && maxTypes.contains( type ) ? (maxCount == null ? MAX_HITS_PER_OBJECT : maxCount)
-            : (count == null ? HITS_PER_OBJECT : count);
+        int dashboardsMax = ObjectUtils.firstNonNull( maxCount, MAX_HITS_PER_OBJECT );
+        int dashboardsCount = ObjectUtils.firstNonNull( count, HITS_PER_OBJECT );
+
+        return maxTypes != null && maxTypes.contains( type ) ? dashboardsMax : dashboardsCount;
     }
 }

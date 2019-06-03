@@ -249,9 +249,7 @@ public class DashboardServiceTest
 
         });
 
-        IntStream.range(1, 30).forEach( i -> {
-            eventChartService.saveEventChart( createEventChart( prA ) );
-        });
+        IntStream.range(1, 30).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ));
 
         DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ) );
 
@@ -265,9 +263,8 @@ public class DashboardServiceTest
 
         result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ), 3, 29 );
 
-        assertThat(result.getChartCount(), is(29));
-        assertThat(result.getEventChartCount(), is(3));
-
+        assertThat( result.getChartCount(), is( 29 ) );
+        assertThat( result.getEventChartCount(), is( 3 ) );
 
     }
 
