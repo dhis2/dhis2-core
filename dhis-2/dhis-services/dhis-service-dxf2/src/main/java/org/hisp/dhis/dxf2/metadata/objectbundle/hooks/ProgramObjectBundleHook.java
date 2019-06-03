@@ -40,10 +40,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,16 +56,13 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
     private final AclService aclService;
 
-    private final TrackedEntityAttributeStore attributeStore;
-
     public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
-                                    ProgramStageService programStageService, AclService aclService, TrackedEntityAttributeStore attributeStore )
+                                    ProgramStageService programStageService, AclService aclService )
     {
         this.programInstanceService = programInstanceService;
         this.programStageService = programStageService;
         this.programService = programService;
         this.aclService = aclService;
-        this.attributeStore = attributeStore;
     }
 
     @Override
@@ -180,31 +174,23 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
     private List<ErrorReport> validateAttributeSecurity( Program program, ObjectBundle bundle )
     {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
         if ( program.getProgramAttributes().isEmpty() )
         {
-            return new ArrayList<>();
+            return errorReports;
         }
-
-        List<ErrorReport> errorReports = new ArrayList<>();
 
         PreheatIdentifier identifier = bundle.getPreheatIdentifier();
 
-        program.getProgramAttributes().forEach( attr ->
+        program.getProgramAttributes().forEach( programAttr ->
         {
-            TrackedEntityAttribute attribute = bundle.getPreheat().get( identifier, TrackedEntityAttribute.class,
-                    attr.getAttribute().getUid() );
+            TrackedEntityAttribute attribute = bundle.getPreheat().get( identifier, programAttr.getAttribute() );
 
-            if ( attribute == null )
-            {
-                attribute = attributeStore.getByUidNoAcl( attr.getAttribute().getUid() );
-                bundle.getPreheat().put( identifier, attribute );
-            }
-
-            if ( ( bundle.getImportMode().isUpdate() || bundle.getImportMode().isCreateAndUpdate() )
-                    && !aclService.canRead( bundle.getUser(), attribute ) )
+            if ( attribute == null || !aclService.canRead( bundle.getUser(), attribute ) )
             {
                 errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
-                        identifier.getIdentifiersWithName( attribute ) ) );
+                    identifier.getIdentifiersWithName( programAttr.getAttribute() ) ) );
             }
         });
 

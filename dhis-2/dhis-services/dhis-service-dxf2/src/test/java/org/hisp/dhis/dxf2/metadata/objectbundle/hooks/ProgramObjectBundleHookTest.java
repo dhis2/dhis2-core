@@ -34,7 +34,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,9 +72,6 @@ public class ProgramObjectBundleHookTest
     private AclService aclService;
 
     @Mock
-    private TrackedEntityAttributeStore attributeStore;
-
-    @Mock
     private SessionFactory sessionFactory;
 
     @Rule
@@ -86,7 +82,7 @@ public class ProgramObjectBundleHookTest
     @Before
     public void setUp()
     {
-        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService, aclService, attributeStore );
+        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService, aclService );
 
         programA = createProgram( 'A' );
         programA.setId( 100 );
