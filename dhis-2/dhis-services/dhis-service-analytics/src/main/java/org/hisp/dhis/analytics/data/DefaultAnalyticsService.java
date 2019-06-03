@@ -483,7 +483,7 @@ public class DefaultAnalyticsService
             Map<String, Map<String, Integer>> permutationOrgUnitTargetMap = getOrgUnitTargetMap( dataSourceParams, indicators );
 
             List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
-        
+
             Map<String, Map<DimensionalItemObject, Double>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap( dataSourceParams );
 
             handleEmptyDimensionItemPermutations( dimensionItemPermutations );
@@ -1306,7 +1306,7 @@ public class DefaultAnalyticsService
     private Map<String, Map<DimensionalItemObject, Double>> getPermutationDimensionItemValueMap( DataQueryParams params )
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
-        
+
         indicators.forEach( params::removeResolvedExpressionItem );
 
         Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );

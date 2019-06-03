@@ -31,7 +31,6 @@ package org.hisp.dhis.analytics.data;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 import java.util.Collections;
 
@@ -65,10 +64,8 @@ import com.google.common.collect.ImmutableList;
  * @author Luciano Fiandesio
  */
 public class AnalyticsServiceIndicatorTest
-    extends
-    DhisSpringTest
+    extends DhisSpringTest
 {
-
     @Autowired
     private AnalyticsService analyticsService;
 
@@ -82,7 +79,7 @@ public class AnalyticsServiceIndicatorTest
     public ExpectedException thrown = ExpectedException.none();
 
     private final static String ERROR_STRING = "Item of type INDICATOR with uid %s has a cyclic reference to another item";
-    
+
     @Before
     public void setUp()
     {
@@ -95,7 +92,6 @@ public class AnalyticsServiceIndicatorTest
     }
 
     /**
-     *
      * IndicatorF -> IndicatorG -> IndicatorH -> IndicatorI
      *
      */
@@ -174,7 +170,7 @@ public class AnalyticsServiceIndicatorTest
         createIndicator( 'I', indicatorTypeB, "#{dataElemenA}/2" );
         createIndicator( 'L', indicatorTypeB, "#{dataElemenA}/4" );
         createIndicator( 'M', indicatorTypeB, "N{mindicatorG}" );
-        
+
         thrown.expect( CyclicReferenceException.class );
         thrown.expectMessage( String.format(ERROR_STRING, "mindicatorG") );
 
@@ -183,7 +179,6 @@ public class AnalyticsServiceIndicatorTest
 
 
     /**
-     *
      *              IndicatorF
      *                   |
      *                   |
@@ -232,7 +227,7 @@ public class AnalyticsServiceIndicatorTest
         indicatorService.addIndicator( indicator );
         return indicator;
     }
-    
+
     private DataQueryParams createParamsWithRootIndicator( Indicator indicator )
     {
         return DataQueryParams.newBuilder()

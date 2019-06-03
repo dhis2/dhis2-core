@@ -1701,8 +1701,8 @@ public class DataQueryParams
         else
         {
             throw new CyclicReferenceException(
-                "Item of type " + item.getDimensionItemType().name()
-                + " with uid " + item.getUid() + " has a cyclic reference to another item" );
+                String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item",
+                    item.getDimensionItemType().name(), item.getUid() ) );
         }
     }
 
