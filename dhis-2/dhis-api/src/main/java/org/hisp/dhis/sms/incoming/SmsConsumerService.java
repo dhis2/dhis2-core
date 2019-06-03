@@ -1,6 +1,5 @@
 package org.hisp.dhis.sms.incoming;
 
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,10 +31,9 @@ package org.hisp.dhis.sms.incoming;
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
-
 public interface SmsConsumerService
 {
     void startSmsConsumer();
-    
-    void stopSmsConsumer();    
+
+    void stopSmsConsumer();
 }

@@ -43,16 +43,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -61,22 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -420,6 +396,19 @@ public class DataQueryParams
      */
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
 
+    /**
+     * Indicates whether to skip data dimension specific validation checks.
+     * Used when the DataQueryParams is built internally and does not require
+     * extensive validation.
+     */
+    protected transient boolean skipDataDimensionValidation = false;
+
+    /**
+     * Holds a list of {@see DimensionalItemObject} resolved during expression evaluation.
+     * The Set is used to detect cyclic dependency between items
+     */
+    protected transient Set<DimensionalItemObject> resolvedExpressionItems = new HashSet<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -508,7 +497,8 @@ public class DataQueryParams
         params.startDateRestriction = this.startDateRestriction;
         params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
-
+        params.skipDataDimensionValidation = this.skipDataDimensionValidation;
+        params.resolvedExpressionItems = this.resolvedExpressionItems;
         return params;
     }
 
@@ -1690,6 +1680,30 @@ public class DataQueryParams
             dimension.getItems().removeAll( existing );
             dimension.getItems().addAll( options );
         }
+    }
+
+    public void addResolvedExpressionItem( DimensionalItemObject item)
+    {
+        if ( !resolvedExpressionItems.contains(item) )
+        {
+            resolvedExpressionItems.add(item);
+        }
+        else
+        {
+            throw new CyclicReferenceException(
+                String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item",
+                    item.getDimensionItemType().name(), item.getUid() ) );
+        }
+    }
+
+    private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )
+    {
+        dimensionalItemObjectList.forEach( this::addResolvedExpressionItem );
+    }
+
+    public void removeResolvedExpressionItem( DimensionalItemObject item )
+    {
+        this.resolvedExpressionItems.remove( item );
     }
 
     // -------------------------------------------------------------------------
@@ -2908,9 +2922,17 @@ public class DataQueryParams
             return this;
         }
 
+        public Builder withResolvedExpressionItems( List<DimensionalItemObject> items )
+        {
+            this.params.addResolvedExpressionItems( items );
+            return this;
+        }
+
         public DataQueryParams build()
         {
             return params;
         }
+
+
     }
 }
