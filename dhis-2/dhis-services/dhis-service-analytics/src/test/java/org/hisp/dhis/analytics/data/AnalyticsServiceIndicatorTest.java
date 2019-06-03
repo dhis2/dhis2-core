@@ -78,7 +78,7 @@ public class AnalyticsServiceIndicatorTest
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
-    private final static String ERROR_STRING = "Item of type INDICATOR with uid %s has a cyclic reference to another item";
+    private final static String ERROR_STRING = "Item of type INDICATOR with identifier '%s' has a cyclic reference to another item";
 
     @Before
     public void setUp()
