@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 
 /**
  * @author Chau Thu Tran
- * @version $ ProgramType.java Jul 1, 2015 3:09:12 PM $
  */
 public enum ProgramType
 {
