@@ -126,6 +126,7 @@ import org.springframework.core.env.Environment;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
@@ -1330,6 +1331,11 @@ public class DefaultAnalyticsService
         indicators.forEach( params::addResolvedExpressionItem );
 
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( indicators ) );
+
+        if ( items.isEmpty() )
+        {
+            return Maps.newHashMap();
+        }
 
         items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
 
