@@ -65,7 +65,6 @@ public class AnalyticsTableAsserter
 
     private AnalyticsTableAsserter()
     {
-
     }
 
     public void verify()
@@ -166,7 +165,6 @@ public class AnalyticsTableAsserter
             return this;
         }
 
-
         public AnalyticsTableAsserter build()
         {
             // verify
@@ -184,8 +182,6 @@ public class AnalyticsTableAsserter
             asserter.columns = _columns;
 
             return asserter;
-
         }
     }
-
 }

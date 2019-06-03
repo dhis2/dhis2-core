@@ -28,10 +28,10 @@
 
 package org.hisp.dhis.analytics.util;
 
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
 
 /**
  * @author Luciano Fiandesio
@@ -40,21 +40,19 @@ public class AnalyticsColumnAsserter
 {
     private AnalyticsTableColumn actual;
 
-
-    private void setActual(AnalyticsTableColumn actual)
+    private void setActual( AnalyticsTableColumn actual )
     {
         this.actual = actual;
     }
 
-
-    public void verify(AnalyticsTableColumn expected)
+    public void verify( AnalyticsTableColumn expected )
     {
         assertThat( "Column name does not match!", expected.getName(), is( actual.getName() ) );
         assertThat( "Column alias does not match!", expected.getAlias(), is( actual.getAlias() ) );
         assertThat( "Column creation date does not match!", expected.getCreated(), is( actual.getCreated() ) );
-        assertThat(expected.getDataType(), is(actual.getDataType()));
-        assertThat(expected.getIndexType(), is(actual.getIndexType()));
-        //assertThat(actual.getIndexColumns(), is(expected.getIndexColumns()));
+        assertThat( expected.getDataType(), is( actual.getDataType() ) );
+        assertThat( expected.getIndexType(), is( actual.getIndexType() ) );
+        // assertThat(actual.getIndexColumns(), is(expected.getIndexColumns()));
     }
 
     public static class Builder
@@ -73,5 +71,4 @@ public class AnalyticsColumnAsserter
             return asserter;
         }
     }
-
 }

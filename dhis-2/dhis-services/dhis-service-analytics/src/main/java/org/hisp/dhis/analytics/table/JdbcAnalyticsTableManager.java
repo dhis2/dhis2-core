@@ -487,7 +487,7 @@ public class JdbcAnalyticsTableManager
     @Override
     public List<AnalyticsTableColumn> getFixedColumns()
     {
-        return this.FIXED_COLS;
+        return FIXED_COLS;
     }
 
     /**

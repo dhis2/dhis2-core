@@ -126,7 +126,7 @@ public abstract class AbstractEventJdbcTableManager
      *
      * @param valueType the value type to represent as database column type.
      */
-    String getSelectClause( ValueType valueType, String columnName )
+    protected String getSelectClause( ValueType valueType, String columnName )
     {
         if ( valueType.isDecimal() )
         {
@@ -173,10 +173,16 @@ public abstract class AbstractEventJdbcTableManager
         return null;
     }
 
-    void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns,
-        String joinStatement )
+    /**
+     * Populates the given analytics table partition using the given columns and
+     * join statement.
+     *
+     * @param partition the {@link AnalyticsTablePartition}.
+     * @param columns the list of {@link AnalyticsTableColumn}.
+     * @param joinStatement the SQL join statement.
+     */
+    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String joinStatement )
     {
-
         final String tableName = partition.getTempTableName();
 
         String sql = "insert into " + partition.getTempTableName() + " (";

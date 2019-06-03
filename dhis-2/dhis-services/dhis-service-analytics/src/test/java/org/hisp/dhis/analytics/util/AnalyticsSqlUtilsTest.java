@@ -38,7 +38,6 @@ import static org.junit.Assert.*;
  */
 public class AnalyticsSqlUtilsTest
 {
-
     @Test
     public void testAddClosingParentheses()
     {

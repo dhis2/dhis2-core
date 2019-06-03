@@ -56,7 +56,6 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.Legend;
@@ -493,7 +492,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Wraps the provided column name in Postgres 'lower' directive
-     * 
+     *
      * @param column a column name
      * @return a String
      */
@@ -580,10 +579,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
     /**
      * Template method that generates a SQL query for retrieving Events or
      * Enrollments
-     * 
+     *
      * @param params an {@see EventQueryParams} to drive the query generation
      * @param maxLimit max number of hits returned
-     * 
+     *
      * @return a SQL query
      */
     String getEventsOrEnrollmentsSql( EventQueryParams params, int maxLimit )
@@ -604,7 +603,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Wraps the provided interface around a common exception handling strategy
-     * 
+     *
      * @param r a {@see Runnable} interface containing the code block to execute and
      *        wrap around the exception handling
      */

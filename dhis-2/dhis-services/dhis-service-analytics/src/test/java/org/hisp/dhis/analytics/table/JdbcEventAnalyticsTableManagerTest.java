@@ -1,3 +1,5 @@
+package org.hisp.dhis.analytics.table;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.analytics.table;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -165,7 +165,6 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
             .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() ).build()
             .verify();
-
     }
 
     @Test
@@ -192,7 +191,6 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumns(periodColumns)
             .addColumn( PREFIX_ORGUNITLEVEL + ouLevel.getLevel(), CHARACTER_11, "ous.", ouLevel.getCreated() )
             .build().verify();
-
     }
 
     @Test
@@ -224,14 +222,11 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( ouGroupSetA.getUid(), CHARACTER_11, "ougs.", ouGroupSetA.getCreated() )
             .addColumn( ouGroupSetB.getUid(), CHARACTER_11, "ougs.", ouGroupSetB.getCreated() )
             .build().verify();
-
     }
 
     @Test
     public void verifyGetTableWithCategoryOptionGroupSet()
     {
-
-
         Program p1 = createProgram( 'A' );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
@@ -309,7 +304,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .withDefaultColumns( subject.getFixedColumns() )
             .build().verify();
     }
-    
+
     @Test
     public void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
@@ -330,22 +325,21 @@ public class JdbcEventAnalyticsTableManagerTest
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
-        verify(jdbcTemplate).execute(sql.capture());
+        verify( jdbcTemplate ).execute( sql.capture() );
         String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' from programstageinstance where "
             + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
 
-        assertThat(sql.getValue(), containsString(ouQuery));
-
+        assertThat( sql.getValue(), containsString( ouQuery ) );
     }
-    
+
     private String toAlias( String template, String uid )
     {
         return String.format( template, uid, uid, uid );
     }
-    
-    private void addCategoryCombo( Program p, CategoryCombo categoryCombo )
+
+    private void addCategoryCombo( Program program, CategoryCombo categoryCombo )
     {
-        p.setCategoryCombo( categoryCombo );
+        program.setCategoryCombo( categoryCombo );
     }
 }
