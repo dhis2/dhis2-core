@@ -51,8 +51,12 @@ public interface DashboardService
 
     DashboardSearchResult search( String query );
 
+    DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount );
+
     DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes );
-    
+
+    DashboardSearchResult search( Set<DashboardItemType> maxTypes, Integer count, Integer maxCount );
+
     DashboardSearchResult search( Set<DashboardItemType> maxTypes );
 
     DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid );

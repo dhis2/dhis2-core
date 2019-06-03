@@ -50,6 +50,7 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +71,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 public class DefaultDashboardService
     implements DashboardService
 {
-    private static final int HITS_PER_OBJECT = 5;
+    private static final int HITS_PER_OBJECT = 6;
     private static final int MAX_HITS_PER_OBJECT = 25;
 
     // -------------------------------------------------------------------------
@@ -117,12 +118,12 @@ public class DefaultDashboardService
     @Transactional(readOnly = true)
     public DashboardSearchResult search( String query )
     {
-        return search( query, new HashSet<>() );
+        return search( query, new HashSet<>(), null, null );
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes )
+    public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
     {
         Set<String> words = Sets.newHashSet( query.split( TextUtils.SPACE ) );
 
@@ -130,14 +131,14 @@ public class DefaultDashboardService
 
         DashboardSearchResult result = new DashboardSearchResult();
 
-        result.setUsers( userService.getAllUsersBetweenByName( query, 0, getMax( DashboardItemType.USERS, maxTypes ) ) );
-        result.setCharts( objectManager.getBetweenLikeName( Chart.class, words, 0, getMax( DashboardItemType.CHART, maxTypes ) ) );
-        result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes ) ) );
-        result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0, getMax( DashboardItemType.MAP, maxTypes ) ) );
-        result.setReportTables( objectManager.getBetweenLikeName( ReportTable.class, words, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes ) ) );
-        result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes ) ) );
-        result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0, getMax( DashboardItemType.REPORTS, maxTypes ) ) );
-        result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0, getMax( DashboardItemType.RESOURCES, maxTypes ) ) );
+        result.setUsers( userService.getAllUsersBetweenByName( query, 0, getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
+        result.setCharts( objectManager.getBetweenLikeName( Chart.class, words, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
+        result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
+        result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
+        result.setReportTables( objectManager.getBetweenLikeName( ReportTable.class, words, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes, count, maxCount ) ) );
+        result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
+        result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
+        result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
         result.setApps( appManager.getAppsByName( query, dashboardApps, "ilike" ) );
 
         return result;
@@ -145,20 +146,32 @@ public class DefaultDashboardService
 
     @Override
     @Transactional(readOnly = true)
-    public DashboardSearchResult search( Set<DashboardItemType> maxTypes )
+    public DashboardSearchResult search( Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
     {
         DashboardSearchResult result = new DashboardSearchResult();
 
-        result.setCharts( objectManager.getBetweenSorted( Chart.class, 0, getMax( DashboardItemType.CHART, maxTypes ) ) );
-        result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes ) ) );
-        result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes ) ) );
-        result.setReportTables( objectManager.getBetweenSorted( ReportTable.class, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes ) ) );
-        result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes ) ) );
-        result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes ) ) );
-        result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes ) ) );
-        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET, getMax( DashboardItemType.APP, maxTypes ) ) );
+        result.setCharts( objectManager.getBetweenSorted( Chart.class, 0, getMax( DashboardItemType.CHART, maxTypes, count, maxCount ) ) );
+        result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
+        result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
+        result.setReportTables( objectManager.getBetweenSorted( ReportTable.class, 0, getMax( DashboardItemType.REPORT_TABLE, maxTypes, count, maxCount ) ) );
+        result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
+        result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
+        result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
+        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET, getMax( DashboardItemType.APP, maxTypes, count, maxCount ) ) );
 
         return result;
+    }
+
+    @Override
+    public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes )
+    {
+        return this.search( query, maxTypes, null, null );
+    }
+
+    @Override
+    public DashboardSearchResult search( Set<DashboardItemType> maxTypes )
+    {
+        return this.search( maxTypes, null, null );
     }
 
     @Override
@@ -432,8 +445,11 @@ public class DefaultDashboardService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private int getMax( DashboardItemType type, Set<DashboardItemType> maxTypes )
+    private int getMax( DashboardItemType type, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
     {
-        return maxTypes != null && maxTypes.contains( type ) ? MAX_HITS_PER_OBJECT : HITS_PER_OBJECT;
+        int dashboardsMax = ObjectUtils.firstNonNull( maxCount, MAX_HITS_PER_OBJECT );
+        int dashboardsCount = ObjectUtils.firstNonNull( count, HITS_PER_OBJECT );
+
+        return maxTypes != null && maxTypes.contains( type ) ? dashboardsMax : dashboardsCount;
     }
 }
