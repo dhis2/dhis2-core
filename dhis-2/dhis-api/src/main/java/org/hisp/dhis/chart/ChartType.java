@@ -43,5 +43,6 @@ public enum ChartType
     RADAR,
     GAUGE,
     YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    YEAR_OVER_YEAR_COLUMN,
+    SINGLE_VALUE
 }
