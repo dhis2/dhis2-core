@@ -53,6 +53,4 @@ public class TomcatMetricsConfig
     {
         tomcatMetrics.bindTo( registry );
     }
-
-
 }
