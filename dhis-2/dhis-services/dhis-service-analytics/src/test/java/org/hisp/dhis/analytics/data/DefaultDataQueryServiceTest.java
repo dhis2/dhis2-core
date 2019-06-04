@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -116,7 +118,9 @@ public class DefaultDataQueryServiceTest
     private RequestBuilder rb;
 
     private OrganisationUnit rootOu;
-
+    
+    private BeanRandomizer beanRandomizer;
+    
     @Before
     public void setUp()
     {
@@ -131,6 +135,8 @@ public class DefaultDataQueryServiceTest
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );
         rootOu.setCode( "OU_525" );
+        
+        beanRandomizer = new BeanRandomizer();
     }
 
     private void mockDimensionService()
@@ -320,6 +326,58 @@ public class DefaultDataQueryServiceTest
                         hasProperty( "code", is( nullValue() ) ) ),
                 allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
                         hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+
+    }
+
+    @Test
+    public void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter()
+    {
+        OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
+        OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
+        
+        OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
+        OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
+        
+        OrganisationUnitGroup groupOu = beanRandomizer.randomObject(OrganisationUnitGroup.class, "geometry");
+        
+
+        mockDimensionService();
+
+        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "wjP19dkFeIk" ) ).thenReturn( 2 );
+
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
+        when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, "tDZVQ1WtwpA" ) ).thenReturn( groupOu );
+
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ),
+                Mockito.any( Collection.class ) ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+
+        when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
+                .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+
+        when( organisationUnitService.getOrganisationUnits( Lists.newArrayList( groupOu ), Lists.newArrayList( rootOu ) ) )
+            .thenReturn( Lists.newArrayList( ou1Group, ou2Group ) );
+
+        rb.addOuFilter( "LEVEL-wjP19dkFeIk;OU_GROUP-tDZVQ1WtwpA;ImspTQPwCqd" );
+        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
+        rb.addPeDimension( PERIOD_DIMENSION );
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
+                .dimension( rb.getDimensionParams() ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+        DimensionalObject filter = params.getFilters().get( 0 );
+
+        List<DimensionalKeywords.Keyword> x = filter.getDimensionalKeywords().getGroupBy();
+
+        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 3 ) );
+        assertThat( filter.getDimensionalKeywords().getGroupBy(),
+                IsIterableContainingInAnyOrder.containsInAnyOrder(
+                        allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
+                                hasProperty( "code", is( nullValue() ) ) ),
+                        allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
+                                hasProperty( "code", is( groupOu.getCode() ) ) ),
+                        allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
+                                hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
 
     }
 
