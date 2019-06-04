@@ -37,7 +37,7 @@ import java.io.File;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.fileresource.events.FileSaveEvent;
+import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,7 +73,7 @@ public class FileResourceServiceTest
     private Session session;
 
     @Captor
-    protected ArgumentCaptor<FileSaveEvent> publishEventCaptor;
+    protected ArgumentCaptor<FileSavedEvent> publishEventCaptor;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -106,7 +106,7 @@ public class FileResourceServiceTest
 
         verify( fileEventPublisher, times( 1 ) ).publishEvent( publishEventCaptor.capture() );
 
-        FileSaveEvent event = publishEventCaptor.getValue();
+        FileSavedEvent event = publishEventCaptor.getValue();
         assertThat( event.getFileResource(), is( "fileRes1" ) );
         assertThat( event.getFile(), is( file ) );
         assertThat( event.getSource(), is( notNullValue() ) );
