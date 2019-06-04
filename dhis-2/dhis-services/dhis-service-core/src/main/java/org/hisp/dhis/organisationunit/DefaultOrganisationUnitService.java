@@ -336,12 +336,14 @@ public class DefaultOrganisationUnitService
         int rootLevel = organisationUnit.getLevel();
 
         Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
+        SortProperty orderBy = SortProperty.fromValue(
+            userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( organisationUnit ) );
         params.setMaxLevels( levels );
         params.setFetchChildren( true );
-        params.setOrderBy( SortProperty.fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() ) );
+        params.setOrderBy( orderBy );
 
         return organisationUnitStore.getOrganisationUnits( params );
     }

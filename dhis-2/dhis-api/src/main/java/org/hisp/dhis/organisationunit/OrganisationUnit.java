@@ -48,6 +48,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -62,6 +63,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -300,13 +302,10 @@ public class OrganisationUnit
     {
         List<OrganisationUnit> sortedChildren = new ArrayList<>( children );
 
-        if ( SortProperty.SHORT_NAME == sortBy )
-        {
-            Collections.sort( sortedChildren, OrganisationUnitDisplayShortNameComparator.INSTANCE );
-            return sortedChildren;
-        }
+        Comparator<OrganisationUnit> comparator = SortProperty.SHORT_NAME == sortBy ?
+            OrganisationUnitDisplayShortNameComparator.INSTANCE : OrganisationUnitDisplayNameComparator.INSTANCE;
 
-        Collections.sort( sortedChildren, OrganisationUnitDisplayNameComparator.INSTANCE );
+        Collections.sort( sortedChildren, comparator );
         return sortedChildren;
 
     }
