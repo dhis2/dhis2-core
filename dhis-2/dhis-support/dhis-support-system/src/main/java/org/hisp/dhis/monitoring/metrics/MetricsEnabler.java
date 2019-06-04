@@ -49,7 +49,7 @@ public abstract class MetricsEnabler
     @Override
     public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
     {
-        return getBooleanValue( getConfigKey() );
+        return !isTestRun(conditionContext) && getBooleanValue( getConfigKey() );
     }
 
     abstract ConfigurationKey getConfigKey();

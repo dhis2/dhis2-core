@@ -126,7 +126,7 @@ public class WebMvcMetricsConfig {
         @Override
         public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
         {
-            return !getBooleanValue( MONITORING_API_ENABLED );
+            return isTestRun(conditionContext) || !getBooleanValue( MONITORING_API_ENABLED );
         }
     }
 
