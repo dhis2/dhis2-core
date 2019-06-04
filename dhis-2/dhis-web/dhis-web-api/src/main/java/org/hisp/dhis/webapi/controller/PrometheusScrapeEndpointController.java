@@ -28,13 +28,11 @@
 
 package org.hisp.dhis.webapi.controller;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.exporter.common.TextFormat;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -47,31 +45,34 @@ import java.io.Writer;
 /**
  * @author Luciano Fiandesio
  */
+@Profile("!test")
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class PrometheusScrapeEndpointController {
-
+public class PrometheusScrapeEndpointController
+{
     private final CollectorRegistry collectorRegistry;
 
-    public PrometheusScrapeEndpointController(CollectorRegistry collectorRegistry) {
+    public PrometheusScrapeEndpointController( CollectorRegistry collectorRegistry )
+    {
 
         this.collectorRegistry = collectorRegistry;
     }
 
-    @RequestMapping(value = "/metrics", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004)
+    @RequestMapping( value = "/metrics", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004 )
     @ResponseBody
-    public String scrape() {
-        try {
+    public String scrape()
+    {
+        try
+        {
             Writer writer = new StringWriter();
-            TextFormat.write004(writer, this.collectorRegistry.metricFamilySamples());
+            TextFormat.write004( writer, this.collectorRegistry.metricFamilySamples() );
             return writer.toString();
         }
-        catch (IOException ex) {
+        catch ( IOException ex )
+        {
             // This actually never happens since StringWriter::write() doesn't throw any
             // IOException
-            throw new RuntimeException("Writing metrics failed", ex);
+            throw new RuntimeException( "Writing metrics failed", ex );
         }
     }
-
-
 }
