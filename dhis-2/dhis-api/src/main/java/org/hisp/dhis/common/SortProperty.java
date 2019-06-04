@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.incoming;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,9 +28,32 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface IncomingSmsListener
+public enum SortProperty
 {
-    boolean accept( IncomingSms sms );
+    NAME( "name" ), SHORT_NAME( "shortName" );
 
-    void receive( IncomingSms sms );
+    private String name;
+
+    SortProperty( String name )
+    {
+        this.name = name;
+    }
+
+    public static SortProperty fromValue( String value )
+    {
+        for ( SortProperty type : SortProperty.values() )
+        {
+            if ( type.getName().equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
+
+        return null;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
 }

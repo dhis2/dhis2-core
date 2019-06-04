@@ -111,7 +111,6 @@ public class TrackedEntityAttributeServiceTest
         tea.setUnique( true );
         tea.setValueType( ValueType.TEXT );
         tea.setOrgunitScope( false );
-        tea.setProgramScope( false );
     }
 
     @Test

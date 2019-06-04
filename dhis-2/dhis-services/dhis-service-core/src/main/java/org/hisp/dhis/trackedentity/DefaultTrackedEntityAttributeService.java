@@ -187,7 +187,7 @@ public class DefaultTrackedEntityAttributeService
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
 
-        if ( trackedEntityAttribute.getOrgunitScope() )
+        if ( trackedEntityAttribute.getOrgUnitScopeNullSafe() )
         {
             Assert.notNull( organisationUnit, "organisation unit is required for org unit scope" );
             params.addOrganisationUnit( organisationUnit );
