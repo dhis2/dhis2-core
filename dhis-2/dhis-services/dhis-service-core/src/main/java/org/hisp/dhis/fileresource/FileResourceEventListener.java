@@ -28,7 +28,6 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,7 +44,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.io.File;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
