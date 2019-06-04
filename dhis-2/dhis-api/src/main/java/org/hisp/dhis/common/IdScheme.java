@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
