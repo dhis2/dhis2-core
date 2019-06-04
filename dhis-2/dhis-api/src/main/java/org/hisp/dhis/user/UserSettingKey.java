@@ -51,7 +51,7 @@ public enum UserSettingKey
     MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", true, Boolean.class ),
     UI_LOCALE( "keyUiLocale", Locale.class ),
     DB_LOCALE( "keyDbLocale", Locale.class ),
-    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", SortProperty.NAME.getName(), String.class ),
+    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", String.class ),
     TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" );
 
     private final String name;
