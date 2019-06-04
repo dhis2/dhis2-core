@@ -26,39 +26,22 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.monitoring.config;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import io.micrometer.prometheus.PrometheusConfig;
-
-import java.time.Duration;
+import javax.sql.DataSource;
 
 /**
  * @author Luciano Fiandesio
  */
-public class PrometheusPropertiesConfigAdapter extends PropertiesConfigAdapter<PrometheusProperties> implements PrometheusConfig {
+@FunctionalInterface
+public interface DataSourcePoolMetadataProvider {
+
     /**
-     * Create a new {@link PropertiesConfigAdapter} instance.
-     *
-     * @param properties the source properties
+     * Return the {@link DataSourcePoolMetadata} instance able to manage the specified
+     * {@link DataSource} or {@code null} if the given data source could not be handled.
+     * @param dataSource the data source
+     * @return the data source pool metadata
      */
-    public PrometheusPropertiesConfigAdapter(PrometheusProperties properties) {
-        super(properties);
-    }
+    DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource);
 
-    @Override
-    public String get(String key) {
-        return null;
-    }
-
-    @Override
-    public boolean descriptions() {
-        return get(PrometheusProperties::isDescriptions,
-                PrometheusConfig.super::descriptions);
-    }
-
-    @Override
-    public Duration step() {
-        return get(PrometheusProperties::getStep, PrometheusConfig.super::step);
-    }
 }
-

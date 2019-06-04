@@ -26,67 +26,53 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config.jdbc;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
-import com.mchange.v2.c3p0.jboss.C3P0PooledDataSource;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import javax.sql.DataSource;
-import java.sql.SQLException;
 
 /**
- * @author Luciano Fiandesio
+ * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
+ * {@link DataSourcePoolMetadata} that is found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-public class C3p0MetadataProvider
-    extends
-    AbstractDataSourcePoolMetadata<ComboPooledDataSource>
+public class CompositeDataSourcePoolMetadataProvider
+    implements
+    DataSourcePoolMetadataProvider
 {
 
+    private final List<DataSourcePoolMetadataProvider> providers;
+
     /**
-     * Create an instance with the data source to use.
-     *
-     * @param dataSource the data source
+     * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an
+     * initial collection of delegates to use.
+     * 
+     * @param providers the data source pool metadata providers
      */
-    public C3p0MetadataProvider( ComboPooledDataSource dataSource )
+    public CompositeDataSourcePoolMetadataProvider( Collection<? extends DataSourcePoolMetadataProvider> providers )
     {
-        super( dataSource );
+        this.providers = (providers != null) ? Collections.unmodifiableList( new ArrayList<>( providers ) )
+            : Collections.emptyList();
     }
 
     @Override
-    public Integer getActive()
+    public DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource )
     {
-        try
+        for ( DataSourcePoolMetadataProvider provider : this.providers )
         {
-            return getDataSource().getNumBusyConnections();
+            DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata( dataSource );
+            if ( metadata != null )
+            {
+                return metadata;
+            }
         }
-        catch ( SQLException e )
-        {
-            e.printStackTrace();
-            return 0;
-        }
+        return null;
     }
 
-    @Override
-    public Integer getMax()
-    {
-        return getDataSource().getMaxPoolSize();
-    }
-
-    @Override
-    public Integer getMin()
-    {
-        return getDataSource().getMinPoolSize();
-    }
-
-    @Override
-    public String getValidationQuery()
-    {
-        return "";
-    }
-
-    @Override
-    public Boolean getDefaultAutoCommit()
-    {
-        return getDataSource().isAutoCommitOnClose();
-    }
 }

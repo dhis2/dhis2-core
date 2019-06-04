@@ -26,11 +26,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.monitoring.config;
+package org.hisp.dhis.monitoring.prometheus.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.prometheus.PrometheusConfig;
@@ -58,7 +57,6 @@ public class PrometheusMonitoringConfig
     @Bean
     public PrometheusConfig prometheusConfig( PrometheusProperties prometheusProperties )
     {
-
         return new PrometheusPropertiesConfigAdapter( prometheusProperties );
     }
 

@@ -26,34 +26,65 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.spring.web.servlet.DefaultWebMvcTagsProvider;
-import io.micrometer.spring.web.servlet.WebMvcMetricsFilter;
-import io.micrometer.spring.web.servlet.WebMvcTagsProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
+import java.sql.SQLException;
 
 /**
  * @author Luciano Fiandesio
  */
-@Configuration
-public class WebMvcMetricsConfig {
+public class C3p0MetadataProvider
+    extends
+    AbstractDataSourcePoolMetadata<ComboPooledDataSource>
+{
 
-    @Bean
-    public DefaultWebMvcTagsProvider servletTagsProvider()
+    /**
+     * Create an instance with the data source to use.
+     *
+     * @param dataSource the data source
+     */
+    public C3p0MetadataProvider( ComboPooledDataSource dataSource )
     {
-        return new DefaultWebMvcTagsProvider();
+        super( dataSource );
     }
 
-    @SuppressWarnings( "deprecation" )
-    @Bean
-    public WebMvcMetricsFilter webMetricsFilter( MeterRegistry registry, WebMvcTagsProvider tagsProvider,
-        WebApplicationContext ctx )
+    @Override
+    public Integer getActive()
     {
-        return new WebMvcMetricsFilter( registry, tagsProvider, "dhis-2", true, new HandlerMappingIntrospector( ctx ) );
+        try
+        {
+            return getDataSource().getNumBusyConnections();
+        }
+        catch ( SQLException e )
+        {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    @Override
+    public Integer getMax()
+    {
+        return getDataSource().getMaxPoolSize();
+    }
+
+    @Override
+    public Integer getMin()
+    {
+        return getDataSource().getMinPoolSize();
+    }
+
+    @Override
+    public String getValidationQuery()
+    {
+        return "";
+    }
+
+    @Override
+    public Boolean getDefaultAutoCommit()
+    {
+        return getDataSource().isAutoCommitOnClose();
     }
 }

@@ -26,25 +26,27 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config;
+package org.hisp.dhis.monitoring.metrics;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_JVM_ENABLED;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 
-import javax.sql.DataSource;
-import java.util.Map;
-
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
+@Conditional( JvmMetricsConfig.JvmMetricsEnabledCondition.class )
 public class JvmMetricsConfig
 {
     @Bean
@@ -79,5 +81,16 @@ public class JvmMetricsConfig
         jvmMemoryMetrics.bindTo( registry );
         jvmThreadMetrics.bindTo( registry );
         classLoaderMetrics.bindTo( registry );
+    }
+
+    static class JvmMetricsEnabledCondition
+        extends
+        MetricsEnabler
+    {
+        @Override
+        ConfigurationKey getConfigKey()
+        {
+            return MONITORING_JVM_ENABLED;
+        }
     }
 }

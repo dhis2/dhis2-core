@@ -26,48 +26,48 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config.jdbc;
+package org.hisp.dhis.monitoring.metrics;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_TOMCAT_ENABLED;
 
-import javax.sql.DataSource;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+
+import com.google.common.collect.Lists;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.tomcat.TomcatMetrics;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
- * {@link DataSourcePoolMetadata} that is found by one of its delegate.
- *
- * @author Stephane Nicoll
- * @since 1.2.0
+ * @author Luciano Fiandesio
  */
-public class DataSourcePoolMetadataProviders implements DataSourcePoolMetadataProvider {
-
-    private final List<DataSourcePoolMetadataProvider> providers;
-
-    /**
-     * Create a {@link DataSourcePoolMetadataProviders} instance with an initial
-     * collection of delegates to use.
-     * @param providers the data source pool metadata providers
-     */
-    public DataSourcePoolMetadataProviders(
-            Collection<? extends DataSourcePoolMetadataProvider> providers) {
-        this.providers = (providers == null
-                ? Collections.emptyList()
-                : new ArrayList<>(providers));
+@Configuration
+@Conditional( TomcatMetricsConfig.TomcatMetricsEnabledCondition.class )
+public class TomcatMetricsConfig
+{
+    @Bean
+    public TomcatMetrics tomcatMetrics()
+    {
+        return new TomcatMetrics( null, Lists.newArrayList() );
     }
 
-    @Override
-    public DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource) {
-        for (DataSourcePoolMetadataProvider provider : this.providers) {
-            DataSourcePoolMetadata metadata = provider
-                    .getDataSourcePoolMetadata(dataSource);
-            if (metadata != null) {
-                return metadata;
-            }
+    @Autowired
+    public void bindToRegistry( MeterRegistry registry, TomcatMetrics tomcatMetrics )
+    {
+        tomcatMetrics.bindTo( registry );
+    }
+
+    static class TomcatMetricsEnabledCondition
+        extends
+        MetricsEnabler
+    {
+        @Override
+        ConfigurationKey getConfigKey()
+        {
+            return MONITORING_TOMCAT_ENABLED;
         }
-        return null;
     }
-
 }

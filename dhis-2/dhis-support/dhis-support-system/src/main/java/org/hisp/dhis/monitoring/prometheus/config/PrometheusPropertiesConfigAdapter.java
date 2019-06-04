@@ -26,53 +26,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config.jdbc;
+package org.hisp.dhis.monitoring.prometheus.config;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import io.micrometer.prometheus.PrometheusConfig;
 
-import javax.sql.DataSource;
+import java.time.Duration;
 
 /**
- * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
- * {@link DataSourcePoolMetadata} that is found by one of its delegate.
- *
- * @author Stephane Nicoll
- * @since 2.0.0
+ * @author Luciano Fiandesio
  */
-public class CompositeDataSourcePoolMetadataProvider
+public class PrometheusPropertiesConfigAdapter
+    extends
+    PropertiesConfigAdapter<PrometheusProperties>
     implements
-    DataSourcePoolMetadataProvider
+    PrometheusConfig
 {
-
-    private final List<DataSourcePoolMetadataProvider> providers;
-
     /**
-     * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an
-     * initial collection of delegates to use.
-     * 
-     * @param providers the data source pool metadata providers
+     * Create a new {@link PropertiesConfigAdapter} instance.
+     *
+     * @param properties the source properties
      */
-    public CompositeDataSourcePoolMetadataProvider( Collection<? extends DataSourcePoolMetadataProvider> providers )
+    public PrometheusPropertiesConfigAdapter( PrometheusProperties properties )
     {
-        this.providers = (providers != null) ? Collections.unmodifiableList( new ArrayList<>( providers ) )
-            : Collections.emptyList();
+        super( properties );
     }
 
     @Override
-    public DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource )
+    public String get( String key )
     {
-        for ( DataSourcePoolMetadataProvider provider : this.providers )
-        {
-            DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata( dataSource );
-            if ( metadata != null )
-            {
-                return metadata;
-            }
-        }
         return null;
     }
 
+    @Override
+    public boolean descriptions()
+    {
+        return get( PrometheusProperties::isDescriptions, PrometheusConfig.super::descriptions );
+    }
+
+    @Override
+    public Duration step()
+    {
+        return get( PrometheusProperties::getStep, PrometheusConfig.super::step );
+    }
 }

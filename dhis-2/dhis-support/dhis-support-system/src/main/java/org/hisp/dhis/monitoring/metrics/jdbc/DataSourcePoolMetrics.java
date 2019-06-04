@@ -26,44 +26,51 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.monitoring.config;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import org.springframework.util.Assert;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.lang.Nullable;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+import javax.sql.DataSource;
+import java.util.Collection;
 
 /**
- * Base class for properties to config adapters.
- *
- * @param <T> The properties type
- * @author Phillip Webb
- * @author Nikolay Rybak
+ * @author Jon Schneider
  */
-public class PropertiesConfigAdapter<T> {
+public class DataSourcePoolMetrics
+    implements
+    MeterBinder
+{
 
-    private T properties;
+    private final DataSource dataSource;
 
-    /**
-     * Create a new {@link PropertiesConfigAdapter} instance.
-     *
-     * @param properties the source properties
-     */
-    public PropertiesConfigAdapter(T properties) {
-        Assert.notNull(properties, "Properties must not be null");
-        this.properties = properties;
+    private final String name;
+
+    private final Iterable<Tag> tags;
+
+    private final DataSourcePoolMetadata poolMetadata;
+
+    public DataSourcePoolMetrics( DataSource dataSource,
+        @Nullable Collection<DataSourcePoolMetadataProvider> metadataProviders, String name, Iterable<Tag> tags )
+    {
+        this.name = name;
+        this.tags = tags;
+        this.dataSource = dataSource;
+        DataSourcePoolMetadataProvider provider = new DataSourcePoolMetadataProviders( metadataProviders );
+        this.poolMetadata = provider.getDataSourcePoolMetadata( dataSource );
     }
 
-    /**
-     * Get the value from the properties or use a fallback from the {@code defaults}.
-     *
-     * @param getter   the getter for the properties
-     * @param fallback the fallback method, usually super interface method reference
-     * @param <V>      the value type
-     * @return the property or fallback value
-     */
-    protected final <V> V get(Function<T, V> getter, Supplier<V> fallback) {
-        V value = getter.apply(properties);
-        return (value != null ? value : fallback.get());
+    @Override
+    public void bindTo( MeterRegistry registry )
+    {
+        if ( poolMetadata != null )
+        {
+            registry.gauge( name + ".connections.active", tags, dataSource,
+                dataSource -> poolMetadata.getActive() != null ? poolMetadata.getActive() : 0 );
+            registry.gauge( name + ".connections.max", tags, dataSource, dataSource -> poolMetadata.getMax() );
+            registry.gauge( name + ".connections.min", tags, dataSource, dataSource -> poolMetadata.getMin() );
+        }
     }
 }

@@ -26,24 +26,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config;
+package org.hisp.dhis.monitoring.metrics;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.binder.jpa.HibernateMetrics;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.SessionFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_HIBERNATE_ENABLED;
+
+import java.util.Collections;
+import java.util.Map;
 
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceException;
-import java.util.Collections;
-import java.util.Map;
+
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.jpa.HibernateMetrics;
 
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
+@Conditional( HibernateMetricsConfig.HibernateMetricsEnabledCondition.class )
 public class HibernateMetricsConfig
 {
     private static final String ENTITY_MANAGER_FACTORY_SUFFIX = "entityManagerFactory";
@@ -93,4 +100,14 @@ public class HibernateMetricsConfig
         return beanName;
     }
 
+    static class HibernateMetricsEnabledCondition
+        extends
+        MetricsEnabler
+    {
+        @Override
+        ConfigurationKey getConfigKey()
+        {
+            return MONITORING_HIBERNATE_ENABLED;
+        }
+    }
 }

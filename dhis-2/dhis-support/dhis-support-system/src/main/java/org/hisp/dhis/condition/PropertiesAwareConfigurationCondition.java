@@ -29,6 +29,7 @@ package org.hisp.dhis.condition;
  */
 
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.config.ServiceConfig;
@@ -63,5 +64,10 @@ public abstract class PropertiesAwareConfigurationCondition
     protected boolean isTestRun( ConditionContext context )
     {
         return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
+    }
+
+    protected boolean getBooleanValue( ConfigurationKey key )
+    {
+        return getConfiguration().getProperty( key ).equalsIgnoreCase( "true" );
     }
 }

@@ -26,51 +26,48 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config.jdbc;
+package org.hisp.dhis.monitoring.prometheus.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Tag;
-import io.micrometer.core.instrument.binder.MeterBinder;
-import io.micrometer.core.lang.Nullable;
+import org.springframework.util.Assert;
 
-import javax.sql.DataSource;
-import java.util.Collection;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
- * @author Jon Schneider
+ * Base class for properties to config adapters.
+ *
+ * @param <T> The properties type
+ * @author Phillip Webb
+ * @author Nikolay Rybak
  */
-public class DataSourcePoolMetrics
-    implements
-    MeterBinder
+public class PropertiesConfigAdapter<T>
 {
 
-    private final DataSource dataSource;
+    private T properties;
 
-    private final String name;
-
-    private final Iterable<Tag> tags;
-
-    private final DataSourcePoolMetadata poolMetadata;
-
-    public DataSourcePoolMetrics( DataSource dataSource,
-        @Nullable Collection<DataSourcePoolMetadataProvider> metadataProviders, String name, Iterable<Tag> tags )
+    /**
+     * Create a new {@link PropertiesConfigAdapter} instance.
+     *
+     * @param properties the source properties
+     */
+    public PropertiesConfigAdapter( T properties )
     {
-        this.name = name;
-        this.tags = tags;
-        this.dataSource = dataSource;
-        DataSourcePoolMetadataProvider provider = new DataSourcePoolMetadataProviders( metadataProviders );
-        this.poolMetadata = provider.getDataSourcePoolMetadata( dataSource );
+        Assert.notNull( properties, "Properties must not be null" );
+        this.properties = properties;
     }
 
-    @Override
-    public void bindTo( MeterRegistry registry )
+    /**
+     * Get the value from the properties or use a fallback from the
+     * {@code defaults}.
+     *
+     * @param getter the getter for the properties
+     * @param fallback the fallback method, usually super interface method reference
+     * @param <V> the value type
+     * @return the property or fallback value
+     */
+    protected final <V> V get( Function<T, V> getter, Supplier<V> fallback )
     {
-        if ( poolMetadata != null )
-        {
-            registry.gauge( name + ".connections.active", tags, dataSource,
-                dataSource -> poolMetadata.getActive() != null ? poolMetadata.getActive() : 0 );
-            registry.gauge( name + ".connections.max", tags, dataSource, dataSource -> poolMetadata.getMax() );
-            registry.gauge( name + ".connections.min", tags, dataSource, dataSource -> poolMetadata.getMin() );
-        }
+        V value = getter.apply( properties );
+        return (value != null ? value : fallback.get());
     }
 }

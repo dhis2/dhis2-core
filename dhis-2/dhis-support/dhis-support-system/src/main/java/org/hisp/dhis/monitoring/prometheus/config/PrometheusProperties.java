@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.monitoring.config;
+package org.hisp.dhis.monitoring.prometheus.config;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,14 +149,6 @@ public class PrometheusProperties {
         public void setGroupingKey(Map<String, String> groupingKey) {
             this.groupingKey = groupingKey;
         }
-
-//        public ShutdownOperation getShutdownOperation() {
-//            return this.shutdownOperation;
-//        }
-//
-//        public void setShutdownOperation(ShutdownOperation shutdownOperation) {
-//            this.shutdownOperation = shutdownOperation;
-//        }
 
     }
 

@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config.jdbc;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 import javax.sql.DataSource;
 
 /**

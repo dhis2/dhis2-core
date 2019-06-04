@@ -213,6 +213,22 @@
       <artifactId>javacsv</artifactId>
     </dependency>
 
+    <!-- application monitoring -->
+    <!-- application monitoring -->
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-spring-legacy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat.embed</groupId>
+      <artifactId>tomcat-embed-core</artifactId>
+    </dependency>
+
     <!-- Test -->
 
     <dependency>

@@ -26,22 +26,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.webapi.config.jdbc;
+package org.hisp.dhis.monitoring.metrics;
 
-import javax.sql.DataSource;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Luciano Fiandesio
  */
-@FunctionalInterface
-public interface DataSourcePoolMetadataProvider {
+public abstract class MetricsEnabler
+    extends
+    PropertiesAwareConfigurationCondition
+{
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
+    {
+        return ConfigurationPhase.REGISTER_BEAN;
+    }
 
-    /**
-     * Return the {@link DataSourcePoolMetadata} instance able to manage the specified
-     * {@link DataSource} or {@code null} if the given data source could not be handled.
-     * @param dataSource the data source
-     * @return the data source pool metadata
-     */
-    DataSourcePoolMetadata getDataSourcePoolMetadata(DataSource dataSource);
+    @Override
+    public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
+    {
+        return getBooleanValue( getConfigKey() );
+    }
 
+    abstract ConfigurationKey getConfigKey();
 }
