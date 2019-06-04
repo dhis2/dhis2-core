@@ -31,8 +31,6 @@ package org.hisp.dhis.leader.election;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -44,9 +42,6 @@ public class LeaderRenewalJob extends AbstractJob
 {
     @Autowired
     private LeaderManager leaderManager;
-
-    @Autowired
-    private Notifier notifier;
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -61,15 +56,6 @@ public class LeaderRenewalJob extends AbstractJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        try
-        {
-            leaderManager.renewLeader();
-        }
-        catch ( Exception e )
-        {
-            notifier.notify( jobConfiguration, NotificationLevel.ERROR, "Leader renewal failed:" + e.getMessage() );
-        }
-
-        notifier.notify( jobConfiguration, NotificationLevel.INFO, "Leader renewal completed", true );
+        leaderManager.renewLeader();
     }
 }
