@@ -117,4 +117,9 @@ public class DimensionalKeywords
     {
         return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
     }
+    
+    public boolean isEmpty()
+    {
+        return groupBy.isEmpty();
+    }
 }
