@@ -29,7 +29,6 @@ package org.hisp.dhis.fileresource;
  */
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -44,7 +43,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @Author Zubair Asghar.
@@ -55,17 +53,10 @@ public class DefaultImageProcessingService implements ImageProcessingService
 {
     private static final Log log = LogFactory.getLog( DefaultImageProcessingService.class );
 
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
-
-    private static final ImmutableMap<ImageFileDimension, ImageSize> IMAGE_FILE_SIZE = new ImmutableMap.Builder<ImageFileDimension, ImageSize>()
-        .put( ImageFileDimension.SMALL, new ImageSize( 256, 256 ) )
-        .put( ImageFileDimension.MEDIUM, new ImageSize( 512, 512 ) )
-        .put( ImageFileDimension.LARGE, new ImageSize( 1024, 1024 ) )
-        .build();
+    private static final ImmutableMap<ImageFileDimension, ImageSize> IMAGE_FILE_SIZES = ImmutableMap.of(
+        ImageFileDimension.SMALL, new ImageSize( 256, 256 ),
+        ImageFileDimension.MEDIUM, new ImageSize( 512, 512 ),
+        ImageFileDimension.LARGE, new ImageSize( 1024, 1024 ) );
 
     @Override
     public Map<ImageFileDimension, File> createImages( FileResource fileResource, File file )
@@ -83,13 +74,13 @@ public class DefaultImageProcessingService implements ImageProcessingService
 
             for ( ImageFileDimension dimension : ImageFileDimension.values() )
             {
-                if ( ImageFileDimension.ORIGINAL.equals( dimension ) )
+                if ( ImageFileDimension.ORIGINAL == dimension )
                 {
                     images.put( dimension, file );
                     continue;
                 }
 
-                ImageSize size = IMAGE_FILE_SIZE.get( dimension );
+                ImageSize size = IMAGE_FILE_SIZES.get( dimension );
 
                 BufferedImage resizedImage = resize( image, size );
 
@@ -112,7 +103,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
 
     private BufferedImage resize( BufferedImage image, ImageSize dimensions )
     {
-        return  Scalr.resize( image, Scalr.Method.BALANCED, Scalr.Mode.FIT_EXACT, dimensions.width, dimensions.height );
+        return Scalr.resize( image, Scalr.Method.BALANCED, Scalr.Mode.FIT_TO_WIDTH, dimensions.width, dimensions.height );
     }
 
     private boolean isInputValid( FileResource fileResource, File file )
@@ -130,7 +121,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
                 Path path = file.toPath();
                 String mimeType = Files.probeContentType( path );
 
-                return IMAGE_CONTENT_TYPES.contains( mimeType );
+                return FileResource.IMAGE_CONTENT_TYPES.contains( mimeType );
             }
             catch ( IOException e )
             {

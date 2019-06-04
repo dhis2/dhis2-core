@@ -35,7 +35,7 @@ import java.util.Optional;
  */
 public enum ImageFileDimension
 {
-    SMALL( "small "),
+    SMALL( "small" ),
     MEDIUM( "medium" ),
     LARGE( "large" ),
     ORIGINAL( "" );

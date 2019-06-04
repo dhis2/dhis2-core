@@ -65,12 +65,6 @@ import com.google.common.io.ByteSource;
  */
 public class FileResourceUtils
 {
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
-
     @Autowired
     private FileResourceService fileResourceService;
 
@@ -135,7 +129,8 @@ public class FileResourceUtils
 
     public static void setImageFileDimensions( FileResource fileResource, String dimension )
     {
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+        if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) &&
+            FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             if ( fileResource.isHasMultipleStorageFiles() )
             {

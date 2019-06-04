@@ -32,10 +32,10 @@ import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.fileresource.events.BinaryFileSaveEvent;
-import org.hisp.dhis.fileresource.events.DeleteFileEvent;
-import org.hisp.dhis.fileresource.events.FileSaveEvent;
-import org.hisp.dhis.fileresource.events.ImageFileSaveEvent;
+import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
+import org.hisp.dhis.fileresource.events.FileDeletedEvent;
+import org.hisp.dhis.fileresource.events.FileSavedEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
@@ -56,12 +56,6 @@ public class FileResourceEventListener
 {
     private static final Log log = LogFactory.getLog( FileResourceEventListener.class );
 
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
-
     private final FileResourceService fileResourceService;
 
     private final FileResourceContentStore fileResourceContentStore;
@@ -74,13 +68,13 @@ public class FileResourceEventListener
 
     @TransactionalEventListener
     @Async
-    public void save( FileSaveEvent fileSaveEvent )
+    public void save( FileSavedEvent fileSavedEvent )
     {
         DateTime startTime = DateTime.now();
 
-        File file = fileSaveEvent.getFile();
+        File file = fileSavedEvent.getFile();
 
-        FileResource fileResource = fileResourceService.getFileResource( fileSaveEvent.getFileResource() );
+        FileResource fileResource = fileResourceService.getFileResource( fileSavedEvent.getFileResource() );
 
         String storageId = fileResourceContentStore.saveFileResourceContent( fileResource, file );
 
@@ -91,13 +85,13 @@ public class FileResourceEventListener
 
     @TransactionalEventListener
     @Async
-    public void saveImageFile( ImageFileSaveEvent imageFileSaveEvent )
+    public void saveImageFile( ImageFileSavedEvent imageFileSavedEvent )
     {
         DateTime startTime = DateTime.now();
 
-        Map<ImageFileDimension, File> imageFiles = imageFileSaveEvent.getImageFiles();
+        Map<ImageFileDimension, File> imageFiles = imageFileSavedEvent.getImageFiles();
 
-        FileResource fileResource = fileResourceService.getFileResource( imageFileSaveEvent.getFileResource() );
+        FileResource fileResource = fileResourceService.getFileResource( imageFileSavedEvent.getFileResource() );
 
         String storageId = fileResourceContentStore.saveFileResourceContent( fileResource, imageFiles );
 
@@ -115,13 +109,13 @@ public class FileResourceEventListener
 
     @TransactionalEventListener
     @Async
-    public void saveBinaryFile( BinaryFileSaveEvent binaryFileSaveEvent )
+    public void saveBinaryFile( BinaryFileSavedEvent binaryFileSavedEvent )
     {
         DateTime startTime = DateTime.now();
 
-        byte[] bytes = binaryFileSaveEvent.getBytes();
+        byte[] bytes = binaryFileSavedEvent.getBytes();
 
-        FileResource fileResource = fileResourceService.getFileResource( binaryFileSaveEvent.getFileResource() );
+        FileResource fileResource = fileResourceService.getFileResource( binaryFileSavedEvent.getFileResource() );
 
         String storageId = fileResourceContentStore.saveFileResourceContent( fileResource, bytes );
 
@@ -132,7 +126,7 @@ public class FileResourceEventListener
 
     @TransactionalEventListener
     @Async
-    public void deleteFile( DeleteFileEvent deleteFileEvent )
+    public void deleteFile( FileDeletedEvent deleteFileEvent )
     {
         if ( !fileResourceContentStore.fileResourceContentExists( deleteFileEvent.getStorageKey() ) )
         {
@@ -140,7 +134,7 @@ public class FileResourceEventListener
             return;
         }
 
-        if ( IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
+        if ( FileResource.IMAGE_CONTENT_TYPES.contains( deleteFileEvent.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( deleteFileEvent.getDomain() ) )
         {
             String storageKey = deleteFileEvent.getStorageKey();
 

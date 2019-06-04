@@ -51,13 +51,8 @@ import static org.junit.Assert.*;
  */
 public class ImageProcessingServiceTest
 {
-    private static final int SMALL_IMAGE_HEIGHT = 256;
     private static final int SMALL_IMAGE_WIDTH = 256;
-
-    private static final int MEDIUM_IMAGE_HEIGHT = 512;
     private static final int MEDIUM_IMAGE_WIDTH = 512;
-
-    private static final int LARGE_IMAGE_HEIGHT = 1024;
     private static final int LARGE_IMAGE_WIDTH = 1024;
 
     @Rule
@@ -117,13 +112,10 @@ public class ImageProcessingServiceTest
         File mediumImage = images.get( ImageFileDimension.MEDIUM );
         File largeImage = images.get( ImageFileDimension.LARGE );
 
-        assertEquals( SMALL_IMAGE_HEIGHT, ImageIO.read( smallImage ).getHeight() );
         assertEquals( SMALL_IMAGE_WIDTH, ImageIO.read( smallImage ).getWidth() );
 
-        assertEquals( MEDIUM_IMAGE_HEIGHT, ImageIO.read( mediumImage ).getHeight() );
         assertEquals( MEDIUM_IMAGE_WIDTH, ImageIO.read( mediumImage ).getWidth() );
 
-        assertEquals( LARGE_IMAGE_HEIGHT, ImageIO.read( largeImage ).getHeight() );
         assertEquals( LARGE_IMAGE_WIDTH, ImageIO.read( largeImage ).getWidth() );
 
         Files.deleteIfExists( smallImage.toPath() );

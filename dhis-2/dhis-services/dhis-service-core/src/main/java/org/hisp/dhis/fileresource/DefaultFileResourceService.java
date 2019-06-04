@@ -28,13 +28,12 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.io.ByteSource;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.fileresource.events.BinaryFileSaveEvent;
-import org.hisp.dhis.fileresource.events.DeleteFileEvent;
-import org.hisp.dhis.fileresource.events.FileSaveEvent;
-import org.hisp.dhis.fileresource.events.ImageFileSaveEvent;
+import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
+import org.hisp.dhis.fileresource.events.FileDeletedEvent;
+import org.hisp.dhis.fileresource.events.FileSavedEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.Hours;
@@ -46,7 +45,6 @@ import java.io.File;
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -63,12 +61,6 @@ public class DefaultFileResourceService
 
     public static final Predicate<FileResource> IS_ORPHAN_PREDICATE =
         ( fr -> !fr.isAssigned() );
-
-    private static final Set<String> IMAGE_CONTENT_TYPES = new ImmutableSet.Builder<String>()
-        .add( "image/jpg" )
-        .add( "image/png" )
-        .add( "image/jpeg" )
-        .build();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -137,15 +129,15 @@ public class DefaultFileResourceService
         fileResourceStore.save( fileResource );
         sessionFactory.getCurrentSession().flush();
 
-        if ( IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+        if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) && FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
-            fileEventPublisher.publishEvent( new ImageFileSaveEvent( this, fileResource.getUid(), imageFiles ) );
+            fileEventPublisher.publishEvent( new ImageFileSavedEvent( this, fileResource.getUid(), imageFiles ) );
             return;
         }
 
-        fileEventPublisher.publishEvent( new FileSaveEvent( this, fileResource.getUid(), file ) );
+        fileEventPublisher.publishEvent( new FileSavedEvent( this, fileResource.getUid(), file ) );
     }
 
     @Override
@@ -159,7 +151,7 @@ public class DefaultFileResourceService
 
         final String uid = fileResource.getUid();
 
-        fileEventPublisher.publishEvent( new BinaryFileSaveEvent( this, fileResource.getUid(), bytes ) );
+        fileEventPublisher.publishEvent( new BinaryFileSavedEvent( this, fileResource.getUid(), bytes ) );
 
         return uid;
     }
@@ -187,7 +179,7 @@ public class DefaultFileResourceService
             return;
         }
 
-        DeleteFileEvent deleteFileEvent = new DeleteFileEvent( this , fileResource.getStorageKey(), fileResource.getContentType(), fileResource.getDomain() );
+        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( this , fileResource.getStorageKey(), fileResource.getContentType(), fileResource.getDomain() );
 
         fileResourceStore.delete( fileResource );
 
