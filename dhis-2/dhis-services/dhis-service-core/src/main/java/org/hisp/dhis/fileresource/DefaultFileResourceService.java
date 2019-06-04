@@ -133,11 +133,11 @@ public class DefaultFileResourceService
         {
             Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, file );
 
-            fileEventPublisher.publishEvent( new ImageFileSavedEvent( this, fileResource.getUid(), imageFiles ) );
+            fileEventPublisher.publishEvent( new ImageFileSavedEvent( fileResource.getUid(), imageFiles ) );
             return;
         }
 
-        fileEventPublisher.publishEvent( new FileSavedEvent( this, fileResource.getUid(), file ) );
+        fileEventPublisher.publishEvent( new FileSavedEvent( fileResource.getUid(), file ) );
     }
 
     @Override
@@ -151,7 +151,7 @@ public class DefaultFileResourceService
 
         final String uid = fileResource.getUid();
 
-        fileEventPublisher.publishEvent( new BinaryFileSavedEvent( this, fileResource.getUid(), bytes ) );
+        fileEventPublisher.publishEvent( new BinaryFileSavedEvent( fileResource.getUid(), bytes ) );
 
         return uid;
     }
@@ -179,7 +179,7 @@ public class DefaultFileResourceService
             return;
         }
 
-        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( this , fileResource.getStorageKey(), fileResource.getContentType(), fileResource.getDomain() );
+        FileDeletedEvent deleteFileEvent = new FileDeletedEvent( fileResource.getStorageKey(), fileResource.getContentType(), fileResource.getDomain() );
 
         fileResourceStore.delete( fileResource );
 

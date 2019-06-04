@@ -29,7 +29,6 @@
 package org.hisp.dhis.fileresource;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -109,7 +108,6 @@ public class FileResourceServiceTest
         FileSavedEvent event = publishEventCaptor.getValue();
         assertThat( event.getFileResource(), is( "fileRes1" ) );
         assertThat( event.getFile(), is( file ) );
-        assertThat( event.getSource(), is( notNullValue() ) );
     }
 
 }

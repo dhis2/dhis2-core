@@ -28,22 +28,20 @@ package org.hisp.dhis.fileresource.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
 
 import java.io.File;
 
 /**
  * @Author Zubair Asghar.
  */
-public class FileSavedEvent extends ApplicationEvent
+public class FileSavedEvent
 {
     private String fileResource;
 
     private File file;
 
-    public FileSavedEvent( Object source, String fileResource, File file )
+    public FileSavedEvent( String fileResource, File file )
     {
-        super( source );
         this.fileResource = fileResource;
         this.file = file;
     }

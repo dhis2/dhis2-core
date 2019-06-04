@@ -29,12 +29,11 @@ package org.hisp.dhis.fileresource.events;
  */
 
 import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.springframework.context.ApplicationEvent;
 
 /**
  * @Author Zubair Asghar.
  */
-public class FileDeletedEvent extends ApplicationEvent
+public class FileDeletedEvent
 {
     private String storageKey;
 
@@ -42,9 +41,8 @@ public class FileDeletedEvent extends ApplicationEvent
 
     private FileResourceDomain domain;
 
-    public FileDeletedEvent( Object source, String storageKey, String contentType, FileResourceDomain domain )
+    public FileDeletedEvent( String storageKey, String contentType, FileResourceDomain domain )
     {
-        super(source);
         this.storageKey = storageKey;
         this.contentType = contentType;
         this.domain = domain;

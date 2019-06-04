@@ -29,7 +29,6 @@ package org.hisp.dhis.fileresource.events;
  */
 
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.springframework.context.ApplicationEvent;
 
 import java.io.File;
 import java.util.Map;
@@ -37,15 +36,14 @@ import java.util.Map;
 /**
  * @Author Zubair Asghar.
  */
-public class ImageFileSavedEvent extends ApplicationEvent
+public class ImageFileSavedEvent
 {
     private String fileResource;
 
     private Map<ImageFileDimension, File> imageFiles;
 
-    public ImageFileSavedEvent( Object source, String fileResource, Map<ImageFileDimension, File> imageFiles )
+    public ImageFileSavedEvent( String fileResource, Map<ImageFileDimension, File> imageFiles )
     {
-        super(source);
         this.fileResource = fileResource;
         this.imageFiles = imageFiles;
     }

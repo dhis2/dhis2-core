@@ -28,20 +28,18 @@ package org.hisp.dhis.fileresource.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.context.ApplicationEvent;
 
 /**
  * @Author Zubair Asghar.
  */
-public class BinaryFileSavedEvent extends ApplicationEvent
+public class BinaryFileSavedEvent
 {
     private String fileResource;
 
     private byte[] bytes;
 
-    public BinaryFileSavedEvent( Object source, String fileResource, byte[] bytes )
+    public BinaryFileSavedEvent( String fileResource, byte[] bytes )
     {
-        super(source);
         this.fileResource = fileResource;
         this.bytes = bytes;
     }
