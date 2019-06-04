@@ -82,7 +82,7 @@ public class OrganisationUnitQueryParams
     private boolean fetchChildren;
 
     /**
-     * Property used for sorting, default is NAME
+     * Property used for sorting, default value is {@link SortProperty#NAME}.
      */
     private SortProperty orderBy = SortProperty.NAME;
 
