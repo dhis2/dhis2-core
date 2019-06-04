@@ -28,15 +28,21 @@
 
 package org.hisp.dhis.fileresource;
 
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
+import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
+import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,7 +78,13 @@ public class FileResourceServiceTest
     private Session session;
 
     @Captor
-    protected ArgumentCaptor<FileSavedEvent> publishEventCaptor;
+    private ArgumentCaptor<FileSavedEvent> fileSavedEventCaptor;
+
+    @Captor
+    private ArgumentCaptor<ImageFileSavedEvent> imageFileSavedEventCaptor;
+
+    @Captor
+    private ArgumentCaptor<FileDeletedEvent> fileDeletedEventCaptor;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -89,9 +101,9 @@ public class FileResourceServiceTest
     }
 
     @Test
-    public void verifySaveFileAsImage()
+    public void verifySaveFile()
     {
-        FileResource fileResource = new FileResource( "mycat.jpg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
+        FileResource fileResource = new FileResource( "mycat.pdf", "application/pdf", 1000, "md5",
             FileResourceDomain.PUSH_ANALYSIS );
 
         fileResource.setUid( "fileRes1" );
@@ -103,11 +115,62 @@ public class FileResourceServiceTest
         verify( fileResourceStore ).save( fileResource );
         verify( session ).flush();
 
-        verify( fileEventPublisher, times( 1 ) ).publishEvent( publishEventCaptor.capture() );
+        verify( fileEventPublisher, times( 1 ) ).publishEvent( fileSavedEventCaptor.capture() );
 
-        FileSavedEvent event = publishEventCaptor.getValue();
+        FileSavedEvent event = fileSavedEventCaptor.getValue();
+
         assertThat( event.getFileResource(), is( "fileRes1" ) );
         assertThat( event.getFile(), is( file ) );
     }
 
+    @Test
+    public void verifySaveImageFile()
+    {
+        FileResource fileResource = new FileResource( "test.jpeg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
+                FileResourceDomain.DATA_VALUE );
+
+        File file = new File( "" );
+
+        Map<ImageFileDimension, File> imageFiles = ImmutableMap.of( ImageFileDimension.LARGE, file );
+
+        when( imageProcessingService.createImages( fileResource, file ) ).thenReturn( imageFiles );
+
+        fileResource.setUid( "imageUid1" );
+
+        subject.saveFileResource( fileResource, file );
+
+        verify( fileResourceStore ).save( fileResource );
+        verify( session ).flush();
+
+        verify( fileEventPublisher, times( 1 ) ).publishEvent( imageFileSavedEventCaptor.capture() );
+
+        ImageFileSavedEvent event = imageFileSavedEventCaptor.getValue();
+
+        assertThat( event.getFileResource(), is( "imageUid1" ) );
+        assertFalse( event.getImageFiles().isEmpty() );
+        assertThat( event.getImageFiles().size(), is( 1 ) );
+        assertThat( event.getImageFiles(), hasKey( ImageFileDimension.LARGE ) );
+    }
+
+    @Test
+    public void verifyDeleteFile()
+    {
+        FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 1000, "md5",
+            FileResourceDomain.DOCUMENT );
+
+        fileResource.setUid( "fileUid1" );
+
+        when( fileResourceStore.get( anyLong() ) ).thenReturn( fileResource );
+
+        subject.deleteFileResource( fileResource );
+
+        verify( fileResourceStore ).delete( fileResource );
+
+        verify( fileEventPublisher, times( 1 ) ).publishEvent( fileDeletedEventCaptor.capture() );
+
+        FileDeletedEvent event = fileDeletedEventCaptor.getValue();
+
+        assertThat( event.getContentType(), is( "application/pdf" ) );
+        assertThat( event.getDomain(), is( FileResourceDomain.DOCUMENT ) );
+    }
 }
