@@ -28,9 +28,74 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "importReport", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackerImportReport
 {
+    private TrackerStatus status = TrackerStatus.OK;
+
+    private List<TrackerBundleReport> bundleReports = new ArrayList<>();
+
+    public TrackerImportReport()
+    {
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Utility Methods
+    //-----------------------------------------------------------------------------------
+
+    public boolean isEmpty()
+    {
+        return bundleReports.isEmpty();
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Getters and Setters
+    //-----------------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackerStatus getStatus()
+    {
+        return status;
+    }
+
+    public void setStatus( TrackerStatus status )
+    {
+        this.status = status;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackerStats getStats()
+    {
+        TrackerStats stats = new TrackerStats();
+        bundleReports.forEach( br -> stats.merge( br.getStats() ) );
+
+        return stats;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "bundleReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "bundleReport", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackerBundleReport> getBundleReports()
+    {
+        return bundleReports;
+    }
+
+    public void setBundleReports( List<TrackerBundleReport> bundleReports )
+    {
+        this.bundleReports = bundleReports;
+    }
 }

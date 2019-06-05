@@ -28,15 +28,60 @@ package org.hisp.dhis.tracker.report;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "validationReport", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackerValidationReport
 {
+    private List<TrackerErrorReport> errorReports = new ArrayList<>();
+
+    public TrackerValidationReport()
+    {
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Utility Methods
+    //-----------------------------------------------------------------------------------
+
+    public void add( TrackerValidationReport validationReport )
+    {
+        add( validationReport.getErrorReports() );
+    }
+
     public void add( List<TrackerErrorReport> errorReports )
     {
+        this.errorReports.addAll( errorReports );
+    }
 
+    public boolean isEmpty()
+    {
+        return errorReports == null || errorReports.isEmpty();
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Getters and Setters
+    //-----------------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackerErrorReport> getErrorReports()
+    {
+        return errorReports;
+    }
+
+    public void setErrorReports( List<TrackerErrorReport> errorReports )
+    {
+        this.errorReports = errorReports;
     }
 }

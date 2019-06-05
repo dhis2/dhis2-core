@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -85,19 +86,36 @@ public class DefaultTrackerImportService implements TrackerImportService
         String message = "(" + params.getUsername() + ") Import:Start";
         log.info( message );
 
+        params.setUser( getUser( params.getUser(), params.getUserId() ) );
+
         TrackerImportReport importReport = new TrackerImportReport();
 
         TrackerBundleParams bundleParams = params.toTrackerBundleParams();
         List<TrackerBundle> trackerBundles = trackerBundleService.create( bundleParams );
 
-        trackerBundles.forEach( tb -> {
-            TrackerValidationReport validationReport = trackerValidationService.validate( tb );
+        TrackerValidationReport validationReport = new TrackerValidationReport();
+        trackerBundles.forEach( tb -> validationReport.add( trackerValidationService.validate( tb ) ) );
 
-            if ( TrackerBundleMode.VALIDATE != tb.getImportMode() )
-            {
+        if ( !(!validationReport.isEmpty() && AtomicMode.ALL == params.getAtomicMode()) )
+        {
+            Timer commitTimer = new SystemTimer().start();
+
+            trackerBundles.forEach( tb -> {
                 TrackerBundleReport bundleReport = trackerBundleService.commit( tb );
+                importReport.getBundleReports().add( bundleReport );
+            } );
+
+            if ( !importReport.isEmpty() )
+            {
+                importReport.setStatus( TrackerStatus.WARNING );
             }
-        } );
+
+            log.info( "(" + params.getUsername() + ") Import:Commit took " + commitTimer.toString() );
+        }
+        else
+        {
+            importReport.setStatus( TrackerStatus.ERROR );
+        }
 
         message = "(" + params.getUsername() + ") Import:Done took " + timer.toString();
         log.info( message );

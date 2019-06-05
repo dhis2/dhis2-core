@@ -57,11 +57,21 @@ public class TrackerBundleReport
 
     public TrackerBundleReport()
     {
+
     }
 
     public TrackerBundleReport( TrackerBundleParams bundleParams )
     {
         this.bundleParams = bundleParams;
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Utility Methods
+    //-----------------------------------------------------------------------------------
+
+    public boolean isEmpty()
+    {
+        return typeReportMap.isEmpty();
     }
 
     //-----------------------------------------------------------------------------------
@@ -115,10 +125,5 @@ public class TrackerBundleReport
     public Map<TrackerType, TrackerTypeReport> getTypeReportMap()
     {
         return typeReportMap;
-    }
-
-    public int size()
-    {
-        return typeReportMap.size();
     }
 }

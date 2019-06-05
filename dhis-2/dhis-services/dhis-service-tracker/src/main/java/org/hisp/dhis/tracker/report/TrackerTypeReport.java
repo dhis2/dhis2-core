@@ -57,14 +57,14 @@ public class TrackerTypeReport
         this.trackerType = trackerType;
     }
 
+    //-----------------------------------------------------------------------------------
+    // Getters and Setters
+    //-----------------------------------------------------------------------------------
+
     public TrackerType getTrackerType()
     {
         return trackerType;
     }
-
-    //-----------------------------------------------------------------------------------
-    // Getters and Setters
-    //-----------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

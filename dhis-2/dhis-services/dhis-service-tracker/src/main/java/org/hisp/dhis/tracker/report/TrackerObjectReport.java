@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.report;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.tracker.TrackerErrorCode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -43,6 +44,7 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@JacksonXmlRootElement( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackerObjectReport
 {
     /**
@@ -66,6 +68,24 @@ public class TrackerObjectReport
     {
         this.trackerType = trackerType;
     }
+
+    //-----------------------------------------------------------------------------------
+    // Utility Methods
+    //-----------------------------------------------------------------------------------
+
+    public boolean isEmpty()
+    {
+        return errorReportsByCode.isEmpty();
+    }
+
+    public int size()
+    {
+        return errorReportsByCode.size();
+    }
+
+    //-----------------------------------------------------------------------------------
+    // Getters and Setters
+    //-----------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -117,15 +137,5 @@ public class TrackerObjectReport
     public Map<TrackerErrorCode, List<TrackerErrorReport>> getErrorReportsByCode()
     {
         return errorReportsByCode;
-    }
-
-    public boolean isEmpty()
-    {
-        return errorReportsByCode.isEmpty();
-    }
-
-    public int size()
-    {
-        return errorReportsByCode.size();
     }
 }
