@@ -88,7 +88,7 @@ public class JvmMetricsConfig
         MetricsEnabler
     {
         @Override
-        ConfigurationKey getConfigKey()
+        protected ConfigurationKey getConfigKey()
         {
             return MONITORING_JVM_ENABLED;
         }

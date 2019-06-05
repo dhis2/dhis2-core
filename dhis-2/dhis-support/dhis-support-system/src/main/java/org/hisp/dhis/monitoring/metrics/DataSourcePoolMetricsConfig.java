@@ -118,7 +118,7 @@ public class DataSourcePoolMetricsConfig
         extends MetricsEnabler
     {
         @Override
-        ConfigurationKey getConfigKey()
+        protected ConfigurationKey getConfigKey()
         {
             return MONITORING_DBPOOL_ENABLED;
         }

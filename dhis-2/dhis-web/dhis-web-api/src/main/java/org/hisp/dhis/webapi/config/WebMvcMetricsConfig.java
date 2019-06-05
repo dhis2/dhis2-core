@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.monitoring.metrics;
+package org.hisp.dhis.webapi.config;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_API_ENABLED;
 
@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.monitoring.metrics.MetricsEnabler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -106,7 +107,7 @@ public class WebMvcMetricsConfig
             extends MetricsEnabler
     {
         @Override
-        ConfigurationKey getConfigKey()
+        protected ConfigurationKey getConfigKey()
         {
             return MONITORING_API_ENABLED;
         }
@@ -127,5 +128,4 @@ public class WebMvcMetricsConfig
             return isTestRun( conditionContext ) || !getBooleanValue( MONITORING_API_ENABLED );
         }
     }
-
 }

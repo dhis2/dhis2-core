@@ -98,7 +98,7 @@ public class HibernateMetricsConfig
         extends MetricsEnabler
     {
         @Override
-        ConfigurationKey getConfigKey()
+        protected ConfigurationKey getConfigKey()
         {
             return MONITORING_HIBERNATE_ENABLED;
         }

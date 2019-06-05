@@ -51,5 +51,5 @@ public abstract class MetricsEnabler
         return !isTestRun( conditionContext ) && getBooleanValue( getConfigKey() );
     }
 
-    abstract ConfigurationKey getConfigKey();
+    protected abstract ConfigurationKey getConfigKey();
 }
