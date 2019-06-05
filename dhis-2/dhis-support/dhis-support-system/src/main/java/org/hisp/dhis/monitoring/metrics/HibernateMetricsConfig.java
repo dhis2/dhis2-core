@@ -101,8 +101,7 @@ public class HibernateMetricsConfig
     }
 
     static class HibernateMetricsEnabledCondition
-        extends
-        MetricsEnabler
+        extends MetricsEnabler
     {
         @Override
         ConfigurationKey getConfigKey()
