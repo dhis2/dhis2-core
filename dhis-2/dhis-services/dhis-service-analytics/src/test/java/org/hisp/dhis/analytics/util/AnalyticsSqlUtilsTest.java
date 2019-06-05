@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,9 +26,24 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface IncomingSmsListener
-{
-    boolean accept( IncomingSms sms );
+package org.hisp.dhis.analytics.util;
 
-    void receive( IncomingSms sms );
+import org.junit.Test;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.*;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class AnalyticsSqlUtilsTest
+{
+    @Test
+    public void testAddClosingParentheses()
+    {
+        assertThat( AnalyticsSqlUtils.addClosingParentheses( null ), is( "" ) );
+        assertThat( AnalyticsSqlUtils.addClosingParentheses( "" ), is( "" ) );
+        assertThat( AnalyticsSqlUtils.addClosingParentheses( "((" ), is( "))" ) );
+        assertThat( AnalyticsSqlUtils.addClosingParentheses( "ckwk3rkwptp2)2upywjnmne0o92ylzf4rw(5arbll1c0qrawpdh8n(89h)57r8j7er6qc1vnghnmsx4mssa77idrcrwcx0tuh359" ), is( ")" ) );
+    }
 }

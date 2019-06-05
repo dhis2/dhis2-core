@@ -28,9 +28,7 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DATE;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.*;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
@@ -78,7 +76,6 @@ import com.google.common.collect.Sets;
 public class JdbcCompletenessTargetTableManager
     extends AbstractJdbcTableManager
 {
-
     public JdbcCompletenessTargetTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -91,6 +88,14 @@ public class JdbcCompletenessTargetTableManager
             databaseInfo, jdbcTemplate );
     }
 
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+        new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
+        new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
+        new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
+        new AnalyticsTableColumn( quote( "coenddate" ), DATE, "doc.coenddate" ),
+        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
+        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
+    
     @Override
     public AnalyticsTableType getAnalyticsTableType()
     {
@@ -196,12 +201,7 @@ public class JdbcCompletenessTargetTableManager
             columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11, "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "ouopeningdate"), DATE, "ou.openingdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "oucloseddate"), DATE, "ou.closeddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "coenddate" ), DATE, "doc.coenddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ) );
+        columns.addAll( getFixedColumns() );
 
         return filterDimensionColumns( columns );
     }
@@ -223,5 +223,11 @@ public class JdbcCompletenessTargetTableManager
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         return ConcurrentUtils.getImmediateFuture();
+    }
+
+    @Override
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }

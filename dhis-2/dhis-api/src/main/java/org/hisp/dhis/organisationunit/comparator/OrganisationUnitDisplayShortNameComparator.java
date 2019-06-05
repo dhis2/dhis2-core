@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.incoming;
+package org.hisp.dhis.organisationunit.comparator;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,9 +28,18 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-public interface IncomingSmsListener
-{
-    boolean accept( IncomingSms sms );
+import java.util.Comparator;
 
-    void receive( IncomingSms sms );
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+public class OrganisationUnitDisplayShortNameComparator
+    implements Comparator<OrganisationUnit>
+{ 
+    public static final Comparator<OrganisationUnit> INSTANCE = new OrganisationUnitDisplayShortNameComparator();
+
+    @Override
+    public int compare( OrganisationUnit organisationUnit1, OrganisationUnit organisationUnit2 )
+    {
+        return organisationUnit1.getDisplayShortName().compareTo( organisationUnit2.getDisplayShortName() );
+    }
 }

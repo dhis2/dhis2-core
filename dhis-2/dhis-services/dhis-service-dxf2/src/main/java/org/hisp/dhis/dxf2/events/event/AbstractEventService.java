@@ -542,10 +542,7 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
-        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-        {
-            validateExpiryDays( event, program, null );
-        }
+        validateExpiryDays( importOptions, event, program, programStageInstance );
 
         if ( event.getGeometry() != null )
         {
@@ -1174,6 +1171,17 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
         }
 
+        errors = validateEventDates( event );
+
+        if ( !errors.isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
         if ( event.getEventDate() != null )
         {
             Date executionDate = DateUtils.parseDate( event.getEventDate() );
@@ -1239,11 +1247,7 @@ public abstract class AbstractEventService
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setGeometry( event.getGeometry() );
 
-
-        if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
-        {
-            validateExpiryDays( event, program, programStageInstance );
-        }
+        validateExpiryDays( importOptions, event, program, programStageInstance );
 
         CategoryOptionCombo aoc = programStageInstance.getAttributeOptionCombo();
 
@@ -1621,6 +1625,17 @@ public abstract class AbstractEventService
 
         boolean dryRun = importOptions.isDryRun();
 
+        List <String> errors = validateEventDates( event );
+
+        if ( !errors.isEmpty() )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "Event", s ) ).collect( Collectors.toList() ) );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
         Date executionDate = null;
 
         if ( event.getEventDate() != null )
@@ -1673,7 +1688,7 @@ public abstract class AbstractEventService
 
         validateAttributeOptionComboDate( aoc, eventDate );
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
+        errors = trackerAccessManager.canWrite( importOptions.getUser(), aoc );
 
         if ( !errors.isEmpty() )
         {
@@ -2097,8 +2112,13 @@ public abstract class AbstractEventService
         }
     }
 
-    private void validateExpiryDays( Event event, Program program, ProgramStageInstance programStageInstance )
+    private void validateExpiryDays( ImportOptions importOptions, Event event, Program program, ProgramStageInstance programStageInstance )
     {
+        if ( importOptions == null || importOptions.getUser() == null || importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+        {
+            return;
+        }
+
         if ( program != null )
         {
             if ( program.getCompleteEventsExpiryDays() > 0 )
@@ -2400,5 +2420,32 @@ public abstract class AbstractEventService
         }
 
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+    }
+
+    private List<String> validateEventDates( Event event )
+    {
+        List<String> errors = new ArrayList<>();
+
+        if ( event.getDueDate() != null && !DateUtils.dateIsValid( event.getDueDate() ) )
+        {
+            errors.add( "Invalid event due date: " + event.getDueDate() );
+        }
+
+        if ( event.getEventDate() != null && !DateUtils.dateIsValid( event.getEventDate() ) )
+        {
+            errors.add( "Invalid event date: " + event.getEventDate() );
+        }
+
+        if ( event.getCreatedAtClient() != null && !DateUtils.dateIsValid( event.getCreatedAtClient() ) )
+        {
+            errors.add( "Invalid event created at client date: " + event.getCreatedAtClient() );
+        }
+
+        if ( event.getLastUpdatedAtClient() != null && !DateUtils.dateIsValid( event.getLastUpdatedAtClient() ) )
+        {
+            errors.add( "Invalid event last updated at client date: " + event.getLastUpdatedAtClient() );
+        }
+
+        return errors;
     }
 }

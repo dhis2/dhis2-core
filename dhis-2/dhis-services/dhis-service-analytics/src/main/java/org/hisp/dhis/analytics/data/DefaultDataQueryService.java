@@ -428,12 +428,12 @@ public class DefaultDataQueryService
 
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
-            DimensionalKeywords dimensionalKeywords = null;
+            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
 
             if ( !levels.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
-                dimensionalKeywords = new DimensionalKeywords(
+                dimensionalKeywords.addGroupBy(
                     levels.stream().map( l -> organisationUnitService.getOrganisationUnitLevelByLevel( l ) )
                         .filter( Objects::nonNull ).collect( Collectors.toList() ) );
             }
@@ -441,7 +441,7 @@ public class DefaultDataQueryService
             if ( !groups.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
-                dimensionalKeywords = new DimensionalKeywords(
+                dimensionalKeywords.addGroupBy(
                     groups.stream().map( g -> new BaseNameableObject( g.getUid(), g.getCode(), g.getName() ) )
                         .collect( Collectors.toList() ) );
             }
@@ -457,7 +457,7 @@ public class DefaultDataQueryService
 
             // Add boundary OUs as keywords
 
-            if ( dimensionalKeywords != null )
+            if ( !dimensionalKeywords.isEmpty() )
             {
                 dimensionalKeywords.addGroupBy( ousList );
             }
