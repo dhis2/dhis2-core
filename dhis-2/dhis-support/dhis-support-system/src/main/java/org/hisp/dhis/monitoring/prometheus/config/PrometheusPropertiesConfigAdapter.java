@@ -36,10 +36,8 @@ import java.time.Duration;
  * @author Luciano Fiandesio
  */
 public class PrometheusPropertiesConfigAdapter
-    extends
-    PropertiesConfigAdapter<PrometheusProperties>
-    implements
-    PrometheusConfig
+    extends PropertiesConfigAdapter<PrometheusProperties>
+    implements PrometheusConfig
 {
     /**
      * Create a new {@link PropertiesConfigAdapter} instance.

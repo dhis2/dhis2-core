@@ -57,9 +57,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 @Configuration
 public class DataSourcePoolMetricsConfig
 {
-    @Autowired
-    private DataSource dataSource;
-
     @Configuration
     @Conditional( DataSourcePoolMetricsEnabledCondition.class )
     static class DataSourcePoolMetadataMetricsConfiguration
@@ -93,7 +90,7 @@ public class DataSourcePoolMetricsConfig
 
         /**
          * Get the name of a DataSource based on its {@code beanName}.
-         * 
+         *
          * @param beanName the name of the data source bean
          * @return a name for the given data source
          */
@@ -106,7 +103,6 @@ public class DataSourcePoolMetricsConfig
             }
             return beanName;
         }
-
     }
 
     @Bean
@@ -119,8 +115,7 @@ public class DataSourcePoolMetricsConfig
     }
 
     static class DataSourcePoolMetricsEnabledCondition
-        extends
-        MetricsEnabler
+        extends MetricsEnabler
     {
         @Override
         ConfigurationKey getConfigKey()

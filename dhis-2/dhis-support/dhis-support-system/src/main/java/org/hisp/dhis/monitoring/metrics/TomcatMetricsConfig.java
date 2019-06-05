@@ -61,8 +61,7 @@ public class TomcatMetricsConfig
     }
 
     static class TomcatMetricsEnabledCondition
-        extends
-        MetricsEnabler
+        extends MetricsEnabler
     {
         @Override
         ConfigurationKey getConfigKey()

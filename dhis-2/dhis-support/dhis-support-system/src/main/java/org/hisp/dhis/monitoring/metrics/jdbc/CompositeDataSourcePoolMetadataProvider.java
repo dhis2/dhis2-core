@@ -43,8 +43,7 @@ import javax.sql.DataSource;
  * @since 2.0.0
  */
 public class CompositeDataSourcePoolMetadataProvider
-    implements
-    DataSourcePoolMetadataProvider
+    implements DataSourcePoolMetadataProvider
 {
 
     private final List<DataSourcePoolMetadataProvider> providers;
@@ -52,7 +51,7 @@ public class CompositeDataSourcePoolMetadataProvider
     /**
      * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an
      * initial collection of delegates to use.
-     * 
+     *
      * @param providers the data source pool metadata providers
      */
     public CompositeDataSourcePoolMetadataProvider( Collection<? extends DataSourcePoolMetadataProvider> providers )

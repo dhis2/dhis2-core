@@ -36,8 +36,7 @@ import java.sql.SQLException;
  * @author Luciano Fiandesio
  */
 public class C3p0MetadataProvider
-    extends
-    AbstractDataSourcePoolMetadata<ComboPooledDataSource>
+    extends AbstractDataSourcePoolMetadata<ComboPooledDataSource>
 {
 
     /**

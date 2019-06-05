@@ -238,8 +238,8 @@ public class MetadataImportExportController
 
     @GetMapping
     public ResponseEntity<RootNode> getMetadata(
-            @RequestParam( required = false, defaultValue = "false" ) boolean translate, @RequestParam( required = false ) String locale,
-            @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        @RequestParam( required = false, defaultValue = "false" ) boolean translate, @RequestParam( required = false ) String locale,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
     {
         if ( translate )
         {
@@ -263,6 +263,6 @@ public class MetadataImportExportController
     private Locale getLocaleWithDefault( TranslateParams translateParams )
     {
         return translateParams.isTranslate() ?
-                translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
+            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 }

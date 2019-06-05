@@ -40,10 +40,8 @@ import java.util.Collection;
  * @author Jon Schneider
  */
 public class DataSourcePoolMetrics
-    implements
-    MeterBinder
+    implements MeterBinder
 {
-
     private final DataSource dataSource;
 
     private final String name;

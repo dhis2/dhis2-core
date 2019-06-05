@@ -40,6 +40,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 
 /**
@@ -54,7 +55,6 @@ public class PrometheusScrapeEndpointController
 
     public PrometheusScrapeEndpointController( CollectorRegistry collectorRegistry )
     {
-
         this.collectorRegistry = collectorRegistry;
     }
 
@@ -70,9 +70,9 @@ public class PrometheusScrapeEndpointController
         }
         catch ( IOException ex )
         {
-            // This actually never happens since StringWriter::write() doesn't throw any
-            // IOException
-            throw new RuntimeException( "Writing metrics failed", ex );
+            // This never happens since StringWriter::write() doesn't throw IOException
+
+            throw new UncheckedIOException( "Writing metrics failed", ex );
         }
     }
 }

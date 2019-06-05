@@ -37,8 +37,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * @author Luciano Fiandesio
  */
 public abstract class MetricsEnabler
-    extends
-    PropertiesAwareConfigurationCondition
+    extends PropertiesAwareConfigurationCondition
 {
     @Override
     public ConfigurationPhase getConfigurationPhase()
@@ -49,7 +48,7 @@ public abstract class MetricsEnabler
     @Override
     public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
     {
-        return !isTestRun(conditionContext) && getBooleanValue( getConfigKey() );
+        return !isTestRun( conditionContext ) && getBooleanValue( getConfigKey() );
     }
 
     abstract ConfigurationKey getConfigKey();

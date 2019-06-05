@@ -92,7 +92,6 @@ public enum ConfigurationKey
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
-    // MONITORING //
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
     MONITORING_API_ENABLED( "monitoring.api.enabled", "false", false ),
     MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", "false", false ),

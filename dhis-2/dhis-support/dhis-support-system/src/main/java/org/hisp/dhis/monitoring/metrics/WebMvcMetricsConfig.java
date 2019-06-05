@@ -58,15 +58,14 @@ import io.micrometer.spring.web.servlet.WebMvcTagsProvider;
  */
 @Configuration
 @Conditional( WebMvcMetricsConfig.WebMvcMetricsEnabledCondition.class )
-public class WebMvcMetricsConfig {
-
+public class WebMvcMetricsConfig
+{
     @Bean
     public DefaultWebMvcTagsProvider servletTagsProvider()
     {
         return new DefaultWebMvcTagsProvider();
     }
 
-    @SuppressWarnings( "deprecation" )
     @Bean
     public WebMvcMetricsFilter webMetricsFilter( MeterRegistry registry, WebMvcTagsProvider tagsProvider,
         WebApplicationContext ctx )
@@ -85,13 +84,11 @@ public class WebMvcMetricsConfig {
         }
     }
 
-    // if the API metrics are disabled, the system still expects a Filter named 'webMetricsFilter' to be
-    // available.
-    static class PassThroughWebMvcMetricsFilter
-        extends
-        OncePerRequestFilter
-    {
+    // If API metrics are disabled, system still expects a filter named 'webMetricsFilter' to be available
 
+    static class PassThroughWebMvcMetricsFilter
+        extends OncePerRequestFilter
+    {
         @Override
         protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response,
             FilterChain filterChain )
@@ -103,8 +100,7 @@ public class WebMvcMetricsConfig {
     }
 
     static class WebMvcMetricsEnabledCondition
-            extends
-            MetricsEnabler
+            extends MetricsEnabler
     {
         @Override
         ConfigurationKey getConfigKey()
@@ -114,8 +110,7 @@ public class WebMvcMetricsConfig {
     }
 
     static class WebMvcMetricsDisabledCondition
-            extends
-            PropertiesAwareConfigurationCondition
+        extends PropertiesAwareConfigurationCondition
     {
         @Override
         public ConfigurationPhase getConfigurationPhase()
@@ -126,7 +121,7 @@ public class WebMvcMetricsConfig {
         @Override
         public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
         {
-            return isTestRun(conditionContext) || !getBooleanValue( MONITORING_API_ENABLED );
+            return isTestRun( conditionContext ) || !getBooleanValue( MONITORING_API_ENABLED );
         }
     }
 

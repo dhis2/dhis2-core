@@ -105,11 +105,6 @@ public class PrometheusProperties {
          */
         private Map<String, String> groupingKey = new HashMap<>();
 
-        /**
-         * Operation that should be performed on shutdown.
-         */
-//        private ShutdownOperation shutdownOperation = ShutdownOperation.NONE;
-
         public Boolean getEnabled() {
             return this.enabled;
         }
