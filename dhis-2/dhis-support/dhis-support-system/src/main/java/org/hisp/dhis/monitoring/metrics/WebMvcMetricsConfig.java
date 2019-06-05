@@ -70,7 +70,10 @@ public class WebMvcMetricsConfig
     public WebMvcMetricsFilter webMetricsFilter( MeterRegistry registry, WebMvcTagsProvider tagsProvider,
         WebApplicationContext ctx )
     {
-        return new WebMvcMetricsFilter( registry, tagsProvider, "dhis2", true, new HandlerMappingIntrospector( ctx ) );
+        HandlerMappingIntrospector handlerMappingIntrospector = new HandlerMappingIntrospector();
+        handlerMappingIntrospector.setApplicationContext( ctx );
+        
+        return new WebMvcMetricsFilter( registry, tagsProvider, "dhis2", true, handlerMappingIntrospector );
     }
 
     @Configuration

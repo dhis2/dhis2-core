@@ -42,10 +42,8 @@ import javax.sql.DataSource;
  * @author Stephane Nicoll
  * @since 2.0.0
  */
-public class CompositeDataSourcePoolMetadataProvider
-    implements DataSourcePoolMetadataProvider
+public class CompositeDataSourcePoolMetadataProvider implements DataSourcePoolMetadataProvider
 {
-
     private final List<DataSourcePoolMetadataProvider> providers;
 
     /**

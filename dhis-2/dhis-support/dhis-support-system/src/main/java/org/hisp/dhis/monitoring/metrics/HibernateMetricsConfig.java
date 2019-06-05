@@ -71,16 +71,10 @@ public class HibernateMetricsConfig
     private void bindEntityManagerFactoryToRegistry( String beanName, EntityManagerFactory entityManagerFactory )
     {
         String entityManagerFactoryName = getEntityManagerFactoryName( beanName );
-        try
-        {
-            SessionFactory sessionFactory = entityManagerFactory.unwrap( SessionFactory.class );
-            new HibernateMetrics( sessionFactory, entityManagerFactoryName, Collections.emptyList() )
-                .bindTo( this.registry );
-        }
-        catch ( PersistenceException ex )
-        {
-            ex.printStackTrace();
-        }
+
+        SessionFactory sessionFactory = entityManagerFactory.unwrap( SessionFactory.class );
+        new HibernateMetrics( sessionFactory, entityManagerFactoryName, Collections.emptyList() )
+            .bindTo( this.registry );
     }
 
     /**

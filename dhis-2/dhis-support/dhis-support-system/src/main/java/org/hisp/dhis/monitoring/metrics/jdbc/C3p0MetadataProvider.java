@@ -29,6 +29,8 @@
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.sql.SQLException;
 
@@ -38,7 +40,7 @@ import java.sql.SQLException;
 public class C3p0MetadataProvider
     extends AbstractDataSourcePoolMetadata<ComboPooledDataSource>
 {
-
+    private static final Log log = LogFactory.getLog( C3p0MetadataProvider.class );
     /**
      * Create an instance with the data source to use.
      *
@@ -58,7 +60,7 @@ public class C3p0MetadataProvider
         }
         catch ( SQLException e )
         {
-            e.printStackTrace();
+            log.error( "An error occurred while fetching number of busy connection from the DataSource", e );
             return 0;
         }
     }

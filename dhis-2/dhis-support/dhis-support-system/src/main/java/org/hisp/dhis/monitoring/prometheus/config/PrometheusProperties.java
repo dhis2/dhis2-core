@@ -27,12 +27,17 @@
  */
 
 package org.hisp.dhis.monitoring.prometheus.config;
+
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-
-
-public class PrometheusProperties {
+/**
+ * Configuration Properties for configuring metrics export to Prometheus.
+ *
+ * @author Jon Schneider
+ */
+public class PrometheusProperties
+{
 
     /**
      * Whether to enable publishing descriptions as part of the scrape payload to
@@ -41,44 +46,51 @@ public class PrometheusProperties {
     private boolean descriptions = true;
 
     /**
-     * Configuration options for using Prometheus Pushgateway, allowing metrics to be
-     * pushed when they cannot be scraped.
+     * Configuration options for using Prometheus Pushgateway, allowing metrics to
+     * be pushed when they cannot be scraped.
      */
     private Pushgateway pushgateway = new Pushgateway();
 
     /**
      * Step size (i.e. reporting frequency) to use.
      */
-    private Duration step = Duration.ofMinutes(1);
+    private Duration step = Duration.ofMinutes( 1 );
 
-    public boolean isDescriptions() {
+    public boolean isDescriptions()
+    {
         return this.descriptions;
     }
 
-    public void setDescriptions(boolean descriptions) {
+    public void setDescriptions( boolean descriptions )
+    {
         this.descriptions = descriptions;
     }
 
-    public Duration getStep() {
+    public Duration getStep()
+    {
         return this.step;
     }
 
-    public void setStep(Duration step) {
+    public void setStep( Duration step )
+    {
         this.step = step;
     }
 
-    public Pushgateway getPushgateway() {
+    public Pushgateway getPushgateway()
+    {
         return this.pushgateway;
     }
 
-    public void setPushgateway(Pushgateway pushgateway) {
+    public void setPushgateway( Pushgateway pushgateway )
+    {
         this.pushgateway = pushgateway;
     }
 
     /**
      * Configuration options for push-based interaction with Prometheus.
      */
-    public static class Pushgateway {
+    public static class Pushgateway
+    {
 
         /**
          * Enable publishing via a Prometheus Pushgateway.
@@ -93,7 +105,7 @@ public class PrometheusProperties {
         /**
          * Frequency with which to push metrics.
          */
-        private Duration pushRate = Duration.ofMinutes(1);
+        private Duration pushRate = Duration.ofMinutes( 1 );
 
         /**
          * Job identifier for this application instance.
@@ -105,43 +117,53 @@ public class PrometheusProperties {
          */
         private Map<String, String> groupingKey = new HashMap<>();
 
-        public Boolean getEnabled() {
+        public Boolean getEnabled()
+        {
             return this.enabled;
         }
 
-        public void setEnabled(Boolean enabled) {
+        public void setEnabled( Boolean enabled )
+        {
             this.enabled = enabled;
         }
 
-        public String getBaseUrl() {
+        public String getBaseUrl()
+        {
             return this.baseUrl;
         }
 
-        public void setBaseUrl(String baseUrl) {
+        public void setBaseUrl( String baseUrl )
+        {
             this.baseUrl = baseUrl;
         }
 
-        public Duration getPushRate() {
+        public Duration getPushRate()
+        {
             return this.pushRate;
         }
 
-        public void setPushRate(Duration pushRate) {
+        public void setPushRate( Duration pushRate )
+        {
             this.pushRate = pushRate;
         }
 
-        public String getJob() {
+        public String getJob()
+        {
             return this.job;
         }
 
-        public void setJob(String job) {
+        public void setJob( String job )
+        {
             this.job = job;
         }
 
-        public Map<String, String> getGroupingKey() {
+        public Map<String, String> getGroupingKey()
+        {
             return this.groupingKey;
         }
 
-        public void setGroupingKey(Map<String, String> groupingKey) {
+        public void setGroupingKey( Map<String, String> groupingKey )
+        {
             this.groupingKey = groupingKey;
         }
 
