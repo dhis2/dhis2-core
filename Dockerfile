@@ -55,10 +55,10 @@ COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/loca
 # Create the easy-to-remember directory /DHIS2_home for Docker volume mounting to configure the CORE instance
 RUN mkdir /DHIS2_home
 
-RUN addgroup tomcatusers && \
-    adduser -g tomcatusers tomcat --disabled-password && \
-    chown -R tomcat:tomcatusers /usr/local/tomcat && \
-    chown -R tomcat:tomcatusers /DHIS2_home
+RUN addgroup tomcat && \
+    adduser -S -D -g tomcat tomcat && \
+    chown -R tomcat:tomcat /usr/local/tomcat && \
+    chown -R tomcat:tomcat /DHIS2_home
 
 USER tomcat
 
