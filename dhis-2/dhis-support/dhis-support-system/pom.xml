@@ -214,7 +214,6 @@
     </dependency>
 
     <!-- application monitoring -->
-    <!-- application monitoring -->
 
     <dependency>
       <groupId>io.micrometer</groupId>
