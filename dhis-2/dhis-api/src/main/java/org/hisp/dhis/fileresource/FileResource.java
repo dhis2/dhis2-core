@@ -29,7 +29,9 @@ package org.hisp.dhis.fileresource;
  */
 
 import java.util.Optional;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.springframework.util.MimeTypeUtils;
@@ -46,6 +48,8 @@ public class FileResource
     public static final String DEFAULT_FILENAME = "untitled";
 
     public static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
+
+    public static final Set<String> IMAGE_CONTENT_TYPES = ImmutableSet.of( "image/jpg", "image/png", "image/jpeg" );
 
     /**
      * MIME type.
@@ -78,6 +82,12 @@ public class FileResource
      * The domain which this FileResource belongs to.
      */
     private FileResourceDomain domain;
+
+    /**
+     *  To keep track of those files which are not pre-generated and need to be processed later.
+     *  Flag will be set to true for FileResource having more than one file associated with it (e.g images)
+     */
+    private boolean hasMultipleStorageFiles;
 
     /**
      * Current storage status of content.
@@ -212,5 +222,17 @@ public class FileResource
     public String getFormat()
     {
         return this.contentType.split("[/;]" )[1];
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isHasMultipleStorageFiles()
+    {
+        return hasMultipleStorageFiles;
+    }
+
+    public void setHasMultipleStorageFiles( boolean hasMultipleStorageFiles )
+    {
+        this.hasMultipleStorageFiles = hasMultipleStorageFiles;
     }
 }

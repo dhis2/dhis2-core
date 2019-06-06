@@ -28,41 +28,24 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.joda.time.DateTime;
-import org.joda.time.Period;
-import org.joda.time.format.PeriodFormat;
-import org.springframework.stereotype.Component;
-import org.springframework.util.concurrent.ListenableFutureCallback;
+
+import java.io.File;
+import java.util.Map;
 
 /**
- * @author Halvdan Hoem Grelland
+ * creates images with pre-defined sizes
+ *
+ * @Author Zubair Asghar.
  */
-@Component( "org.hisp.dhis.fileresource.FileResourceUploadCallback" )
-public class FileResourceUploadCallback
+public interface ImageProcessingService
 {
-    private Log log = LogFactory.getLog( FileResourceUploadCallback.class );
-
-    public ListenableFutureCallback<String> newInstance( String fileResourceUid )
-    {
-        return new ListenableFutureCallback<String>()
-        {
-            DateTime startTime = DateTime.now();
-
-            @Override
-            public void onFailure( Throwable ex )
-            {
-                log.error( "Saving content for file resource '" + fileResourceUid + "' failed", ex );
-            }
-
-            @Override
-            public void onSuccess( String result )
-            {
-                Period timeDiff = new Period( startTime, DateTime.now() );
-
-                log.info( "File stored with key: '" + result + "'. Upload finished in " + timeDiff.toString( PeriodFormat.getDefault() ) );
-            }
-        };
-    }
+    /**
+     *
+     * Service creates images in pre-defined sizes given in {@link ImageFileDimension} and puts the collection in map
+     *
+     * @param fileResource file resource with image content type
+     * @param file image file
+     * @return map containing {@link ImageFileDimension} and its associated file.
+     */
+    Map<ImageFileDimension, File> createImages( FileResource fileResource, File file );
 }

@@ -45,7 +45,7 @@ public interface FileResourceService
 
     List<FileResource> getOrphanedFileResources();
 
-    String saveFileResource( FileResource fileResource, File file );
+    void saveFileResource( FileResource fileResource, File file );
 
     String saveFileResource( FileResource fileResource, byte[] bytes );
 
@@ -61,5 +61,9 @@ public interface FileResourceService
 
     URI getSignedGetFileResourceContentUri( String uid );
 
+    URI getSignedGetFileResourceContentUri( FileResource fileResource );
+
     List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+
+    List<FileResource> getAllUnProcessedImagesFiles();
 }
