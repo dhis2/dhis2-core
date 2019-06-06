@@ -29,7 +29,6 @@ package org.hisp.dhis.user;
  */
 
 import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.common.SortProperty;
 
 import java.io.Serializable;
 import java.util.HashMap;

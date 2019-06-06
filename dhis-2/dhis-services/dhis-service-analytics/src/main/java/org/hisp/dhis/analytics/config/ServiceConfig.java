@@ -67,7 +67,7 @@ public class ServiceConfig
 
     @Bean( "org.hisp.dhis.analytics.CompletenessTargetTableService" )
     public DefaultAnalyticsTableService completenessTargetTableService(
-            @Qualifier( "org.hisp.dhis.analytics.CompletenessTableManager" ) AnalyticsTableManager tableManager,
+            @Qualifier( "org.hisp.dhis.analytics.CompletenessTargetTableManager" ) AnalyticsTableManager tableManager,
             OrganisationUnitService organisationUnitService, DataElementService dataElementService,
             ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
     {
