@@ -1,4 +1,4 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.organisationunit.comparator;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,21 +28,18 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public enum ChartType
-{
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE
+import java.util.Comparator;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+public class OrganisationUnitDisplayShortNameComparator
+    implements Comparator<OrganisationUnit>
+{ 
+    public static final Comparator<OrganisationUnit> INSTANCE = new OrganisationUnitDisplayShortNameComparator();
+
+    @Override
+    public int compare( OrganisationUnit organisationUnit1, OrganisationUnit organisationUnit2 )
+    {
+        return organisationUnit1.getDisplayShortName().compareTo( organisationUnit2.getDisplayShortName() );
+    }
 }

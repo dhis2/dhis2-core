@@ -48,9 +48,12 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.common.adapter.JacksonOrganisationUnitChildrenSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayNameComparator;
+import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayShortNameComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -60,6 +63,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -294,22 +298,35 @@ public class OrganisationUnit
         users.clear();
     }
 
-    public List<OrganisationUnit> getSortedChildren()
+    public List<OrganisationUnit> getSortedChildren( SortProperty sortBy )
     {
         List<OrganisationUnit> sortedChildren = new ArrayList<>( children );
 
-        Collections.sort( sortedChildren );
+        Comparator<OrganisationUnit> comparator = SortProperty.SHORT_NAME == sortBy ?
+            OrganisationUnitDisplayShortNameComparator.INSTANCE : OrganisationUnitDisplayNameComparator.INSTANCE;
 
+        Collections.sort( sortedChildren, comparator );
         return sortedChildren;
+
+    }
+
+    public List<OrganisationUnit> getSortedChildren()
+    {
+        return getSortedChildren( SortProperty.NAME );
     }
 
     public static List<OrganisationUnit> getSortedChildren( Collection<OrganisationUnit> units )
+    {
+        return getSortedChildren( units, SortProperty.NAME );
+    }
+
+    public static List<OrganisationUnit> getSortedChildren( Collection<OrganisationUnit> units, SortProperty sortBy )
     {
         List<OrganisationUnit> children = new ArrayList<>();
 
         for ( OrganisationUnit unit : units )
         {
-            children.addAll( unit.getSortedChildren() );
+            children.addAll( unit.getSortedChildren( sortBy ) );
         }
 
         return children;
@@ -317,11 +334,16 @@ public class OrganisationUnit
 
     public static List<OrganisationUnit> getSortedGrandChildren( Collection<OrganisationUnit> units )
     {
+        return getSortedGrandChildren( units, SortProperty.NAME );
+    }
+
+    public static List<OrganisationUnit> getSortedGrandChildren( Collection<OrganisationUnit> units, SortProperty sortBy )
+    {
         List<OrganisationUnit> children = new ArrayList<>();
 
         for ( OrganisationUnit unit : units )
         {
-            children.addAll( unit.getSortedGrandChildren() );
+            children.addAll( unit.getSortedGrandChildren( sortBy ) );
         }
 
         return children;
@@ -341,11 +363,16 @@ public class OrganisationUnit
 
     public List<OrganisationUnit> getSortedGrandChildren()
     {
+        return getSortedGrandChildren( SortProperty.NAME );
+    }
+
+    public List<OrganisationUnit> getSortedGrandChildren( SortProperty sortBy )
+    {
         List<OrganisationUnit> grandChildren = new ArrayList<>();
 
-        for ( OrganisationUnit child : getSortedChildren() )
+        for ( OrganisationUnit child : getSortedChildren( sortBy ) )
         {
-            grandChildren.addAll( child.getSortedChildren() );
+            grandChildren.addAll( child.getSortedChildren( sortBy ) );
         }
 
         return grandChildren;

@@ -1,4 +1,4 @@
-package org.hisp.dhis.chart;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,21 +28,32 @@ package org.hisp.dhis.chart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Lars Helge Overland
- */
-public enum ChartType
+public enum SortProperty
 {
-    COLUMN,
-    STACKED_COLUMN,
-    BAR,
-    STACKED_BAR,
-    LINE,
-    AREA,
-    PIE,
-    RADAR,
-    GAUGE,
-    YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN,
-    SINGLE_VALUE
+    NAME( "name" ), SHORT_NAME( "shortName" );
+
+    private String name;
+
+    SortProperty( String name )
+    {
+        this.name = name;
+    }
+
+    public static SortProperty fromValue( String value )
+    {
+        for ( SortProperty type : SortProperty.values() )
+        {
+            if ( type.getName().equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
+
+        return null;
+    }
+
+    public String getName()
+    {
+        return name;
+    }
 }
