@@ -795,7 +795,6 @@ public class UserCredentials
             "\"openId\":\"" + openId + "\", " +
             "\"password\":\"" + password + "\", " +
             "\"passwordLastUpdated\":\"" + passwordLastUpdated + "\", " +
-            "\"userAuthorityGroups\":\"" + userAuthorityGroups + "\", " +
             "\"lastLogin\":\"" + lastLogin + "\", " +
             "\"restoreToken\":\"" + restoreToken + "\", " +
             "\"restoreCode\":\"" + restoreCode + "\", " +
