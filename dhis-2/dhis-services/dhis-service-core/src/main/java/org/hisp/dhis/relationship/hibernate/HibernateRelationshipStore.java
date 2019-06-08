@@ -66,7 +66,10 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei ) ) );
+            .addPredicate( root ->
+                builder.or(
+                    builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei )
+                    ,builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ) );
     }
 
     @Override
@@ -75,7 +78,10 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.join( "from" ).get( "programInstance" ), pi ) ) );
+            .addPredicate( root ->
+                builder.or(
+                    builder.equal( root.join( "from" ).get( "programInstance" ), pi )
+                    ,builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ) );
     }
 
     @Override
@@ -84,7 +90,10 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ) ) );
+            .addPredicate( root ->
+                builder.or(
+                    builder.equal( root.join( "from" ).get( "programStageInstance" ), psi )
+                    ,builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
     }
 
     @Override
