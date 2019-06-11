@@ -204,6 +204,8 @@ public class UserController
             return;
         }
 
+        response.setContentType( "application/xml" );
+
         renderService.toXml( response.getOutputStream(), createUser( user, currentUser ) );
     }
 
@@ -220,6 +222,8 @@ public class UserController
             return;
         }
 
+        response.setContentType( "application/json" );
+
         renderService.toJson( response.getOutputStream(), createUser( user, currentUser ) );
     }
 
@@ -234,6 +238,8 @@ public class UserController
         {
             return;
         }
+
+        response.setContentType( "application/json" );
 
         renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
@@ -271,6 +277,8 @@ public class UserController
         {
             return;
         }
+
+        response.setContentType( "application/xml" );
 
         renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
@@ -461,6 +469,8 @@ public class UserController
 
         updateUserGroups( importReport, pvUid, parsed, currentUser );
 
+        response.setContentType( "application/xml" );
+
         renderService.toXml( response.getOutputStream(), importReport );
     }
 
@@ -506,6 +516,8 @@ public class UserController
         ImportReport importReport = importService.importMetadata( params );
 
         updateUserGroups( importReport, pvUid, parsed, currentUser );
+
+        response.setContentType( "application/json" );
 
         renderService.toJson( response.getOutputStream(), importReport );
     }
