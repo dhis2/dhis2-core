@@ -129,6 +129,8 @@ public class ProgramIndicatorServiceTest
 
     private DataElement deB;
 
+    private DataElement deC;
+
     private TrackedEntityAttribute atA;
 
     private TrackedEntityAttribute atB;
@@ -187,18 +189,25 @@ public class ProgramIndicatorServiceTest
         deB = createDataElement( 'B' );
         deB.setDomainType( DataElementDomain.TRACKER );
 
+        deC = createDataElement( 'C' );
+        deC.setDomainType( DataElementDomain.TRACKER );
+        deC.setValueType( ValueType.DATE );
+
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
 
         ProgramStageDataElement stageDataElementA = new ProgramStageDataElement( psA, deA, false, 1 );
         ProgramStageDataElement stageDataElementB = new ProgramStageDataElement( psA, deB, false, 2 );
         ProgramStageDataElement stageDataElementC = new ProgramStageDataElement( psB, deA, false, 1 );
         ProgramStageDataElement stageDataElementD = new ProgramStageDataElement( psB, deB, false, 2 );
+        ProgramStageDataElement stageDataElementE = new ProgramStageDataElement( psA, deC, false, 3 );
 
         programStageDataElementService.addProgramStageDataElement( stageDataElementA );
         programStageDataElementService.addProgramStageDataElement( stageDataElementB );
         programStageDataElementService.addProgramStageDataElement( stageDataElementC );
         programStageDataElementService.addProgramStageDataElement( stageDataElementD );
+        programStageDataElementService.addProgramStageDataElement( stageDataElementE );
 
         // ---------------------------------------------------------------------
         // TrackedEntityInstance & Enrollment
@@ -440,13 +449,13 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsWithVariables()
     {
         String expected = 
-            "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + " +
-            "coalesce(\"GCyeKSqlpdk\"::numeric,0) + " +
-            "nullif(cast((case when \"EZq9VbPWgML\" >= 0 then 1 else 0 end + case when \"GCyeKSqlpdk\" >= 0 then 1 else 0 end) as double),0)";
+            "coalesce(case when \"" + deA.getUid() + "\" < 0 then 0 else \"" + deA.getUid() + "\" end, 0) + " +
+            "coalesce(\"" + deB.getUid() + "\"::numeric,0) + " +
+            "nullif(cast((case when \"" + deB.getUid() + "\" >= 0 then 1 else 0 end + case when \"" + deA.getUid() + "\" >= 0 then 1 else 0 end) as double),0)";
         
         String expression = 
-            "d2:zing(#{OXXcwl6aPCQ.EZq9VbPWgML}) + " +
-            "#{OXXcwl6aPCQ.GCyeKSqlpdk} + " +
+            "d2:zing(#{OXXcwl6aPCQ." + deA.getUid() + "}) + " +
+            "#{OXXcwl6aPCQ." + deB.getUid() + "} + " +
             "V{zero_pos_value_count}";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
@@ -466,14 +475,14 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsZingB()
     {
         String expected = 
-            "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + " +
-            "coalesce(case when \"GCyeKSqlpdk\" < 0 then 0 else \"GCyeKSqlpdk\" end, 0) + " +
-            "coalesce(case when \"hsCmEqBcU23\" < 0 then 0 else \"hsCmEqBcU23\" end, 0)";        
+            "coalesce(case when \"" + deA.getUid() + "\" < 0 then 0 else \"" + deA.getUid() + "\" end, 0) + " +
+            "coalesce(case when \"" + deB.getUid() + "\" < 0 then 0 else \"" + deB.getUid() + "\" end, 0) + " +
+            "coalesce(case when \"" + deC.getUid() + "\" < 0 then 0 else \"" + deC.getUid() + "\" end, 0)";        
             
         String expression = 
-            "d2:zing(#{OXXcwl6aPCQ.EZq9VbPWgML}) + " +
-            "d2:zing(#{OXXcwl6aPCQ.GCyeKSqlpdk}) + " +
-            "d2:zing(#{OXXcwl6aPCQ.hsCmEqBcU23})";
+            "d2:zing(#{OXXcwl6aPCQ." + deA.getUid() + "}) + " +
+            "d2:zing(#{OXXcwl6aPCQ." + deB.getUid() + "}) + " +
+            "d2:zing(#{OXXcwl6aPCQ." + deC.getUid() + "})";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
@@ -493,11 +502,11 @@ public class ProgramIndicatorServiceTest
     {
         String expected = 
             "nullif(cast((" +
-            "case when \"EZq9VbPWgML\" >= 0 then 1 else 0 end + " +
-            "case when \"GCyeKSqlpdk\" >= 0 then 1 else 0 end" +
+            "case when \"" + deC.getUid() + "\" >= 0 then 1 else 0 end + " +
+            "case when \"" + deA.getUid() + "\" >= 0 then 1 else 0 end" +
             ") as double precision),0)";
         
-        String expression = "d2:zpvc(#{OXXcwl6aPCQ.EZq9VbPWgML},#{OXXcwl6aPCQ.GCyeKSqlpdk})";
+        String expression = "d2:zpvc(#{OXXcwl6aPCQ." + deC.getUid() + "},#{OXXcwl6aPCQ." + deA.getUid() + "})";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
@@ -527,16 +536,16 @@ public class ProgramIndicatorServiceTest
     public void testGetAnalyticsSqlWithFunctionsComposite()
     {
         String expected = 
-            "coalesce(case when \"EZq9VbPWgML\" < 0 then 0 else \"EZq9VbPWgML\" end, 0) + " +
-            "(cast(\"kts5J79K9gA\" as date) - cast(\"GCyeKSqlpdk\" as date)) + " +
-            "case when (\"GCyeKSqlpdk\" > 70) then 100 else 50 end + " +
-            "case when (\"HihhUWBeg7I\" < 30) then 20 else 100 end";
+            "coalesce(case when \"" + deA.getUid() + "\" < 0 then 0 else \"" + deA.getUid() + "\" end, 0) + " +
+            "(cast(\"" + deA.getUid() + "\" as date) - cast(\"" + deB.getUid() + "\" as date)) + " +
+            "case when (\"" + deB.getUid() + "\" > 70) then 100 else 50 end + " +
+            "case when (\"" + deB.getUid() + "\" < 30) then 20 else 100 end";
         
         String expression = 
-            "d2:zing(#{OXXcwl6aPCQ.EZq9VbPWgML}) + " +
-            "d2:daysBetween(#{OXXcwl6aPCQ.GCyeKSqlpdk},#{OXXcwl6aPCQ.kts5J79K9gA}) + " +
-            "d2:condition(\"#{OXXcwl6aPCQ.GCyeKSqlpdk} > 70\",100,50) + " +
-            "d2:condition('#{OXXcwl6aPCQ.HihhUWBeg7I} < 30',20,100)";
+            "d2:zing(#{OXXcwl6aPCQ." + deA.getUid() + "}) + " +
+            "d2:daysBetween(#{OXXcwl6aPCQ." + deB.getUid() + "},#{OXXcwl6aPCQ." + deA.getUid() + "}) + " +
+            "d2:condition(\"#{OXXcwl6aPCQ." + deB.getUid() + "} > 70\",100,50) + " +
+            "d2:condition('#{OXXcwl6aPCQ." + deB.getUid() + "} < 30',20,100)";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), false, new Date(), new Date() ) );
     }
@@ -554,8 +563,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testGetAnalyticsSqlWithVariables()
     {
-        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) + (executiondate - enrollmentdate)";
-        String expression = "#{OXXcwl6aPCQ.EZq9VbPWgML} + (V{execution_date} - V{enrollment_date})";
+        String expected = "coalesce(\"" + deA.getUid() + "\"::numeric,0) + (executiondate - enrollmentdate)";
+        String expression = "#{OXXcwl6aPCQ." + deA.getUid() + "} + (V{execution_date} - V{enrollment_date})";
 
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( expression, createProgramIndicator( 'X', programA, expression, null ), new Date(), new Date() ) );
     }
@@ -563,8 +572,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testIsEmptyFilter()
     {
-        String expected = "coalesce(\"EZq9VbPWgML\",'') == '' ";
-        String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == ''";
+        String expected = "coalesce(\"" + deC.getUid() + "\",'') == '' ";
+        String filter = "#{OXXcwl6aPCQ." + deC.getUid() + "} == ''";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', programA, null, filter ), new Date(), new Date() ) );
     }
@@ -572,8 +581,8 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testIsZeroFilter()
     {
-        String expected = "coalesce(\"EZq9VbPWgML\"::numeric,0) == 0 ";
-        String filter = "#{OXXcwl6aPCQ.EZq9VbPWgML} == 0";
+        String expected = "coalesce(\"" + deC.getUid() + "\"::numeric,0) == 0 ";
+        String filter = "#{OXXcwl6aPCQ." + deC.getUid() + "} == 0";
         
         assertEquals( expected, programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), new Date(), new Date() ) );        
     }
@@ -581,12 +590,12 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testIsZeroOrEmptyFilter()
     {
-        String expected = "coalesce(\"GCyeKSqlpdk\"::numeric,0) == 1 or " +
-            "(coalesce(\"GCyeKSqlpdk\",'') == '' and " +
-            "coalesce(\"kts5J79K9gA\"::numeric,0) == 0 )";
+        String expected = "coalesce(\"" + deA.getUid() + "\"::numeric,0) == 1 or " +
+            "(coalesce(\"" + deA.getUid() + "\",'') == '' and " +
+            "coalesce(\"" + atA.getUid() + "\"::numeric,0) == 0 )";
         
-        String filter = "#{OXXcwl6aPCQ.GCyeKSqlpdk} == 1 or " + 
-        "(#{OXXcwl6aPCQ.GCyeKSqlpdk}  == ''   and A{kts5J79K9gA}== 0)";
+        String filter = "#{OXXcwl6aPCQ." + deA.getUid() + "} == 1 or " + 
+        "(#{OXXcwl6aPCQ." + deA.getUid() + "}  == ''   and A{" + atA.getUid() + "}== 0)";
         String actual = programIndicatorService.getAnalyticsSQl( filter, createProgramIndicator( 'X', AnalyticsType.EVENT, programA, null, filter ), true, new Date(), new Date() );
         assertEquals( expected, actual );        
     }
@@ -664,6 +673,22 @@ public class ProgramIndicatorServiceTest
         programIndicator.setAnalyticsPeriodBoundaries( boundaries );
         
         String actual = programIndicatorService.getAnalyticsSQl( filter, programIndicator, true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
+        assertEquals( expected, actual );        
+    }
+
+    @Test
+    public void testDateFunctionsWithDataElement()
+    {
+        String expected = "((cast( coalesce(\"" + deC.getUid() + "\"::date,'0001-01-01') as date) - cast(enrollmentdate as date)) < 1";
+        
+        String expression = "(d2:daysBetween(V{enrollment_date}, #{" + psA.getUid() + "." + deC.getUid() + "}) < 1";
+        ProgramIndicator programIndicator = createProgramIndicator( 'Y', AnalyticsType.EVENT, programA, expression, null );   
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
+        boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+        programIndicator.setAnalyticsPeriodBoundaries( boundaries );
+        
+        String actual = programIndicatorService.getAnalyticsSQl( expression, programIndicator, true, DateUtils.parseDate( "2016-01-01" ) , DateUtils.parseDate( "2016-12-31" ) );
         assertEquals( expected, actual );        
     }
     

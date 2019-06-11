@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
@@ -52,6 +53,7 @@ import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.junit.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -413,28 +415,36 @@ public class DefaultProgramIndicatorService
             if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) || ProgramIndicator.KEY_ATTRIBUTE.equals( key ) )
             {
                 String columnName;
+                ValueType valueType = ValueType.TEXT;
 
                 if ( ProgramIndicator.KEY_DATAELEMENT.equals( key ) )
                 {
                     columnName = statementBuilder.getProgramIndicatorDataValueSelectSql( el1, el2, startDate, endDate, programIndicator );
+
+                    DataElement dataElement = dataElementService.getDataElement( el2 );
+                    Assert.assertNotNull( dataElement );
+                    valueType = dataElement.getValueType();
                 }
                 else
                 // ProgramIndicator.KEY_ATTRIBUTE
                 {
                     columnName = statementBuilder.columnQuote( el1 );
+                    TrackedEntityAttribute trackedEntityAttribute = attributeService.getTrackedEntityAttribute( el1 );
+                    Assert.assertNotNull( trackedEntityAttribute );
+                    valueType = trackedEntityAttribute.getValueType();
                 }
 
                 if ( equalsZero )
                 {
-                    columnName = getNumericIgnoreNullSql( columnName ) + " == 0 ";
+                    columnName = getIgnoreNullSql( columnName, ValueType.NUMBER ) + " == 0 ";
                 }
                 else if ( equalsEmpty )
                 {
-                    columnName = getTextIgnoreNullSql( columnName ) + " == '' ";
+                    columnName = getIgnoreNullSql( columnName, ValueType.TEXT ) + " == '' ";
                 }
                 else if ( ignoreMissingValues )
                 {
-                    columnName = getNumericIgnoreNullSql( columnName );
+                    columnName = getIgnoreNullSql( columnName, valueType );
                 }
 
                 matcher.appendReplacement( buffer, columnName );
@@ -712,14 +722,20 @@ public class DefaultProgramIndicatorService
         return variableColumnName;
     }
 
-    private String getNumericIgnoreNullSql( String column )
+    private String getIgnoreNullSql( String column, ValueType valueType )
     {
-        return "coalesce(" + column + "::numeric,0)";
-    }
-
-    private String getTextIgnoreNullSql( String column )
-    {
-        return "coalesce(" + column + ",'')";
+        if ( valueType.equals( ValueType.DATE ) )
+        {
+            return "coalesce(" + column + "::date,'0001-01-01')";
+        }
+        else if ( valueType.equals( ValueType.TEXT ) )
+        {
+            return "coalesce(" + column + ",'')";
+        }
+        else
+        {
+            return "coalesce(" + column + "::numeric,0)";
+        }
     }
 
     // -------------------------------------------------------------------------
