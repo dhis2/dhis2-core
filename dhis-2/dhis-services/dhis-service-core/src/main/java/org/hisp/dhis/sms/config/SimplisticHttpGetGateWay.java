@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,33 +28,45 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StrSubstitutor;
-import org.hisp.dhis.commons.util.DebugUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
+import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
-    extends SmsGateway
+        extends SmsGateway
 {
-    private static final Set<ContentType> TEMPLATE_SUPPORTED_TYPES = Sets.newHashSet( ContentType.APPLICATION_JSON, ContentType.APPLICATION_XML );
-    private static final ContentType URL_SUPPORTED_TYPE = ContentType.FORM_URL_ENCODED;
+    private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
+
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
+
+    private final RestTemplate restTemplate;
+
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate )
+    {
+        checkNotNull( restTemplate );
+        this.restTemplate = restTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -70,7 +82,7 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-            .stream()
+            .parallelStream()
             .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
             .collect( Collectors.toList() );
     }
@@ -80,102 +92,68 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        ContentType contentType = genericConfig.getContentType();
-        String data = null;
+        UriComponentsBuilder uriBuilder = buildUrl( genericConfig );
+        uriBuilder.queryParam( genericConfig.getMessageParameter(), text );
+        uriBuilder.queryParam( genericConfig.getRecipientParameter(), StringUtils.join( recipients, "," ) );
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        ResponseEntity<String> responseEntity = null;
 
-        HttpEntity<String> requestEntity = null;
-        HttpHeaders headers;
-
-
-        if ( contentType.equals( URL_SUPPORTED_TYPE ) )
+        try
         {
-            data = encodeUrlParameters( genericConfig, text, recipients );
+            URI url = uriBuilder.build().encode().toUri();
+
+            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, null, String.class );
         }
-        else if ( TEMPLATE_SUPPORTED_TYPES.contains( contentType ) )
+        catch ( HttpClientErrorException ex )
         {
-            data = draftTemplate( genericConfig, text, recipients );
+            log.error( "Client error " + ex.getMessage() );
+        }
+        catch ( HttpServerErrorException ex )
+        {
+            log.error( "Server error " + ex.getMessage() );
+        }
+        catch ( Exception ex )
+        {
+            log.error( "Error " + ex.getMessage() );
         }
 
-        headers = createHttpHeaders( genericConfig );
-
-        requestEntity = new HttpEntity<>( data, headers );
-
-
-        URI url = uriBuilder.build().encode().toUri();
-
-        HttpStatus status = send( url.toString(), requestEntity, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, String.class );
-
-        return  wrapHttpStatus( status );
+        return getResponse( responseEntity );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private HttpHeaders createHttpHeaders( GenericHttpGatewayConfig  config )
+    private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config )
     {
-        HttpHeaders httpHeaders = new HttpHeaders();
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
-        Map<String, String> headers = config.getParameters().stream()
-            .filter( GenericGatewayParameter::isHeader )
-            .collect( Collectors.toMap( GenericGatewayParameter::getKey, p -> p.isEncode() ? Base64.getEncoder().encodeToString( p.getValue().getBytes() ) : p.getValue() ) );
-
-        if ( headers.containsKey( HttpHeaders.AUTHORIZATION ) )
+        for ( Map.Entry<String, String> entry : getUrlParameters( config.getParameters() ).entrySet() )
         {
-            headers.put( HttpHeaders.AUTHORIZATION, SmsGateway.BASIC + headers.get( HttpHeaders.AUTHORIZATION ) );
+            uriBuilder.queryParam( entry.getKey(), entry.getValue() );
         }
 
-        headers.forEach( httpHeaders::set );
-
-        return httpHeaders;
-    }
-
-    private String draftTemplate( GenericHttpGatewayConfig config, String text, Set<String> recipients )
-    {
-        List<GenericGatewayParameter> parameters = config.getParameters();
-
-        Map<String, String> substitutes = parameters.stream().collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) );
-        substitutes.put( config.getMessageParameter(), text );
-        substitutes.put( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
-
-        StrSubstitutor strSubstitutor = new StrSubstitutor( substitutes );
-
-        return strSubstitutor.replace( config.getDataTemplate() );
-    }
-
-    private String encodeUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
-    {
-        Map<String, String> requestParams = getUrlParameters( config.getParameters() );
-        requestParams.put( config.getMessageParameter(), text );
-        requestParams.put( config.getRecipientParameter(), StringUtils.join( recipients, "," ) );
-
-        return requestParams.entrySet().stream()
-            .map( v -> v.getKey() + "=" + encodeValue( v.getValue() ) )
-            .collect( Collectors.joining( "&" ) );
-    }
-
-    private String encodeValue( String value )
-    {
-        try
-        {
-            if ( !value.isEmpty() )
-            {
-                value = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
-            }
-        }
-        catch( UnsupportedEncodingException e )
-        {
-            DebugUtils.getStackTrace( e );
-        }
-
-        return value;
+        return uriBuilder;
     }
 
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
     {
         return parameters.stream().filter( p -> !p.isHeader() )
-            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
+                .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
+    }
+
+    private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
+    {
+        OutboundMessageResponse status = new OutboundMessageResponse();
+
+        if ( responseEntity == null || !OK_CODES.contains( responseEntity.getStatusCode() ) )
+        {
+            status.setResponseObject( GatewayResponse.FAILED );
+            status.setOk( false );
+
+            return status;
+        }
+
+        return wrapHttpStatus( responseEntity.getStatusCode() );
     }
 }

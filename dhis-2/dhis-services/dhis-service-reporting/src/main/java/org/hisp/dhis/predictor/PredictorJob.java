@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,25 @@ import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Henning Håkonsen
  */
+@Component( "predictorJob" )
 public class PredictorJob
     extends AbstractJob
 {
-    @Autowired
-    private PredictionService predictionService;
+    private final PredictionService predictionService;
+
+    public PredictorJob( PredictionService predictionService )
+    {
+        checkNotNull( predictionService );
+
+        this.predictionService = predictionService;
+    }
 
     @Override
     public JobType getJobType()

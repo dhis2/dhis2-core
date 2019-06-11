@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.partition;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,10 +41,12 @@ import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.partition.PartitionManager" )
 public class JdbcPartitionManager
     implements PartitionManager
 {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dimension;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,7 @@ import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -90,7 +91,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -101,6 +102,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 import static org.hisp.dhis.common.DimensionType.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_ESCAPED_SEP;
@@ -112,31 +114,46 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dimension.DimensionService" )
 public class DefaultDimensionService
     implements DimensionService
 {
     private static final Log log = LogFactory.getLog( DefaultDimensionService.class );
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private AclService aclService;
+    private final AclService aclService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private MergeService mergeService;
+    private final MergeService mergeService;
+
+    public DefaultDimensionService( IdentifiableObjectManager idObjectManager, CategoryService categoryService,
+        PeriodService periodService, OrganisationUnitService organisationUnitService, AclService aclService,
+        CurrentUserService currentUserService, MergeService mergeService )
+    {
+        checkNotNull(idObjectManager);
+        checkNotNull(categoryService);
+        checkNotNull(periodService);
+        checkNotNull(organisationUnitService);
+        checkNotNull(aclService);
+        checkNotNull(currentUserService);
+        checkNotNull(mergeService);
+
+        this.idObjectManager = idObjectManager;
+        this.categoryService = categoryService;
+        this.periodService = periodService;
+        this.organisationUnitService = organisationUnitService;
+        this.aclService = aclService;
+        this.currentUserService = currentUserService;
+        this.mergeService = mergeService;
+    }
 
     //--------------------------------------------------------------------------
     // DimensionService implementation
@@ -452,6 +469,10 @@ public class DefaultDimensionService
                     }
                     break;
 
+                case INDICATOR:
+                    atomicIds.putValue( Indicator.class, id.getId0() );
+                    break;
+
                 case REPORTING_RATE:
                     atomicIds.putValue( DataSet.class, id.getId0() );
                     break;
@@ -532,6 +553,14 @@ public class DefaultDimensionService
                     if ( dataElement != null )
                     {
                         itemObjectMap.put( id, dataElement );
+                    }
+                    break;
+
+                case INDICATOR:
+                    Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
+                    if ( indicator != null )
+                    {
+                        itemObjectMap.put( id, indicator );
                     }
                     break;
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,10 +96,12 @@ import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService" )
 public class DefaultCompleteDataSetRegistrationExchangeService
     implements
     CompleteDataSetRegistrationExchangeService

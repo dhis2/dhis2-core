@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -152,4 +152,6 @@ public interface EventService
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
+
+    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 }

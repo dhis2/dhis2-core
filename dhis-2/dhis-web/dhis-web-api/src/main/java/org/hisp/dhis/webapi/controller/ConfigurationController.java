@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,17 +145,17 @@ public class ConfigurationController
     }
 
     @PreAuthorize( "hasRole('ALL')" )
-    @ResponseStatus( value = HttpStatus.OK )
     @RequestMapping( value = "/systemId", method = RequestMethod.POST )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void setSystemId( @RequestBody( required = false ) String systemId )
     {
         systemId = ObjectUtils.firstNonNull( systemId, UUID.randomUUID().toString() );
-        
+
         Configuration config = configurationService.getConfiguration();
         config.setSystemId( systemId );
         configurationService.setConfiguration( config );
     }
-    
+
     @RequestMapping( value = "/feedbackRecipients", method = RequestMethod.GET )
     public @ResponseBody UserGroup getFeedbackRecipients( Model model, HttpServletRequest request )
     {
@@ -365,6 +365,7 @@ public class ConfigurationController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @RequestMapping( value = "/selfRegistrationOrgUnit", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setSelfRegistrationOrgUnit( @RequestBody String uid )
         throws NotFoundException
     {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,18 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.datavalue.DataValueAuditService" )
 public class DefaultDataValueAuditService
     implements DataValueAuditService
 {
@@ -48,10 +52,12 @@ public class DefaultDataValueAuditService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataValueAuditStore dataValueAuditStore;
+    private final DataValueAuditStore dataValueAuditStore;
 
-    public void setDataValueAuditStore( DataValueAuditStore dataValueAuditStore )
+    public DefaultDataValueAuditService( DataValueAuditStore dataValueAuditStore )
     {
+        checkNotNull( dataValueAuditStore );
+
         this.dataValueAuditStore = dataValueAuditStore;
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  * <li>Program data elements on the form D{programuid.dataelementuid}</li>
  * <li>Program tracked entity attribute on the form A{programuid.attributeuid}</li>
  * <li>Program indicators on the form I{programindicatoruid}</li>
+ * <li>Indicators on the form N{indicatoruid}</li>
  * <li>Constants on the form C{constantuid}</li>
  * <li>Organisation unit group member counts on the form OUG{orgunitgroupuid}</li>
  * <li>Days in aggregation period as the symbol [days]</li>
@@ -76,7 +77,7 @@ public interface ExpressionService
     String SYMBOL_DAYS = "[days]";
     String SYMBOL_WILDCARD = "*";
 
-    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I|R)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{5,40}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
+    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I|R|N)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{5,40}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
     String OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})(\\.(?<coc>[a-zA-Z]\\w{10}|\\*))?(\\.(?<aoc>[a-zA-Z]\\w{10}|\\*))?\\}";
     String DATA_ELEMENT_TOTAL_EXPRESSION = "#\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String CATEGORY_OPTION_COMBO_OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})\\.(?<coc>[a-zA-Z]\\w{10})\\}";

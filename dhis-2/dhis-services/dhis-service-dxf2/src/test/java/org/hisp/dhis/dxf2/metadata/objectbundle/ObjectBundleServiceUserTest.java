@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,8 +169,8 @@ public class ObjectBundleServiceUserTest
         assertNotNull( userB.getUserCredentials().getUserInfo() );
         assertNotNull( userA.getUserCredentials().getUserInfo().getUserCredentials() );
         assertNotNull( userB.getUserCredentials().getUserInfo().getUserCredentials() );
-        assertNotEquals( "UserAA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
-        assertNotEquals( "UserBB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
+        assertEquals( "UserAA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
+        assertEquals( "UserBB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
 
         assertNotNull( userA.getUserCredentials().getUser() );
         assertNotNull( userB.getUserCredentials().getUser() );

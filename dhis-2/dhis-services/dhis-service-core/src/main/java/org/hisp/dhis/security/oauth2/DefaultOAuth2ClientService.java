@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.oauth2;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,21 +29,31 @@ package org.hisp.dhis.security.oauth2;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "oAuth2ClientService" )
 public class DefaultOAuth2ClientService implements OAuth2ClientService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private OAuth2ClientStore oAuth2ClientStore;
+    private final OAuth2ClientStore oAuth2ClientStore;
+
+    public DefaultOAuth2ClientService( OAuth2ClientStore oAuth2ClientStore )
+    {
+        checkNotNull( oAuth2ClientStore );
+
+        this.oAuth2ClientStore = oAuth2ClientStore;
+    }
 
     // -------------------------------------------------------------------------
     // OAuth2ClientService

@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.startup;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,6 +45,7 @@ import java.util.List;
  *
  * @author <a href="mailto:torgeilo@gmail.com">Torgeir Lorange Ostby</a>
  */
+@Component( "org.hisp.dhis.system.startup.StartupRoutineExecutor" )
 public class DefaultStartupRoutineExecutor
     implements StartupRoutineExecutor
 {
@@ -98,7 +99,7 @@ public class DefaultStartupRoutineExecutor
             return;
         }
 
-        Collections.sort( startupRoutines, new StartupRoutineComparator() );
+        startupRoutines.sort(new StartupRoutineComparator());
 
         int total = startupRoutines.size();
         int index = 1;

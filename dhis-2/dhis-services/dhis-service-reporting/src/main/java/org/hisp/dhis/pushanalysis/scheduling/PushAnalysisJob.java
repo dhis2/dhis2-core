@@ -1,6 +1,6 @@
 package org.hisp.dhis.pushanalysis.scheduling;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,24 @@ import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
  */
+@Component( "pushAnalysisJob" )
 public class PushAnalysisJob
     extends AbstractJob
 {
-    @Autowired
-    private PushAnalysisService pushAnalysisService;
+    private final PushAnalysisService pushAnalysisService;
+
+    public PushAnalysisJob( PushAnalysisService pushAnalysisService )
+    {
+        checkNotNull( pushAnalysisService );
+        this.pushAnalysisService = pushAnalysisService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.Date;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
@@ -63,6 +64,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.event.EventDataQueryService" )
 public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
@@ -74,29 +76,45 @@ public class DefaultEventDataQueryService
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
         ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+    private final ProgramStageService programStageService;
 
-    @Autowired
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
+    private final TrackedEntityAttributeService attributeService;
 
-    @Autowired
-    private ProgramIndicatorService programIndicatorService;
+    private final ProgramIndicatorService programIndicatorService;
 
-    @Autowired
-    private LegendSetService legendSetService;
+    private final LegendSetService legendSetService;
 
-    @Autowired
-    private DataQueryService dataQueryService;
+    private final DataQueryService dataQueryService;
 
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
+
+    public DefaultEventDataQueryService( ProgramService programService, ProgramStageService programStageService,
+        DataElementService dataElementService, TrackedEntityAttributeService attributeService,
+        ProgramIndicatorService programIndicatorService, LegendSetService legendSetService,
+        DataQueryService dataQueryService, I18nManager i18nManager )
+    {
+        checkNotNull( programService );
+        checkNotNull( programStageService );
+        checkNotNull( dataElementService );
+        checkNotNull( attributeService );
+        checkNotNull( programIndicatorService );
+        checkNotNull( legendSetService );
+        checkNotNull( dataQueryService );
+        checkNotNull( i18nManager );
+
+        this.programService = programService;
+        this.programStageService = programStageService;
+        this.dataElementService = dataElementService;
+        this.attributeService = attributeService;
+        this.programIndicatorService = programIndicatorService;
+        this.legendSetService = legendSetService;
+        this.dataQueryService = dataQueryService;
+        this.i18nManager = i18nManager;
+    }
 
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
@@ -352,7 +370,7 @@ public class DefaultEventDataQueryService
 
     private DimensionalItemObject getSortItem( String item, Program program, EventOutputType type )
     {
-        QueryItem queryItem = null;
+        QueryItem queryItem;
 
         if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
         {

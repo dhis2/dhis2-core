@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,8 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 
@@ -55,10 +56,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Nguyen Kim Lai
  */
+@Component( "smsMessageSender" )
+@Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class SmsMessageSender
     implements MessageSender
 {
@@ -82,7 +86,6 @@ public class SmsMessageSender
 
     private UserSettingService userSettingService;
 
-    @Autowired
     public SmsMessageSender( GatewayAdministrationService gatewayAdminService, List<SmsGateway> smsGateways,
         UserSettingService userSettingService )
     {

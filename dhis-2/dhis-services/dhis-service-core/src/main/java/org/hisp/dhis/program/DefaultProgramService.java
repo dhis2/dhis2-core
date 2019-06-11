@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -46,9 +47,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.program.ProgramService" )
 public class DefaultProgramService
     implements ProgramService
 {
@@ -56,24 +60,21 @@ public class DefaultProgramService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStore programStore;
+    private final ProgramStore programStore;
 
-    public void setProgramStore( ProgramStore programStore )
+    private final CurrentUserService currentUserService;
+
+    private final OrganisationUnitService organisationUnitService;
+
+    public DefaultProgramService( ProgramStore programStore, CurrentUserService currentUserService,
+        OrganisationUnitService organisationUnitService )
     {
+        checkNotNull( programStore );
+        checkNotNull( currentUserService );
+        checkNotNull( organisationUnitService );
+
         this.programStore = programStore;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
         this.organisationUnitService = organisationUnitService;
     }
 

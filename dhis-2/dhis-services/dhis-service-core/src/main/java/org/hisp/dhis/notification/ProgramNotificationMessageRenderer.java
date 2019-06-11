@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import com.google.common.collect.Maps;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.Date;
@@ -45,6 +46,7 @@ import java.util.stream.Collectors;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Component
 public class ProgramNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ProgramInstance>
 {
@@ -60,14 +62,6 @@ public class ProgramNotificationMessageRenderer
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES =
         ImmutableSet.of( ExpressionType.TRACKED_ENTITY_ATTRIBUTE, ExpressionType.VARIABLE );
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    private ProgramNotificationMessageRenderer()
-    {
-    }
 
     // -------------------------------------------------------------------------
     // Overrides

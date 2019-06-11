@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,8 +87,8 @@ public abstract class SmsGateway
 
     public HttpStatus send( String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass )
     {
-        ResponseEntity<?> response = null;
-        HttpStatus statusCode = null;
+        ResponseEntity<?> response;
+        HttpStatus statusCode;
 
         try
         {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,25 +47,37 @@ import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.event.EventQueryPlanner" )
 public class DefaultEventQueryPlanner
     implements EventQueryPlanner
 {
-    @Autowired
-    private QueryPlanner queryPlanner;
+    private final QueryPlanner queryPlanner;
 
-    @Autowired
-    private QueryValidator queryValidator;
+    private final QueryValidator queryValidator;
 
-    @Autowired
-    private PartitionManager partitionManager;
+    private final PartitionManager partitionManager;
+
+    public DefaultEventQueryPlanner( QueryPlanner queryPlanner, QueryValidator queryValidator,
+        PartitionManager partitionManager )
+    {
+        checkNotNull( queryPlanner );
+        checkNotNull( queryValidator );
+        checkNotNull( partitionManager );
+
+        this.queryPlanner = queryPlanner;
+        this.queryValidator = queryValidator;
+        this.partitionManager = partitionManager;
+    }
 
     // -------------------------------------------------------------------------
     // EventQueryPlanner implementation
@@ -263,7 +275,7 @@ public class DefaultEventQueryPlanner
         List<EventQueryParams> queries = new ArrayList<>();
 
 
-        if ( ( params.isLastPeriodAggregationType() || params.hasNonDefaultBoundaries() )  &&
+        if ( ( params.isFirstOrLastPeriodAggregationType() || params.hasNonDefaultBoundaries() )  &&
             !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )

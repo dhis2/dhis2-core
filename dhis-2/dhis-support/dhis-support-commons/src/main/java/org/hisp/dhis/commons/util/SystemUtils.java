@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,11 @@ public class SystemUtils
     public static boolean isTestRun(String[] profiles)
     {
         return Arrays.asList(profiles).contains("test");
+    }
+
+    public static boolean isH2(String[] profiles)
+    {
+        return Arrays.asList(profiles).contains("test-h2");
     }
 
     /**

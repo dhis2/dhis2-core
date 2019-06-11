@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,6 +77,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.jclouds.rest.AuthorizationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -506,7 +507,9 @@ public class DataValueController
         @RequestParam( required = false ) String cc,
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
-        @RequestParam String ou, HttpServletResponse response, HttpServletRequest request )
+        @RequestParam String ou,
+        @RequestParam ( defaultValue = "original" ) String dimension,
+        HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
         // ---------------------------------------------------------------------
@@ -569,6 +572,12 @@ public class DataValueController
             throw new WebMessageException( webMessage );
         }
 
+        // ---------------------------------------------------------------------
+        // If file is of image type then dimension will determine which size the image need to be downloaded.
+        // ---------------------------------------------------------------------
+
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
+
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );
 
         if ( content == null )
@@ -580,7 +589,7 @@ public class DataValueController
         // Attempt to build signed URL request for content and redirect
         // ---------------------------------------------------------------------
 
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( uid );
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource );
 
         if ( signedGetUri != null )
         {

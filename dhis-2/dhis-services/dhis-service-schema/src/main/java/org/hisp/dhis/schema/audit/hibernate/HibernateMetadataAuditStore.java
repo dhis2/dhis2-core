@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.audit.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.schema.audit.MetadataAuditQuery;
 import org.hisp.dhis.schema.audit.MetadataAuditStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -44,14 +44,22 @@ import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.schema.audit.MetadataAuditStore" )
 public class HibernateMetadataAuditStore
     implements MetadataAuditStore
 {
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
+
+    public HibernateMetadataAuditStore( SessionFactory sessionFactory )
+    {
+        checkNotNull( sessionFactory );
+        this.sessionFactory = sessionFactory;
+    }
 
     @Override
     public int save( MetadataAudit audit )

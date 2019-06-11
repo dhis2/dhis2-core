@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,25 @@ package org.hisp.dhis.dxf2.sync;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.dxf2.metadata.jobs.MetadataSyncJob;
+import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
+import org.hisp.dhis.dxf2.synch.SynchronizationManager;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author David Katuscak
  */
+@Component( "eventProgramsDataSyncJob" )
 public class EventProgramsDataSynchronizationJob extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( EventProgramsDataSynchronizationJob.class );
@@ -45,12 +55,19 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
     private final Notifier notifier;
     private final MessageService messageService;
     private final EventSynchronization eventSync;
+    private final SynchronizationManager synchronizationManager;
 
-    public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService, EventSynchronization eventSync )
+    public EventProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
+        EventSynchronization eventSync, SynchronizationManager synchronizationManager )
     {
+        checkNotNull( notifier );
+        checkNotNull( messageService );
+        checkNotNull( eventSync );
+
         this.notifier = notifier;
         this.messageService = messageService;
         this.eventSync = eventSync;
+        this.synchronizationManager = synchronizationManager;
     }
 
     @Override
@@ -64,7 +81,9 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
     {
         try
         {
-            eventSync.syncEventProgramData();
+            EventProgramsDataSynchronizationJobParameters jobParameters =
+                (EventProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
+            eventSync.syncEventProgramData( jobParameters.getPageSize() );
             notifier.notify( jobConfiguration, "Event programs data sync successful" );
         }
         catch ( Exception e )
@@ -73,5 +92,18 @@ public class EventProgramsDataSynchronizationJob extends AbstractJob
             notifier.notify( jobConfiguration, "Event programs data sync failed: " + e.getMessage() );
             messageService.sendSystemErrorNotification( "Event programs data sync failed", e );
         }
+    }
+
+    @Override
+    public ErrorReport validate()
+    {
+        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
+
+        if ( !isRemoteServerAvailable.isAvailable() )
+        {
+            return new ErrorReport( MetadataSyncJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
+        }
+
+        return super.validate();
     }
 }

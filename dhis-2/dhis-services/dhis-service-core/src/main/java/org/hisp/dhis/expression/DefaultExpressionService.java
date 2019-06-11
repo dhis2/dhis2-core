@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.item.*;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -70,7 +71,8 @@ import org.hisp.dhis.system.jep.CustomFunctions;
 import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -82,6 +84,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Lars Helge Overland
  * @author Jim Grace
  */
+@Service( "org.hisp.dhis.expression.ExpressionService" )
 public class DefaultExpressionService
     implements ExpressionService
 {
@@ -91,36 +94,35 @@ public class DefaultExpressionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericStore<Expression> expressionStore;
+    private final HibernateGenericStore<Expression> expressionStore;
 
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    private DimensionService dimensionService;
+    private final DimensionService dimensionService;
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
     private final static ImmutableMap<Integer, ExprItem> EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
-
-        .put(HASH_BRACE, new DimItemDataElementAndOperand() )
-        .put(A_BRACE, new DimItemProgramAttribute() )
-        .put(C_BRACE, new ItemConstant() )
-        .put(D_BRACE, new DimItemProgramDataElement() )
-        .put(I_BRACE, new DimItemProgramIndicator() )
-        .put(OUG_BRACE, new ItemOrgUnitGroup() )
-        .put(R_BRACE, new DimItemReportingRate() )
-        .put(DAYS, new ItemDays() )
-
+        .put( HASH_BRACE, new DimItemDataElementAndOperand() )
+        .put( A_BRACE, new DimItemProgramAttribute() )
+        .put( C_BRACE, new ItemConstant() )
+        .put( D_BRACE, new DimItemProgramDataElement() )
+        .put( I_BRACE, new DimItemProgramIndicator() )
+        .put( N_BRACE, new DimItemIndicator() )
+        .put( OUG_BRACE, new ItemOrgUnitGroup() )
+        .put( R_BRACE, new DimItemReportingRate() )
+        .put( DAYS, new ItemDays() )
         .build();
 
-    @Autowired
-    public DefaultExpressionService( GenericStore<Expression> expressionStore, DataElementService dataElementService,
-        ConstantService constantService, CategoryService categoryService,
+    public DefaultExpressionService(
+        @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
+        DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
         OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
         IdentifiableObjectManager idObjectManager )
     {
@@ -162,7 +164,7 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Expression getExpression( long id )
     {
         return expressionStore.get( id );
@@ -176,7 +178,7 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Expression> getAllExpressions()
     {
         return expressionStore.getAll();
@@ -214,7 +216,8 @@ public class DefaultExpressionService
 
         return groups;
     }
-    
+
+    @Override
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap )
@@ -337,11 +340,9 @@ public class DefaultExpressionService
 
         Set<String> orgUnitGroupIds = visitor.getOrgUnitGroupIds();
 
-        Set<OrganisationUnitGroup> orgUnitGroups = orgUnitGroupIds.stream()
-            .map( id -> organisationUnitGroupService.getOrganisationUnitGroup( id ) )
+        return orgUnitGroupIds.stream()
+            .map(organisationUnitGroupService::getOrganisationUnitGroup)
             .collect( Collectors.toSet() );
-
-        return orgUnitGroups;
     }
 
     @Override
@@ -359,7 +360,7 @@ public class DefaultExpressionService
             FUNCTION_EVALUATE, ITEM_EVALUATE );
 
         Map<String, Double> keyValueMap = valueMap.entrySet().stream().collect(
-            Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
+            Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue) );
 
         expressionExprVisitor.setKeyValueMap( keyValueMap );
         expressionExprVisitor.setConstantMap( constantMap );
@@ -978,7 +979,7 @@ public class DefaultExpressionService
 
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().
             filter( e -> e.getValue() != null ).
-            collect( Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
+            collect( Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue) );
 
         missingValueStrategy = ObjectUtils.firstNonNull( missingValueStrategy, NEVER_SKIP );
 
@@ -998,7 +999,7 @@ public class DefaultExpressionService
             int start = matcher.end();
             int end = Expression.matchExpression( expression, start );
 
-            sb.append( expression.substring( scan, matcher.start() ) );
+            sb.append(expression, scan, matcher.start());
             sb.append( expression.substring( matcher.start(), start ).toUpperCase() );
 
             if ( end < 0 )
@@ -1008,7 +1009,7 @@ public class DefaultExpressionService
             }
             else if ( aggregateMap == null || expression.charAt( start ) == '<' )
             {
-                sb.append( expression.substring( start, end ) );
+                sb.append(expression, start, end);
                 scan = end + 1;
                 tail = end;
             }
@@ -1026,7 +1027,7 @@ public class DefaultExpressionService
                 }
                 else
                 {
-                    String literal = (samples == null) ? ("[]") : (samples.toString());
+                    String literal = samples.toString();
                     sb.append( literal );
                 }
 
@@ -1054,7 +1055,7 @@ public class DefaultExpressionService
             int start = matcher.end();
             int end = Expression.matchExpression( expression, start );
 
-            sb.append( expression.substring( scan, matcher.start() ) );
+            sb.append(expression, scan, matcher.start());
 
             scan = start + 1;
 

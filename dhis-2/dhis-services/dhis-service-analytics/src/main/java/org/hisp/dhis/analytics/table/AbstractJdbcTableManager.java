@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,6 +70,11 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
@@ -83,38 +88,60 @@ public abstract class AbstractJdbcTableManager
     public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
-    @Autowired
     protected IdentifiableObjectManager idObjectManager;
 
-    @Autowired
     protected OrganisationUnitService organisationUnitService;
 
-    @Autowired
     protected CategoryService categoryService;
 
-    @Autowired
     protected SystemSettingManager systemSettingManager;
 
-    @Autowired
     protected DataApprovalLevelService dataApprovalLevelService;
 
-    @Autowired
     protected ResourceTableService resourceTableService;
 
-    @Autowired
     private AnalyticsTableHookService tableHookService;
 
-    @Autowired
     protected StatementBuilder statementBuilder;
 
-    @Autowired
     protected PartitionManager partitionManager;
 
-    @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Autowired
     protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate )
+    {
+
+        checkNotNull( idObjectManager );
+        checkNotNull( organisationUnitService );
+        checkNotNull( categoryService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( dataApprovalLevelService );
+        checkNotNull( resourceTableService );
+        checkNotNull( tableHookService );
+        checkNotNull( statementBuilder );
+        checkNotNull( partitionManager );
+        checkNotNull( databaseInfo );
+
+        this.idObjectManager = idObjectManager;
+        this.organisationUnitService = organisationUnitService;
+        this.categoryService = categoryService;
+        this.systemSettingManager = systemSettingManager;
+        this.dataApprovalLevelService = dataApprovalLevelService;
+        this.resourceTableService = resourceTableService;
+        this.tableHookService = tableHookService;
+        this.statementBuilder = statementBuilder;
+        this.partitionManager = partitionManager;
+        this.databaseInfo = databaseInfo;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -427,7 +454,7 @@ public abstract class AbstractJdbcTableManager
             throw new IllegalStateException( "Analytics table dimensions contain duplicates: " + duplicates );
         }
     }
-
+    
     /**
      * Filters out analytics table columns which were created
      * after the time of the last successful resource table update.
@@ -464,6 +491,14 @@ public abstract class AbstractJdbcTableManager
         jdbcTemplate.execute( sql );
 
         log.info( String.format( "%s done in: %s", logMessage, timer.stop().toString() ) );
+    }
+
+    List<AnalyticsTableColumn> addPeriodColumns( String prefix )
+    {
+        return PeriodType.getAvailablePeriodTypes().stream().map( pt -> {
+            String column = quote( pt.getName().toLowerCase() );
+            return new AnalyticsTableColumn( column, TEXT, prefix + "." + column );
+        } ).collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------

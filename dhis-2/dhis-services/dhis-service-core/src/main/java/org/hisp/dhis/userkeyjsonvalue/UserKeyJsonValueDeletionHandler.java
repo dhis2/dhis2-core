@@ -1,7 +1,7 @@
 package org.hisp.dhis.userkeyjsonvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,23 @@ package org.hisp.dhis.userkeyjsonvalue;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueDeletionHandler" )
 public class UserKeyJsonValueDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
+    public UserKeyJsonValueDeletionHandler( JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( jdbcTemplate );
+
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     protected String getClassName()

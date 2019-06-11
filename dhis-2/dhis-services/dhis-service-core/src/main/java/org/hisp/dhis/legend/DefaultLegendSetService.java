@@ -1,7 +1,7 @@
 package org.hisp.dhis.legend;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,18 @@ package org.hisp.dhis.legend;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.legend.LegendService" )
 public class DefaultLegendSetService
     implements LegendSetService
 {
@@ -45,8 +50,11 @@ public class DefaultLegendSetService
 
     private IdentifiableObjectStore<LegendSet> legendSetStore;
 
-    public void setLegendSetStore( IdentifiableObjectStore<LegendSet> legendSetStore )
+
+    public DefaultLegendSetService( @Qualifier( "org.hisp.dhis.legend.LegendSetStore" ) IdentifiableObjectStore<LegendSet> legendSetStore )
     {
+        checkNotNull( legendSetStore );
+
         this.legendSetStore = legendSetStore;
     }
 

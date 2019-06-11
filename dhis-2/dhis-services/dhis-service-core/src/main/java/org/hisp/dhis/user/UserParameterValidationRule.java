@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,17 @@ package org.hisp.dhis.user;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair
  */
+@Component( "org.hisp.dhis.user.UserParameterValidationRule" )
 public class UserParameterValidationRule
     implements PasswordValidationRule
 {
     public static final String ERROR = "Username/Email must not be a part of password";
-    public static final String I18_ERROR = "password_username_validation";
+    private static final String I18_ERROR = "password_username_validation";
 
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )

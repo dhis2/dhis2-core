@@ -1,7 +1,7 @@
 package org.hisp.dhis.dbms;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -247,6 +247,8 @@ public class HibernateDbmsManager
         emptyTable( "programruleaction" );
         emptyTable( "programrule" );
 
+        emptyRelationships();
+
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
         emptyTable( "programstageinstance" );
@@ -465,6 +467,18 @@ public class HibernateDbmsManager
         catch ( BadSqlGrammarException ex )
         {
             log.debug( "Table " + table + " does not exist" );
+        }
+    }
+
+    private void emptyRelationships()
+    {
+        try
+        {
+            jdbcTemplate.update( "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem" );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            log.debug( "Could not empty relationship tables" );
         }
     }
 }

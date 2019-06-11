@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,18 +41,19 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author David Katuscak
  */
+@Component
 public class EventSynchronization
 {
     private static final Log log = LogFactory.getLog( EventSynchronization.class );
@@ -66,6 +67,12 @@ public class EventSynchronization
     public EventSynchronization( EventService eventService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService,
         ProgramStageDataElementService programStageDataElementService )
     {
+        checkNotNull( eventService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( renderService );
+        checkNotNull( programStageDataElementService );
+        checkNotNull( restTemplate );
+
         this.eventService = eventService;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;
@@ -73,7 +80,7 @@ public class EventSynchronization
         this.programStageDataElementService = programStageDataElementService;
     }
 
-    public SynchronizationResult syncEventProgramData()
+    public SynchronizationResult syncEventProgramData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
@@ -98,7 +105,6 @@ public class EventSynchronization
         }
 
         final SystemInstance instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.EVENTS );
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.EVENT_PROGRAM_SYNC_PAGE_SIZE );
         final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);  //Have to use this as (int) Match.ceil doesn't work until I am casting int to double
 
         log.info( objectsToSynchronize + " anonymous Events to synchronize were found." );

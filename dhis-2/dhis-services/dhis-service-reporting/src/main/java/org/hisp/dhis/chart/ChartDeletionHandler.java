@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,14 @@ package org.hisp.dhis.chart;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.chart.ChartDeletionHandler" )
 public class ChartDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<Chart>
 {
@@ -41,10 +45,11 @@ public class ChartDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ChartService chartService;
+    private final ChartService chartService;
 
-    public void setChartService( ChartService chartService )
+    public ChartDeletionHandler( ChartService chartService )
     {
+        checkNotNull( chartService );
         this.chartService = chartService;
     }
 

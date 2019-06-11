@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -618,12 +618,7 @@ public class Schema implements Ordered, Klass
     @JsonIgnore
     public Property getProperty( String name )
     {
-        if ( propertyMap.containsKey( name ) )
-        {
-            return propertyMap.get( name );
-        }
-
-        return null;
+        return propertyMap.get( name );
     }
 
     @JsonIgnore

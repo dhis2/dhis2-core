@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,14 +62,12 @@ public class ProgramTrackedEntityAttribute
 
     private Boolean allowFutureDate;
 
-    // Remove later, replaced by renderType
-    private Boolean renderOptionsAsRadio = false;
+    private Boolean renderOptionsAsRadio = false; //TODO: Remove, replaced by renderType
 
     /**
      * Represents how the client should render the TrackedEntityAttribute
      */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
-
 
     private Set<ProgramTrackedEntityAttributeGroup> groups = new HashSet<>();
 

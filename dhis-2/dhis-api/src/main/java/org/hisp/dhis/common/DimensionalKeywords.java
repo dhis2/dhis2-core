@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ public class DimensionalKeywords
 
     private List<Keyword> groupBy;
 
-    public DimensionalKeywords( List<BaseIdentifiableObject> groupBy )
+    public DimensionalKeywords( List<IdentifiableObject> groupBy )
     {
         this.groupBy = new ArrayList<>();
 
@@ -90,9 +90,17 @@ public class DimensionalKeywords
         this.groupBy = new ArrayList<>();
     }
 
-    public void addGroupBy( BaseIdentifiableObject groupByItem )
+    public void addGroupBy( IdentifiableObject groupByItem )
     {
         this.groupBy.add( toKeyword( groupByItem ) );
+    }
+
+    public void addGroupBy( List<? extends IdentifiableObject> groupByItems )
+    {
+        for ( IdentifiableObject item : groupByItems )
+        {
+            this.addGroupBy( item );
+        }
     }
 
     public void addGroupBy( String key, String name )
@@ -105,8 +113,13 @@ public class DimensionalKeywords
         return groupBy;
     }
 
-    private Keyword toKeyword( BaseIdentifiableObject bio )
+    private Keyword toKeyword( IdentifiableObject object )
     {
-        return new Keyword( bio.getUid(), bio.getUid(), bio.getName(), bio.getCode() );
+        return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
+    }
+    
+    public boolean isEmpty()
+    {
+        return groupBy.isEmpty();
     }
 }

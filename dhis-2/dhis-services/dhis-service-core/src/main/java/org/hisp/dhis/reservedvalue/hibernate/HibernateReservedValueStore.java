@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -37,23 +38,38 @@ import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
 /**
  * @author Stian Sandvold
  */
+@Repository( "org.hisp.dhis.reservedvalue.ReservedValueStore" )
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
 {
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+
+    private final BatchHandlerFactory batchHandlerFactory;
+
+    public HibernateReservedValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        BatchHandlerFactory batchHandlerFactory )
+    {
+        super( sessionFactory, jdbcTemplate, ReservedValue.class, false );
+
+        checkNotNull( batchHandlerFactory );
+
+        this.batchHandlerFactory = batchHandlerFactory;
+    }
 
     @Override
     public List<ReservedValue> reserveValues( ReservedValue reservedValue,

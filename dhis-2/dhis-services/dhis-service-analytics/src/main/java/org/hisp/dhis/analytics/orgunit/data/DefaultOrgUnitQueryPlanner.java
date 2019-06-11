@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.orgunit.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,12 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner" )
 public class DefaultOrgUnitQueryPlanner
     implements OrgUnitQueryPlanner
 {

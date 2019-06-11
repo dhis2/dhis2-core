@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,6 +91,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -697,7 +698,7 @@ public class EventController
     }
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
-    public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid,
+    public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid, @RequestParam( defaultValue = "original" ) String dimension,
         HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
@@ -762,6 +763,8 @@ public class EventController
             throw new WebMessageException( webMessage );
         }
 
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
+
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );
 
         if ( content == null )
@@ -773,7 +776,7 @@ public class EventController
         // Attempt to build signed URL request for content and redirect
         // ---------------------------------------------------------------------
 
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( uid );
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource );
 
         if ( signedGetUri != null )
         {

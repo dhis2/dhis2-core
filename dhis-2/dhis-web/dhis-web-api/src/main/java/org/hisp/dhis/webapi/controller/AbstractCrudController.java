@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -290,23 +290,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             setUserContext( null, new TranslateParams( false ) );
         }
 
-        if ( !aclService.canRead( user, getEntityClass() ) )
+        try
         {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
+            if ( !aclService.canRead( user, getEntityClass() ) )
+            {
+                throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
+            }
+
+            List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+            if ( fields.isEmpty() )
+            {
+                fields.add( ":all" );
+            }
+
+            String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
+
+            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+
+            return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + fieldFilter ), user );
         }
-
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
+        finally
         {
-            fields.add( ":all" );
+            UserContext.reset();
         }
-
-        String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
-
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-
-        return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + fieldFilter ), user );
     }
 
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
@@ -884,32 +891,39 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         User user = currentUserService.getCurrentUser();
         setUserContext( user, translateParams );
 
-        if ( !aclService.canRead( user, getEntityClass() ) )
+        try
         {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
-        }
-
-        RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + "[:all]" ), user );
-
-        // TODO optimize this using field filter (collection filtering)
-        if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
-        {
-            rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node ->
+            if ( !aclService.canRead( user, getEntityClass() ) )
             {
-                node.getChildren().stream()
-                    .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !((SimpleNode) child).getValue().equals( pvItemId ) )
-                    .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
-            } );
-        }
+                throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
+            }
 
-        if ( rootNode.getChildren().isEmpty() || rootNode.getChildren().get( 0 ).getChildren().isEmpty() )
+            RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + "[:all]" ), user );
+
+            // TODO optimize this using field filter (collection filtering)
+            if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
+            {
+                rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node ->
+                {
+                    node.getChildren().stream()
+                        .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !( (SimpleNode) child ).getValue().equals( pvItemId ) )
+                        .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
+                } );
+            }
+
+            if ( rootNode.getChildren().isEmpty() || rootNode.getChildren().get( 0 ).getChildren().isEmpty() )
+            {
+                throw new WebMessageException( WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
+            }
+
+            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+
+            return rootNode;
+        }
+        finally
         {
-            throw new WebMessageException( WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
+            UserContext.reset();
         }
-
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
-
-        return rootNode;
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )

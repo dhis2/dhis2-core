@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,14 +42,14 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.transaction.TransactionStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.google.common.collect.Sets;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
@@ -58,6 +58,7 @@ import com.google.common.collect.Sets;
  *
  * @author Torgeir Lorange Ostby
  */
+@Service( "org.hisp.dhis.user.UserSettingService" )
 public class DefaultUserSettingService implements UserSettingService
 {
     /**
@@ -72,44 +73,38 @@ public class DefaultUserSettingService implements UserSettingService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private Environment env;
+    private final Environment env;
 
-    public void setEnv( Environment env )
+    private final TransactionTemplate transactionTemplate;
+
+    private final CacheProvider cacheProvider;
+
+    private final CurrentUserService currentUserService;
+
+    private final UserSettingStore userSettingStore;
+
+    private final UserService userService;
+
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultUserSettingService( Environment env,
+        TransactionTemplate transactionTemplate, CacheProvider cacheProvider, CurrentUserService currentUserService,
+        UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
+        checkNotNull( env );
+        checkNotNull( transactionTemplate );
+        checkNotNull( cacheProvider );
+        checkNotNull( currentUserService );
+        checkNotNull( userSettingStore );
+        checkNotNull( userService );
+        checkNotNull( systemSettingManager );
+
         this.env = env;
-    }
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
-    @Autowired
-    private CacheProvider cacheProvider;
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
+        this.transactionTemplate = transactionTemplate;
+        this.cacheProvider = cacheProvider;
         this.currentUserService = currentUserService;
-    }
-
-    private UserSettingStore userSettingStore;
-
-    public void setUserSettingStore( UserSettingStore userSettingStore )
-    {
         this.userSettingStore = userSettingStore;
-    }
-
-    private UserService userService;
-
-    public void setUserService( UserService userService )
-    {
         this.userService = userService;
-    }
-
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
         this.systemSettingManager = systemSettingManager;
     }
 
@@ -121,7 +116,7 @@ public class DefaultUserSettingService implements UserSettingService
     public void init()
     {
         userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
 
     }
 
@@ -349,13 +344,8 @@ public class DefaultUserSettingService implements UserSettingService
             return Optional.empty();
         }
 
-        UserSetting setting = transactionTemplate.execute( new TransactionCallback<UserSetting>()
-        {
-            public UserSetting doInTransaction( TransactionStatus status )
-            {
-                return userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() );
-            }
-        } );
+        UserSetting setting = transactionTemplate
+            .execute( status -> userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() ) );
 
         Serializable value = setting != null && setting.hasValue() ? setting.getValue() : key.getDefaultValue();
 

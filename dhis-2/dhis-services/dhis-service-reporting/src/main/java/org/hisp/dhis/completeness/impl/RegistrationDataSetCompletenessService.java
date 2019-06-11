@@ -1,7 +1,7 @@
 package org.hisp.dhis.completeness.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,36 @@ package org.hisp.dhis.completeness.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.completeness.DataSetCompletenessStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "registrationDataCompletenessService" )
+@Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class RegistrationDataSetCompletenessService
     extends AbstractDataSetCompletenessService
 {
+    @Autowired
+    public RegistrationDataSetCompletenessService( OrganisationUnitService organisationUnitService,
+        DataSetService dataSetService, PeriodService periodService, DataSetCompletenessStore completenessStore,
+        IdentifiableObjectManager idObjectManager )
+    {
+        super( organisationUnitService, dataSetService, periodService, completenessStore, idObjectManager );
+    }
+
     @Override
     public int getRegistrations( DataSet dataSet, Collection<Long> relevantSources, Collection<Long> periods )
     {

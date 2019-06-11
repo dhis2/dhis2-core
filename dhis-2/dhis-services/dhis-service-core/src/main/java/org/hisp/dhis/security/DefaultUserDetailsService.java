@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,15 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static org.apache.activemq.artemis.utils.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Service( "userDetailsService" )
 public class DefaultUserDetailsService
     implements UserDetailsService
 {
@@ -56,17 +60,16 @@ public class DefaultUserDetailsService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private UserService userService;
-
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
-    }
+    private final UserService userService;
     
-    private SecurityService securityService;
+    private final SecurityService securityService;
 
-    public void setSecurityService( SecurityService securityService )
+    public DefaultUserDetailsService( UserService userService, SecurityService securityService )
     {
+        checkNotNull( userService );
+        checkNotNull( securityService );
+
+        this.userService = userService;
         this.securityService = securityService;
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,20 +52,25 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobType.values;
 
 /**
  * @author Henning Håkonsen
  */
+@Service( "jobConfigurationService" )
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
     private Log log = LogFactory.getLog( DefaultJobConfigurationService.class );
 
-    private IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
+    private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
-    public void setJobConfigurationStore( IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
+    public DefaultJobConfigurationService(
+        @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
     {
+        checkNotNull( jobConfigurationStore );
+
         this.jobConfigurationStore = jobConfigurationStore;
     }
 
@@ -131,17 +137,6 @@ public class DefaultJobConfigurationService
 
     @Override
     @Transactional(readOnly = true)
-    public List<JobConfiguration> getAllJobConfigurationsSorted()
-    {
-        List<JobConfiguration> jobConfigurations = getAllJobConfigurations();
-
-        Collections.sort( jobConfigurations );
-
-        return jobConfigurations;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public Map<String, Map<String, Property>> getJobParametersSchema()
     {
         Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
@@ -172,6 +167,16 @@ public class DefaultJobConfigurationService
                 Property property = new Property( Primitives.wrap( field.getType() ), null, null );
                 property.setName( field.getName() );
                 property.setFieldName( prettyPrint( field.getName() ) );
+
+                try
+                {
+                    field.setAccessible( true );
+                    property.setDefaultValue( field.get( jobType.getJobParameters().newInstance() ) );
+                }
+                catch ( IllegalAccessException | InstantiationException e )
+                {
+                    log.error( "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
+                }
 
                 String relativeApiElements = jobType.getRelativeApiElements() != null ?
                     jobType.getRelativeApiElements().get( field.getName() ) : "";

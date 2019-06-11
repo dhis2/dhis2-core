@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -288,11 +288,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programService.addProgram( programA );
         programService.addProgram( programS );
 
-        ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( 'A' );
+        ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( programS, attributeB );
         attribute.setUid( "ATTR-UID" );
-        attribute.setAttribute( attributeB );
-        attribute.setProgram( programA );
-        attribute.setProgram( programS );
 
         programTrackedEntityAttributeStore.save( attribute );
 

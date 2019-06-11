@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,13 @@ package org.hisp.dhis.program;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Service( "org.hisp.dhis.program.ProgramInstanceAuditService" )
 public class DefaultProgramInstanceAuditService
     implements ProgramInstanceAuditService
 {

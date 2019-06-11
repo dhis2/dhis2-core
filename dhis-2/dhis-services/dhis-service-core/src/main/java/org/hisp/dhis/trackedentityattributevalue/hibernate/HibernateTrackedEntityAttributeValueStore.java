@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentityattributevalue.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentityattributevalue.hibernate;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
@@ -36,6 +37,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,10 +47,15 @@ import java.util.List;
 /**
  * @author Abyot Asalefew
  */
+@Repository( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore" )
 public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue>
     implements TrackedEntityAttributeValueStore
 {
+    public HibernateTrackedEntityAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    {
+        super( sessionFactory, jdbcTemplate, TrackedEntityAttributeValue.class, false );
+    }
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------

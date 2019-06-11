@@ -1,7 +1,7 @@
 package org.hisp.dhis.indicator;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,18 @@ package org.hisp.dhis.indicator;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.indicator.IndicatorService" )
 public class DefaultIndicatorService
     implements IndicatorService
 {
@@ -43,31 +48,27 @@ public class DefaultIndicatorService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IndicatorStore indicatorStore;
+    private final IndicatorStore indicatorStore;
 
-    public void setIndicatorStore( IndicatorStore indicatorStore )
+    private final IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
+
+    private final IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
+
+    private final IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore;
+
+    public DefaultIndicatorService( IndicatorStore indicatorStore,
+        @Qualifier( "org.hisp.dhis.indicator.IndicatorTypeStore" ) IdentifiableObjectStore<IndicatorType> indicatorTypeStore,
+        @Qualifier( "org.hisp.dhis.indicator.IndicatorGroupStore" ) IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore,
+        @Qualifier( "org.hisp.dhis.indicator.IndicatorGroupSetStore" ) IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore )
     {
+        checkNotNull( indicatorStore );
+        checkNotNull( indicatorTypeStore );
+        checkNotNull( indicatorGroupStore );
+        checkNotNull( indicatorGroupSetStore );
+
         this.indicatorStore = indicatorStore;
-    }
-
-    private IdentifiableObjectStore<IndicatorType> indicatorTypeStore;
-
-    public void setIndicatorTypeStore( IdentifiableObjectStore<IndicatorType> indicatorTypeStore )
-    {
         this.indicatorTypeStore = indicatorTypeStore;
-    }
-
-    private IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore;
-
-    public void setIndicatorGroupStore( IdentifiableObjectStore<IndicatorGroup> indicatorGroupStore )
-    {
         this.indicatorGroupStore = indicatorGroupStore;
-    }
-
-    private IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore;
-
-    public void setIndicatorGroupSetStore( IdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore )
-    {
         this.indicatorGroupSetStore = indicatorGroupSetStore;
     }
 

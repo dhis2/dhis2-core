@@ -1,7 +1,7 @@
 package org.hisp.dhis.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -473,7 +473,7 @@ public class DateUtils
         return yearString + "-" + monthString + "-" + dayString;
     }
 
-    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])\\b";
+    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
 
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
 

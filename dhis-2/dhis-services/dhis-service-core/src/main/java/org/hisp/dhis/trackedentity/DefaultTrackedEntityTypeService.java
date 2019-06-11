@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,17 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Chau Thu Tran
  */
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityTypeService" )
 public class DefaultTrackedEntityTypeService
     implements TrackedEntityTypeService
 {
@@ -43,10 +47,12 @@ public class DefaultTrackedEntityTypeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
+    private final IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
 
-    public void setTrackedEntityTypeStore( IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
+    public DefaultTrackedEntityTypeService( IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
     {
+        checkNotNull( trackedEntityTypeStore );
+
         this.trackedEntityTypeStore = trackedEntityTypeStore;
     }
 

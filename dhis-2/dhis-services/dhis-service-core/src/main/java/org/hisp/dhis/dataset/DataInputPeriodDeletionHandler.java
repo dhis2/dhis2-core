@@ -1,6 +1,6 @@
 package org.hisp.dhis.dataset;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,14 @@ package org.hisp.dhis.dataset;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
  */
+@Component( "org.hisp.dhis.dataset.DataInputPeriodDeletionHandler" )
 public class DataInputPeriodDeletionHandler
     extends DeletionHandler
 {
@@ -41,10 +45,11 @@ public class DataInputPeriodDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public DataInputPeriodDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
         this.jdbcTemplate = jdbcTemplate;
     }
 

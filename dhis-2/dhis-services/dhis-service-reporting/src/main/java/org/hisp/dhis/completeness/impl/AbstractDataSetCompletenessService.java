@@ -1,7 +1,7 @@
 package org.hisp.dhis.completeness.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.completeness.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 import java.util.ArrayList;
@@ -63,38 +64,30 @@ public abstract class AbstractDataSetCompletenessService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
-
-    private DataSetService dataSetService;
-
-    public void setDataSetService( DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
-    protected DataSetCompletenessStore completenessStore;
-
-    public void setCompletenessStore( DataSetCompletenessStore completenessStore )
-    {
-        this.completenessStore = completenessStore;
-    }
+    private final OrganisationUnitService organisationUnitService;
     
-    private IdentifiableObjectManager idObjectManager;
+    private final DataSetService dataSetService;
 
-    public void setIdObjectManager( IdentifiableObjectManager idObjectManager )
+    private final PeriodService periodService;
+
+    protected final DataSetCompletenessStore completenessStore;
+
+    private final IdentifiableObjectManager idObjectManager;
+
+    public AbstractDataSetCompletenessService( OrganisationUnitService organisationUnitService,
+        DataSetService dataSetService, PeriodService periodService, DataSetCompletenessStore completenessStore,
+        IdentifiableObjectManager idObjectManager )
     {
+        checkNotNull( organisationUnitService );
+        checkNotNull( dataSetService );
+        checkNotNull( periodService );
+        checkNotNull( completenessStore );
+        checkNotNull( idObjectManager );
+
+        this.organisationUnitService = organisationUnitService;
+        this.dataSetService = dataSetService;
+        this.periodService = periodService;
+        this.completenessStore = completenessStore;
         this.idObjectManager = idObjectManager;
     }
 

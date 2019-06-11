@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,26 +32,31 @@ import java.util.List;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
 @Transactional(readOnly = true)
+@Service( "org.hisp.dhis.program.EventSyncService" )
 public class DefaultEventSyncService implements EventSyncService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private EventSyncStore eventSyncStore;
+    private final EventSyncStore eventSyncStore;
 
-    public void setEventSyncStore( EventSyncStore eventSyncStore )
+    public DefaultEventSyncService( EventSyncStore eventSyncStore )
     {
+        checkNotNull( eventSyncStore );
         this.eventSyncStore = eventSyncStore;
     }
-    
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------

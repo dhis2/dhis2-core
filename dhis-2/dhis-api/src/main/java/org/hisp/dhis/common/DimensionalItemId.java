@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -100,6 +100,7 @@ public class DimensionalItemId
         switch ( dimensionItemType )
         {
             case DATA_ELEMENT:
+            case INDICATOR:
             case PROGRAM_INDICATOR:
                 return id0 != null && id1 == null && id2 == null;
 

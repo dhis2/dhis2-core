@@ -1,6 +1,6 @@
 package org.hisp.dhis.appmanager;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ import org.joda.time.Minutes;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -72,11 +73,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
 
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.appmanager.JCloudsAppStorageService" )
 public class JCloudsAppStorageService
     implements AppStorageService
 {
@@ -111,17 +114,16 @@ public class JCloudsAppStorageService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
+    
+    private final DhisConfigurationProvider configurationProvider;
 
-    public void setLocationManager( LocationManager locationManager )
+    public JCloudsAppStorageService( LocationManager locationManager, DhisConfigurationProvider configurationProvider )
     {
+        checkNotNull( locationManager );
+        checkNotNull( configurationProvider );
+
         this.locationManager = locationManager;
-    }
-
-    private DhisConfigurationProvider configurationProvider;
-
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
         this.configurationProvider = configurationProvider;
     }
 

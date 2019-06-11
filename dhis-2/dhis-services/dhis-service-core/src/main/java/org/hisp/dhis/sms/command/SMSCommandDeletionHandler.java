@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.command;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,16 +30,24 @@ package org.hisp.dhis.sms.command;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.sms.command.SMSCommandDeletionHandler" )
 public class SMSCommandDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private SMSCommandService smsCommandService;
+    private final SMSCommandService smsCommandService;
+
+    public SMSCommandDeletionHandler( SMSCommandService smsCommandService )
+    {
+        checkNotNull( smsCommandService );
+        this.smsCommandService = smsCommandService;
+    }
 
     @Override
     protected String getClassName()

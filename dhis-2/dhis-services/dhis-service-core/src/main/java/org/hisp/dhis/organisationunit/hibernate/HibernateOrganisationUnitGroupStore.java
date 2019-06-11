@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,31 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import java.util.List;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" )
 public class HibernateOrganisationUnitGroupStore
     extends HibernateIdentifiableObjectStore<OrganisationUnitGroup>
     implements OrganisationUnitGroupStore
 {
+    public HibernateOrganisationUnitGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, OrganisationUnitGroup.class, currentUserService, deletedObjectService,
+            aclService, true );
+    }
+
     @Override
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
     {

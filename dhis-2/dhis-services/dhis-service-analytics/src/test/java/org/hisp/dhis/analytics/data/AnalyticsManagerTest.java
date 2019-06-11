@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,20 +38,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.AnalyticsManager;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * @author Lars Helge Overland
@@ -60,18 +61,26 @@ import org.junit.runners.Parameterized;
 public class AnalyticsManagerTest
     extends DhisConvenienceTest
 {
-
     @RunWith(Parameterized.class)
-    public static class Parametrized {
-
+    public static class Parametrized
+    {
         private AnalyticsManager analyticsManager;
+
+        @Mock
+        private QueryPlanner queryPlanner;
+
+        @Mock
+        private JdbcTemplate jdbcTemplate;
+
+        @Rule
+        public MockitoRule mockitoRule = MockitoJUnit.rule();
 
         @Parameterized.Parameter
         public String financialYear;
 
         @Parameterized.Parameter(1)
         public Double weightedAverage;
-        
+
         @Parameterized.Parameters
         public static Collection<Object[]> data()
         {
@@ -82,11 +91,11 @@ public class AnalyticsManagerTest
         @Before
         public void setUp()
         {
-            analyticsManager = new JdbcAnalyticsManager();
+            analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
         }
 
         @Test
-        public void testWeightedAverage() 
+        public void testWeightedAverage()
         {
             AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
                 AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
@@ -118,12 +127,21 @@ public class AnalyticsManagerTest
         }
     }
 
-    public static class SingleExecution {
+    public static class SingleExecution
+    {
+        @Mock
+        private QueryPlanner queryPlanner;
+
+        @Mock
+        private JdbcTemplate jdbcTemplate;
+
+        @Rule
+        public MockitoRule mockitoRule = MockitoJUnit.rule();
 
         @Test
         public void testReplaceDataPeriodsWithAggregationPeriods()
         {
-            AnalyticsManager analyticsManager = new JdbcAnalyticsManager();
+            AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
             Period y2012 = createPeriod( "2012" );
 
             AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(

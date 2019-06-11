@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.oauth2;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,24 +29,33 @@ package org.hisp.dhis.security.oauth2;
  */
 
 import com.google.common.collect.Sets;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.provider.ClientDetails;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.BaseClientDetails;
+import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "clientDetailsService" )
 public class DefaultClientDetailsService implements ClientDetailsService
 {
-    @Autowired
-    private OAuth2ClientService oAuth2ClientService;
-
     private static final Set<String> SCOPES = Sets.newHashSet( "ALL" );
+
+    private final OAuth2ClientService oAuth2ClientService;
+
+    public DefaultClientDetailsService( OAuth2ClientService oAuth2ClientService )
+    {
+        checkNotNull( oAuth2ClientService );
+
+        this.oAuth2ClientService = oAuth2ClientService;
+    }
 
     @Override
     public ClientDetails loadClientByClientId( String clientId ) throws ClientRegistrationException

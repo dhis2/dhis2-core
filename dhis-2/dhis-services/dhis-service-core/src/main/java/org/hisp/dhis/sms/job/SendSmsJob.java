@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.job;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,23 +38,36 @@ import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.Resource;
 import java.util.HashSet;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component
+@Scope( value = "prototype" )
 public class SendSmsJob
     extends AbstractJob
 {
-    @Autowired
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
+    private final MessageSender smsSender;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    @Autowired
-    private OutboundSmsService outboundSmsService;
+    private final OutboundSmsService outboundSmsService;
+
+    public SendSmsJob( @Qualifier( "smsMessageSender" ) MessageSender smsSender, Notifier notifier,
+        OutboundSmsService outboundSmsService )
+    {
+        checkNotNull( smsSender );
+        checkNotNull( notifier );
+        checkNotNull( outboundSmsService );
+
+        this.smsSender = smsSender;
+        this.notifier = notifier;
+        this.outboundSmsService = outboundSmsService;
+    }
 
     // -------------------------------------------------------------------------
     // I18n

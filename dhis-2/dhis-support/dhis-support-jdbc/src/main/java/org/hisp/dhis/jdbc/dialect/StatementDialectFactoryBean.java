@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc.dialect;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import org.springframework.beans.factory.FactoryBean;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
@@ -61,10 +63,11 @@ public class StatementDialectFactoryBean
     // Dependencies
     // -------------------------------------------------------------------------
     
-    private HibernateConfigurationProvider hibernateConfigurationProvider;
-    
-    public void setHibernateConfigurationProvider( HibernateConfigurationProvider hibernateConfigurationProvider )
+    private final HibernateConfigurationProvider hibernateConfigurationProvider;
+
+    public StatementDialectFactoryBean( HibernateConfigurationProvider hibernateConfigurationProvider )
     {
+        checkNotNull( hibernateConfigurationProvider );
         this.hibernateConfigurationProvider = hibernateConfigurationProvider;
     }
 
@@ -93,9 +96,7 @@ public class StatementDialectFactoryBean
     // -------------------------------------------------------------------------
         
     @Override
-    public StatementDialect getObject()
-        throws Exception
-    {
+    public StatementDialect getObject() {
         return statementDialect;
     }
 

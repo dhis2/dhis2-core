@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -319,16 +319,4 @@ public class ParserUtils
             throw new ParserExceptionWithoutContext( "Could not cast value to " + clazz.getSimpleName() );
         }
     }
-
-    /**
-     * Convert a quoted string to a string escaped properly for a SQL constant.
-     *
-     * @param s the quoted string
-     * @return a string escaped properly for a SQL constant
-     */
-    public static String sqlStringLiteral( String s )
-    {
-        return "'" + escapeSql( unescapeJava( trimQuotes( s ) ) ) + "'";
-    }
-
 }

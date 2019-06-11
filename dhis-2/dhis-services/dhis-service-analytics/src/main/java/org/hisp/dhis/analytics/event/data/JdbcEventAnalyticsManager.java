@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,8 +79,10 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -89,6 +91,7 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.event.EventAnalyticsManager" )
 public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EventAnalyticsManager
@@ -106,37 +109,7 @@ public class JdbcEventAnalyticsManager
     @Override
     public Grid getEvents( EventQueryParams params, Grid grid, int maxLimit )
     {
-        List<String> fixedCols = Lists.newArrayList( "psi", "ps", "executiondate", "ST_AsGeoJSON(psigeometry, 6)", "longitude", "latitude", "ouname", "oucode" );
-
-        List<String> selectCols = ListUtils.distinctUnion( fixedCols, getSelectColumns( params ) );
-
-        String sql = "select " + StringUtils.join( selectCols, "," ) + " ";
-
-        sql += getFromClause( params );
-
-        sql += getWhereClause( params );
-
-        sql += getSortClause( params );
-
-        sql += getPagingClause( params, maxLimit );
-
-        // ---------------------------------------------------------------------
-        // Grid
-        // ---------------------------------------------------------------------
-
-        try
-        {
-            getEvents( params, grid, sql );
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
-        }
-        catch ( DataAccessResourceFailureException ex )
-        {
-            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
-        }
+        withExceptionHandling( () -> getEvents( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
 
         return grid;
     }
@@ -278,6 +251,28 @@ public class JdbcEventAnalyticsManager
     // -------------------------------------------------------------------------
 
     /**
+     * Returns a select SQL clause for the given query.
+     *
+     * @param params the {@link EventQueryParams}.
+     */
+    protected String getSelectClause( EventQueryParams params )
+    {
+        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
+            .add( "psi", "ps", "executiondate" );
+
+        if ( params.getProgram().isRegistration() )
+        {
+            cols.add( "enrollmentdate", "incidentdate" );
+        }
+
+        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
+
+        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
+
+        return "select " + StringUtils.join( selectCols, "," ) + " ";
+    }
+
+    /**
      * Returns a from SQL clause for the given analytics table partition. If the
      * query has a non-default time field specified, a join with the
      * {@code date period structure} resource table in that field is included.
@@ -289,9 +284,9 @@ public class JdbcEventAnalyticsManager
     {
         String sql = " from ";
 
-        if ( params.isAggregateData() && params.hasValueDimension() && params.getAggregationTypeFallback().isLastPeriodAggregationType() )
+        if ( params.isAggregateData() && params.hasValueDimension() && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
         {
-            sql += getLastValueSubquerySql( params );
+            sql += getFirstOrLastValueSubquerySql( params );
         }
         else
         {
@@ -511,7 +506,7 @@ public class JdbcEventAnalyticsManager
         // Period rank restriction to get last value only
         // ---------------------------------------------------------------------
 
-        if ( params.getAggregationTypeFallback().isLastPeriodAggregationType() )
+        if ( params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
@@ -525,16 +520,17 @@ public class JdbcEventAnalyticsManager
      * org unit and attribute option combo. A column {@code pe_rank} defines the rank.
      * Only data for the last 10 years relative to the period end date is included.
      */
-    private String getLastValueSubquerySql( EventQueryParams params )
+    private String getFirstOrLastValueSubquerySql(EventQueryParams params )
     {
         Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
 
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
         String valueItem = quote( params.getValue().getDimensionItem() );
-        List<String> columns = getLastValueSubqueryQuotedColumns( params );
-        String alias = getPeriodAlias( params );
+        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        String alias = "iax";
         String timeCol = quote( alias, params.getTimeFieldAsFieldFallback() );
+        String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
 
         String sql = "(select ";
 
@@ -546,8 +542,8 @@ public class JdbcEventAnalyticsManager
         sql +=
             "row_number() over (" +
                 "partition by ou, ao " +
-                "order by " + timeCol + " desc) as pe_rank " +
-            "from " + params.getTableName() + " " +
+                "order by " + timeCol + " " + order +") as pe_rank " +
+            "from " + params.getTableName() + " " + alias + " " +
             "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
             "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
             "and " + valueItem + " is not null)";
@@ -560,7 +556,7 @@ public class JdbcEventAnalyticsManager
      * The period dimension is replaced by the name of the single period in the given
      * query.
      */
-    private List<String> getLastValueSubqueryQuotedColumns( EventQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns(EventQueryParams params )
     {
         Period period = params.getLatestPeriod();
 

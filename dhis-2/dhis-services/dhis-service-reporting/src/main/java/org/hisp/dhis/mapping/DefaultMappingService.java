@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,14 +38,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Jan Henrik Overland
  */
-@Transactional
+@Service( "org.hisp.dhis.mapping.MappingService" )
 public class DefaultMappingService
     extends GenericAnalyticalObjectService<MapView>
     implements MappingService
@@ -54,45 +57,34 @@ public class DefaultMappingService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MapStore mapStore;
+    private final MapStore mapStore;
+    
+    private final MapViewStore mapViewStore;
 
-    public void setMapStore( MapStore mapStore )
+    private final ExternalMapLayerStore externalMapLayerStore;
+
+    private final OrganisationUnitService organisationUnitService;
+    
+    private final IndicatorService indicatorService;
+    
+    private final PeriodService periodService;
+
+    public DefaultMappingService( MapStore mapStore, MapViewStore mapViewStore,
+        ExternalMapLayerStore externalMapLayerStore, OrganisationUnitService organisationUnitService,
+        IndicatorService indicatorService, PeriodService periodService )
     {
+        checkNotNull( mapStore );
+        checkNotNull( mapViewStore );
+        checkNotNull( externalMapLayerStore );
+        checkNotNull( organisationUnitService );
+        checkNotNull( indicatorService );
+        checkNotNull( periodService );
+
         this.mapStore = mapStore;
-    }
-
-    private MapViewStore mapViewStore;
-
-    public void setMapViewStore( MapViewStore mapViewStore )
-    {
         this.mapViewStore = mapViewStore;
-    }
-
-    private ExternalMapLayerStore externalMapLayerStore;
-
-    public void setExternalMapLayerStore( ExternalMapLayerStore externalMapLayerStore )
-    {
         this.externalMapLayerStore = externalMapLayerStore;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private IndicatorService indicatorService;
-
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
         this.indicatorService = indicatorService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
         this.periodService = periodService;
     }
 
@@ -105,57 +97,57 @@ public class DefaultMappingService
     {
         return mapViewStore;
     }
-    
+
     // -------------------------------------------------------------------------
     // Map
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addMap( Map map )
     {
         map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
-        
+
         mapStore.save( map );
 
         return map.getId();
     }
 
     @Override
+    @Transactional
     public void updateMap( Map map )
     {
         map.getMapViews().forEach( mapView -> mapView.setAutoFields() );
-        
+
         mapStore.update( map );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map getMap( long id )
     {
         return mapStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map getMap( String uid )
     {
         return mapStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Map getMapNoAcl( String uid )
     {
         return mapStore.getByUidNoAcl( uid );
     }
 
     @Override
+    @Transactional
     public void deleteMap( Map map )
     {
         mapStore.delete( map );
-    }
-
-    @Override
-    public List<Map> getAllMaps()
-    {
-        return mapStore.getAll();
     }
 
     // -------------------------------------------------------------------------
@@ -163,6 +155,7 @@ public class DefaultMappingService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addMapView( MapView mapView )
     {
         mapViewStore.save( mapView );
@@ -170,38 +163,35 @@ public class DefaultMappingService
     }
 
     @Override
+    @Transactional
     public void updateMapView( MapView mapView )
     {
         mapViewStore.update( mapView );
     }
 
     @Override
+    @Transactional
     public void deleteMapView( MapView mapView )
     {
         mapViewStore.delete( mapView );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MapView getMapView( long id )
     {
         return mapViewStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public MapView getMapView( String uid )
     {
-        MapView mapView = mapViewStore.getByUid( uid );
-
-        return mapView;
+        return mapViewStore.getByUid( uid );
     }
 
     @Override
-    public MapView getMapViewByName( String name )
-    {
-        return mapViewStore.getByName( name );
-    }
-    
-    @Override
+    @Transactional(readOnly = true)
     public MapView getIndicatorLastYearMapView( String indicatorUid, String organisationUnitUid, int level )
     {
         MapView mapView = new MapView();
@@ -220,30 +210,27 @@ public class DefaultMappingService
 
         return mapView;
     }
-    
+
     @Override
+    @Transactional(readOnly = true)
     public List<MapView> getMapViewsByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
         return mapViewStore.getByOrganisationUnitGroupSet( groupSet );
     }
 
     @Override
-    public List<MapView> getAllMapViews()
-    {
-        return mapViewStore.getAll();
-    }
-
-    @Override
+    @Transactional(readOnly = true)
     public int countMapViewMaps( MapView mapView )
     {
         return mapStore.countMapViewMaps( mapView );
     }
 
-
-    //-------------------------------------------
+    // -------------------------------------------------------------------------
     // ExternalMapLayer
-    //-------------------------------------------
+    // -------------------------------------------------------------------------
+
     @Override
+    @Transactional
     public long addExternalMapLayer( ExternalMapLayer externalMapLayer )
     {
         externalMapLayerStore.save( externalMapLayer );
@@ -251,38 +238,30 @@ public class DefaultMappingService
     }
 
     @Override
+    @Transactional
     public void updateExternalMapLayer( ExternalMapLayer externalMapLayer )
     {
         externalMapLayerStore.update( externalMapLayer );
     }
 
     @Override
+    @Transactional
     public void deleteExternalMapLayer( ExternalMapLayer externalMapLayer )
     {
         externalMapLayerStore.delete( externalMapLayer );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ExternalMapLayer getExternalMapLayer( long id )
     {
         return externalMapLayerStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ExternalMapLayer getExternalMapLayer( String uid )
     {
         return externalMapLayerStore.getByUid( uid );
-    }
-
-    @Override
-    public ExternalMapLayer getExternalMapLayerByName( String name )
-    {
-        return externalMapLayerStore.getByName( name );
-    }
-
-    @Override
-    public List<ExternalMapLayer> getAllExternalMapLayers()
-    {
-        return externalMapLayerStore.getAll();
     }
 }

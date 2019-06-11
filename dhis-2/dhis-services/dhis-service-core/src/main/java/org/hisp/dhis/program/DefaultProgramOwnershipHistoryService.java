@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,14 @@ package org.hisp.dhis.program;
  */
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
+@Service( "org.hisp.dhis.program.ProgramOwnershipHistoryService" )
 @Transactional
 public class DefaultProgramOwnershipHistoryService implements ProgramOwnershipHistoryService
 {

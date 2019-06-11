@@ -19,7 +19,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,8 +101,6 @@ public class TrackedEntityAttribute
 
     private Boolean orgunitScope = false;
 
-    private Boolean programScope = false;
-
     private Boolean skipSynchronization = false;
 
     // -------------------------------------------------------------------------
@@ -155,6 +153,7 @@ public class TrackedEntityAttribute
     /**
      * Indicates whether this attribute has an option set.
      */
+    @Override
     public boolean hasOptionSet()
     {
         return optionSet != null;
@@ -186,6 +185,17 @@ public class TrackedEntityAttribute
         }
 
         return false;
+    }
+
+    @JsonIgnore
+    public boolean getOrgUnitScopeNullSafe()
+    {
+        return orgunitScope != null && orgunitScope;
+    }
+
+    public Boolean isSystemWideUnique()
+    {
+        return isUnique() && !getOrgUnitScopeNullSafe();
     }
 
     // -------------------------------------------------------------------------
@@ -241,6 +251,7 @@ public class TrackedEntityAttribute
         this.description = description;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
@@ -353,7 +364,7 @@ public class TrackedEntityAttribute
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getOrgunitScope()
     {
-        return orgunitScope != null ? orgunitScope : false;
+        return orgunitScope;
     }
 
     public void setOrgunitScope( Boolean orgunitScope )
@@ -361,18 +372,7 @@ public class TrackedEntityAttribute
         this.orgunitScope = orgunitScope;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Boolean getProgramScope()
-    {
-        return programScope != null ? programScope : false;
-    }
-
-    public void setProgramScope( Boolean programScope )
-    {
-        this.programScope = programScope;
-    }
-
+    @Override
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -395,7 +395,6 @@ public class TrackedEntityAttribute
 
     public void setConfidential( Boolean confidential )
     {
-
         this.confidential = confidential;
     }
 
@@ -431,11 +430,6 @@ public class TrackedEntityAttribute
     public void setFormName( String formName )
     {
         this.formName = formName;
-    }
-
-    public Boolean isSystemWideUnique()
-    {
-        return isUnique() && !getProgramScope() && !getOrgunitScope();
     }
 
     @JsonProperty
@@ -482,7 +476,6 @@ public class TrackedEntityAttribute
             ", textPattern=" + textPattern +
             ", style=" + style +
             ", orgunitScope=" + orgunitScope +
-            ", programScope=" + programScope +
             ", skipSynchronization=" + skipSynchronization +
             '}';
     }

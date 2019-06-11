@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ public interface FileResourceService
 
     List<FileResource> getOrphanedFileResources();
 
-    String saveFileResource( FileResource fileResource, File file );
+    void saveFileResource( FileResource fileResource, File file );
 
     String saveFileResource( FileResource fileResource, byte[] bytes );
 
@@ -54,10 +54,16 @@ public interface FileResourceService
     void deleteFileResource( FileResource fileResource );
 
     ByteSource getFileResourceContent( FileResource fileResource );
-    
+
     boolean fileResourceExists( String uid );
-    
+
     void updateFileResource( FileResource fileResource );
 
     URI getSignedGetFileResourceContentUri( String uid );
+
+    URI getSignedGetFileResourceContentUri( FileResource fileResource );
+
+    List<FileResource> getExpiredFileResources( FileResourceRetentionStrategy retentionStrategy );
+
+    List<FileResource> getAllUnProcessedImagesFiles();
 }
