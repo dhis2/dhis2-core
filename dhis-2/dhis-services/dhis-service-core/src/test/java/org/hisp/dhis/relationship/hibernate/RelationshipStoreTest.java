@@ -32,7 +32,7 @@ import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -47,8 +47,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -70,6 +71,18 @@ public class RelationshipStoreTest
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
     private TrackedEntityInstance trackedEntityInstanceA;
 
     private TrackedEntityInstance trackedEntityInstanceB;
@@ -78,6 +91,8 @@ public class RelationshipStoreTest
 
     private Relationship relationship;
 
+    private OrganisationUnit organisationUnit;
+
     @Override
     public void setUpTest()
     {
@@ -85,7 +100,7 @@ public class RelationshipStoreTest
         relationshipType = createRelationshipType( 'A' );
         relationshipTypeService.addRelationshipType( relationshipType );
 
-        OrganisationUnit organisationUnit = createOrganisationUnit( "testOU" );
+        organisationUnit = createOrganisationUnit( "testOU" );
 
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
@@ -115,6 +130,50 @@ public class RelationshipStoreTest
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationship ) );
+    }
+
+    @Test
+    public void getByProgramStageInstance()
+    {
+        Program programA = createProgram('A', new HashSet<>(), organisationUnit );
+        programService.addProgram( programA );
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setProgram( programA );
+        programInstance.setAutoFields();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+        programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstanceService.addProgramInstance( programInstance );
+
+        ProgramStage programStageA = createProgramStage( 'S', programA );
+        programStageA.setProgram( programA );
+        programA.getProgramStages().add( programStageA );
+        programStageService.saveProgramStage( programStageA );
+
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance.setProgramStage( programStageA );
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setAutoFields();
+
+        programStageInstanceService.addProgramStageInstance( programStageInstance );
+
+        RelationshipItem relationshipItemFrom = new RelationshipItem();
+        relationshipItemFrom.setTrackedEntityInstance( trackedEntityInstanceA );
+        RelationshipItem relationshipItemTo = new RelationshipItem();
+        relationshipItemTo.setProgramStageInstance( programStageInstance );
+
+        Relationship relationshipA = new Relationship();
+        relationshipA.setRelationshipType( relationshipType );
+        relationshipA.setFrom( relationshipItemFrom );
+        relationshipA.setTo( relationshipItemTo );
+
+        relationshipService.addRelationship( relationshipA );
+
+        List<Relationship> relationshipList = relationshipService.getRelationshipsByProgramStageInstance( programStageInstance, true );
+
+        assertEquals( 1, relationshipList.size() );
+        assertTrue( relationshipList.contains( relationshipA ) );
     }
 
     @Test

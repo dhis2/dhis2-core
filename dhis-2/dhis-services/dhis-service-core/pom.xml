@@ -149,6 +149,12 @@
       <artifactId>aws-s3</artifactId>
     </dependency>
 
+    <!-- Image Processing -->
+    <dependency>
+      <groupId>org.imgscalr</groupId>
+      <artifactId>imgscalr-lib</artifactId>
+    </dependency>
+
     <!-- SMPP -->
     <dependency>
       <groupId>org.jsmpp</groupId>

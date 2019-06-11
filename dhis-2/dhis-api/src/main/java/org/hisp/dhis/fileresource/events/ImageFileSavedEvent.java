@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.fileresource.events;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,41 +28,33 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 
-import java.util.Set;
+import java.io.File;
+import java.util.Map;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @Author Zubair Asghar.
  */
-public enum FileResourceDomain
+public class ImageFileSavedEvent
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar");
+    private String fileResource;
 
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
+    private Map<ImageFileDimension, File> imageFiles;
 
-    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
-        new ImmutableSet.Builder<FileResourceDomain>().add( DATA_VALUE, USER_AVATAR ).build();
-
-    FileResourceDomain( String containerName )
+    public ImageFileSavedEvent( String fileResource, Map<ImageFileDimension, File> imageFiles )
     {
-        this.containerName = containerName;
+        this.fileResource = fileResource;
+        this.imageFiles = imageFiles;
     }
 
-    public String getContainerName()
+    public String getFileResource()
     {
-        return containerName;
+        return fileResource;
     }
 
-    public static Set<FileResourceDomain> getDomainForMultipleImages()
+    public Map<ImageFileDimension, File> getImageFiles()
     {
-        return DOMAIN_FOR_MULTIPLE_IMAGES;
+        return imageFiles;
     }
 }

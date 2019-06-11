@@ -35,6 +35,7 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.stereotype.Component;
 
 import java.util.Calendar;
 
@@ -43,8 +44,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Halvdan Hoem Grelland
  */
-public class ProgramNotificationJob
-    extends AbstractJob
+
+@Component( "programNotificationsJob" )
+public class ProgramNotificationJob extends AbstractJob
 {
     private final ProgramNotificationService programNotificationService;
 

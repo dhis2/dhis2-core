@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,41 +28,40 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.Set;
+import java.util.Optional;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @Author Zubair Asghar.
  */
-public enum FileResourceDomain
+public enum ImageFileDimension
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar");
+    SMALL( "small" ),
+    MEDIUM( "medium" ),
+    LARGE( "large" ),
+    ORIGINAL( "" );
 
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
+    private String dimension;
 
-    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
-        new ImmutableSet.Builder<FileResourceDomain>().add( DATA_VALUE, USER_AVATAR ).build();
-
-    FileResourceDomain( String containerName )
+    ImageFileDimension( String dimension )
     {
-        this.containerName = containerName;
+        this.dimension = dimension;
     }
 
-    public String getContainerName()
+    public String getDimension()
     {
-        return containerName;
+        return this.dimension;
     }
 
-    public static Set<FileResourceDomain> getDomainForMultipleImages()
+    public static Optional<ImageFileDimension> from( String dimension )
     {
-        return DOMAIN_FOR_MULTIPLE_IMAGES;
+        for ( ImageFileDimension d : ImageFileDimension.values() )
+        {
+            if ( d.dimension.equalsIgnoreCase( dimension ) )
+            {
+                return Optional.of( d );
+            }
+        }
+
+        return Optional.empty();
     }
 }

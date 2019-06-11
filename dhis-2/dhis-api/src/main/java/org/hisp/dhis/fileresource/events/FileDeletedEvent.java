@@ -1,4 +1,4 @@
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.fileresource.events;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,41 +28,38 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableSet;
-
-import java.util.Set;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @Author Zubair Asghar.
  */
-public enum FileResourceDomain
+public class FileDeletedEvent
 {
-    DATA_VALUE( "dataValue" ),
-    PUSH_ANALYSIS( "pushAnalysis" ),
-    DOCUMENT( "document" ),
-    MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar");
+    private String storageKey;
 
-    /**
-     * Container name to use when storing blobs of this FileResourceDomain
-     */
-    private String containerName;
+    private String contentType;
 
-    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
-        new ImmutableSet.Builder<FileResourceDomain>().add( DATA_VALUE, USER_AVATAR ).build();
+    private FileResourceDomain domain;
 
-    FileResourceDomain( String containerName )
+    public FileDeletedEvent( String storageKey, String contentType, FileResourceDomain domain )
     {
-        this.containerName = containerName;
+        this.storageKey = storageKey;
+        this.contentType = contentType;
+        this.domain = domain;
     }
 
-    public String getContainerName()
+    public String getStorageKey()
     {
-        return containerName;
+        return storageKey;
     }
 
-    public static Set<FileResourceDomain> getDomainForMultipleImages()
+    public String getContentType()
     {
-        return DOMAIN_FOR_MULTIPLE_IMAGES;
+        return contentType;
+    }
+
+    public FileResourceDomain getDomain()
+    {
+        return domain;
     }
 }

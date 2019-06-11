@@ -131,7 +131,7 @@ public class UserCredentials
     private Set<Category> catDimensionConstraints = new HashSet<>();
 
     /**
-     * Retaining password history so user cannot pick one of the previous 24 passwords
+     * List of previously used passwords.
      */
     private List<String> previousPasswords = new ArrayList<>();
 
@@ -528,6 +528,7 @@ public class UserCredentials
         this.userInfo = userInfo;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
@@ -663,6 +664,7 @@ public class UserCredentials
         this.previousPasswords = previousPasswords;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
@@ -775,7 +777,6 @@ public class UserCredentials
             "\"openId\":\"" + openId + "\", " +
             "\"password\":\"" + password + "\", " +
             "\"passwordLastUpdated\":\"" + passwordLastUpdated + "\", " +
-            "\"userAuthorityGroups\":\"" + userAuthorityGroups + "\", " +
             "\"lastLogin\":\"" + lastLogin + "\", " +
             "\"restoreToken\":\"" + restoreToken + "\", " +
             "\"restoreExpiry\":\"" + restoreExpiry + "\", " +

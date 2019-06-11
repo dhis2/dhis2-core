@@ -41,6 +41,8 @@ import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -68,6 +70,16 @@ public class CategoryOption
     private Set<CategoryOptionGroup> groups = new HashSet<>();
 
     private ObjectStyle style;
+
+    /**
+     * The name to appear in forms.
+     */
+    private String formName;
+
+    /**
+     * The i18n variant of the display name. Should not be persisted.
+     */
+    protected transient String displayFormName;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -265,5 +277,39 @@ public class CategoryOption
     public void setStyle( ObjectStyle style )
     {
         this.style = style;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @PropertyRange( min = 2 )
+    public String getFormName()
+    {
+        return formName;
+    }
+
+    public void setFormName( String formName )
+    {
+        this.formName = formName;
+    }
+
+    /**
+     * Returns the form name, or the name if it does not exist.
+     */
+    public String getFormNameFallback()
+    {
+        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayFormName()
+    {
+        displayFormName = getTranslation( TranslationProperty.FORM_NAME, displayFormName );
+        return displayFormName != null ? displayFormName : getFormNameFallback();
+    }
+
+    public void setDisplayFormName( String displayFormName )
+    {
+        this.displayFormName = displayFormName;
     }
 }
