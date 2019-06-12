@@ -85,8 +85,6 @@ public class DefaultIdentifiableObjectManager
      */
     private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
-    private static Cache<String, Attribute> ATTRIBUTE_CACHE;
-
     @Autowired
     private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -112,12 +110,6 @@ public class DefaultIdentifiableObjectManager
             .expireAfterAccess( 2, TimeUnit.HOURS )
             .initialCapacity( 4 )
             .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10 )
-            .build();
-
-        ATTRIBUTE_CACHE = Caffeine.newBuilder()
-            .expireAfterAccess( 2, TimeUnit.HOURS )
-            .initialCapacity( 4 )
-            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 200 )
             .build();
     }
 
@@ -1052,18 +1044,6 @@ public class DefaultIdentifiableObjectManager
         }
         IdentifiableObject defaultObject = defaults.get( realClass );
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
-    }
-
-    @Override
-    public Attribute getCachedAttribute( String uid )
-    {
-        return ATTRIBUTE_CACHE.get( uid, key -> get( Attribute.class, uid ) );
-    }
-
-    @Override
-    public void updateCachedAttribute( Attribute attribute )
-    {
-        ATTRIBUTE_CACHE.put( attribute.getUid(), attribute );
     }
 
     @SuppressWarnings( "unchecked" )

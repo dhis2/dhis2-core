@@ -32,6 +32,7 @@ import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -135,6 +136,9 @@ public class DefaultMetadataExportService implements MetadataExportService
 
     @Autowired
     private SystemService systemService;
+
+    @Autowired
+    private AttributeService attributeService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -871,7 +875,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleAttributes( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, IdentifiableObject identifiableObject )
     {
         if ( identifiableObject == null ) return metadata;
-        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class,  manager.getCachedAttribute( av.getAttribute() ) ) );
+        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class,  attributeService.getAttribute( av.getAttributeUid() ) ) );
 
         return metadata;
     }

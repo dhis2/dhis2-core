@@ -99,7 +99,7 @@ public class BaseIdentifiableObject
     /**
      * Set of the dynamic attributes values that belong to this data element.
      */
-    protected transient Set<AttributeValue> attributeValues = new HashSet<>();
+    protected Set<AttributeValue> attributeValues = new HashSet<>();
 
     protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
@@ -352,6 +352,12 @@ public class BaseIdentifiableObject
         return cacheAttributeValues.get( attribute.getUid() );
     }
 
+    public AttributeValue getAttributeValue( String attributeUid )
+    {
+        loadAttributeValuesCacheIfEmpty();
+        return cacheAttributeValues.get( attributeUid );
+    }
+
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
@@ -418,7 +424,7 @@ public class BaseIdentifiableObject
     {
         if ( cacheAttributeValues.isEmpty() && attributeValues != null )
         {
-            attributeValues.forEach( av -> cacheAttributeValues.put( av.getAttribute(), av ) );
+            attributeValues.forEach( av -> cacheAttributeValues.put( av.getAttribute().getUid(), av ) );
         }
     }
 
@@ -691,7 +697,7 @@ public class BaseIdentifiableObject
         {
             for ( AttributeValue attributeValue : attributeValues )
             {
-                if ( idScheme.getAttribute().equals( attributeValue.getAttribute() ) )
+                if ( idScheme.getAttribute().equals( attributeValue.getAttributeUid() ) )
                 {
                     return attributeValue.getValue();
                 }

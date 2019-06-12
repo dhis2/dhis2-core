@@ -431,8 +431,11 @@ public class HibernateGenericStore<T>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
+        List<String> attributeIds = attributes.stream().map( attribute -> attribute.getUid() )
+                .collect( Collectors.toList() );
+
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicate( root ->   builder.function( "jsonb_extract_path_text", String.class, root.get( "attributeValues" ), builder.literal("attribute") ).in( attributes ));
+            .addPredicate( root ->   builder.function( "json_object_keys", String.class, root.get( "attributeValues" ) ).in( attributeIds ) );
 
         return getList( builder, parameters );
     }
@@ -454,7 +457,7 @@ public class HibernateGenericStore<T>
         Root<T> root = query.from( getClazz() );
         query.select( root.get( "attributeValues" ) );
         query.where( builder.equal(
-                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal("attribute") )
+                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ) )
                         ,attribute.getUid() )
         );
 
@@ -462,7 +465,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<AttributeValue> getAttributeValueByAttributeAndValue(Attribute attribute, String value )
+    public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
@@ -470,9 +473,8 @@ public class HibernateGenericStore<T>
 
         query.select( root.get( "attributeValues" ) );
         query.where(
-                builder.and(
-                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal("attribute" ) ), attribute.getUid() ),
-                    builder.equal( builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal("value" ) ), value ))
+                    builder.equal(
+                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value )
         );
 
         return getSession().createQuery( query ).list();

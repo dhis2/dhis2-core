@@ -28,22 +28,29 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.util.Maps;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.util.Maps;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,8 +62,8 @@ public class DefaultAttributeService
         ( attributeValue ) ->
             attributeValue.getValue() == null && attributeValue.getValueType() == ValueType.TRUE_ONLY.name();
 
+    private Cache<Attribute> attributeCache;
 
-    private Map<String, Attribute> attributeMap = new HashMap<>();
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -70,6 +77,23 @@ public class DefaultAttributeService
 
     @Autowired
     private IdentifiableObjectManager manager;
+
+    @Autowired
+    private CacheProvider cacheProvider;
+
+    @Autowired
+    private SessionFactory sessionFactory;
+
+    // -------------------------------------------------------------------------
+    // Initialization
+    // -------------------------------------------------------------------------
+
+    @PostConstruct
+    public void init()
+    {
+        attributeCache = cacheProvider.newCacheBuilder( Attribute.class ).forRegion( "attribute" )
+            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( 10000 ).build();
+    }
 
     // -------------------------------------------------------------------------
     // Attribute implementation
@@ -86,6 +110,7 @@ public class DefaultAttributeService
     @Transactional
     public void updateAttribute( Attribute attribute )
     {
+        attributeCache.invalidate( attribute.getUid() );
         attributeStore.update( attribute );
     }
 
@@ -93,6 +118,7 @@ public class DefaultAttributeService
     @Transactional
     public void deleteAttribute( Attribute attribute )
     {
+        attributeCache.invalidate( attribute.getUid() );
         attributeStore.delete( attribute );
     }
 
@@ -107,7 +133,8 @@ public class DefaultAttributeService
     @Transactional(readOnly = true)
     public Attribute getAttribute( String uid )
     {
-        return attributeStore.getByUid( uid );
+        Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
+        return attribute.isPresent() ? attribute.get() : null;
     }
 
     @Override
@@ -160,10 +187,10 @@ public class DefaultAttributeService
     @Transactional
     public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
-        Attribute attribute = manager.getCachedAttribute( attributeValue.getAttribute() );
+        Attribute attribute = getAttribute( attributeValue.getAttributeUid() );
 
-        if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
-            !attribute.getSupportedClasses().contains( object.getClass() ) )
+        if ( object == null || attributeValue == null || Objects.isNull( attribute )
+            || !attribute.getSupportedClasses().contains( object.getClass() ) )
         {
             return;
         }
@@ -180,17 +207,17 @@ public class DefaultAttributeService
 
         attributeValue.setAutoFields();
         object.getAttributeValues().add( attributeValue );
-        manager.update( object );
+        sessionFactory.getCurrentSession().save( object );
     }
 
     @Override
     @Transactional
     public <T extends IdentifiableObject> void updateAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
-        Attribute attribute = manager.getCachedAttribute( attributeValue.getAttribute() );
+        Attribute attribute = getAttribute( attributeValue.getAttributeUid() );
 
-        if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
-            !attribute.getSupportedClasses().contains( object.getClass() ) )
+        if ( object == null || attributeValue == null || Objects.isNull( attribute )
+            || !attribute.getSupportedClasses().contains( object.getClass() ) )
         {
             return;
         }
@@ -252,7 +279,7 @@ public class DefaultAttributeService
 
         Map<String, AttributeValue> attributeValueMap = attributeValues.stream()
             .filter( SHOULD_DELETE_ON_UPDATE.negate() )
-            .collect( Collectors.toMap( av -> av.getAttribute(), av -> av ) );
+            .collect( Collectors.toMap( av -> av.getAttributeUid(), av -> av ) );
 
         Iterator<AttributeValue> iterator = object.getAttributeValues().iterator();
 
@@ -262,7 +289,7 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = iterator.next();
 
-            Attribute attribute = manager.getCachedAttribute( attributeValue.getAttribute() );
+            Attribute attribute = getAttribute( attributeValue.getAttributeUid() );
 
             if ( attributeValueMap.containsKey( attributeValue.getAttribute() ) )
             {

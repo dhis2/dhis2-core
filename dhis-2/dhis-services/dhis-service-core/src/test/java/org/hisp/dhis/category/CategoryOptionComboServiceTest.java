@@ -277,7 +277,7 @@ public class CategoryOptionComboServiceTest
         attributeService.addAttribute( attribute1 );
 
         AttributeValue avA = new AttributeValue( "value 1" );
-        avA.setAttribute( attribute1.getUid() );
+        avA.setAttribute( attribute1 );
 
         categoryOptionComboA.getAttributeValues().add( avA );
         categoryService.updateCategoryOptionCombo( categoryOptionComboA );

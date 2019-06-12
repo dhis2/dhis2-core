@@ -97,8 +97,9 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            attributeValue.setAttribute( attribute.getUid() );
-            session.save( attributeValue );
+            attributeValue.setAttribute( attribute );
         }
+
+        session.save( identifiableObject );
     }
 }

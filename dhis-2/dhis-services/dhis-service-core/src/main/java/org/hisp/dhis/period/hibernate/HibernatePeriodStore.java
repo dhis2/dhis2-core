@@ -186,7 +186,7 @@ public class HibernatePeriodStore
 
         Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
         
-        Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
+        Period storedPeriod = id != null ? session.get( Period.class, id ) : null;
 
         return storedPeriod != null ? storedPeriod.copyTransientProperties( period ) : null;
     }

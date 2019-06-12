@@ -227,6 +227,7 @@ public class HibernateDbmsManager
         emptyTable( "datasetindicators" );
         emptyTable( "datasetoperands" );
         emptyTable( "datasetusergroupaccesses" );
+        emptyTable( "datasetuseraccesses" );
         emptyTable( "dataset" );
 
         emptyTable( "dataapprovalaudit" );
@@ -324,6 +325,7 @@ public class HibernateDbmsManager
         emptyTable( "categoryoptiongroupusergroupaccesses" );
         emptyTable( "categoryoptiongroup" );
 
+        emptyTable( "dataelementcategoryoptionuseraccesses" );
         emptyTable( "dataelementcategoryoptionusergroupaccesses" );
 
         emptyTable( "expression" );

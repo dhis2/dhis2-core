@@ -31,11 +31,15 @@ package org.hisp.dhis.attribute;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
@@ -46,8 +50,9 @@ import static org.junit.Assert.*;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Category( IntegrationTest.class )
 public class AttributeValueServiceTest
-        extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private AttributeService attributeService;
@@ -55,12 +60,21 @@ public class AttributeValueServiceTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    @Autowired
+    private DataElementService dataElementService;
+
     private AttributeValue avA;
     private AttributeValue avB;
     private DataElement dataElementA;
     private DataElement dataElementB;
     private Attribute attribute1;
     private Attribute attribute2;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest() throws NonUniqueAttributeValueException
@@ -76,8 +90,8 @@ public class AttributeValueServiceTest
         attributeService.addAttribute( attribute1 );
         attributeService.addAttribute( attribute2 );
 
-        avA.setAttribute( attribute1.getUid() );
-        avB.setAttribute( attribute2.getUid() );
+        avA.setAttribute( attribute1 );
+        avB.setAttribute( attribute2 );
 
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -103,13 +117,13 @@ public class AttributeValueServiceTest
         attributeService.updateAttributeValue( dataElementA, avA );
         attributeService.updateAttributeValue( dataElementB, avB );
 
-        DataElement deA = manager.get( DataElement.class, dataElementA.getUid() );
-        DataElement deB = manager.get( DataElement.class, dataElementB.getUid() );
+//        DataElement deA = dataElementService.getDataElement( dataElementA.getUid() );
+//        DataElement deB =  dataElementService.getDataElement( dataElementB.getUid() );
 
-        assertEquals( deA.getAttributeValues().size(),  2 );
-        assertNotNull( deA.getAttributeValue( attribute1 ) );
-        assertEquals( deB.getAttributeValues().size(), 2 );
-        assertNotNull( deB.getAttributeValue( attribute2 ) );
+        assertEquals( 1, dataElementA.getAttributeValues().size() );
+        assertNotNull( dataElementA.getAttributeValue( attribute1 ) );
+        assertEquals( 1, dataElementB.getAttributeValues().size() );
+        assertNotNull( dataElementB.getAttributeValue( attribute2 ) );
     }
 
     @Test
@@ -135,8 +149,6 @@ public class AttributeValueServiceTest
     public void testDeleteAttributeValue()
     {
         attributeService.deleteAttributeValue( dataElementA, avA );
-
-        dataElementA = manager.get( DataElement.class, dataElementA.getUid() );
 
         assertEquals( 0, dataElementA.getAttributeValues().size() );
     }
@@ -179,6 +191,8 @@ public class AttributeValueServiceTest
         AttributeValue attributeValueA = new AttributeValue( "A", attribute );
         attributeService.addAttributeValue( dataElementA, attributeValueA );
         manager.update( dataElementA );
+
+        dataElementA.getAttributeValues().forEach( System.out::println );
 
         AttributeValue attributeValueB = new AttributeValue( "A", attribute );
         attributeService.addAttributeValue( dataElementB, attributeValueB );
@@ -230,8 +244,6 @@ public class AttributeValueServiceTest
 
         attributeService.updateAttributeValues( dataElementA, jsonValues );
 
-//        av = attributeService.getAttributeValue( av.getId() );
-        assertEquals( "updatedvalue1", av.getValue() );
-
+        assertEquals( "updatedvalue1", dataElementA.getAttributeValue( av.getAttribute() ).getValue() );
     }
 }

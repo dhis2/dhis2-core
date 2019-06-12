@@ -45,7 +45,7 @@ public class AttributeUtils
 
         for ( AttributeValue attributeValue : attributeValues )
         {
-            attributeValuesMap.put( attributeValue.getAttribute(), attributeValue.getValue() );
+            attributeValuesMap.put( attributeValue.getAttribute().getUid(), attributeValue.getValue() );
         }
 
         return attributeValuesMap;

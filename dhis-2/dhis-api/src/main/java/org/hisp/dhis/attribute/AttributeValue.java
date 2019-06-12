@@ -28,22 +28,23 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "attributeValue", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0 )
 public class AttributeValue
         implements Serializable
 {
@@ -62,9 +63,9 @@ public class AttributeValue
      */
     private Date lastUpdated;
 
-    private String attributeId;
+    private String attributeUid;
 
-    private transient Attribute attribute;
+    private Attribute attribute;
 
     private String value;
 
@@ -84,8 +85,9 @@ public class AttributeValue
     public AttributeValue( String value, Attribute attribute )
     {
         this.value = value;
-        this.attribute = attribute.getUid();
+        this.attribute = attribute;
         this.valueType = attribute.getValueType().name();
+        this.attributeUid = attribute.getUid();
     }
 
     public void setAutoFields()
@@ -125,6 +127,7 @@ public class AttributeValue
     {
         return "AttributeValue{" +
                 "class=" + getClass() +
+                ",attributeUid=" + attributeUid +
                 ", created=" + created +
                 ", lastUpdated=" + lastUpdated +
                 ", attribute=" + attribute +
@@ -156,17 +159,24 @@ public class AttributeValue
         this.lastUpdated = lastUpdated;
     }
 
-    public String getAttribute()
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    public Attribute getAttribute()
     {
         return attribute;
     }
 
-    public void setAttribute( String attribute )
+    public void setAttribute( Attribute attribute )
     {
-        this.attribute = attribute;
+        if ( attribute != null )
+        {
+            this.attribute = attribute;
+            this.attributeUid = attribute.getUid();
+        }
     }
 
     @JsonProperty
+    @JacksonXmlProperty
     public String getValue()
     {
         return value;
@@ -183,5 +193,16 @@ public class AttributeValue
 
     public void setValueType(String valueType) {
         this.valueType = valueType;
+    }
+
+    @JsonProperty( value = "attributeId" )
+    public String getAttributeUid()
+    {
+        return attributeUid;
+    }
+
+    public void setAttributeUid( String attributeUid )
+    {
+        this.attributeUid = attributeUid;
     }
 }

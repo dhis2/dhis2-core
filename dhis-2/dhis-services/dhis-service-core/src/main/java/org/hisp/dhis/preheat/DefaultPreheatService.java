@@ -399,7 +399,7 @@ public class DefaultPreheatService implements PreheatService
                 {
                     if ( !preheat.getUniqueAttributeValues().get( klass ).containsKey( attributeValue.getAttribute() ) )
                     {
-                        preheat.getUniqueAttributeValues().get( klass ).put( attributeValue.getAttribute(), new HashMap<>() );
+                        preheat.getUniqueAttributeValues().get( klass ).put( attributeValue.getAttribute().getUid(), new HashMap<>() );
                     }
 
                     preheat.getUniqueAttributeValues().get( klass ).get( attributeValue.getAttribute() )
