@@ -40,11 +40,14 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerObjectReport;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +151,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private void handleTrackedEntities( Session session, TrackerBundle bundle )
     {
         List<TrackedEntityInstance> trackedEntities = bundle.getTrackedEntities();
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
 
         trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( TrackedEntityInstance.class, o, bundle ) ) );
         session.flush();
@@ -158,16 +162,20 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService.from(
                 bundle.getPreheat(), trackedEntity );
 
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY );
+            typeReport.addObjectReport( objectReport );
+
             Date now = new Date();
 
             if ( bundle.getImportStrategy().isCreate() )
             {
                 trackedEntityInstance.setCreated( now );
                 trackedEntityInstance.setCreatedAtClient( now );
-                trackedEntityInstance.setLastUpdatedAtClient( now );
             }
 
             trackedEntityInstance.setLastUpdated( now );
+            trackedEntityInstance.setLastUpdatedAtClient( now );
+            trackedEntityInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( trackedEntityInstance );
 
@@ -184,6 +192,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private void handleEnrollments( Session session, TrackerBundle bundle )
     {
         List<Enrollment> enrollments = bundle.getEnrollments();
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
 
         enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Enrollment.class, o, bundle ) ) );
         session.flush();
@@ -193,16 +202,20 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             Enrollment enrollment = enrollments.get( idx );
             ProgramInstance programInstance = enrollmentTrackerConverterService.from( bundle.getPreheat(), enrollment );
 
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT );
+            typeReport.addObjectReport( objectReport );
+
             Date now = new Date();
 
             if ( bundle.getImportStrategy().isCreate() )
             {
                 programInstance.setCreated( now );
                 programInstance.setCreatedAtClient( now );
-                programInstance.setLastUpdatedAtClient( now );
             }
 
             programInstance.setLastUpdated( now );
+            programInstance.setLastUpdatedAtClient( now );
+            programInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programInstance );
 
@@ -219,6 +232,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private void handleEvents( Session session, TrackerBundle bundle )
     {
         List<Event> events = bundle.getEvents();
+        TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
 
         events.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Event.class, o, bundle ) ) );
         session.flush();
@@ -228,16 +242,20 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             Event event = events.get( idx );
             ProgramStageInstance programStageInstance = eventTrackerConverterService.from( bundle.getPreheat(), event );
 
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT );
+            typeReport.addObjectReport( objectReport );
+
             Date now = new Date();
 
             if ( bundle.getImportStrategy().isCreate() )
             {
                 programStageInstance.setCreated( now );
                 programStageInstance.setCreatedAtClient( now );
-                programStageInstance.setLastUpdatedAtClient( now );
             }
 
             programStageInstance.setLastUpdated( now );
+            programStageInstance.setLastUpdatedAtClient( now );
+            programStageInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programStageInstance );
 

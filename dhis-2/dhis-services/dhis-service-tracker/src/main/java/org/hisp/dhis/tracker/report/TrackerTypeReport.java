@@ -71,6 +71,11 @@ public class TrackerTypeReport
         return getErrorReports().isEmpty();
     }
 
+    public void addObjectReport( TrackerObjectReport objectReport )
+    {
+
+    }
+
     //-----------------------------------------------------------------------------------
     // Getters and Setters
     //-----------------------------------------------------------------------------------
