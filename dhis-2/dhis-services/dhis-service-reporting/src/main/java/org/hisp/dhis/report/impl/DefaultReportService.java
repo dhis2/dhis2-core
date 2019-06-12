@@ -45,6 +45,8 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.calendar.Calendar;
@@ -86,6 +88,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultReportService
     implements ReportService
 {
+    private static final Log log = LogFactory.getLog( DefaultReportService.class );
+
     private static final String ORGUNIT_LEVEL_COLUMN_PREFIX = "idlevel";
     private static final String ORGUNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
@@ -96,7 +100,7 @@ public class DefaultReportService
     // -------------------------------------------------------------------------
 
     private final IdentifiableObjectStore<Report> reportStore;
-    
+
     private final ReportTableService reportTableService;
 
     private final ConstantService constantService;
@@ -175,6 +179,8 @@ public class DefaultReportService
 
         JasperPrint print;
 
+        log.info( String.format( "Get report for report date: '%s', org unit: '%s'", DateUtils.getMediumDateString( reportDate ), organisationUnitUid ) );
+
         try
         {
             JasperReport jasperReport = JasperCompileManager.compileReport( IOUtils.toInputStream( report.getDesignContent(), StandardCharsets.UTF_8 ) );
@@ -192,8 +198,8 @@ public class DefaultReportService
                 if ( report.hasRelativePeriods() )
                 {
                     AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
-                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
-                        financialYearStart );
+
+                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false, financialYearStart );
 
                     String periodString = getCommaDelimitedString( getIdentifiers( periodService.reloadPeriods( relativePeriods ) ) );
                     String isoPeriodString = getCommaDelimitedString( IdentifiableObjectUtils.getUids( relativePeriods ) );
