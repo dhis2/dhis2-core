@@ -58,6 +58,20 @@ public class TrackerTypeReport
     }
 
     //-----------------------------------------------------------------------------------
+    // Utility Methods
+    //-----------------------------------------------------------------------------------
+
+    /**
+     * Are there any errors present?
+     *
+     * @return true or false depending on any errors found
+     */
+    public boolean isEmpty()
+    {
+        return getErrorReports().isEmpty();
+    }
+
+    //-----------------------------------------------------------------------------------
     // Getters and Setters
     //-----------------------------------------------------------------------------------
 

@@ -57,7 +57,10 @@ public class TrackerController
     private final RenderService renderService;
     private final ContextService contextService;
 
-    public TrackerController( TrackerImportService trackerImportService, RenderService renderService, ContextService contextService )
+    public TrackerController(
+        TrackerImportService trackerImportService,
+        RenderService renderService,
+        ContextService contextService )
     {
         this.trackerImportService = trackerImportService;
         this.renderService = renderService;

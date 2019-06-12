@@ -55,9 +55,14 @@ public class TrackerImportReport
     // Utility Methods
     //-----------------------------------------------------------------------------------
 
+    /**
+     * Are there any errors present?
+     *
+     * @return true or false depending on any errors found in bundle reports
+     */
     public boolean isEmpty()
     {
-        return bundleReports.isEmpty();
+        return bundleReports.stream().allMatch( TrackerBundleReport::isEmpty );
     }
 
     //-----------------------------------------------------------------------------------

@@ -69,9 +69,14 @@ public class TrackerBundleReport
     // Utility Methods
     //-----------------------------------------------------------------------------------
 
+    /**
+     * Are there any errors present?
+     *
+     * @return true or false depending on any errors found in type reports
+     */
     public boolean isEmpty()
     {
-        return typeReportMap.isEmpty();
+        return typeReportMap.keySet().stream().allMatch( k -> typeReportMap.get( k ).isEmpty() );
     }
 
     //-----------------------------------------------------------------------------------
