@@ -550,6 +550,8 @@ public abstract class AbstractEventService
             {
                 return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() );
             }
+
+            event.getGeometry().setSRID( GeoUtils.SRID );
         }
         else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
         {
@@ -1294,6 +1296,8 @@ public abstract class AbstractEventService
                     ") does not conform to the feature type (" + programStageInstance.getProgramStage().getFeatureType().value() +
                     ") specified for the program stage: " + programStageInstance.getProgramStage().getUid() );
             }
+
+            event.getGeometry().setSRID( GeoUtils.SRID );
         }
         else if ( event.getCoordinate() != null && event.getCoordinate().hasLatitudeLongitude() )
         {
