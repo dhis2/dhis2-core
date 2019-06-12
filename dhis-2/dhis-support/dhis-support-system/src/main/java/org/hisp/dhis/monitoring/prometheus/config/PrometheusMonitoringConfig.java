@@ -1,5 +1,3 @@
-package org.hisp.dhis.condition;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,44 +26,50 @@ package org.hisp.dhis.condition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.config.ServiceConfig;
-import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
+package org.hisp.dhis.monitoring.prometheus.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.prometheus.PrometheusConfig;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.prometheus.client.CollectorRegistry;
 
 /**
- * Loads the DHIS2 configuration provider within the context of a Spring
- * Configuration condition. This is required, since the
- * {@see DefaultDhisConfigurationProvider} is not available as Spring Bean when
- * the condition is evaluated.
- *
  * @author Luciano Fiandesio
  */
-public abstract class PropertiesAwareConfigurationCondition
-    implements ConfigurationCondition
+@Configuration
+public class PrometheusMonitoringConfig
 {
-    protected DhisConfigurationProvider getConfiguration()
+    @Bean
+    public Clock micrometerClock()
     {
-        DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
-        locationManager.init();
-        DefaultDhisConfigurationProvider dhisConfigurationProvider =
-            new DefaultDhisConfigurationProvider( locationManager );
-        dhisConfigurationProvider.init();
-
-        return dhisConfigurationProvider;
+        return Clock.SYSTEM;
     }
 
-    protected boolean isTestRun( ConditionContext context )
+    @Bean
+    public PrometheusProperties defaultProperties()
     {
-        return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
+        return new PrometheusProperties();
     }
 
-    protected boolean getBooleanValue( ConfigurationKey key )
+    @Bean
+    public PrometheusConfig prometheusConfig( PrometheusProperties prometheusProperties )
     {
-        return getConfiguration().getProperty( key ).equalsIgnoreCase( "true" );
+        return new PrometheusPropertiesConfigAdapter( prometheusProperties );
+    }
+
+    @Bean
+    public PrometheusMeterRegistry prometheusMeterRegistry( PrometheusConfig prometheusConfig,
+        CollectorRegistry collectorRegistry, Clock clock )
+    {
+        return new PrometheusMeterRegistry( prometheusConfig, collectorRegistry, clock );
+    }
+
+    @Bean
+    public CollectorRegistry collectorRegistry()
+    {
+        return new CollectorRegistry( true );
     }
 }

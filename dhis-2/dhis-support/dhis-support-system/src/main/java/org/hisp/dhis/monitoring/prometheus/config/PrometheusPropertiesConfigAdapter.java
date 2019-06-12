@@ -1,5 +1,3 @@
-package org.hisp.dhis.condition;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,44 +26,44 @@ package org.hisp.dhis.condition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.config.ServiceConfig;
-import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
+package org.hisp.dhis.monitoring.prometheus.config;
+
+import io.micrometer.prometheus.PrometheusConfig;
+
+import java.time.Duration;
 
 /**
- * Loads the DHIS2 configuration provider within the context of a Spring
- * Configuration condition. This is required, since the
- * {@see DefaultDhisConfigurationProvider} is not available as Spring Bean when
- * the condition is evaluated.
- *
  * @author Luciano Fiandesio
  */
-public abstract class PropertiesAwareConfigurationCondition
-    implements ConfigurationCondition
+public class PrometheusPropertiesConfigAdapter
+    extends PropertiesConfigAdapter<PrometheusProperties>
+    implements PrometheusConfig
 {
-    protected DhisConfigurationProvider getConfiguration()
+    /**
+     * Create a new {@link PropertiesConfigAdapter} instance.
+     *
+     * @param properties the source properties
+     */
+    public PrometheusPropertiesConfigAdapter( PrometheusProperties properties )
     {
-        DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
-        locationManager.init();
-        DefaultDhisConfigurationProvider dhisConfigurationProvider =
-            new DefaultDhisConfigurationProvider( locationManager );
-        dhisConfigurationProvider.init();
-
-        return dhisConfigurationProvider;
+        super( properties );
     }
 
-    protected boolean isTestRun( ConditionContext context )
+    @Override
+    public String get( String key )
     {
-        return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
+        return null;
     }
 
-    protected boolean getBooleanValue( ConfigurationKey key )
+    @Override
+    public boolean descriptions()
     {
-        return getConfiguration().getProperty( key ).equalsIgnoreCase( "true" );
+        return get( PrometheusProperties::isDescriptions, PrometheusConfig.super::descriptions );
+    }
+
+    @Override
+    public Duration step()
+    {
+        return get( PrometheusProperties::getStep, PrometheusConfig.super::step );
     }
 }

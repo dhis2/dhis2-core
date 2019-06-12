@@ -1,5 +1,3 @@
-package org.hisp.dhis.condition;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,44 +26,53 @@ package org.hisp.dhis.condition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.config.ServiceConfig;
-import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
+package org.hisp.dhis.webapi.controller;
+
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
+import java.io.Writer;
 
 /**
- * Loads the DHIS2 configuration provider within the context of a Spring
- * Configuration condition. This is required, since the
- * {@see DefaultDhisConfigurationProvider} is not available as Spring Bean when
- * the condition is evaluated.
- *
  * @author Luciano Fiandesio
  */
-public abstract class PropertiesAwareConfigurationCondition
-    implements ConfigurationCondition
+@Profile("!test")
+@Controller
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class PrometheusScrapeEndpointController
 {
-    protected DhisConfigurationProvider getConfiguration()
-    {
-        DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
-        locationManager.init();
-        DefaultDhisConfigurationProvider dhisConfigurationProvider =
-            new DefaultDhisConfigurationProvider( locationManager );
-        dhisConfigurationProvider.init();
+    private final CollectorRegistry collectorRegistry;
 
-        return dhisConfigurationProvider;
+    public PrometheusScrapeEndpointController( CollectorRegistry collectorRegistry )
+    {
+        this.collectorRegistry = collectorRegistry;
     }
 
-    protected boolean isTestRun( ConditionContext context )
+    @RequestMapping( value = "/metrics", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004 )
+    @ResponseBody
+    public String scrape()
     {
-        return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
-    }
+        try
+        {
+            Writer writer = new StringWriter();
+            TextFormat.write004( writer, this.collectorRegistry.metricFamilySamples() );
+            return writer.toString();
+        }
+        catch ( IOException ex )
+        {
+            // This never happens since StringWriter::write() doesn't throw IOException
 
-    protected boolean getBooleanValue( ConfigurationKey key )
-    {
-        return getConfiguration().getProperty( key ).equalsIgnoreCase( "true" );
+            throw new UncheckedIOException( "Writing metrics failed", ex );
+        }
     }
 }

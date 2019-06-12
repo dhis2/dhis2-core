@@ -1,5 +1,3 @@
-package org.hisp.dhis.condition;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,44 +26,66 @@ package org.hisp.dhis.condition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.external.config.ServiceConfig;
-import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
+package org.hisp.dhis.monitoring.metrics.jdbc;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.sql.SQLException;
 
 /**
- * Loads the DHIS2 configuration provider within the context of a Spring
- * Configuration condition. This is required, since the
- * {@see DefaultDhisConfigurationProvider} is not available as Spring Bean when
- * the condition is evaluated.
- *
  * @author Luciano Fiandesio
  */
-public abstract class PropertiesAwareConfigurationCondition
-    implements ConfigurationCondition
+public class C3p0MetadataProvider
+    extends AbstractDataSourcePoolMetadata<ComboPooledDataSource>
 {
-    protected DhisConfigurationProvider getConfiguration()
+    private static final Log log = LogFactory.getLog( C3p0MetadataProvider.class );
+    /**
+     * Create an instance with the data source to use.
+     *
+     * @param dataSource the data source
+     */
+    public C3p0MetadataProvider( ComboPooledDataSource dataSource )
     {
-        DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
-        locationManager.init();
-        DefaultDhisConfigurationProvider dhisConfigurationProvider =
-            new DefaultDhisConfigurationProvider( locationManager );
-        dhisConfigurationProvider.init();
-
-        return dhisConfigurationProvider;
+        super( dataSource );
     }
 
-    protected boolean isTestRun( ConditionContext context )
+    @Override
+    public Integer getActive()
     {
-        return SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() );
+        try
+        {
+            return getDataSource().getNumBusyConnections();
+        }
+        catch ( SQLException e )
+        {
+            log.error( "An error occurred while fetching number of busy connection from the DataSource", e );
+            return 0;
+        }
     }
 
-    protected boolean getBooleanValue( ConfigurationKey key )
+    @Override
+    public Integer getMax()
     {
-        return getConfiguration().getProperty( key ).equalsIgnoreCase( "true" );
+        return getDataSource().getMaxPoolSize();
+    }
+
+    @Override
+    public Integer getMin()
+    {
+        return getDataSource().getMinPoolSize();
+    }
+
+    @Override
+    public String getValidationQuery()
+    {
+        return "";
+    }
+
+    @Override
+    public Boolean getDefaultAutoCommit()
+    {
+        return getDataSource().isAutoCommitOnClose();
     }
 }
