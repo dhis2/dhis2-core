@@ -34,12 +34,14 @@ import net.sf.jasperreports.j2ee.servlets.ImageServlet;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.report.ReportService;
+import org.hisp.dhis.report.ReportType;
 import org.hisp.dhis.schema.descriptors.ReportSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -58,6 +60,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
+import java.util.List;
 
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
@@ -195,7 +198,9 @@ public class ReportController
         if ( organisationUnitUid == null && report.hasReportTable() && report.getReportTable().hasReportParams()
             && report.getReportTable().getReportParams().isOrganisationUnitSet() )
         {
-            organisationUnitUid = organisationUnitService.getRootOrganisationUnits().iterator().next().getUid();
+            List<OrganisationUnit> rootUnits = organisationUnitService.getRootOrganisationUnits();
+
+            organisationUnitUid = !rootUnits.isEmpty() ? rootUnits.get( 0 ).getUid() : null;
         }
 
         if ( report.isTypeHtml() )
@@ -216,7 +221,7 @@ public class ReportController
 
             JasperPrint print = reportService.renderReport( response.getOutputStream(), uid, period, organisationUnitUid, type );
 
-            if ( "html".equals( type ) )
+            if ( ReportType.HTML.name().equalsIgnoreCase( type ) )
             {
                 request.getSession().setAttribute( BaseHttpServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE, print );
             }
