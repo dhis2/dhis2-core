@@ -179,7 +179,7 @@ public class DefaultReportService
 
         JasperPrint print;
 
-        log.info( String.format( "Get report for report date: '%s', org unit: '%s'", DateUtils.getMediumDateString( reportDate ), organisationUnitUid ) );
+        log.debug( String.format( "Get report for report date: '%s', org unit: '%s'", DateUtils.getMediumDateString( reportDate ), organisationUnitUid ) );
 
         try
         {
