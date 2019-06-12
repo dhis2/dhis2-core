@@ -598,6 +598,27 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Indicates whether filters are unique attributes.
+     */
+    public boolean hasUniqueFilters()
+    {
+        if ( !hasFilters() )
+        {
+            return false;
+        }
+
+        for ( QueryItem filter : filters )
+        {
+            if ( !filter.isUnique() )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Indicates whether paging is enabled.
      */
     public boolean isPaging()

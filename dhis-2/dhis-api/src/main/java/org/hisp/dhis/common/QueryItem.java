@@ -64,6 +64,8 @@ public class QueryItem
 
     private Program program;
 
+    private Boolean unique = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -80,6 +82,16 @@ public class QueryItem
         this.valueType = valueType;
         this.aggregationType = aggregationType;
         this.optionSet = optionSet;
+    }
+
+    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet, Boolean unique )
+    {
+        this.item = item;
+        this.legendSet = legendSet;
+        this.valueType = valueType;
+        this.aggregationType = aggregationType;
+        this.optionSet = optionSet;
+        this.unique = unique;
     }
 
     public QueryItem( DimensionalItemObject item, QueryOperator operator, String filter, ValueType valueType, AggregationType aggregationType, OptionSet optionSet )
@@ -405,5 +417,15 @@ public class QueryItem
     public void setProgram( Program program )
     {
         this.program = program;
+    }
+
+    public Boolean isUnique()
+    {
+        return unique;
+    }
+
+    public void setUnique( Boolean unique )
+    {
+        this.unique = unique;
     }
 }
