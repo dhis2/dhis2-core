@@ -29,7 +29,6 @@ package org.hisp.dhis.fileresource;
  */
 
 
-import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +39,6 @@ import org.springframework.core.io.ClassPathResource;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Map;
 
@@ -97,11 +95,7 @@ public class ImageProcessingServiceTest
         fileResource.setName( "test" );
         fileResource.setContentType( "image/png" );
 
-        InputStream inputStream = new ClassPathResource( "images/dhis2.png" ).getInputStream();
-
-        File file = new File( "temp.png" );
-
-        FileUtils.copyInputStreamToFile( inputStream, file );
+        File file = new ClassPathResource( "images/dhis2.png" ).getFile();
 
         Map<ImageFileDimension, File> images = subject.createImages( fileResource, file );
 
@@ -121,6 +115,5 @@ public class ImageProcessingServiceTest
         Files.deleteIfExists( smallImage.toPath() );
         Files.deleteIfExists( mediumImage.toPath() );
         Files.deleteIfExists( largeImage.toPath() );
-        Files.deleteIfExists( file.toPath() );
     }
 }
