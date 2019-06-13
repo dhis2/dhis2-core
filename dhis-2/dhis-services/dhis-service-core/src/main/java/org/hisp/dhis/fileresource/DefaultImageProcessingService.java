@@ -121,7 +121,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
             try
             {
                 InputStream is = new BufferedInputStream( new FileInputStream( file ) );
-                String mimeType = URLConnection.guessContentTypeFromStream(is);
+                String mimeType = URLConnection.guessContentTypeFromStream( is );
 
                 return FileResource.IMAGE_CONTENT_TYPES.contains( mimeType );
             }
