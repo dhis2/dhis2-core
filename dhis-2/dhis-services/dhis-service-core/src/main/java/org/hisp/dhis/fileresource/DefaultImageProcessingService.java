@@ -37,10 +37,12 @@ import org.springframework.stereotype.Service;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -118,8 +120,8 @@ public class DefaultImageProcessingService implements ImageProcessingService
         {
             try
             {
-                Path path = file.toPath();
-                String mimeType = Files.probeContentType( path );
+                InputStream is = new BufferedInputStream( new FileInputStream( file ) );
+                String mimeType = URLConnection.guessContentTypeFromStream(is);
 
                 return FileResource.IMAGE_CONTENT_TYPES.contains( mimeType );
             }
