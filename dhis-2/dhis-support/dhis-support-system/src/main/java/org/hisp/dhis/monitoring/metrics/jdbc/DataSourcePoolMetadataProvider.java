@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,23 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-    public static Compression fromValue( String compression )
-    {
-        for ( Compression comp : Compression.values() )
-        {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
-        }
-        return null;
-    }
+import javax.sql.DataSource;
+
+/**
+ * @author Luciano Fiandesio
+ */
+@FunctionalInterface
+public interface DataSourcePoolMetadataProvider
+{
+    /**
+     * Return the {@link DataSourcePoolMetadata} instance able to manage the specified
+     * {@link DataSource} or {@code null} if the given data source could not be handled.
+     *
+     * @param dataSource the data source.
+     * @return the data source pool metadata.
+     */
+    DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource );
+
 }

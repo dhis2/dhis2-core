@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,30 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.monitoring.metrics;
 
-    public static Compression fromValue( String compression )
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public abstract class MetricsEnabler
+    extends PropertiesAwareConfigurationCondition
+{
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
     {
-        for ( Compression comp : Compression.values() )
-        {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
-        }
-        return null;
+        return ConfigurationPhase.REGISTER_BEAN;
     }
+
+    @Override
+    public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
+    {
+        return !isTestRun( conditionContext ) && getBooleanValue( getConfigKey() );
+    }
+
+    protected abstract ConfigurationKey getConfigKey();
 }

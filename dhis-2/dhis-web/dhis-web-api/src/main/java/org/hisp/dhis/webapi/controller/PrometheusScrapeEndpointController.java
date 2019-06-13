@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,53 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.webapi.controller;
 
-    public static Compression fromValue( String compression )
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
+import java.io.Writer;
+
+/**
+ * @author Luciano Fiandesio
+ */
+@Profile("!test")
+@Controller
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class PrometheusScrapeEndpointController
+{
+    private final CollectorRegistry collectorRegistry;
+
+    public PrometheusScrapeEndpointController( CollectorRegistry collectorRegistry )
     {
-        for ( Compression comp : Compression.values() )
+        this.collectorRegistry = collectorRegistry;
+    }
+
+    @RequestMapping( value = "/metrics", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004 )
+    @ResponseBody
+    public String scrape()
+    {
+        try
         {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
+            Writer writer = new StringWriter();
+            TextFormat.write004( writer, this.collectorRegistry.metricFamilySamples() );
+            return writer.toString();
         }
-        return null;
+        catch ( IOException ex )
+        {
+            // This never happens since StringWriter::write() doesn't throw IOException
+
+            throw new UncheckedIOException( "Writing metrics failed", ex );
+        }
     }
 }
