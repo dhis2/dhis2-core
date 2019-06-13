@@ -54,6 +54,8 @@ public class GeoUtils
 
     private static final String SVG_FONT_REGEX = "(\\s+)font=\"(.*?)\"";
 
+    public static final int SRID = 4326;
+
     /**
      * Returns boundaries of a box shape which centre is the point defined by the
      * given longitude and latitude. The distance between the center point and the
@@ -132,6 +134,8 @@ public class GeoUtils
 
         point = gtjson.readPoint( new StringReader( "{\"type\":\"Point\", \"coordinates\":[" + longitude + ","
             + latitude + "]}" ) );
+
+        point.setSRID( SRID );
 
         return point;
     }
@@ -254,7 +258,7 @@ public class GeoUtils
         Geometry geometry = geometryJSON
             .read( String.format( "{\"type\": \"%s\", \"coordinates\": %s}", featureType.value(), coordinates ) );
 
-        geometry.setSRID( 4326 );
+        geometry.setSRID( SRID );
 
         return geometry;
     }
