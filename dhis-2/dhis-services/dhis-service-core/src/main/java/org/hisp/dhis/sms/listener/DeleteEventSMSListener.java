@@ -14,7 +14,7 @@ public class DeleteEventSMSListener extends NewSMSListener {
     private ProgramStageInstanceService programStageInstanceService;
 	
 	@Override
-	protected void postProcess(IncomingSms sms, SMSSubmission submission) {
+	protected SMSResponse postProcess(IncomingSms sms, SMSSubmission submission) {
 		DeleteSMSSubmission subm = ( DeleteSMSSubmission ) submission;
 
 		String eventid = subm.getUid();
@@ -25,6 +25,8 @@ public class DeleteEventSMSListener extends NewSMSListener {
 		}
 		
 		programStageInstanceService.deleteProgramStageInstance(psi);
+		
+		return SMSResponse.SUCCESS;
 	}
 
 	@Override

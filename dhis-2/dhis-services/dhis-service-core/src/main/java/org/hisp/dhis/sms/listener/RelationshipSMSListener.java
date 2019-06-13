@@ -43,7 +43,7 @@ public class RelationshipSMSListener extends NewSMSListener {
     private ProgramStageInstanceService programStageInstanceService;
     
 	@Override
-	protected void postProcess(IncomingSms sms, SMSSubmission submission) {
+	protected SMSResponse postProcess(IncomingSms sms, SMSSubmission submission) {
 		RelationshipSMSSubmission subm = ( RelationshipSMSSubmission ) submission;
 
 		String fromid = subm.getFrom();
@@ -71,6 +71,8 @@ public class RelationshipSMSListener extends NewSMSListener {
 //		rel.setAttributeValues(attributeValues);
 		
 		relationshipService.addRelationship(rel);
+		
+		return SMSResponse.SUCCESS;
 	}
 
 	private RelationshipItem createRelationshipItem(RelationshipType relType, RelationshipDir dir, String objId) {

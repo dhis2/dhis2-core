@@ -1386,6 +1386,13 @@
   <bean id="org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" 
   	class="org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" />
 
+  <bean id="org.hisp.dhis.sms.listener.DeleteEventSMSListener" 
+  	class="org.hisp.dhis.sms.listener.DeleteEventSMSListener" />
+
+  <bean id="org.hisp.dhis.sms.listener.RelationshipSMSListener" 
+  	class="org.hisp.dhis.sms.listener.RelationshipSMSListener" />
+
+
   <!-- Notification renderer -->
 
   <bean id="programNotificationMessageRenderer" class="org.hisp.dhis.notification.ProgramNotificationMessageRenderer" />

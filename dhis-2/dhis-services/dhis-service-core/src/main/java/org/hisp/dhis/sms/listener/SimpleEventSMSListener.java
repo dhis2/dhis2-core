@@ -2,17 +2,11 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -20,17 +14,13 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
-import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.SimpleEventSMSSubmission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class SimpleEventSMSListener extends NewSMSListener {
@@ -43,21 +33,15 @@ public class SimpleEventSMSListener extends NewSMSListener {
     
 	@Autowired
 	private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
     
     @Autowired
     private OrganisationUnitService organisationUnitService;    
 
     @Autowired
     private CategoryService categoryService;
-    
-    @Autowired
-    private DataElementService dataElementService;
-    
+        
 	@Override
-	protected void postProcess(IncomingSms sms, SMSSubmission submission) {
+	protected SMSResponse postProcess(IncomingSms sms, SMSSubmission submission) {
 		SimpleEventSMSSubmission subm = ( SimpleEventSMSSubmission ) submission;
 		
 		String ouid = subm.getOrgUnit();
@@ -114,42 +98,16 @@ public class SimpleEventSMSListener extends NewSMSListener {
 		}
 		ProgramStage programStage = programStages.iterator().next();
 				
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        //If we aren't given a UID for the event, it will be auto-generated
-        if (subm.getEvent() != null) programStageInstance.setUid( subm.getEvent() ); 
-        programStageInstance.setOrganisationUnit( orgUnit );
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setExecutionDate( sms.getSentDate() );
-        programStageInstance.setDueDate( sms.getSentDate() );
-        programStageInstance
-            .setAttributeOptionCombo( aoc );
-        programStageInstance.setCompletedBy( "DHIS 2" );
-        programStageInstance.setStoredBy( user.getUsername() );
-
-        Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
-        for ( SMSDataValue dv : subm.getValues() )
-        {
-        	String deid = dv.getDataElement();
-        	String val = dv.getValue(); 
-
-        	DataElement de = dataElementService.getDataElement( deid );
-        	if (de == null)
-        	{
-            	//TODO: We need to add this to the response
-            	Log.warn("Given data element [" + deid + "] could not be found. Continuing with submission...");
-            	continue;
-        	} else if (val == null || StringUtils.isEmpty(val)) {
-            	Log.warn("Value for atttribute [" + deid + "] is null or empty. Continuing with submission...");
-            	continue;
-            }
-
-            EventDataValue eventDataValue = new EventDataValue( deid, dv.getValue(), user.getUsername() );
-            eventDataValue.setAutoFields();
-            dataElementsAndEventDataValues.put( de, eventDataValue );
-        }
-
-        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
+		List<String> errorUIDs = saveNewEvent(subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user, subm.getValues());
+		if (!errorUIDs.isEmpty())
+		{
+			return SMSResponse.WARN_DVERR.set(errorUIDs);
+		} else if (subm.getValues().isEmpty()) {
+			//TODO: Should we save the event if there are no data values?
+			return SMSResponse.WARN_DVEMPTY;
+		} 
+		
+		return SMSResponse.SUCCESS;			
 	}
 
 	@Override
