@@ -98,9 +98,16 @@ public class SimpleEventSMSListener extends NewSMSListener {
 		}
 		ProgramStage programStage = programStages.iterator().next();
 				
-		saveNewEvent(subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user, subm.getValues());
+		List<String> errorUIDs = saveNewEvent(subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user, subm.getValues());
+		if (!errorUIDs.isEmpty())
+		{
+			return SMSResponse.WARN_DVERR.set(errorUIDs);
+		} else if (subm.getValues().isEmpty()) {
+			//TODO: Should we save the event if there are no data values?
+			return SMSResponse.WARN_DVEMPTY;
+		} 
 		
-		return SMSResponse.SUCCESS;
+		return SMSResponse.SUCCESS;			
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package org.hisp.dhis.sms.listener;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -81,10 +82,17 @@ public class TrackerEventSMSListener extends NewSMSListener {
 			throw new SMSProcessingException(SMSResponse.NO_ENROLL.set(teiid, stageid));
 		}
 		ProgramInstance programInstance = res.get();
-				
-		saveNewEvent(subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user, subm.getValues());
+
+		List<String> errorUIDs = saveNewEvent(subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user, subm.getValues());
+		if (!errorUIDs.isEmpty())
+		{
+			return SMSResponse.WARN_DVERR.set(errorUIDs);
+		} else if (subm.getValues().isEmpty()) {
+			//TODO: Should we save the event if there are no data values?
+			return SMSResponse.WARN_DVEMPTY;
+		} 
 		
-		return SMSResponse.SUCCESS;
+		return SMSResponse.SUCCESS;	
 	}
 	
 	

@@ -1,6 +1,8 @@
 package org.hisp.dhis.sms.listener;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -90,15 +92,44 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
         	throw new SMSProcessingException(SMSResponse.DATASET_LOCKED.set(dsid, per));
         }
 
-        for (SMSDataValue smsdv : subm.getValues()) {
+        List<String> errorUIDs = submitDataValues(subm.getValues(), period, orgUnit, aoc, user);
+
+        if (subm.isComplete()) {
+        	CompleteDataSetRegistration existingReg = registrationService.getCompleteDataSetRegistration(dataSet, period, orgUnit, aoc);
+        	if (existingReg != null) {
+        		registrationService.deleteCompleteDataSetRegistration(existingReg);
+        	}
+        	Date now = new Date();
+        	String username = user.getUsername();
+        	CompleteDataSetRegistration newReg = new CompleteDataSetRegistration( dataSet, period, orgUnit, aoc, now, username, now, username, true );
+        	registrationService.saveCompleteDataSetRegistration(newReg);
+        }
+        
+		if (!errorUIDs.isEmpty())
+		{
+			return SMSResponse.WARN_DVERR.set(errorUIDs);
+		} else if (subm.getValues().isEmpty()) {
+			//TODO: Should we save if there are no data values?
+			return SMSResponse.WARN_DVEMPTY;
+		}
+        
+        return SMSResponse.SUCCESS;
+	}
+	
+	private List<String> submitDataValues(List<SMSDataValue> values, Period period, OrganisationUnit orgUnit,
+			CategoryOptionCombo aoc, User user) {
+		ArrayList<String> errorUIDs = new ArrayList<>();
+		
+        for (SMSDataValue smsdv : values) {
         	String deid = smsdv.getDataElement();
         	String cocid = smsdv.getCategoryOptionCombo();
+        	String combid = deid + "-" + cocid;
         	
         	DataElement de = dataElementService.getDataElement(deid);
         	if (de == null)
         	{
-        		//TODO: We need to add this to response
         		Log.warn("Data element [" + deid + "] does not exist. Continuing with submission...");
+        		errorUIDs.add(combid);
         		continue;
         	}
         	
@@ -106,13 +137,14 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
         	if (coc == null)
         	{
         		Log.warn("Category Option Combo [" + cocid + "] does not exist. Continuing with submission...");
+        		errorUIDs.add(combid);
         		continue;        		
         	}
         	
         	String val = smsdv.getValue();
         	if (val == null || StringUtils.isEmpty(val))
         	{
-        		Log.warn("Value for [" + deid + "-" + cocid + "]  is null or empty. Continuing with submission...");
+        		Log.warn("Value for [" + combid + "]  is null or empty. Continuing with submission...");
         		continue;
         	}
         	
@@ -136,26 +168,19 @@ public class AggregateDatasetSMSListener extends NewSMSListener {
             
             if ( newDataValue )
             {
-                dataValueService.addDataValue( dv );
+            	boolean addedDataValue = dataValueService.addDataValue( dv );
+                if (!addedDataValue) {
+             		Log.warn("Failed to submit data value [" + combid + "]. Continuing with submission...");
+            		errorUIDs.add(combid);
+                }
             }
             else
             {
                 dataValueService.updateDataValue( dv );
             }            
         }
-
-        if (subm.isComplete()) {
-        	CompleteDataSetRegistration existingReg = registrationService.getCompleteDataSetRegistration(dataSet, period, orgUnit, aoc);
-        	if (existingReg != null) {
-        		registrationService.deleteCompleteDataSetRegistration(existingReg);
-        	}
-        	Date now = new Date();
-        	String username = user.getUsername();
-        	CompleteDataSetRegistration newReg = new CompleteDataSetRegistration( dataSet, period, orgUnit, aoc, now, username, now, username, true );
-        	registrationService.saveCompleteDataSetRegistration(newReg);
-        }
         
-        return SMSResponse.SUCCESS;
+        return errorUIDs;
 	}
 	
 	@Override

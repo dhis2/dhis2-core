@@ -90,10 +90,6 @@ public class EnrollmentSMSListener extends NewSMSListener {
 
         Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues(subm, entityInstance);
 
-        if (attributeValues.isEmpty()) {
-            //TODO: Should we throw an error here or continue as is?
-        }
-
         if (existsOnServer) {
             entityInstance.setTrackedEntityAttributeValues(attributeValues);
             teiService.updateTrackedEntityInstance(entityInstance);
@@ -108,6 +104,11 @@ public class EnrollmentSMSListener extends NewSMSListener {
         ProgramInstance enrollment = programInstanceService.enrollTrackedEntityInstance(tei, program, enrollmentDate, submissionTimestamp, orgUnit);
         if (enrollment == null) {
         	throw new SMSProcessingException(SMSResponse.ENROLL_FAILED.set(teiUID,progid));
+        }
+        
+        if (attributeValues.isEmpty()) {
+        	//TODO: Is this correct handling?
+            return SMSResponse.WARN_AVEMPTY;
         }
         
         return SMSResponse.SUCCESS;
@@ -133,6 +134,7 @@ public class EnrollmentSMSListener extends NewSMSListener {
         if (attribute == null) {
         	throw new SMSProcessingException(SMSResponse.INVALID_ATTRIB.set(attribUID));
         } else if (val == null) {
+        	//TODO: Is this an error we can't recover from?
         	throw new SMSProcessingException(SMSResponse.NULL_ATTRIBVAL.set(attribUID));
         }
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();

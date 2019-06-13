@@ -61,6 +61,8 @@ public abstract class NewSMSListener extends BaseSMSListener {
 	//TODO: Should this be here?
 	public enum SMSResponse {
 		SUCCESS(0, "Submission has been processed successfully"),
+		
+		//Errors
 		UNKNOWN_ERROR(101, "An unknown error occurred"),
 		INVALID_USER(201, "User [%s] does not exist"),
 		INVALID_ORGUNIT(202, "Organisation unit [%s] does not exist"),
@@ -84,6 +86,12 @@ public abstract class NewSMSListener extends BaseSMSListener {
 		MULTI_STAGES(307, "Multiple program stages found for event capture program [%s]"),
 		NO_ENROLL(308, "No enrollment was found for tracked entity instance [%s] in program stage [%s]"),
 		NULL_ATTRIBVAL(309, "Value for attribute [%s] was null"),
+		
+		//Warnings
+		WARN_DVERR(401, "There was an error with some of the data values in the submission"),
+		WARN_DVEMPTY(402, "The submission did not include any data values"),
+		WARN_AVEMPTY(403, "The submission did not include any attribute values"),
+		
 		;
 	
 		private final int code;
@@ -96,9 +104,15 @@ public abstract class NewSMSListener extends BaseSMSListener {
 			this.uids = new ArrayList<String>();
 		}
 	
-		public SMSResponse set(String... args) {
-			this.uids = Arrays.asList(args);
-			this.description = String.format(description, (Object [])args);
+		public SMSResponse set(String... uids) {
+			this.uids = Arrays.asList(uids);
+			this.description = String.format(description, (Object [])uids);
+			return this;
+		}
+		
+		public SMSResponse set(List<String> uids) {
+			this.uids = uids;
+			this.description = String.format(description, uids);
 			return this;
 		}
 		
@@ -168,6 +182,7 @@ public abstract class NewSMSListener extends BaseSMSListener {
 			checkUserAndOrgUnit(subm);
 			SMSResponse resp = postProcess(sms, subm);
 			
+			Log.info("SMS Response: " + resp.toString());
 	        update(sms, SmsMessageStatus.PROCESSED, true);
 	        sendSMSResponse(resp, sms.getOriginator(), header.getSubmissionID());
 		} catch ( SMSProcessingException e ) {
@@ -307,10 +322,11 @@ public abstract class NewSMSListener extends BaseSMSListener {
     	}
     }
 
-    protected void saveNewEvent(String eventUid, OrganisationUnit orgUnit, ProgramStage programStage, 
+    protected List<String> saveNewEvent(String eventUid, OrganisationUnit orgUnit, ProgramStage programStage, 
     		ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user,
     		List<SMSDataValue> values) {
     	
+    	ArrayList<String> errorUIDs = new ArrayList<>();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         //If we aren't given a UID for the event, it will be auto-generated
         if (eventUid != null) programStageInstance.setUid( eventUid ); 
@@ -331,10 +347,11 @@ public abstract class NewSMSListener extends BaseSMSListener {
         	String val = dv.getValue(); 
 
         	DataElement de = dataElementService.getDataElement( deid );
+        	//TODO: Is this the correct way of handling errors here?
         	if (de == null)
         	{
-            	//TODO: We need to add this to the response
             	Log.warn("Given data element [" + deid + "] could not be found. Continuing with submission...");
+            	errorUIDs.add(deid);
             	continue;
         	} else if (val == null || StringUtils.isEmpty(val)) {
             	Log.warn("Value for atttribute [" + deid + "] is null or empty. Continuing with submission...");
@@ -346,6 +363,8 @@ public abstract class NewSMSListener extends BaseSMSListener {
             dataElementsAndEventDataValues.put( de, eventDataValue );
         }
 
-        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );    	
+        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
+        
+        return errorUIDs;
     }
 }
