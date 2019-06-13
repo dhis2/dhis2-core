@@ -81,6 +81,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -981,6 +982,11 @@ public abstract class AbstractEnrollmentService
             {
                 programInstance.setGeometry( null );
             }
+        }
+
+        if ( programInstance.getGeometry() != null )
+        {
+            programInstance.getGeometry().setSRID( GeoUtils.SRID );
         }
     }
 

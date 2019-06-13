@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,48 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.monitoring.prometheus.config;
 
-    public static Compression fromValue( String compression )
+import org.springframework.util.Assert;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+/**
+ * Base class for properties to config adapters.
+ *
+ * @param <T> The properties type
+ * @author Phillip Webb
+ * @author Nikolay Rybak
+ */
+public class PropertiesConfigAdapter<T>
+{
+
+    private T properties;
+
+    /**
+     * Create a new {@link PropertiesConfigAdapter} instance.
+     *
+     * @param properties the source properties
+     */
+    public PropertiesConfigAdapter( T properties )
     {
-        for ( Compression comp : Compression.values() )
-        {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
-        }
-        return null;
+        Assert.notNull( properties, "Properties must not be null" );
+        this.properties = properties;
+    }
+
+    /**
+     * Get the value from the properties or use a fallback from the
+     * {@code defaults}.
+     *
+     * @param getter the getter for the properties
+     * @param fallback the fallback method, usually super interface method reference
+     * @param <V> the value type
+     * @return the property or fallback value
+     */
+    protected final <V> V get( Function<T, V> getter, Supplier<V> fallback )
+    {
+        V value = getter.apply( properties );
+        return (value != null ? value : fallback.get());
     }
 }

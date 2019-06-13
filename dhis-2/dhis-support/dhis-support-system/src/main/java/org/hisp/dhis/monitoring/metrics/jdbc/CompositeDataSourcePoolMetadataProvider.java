@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,50 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-    public static Compression fromValue( String compression )
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.sql.DataSource;
+
+/**
+ * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
+ * {@link DataSourcePoolMetadata} that is found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 2.0.0
+ */
+public class CompositeDataSourcePoolMetadataProvider implements DataSourcePoolMetadataProvider
+{
+    private final List<DataSourcePoolMetadataProvider> providers;
+
+    /**
+     * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an
+     * initial collection of delegates to use.
+     *
+     * @param providers the data source pool metadata providers
+     */
+    public CompositeDataSourcePoolMetadataProvider( Collection<? extends DataSourcePoolMetadataProvider> providers )
     {
-        for ( Compression comp : Compression.values() )
+        this.providers = (providers != null) ? Collections.unmodifiableList( new ArrayList<>( providers ) )
+            : Collections.emptyList();
+    }
+
+    @Override
+    public DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource )
+    {
+        for ( DataSourcePoolMetadataProvider provider : this.providers )
         {
-            if ( comp.name().equalsIgnoreCase( compression ) )
+            DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata( dataSource );
+            if ( metadata != null )
             {
-                return comp;
+                return metadata;
             }
         }
         return null;
     }
+
 }
