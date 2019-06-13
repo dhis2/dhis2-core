@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,50 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.monitoring.prometheus.config;
 
-    public static Compression fromValue( String compression )
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.prometheus.PrometheusConfig;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.prometheus.client.CollectorRegistry;
+
+/**
+ * @author Luciano Fiandesio
+ */
+@Configuration
+public class PrometheusMonitoringConfig
+{
+    @Bean
+    public Clock micrometerClock()
     {
-        for ( Compression comp : Compression.values() )
-        {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
-        }
-        return null;
+        return Clock.SYSTEM;
+    }
+
+    @Bean
+    public PrometheusProperties defaultProperties()
+    {
+        return new PrometheusProperties();
+    }
+
+    @Bean
+    public PrometheusConfig prometheusConfig( PrometheusProperties prometheusProperties )
+    {
+        return new PrometheusPropertiesConfigAdapter( prometheusProperties );
+    }
+
+    @Bean
+    public PrometheusMeterRegistry prometheusMeterRegistry( PrometheusConfig prometheusConfig,
+        CollectorRegistry collectorRegistry, Clock clock )
+    {
+        return new PrometheusMeterRegistry( prometheusConfig, collectorRegistry, clock );
+    }
+
+    @Bean
+    public CollectorRegistry collectorRegistry()
+    {
+        return new CollectorRegistry( true );
     }
 }
