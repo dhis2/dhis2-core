@@ -302,7 +302,7 @@ public class PredictionServiceTest
 
     private void useDataValue( DataElement e, Period p, OrganisationUnit s, CategoryOptionCombo attributeOptionCombo, Number value )
     {
-        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, value.toString(), defaultCombo, attributeOptionCombo ) );
+        dataValueBatchHandler.addObject( createDataValue( e, periodService.reloadPeriod( p ), s, value == null ? null : value.toString(), defaultCombo, attributeOptionCombo ) );
     }
 
     private String getDataValue( DataElement dataElement, CategoryOptionCombo combo, OrganisationUnit source, Period period )
@@ -1095,5 +1095,25 @@ public class PredictionServiceTest
         assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values 20, 30, 40
         assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values 20, 30
         assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value 20
+    }
+
+    @Test
+    public void testPredictNullDataValue()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 6 ), sourceA, 42 );
+        useDataValue( dataElementA, makeMonth( 2010, 7 ), sourceA, null );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "SUM(#{" + dataElementA.getUid() + "})", "description" );
+
+        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 2, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "42.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
     }
 }
