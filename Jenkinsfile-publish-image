@@ -103,7 +103,7 @@ pipeline {
             slackSend(
                 color: '#ff0000',
                 message: 'Publishing of docker image for branch ' + env.BRANCH_NAME + ' failed. Visit ' + env.BUILD_URL + ' for more information',
-                channel: '@jenkins'
+                channel: 'jenkins'
              )
          }
     }
