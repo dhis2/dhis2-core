@@ -128,6 +128,8 @@ public class ProgramStage
 
     private Boolean enableUserAssignment = false;
 
+    private ProgramStageDataElement nextScheduleDate;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -542,5 +544,17 @@ public class ProgramStage
     public void setEnableUserAssignment( Boolean enableUserAssignment )
     {
         this.enableUserAssignment = enableUserAssignment;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStageDataElement getNextScheduleDate()
+    {
+        return nextScheduleDate;
+    }
+
+    public void setNextScheduleDate( ProgramStageDataElement nextScheduleDate )
+    {
+        this.nextScheduleDate = nextScheduleDate;
     }
 }
