@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,44 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.monitoring.prometheus.config;
 
-    public static Compression fromValue( String compression )
+import io.micrometer.prometheus.PrometheusConfig;
+
+import java.time.Duration;
+
+/**
+ * @author Luciano Fiandesio
+ */
+public class PrometheusPropertiesConfigAdapter
+    extends PropertiesConfigAdapter<PrometheusProperties>
+    implements PrometheusConfig
+{
+    /**
+     * Create a new {@link PropertiesConfigAdapter} instance.
+     *
+     * @param properties the source properties
+     */
+    public PrometheusPropertiesConfigAdapter( PrometheusProperties properties )
     {
-        for ( Compression comp : Compression.values() )
-        {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
-        }
+        super( properties );
+    }
+
+    @Override
+    public String get( String key )
+    {
         return null;
+    }
+
+    @Override
+    public boolean descriptions()
+    {
+        return get( PrometheusProperties::isDescriptions, PrometheusConfig.super::descriptions );
+    }
+
+    @Override
+    public Duration step()
+    {
+        return get( PrometheusProperties::getStep, PrometheusConfig.super::step );
     }
 }

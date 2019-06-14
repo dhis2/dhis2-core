@@ -91,6 +91,16 @@
 	<dispatcher>REQUEST</dispatcher>
 	<dispatcher>ERROR</dispatcher>
   </filter-mapping>
+  <filter>
+    <filter-name>webMetricsFilter</filter-name>
+    <filter-class>
+      org.springframework.web.filter.DelegatingFilterProxy
+    </filter-class>
+    <init-param>
+      <param-name>targetBeanName</param-name>
+      <param-value>webMetricsFilter</param-value>
+    </init-param>
+  </filter>
 
   <filter-mapping>
     <filter-name>encoding-filter</filter-name>
@@ -151,6 +161,10 @@
   <filter-mapping>
     <filter-name>appCacheFilter</filter-name>
     <url-pattern>*.appcache</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>webMetricsFilter</filter-name>
+    <url-pattern>/api/*</url-pattern>
   </filter-mapping>
 
   <!-- Listeners -->

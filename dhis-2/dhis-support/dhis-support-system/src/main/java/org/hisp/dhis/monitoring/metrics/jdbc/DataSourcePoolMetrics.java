@@ -1,5 +1,3 @@
-package org.hisp.dhis.common;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,24 +26,49 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public enum Compression
-{
-    NONE,
-    GZIP,
-    ZIP;
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
-    public static Compression fromValue( String compression )
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.lang.Nullable;
+
+import javax.sql.DataSource;
+import java.util.Collection;
+
+/**
+ * @author Jon Schneider
+ */
+public class DataSourcePoolMetrics
+    implements MeterBinder
+{
+    private final DataSource dataSource;
+
+    private final String name;
+
+    private final Iterable<Tag> tags;
+
+    private final DataSourcePoolMetadata poolMetadata;
+
+    public DataSourcePoolMetrics( DataSource dataSource,
+        @Nullable Collection<DataSourcePoolMetadataProvider> metadataProviders, String name, Iterable<Tag> tags )
     {
-        for ( Compression comp : Compression.values() )
+        this.name = name;
+        this.tags = tags;
+        this.dataSource = dataSource;
+        DataSourcePoolMetadataProvider provider = new DataSourcePoolMetadataProviders( metadataProviders );
+        this.poolMetadata = provider.getDataSourcePoolMetadata( dataSource );
+    }
+
+    @Override
+    public void bindTo( MeterRegistry registry )
+    {
+        if ( poolMetadata != null )
         {
-            if ( comp.name().equalsIgnoreCase( compression ) )
-            {
-                return comp;
-            }
+            registry.gauge( name + ".connections.active", tags, dataSource,
+                dataSource -> poolMetadata.getActive() != null ? poolMetadata.getActive() : 0 );
+            registry.gauge( name + ".connections.max", tags, dataSource, dataSource -> poolMetadata.getMax() );
+            registry.gauge( name + ".connections.min", tags, dataSource, dataSource -> poolMetadata.getMin() );
         }
-        return null;
     }
 }
