@@ -44,6 +44,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -58,13 +59,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -88,19 +83,22 @@ public class HibernateTrackedEntityInstanceStore
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+    private final OrganisationUnitStore organisationUnitStore;
 
     private final StatementBuilder statementBuilder;
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
-        StatementBuilder statementBuilder )
+        OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, TrackedEntityInstance.class, currentUserService, deletedObjectService,
             aclService, false );
 
         checkNotNull( statementBuilder );
+        checkNotNull( organisationUnitStore );
 
         this.statementBuilder = statementBuilder;
+        this.organisationUnitStore = organisationUnitStore;
     }
 
     // -------------------------------------------------------------------------
@@ -407,7 +405,9 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryItem item : params.getAttributes() )
             {
-                map.put( item.getItemId(), rowSet.getString( item.getItemId() ) );
+                map.put( item.getItemId(),
+                    isOrgUnit( item ) ? getOrgUnitNameByUid( rowSet.getString( item.getItemId() ) )
+                        : rowSet.getString( item.getItemId() ) );
             }
 
             list.add( map );
@@ -415,7 +415,7 @@ public class HibernateTrackedEntityInstanceStore
 
         return list;
     }
-
+    
     @Override
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
     {
@@ -827,4 +827,20 @@ public class HibernateTrackedEntityInstanceStore
     {
         return (trackedEntityInstance == null || trackedEntityInstance.isDeleted()) ? null : trackedEntityInstance;
     }
+
+    private boolean isOrgUnit( QueryItem item )
+    {
+        return item.getValueType().isOrganisationUnit();
+    }
+
+    private String getOrgUnitNameByUid( String uid )
+    {
+        if ( uid != null )
+        {
+            return  Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
+                .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
+        }
+        return "";
+    }
+
 }
