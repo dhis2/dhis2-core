@@ -28,9 +28,18 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+
+import java.awt.geom.Point2D;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -45,17 +54,14 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.Sets;
 
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
@@ -75,40 +81,51 @@ public class DefaultOrganisationUnitService
 
     private Environment env;
 
+    private OrganisationUnitStore organisationUnitStore;
+
+    private DataSetService dataSetService;
+
+    private OrganisationUnitLevelStore organisationUnitLevelStore;
+
+    private CurrentUserService currentUserService;
+
+    private ConfigurationService configurationService;
+
+    private UserSettingService userSettingService;
+
+    public void setUserSettingService( UserSettingService userSettingService )
+    {
+        this.userSettingService = userSettingService;
+    }
+
     public void setEnv( Environment env )
     {
         this.env = env;
     }
 
-    private OrganisationUnitStore organisationUnitStore;
 
     public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
     {
         this.organisationUnitStore = organisationUnitStore;
     }
 
-    private DataSetService dataSetService;
 
     public void setDataSetService( DataSetService dataSetService )
     {
         this.dataSetService = dataSetService;
     }
 
-    private OrganisationUnitLevelStore organisationUnitLevelStore;
 
     public void setOrganisationUnitLevelStore( OrganisationUnitLevelStore organisationUnitLevelStore )
     {
         this.organisationUnitLevelStore = organisationUnitLevelStore;
     }
 
-    private CurrentUserService currentUserService;
 
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
-
-    private ConfigurationService configurationService;
 
     public void setConfigurationService( ConfigurationService configurationService )
     {
@@ -328,11 +345,14 @@ public class DefaultOrganisationUnitService
         int rootLevel = organisationUnit.getLevel();
 
         Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
+        SortProperty orderBy = SortProperty.fromValue(
+            userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( organisationUnit ) );
         params.setMaxLevels( levels );
         params.setFetchChildren( true );
+        params.setOrderBy( orderBy );
 
         return organisationUnitStore.getOrganisationUnits( params );
     }
