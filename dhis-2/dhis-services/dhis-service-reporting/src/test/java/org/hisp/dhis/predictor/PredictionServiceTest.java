@@ -1107,6 +1107,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testPredictNullDataValue()
     {
         useDataValue( dataElementA, makeMonth( 2010, 6 ), sourceA, 42 );
@@ -1127,6 +1128,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMissingValuesMin()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
@@ -1147,6 +1149,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMissingValuesMax()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
@@ -1167,6 +1170,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMissingValuesMedian()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
@@ -1187,6 +1191,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMissingValuesSum()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
@@ -1207,6 +1212,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMissingValuesCount()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
@@ -1226,6 +1232,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMissingValuesStddev()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
@@ -1245,6 +1252,7 @@ public class PredictionServiceTest
     }
 
     @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
     public void testMissingValuesAvg()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
