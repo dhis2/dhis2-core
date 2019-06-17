@@ -57,6 +57,13 @@ public class MinValue
 
         Object param = inStack.pop();
         List<Double> vals = CustomFunctions.checkVector( param );
+
+        if ( vals.size() == 0 )
+        {
+            inStack.push( 0 );
+            return;
+        }
+
         Double min = null;
         for ( Double v : vals )
         {
