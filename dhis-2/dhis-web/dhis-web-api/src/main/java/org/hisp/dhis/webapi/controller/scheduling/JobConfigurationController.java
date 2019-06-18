@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -57,11 +56,15 @@ import java.util.Map;
 public class JobConfigurationController
     extends AbstractCrudController<JobConfiguration>
 {
-    @Autowired
-    private JobConfigurationService jobConfigurationService;
+    private final JobConfigurationService jobConfigurationService;
+    private final SchedulingManager schedulingManager;
 
-    @Autowired
-    private SchedulingManager schedulingManager;
+    public JobConfigurationController( JobConfigurationService jobConfigurationService,
+        SchedulingManager schedulingManager )
+    {
+        this.jobConfigurationService = jobConfigurationService;
+        this.schedulingManager = schedulingManager;
+    }
 
     @RequestMapping( value = "/jobTypesExtended", method = RequestMethod.GET, produces = { "application/json", "application/javascript" } )
     public @ResponseBody Map<String, Map<String, Property>> getJobTypesExtended()

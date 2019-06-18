@@ -38,7 +38,6 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
@@ -51,6 +50,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -62,13 +63,20 @@ public class DefaultLinkService implements LinkService
     /**
      * The default URL encoding that is used for query parameter values.
      */
-    protected static final String DEFAULT_URL_ENCODING = "UTF-8";
+    private static final String DEFAULT_URL_ENCODING = "UTF-8";
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private ContextService contextService;
+    private final ContextService contextService;
+
+    public DefaultLinkService( SchemaService schemaService, ContextService contextService )
+    {
+        checkNotNull( schemaService );
+        checkNotNull( contextService );
+
+        this.schemaService = schemaService;
+        this.contextService = contextService;
+    }
 
     // since classes won't change during runtime, use a map to cache setHref lookups
     private Map<Class<?>, Method> setterCache = new HashMap<>();
@@ -220,7 +228,7 @@ public class DefaultLinkService implements LinkService
     }
 
     @Nonnull
-    protected String getParametersString()
+    private String getParametersString()
     {
         final Map<String, List<String>> parameters = contextService.getParameterValuesMap();
         final StringBuilder result = new StringBuilder();

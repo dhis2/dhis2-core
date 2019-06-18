@@ -1,3 +1,5 @@
+package org.hisp.dhis.program;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,17 +28,20 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.program;
-
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
-import org.hisp.dhis.parser.expression.InternalParserException;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
@@ -52,7 +57,11 @@ import java.util.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.parser.expression.ParserUtils.FUNCTION_GET_SQL;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_FUNCTIONS;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -81,6 +90,12 @@ public class ProgramSqlGeneratorVariablesTest
     @Mock
     private ProgramIndicatorService programIndicatorService;
 
+    @Mock
+    private ConstantService constantService;
+
+    @Mock
+    private ProgramStageService programStageService;
+
     private StatementBuilder statementBuilder;
 
     @Mock
@@ -89,7 +104,13 @@ public class ProgramSqlGeneratorVariablesTest
     @Mock
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    private ProgramSqlGenerator subject;
+    @Mock
+    private TrackedEntityAttributeService attributeService;
+
+    @Mock
+    private RelationshipTypeService relationshipTypeService;
+
+    private CommonExpressionVisitor subject;
 
     @Mock
     private ParserRuleContext parserRuleContext;
@@ -109,14 +130,14 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testAnalyticsPeriodEndVariable()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_ANALYTICS_PERIOD_END ) );
+        String sql = (String) subject.visit( mockContext( V_ANALYTICS_PERIOD_END ) );
         assertThat( sql, is( "'2018-12-31'" ) );
     }
 
     @Test
     public void testAnalyticsPeriodStartVariable()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_ANALYTICS_PERIOD_START ) );
+        String sql = (String) subject.visit( mockContext( V_ANALYTICS_PERIOD_START ) );
         assertThat( sql, is( "'2018-01-01'" ) );
     }
 
@@ -126,7 +147,7 @@ public class ProgramSqlGeneratorVariablesTest
         ProgramIndicator pi = makeEnrollmentProgramIndicator();
         initSubject( pi );
 
-        String sql = subject.visitProgramVariable( mockContext( V_CREATION_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_CREATION_DATE ) );
         assertThat( sql,
             is( "(select created from analytics_event_" + pi.getProgram().getUid() + " where analytics_event_"
                 + pi.getProgram().getUid()
@@ -136,7 +157,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testCreationDateForEvent()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_CREATION_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_CREATION_DATE ) );
 
         assertThat( sql, is( "created" ) );
     }
@@ -144,7 +165,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testCurrentDateForEvent()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_CURRENT_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_CURRENT_DATE ) );
         String date = DateUtils.getLongDateString();
 
         // Only test the first part of the Date (up to the hour)
@@ -154,7 +175,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testDueDate()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_DUE_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_DUE_DATE ) );
 
         assertThat( sql, is( "duedate" ) );
     }
@@ -162,7 +183,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testEnrollmentCount()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_ENROLLMENT_COUNT ) );
+        String sql = (String) subject.visit( mockContext( V_ENROLLMENT_COUNT ) );
 
         assertThat( sql, is( "distinct pi" ) );
     }
@@ -170,7 +191,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testEnrollmentDate()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_ENROLLMENT_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_ENROLLMENT_DATE ) );
 
         assertThat( sql, is( "enrollmentdate" ) );
     }
@@ -178,7 +199,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testEnrollmentStatus()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_ENROLLMENT_STATUS ) );
+        String sql = (String) subject.visit( mockContext( V_ENROLLMENT_STATUS ) );
 
         assertThat( sql, is( "enrollmentstatus" ) );
     }
@@ -186,7 +207,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testEventCount()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_EVENT_COUNT ) );
+        String sql = (String) subject.visit( mockContext( V_EVENT_COUNT ) );
 
         assertThat( sql, is( "distinct psi" ) );
     }
@@ -194,7 +215,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testExecutionDate()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_EXECUTION_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_EXECUTION_DATE ) );
 
         assertThat( sql, is( "executiondate" ) );
     }
@@ -202,7 +223,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testEventDate()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_EVENT_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_EVENT_DATE ) );
 
         assertThat( sql, is( "executiondate" ) );
     }
@@ -210,7 +231,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testIncidentDate()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_INCIDENT_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_INCIDENT_DATE ) );
 
         assertThat( sql, is( "incidentdate" ) );
     }
@@ -218,7 +239,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testProgramStageId()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_PROGRAM_STAGE_ID ) );
+        String sql = (String) subject.visit( mockContext( V_PROGRAM_STAGE_ID ) );
 
         assertThat( sql, is( "ps" ) );
     }
@@ -228,7 +249,7 @@ public class ProgramSqlGeneratorVariablesTest
     {
         initSubject( makeEnrollmentProgramIndicator() );
 
-        String sql = subject.visitProgramVariable( mockContext( V_PROGRAM_STAGE_ID ) );
+        String sql = (String) subject.visit( mockContext( V_PROGRAM_STAGE_ID ) );
 
         assertThat( sql, is( "''" ) );
     }
@@ -236,7 +257,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testProgramStageName()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_PROGRAM_STAGE_NAME ) );
+        String sql = (String) subject.visit( mockContext( V_PROGRAM_STAGE_NAME ) );
 
         assertThat( sql, is( "(select name from programstage where uid = ps)" ) );
     }
@@ -246,7 +267,7 @@ public class ProgramSqlGeneratorVariablesTest
     {
         initSubject( makeEnrollmentProgramIndicator() );
 
-        String sql = subject.visitProgramVariable( mockContext( V_PROGRAM_STAGE_NAME ) );
+        String sql = (String) subject.visit( mockContext( V_PROGRAM_STAGE_NAME ) );
 
         assertThat( sql, is( "''" ) );
     }
@@ -256,7 +277,7 @@ public class ProgramSqlGeneratorVariablesTest
     {
         initSubject( makeEnrollmentProgramIndicator() );
 
-        String sql = subject.visitProgramVariable( mockContext( V_SYNC_DATE ) );
+        String sql = (String) subject.visit( mockContext( V_SYNC_DATE ) );
 
         assertThat( sql, is( "lastupdated" ) );
     }
@@ -266,7 +287,7 @@ public class ProgramSqlGeneratorVariablesTest
     {
         initSubject( makeEnrollmentProgramIndicator() );
 
-        String sql = subject.visitProgramVariable( mockContext( V_ORG_UNIT_COUNT ) );
+        String sql = (String) subject.visit( mockContext( V_ORG_UNIT_COUNT ) );
 
         assertThat( sql, is( "distinct ou" ) );
     }
@@ -276,7 +297,7 @@ public class ProgramSqlGeneratorVariablesTest
     {
         initSubject( makeEnrollmentProgramIndicator() );
 
-        String sql = subject.visitProgramVariable( mockContext( V_TEI_COUNT ) );
+        String sql = (String) subject.visit( mockContext( V_TEI_COUNT ) );
 
         assertThat( sql, is( "distinct tei" ) );
     }
@@ -284,7 +305,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testValueCount()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_VALUE_COUNT ) );
+        String sql = (String) subject.visit( mockContext( V_VALUE_COUNT ) );
 
         assertThat( sql,
             is( "nullif(cast((" + sqlCase( SQL_CASE_NOT_NULL, BASE_UID + "a" ) + " + "
@@ -295,7 +316,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testZeroPosValueCount()
     {
-        String sql = subject.visitProgramVariable( mockContext( V_ZERO_POS_VALUE_COUNT ) );
+        String sql = (String) subject.visit( mockContext( V_ZERO_POS_VALUE_COUNT ) );
 
         assertThat( sql,
             is( "nullif(cast((" + sqlCase( SQL_CASE_VALUE, BASE_UID + "a" ) + " + "
@@ -306,19 +327,19 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testInvalidVariable()
     {
-        thrown.expect( InternalParserException.class );
-        subject.visitProgramVariable( mockContext( 129839128 ) );
+        thrown.expect( ParserExceptionWithoutContext.class );
+        subject.visit( mockContext( 129839128 ) );
     }
 
-    private ExpressionParser.ProgramVariableContext mockContext( int programIndicatorVariable )
+    private ExpressionParser.ExprContext mockContext( int programIndicatorVariable )
     {
-        ExpressionParser.ProgramVariableContext programVariableContext = new ExpressionParser.ProgramVariableContext(
+        ExpressionParser.ExprContext programVariableContext = new ExpressionParser.ExprContext(
             parserRuleContext, 1 );
 
         Token token = mock( Token.class );
 
         when( token.getType() ).thenReturn( programIndicatorVariable );
-        programVariableContext.var = token;
+        programVariableContext.fun = token;
 
         return programVariableContext;
     }
@@ -330,9 +351,26 @@ public class ProgramSqlGeneratorVariablesTest
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "b" );
         dataElementsAndAttributesIdentifiers.add( BASE_UID + "c" );
 
-        this.subject = new ProgramSqlGenerator( programIndicator, startDate, endDate,
-            dataElementsAndAttributesIdentifiers, new HashMap<>(), programIndicatorService, statementBuilder,
-            dataElementService, trackedEntityAttributeService );
+        this.subject = CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( PROGRAM_INDICATOR_FUNCTIONS )
+            .withItemMap( PROGRAM_INDICATOR_ITEMS )
+            .withFunctionMethod( FUNCTION_GET_SQL )
+            .withItemMethod( ITEM_GET_SQL )
+            .withConstantService( constantService )
+            .withProgramIndicatorService( programIndicatorService )
+            .withProgramStageService( programStageService )
+            .withDataElementService( dataElementService )
+            .withAttributeService( attributeService )
+            .withRelationshipTypeService( relationshipTypeService )
+            .withStatementBuilder( statementBuilder )
+            .withI18n( new I18n( null, null ) )
+            .buildForProgramIndicatorExpressions();
+
+        subject.setExpressionLiteral( new SqlLiteral() );
+        subject.setProgramIndicator( programIndicator );
+        subject.setReportingStartDate( startDate );
+        subject.setReportingEndDate( endDate );
+        subject.setDataElementAndAttributeIdentifiers( dataElementsAndAttributesIdentifiers );
     }
 
     private ProgramIndicator makeEnrollmentProgramIndicator()

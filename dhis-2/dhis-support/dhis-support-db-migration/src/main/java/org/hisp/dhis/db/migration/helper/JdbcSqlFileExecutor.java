@@ -1,7 +1,7 @@
 package org.hisp.dhis.db.migration.helper;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import org.flywaydb.core.api.FlywayException;
  * reader) and executes them onto the given jdbc connection. This is used to
  * create the base schema (if db is empy) by reading from the sql script
  * packaged as classpath resource.
- * 
+ *
  * @author Ameen Mohamed
  *
  */
@@ -133,16 +133,16 @@ public class JdbcSqlFileExecutor
         throws IOException,
         SQLException
     {
-        StringBuffer command = null;
+        StringBuilder command = null;
         try
         {
             LineNumberReader lineReader = new LineNumberReader( reader );
             String line;
-            while ( (line = lineReader.readLine()) != null )
+            while ( ( line = lineReader.readLine() ) != null )
             {
                 if ( command == null )
                 {
-                    command = new StringBuffer();
+                    command = new StringBuilder();
                 }
                 String trimmedLine = line.trim();
                 final Matcher delimMatch = delimP.matcher( trimmedLine );
@@ -166,7 +166,7 @@ public class JdbcSqlFileExecutor
                 {
                     command.append( line.substring( 0, line.lastIndexOf( this.delimiter ) ) );
                     command.append( " " );
-                    this.execCommand( conn, command, lineReader );
+                    execCommand( conn, command, lineReader );
                     command = null;
                 }
                 else
@@ -194,7 +194,7 @@ public class JdbcSqlFileExecutor
         }
     }
 
-    private void execCommand( Connection conn, StringBuffer command, LineNumberReader lineReader )
+    private void execCommand( Connection conn, StringBuilder command, LineNumberReader lineReader )
         throws SQLException
     {
         Statement statement = conn.createStatement();

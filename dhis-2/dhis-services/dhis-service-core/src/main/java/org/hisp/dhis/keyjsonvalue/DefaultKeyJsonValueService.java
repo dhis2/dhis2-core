@@ -1,7 +1,7 @@
 package org.hisp.dhis.keyjsonvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,27 @@ package org.hisp.dhis.keyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.hisp.dhis.system.util.JacksonUtils;
 import java.util.List;
 import java.util.Date;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.keyjsonvalue.KeyJsonValueService" )
 public class DefaultKeyJsonValueService
     implements KeyJsonValueService
 {
-    private KeyJsonValueStore keyJsonValueStore;
+    private final KeyJsonValueStore keyJsonValueStore;
 
-    public void setKeyJsonValueStore( KeyJsonValueStore keyJsonValueStore )
+    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore )
     {
+        checkNotNull( keyJsonValueStore );
+
         this.keyJsonValueStore = keyJsonValueStore;
     }
 

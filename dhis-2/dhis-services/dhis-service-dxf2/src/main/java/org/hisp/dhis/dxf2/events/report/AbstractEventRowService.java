@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.report;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,10 +31,12 @@ package org.hisp.dhis.dxf2.events.report;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
+@Service( "org.hisp.dhis.dxf2.events.report.EventRowService" )
 public class AbstractEventRowService
     implements EventRowService
 {
@@ -47,9 +49,7 @@ public class AbstractEventRowService
 
     @Override
     public EventRows getEventRows( EventSearchParams params )
-    {               
-        EventRows eventRows = eventService.getEventRows( params );
-        
-        return eventRows;
+    {
+        return eventService.getEventRows( params );
     }
 }

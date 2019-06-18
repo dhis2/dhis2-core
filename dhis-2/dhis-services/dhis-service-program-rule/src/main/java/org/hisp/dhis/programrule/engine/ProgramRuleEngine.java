@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,16 +43,21 @@ import org.hisp.dhis.rules.RuleEngineContext;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
+@Transactional( readOnly = true )
+@Component( "org.hisp.dhis.programrule.engine.ProgramRuleEngine" )
 public class ProgramRuleEngine
 {
     private static final Log log = LogFactory.getLog( ProgramRuleEngine.class );
@@ -64,30 +69,45 @@ public class ProgramRuleEngine
 
     private static final Pattern PATTERN = Pattern.compile( REGEX );
 
-    private static final Set<ProgramRuleActionType> IMPLEMENTABLE_TYPES = ProgramRuleActionType.getImplementedActions();
+    private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
-    @Autowired
-    private ProgramRuleEntityMapperService programRuleEntityMapperService;
+    private final ProgramRuleExpressionEvaluator programRuleExpressionEvaluator;
 
-    @Autowired
-    private ProgramRuleExpressionEvaluator programRuleExpressionEvaluator;
+    private final ProgramRuleService programRuleService;
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+    private final ProgramRuleVariableService programRuleVariableService;
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    @Autowired
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final RuleVariableInMemoryMap inMemoryMap;
 
-    @Autowired
-    private RuleVariableInMemoryMap inMemoryMap;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    public ProgramRuleEngine( ProgramRuleEntityMapperService programRuleEntityMapperService,
+        ProgramRuleExpressionEvaluator programRuleExpressionEvaluator, ProgramRuleService programRuleService,
+        ProgramRuleVariableService programRuleVariableService,
+        OrganisationUnitGroupService organisationUnitGroupService, RuleVariableInMemoryMap inMemoryMap,
+        CurrentUserService currentUserService )
+    {
 
-    public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
+        checkNotNull( programRuleEntityMapperService );
+        checkNotNull( programRuleExpressionEvaluator );
+        checkNotNull( programRuleService );
+        checkNotNull( programRuleVariableService );
+        checkNotNull( organisationUnitGroupService );
+        checkNotNull( currentUserService );
+        checkNotNull( inMemoryMap );
+
+        this.programRuleEntityMapperService = programRuleEntityMapperService;
+        this.programRuleExpressionEvaluator = programRuleExpressionEvaluator;
+        this.programRuleService = programRuleService;
+        this.programRuleVariableService = programRuleVariableService;
+        this.organisationUnitGroupService = organisationUnitGroupService;
+        this.inMemoryMap = inMemoryMap;
+        this.currentUserService = currentUserService;
+    }
+
+    public List<RuleEffect> evaluateEnrollment(ProgramInstance enrollment )
     {
         if ( enrollment == null )
         {
@@ -95,7 +115,7 @@ public class ProgramRuleEngine
         }
 
         List<RuleEffect> ruleEffects = new ArrayList<>();
-        
+
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
         if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
@@ -220,6 +240,15 @@ public class ProgramRuleEngine
 
     private List<ProgramRule> getImplementableRules( Program program )
     {
-        return programRuleService.getImplementableProgramRules( program, IMPLEMENTABLE_TYPES );
+        List<ProgramRule> permittedRules;
+
+        permittedRules = programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNotificationLinkedTypes() );
+
+        if ( permittedRules.isEmpty() )
+        {
+            return permittedRules;
+        }
+
+        return programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getImplementedActions() );
     }
 }

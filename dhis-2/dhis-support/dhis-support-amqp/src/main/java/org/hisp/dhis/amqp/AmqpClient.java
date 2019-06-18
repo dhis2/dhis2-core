@@ -1,7 +1,7 @@
 package org.hisp.dhis.amqp;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ import javax.jms.Topic;
  */
 public class AmqpClient
 {
-    private final static ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final Connection connection;
 
@@ -112,11 +112,14 @@ public class AmqpClient
         try
         {
             Session session = createSession();
-            MessageProducer producer = session.createProducer( destination );
-            String message = toJson( value );
-            TextMessage textMessage = session.createTextMessage( message );
-            producer.send( textMessage );
-            producer.close();
+
+            try ( MessageProducer producer = session.createProducer( destination ) )
+            {
+                String message = toJson( value );
+                TextMessage textMessage = session.createTextMessage( message );
+                producer.send( textMessage );
+            }
+
             session.close();
         }
         catch ( JMSException ex )

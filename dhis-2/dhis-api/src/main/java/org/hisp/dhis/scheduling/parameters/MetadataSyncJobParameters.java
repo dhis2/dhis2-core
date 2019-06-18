@@ -1,0 +1,122 @@
+package org.hisp.dhis.scheduling.parameters;
+/*
+ * Copyright (c) 2004-2019, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.parameters.jackson.MetadataSyncJobParametersDeserializer;
+
+import java.util.Optional;
+
+/**
+ * @author David Katuscak
+ */
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+@JsonDeserialize( using = MetadataSyncJobParametersDeserializer.class )
+public class MetadataSyncJobParameters implements JobParameters
+{
+
+    private static final long serialVersionUID = 332495511301532169L;
+
+    private static final int DATA_VALUES_PAGE_SIZE_MIN = 50;
+    private static final int DATA_VALUES_PAGE_SIZE_MAX = 30000;
+
+    private int trackerProgramPageSize = 20;
+    private int eventProgramPageSize = 60;
+    private int dataValuesPageSize = 10000;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getTrackerProgramPageSize()
+    {
+        return trackerProgramPageSize;
+    }
+
+    public void setTrackerProgramPageSize( final int trackerProgramPageSize )
+    {
+        this.trackerProgramPageSize = trackerProgramPageSize;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getEventProgramPageSize()
+    {
+        return eventProgramPageSize;
+    }
+
+    public void setEventProgramPageSize( final int eventProgramPageSize )
+    {
+        this.eventProgramPageSize = eventProgramPageSize;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getDataValuesPageSize()
+    {
+        return dataValuesPageSize;
+    }
+
+    public void setDataValuesPageSize( final int dataValuesPageSize )
+    {
+        this.dataValuesPageSize = dataValuesPageSize;
+    }
+
+    @Override
+    public Optional<ErrorReport> validate()
+    {
+        if ( trackerProgramPageSize < TrackerProgramsDataSynchronizationJobParameters.TRACKER_PAGE_SIZE_MIN ||
+            trackerProgramPageSize > TrackerProgramsDataSynchronizationJobParameters.TRACKER_PAGE_SIZE_MAX )
+        {
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4008, "trackerProgramPageSize",
+                TrackerProgramsDataSynchronizationJobParameters.TRACKER_PAGE_SIZE_MIN,
+                TrackerProgramsDataSynchronizationJobParameters.TRACKER_PAGE_SIZE_MAX, trackerProgramPageSize ) );
+        }
+
+        if ( eventProgramPageSize < EventProgramsDataSynchronizationJobParameters.EVENT_PAGE_SIZE_MIN ||
+            eventProgramPageSize > EventProgramsDataSynchronizationJobParameters.EVENT_PAGE_SIZE_MAX )
+        {
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4008, "eventProgramPageSize",
+                EventProgramsDataSynchronizationJobParameters.EVENT_PAGE_SIZE_MIN,
+                EventProgramsDataSynchronizationJobParameters.EVENT_PAGE_SIZE_MAX, eventProgramPageSize ) );
+        }
+
+        if ( dataValuesPageSize < DATA_VALUES_PAGE_SIZE_MIN || dataValuesPageSize > DATA_VALUES_PAGE_SIZE_MAX )
+        {
+            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4008, "dataValuesPageSize",
+                DATA_VALUES_PAGE_SIZE_MIN, DATA_VALUES_PAGE_SIZE_MAX, dataValuesPageSize ) );
+        }
+
+        return Optional.empty();
+    }
+}

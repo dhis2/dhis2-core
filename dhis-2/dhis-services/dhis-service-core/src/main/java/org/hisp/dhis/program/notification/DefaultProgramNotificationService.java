@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,6 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -64,14 +63,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.program.notification.ProgramNotificationService" )
 public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
@@ -85,53 +88,47 @@ public class DefaultProgramNotificationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramMessageService programMessageService;
+    private final ProgramMessageService programMessageService;
+   
+    private final MessageService messageService;
 
-    public void setProgramMessageService( ProgramMessageService programMessageService )
+    private final ProgramInstanceStore programInstanceStore;
+   
+    private final ProgramStageInstanceStore programStageInstanceStore;
+    
+    private final IdentifiableObjectManager identifiableObjectManager;
+    
+    private final NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
+    
+    private final NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
+
+    private final ProgramNotificationTemplateStore notificationTemplateStore;
+
+    public DefaultProgramNotificationService( ProgramMessageService programMessageService,
+        MessageService messageService, ProgramInstanceStore programInstanceStore,
+        ProgramStageInstanceStore programStageInstanceStore, IdentifiableObjectManager identifiableObjectManager,
+        NotificationMessageRenderer<ProgramInstance> programNotificationRenderer,
+        NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer,
+        ProgramNotificationTemplateStore notificationTemplateStore )
     {
+
+        checkNotNull( programMessageService );
+        checkNotNull( messageService );
+        checkNotNull( programInstanceStore );
+        checkNotNull( programStageInstanceStore );
+        checkNotNull( identifiableObjectManager );
+        checkNotNull( programNotificationRenderer );
+        checkNotNull( programStageNotificationRenderer );
+        checkNotNull( notificationTemplateStore );
+
         this.programMessageService = programMessageService;
-    }
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
         this.messageService = messageService;
-    }
-
-    private ProgramInstanceStore programInstanceStore;
-
-    public void setProgramInstanceStore( ProgramInstanceStore programInstanceStore )
-    {
         this.programInstanceStore = programInstanceStore;
-    }
-
-    private ProgramStageInstanceStore programStageInstanceStore;
-
-    public void setProgramStageInstanceStore( ProgramStageInstanceStore programStageInstanceStore )
-    {
         this.programStageInstanceStore = programStageInstanceStore;
-    }
-
-    private IdentifiableObjectManager identifiableObjectManager;
-
-    public void setIdentifiableObjectManager( IdentifiableObjectManager identifiableObjectManager )
-    {
         this.identifiableObjectManager = identifiableObjectManager;
-    }
-
-    private NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
-
-    public void setProgramNotificationRenderer( NotificationMessageRenderer<ProgramInstance> programNotificationRenderer )
-    {
         this.programNotificationRenderer = programNotificationRenderer;
-    }
-
-    private NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
-
-    public void setProgramStageNotificationRenderer( NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer )
-    {
         this.programStageNotificationRenderer = programStageNotificationRenderer;
+        this.notificationTemplateStore = notificationTemplateStore;
     }
 
     // -------------------------------------------------------------------------
@@ -175,17 +172,19 @@ public class DefaultProgramNotificationService
             return;
         }
 
-        int totalMessageCount = 0;
+        int totalMessageCount;
 
         List<MessageBatch> batches = templates.stream().filter( ProgramNotificationInstance::hasProgramInstance )
-            .map( t -> createProgramInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramInstance() ) ) )
+            .map( t -> createProgramInstanceMessageBatch( t.getProgramNotificationTemplate(),
+                Collections.singletonList( t.getProgramInstance() ) ) )
             .collect( Collectors.toList() );
 
         batches.addAll( templates.stream().filter( ProgramNotificationInstance::hasProgramStageInstance )
-            .map( t -> createProgramStageInstanceMessageBatch( t.getProgramNotificationTemplate(), Arrays.asList( t.getProgramStageInstance() ) ) )
+            .map( t -> createProgramStageInstanceMessageBatch( t.getProgramNotificationTemplate(),
+                Collections.singletonList( t.getProgramStageInstance() ) ) )
             .collect( Collectors.toList() ) );
 
-        batches.stream().forEach( this::sendAll );
+        batches.forEach( this::sendAll );
 
         totalMessageCount = batches.stream().mapToInt( MessageBatch::messageCount ).sum();
 
@@ -194,38 +193,40 @@ public class DefaultProgramNotificationService
 
     @Transactional
     @Override
-    public void sendCompletionNotifications( ProgramStageInstance programStageInstance )
+    public void sendEventCompletionNotifications( long programStageInstance )
     {
-        sendProgramStageInstanceNotifications( programStageInstance, NotificationTrigger.COMPLETION );
+        sendProgramStageInstanceNotifications( programStageInstanceStore.get( programStageInstance ), NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
-    public void sendCompletionNotifications( ProgramInstance programInstance )
+    public void sendEnrollmentCompletionNotifications( long programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.COMPLETION );
+        sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.COMPLETION );
     }
 
     @Transactional
     @Override
-    public void sendEnrollmentNotifications( ProgramInstance programInstance )
+    public void sendEnrollmentNotifications( long programInstance )
     {
-        sendProgramInstanceNotifications( programInstance, NotificationTrigger.ENROLLMENT );
+        sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.ENROLLMENT );
     }
 
     @Transactional
     @Override
-    public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramInstance programInstance )
+    public void sendProgramRuleTriggeredNotifications( long pnt, long programInstance )
     {
-        MessageBatch messageBatch = createProgramInstanceMessageBatch( pnt, Collections.singletonList( programInstance) );
+        MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateStore.get( pnt ),
+            Collections.singletonList( programInstanceStore.get( programInstance ) ) );
         sendAll( messageBatch );
     }
 
     @Transactional
     @Override
-    public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramStageInstance programStageInstance )
+    public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
     {
-        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( pnt, Collections.singletonList( programStageInstance ) );
+        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateStore.get( pnt ),
+            Collections.singletonList( programStageInstanceStore.get( programStageInstance ) ) );
         sendAll( messageBatch );
     }
 
@@ -395,7 +396,7 @@ public class DefaultProgramNotificationService
             {
                 Set<User> parents = Sets.newHashSet();
 
-                recipients.stream().forEach( r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
+                recipients.forEach(r -> parents.addAll( r.getOrganisationUnit().getParent().getUsers() ) );
 
                 return parents;
             }

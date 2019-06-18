@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,8 @@ public interface IdentifiableObjectManager
     void save( IdentifiableObject object );
 
     void save( IdentifiableObject object, boolean clearSharing );
+
+    void save( List<IdentifiableObject> objects );
 
     void update( IdentifiableObject object );
 
@@ -103,6 +105,8 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
 
     <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name );
+
+    <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name, boolean caseSensitive );
 
     <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> clazz, int first, int max );
 
@@ -159,6 +163,8 @@ public interface IdentifiableObjectManager
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
+
+    <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids );
 
     boolean isDefault( IdentifiableObject object );
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,12 @@ import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" )
 public class TrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook
 {

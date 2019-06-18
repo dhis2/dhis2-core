@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -293,6 +293,16 @@ public abstract class BaseAnalyticalObject
     public void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension )
     {
         organisationUnitGroupSetDimensions.add( dimension );
+    }
+
+    /**
+     * Adds a {@link CategoryDimension}.
+     *
+     * @param dimension the dimension to add.
+     */
+    public void addCategoryDimension( CategoryDimension dimension )
+    {
+        categoryDimensions.add( dimension );
     }
 
     /**

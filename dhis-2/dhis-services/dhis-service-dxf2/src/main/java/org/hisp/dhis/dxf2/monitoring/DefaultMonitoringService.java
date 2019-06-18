@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.monitoring;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
@@ -56,6 +57,7 @@ import java.util.Date;
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dxf2.monitoring.MonitoringService" )
 public class DefaultMonitoringService
     implements MonitoringService
 {

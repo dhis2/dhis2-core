@@ -1,7 +1,7 @@
 package org.hisp.dhis.option.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,32 @@ package org.hisp.dhis.option.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * @author Chau Thu Tran
  */
+@Repository( "org.hisp.dhis.option.OptionStore" )
 public class HibernateOptionStore
     extends HibernateIdentifiableObjectStore<Option>
     implements OptionStore
 {
+    public HibernateOptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, Option.class, currentUserService, deletedObjectService, aclService, true );
+    }
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------

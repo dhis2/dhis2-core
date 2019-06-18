@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.context.ApplicationEvent;
@@ -149,7 +148,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
-        ArgumentCaptor<ProgramInstance> argumentInstanceCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
@@ -158,7 +156,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programInstance, ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance() );
+        assertEquals( programInstance.getId(), ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance() );
     }
 
     @Test
@@ -180,7 +178,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
-        ArgumentCaptor<ProgramStageInstance> argumentStageInstanceCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
@@ -189,7 +186,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programStageInstance, ((ProgramRuleStageEvent) eventType).getProgramStageInstance() );
+        assertEquals( programStageInstance.getId(), ((ProgramRuleStageEvent) eventType).getProgramStageInstance() );
     }
 
     @Test

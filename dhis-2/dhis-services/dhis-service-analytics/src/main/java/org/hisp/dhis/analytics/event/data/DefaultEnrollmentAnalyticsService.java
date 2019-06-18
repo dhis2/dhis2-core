@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,12 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -53,84 +42,46 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentif
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
-import static org.hisp.dhis.reporttable.ReportTable.COLUMN_NAMES;
-import static org.hisp.dhis.reporttable.ReportTable.DASH_PRETTY_SEPARATOR;
-import static org.hisp.dhis.reporttable.ReportTable.SPACE;
-import static org.hisp.dhis.reporttable.ReportTable.TOTAL_COLUMN_PRETTY_NAME;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
-
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
-import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
-import org.hisp.dhis.analytics.event.EventAnalyticsManager;
-import org.hisp.dhis.analytics.event.EventAnalyticsService;
-import org.hisp.dhis.analytics.event.EventAnalyticsUtils;
-import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
-
-import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Markus Bekken
  */
+@Service( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsService" )
 public class DefaultEnrollmentAnalyticsService
     implements EnrollmentAnalyticsService
 {
-    private static final Log log = LogFactory.getLog( DefaultEventAnalyticsService.class );
-
     private static final String NAME_TEI = "Tracked entity instance";
     private static final String NAME_PI  = "Enrollment";
     private static final String NAME_GEOMETRY = "Geometry";
@@ -140,36 +91,28 @@ public class DefaultEnrollmentAnalyticsService
     private static final String NAME_LATITUDE = "Latitude";
     private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
-    private static final String NAME_COUNT = "Count";
-    private static final String NAME_CENTER = "Center";
-    private static final String NAME_EXTENT = "Extent";
-    private static final String NAME_POINTS = "Points";
 
-    private static final Option OPT_TRUE = new Option( "Yes", "1" );
-    private static final Option OPT_FALSE = new Option( "No", "0" );
+    private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
-    private static final int MAX_CACHE_ENTRIES = 20000;
-    private static final String CACHE_REGION = "enrollmentAnalyticsQueryResponse";
+    private final AnalyticsSecurityManager securityManager;
 
-    @Autowired
-    private DataElementService dataElementService;
+    private final EventQueryPlanner queryPlanner;
 
-    @Autowired
-    private TrackedEntityAttributeService trackedEntityAttributeService;
+    private final EventQueryValidator queryValidator;
 
-    @Autowired
-    private EnrollmentAnalyticsManager enrollmentAnalyticsManager;
+    public DefaultEnrollmentAnalyticsService( EnrollmentAnalyticsManager enrollmentAnalyticsManager,
+        AnalyticsSecurityManager securityManager, EventQueryPlanner queryPlanner, EventQueryValidator queryValidator )
+    {
+        checkNotNull( enrollmentAnalyticsManager );
+        checkNotNull( securityManager );
+        checkNotNull( queryPlanner );
+        checkNotNull( queryValidator );
 
-
-    @Autowired
-    private AnalyticsSecurityManager securityManager;
-
-    @Autowired
-    private EventQueryPlanner queryPlanner;
-
-    @Autowired
-    private EventQueryValidator queryValidator;
-
+        this.enrollmentAnalyticsManager = enrollmentAnalyticsManager;
+        this.securityManager = securityManager;
+        this.queryPlanner = queryPlanner;
+        this.queryValidator = queryValidator;
+    }
 
     // -------------------------------------------------------------------------
     // EventAnalyticsService implementation
@@ -224,7 +167,7 @@ public class DefaultEnrollmentAnalyticsService
 
         long count = 0;
 
-        
+
         if ( params.isPaging() )
         {
             count += enrollmentAnalyticsManager.getEnrollmentCount( params );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
@@ -77,6 +77,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dataintegrity.DataIntegrityService" )
 @Transactional
 public class DefaultDataIntegrityService
     implements DataIntegrityService
@@ -119,7 +120,6 @@ public class DefaultDataIntegrityService
 
     private final ProgramIndicatorService programIndicatorService;
 
-    @Autowired
     public DefaultDataIntegrityService( I18nManager i18nManager, DataElementService dataElementService,
         IndicatorService indicatorService, DataSetService dataSetService,
         OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
@@ -347,7 +347,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator() );
+            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getNumerator() );
 
             if ( !result.isValid() )
             {
@@ -366,7 +366,7 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator() );
+            ExpressionValidationOutcome result = expressionService.indicatorExpressionIsValid( indicator.getDenominator() );
 
             if ( !result.isValid() )
             {
@@ -540,7 +540,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getLeftSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() );
 
             if ( !result.isValid() )
             {
@@ -559,7 +559,7 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getRightSide().getExpression() );
+            ExpressionValidationOutcome result = expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() );
 
             if ( !result.isValid() )
             {

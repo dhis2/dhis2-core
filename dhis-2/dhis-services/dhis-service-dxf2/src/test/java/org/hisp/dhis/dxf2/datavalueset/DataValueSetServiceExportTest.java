@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -238,7 +238,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportBasic()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -293,7 +292,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportOrgUnitChildren()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -321,7 +319,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportOutputSingleDataValueSetIdSchemeCode()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,43 +28,49 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 
 @Async
-@Transactional
+@Component( "org.hisp.dhis.programrule.engine.ProgramRuleEngineListener" )
 public class ProgramRuleEngineListener
 {
-    @Autowired
-    private ProgramRuleEngineService programRuleEngineService;
+    private final ProgramRuleEngineService programRuleEngineService;
 
-    @EventListener
-    public void listenEvent( EnrollmentEvaluationEvent event )
+    public ProgramRuleEngineListener( ProgramRuleEngineService programRuleEngineService )
     {
-        programRuleEngineService.evaluate( event.getProgramInstance() );
+        checkNotNull( programRuleEngineService );
+        this.programRuleEngineService = programRuleEngineService;
     }
 
-    @EventListener
-    public void listenEvent( DataValueUpdatedEvent event )
+    @TransactionalEventListener
+    public void onEnrollment( EnrollmentEvaluationEvent event )
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEnrollment( event.getProgramInstance() );
     }
 
-    @EventListener
-    public void listenEvent( StageCompletionEvaluationEvent event )
+    @TransactionalEventListener
+    public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
 
-    @EventListener
-    public void listenEvent( StageScheduledEvaluationEvent event )
+    @TransactionalEventListener
+    public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
-        programRuleEngineService.evaluate( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
+    }
+
+    @TransactionalEventListener
+    public void onScheduledEvent( StageScheduledEvaluationEvent event )
+    {
+        programRuleEngineService.evaluateEvent( event.getProgramStageInstance() );
     }
 }

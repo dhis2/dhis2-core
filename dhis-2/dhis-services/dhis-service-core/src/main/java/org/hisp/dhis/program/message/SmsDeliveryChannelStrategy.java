@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.message;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Component( "org.hisp.dhis.program.message.SmsDeliveryChannelStrategy" )
 public class SmsDeliveryChannelStrategy
     extends DeliveryChannelStrategy
 {

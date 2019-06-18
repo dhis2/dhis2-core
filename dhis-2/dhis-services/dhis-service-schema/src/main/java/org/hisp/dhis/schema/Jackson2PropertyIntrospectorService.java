@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.SchemaUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.lang.reflect.Field;
@@ -64,6 +65,7 @@ import java.util.stream.Collectors;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.schema.PropertyIntrospectorService" )
 public class Jackson2PropertyIntrospectorService
     extends AbstractPropertyIntrospectorService
 {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.task.AsyncListenableTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
+import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import javax.annotation.PostConstruct;
@@ -49,6 +52,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 
@@ -58,8 +62,9 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
  *
  * @author Henning Håkonsen
  */
+@Service( "org.hisp.dhis.scheduling.SchedulingManager" )
 public class DefaultSchedulingManager
-    implements SchedulingManager
+    implements SchedulingManager, ApplicationContextAware
 {
     private static final Log log = LogFactory.getLog( DefaultSchedulingManager.class );
 
@@ -74,29 +79,32 @@ public class DefaultSchedulingManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private ApplicationContext applicationContext;
 
-    @Autowired
-    private JobConfigurationService jobConfigurationService;
+    private final JobConfigurationService jobConfigurationService;
 
-    @Autowired
-    private MessageService messageService;
+    private final MessageService messageService;
 
-    @Autowired
-    private LeaderManager leaderManager;
+    private final LeaderManager leaderManager;
 
-    private TaskScheduler jobScheduler;
+    private final TaskScheduler jobScheduler;
 
-    public void setTaskScheduler( TaskScheduler JobScheduler )
+    private final AsyncListenableTaskExecutor jobExecutor;
+
+    public DefaultSchedulingManager( JobConfigurationService jobConfigurationService, MessageService messageService,
+        LeaderManager leaderManager, @Qualifier( "taskScheduler" ) TaskScheduler jobScheduler,
+        @Qualifier( "taskScheduler" ) AsyncListenableTaskExecutor jobExecutor )
     {
-        this.jobScheduler = JobScheduler;
-    }
+        checkNotNull( jobConfigurationService );
+        checkNotNull( messageService );
+        checkNotNull( leaderManager );
+        checkNotNull( jobScheduler );
+        checkNotNull( jobExecutor );
 
-    private AsyncListenableTaskExecutor jobExecutor;
-
-    public void setTaskExecutor( AsyncListenableTaskExecutor jobExecutor )
-    {
+        this.jobConfigurationService = jobConfigurationService;
+        this.messageService = messageService;
+        this.leaderManager = leaderManager;
+        this.jobScheduler = jobScheduler;
         this.jobExecutor = jobExecutor;
     }
 
@@ -106,13 +114,13 @@ public class DefaultSchedulingManager
         leaderManager.setSchedulingManager( this );
     }
 
-
     // -------------------------------------------------------------------------
     // Queue
     // -------------------------------------------------------------------------
 
     private List<JobConfiguration> runningJobConfigurations = new CopyOnWriteArrayList<>();
 
+    @Override
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isInMemoryJob() )
@@ -125,6 +133,7 @@ public class DefaultSchedulingManager
                 !jobConfig.isContinuousExecution() );
     }
 
+    @Override
     public void jobConfigurationStarted( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
@@ -134,6 +143,7 @@ public class DefaultSchedulingManager
         }
     }
 
+    @Override
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
     {
         runningJobConfigurations.remove( jobConfiguration );
@@ -166,6 +176,8 @@ public class DefaultSchedulingManager
 
             if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
             {
+                log.info( "Scheduling job: " + jobConfiguration );
+
                 ScheduledFuture<?> future = jobScheduler
                     .schedule( () -> {
                         try
@@ -255,6 +267,7 @@ public class DefaultSchedulingManager
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    @Override
     public Job getJob( JobType jobType )
     {
         return (Job) applicationContext.getBean( jobType.getKey() );
@@ -325,4 +338,10 @@ public class DefaultSchedulingManager
         return futures.get( jobKey ) != null || currentTasks.get( jobKey ) != null;
     }
 
+    @Override
+    public void setApplicationContext( ApplicationContext applicationContext )
+        throws BeansException
+    {
+        this.applicationContext = applicationContext;
+    }
 }

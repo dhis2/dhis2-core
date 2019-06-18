@@ -1,7 +1,7 @@
 package org.hisp.dhis.calendar;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,19 +44,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DefaultCalendarService 
+@Service( "org.hisp.dhis.calendar.CalendarService" )
+public class DefaultCalendarService
     implements CalendarService
 {
-    @Autowired
     private SystemSettingManager settingManager;
 
+    private Set<Calendar> calendars;
+
     @Autowired
-    private Set<Calendar> calendars = Sets.newHashSet();
+    public DefaultCalendarService( SystemSettingManager settingManager, Set<Calendar> calendars )
+    {
+        checkNotNull( settingManager );
+        checkNotNull( calendars );
+
+        this.settingManager = settingManager;
+        this.calendars = calendars;
+    }
 
     private Map<String, Calendar> calendarMap = Maps.newHashMap();
 
@@ -117,7 +128,7 @@ public class DefaultCalendarService
 
         return calendar;
     }
-    
+
     @Override
     public DateFormat getSystemDateFormat()
     {

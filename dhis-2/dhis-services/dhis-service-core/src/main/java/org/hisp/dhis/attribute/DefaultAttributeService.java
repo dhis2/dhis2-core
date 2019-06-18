@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,23 +38,28 @@ import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Maps;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.attribute.AttributeService" )
 public class DefaultAttributeService
     implements AttributeService
 {
@@ -68,31 +73,29 @@ public class DefaultAttributeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private AttributeStore attributeStore;
+    private final AttributeStore attributeStore;
 
-    public void setAttributeStore( AttributeStore attributeStore )
+    private final AttributeValueStore attributeValueStore;
+
+    private final IdentifiableObjectManager manager;
+
+    private final CacheProvider cacheProvider;
+
+        private SessionFactory sessionFactory;
+
+    public DefaultAttributeService( AttributeStore attributeStore, AttributeValueStore attributeValueStore,
+        IdentifiableObjectManager manager, CacheProvider cacheProvider, SessionFactory sessionFactory )
     {
+        checkNotNull( attributeStore );
+        checkNotNull( attributeValueStore );
+        checkNotNull( manager );
+
+
         this.attributeStore = attributeStore;
-    }
-
-    @Autowired
-    private IdentifiableObjectManager manager;
-
-    @Autowired
-    private CacheProvider cacheProvider;
-
-    @Autowired
-    private SessionFactory sessionFactory;
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        attributeCache = cacheProvider.newCacheBuilder( Attribute.class ).forRegion( "attribute" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( 10000 ).build();
+        this.attributeValueStore = attributeValueStore;
+        this.manager = manager;
+        this.cacheProvider = cacheProvider;
+        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------

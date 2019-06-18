@@ -68,9 +68,13 @@ import org.hisp.dhis.utils.DataGenerator;
 public class ProgramActions
     extends RestApiActions
 {
+    public RestApiActions programStageActions;
+
     public ProgramActions()
     {
+
         super( "/programs" );
+        this.programStageActions = new RestApiActions( "/programStages" );
     }
 
     public ApiResponse createProgram( String programType )
@@ -112,15 +116,6 @@ public class ProgramActions
         return post( object );
     }
 
-    public ApiResponse addProgramStage( String programId )
-    {
-
-        String programStageId = createProgramStage( "AutoTest program stage " + DataGenerator.randomString() )
-            .extractUid();
-
-        return addProgramStage( programId, programStageId );
-    }
-
     public ApiResponse addProgramStage( String programId, String programStageId )
     {
         JsonObject body = get( programId ).getBody();
@@ -142,7 +137,7 @@ public class ProgramActions
 
         body.addProperty( "name", name );
 
-        return new RestApiActions( "/programStages" ).post( body );
+        return programStageActions.post( body );
     }
 
     private JsonObject baseBody( String programType )

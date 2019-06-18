@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  * <li>Program data elements on the form D{programuid.dataelementuid}</li>
  * <li>Program tracked entity attribute on the form A{programuid.attributeuid}</li>
  * <li>Program indicators on the form I{programindicatoruid}</li>
+ * <li>Indicators on the form N{indicatoruid}</li>
  * <li>Constants on the form C{constantuid}</li>
  * <li>Organisation unit group member counts on the form OUG{orgunitgroupuid}</li>
  * <li>Days in aggregation period as the symbol [days]</li>
@@ -76,7 +77,7 @@ public interface ExpressionService
     String SYMBOL_DAYS = "[days]";
     String SYMBOL_WILDCARD = "*";
 
-    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I|R)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{5,40}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
+    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I|R|N)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{5,40}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
     String OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})(\\.(?<coc>[a-zA-Z]\\w{10}|\\*))?(\\.(?<aoc>[a-zA-Z]\\w{10}|\\*))?\\}";
     String DATA_ELEMENT_TOTAL_EXPRESSION = "#\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String CATEGORY_OPTION_COMBO_OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})\\.(?<coc>[a-zA-Z]\\w{10})\\}";
@@ -213,19 +214,23 @@ public interface ExpressionService
      * values in the given maps.
      *
      * @param indicator the indicator for which to calculate the value.
-     * @param period the period for which to calculate the value.
+     * @param periods a List of periods for which to calculate the value.
      * @param valueMap the map of data values.
      * @param constantMap the map of constants.
      * @param orgUnitCountMap the map of organisation unit counts.
      * @return the calculated value as a double.
      */
-    IndicatorValue getIndicatorValueObject( Indicator indicator, Period period,
+    IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap );
 
-    // -------------------------------------------------------------------------
-    // Expression logic
-    // -------------------------------------------------------------------------
+    /**
+     * Tests whether the indicator expression is valid
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome indicatorExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing the names of the
@@ -237,7 +242,11 @@ public interface ExpressionService
      *         combo id are not numeric or data element or category option combo
      *         do not exist.
      */
-    String getExpressionDescription( String expression );
+    String getIndicatorExpressionDescription( String expression );
+
+    // -------------------------------------------------------------------------
+    // Expression logic
+    // -------------------------------------------------------------------------
 
     /**
      * Returns all dimensional item objects in the given expression.
@@ -412,13 +421,20 @@ public interface ExpressionService
     Set<DimensionalItemObject> getDimensionalItemObjectsInExpression( String expression );
 
     /**
-     * Tests whether the expression is valid. Returns a positive value if the
-     * expression is valid, or a negative value if not.
+     * Tests whether the predictor expression is valid
      *
-     * @param formula the expression formula.
+     * @param expression the expression formula.
      * @return the ExpressionValidationOutcome of the validation.
      */
-    ExpressionValidationOutcome expressionIsValid( String formula );
+    ExpressionValidationOutcome predictorExpressionIsValid( String expression );
+
+    /**
+     * Tests whether the validation rule expression is valid.
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing DataElement names and the names

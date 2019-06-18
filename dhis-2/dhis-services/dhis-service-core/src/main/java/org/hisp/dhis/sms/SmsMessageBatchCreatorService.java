@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,12 @@ import org.hisp.dhis.program.message.MessageBatchCreatorService;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Service( "org.hisp.dhis.sms.SmsMessageBatchCreatorService" )
 public class SmsMessageBatchCreatorService
     implements MessageBatchCreatorService
 {
@@ -48,7 +50,7 @@ public class SmsMessageBatchCreatorService
     {
         List<OutboundMessage> messages = programMessages.parallelStream()
             .filter( pm -> pm.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
-            .map( pm -> createSmsMessage( pm ) )
+            .map(this::createSmsMessage)
             .collect( Collectors.toList() );
 
         return new OutboundMessageBatch( messages, DeliveryChannel.SMS );

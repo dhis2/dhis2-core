@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,9 @@ import java.util.List;
 public interface ReservedValueStore
     extends GenericStore<ReservedValue>
 {
-
     List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
+
+    List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
 
     List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
 

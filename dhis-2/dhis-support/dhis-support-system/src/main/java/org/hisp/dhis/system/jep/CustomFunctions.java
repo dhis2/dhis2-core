@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.jep;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -78,6 +79,11 @@ public class CustomFunctions
     public static List<Double> checkVector( Object param )
         throws ParseException
     {
+        if ( param instanceof Double && (Double) param == 0.0 ) // Indicates empty list
+        {
+            return new ArrayList<Double>();
+        }
+
         if ( param instanceof List )
         {
             List<?> vals = (List<?>) param;

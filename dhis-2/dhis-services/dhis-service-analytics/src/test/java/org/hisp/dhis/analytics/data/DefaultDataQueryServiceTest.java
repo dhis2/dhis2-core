@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +55,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -115,6 +117,10 @@ public class DefaultDataQueryServiceTest
 
     private RequestBuilder rb;
 
+    private OrganisationUnit rootOu;
+    
+    private BeanRandomizer beanRandomizer;
+    
     @Before
     public void setUp()
     {
@@ -125,6 +131,12 @@ public class DefaultDataQueryServiceTest
 
         when(i18nManager.getI18n()).thenReturn(i18n);
         when (i18n.getString( "LAST_12_MONTHS")).thenReturn("Last 12 months");
+
+        rootOu = new OrganisationUnit( "Sierra Leone" );
+        rootOu.setUid( CodeGenerator.generateUid() );
+        rootOu.setCode( "OU_525" );
+        
+        beanRandomizer = new BeanRandomizer();
     }
 
     private void mockDimensionService()
@@ -135,7 +147,6 @@ public class DefaultDataQueryServiceTest
             .thenReturn( DATA_ELEMENT_2 );
         when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_3.getUid() ) )
             .thenReturn( DATA_ELEMENT_3 );
-
     }
 
     @Test
@@ -205,7 +216,6 @@ public class DefaultDataQueryServiceTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithIndicatorGroup()
     {
         final String INDICATOR_GROUP_UID = "oehv9EO3vP7";
@@ -251,13 +261,13 @@ public class DefaultDataQueryServiceTest
 
         rb.addPeDimension( PERIOD_DIMENSION );
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addOuDimension( "OU_GROUP-" + ouGroupUID + ";ImspTQPwCqd" );
+        rb.addOuDimension( "OU_GROUP-" + ouGroupUID + ";" + rootOu.getUid() );
         DataQueryRequest request = DataQueryRequest.newBuilder()
             .dimension( rb.getDimensionParams() )
             .build();
         DataQueryParams params = target.getFromRequest( request );
 
-        assertOrgUnitGroup( params, ouGroupUID, params.getDimension( "ou" ) );
+        assertOrgUnitGroup( ouGroupUID, params.getDimension( "ou" ) );
     }
 
     @Test
@@ -271,13 +281,103 @@ public class DefaultDataQueryServiceTest
 
         rb.addPeDimension( PERIOD_DIMENSION );
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
-        rb.addOuFilter( "OU_GROUP-" + ouGroupUID + ";ImspTQPwCqd" );
+        rb.addOuFilter( "OU_GROUP-" + ouGroupUID + ";" + rootOu.getUid() );
 
         DataQueryRequest request = DataQueryRequest.newBuilder().dimension( rb.getDimensionParams() )
             .filter( rb.getFilterParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
 
-        assertOrgUnitGroup( params, ouGroupUID, params.getFilter( "ou" ) );
+        assertOrgUnitGroup( ouGroupUID, params.getFilter( "ou" ) );
+    }
+
+    @Test
+    public void convertAnalyticsRequestWithOrgUnitLevelAsFilter()
+    {
+        OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
+        OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
+
+        mockDimensionService();
+
+        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "wjP19dkFeIk" ) ).thenReturn( 2 );
+
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
+
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ),
+            Mockito.any( Collection.class ) ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+
+        when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
+            .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+
+        rb.addOuFilter( "LEVEL-wjP19dkFeIk;ImspTQPwCqd" );
+        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
+        rb.addPeDimension( PERIOD_DIMENSION );
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
+            .dimension( rb.getDimensionParams() ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+        DimensionalObject filter = params.getFilters().get( 0 );
+
+        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        assertThat( filter.getDimensionalKeywords().getGroupBy(),
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
+                        hasProperty( "code", is( nullValue() ) ) ),
+                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
+                        hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+
+    }
+
+    @Test
+    public void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter()
+    {
+        OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
+        OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
+        
+        OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
+        OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
+        
+        OrganisationUnitGroup groupOu = beanRandomizer.randomObject(OrganisationUnitGroup.class, "geometry");
+        
+
+        mockDimensionService();
+
+        when( organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "wjP19dkFeIk" ) ).thenReturn( 2 );
+
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) ).thenReturn( rootOu );
+        when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, "tDZVQ1WtwpA" ) ).thenReturn( groupOu );
+
+        when( organisationUnitService.getOrganisationUnitsAtLevels( Mockito.any( Collection.class ),
+                Mockito.any( Collection.class ) ) ).thenReturn( Lists.newArrayList( level2OuA, level2OuB ) );
+
+        when( organisationUnitService.getOrganisationUnitLevelByLevel( 2 ) )
+                .thenReturn( buildOrgUnitLevel( 2, "level2UID", "District", null ) );
+
+        when( organisationUnitService.getOrganisationUnits( Lists.newArrayList( groupOu ), Lists.newArrayList( rootOu ) ) )
+            .thenReturn( Lists.newArrayList( ou1Group, ou2Group ) );
+
+        rb.addOuFilter( "LEVEL-wjP19dkFeIk;OU_GROUP-tDZVQ1WtwpA;ImspTQPwCqd" );
+        rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
+        rb.addPeDimension( PERIOD_DIMENSION );
+
+        DataQueryRequest request = DataQueryRequest.newBuilder().filter( rb.getFilterParams() )
+                .dimension( rb.getDimensionParams() ).build();
+
+        DataQueryParams params = target.getFromRequest( request );
+        DimensionalObject filter = params.getFilters().get( 0 );
+
+        List<DimensionalKeywords.Keyword> x = filter.getDimensionalKeywords().getGroupBy();
+
+        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 3 ) );
+        assertThat( filter.getDimensionalKeywords().getGroupBy(),
+                IsIterableContainingInAnyOrder.containsInAnyOrder(
+                        allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
+                                hasProperty( "code", is( nullValue() ) ) ),
+                        allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
+                                hasProperty( "code", is( groupOu.getCode() ) ) ),
+                        allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
+                                hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+
     }
 
     @Test
@@ -431,20 +531,22 @@ public class DefaultDataQueryServiceTest
     {
         when( idObjectManager.getObject( OrganisationUnitGroup.class, UID, ouGroupUID ) )
             .thenReturn( buildOrganizationalUnitGroup( ouGroupUID, "Chiefdom", "CODE_001" ) );
-        when( idObjectManager.getObject( OrganisationUnit.class, UID, "ImspTQPwCqd" ) )
-            .thenReturn( new OrganisationUnit() );
+        when( idObjectManager.getObject( OrganisationUnit.class, UID, this.rootOu.getUid() ) )
+            .thenReturn( rootOu );
         when( organisationUnitService.getOrganisationUnits( Mockito.any( Collection.class ), Mockito.any( Collection.class ) ) )
             .thenReturn( Lists.newArrayList( new OrganisationUnit(), new OrganisationUnit() ) );
-
     }
 
-    private void assertOrgUnitGroup( DataQueryParams params, String ouGroupUID, DimensionalObject dimension )
+    private void assertOrgUnitGroup( String ouGroupUID, DimensionalObject dimension )
     {
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
+        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
 
-        assertThat( dimension.getDimensionalKeywords().getGroupBy().get( 0 ),
-            allOf( hasProperty( "name", is( "Chiefdom" ) ), hasProperty( "uid", is( ouGroupUID ) ),
-                hasProperty( "code", is( "CODE_001" ) ) ) );
+        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
+            IsIterableContainingInAnyOrder.containsInAnyOrder(
+                allOf( hasProperty( "name", is( "Chiefdom" ) ), hasProperty( "uid", is( ouGroupUID ) ),
+                        hasProperty( "code", is( "CODE_001" ) ) ),
+                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
+                        hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )

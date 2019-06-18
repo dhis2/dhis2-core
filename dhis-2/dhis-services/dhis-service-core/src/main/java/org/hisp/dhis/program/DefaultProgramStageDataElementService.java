@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,15 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen
  */
+@Service( "org.hisp.dhis.program.ProgramStageDataElementService" )
 public class DefaultProgramStageDataElementService
     implements ProgramStageDataElementService
 {
@@ -45,10 +49,12 @@ public class DefaultProgramStageDataElementService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageDataElementStore programStageDataElementStore;
+    private final ProgramStageDataElementStore programStageDataElementStore;
 
-    public void setProgramStageDataElementStore( ProgramStageDataElementStore programStageDataElementStore )
+    public DefaultProgramStageDataElementService( ProgramStageDataElementStore programStageDataElementStore )
     {
+        checkNotNull( programStageDataElementStore );
+
         this.programStageDataElementStore = programStageDataElementStore;
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,14 +94,6 @@ public interface JobConfigurationService
      * @return list of all job configurations in the system
      */
     List<JobConfiguration> getAllJobConfigurations();
-
-    /**
-     * Get a sorted list of all job configurations based on cron expressions
-     * and the current time
-     *
-     * @return list of all job configurations in the system(sorted)
-     */
-    List<JobConfiguration> getAllJobConfigurationsSorted();
 
     /**
      * Get a map of parameter classes with appropriate properties

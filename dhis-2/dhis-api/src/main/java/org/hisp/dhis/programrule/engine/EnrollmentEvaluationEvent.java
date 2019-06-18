@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,22 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramInstance;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar
  */
 public class  EnrollmentEvaluationEvent extends ApplicationEvent
 {
-    private ProgramInstance programInstance;
+    private long programInstance;
 
-    public EnrollmentEvaluationEvent( Object source, ProgramInstance programInstance )
+    public EnrollmentEvaluationEvent( Object source, long programInstance )
     {
         super( source );
         this.programInstance = programInstance;
     }
 
-    public ProgramInstance getProgramInstance()
+    public long getProgramInstance()
     {
         return programInstance;
     }

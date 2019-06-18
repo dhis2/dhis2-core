@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 import com.google.common.collect.Lists;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -49,7 +49,6 @@ import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 /**

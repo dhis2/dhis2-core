@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
@@ -59,8 +60,6 @@ import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
@@ -72,6 +71,7 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.table.PartitionUtils;
+import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -86,13 +86,14 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableMap;
@@ -105,6 +106,7 @@ import com.google.common.collect.Maps;
  *
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.AnalyticsManager" )
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
@@ -121,11 +123,18 @@ public class JdbcAnalyticsManager
         .put( MeasureFilter.LE, "<=" )
         .build();
 
-    @Autowired
-    private QueryPlanner queryPlanner;
+    private final QueryPlanner queryPlanner;
 
-    @Resource( name = "readOnlyJdbcTemplate" )
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public JdbcAnalyticsManager( QueryPlanner queryPlanner, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( queryPlanner );
+        checkNotNull( jdbcTemplate );
+
+        this.queryPlanner = queryPlanner;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // AnalyticsManager implementation
@@ -281,7 +290,7 @@ public class JdbcAnalyticsManager
      */
     private String getNumericValueColumn( DataQueryParams params )
     {
-        String sql = "";
+        String sql;
 
         AnalyticsAggregationType aggType = params.getAggregationType();
 
@@ -336,9 +345,9 @@ public class JdbcAnalyticsManager
     {
         String sql = "from ";
 
-        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() )
         {
-            sql += getLastValueSubquerySql( params );
+            sql += getFirstOrLastValueSubquerySql( params );
         }
         else if ( params.hasPreAggregateMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
         {
@@ -498,7 +507,7 @@ public class JdbcAnalyticsManager
         // Period rank restriction to get last value only
         // ---------------------------------------------------------------------
 
-        if ( params.getAggregationType().isLastPeriodAggregationType() )
+        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() )
         {
             sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
         }
@@ -528,11 +537,11 @@ public class JdbcAnalyticsManager
      * attribute option combo. A column {@code pe_rank} defines the rank. Only data
      * for the last 10 years relative to the period end date is included.
      */
-    private String getLastValueSubquerySql( DataQueryParams params )
+    private String getFirstOrLastValueSubquerySql(DataQueryParams params )
     {
         Date latest = params.getLatestEndDate();
         Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        List<String> columns = getLastValueSubqueryQuotedColumns( params );
+        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
         String fromSourceClause = getFromSourceClause( params ) + " as " + ANALYTICS_TBL_ALIAS;
 
         String sql = "(select ";
@@ -542,10 +551,12 @@ public class JdbcAnalyticsManager
             sql += col + ",";
         }
 
+        String order = params.getAggregationType().isFirstPeriodAggregationType() ? "asc" : "desc";
+
         sql +=
             "row_number() over (" +
                 "partition by dx, ou, co, ao " +
-                "order by peenddate desc, pestartdate desc) as pe_rank " +
+                "order by peenddate " + order + ", pestartdate " + order + ") as pe_rank " +
             "from " + fromSourceClause + " " +
             "where pestartdate >= '" + getMediumDateString( earliest ) + "' " +
             "and pestartdate <= '" + getMediumDateString( latest ) + "' " +
@@ -560,13 +571,13 @@ public class JdbcAnalyticsManager
      * data analytics. The period dimension is replaced by the name of the single period
      * in the given query.
      */
-    private List<String> getLastValueSubqueryQuotedColumns( DataQueryParams params )
+    private List<String> getFirstOrLastValueSubqueryQuotedColumns(DataQueryParams params )
     {
         Period period = params.getLatestPeriod();
 
         List<String> cols = Lists.newArrayList( "year", "pestartdate", "peenddate", "level", "daysxvalue", "daysno", "value", "textvalue" );
 
-        cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
+        cols = cols.stream().map(AnalyticsSqlUtils::quote).collect( Collectors.toList() );
 
         if ( params.isDataApproval() )
         {
@@ -720,7 +731,7 @@ public class JdbcAnalyticsManager
     {
         Assert.notNull( params.getDataType(), "Data type must be present" );
         Assert.notNull( params.getAggregationType(), "Aggregation type must be present" );
-        Assert.isTrue( !( params.getAggregationType().isLastPeriodAggregationType() && params.getPeriods().size() > 1 ),
+        Assert.isTrue( !( params.getAggregationType().isFirstOrLastPeriodAggregationType() && params.getPeriods().size() > 1 ),
             "Max one dimension period can be present per query for last period aggregation" );
     }
 }

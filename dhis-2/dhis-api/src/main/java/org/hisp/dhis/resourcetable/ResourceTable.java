@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,11 @@ import java.util.Optional;
 public abstract class ResourceTable<T>
 {
     protected static final Log log = LogFactory.getLog( ResourceTable.class );
-    
+
     protected static final String TEMP_TABLE_SUFFIX = "_temp";
-        
+
     protected List<T> objects;
-    
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -53,7 +53,7 @@ public abstract class ResourceTable<T>
     protected ResourceTable()
     {
     }
-    
+
     protected ResourceTable( List<T> objects )
     {
         this.objects = objects;
@@ -65,7 +65,7 @@ public abstract class ResourceTable<T>
 
     /**
      * Provides the name of the resource database table.
-     * 
+     *
      * @return the name of the resource database table.
      */
     public String getTableName()
@@ -75,29 +75,29 @@ public abstract class ResourceTable<T>
 
     /**
      * Provides the temporary name of the resource database table.
-     * 
+     *
      * @return the temporary name of the resource database table.
      */
     public final String getTempTableName()
     {
         return getTableName() + TEMP_TABLE_SUFFIX;
     }
-    
+
     public final String getDropTableStatement()
     {
         return "drop table " + getTableName() + ";";
     }
-    
+
     public final String getDropTempTableStatement()
     {
         return "drop table " + getTempTableName() + ";";
     }
-    
+
     public final String getRenameTempTableStatement()
     {
         return "alter table " + getTempTableName() + " rename to " + getTableName() + ";";
     }
-    
+
     // -------------------------------------------------------------------------
     // Protected methods
     // -------------------------------------------------------------------------
@@ -106,43 +106,44 @@ public abstract class ResourceTable<T>
     {
         return CodeGenerator.generateCode( 5 );
     }
-    
+
     // -------------------------------------------------------------------------
     // Abstract methods
     // -------------------------------------------------------------------------
 
     /**
      * Returns the {@link ResourceTableType} of this resource table.
-     * @return
+     *
+     * @return the {@link ResourceTableType}.
      */
     public abstract ResourceTableType getTableType();
-    
+
     /**
      * Provides a create table SQL statement for the temporary resource table.
-     * 
+     *
      * @return a create table statement.
      */
     public abstract String getCreateTempTableStatement();
-    
+
     /**
      * Provides an insert into select from SQL statement for populating the
      * temporary resource table.
-     * 
+     *
      * @return an insert into select from SQL statement.
      */
     public abstract Optional<String> getPopulateTempTableStatement();
-    
+
     /**
      * Provides content for the temporary resource table as a list of object arrays.
-     * 
+     *
      * @return content for the temporary resource table.
      */
     public abstract Optional<List<Object[]>> getPopulateTempTableContent();
-    
+
     /**
      * Returns SQL create index statements for the temporary table. Note that the
      * indexes name must have a random component to avoid uniqueness conflicts.
-     * 
+     *
      * @return a list of SQL create index statements.
      */
     public abstract List<String> getCreateIndexStatements();

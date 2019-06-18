@@ -43,9 +43,6 @@
       <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
     </set>
 
-    <!-- Dynamic attribute values -->
-    <property name="attributeValues" type="jsbAttributeValues"/>
-
   </class>
 
 </hibernate-mapping>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,7 +104,7 @@ public interface ProgramIndicatorService
      * Get the description of any program indicator expression (expression or
      * filter).
      *
-     * @Depreicated Does not do type-checking on the expression.
+     * @deprecated Does not do type-checking on the expression.
      * Use getExpressionDescriptionRegEx or getFilterDescription instead.
      *
      * @param expression A program indicator expression or filter string

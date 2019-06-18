@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,26 +28,38 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
 import org.hisp.dhis.program.message.ProgramMessageStore;
-import org.springframework.transaction.annotation.Transactional;
-
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
+@Repository( "org.hisp.dhis.program.ProgramMessageStore" )
 public class HibernateProgramMessageStore
     extends HibernateIdentifiableObjectStore<ProgramMessage>
     implements ProgramMessageStore
 {
     private static final String TABLE_NAME = "ProgramMessage";
+
+    public HibernateProgramMessageStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, ProgramMessage.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -109,15 +121,15 @@ public class HibernateProgramMessageStore
         }
 
         hql += params.getMessageStatus() != null
-            ? helper.whereAnd() + "pm.messageStatus = :messageStatus" : ""; 
+            ? helper.whereAnd() + "pm.messageStatus = :messageStatus" : "";
 
         hql += params.getAfterDate() != null ? helper.whereAnd() + "pm.processeddate > :processeddate" : "" ;
 
         hql += params.getBeforeDate() != null
-            ? helper.whereAnd() + "pm.processeddate < :processeddate" : ""; 
+            ? helper.whereAnd() + "pm.processeddate < :processeddate" : "";
 
         Query<ProgramMessage> query = getQuery( hql );
-        
+
         if ( params.hasProgramInstance() )
         {
             query.setParameter( "programInstance", params.getProgramInstance() );
@@ -127,7 +139,7 @@ public class HibernateProgramMessageStore
         {
             query.setParameter( "programStageInstance", params.getProgramStageInstance() );
         }
-        
+
         if ( params.getMessageStatus() != null)
         {
             query.setParameter( "messageStatus", params.getMessageStatus() );
@@ -137,12 +149,12 @@ public class HibernateProgramMessageStore
         {
             query.setParameter( "processeddate", params.getAfterDate() );
         }
-        
+
         if ( params.getBeforeDate() != null )
         {
             query.setParameter( "processeddate", params.getBeforeDate() );
         }
-        
+
         return query;
     }
 }

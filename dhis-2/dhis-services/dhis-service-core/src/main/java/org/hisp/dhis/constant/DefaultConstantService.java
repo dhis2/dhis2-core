@@ -1,7 +1,7 @@
 package org.hisp.dhis.constant;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,16 +30,21 @@ package org.hisp.dhis.constant;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Dang Duy Hieu
  * @version $Id DefaultConstantService.java July 29, 2011$
  */
+@Service( "org.hisp.dhis.constant.ConstantService" )
 public class DefaultConstantService
     implements ConstantService
 {
@@ -49,8 +54,10 @@ public class DefaultConstantService
 
     private IdentifiableObjectStore<Constant> constantStore;
 
-    public void setConstantStore( IdentifiableObjectStore<Constant> constantStore )
+    public DefaultConstantService( @Qualifier( "org.hisp.dhis.constant.ConstantStore" ) IdentifiableObjectStore<Constant> constantStore )
     {
+        checkNotNull( constantStore );
+
         this.constantStore = constantStore;
     }
 

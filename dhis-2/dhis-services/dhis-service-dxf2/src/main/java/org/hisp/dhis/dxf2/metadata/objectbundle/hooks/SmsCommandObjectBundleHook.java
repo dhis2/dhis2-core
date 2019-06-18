@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,14 @@ import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.function.Consumer;
 
 /**
  * Created by zubair@dhis2.org on 18.08.17.
  */
+@Component
 public class SmsCommandObjectBundleHook extends AbstractObjectBundleHook
 {
     private ImmutableMap<ParserType, Consumer<SMSCommand>> VALUE_POPULATOR = new ImmutableMap.Builder<ParserType, Consumer<SMSCommand>>()

@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,19 +28,33 @@ package org.hisp.dhis.organisationunit.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitLevelStore" )
 public class HibernateOrganisationUnitLevelStore
     extends HibernateIdentifiableObjectStore<OrganisationUnitLevel>
     implements OrganisationUnitLevelStore
 {
+    public HibernateOrganisationUnitLevelStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, OrganisationUnitLevel.class, currentUserService, deletedObjectService,
+            aclService, true );
+    }
+
     @Override
     public void deleteAll()
     {

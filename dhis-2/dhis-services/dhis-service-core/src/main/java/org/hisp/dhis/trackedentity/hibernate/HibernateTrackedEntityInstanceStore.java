@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentity.hibernate;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -39,16 +40,20 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -62,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
@@ -72,6 +78,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceStore" )
 public class HibernateTrackedEntityInstanceStore
     extends HibernateIdentifiableObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
@@ -82,10 +89,17 @@ public class HibernateTrackedEntityInstanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementBuilder statementBuilder;
+    private final StatementBuilder statementBuilder;
 
-    public void setStatementBuilder( StatementBuilder statementBuilder )
+    public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        StatementBuilder statementBuilder )
     {
+        super( sessionFactory, jdbcTemplate, TrackedEntityInstance.class, currentUserService, deletedObjectService,
+            aclService, false );
+
+        checkNotNull( statementBuilder );
+
         this.statementBuilder = statementBuilder;
     }
 
@@ -145,7 +159,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.hasProgram() )
         {
             hql += "inner join fetch tei.programInstances as pi ";
-            
+
             if ( params.hasFilterForEvents() )
             {
                 hql += " inner join fetch pi.programStageInstances psi ";
@@ -690,17 +704,17 @@ public class HibernateTrackedEntityInstanceStore
                 sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
-        
+
         if ( params.hasAssignedUsers() )
         {
             sql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
         }
-        
+
         if ( params.isIncludeOnlyUnassignedEvents() )
         {
             sql += " (psi.assigneduserid is null) and ";
         }
-        
+
         if ( params.isIncludeOnlyAssignedEvents() )
         {
             sql += " (psi.assigneduserid is not null) and ";
@@ -711,7 +725,7 @@ public class HibernateTrackedEntityInstanceStore
 
         return sql;
     }
-    
+
     private String getEventWhereClauseHql( TrackedEntityInstanceQueryParams params )
     {
         String hql = "";
@@ -746,17 +760,17 @@ public class HibernateTrackedEntityInstanceStore
                 hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '" + EventStatus.SKIPPED.name() + "' and ";
             }
         }
-        
+
         if ( params.hasAssignedUsers() )
         {
             hql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
         }
-        
+
         if ( params.isIncludeOnlyUnassignedEvents() )
         {
             hql += " (psi.assignedUser is null) and ";
         }
-        
+
         if ( params.isIncludeOnlyAssignedEvents() )
         {
             hql += " (psi.assignedUser is not null) and ";

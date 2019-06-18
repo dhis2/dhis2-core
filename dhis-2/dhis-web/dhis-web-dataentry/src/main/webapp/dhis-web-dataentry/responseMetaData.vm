@@ -10,6 +10,12 @@
 "${dataElement.uid}"#if( $velocityCount < $size ),#end
 #end ],
 
+"lockExceptions": [
+#set( $size = $lockExceptions.size() )
+#foreach( $lockException in $lockExceptions )
+"${lockException.organisationUnit.uid}-${lockException.dataSet.uid}-${lockException.period.uid}"#if( $velocityCount < $size ),#end
+#end ],
+
 "dataElements": {
 #set( $size = $dataElements.size() )
 #foreach( $dataElement in $dataElements )
@@ -67,7 +73,7 @@
 #set( $categoryOptions = $categoryOptionMap.get( $category.uid ) )
 #set( $size2 = $categoryOptions.size() )
 #foreach( $option in $categoryOptions )
-{"id":"${option.uid}","name":"$encoder.jsonEncode( ${option.displayName} )"#if( ${option.startDate} ),"start":"${option.startDate}"#end
+{"id":"${option.uid}","name":"$encoder.jsonEncode( ${option.displayFormName} )"#if( ${option.startDate} ),"start":"${option.startDate}"#end
 #if( ${option.endDate} ),"end":"${option.endDate}"#end
 #if( ${option.organisationUnits.size()} > 0 ),"ous":[
 #set( $size3 = $option.organisationUnits.size() )

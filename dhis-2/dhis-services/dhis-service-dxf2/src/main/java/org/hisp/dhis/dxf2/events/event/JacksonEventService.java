@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,9 @@ import org.hisp.dhis.hibernate.objectmapper.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -60,6 +63,8 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.dxf2.events.event.EventService" )
+@Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 @Transactional
 public class JacksonEventService extends AbstractEventService
 {

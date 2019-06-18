@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -103,6 +103,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -298,6 +299,7 @@ public class TrackedEntityInstanceController
         @PathVariable( "attributeId" ) String attributeId,
         @RequestParam( required = false ) Integer width,
         @RequestParam( required = false ) Integer height,
+        @RequestParam( defaultValue = "original" ) String dimension,
         HttpServletResponse response,
         HttpServletRequest request )
         throws WebMessageException, NotFoundException
@@ -355,6 +357,12 @@ public class TrackedEntityInstanceController
             throw new WebMessageException( WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
                 "The content requested is in transit to the file store and will be available at a later time." ) );
         }
+
+        // ---------------------------------------------------------------------
+        // If file is of image type then dimension will determine which size the image need to be downloaded.
+        // ---------------------------------------------------------------------
+
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
 
         ByteSource content = fileResourceService.getFileResourceContent( fileResource );
 

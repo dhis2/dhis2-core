@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,8 +71,6 @@ public interface MappingService
 
     void deleteMap( Map map );
 
-    List<Map> getAllMaps();
-
     // -------------------------------------------------------------------------
     // MapView
     // -------------------------------------------------------------------------
@@ -87,13 +85,9 @@ public interface MappingService
 
     MapView getMapView( String uid );
 
-    MapView getMapViewByName( String name );
-
     MapView getIndicatorLastYearMapView( String indicatorUid, String organisationUnitUid, int level );
 
     List<MapView> getMapViewsByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet );
-    
-    List<MapView> getAllMapViews();
 
     int countMapViewMaps( MapView mapView );
 
@@ -110,9 +104,4 @@ public interface MappingService
     ExternalMapLayer getExternalMapLayer( long id );
 
     ExternalMapLayer getExternalMapLayer( String uid );
-
-    ExternalMapLayer getExternalMapLayerByName( String name );
-
-    List<ExternalMapLayer> getAllExternalMapLayers();
-
 }

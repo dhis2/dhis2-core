@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.utils;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
@@ -51,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Lars Helge Overland
  */
+@Component
 public class InputUtils
 {
     private static Cache<String, Long> ATTR_OPTION_COMBO_ID_CACHE;

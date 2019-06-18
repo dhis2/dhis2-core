@@ -48,6 +48,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Set;
 
 /**
@@ -67,17 +68,21 @@ public class DashboardController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/q/{query}", method = RequestMethod.GET )
-    public @ResponseBody DashboardSearchResult search( @PathVariable String query, @RequestParam( required = false ) Set<DashboardItemType> max )
+    public @ResponseBody DashboardSearchResult search( @PathVariable String query,
+        @RequestParam( required = false ) Set<DashboardItemType> max, @RequestParam( required = false ) Integer count,
+        @RequestParam( required = false ) Integer maxCount )
     {
-        return dashboardService.search( query, max );
+        return dashboardService.search( query, max, count, maxCount );
     }
 
     @RequestMapping( value = "/q", method = RequestMethod.GET )
-    public @ResponseBody DashboardSearchResult searchNoFilter( @RequestParam( required = false ) Set<DashboardItemType> max )
+    public @ResponseBody DashboardSearchResult searchNoFilter(
+        @RequestParam( required = false ) Set<DashboardItemType> max, @RequestParam( required = false ) Integer count,
+        @RequestParam( required = false ) Integer maxCount )
     {
-        return dashboardService.search( max );
+        return dashboardService.search( max, count, maxCount );
     }
-
+    
     // -------------------------------------------------------------------------
     // Metadata with dependencies
     // -------------------------------------------------------------------------

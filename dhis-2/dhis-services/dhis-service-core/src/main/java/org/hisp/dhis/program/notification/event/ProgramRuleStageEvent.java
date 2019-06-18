@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,6 @@ package org.hisp.dhis.program.notification.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -37,23 +35,23 @@ import org.springframework.context.ApplicationEvent;
  */
 public class ProgramRuleStageEvent extends ApplicationEvent
 {
-    private ProgramNotificationTemplate template;
+    private long template;
 
-    private ProgramStageInstance programStageInstance;
+    private long programStageInstance;
 
-    public ProgramRuleStageEvent( Object source, ProgramNotificationTemplate template, ProgramStageInstance programStageInstance )
+    public ProgramRuleStageEvent( Object source, long template, long programStageInstance )
     {
         super( source );
         this.template = template;
         this.programStageInstance = programStageInstance;
     }
 
-    public ProgramNotificationTemplate getTemplate()
+    public long getTemplate()
     {
         return template;
     }
 
-    public ProgramStageInstance getProgramStageInstance()
+    public long getProgramStageInstance()
     {
         return programStageInstance;
     }

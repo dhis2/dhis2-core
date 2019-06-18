@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -364,6 +364,7 @@ public abstract class DhisConvenienceTest
      * @param dependency    the dependency.
      * @param clazz         the interface type of the dependency.
      */
+    @Deprecated
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
         try
@@ -433,6 +434,7 @@ public abstract class DhisConvenienceTest
         dataElement.setValueType( ValueType.INTEGER );
         dataElement.setDomainType( DataElementDomain.AGGREGATE );
         dataElement.setAggregationType( AggregationType.SUM );
+        dataElement.setZeroIsSignificant( false );
 
         if ( categoryCombo != null )
         {
@@ -1628,14 +1630,15 @@ public abstract class DhisConvenienceTest
         return attribute;
     }
 
-    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( char uniqueChar )
+    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute )
     {
-        ProgramTrackedEntityAttribute attribute = new ProgramTrackedEntityAttribute();
-        attribute.setAutoFields();
+        ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
+        ptea.setAutoFields();
 
-        attribute.setName( "Attribute" + uniqueChar );
+        ptea.setProgram( program );
+        ptea.setAttribute( attribute );
 
-        return attribute;
+        return ptea;
     }
 
     public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar, Set<ProgramTrackedEntityAttribute> attributes )

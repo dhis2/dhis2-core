@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,16 @@ package org.hisp.dhis.validation;
 
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.validation.ValidationRuleDeletionHandler" )
 public class ValidationRuleDeletionHandler
     extends DeletionHandler
 {
@@ -44,8 +47,13 @@ public class ValidationRuleDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ValidationRuleService validationRuleService;
+    private final ValidationRuleService validationRuleService;
+
+    public ValidationRuleDeletionHandler( ValidationRuleService validationRuleService )
+    {
+        checkNotNull( validationRuleService );
+        this.validationRuleService = validationRuleService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
@@ -61,11 +69,11 @@ public class ValidationRuleDeletionHandler
     public void deleteExpression( Expression expression )
     {
         Iterator<ValidationRule> iterator = validationRuleService.getAllValidationRules().iterator();
-        
+
         while ( iterator.hasNext() )
         {
             ValidationRule rule = iterator.next();
-            
+
             Expression leftSide = rule.getLeftSide();
             Expression rightSide = rule.getRightSide();
 
@@ -77,7 +85,7 @@ public class ValidationRuleDeletionHandler
             }
         }
     }
-    
+
     @Override
     public void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {

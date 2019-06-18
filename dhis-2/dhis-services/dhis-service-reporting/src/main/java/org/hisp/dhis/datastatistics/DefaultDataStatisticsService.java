@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
@@ -55,6 +56,7 @@ import java.util.concurrent.TimeUnit;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Service( "org.hisp.dhis.datastatistics.DataStatisticsService" )
 @Transactional
 public class DefaultDataStatisticsService
     implements DataStatisticsService

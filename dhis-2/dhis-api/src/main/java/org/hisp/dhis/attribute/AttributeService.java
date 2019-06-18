@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ public interface AttributeService
     /**
      * Gets the attribute with the given uid.
      *
-     * @param id the attribute uid.
+     * @param uid the attribute uid.
      * @return the attribute with the given uid.
      */
     Attribute getAttribute( String uid );

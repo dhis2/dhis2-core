@@ -213,6 +213,17 @@
       <artifactId>javacsv</artifactId>
     </dependency>
 
+    <!-- application monitoring -->
+
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-spring-legacy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.micrometer</groupId>
+      <artifactId>micrometer-registry-prometheus</artifactId>
+    </dependency>
+
     <!-- Test -->
 
     <dependency>

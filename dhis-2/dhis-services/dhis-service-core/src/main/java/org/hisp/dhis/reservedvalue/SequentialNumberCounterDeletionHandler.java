@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,9 @@ package org.hisp.dhis.reservedvalue;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Component;
 
+@Component( "org.hisp.dhis.reservedvalue.SequentialNumberCounterDeletionHandler" )
 public class SequentialNumberCounterDeletionHandler
     extends DeletionHandler
 {

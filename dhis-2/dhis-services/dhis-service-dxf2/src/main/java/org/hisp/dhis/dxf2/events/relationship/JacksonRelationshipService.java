@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,9 @@ import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -55,6 +58,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+@Service( "org.hisp.dhis.dxf2.events.relationship.RelationshipService" )
+@Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 @Transactional
 public class JacksonRelationshipService
     extends AbstractRelationshipService

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -61,11 +62,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
 
 /**
  * @author Jim Grace
  */
+@Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
 public class DefaultDataApprovalService
     implements DataApprovalService
 {
@@ -75,60 +78,53 @@ public class DefaultDataApprovalService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataApprovalStore dataApprovalStore;
+    private final DataApprovalStore dataApprovalStore;
 
-    public void setDataApprovalStore( DataApprovalStore dataApprovalStore )
-    {
-        this.dataApprovalStore = dataApprovalStore;
-    }
+    private final DataApprovalAuditStore dataApprovalAuditStore;
 
-    private DataApprovalAuditStore dataApprovalAuditStore;
+    private final DataApprovalWorkflowStore workflowStore;
 
-    public void setDataApprovalAuditStore( DataApprovalAuditStore dataApprovalAuditStore )
-    {
-        this.dataApprovalAuditStore = dataApprovalAuditStore;
-    }
-
-    private DataApprovalWorkflowStore workflowStore;
-
-    public void setWorkflowStore( DataApprovalWorkflowStore workflowStore )
-    {
-        this.workflowStore = workflowStore;
-    }
-    
-    private DataApprovalLevelService dataApprovalLevelService;
-
-    public void setDataApprovalLevelService( DataApprovalLevelService dataApprovalLevelService )
-    {
-        this.dataApprovalLevelService = dataApprovalLevelService;
-    }
+    private final DataApprovalLevelService dataApprovalLevelService;
 
     private CurrentUserService currentUserService;
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    private final OrganisationUnitService organisationUnitService;
+
+    private final PeriodService periodService;
+
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultDataApprovalService( DataApprovalStore dataApprovalStore,
+        DataApprovalAuditStore dataApprovalAuditStore, DataApprovalWorkflowStore workflowStore,
+        DataApprovalLevelService dataApprovalLevelService, CurrentUserService currentUserService,
+        OrganisationUnitService organisationUnitService, PeriodService periodService,
+        SystemSettingManager systemSettingManager )
     {
+        checkNotNull( dataApprovalStore );
+        checkNotNull( dataApprovalAuditStore );
+        checkNotNull( workflowStore );
+        checkNotNull( dataApprovalLevelService );
+        checkNotNull( currentUserService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( periodService );
+        checkNotNull( systemSettingManager );
+
+        this.dataApprovalStore = dataApprovalStore;
+        this.dataApprovalAuditStore = dataApprovalAuditStore;
+        this.workflowStore = workflowStore;
+        this.dataApprovalLevelService = dataApprovalLevelService;
         this.currentUserService = currentUserService;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
         this.periodService = periodService;
+        this.systemSettingManager = systemSettingManager;
     }
 
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setCurrentUserService(CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -516,7 +512,9 @@ public class DefaultDataApprovalService
         List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow,
             periodService.reloadPeriod( period ), Lists.newArrayList( organisationUnit ),
             organisationUnit.getHierarchyLevel(), null,
-            attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ) );
+            attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ), 
+                dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), workflow ), 
+                dataApprovalLevelService.getDataApprovalLevelMap());
 
         if ( statuses == null || statuses.isEmpty() )
         {
@@ -551,10 +549,11 @@ public class DefaultDataApprovalService
     public List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo )
     {
-        List<DataApprovalStatus> statusList = dataApprovalStore.getDataApprovalStatuses( workflow, period,
-            orgUnit == null ? null : Lists.newArrayList( orgUnit ),
-            orgUnit == null ? 0 : orgUnit.getHierarchyLevel(),
-            attributeCombo, null );
+        List<DataApprovalStatus> statusList = dataApprovalStore.getDataApprovalStatuses(
+            workflow, period, orgUnit == null ? null : Lists.newArrayList( orgUnit ),
+            orgUnit == null ? 0 : orgUnit.getHierarchyLevel(), attributeCombo, null, dataApprovalLevelService
+                .getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), workflow ),
+            dataApprovalLevelService.getDataApprovalLevelMap() );
 
         DataApprovalPermissionsEvaluator permissionsEvaluator = makePermissionsEvaluator();
 
@@ -671,7 +670,10 @@ public class DefaultDataApprovalService
             DataApproval da = dataApprovals.get( 0 );
 
             List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( da.getWorkflow(),
-                da.getPeriod(), orgUnits, da.getOrganisationUnit().getHierarchyLevel(), null, getCategoryOptionCombos( dataApprovals ) );
+                da.getPeriod(), orgUnits, da.getOrganisationUnit().getHierarchyLevel(), null,
+                getCategoryOptionCombos( dataApprovals ), dataApprovalLevelService
+                    .getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), da.getWorkflow() ),
+                dataApprovalLevelService.getDataApprovalLevelMap() );
 
             for ( DataApprovalStatus status : statuses )
             {

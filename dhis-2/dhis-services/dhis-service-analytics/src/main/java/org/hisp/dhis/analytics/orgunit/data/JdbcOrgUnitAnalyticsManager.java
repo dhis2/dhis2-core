@@ -1,19 +1,7 @@
 package org.hisp.dhis.analytics.orgunit.data;
 
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
-import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,24 +28,44 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
+import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
+
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Component;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager" )
 public class JdbcOrgUnitAnalyticsManager
     implements OrgUnitAnalyticsManager
 {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public JdbcOrgUnitAnalyticsManager( JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( jdbcTemplate );
+
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     @Override
     public Map<String, Integer> getOrgUnitData( OrgUnitQueryParams params )

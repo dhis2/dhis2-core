@@ -31,12 +31,16 @@ package org.hisp.dhis.actions;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.dto.ApiResponse;
 
+import java.util.logging.Logger;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MaintenanceActions
     extends RestApiActions
 {
+    private Logger logger = Logger.getLogger( MaintenanceActions.class.getName() );
+
     public MaintenanceActions()
     {
         super( "/maintenance" );
@@ -44,12 +48,30 @@ public class MaintenanceActions
 
     public void removeSoftDeletedEvents()
     {
-        sendRequest( "?softDeletedEventRemoval=true" );
+        sendRequest( "?softDeletedEventRemoval=true", true );
     }
 
-    private void sendRequest( String queryParams )
+    public void removeSoftDeletedMetadata()
+    {
+        sendRequest(
+            "?softDeletedEventRemoval=true&softDeletedTrackedEntityInstanceRemoval=true&softDeletedProgramStageInstanceRemoval=true&softDeletedProgramInstanceRemoval=true",
+            true );
+    }
+
+    private void sendRequest( String queryParams, boolean validate )
     {
         ApiResponse apiResponse = super.update( queryParams, new JsonObject() );
-        apiResponse.validate().statusCode( 204 );
+
+        if ( validate )
+        {
+            apiResponse.validate().statusCode( 204 );
+            return;
+        }
+
+        if ( apiResponse.statusCode() != 204 )
+        {
+            logger.warning( String
+                .format( "Maintenance failed with query params %s. Response: %s", queryParams, apiResponse.getBody().toString() ) );
+        }
     }
 }

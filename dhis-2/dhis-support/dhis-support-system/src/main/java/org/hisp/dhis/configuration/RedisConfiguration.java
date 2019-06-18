@@ -1,7 +1,7 @@
 package org.hisp.dhis.configuration;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,6 @@ public class RedisConfiguration
 {
     @Bean
     public LettuceConnectionFactory lettuceConnectionFactory()
-        throws Exception
     {
         LettuceConnectionFactory connectionFactory = new LettuceConnectionFactory();
         connectionFactory.setHostName( (String) redisHost().getObject() );
@@ -90,9 +89,8 @@ public class RedisConfiguration
 
     @Bean
     public RedisTemplate<?, ?> redisTemplate()
-        throws Exception
     {
-        RedisTemplate<?, ?> redisTemplate = new RedisTemplate<Object, Object>();
+        RedisTemplate<?, ?> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory( lettuceConnectionFactory() );
         redisTemplate.setKeySerializer( new StringRedisSerializer() );
         return redisTemplate;

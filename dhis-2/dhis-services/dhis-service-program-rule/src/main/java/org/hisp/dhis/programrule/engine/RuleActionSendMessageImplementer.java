@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,23 +39,33 @@ import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 04.01.18.
  */
+@Component( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" )
 public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ApplicationEventPublisher publisher;
+    private final ApplicationEventPublisher publisher;
 
-    @Autowired
-    private NotificationLoggingService notificationLoggingService;
+    private final NotificationLoggingService notificationLoggingService;
+
+    public RuleActionSendMessageImplementer(ApplicationEventPublisher publisher, NotificationLoggingService notificationLoggingService) {
+
+        checkNotNull( publisher );
+        checkNotNull( notificationLoggingService );
+
+        this.publisher = publisher;
+        this.notificationLoggingService = notificationLoggingService;
+    }
 
     @Override
     public boolean accept( RuleAction ruleAction )
@@ -75,7 +85,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, programInstance );
 
-        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template, programInstance ) );
+        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance.getId() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
@@ -94,7 +104,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template, programStageInstance ) );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );

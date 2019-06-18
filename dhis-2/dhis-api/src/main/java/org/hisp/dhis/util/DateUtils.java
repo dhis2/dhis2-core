@@ -1,7 +1,7 @@
 package org.hisp.dhis.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -220,7 +220,7 @@ public class DateUtils
     /**
      * Returns the latest of the given dates.
      *
-     * @param date the collection of dates.
+     * @param dates the collection of dates.
      * @return the latest of the given dates.
      */
     public static Date max( Collection<Date> dates )
@@ -255,7 +255,7 @@ public class DateUtils
     /**
      * Returns the earliest of the given dates.
      *
-     * @param date the collection of dates.
+     * @param dates the collection of dates.
      * @return the earliest of the given dates.
      */
     public static Date min( Collection<Date> dates )
@@ -274,7 +274,7 @@ public class DateUtils
      * Parses a date from a String on the format YYYY-MM-DD. Returns null if the
      * given string is null.
      *
-     * @param dateString the String to parse.
+     * @param string the String to parse.
      * @return a Date based on the given String.
      * @throws IllegalArgumentException if the given string is invalid.
      */
@@ -473,7 +473,7 @@ public class DateUtils
         return yearString + "-" + monthString + "-" + dayString;
     }
 
-    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])\\b";
+    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
 
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
 
@@ -659,7 +659,7 @@ public class DateUtils
     /**
      * Return the current date minus the duration specified by the given string.
      *
-     * @param duration the duration string, see {@link DateUtils.getDuration}.
+     * @param duration the duration string.
      * @return a Date.
      */
     public static Date nowMinusDuration( String duration )

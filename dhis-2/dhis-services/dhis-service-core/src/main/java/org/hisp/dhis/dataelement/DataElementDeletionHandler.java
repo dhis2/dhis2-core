@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,29 +36,36 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.dataelement.DataElementDeletionHandler" )
 public class DataElementDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public DataElementDeletionHandler( IdentifiableObjectManager idObjectManager, CategoryService categoryService,
+        JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( idObjectManager );
+        checkNotNull( categoryService );
+        checkNotNull( jdbcTemplate );
+
+        this.idObjectManager = idObjectManager;
+        this.categoryService = categoryService;
         this.jdbcTemplate = jdbcTemplate;
     }
 

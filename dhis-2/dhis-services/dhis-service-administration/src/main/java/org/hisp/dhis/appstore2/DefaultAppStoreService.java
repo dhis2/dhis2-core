@@ -1,7 +1,7 @@
 package org.hisp.dhis.appstore2;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedInputStream;
@@ -48,21 +48,32 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
+@Service( "org.hisp.dhis.appstore2.AppStoreService" )
 public class DefaultAppStoreService implements AppStoreService
 {
     private static final Log log = LogFactory.getLog( DefaultAppStoreService.class );
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    @Autowired
-    private AppManager appManager;
+    private final AppManager appManager;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultAppStoreService( RestTemplate restTemplate, AppManager appManager,
+        SystemSettingManager systemSettingManager )
+    {
+        checkNotNull( restTemplate );
+        checkNotNull( appManager );
+        checkNotNull( systemSettingManager );
+        this.restTemplate = restTemplate;
+        this.appManager = appManager;
+        this.systemSettingManager = systemSettingManager;
+    }
 
     @Override
     public List<WebApp> getAppStore()
@@ -112,7 +123,6 @@ public class DefaultAppStoreService implements AppStoreService
     // -------------------------------------------------------------------------
 
     private Optional<AppVersion> getWebAppVersion( String id )
-        throws IOException
     {
         for ( WebApp app : getAppStore() )
         {

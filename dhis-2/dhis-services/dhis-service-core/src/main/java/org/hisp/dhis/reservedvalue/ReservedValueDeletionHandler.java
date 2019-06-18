@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,21 @@ package org.hisp.dhis.reservedvalue;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-public class ReservedValueDeletionHandler
-    extends DeletionHandler
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" )
+public class ReservedValueDeletionHandler extends DeletionHandler
 {
-    @Autowired
-    private ReservedValueService reservedValueService;
+
+    private final ReservedValueService reservedValueService;
+
+    public ReservedValueDeletionHandler( ReservedValueService reservedValueService )
+    {
+        checkNotNull( reservedValueService );
+        this.reservedValueService = reservedValueService;
+    }
 
     @Override
     protected String getClassName()

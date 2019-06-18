@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.dimension;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,10 +45,12 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.dimension.AnalyticsDimensionService" )
 public class DefaultAnalyticsDimensionService
     implements AnalyticsDimensionService
 {

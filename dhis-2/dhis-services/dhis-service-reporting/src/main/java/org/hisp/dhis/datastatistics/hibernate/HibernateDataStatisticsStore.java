@@ -2,7 +2,7 @@ package org.hisp.dhis.datastatistics.hibernate;
 
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,30 +32,38 @@ package org.hisp.dhis.datastatistics.hibernate;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsStore;
 import org.hisp.dhis.datastatistics.EventInterval;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Repository( "org.hisp.dhis.datastatistics.DataStatisticsStore" )
 public class HibernateDataStatisticsStore
     extends HibernateIdentifiableObjectStore<DataStatistics>
     implements DataStatisticsStore
 {
     private static final Log log = LogFactory.getLog( HibernateDataStatisticsStore.class );
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    public HibernateDataStatisticsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, DataStatistics.class, currentUserService, deletedObjectService, aclService,
+            false );
+    }
 
     // -------------------------------------------------------------------------
     // DataStatisticsStore implementation
@@ -120,7 +128,7 @@ public class HibernateDataStatisticsStore
 
     private String getQuery( EventInterval eventInterval, Date startDate, Date endDate )
     {
-        String sql = StringUtils.EMPTY;
+        String sql;
 
         if ( eventInterval == EventInterval.DAY )
         {

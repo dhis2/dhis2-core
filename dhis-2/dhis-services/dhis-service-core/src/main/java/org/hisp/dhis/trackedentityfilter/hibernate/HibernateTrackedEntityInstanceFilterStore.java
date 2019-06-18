@@ -1,15 +1,21 @@
 package org.hisp.dhis.trackedentityfilter.hibernate;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +46,18 @@ import java.util.List;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Repository( "org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" )
 public class HibernateTrackedEntityInstanceFilterStore
     extends HibernateIdentifiableObjectStore<TrackedEntityInstanceFilter> implements TrackedEntityInstanceFilterStore
 {
-    
+
+    public HibernateTrackedEntityInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, TrackedEntityInstanceFilter.class, currentUserService,
+            deletedObjectService, aclService, true );
+    }
+
     @Override
     public List<TrackedEntityInstanceFilter> get( Program program )
     {

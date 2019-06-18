@@ -1,6 +1,6 @@
 package org.hisp.dhis.webapi.controller;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,15 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
 import org.hisp.dhis.schema.descriptors.ProgramStageInstanceFilterSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.WebMessageService;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -58,89 +45,34 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping( value = ProgramStageInstanceFilterSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
-public class EventFilterController
+public class EventFilterController extends AbstractCrudController<ProgramStageInstanceFilter>
 {
 
     
     private final ProgramStageInstanceFilterService psiFilterService;
 
-    private final WebMessageService messageService;
-    
-    public EventFilterController( ProgramStageInstanceFilterService psiFilterService, WebMessageService messageService )
+    public EventFilterController( ProgramStageInstanceFilterService psiFilterService )
     {
         this.psiFilterService = psiFilterService;
-        this.messageService = messageService;
     }
 
-    /**
-     * Returns all eventFilter definitions filtered by program if provided.
-     */
-    @GetMapping
-    public List<ProgramStageInstanceFilter> getEventFilters( @RequestParam( required = false ) String program, HttpServletResponse response )
+    @Override
+    public void preCreateEntity( ProgramStageInstanceFilter eventFilter )
     {
-        return psiFilterService.getAll( program );
+        List<String> errors = psiFilterService.validate( eventFilter );
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
     }
     
-    /**
-     * Returns the specified eventFilter if exists.
-     */
-    @GetMapping( value = "/{uid}")
-    public ProgramStageInstanceFilter getEventFilter( @PathVariable String uid, HttpServletResponse response )
-        throws WebMessageException
+    @Override
+    public void preUpdateEntity( ProgramStageInstanceFilter oldEventFilter , ProgramStageInstanceFilter newEventFilter )
     {
-        ProgramStageInstanceFilter psiFilter = psiFilterService.get( uid );
-        if ( psiFilter == null )
+        List<String> errors = psiFilterService.validate( newEventFilter );
+        if ( !errors.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "EventFilter '" + uid + "' was not found." ) );
+            throw new IllegalQueryException( errors.toString() );
         }
-        return psiFilter;
-    }
-
-    /**
-     * Deletes all keys with the given namespace.
-     */
-    @DeleteMapping( value = "/{uid}" )
-    public void deleteEventFilter( @PathVariable String uid, HttpServletResponse response )
-        throws WebMessageException
-    {
-        ProgramStageInstanceFilter psiFilter = psiFilterService.get( uid );
-        if ( psiFilter == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "EventFilter '" + uid + "' was not found." ) );
-        }
-        psiFilterService.delete( psiFilter );
-        messageService.sendJson( WebMessageUtils.ok( "EventFilter '" + uid + "' deleted." ), response );
-    }
-
-    /**
-     * Add a new eventFilter
-     */
-    @PostMapping
-    public void addEventFilter( @RequestBody ProgramStageInstanceFilter psiFilter, HttpServletResponse response )
-        throws WebMessageException
-    {
-        psiFilterService.add( psiFilter );
-        response.setStatus( HttpServletResponse.SC_CREATED );
-        messageService.sendJson( WebMessageUtils.created( "EventFilter created." ), response );
-    }
-
-    /**
-     * Update an eventFilter definition
-     */
-    @PutMapping( value = "/{uid}" )
-    public void updateEventFilter( @PathVariable String uid, @RequestBody ProgramStageInstanceFilter psiFilter, HttpServletRequest request,
-        HttpServletResponse response )
-        throws WebMessageException,
-        IOException
-    {
-        ProgramStageInstanceFilter existingPsiFilter = psiFilterService.get( uid );
-        if ( existingPsiFilter == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "EventFilter '" + uid + "' was not found." ) );
-        }
-        existingPsiFilter.copyValuesFrom( psiFilter );
-        psiFilterService.update( existingPsiFilter );
-        response.setStatus( HttpServletResponse.SC_OK );
-        messageService.sendJson( WebMessageUtils.ok( "EventFilter updated." ), response );
     }
 }

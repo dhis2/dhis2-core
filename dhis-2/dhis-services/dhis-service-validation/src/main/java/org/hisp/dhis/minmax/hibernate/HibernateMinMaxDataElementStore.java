@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.minmax.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -44,7 +45,8 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Path;
@@ -54,21 +56,35 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Kristian Nordal
  */
+@Repository( "org.hisp.dhis.minmax.MinMaxDataElementStore" )
 public class HibernateMinMaxDataElementStore
     extends HibernateGenericStore<MinMaxDataElement>
     implements MinMaxDataElementStore
 {
-    @Autowired
-    private QueryParser queryParser;
+    private final QueryParser queryParser;
 
-    @Autowired
-    private QueryPlanner queryPlanner;
+    private final QueryPlanner queryPlanner;
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
+
+    public HibernateMinMaxDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        QueryParser queryParser, QueryPlanner queryPlanner, SchemaService schemaService )
+    {
+        super( sessionFactory, jdbcTemplate, MinMaxDataElement.class, false );
+
+        checkNotNull(queryParser);
+        checkNotNull(queryPlanner);
+        checkNotNull(schemaService);
+
+        this.queryParser = queryParser;
+        this.queryPlanner = queryPlanner;
+        this.schemaService = schemaService;
+    }
 
     // -------------------------------------------------------------------------
     // MinMaxDataElementStore Implementation
@@ -139,37 +155,37 @@ public class HibernateMinMaxDataElementStore
             .setUseDistinct( true ) )
             .intValue();
     }
-    
+
     @Override
     public void delete( OrganisationUnit organisationUnit )
     {
         String hql = "delete from MinMaxDataElement m where m.source = :source";
-        
+
         getQuery( hql ).setParameter( "source", organisationUnit ).executeUpdate();
     }
-    
+
     @Override
     public void delete( DataElement dataElement )
     {
         String hql = "delete from MinMaxDataElement m where m.dataElement = :dataElement";
-        
+
         getQuery( hql ).setParameter( "dataElement", dataElement ).executeUpdate();
     }
-    
+
     @Override
     public void delete( CategoryOptionCombo optionCombo )
     {
         String hql = "delete from MinMaxDataElement m where m.optionCombo = :optionCombo";
-        
+
         getQuery( hql ).setParameter( "optionCombo", optionCombo ).executeUpdate();
     }
-    
+
     @Override
     public void delete( Collection<DataElement> dataElements, OrganisationUnit parent )
     {
         String hql = "delete from MinMaxDataElement m where m.dataElement in (:dataElements) " +
             "and m.source in (select ou from OrganisationUnit ou where path like :path)";
-        
+
         getQuery( hql )
             .setParameterList( "dataElements", dataElements )
             .setParameter( "path", parent.getPath() + "%" )

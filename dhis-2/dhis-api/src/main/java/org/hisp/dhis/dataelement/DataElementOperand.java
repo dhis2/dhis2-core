@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -229,6 +229,60 @@ public class DataElementOperand
         }
 
         return shortName;
+    }
+
+    @Override
+    public String getDisplayShortName()
+    {
+        String displayShortName = null;
+
+        if ( dataElement != null )
+        {
+            displayShortName = dataElement.getDisplayShortName();
+        }
+
+        if ( hasNonDefaultCategoryOptionCombo() )
+        {
+            displayShortName += SPACE + categoryOptionCombo.getDisplayShortName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayShortName += SPACE + SYMBOL_WILDCARD;
+        }
+
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayShortName += SPACE + attributeOptionCombo.getDisplayShortName();
+        }
+
+        return displayShortName;
+    }
+
+    @Override
+    public String getDisplayName()
+    {
+        String displayName = null;
+
+        if ( dataElement != null )
+        {
+            displayName = dataElement.getDisplayName();
+        }
+
+        if ( hasNonDefaultCategoryOptionCombo() )
+        {
+            displayName += SPACE + categoryOptionCombo.getDisplayName();
+        }
+        else if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayName += SPACE + SYMBOL_WILDCARD;
+        }
+
+        if ( hasNonDefaultAttributeOptionCombo() )
+        {
+            displayName += SPACE + attributeOptionCombo.getDisplayName();
+        }
+
+        return displayName;
     }
 
     /**

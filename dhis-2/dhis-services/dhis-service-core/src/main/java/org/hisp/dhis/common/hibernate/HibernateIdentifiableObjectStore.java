@@ -1,7 +1,7 @@
 package org.hisp.dhis.common.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Criterion;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Property;
@@ -62,7 +62,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
 import javax.persistence.TypedQuery;
@@ -81,6 +81,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author bobj
  */
@@ -89,40 +91,44 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 {
     private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
 
-    @Autowired
     protected CurrentUserService currentUserService;
 
-    /**
-     * Allows injection (e.g. by a unit test)
-     */
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
+    private DeletedObjectService deletedObjectService;
 
-    @Autowired
-    protected DeletedObjectService deletedObjectService;
-
-    @Autowired
     protected AclService aclService;
 
-    private boolean transientIdentifiableProperties = false;
+    protected boolean transientIdentifiableProperties = false;
+    
+    public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, Class<T> clazz,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
+    {
+        super( sessionFactory, jdbcTemplate, clazz, cacheable );
+
+        checkNotNull( currentUserService );
+        checkNotNull( deletedObjectService );
+        checkNotNull( aclService );
+
+        this.currentUserService = currentUserService;
+        this.deletedObjectService = deletedObjectService;
+        this.aclService = aclService;
+        this.cacheable = cacheable;
+    }
+
+    /**
+     * Only used by tests, remove after fixing the tests
+     */
+    @Deprecated
+    public void setCurrentUserService(CurrentUserService currentUserService) {
+        this.currentUserService = currentUserService;
+    }
 
     /**
      * Indicates whether the object represented by the implementation does not
      * have persisted identifiable object properties.
      */
-    public boolean isTransientIdentifiableProperties()
+    private boolean isTransientIdentifiableProperties()
     {
         return transientIdentifiableProperties;
-    }
-
-    /**
-     * Can be overridden programmatically or injected through container.
-     */
-    public void setTransientIdentifiableProperties( boolean transientIdentifiableProperties )
-    {
-        this.transientIdentifiableProperties = transientIdentifiableProperties;
     }
 
     // -------------------------------------------------------------------------
@@ -264,7 +270,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         getSession().save( object );
 
-        if ( MetadataObject.class.isInstance( object ) )
+        if (object instanceof MetadataObject)
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
@@ -308,7 +314,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             getSession().update( object );
         }
 
-        if ( MetadataObject.class.isInstance( object ) )
+        if (object instanceof MetadataObject)
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
@@ -385,7 +391,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.get( "uid" ), uid )  );
+            .addPredicate( root -> builder.equal( root.get( "uid" ), uid ) );
 
         return getSingleResult( builder, param );
     }
@@ -401,7 +407,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
-            .addPredicate( root -> builder.equal( root.get( "uid" ), uid )  );
+            .addPredicate( root -> builder.equal( root.get( "uid" ), uid ) );
 
         return getSingleResult( builder, param );
     }
@@ -423,9 +429,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.get( "name" ), name )  );
+            .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
 
-        List<T> list = getList(  builder, param );
+        List<T> list = getList( builder, param );
 
         T object = list != null && !list.isEmpty() ? list.get( 0 ) : null;
 
@@ -450,7 +456,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.get( "code" ), code )  );
+            .addPredicate( root -> builder.equal( root.get( "code" ), code ) );
 
         return getSingleResult( builder, param );
     }
@@ -468,7 +474,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate(  root -> {
+            .addPredicate( root -> {
                 Join<Object, Object> joinAttrValue = root.join( "attributeValues", JoinType.INNER );
                 Join<Object, Object> joinAttribute = joinAttrValue.join( "attribute", JoinType.INNER );
                 return builder.and( builder.equal( joinAttrValue.get( "value" ), value ), builder.equal( joinAttribute.get( "id" ), attribute.getId() ) );
@@ -485,7 +491,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
             .addPredicate( root -> builder.equal( root.get( "name" ), name ) )
-            .addOrder( root -> builder.asc( root.get( "name" )  )  );
+            .addOrder( root -> builder.asc( root.get( "name" ) ) );
 
         return getList( builder, param );
     }
@@ -493,12 +499,29 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public List<T> getAllLikeName( String name )
     {
+        return getAllLikeName( name, true );
+    }
+
+    @Override
+    public List<T> getAllLikeName( String name, boolean caseSensitive )
+    {
         CriteriaBuilder builder = getCriteriaBuilder();
+
+        Function<Root<T>, Predicate> likePredicate;
+
+        if ( caseSensitive )
+        {
+            likePredicate = root -> builder.like( root.get( "name" ), "%" + name + "%" );
+        }
+        else
+        {
+            likePredicate = root -> builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" );
+        }
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate(root -> builder.like( root.get( "name" ), "%" + name + "%" ) )
-            .addOrder( root -> builder.asc( root.get( "name" )  )  );
+            .addPredicate( likePredicate )
+            .addOrder( root -> builder.asc( root.get( "name" ) ) );
 
         return getList( builder, param );
     }
@@ -506,12 +529,29 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public List<T> getAllLikeName( String name, int first, int max )
     {
+        return getAllLikeName( name, first, max, true );
+    }
+
+    @Override
+    public List<T> getAllLikeName( String name, int first, int max, boolean caseSensitive )
+    {
         CriteriaBuilder builder = getCriteriaBuilder();
+
+        Function<Root<T>, Predicate> likePredicate;
+
+        if ( caseSensitive )
+        {
+            likePredicate = root -> builder.like( root.get( "name" ), "%" + name + "%" );
+        }
+        else
+        {
+            likePredicate = root -> builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" );
+        }
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.like( root.get( "name" ), "%" + name + "%" ) )
-            .addOrder( root -> builder.asc( root.get( "name" )  )  )
+            .addPredicate( likePredicate )
+            .addOrder( root -> builder.asc( root.get( "name" ) ) )
             .setFirstResult( first )
             .setMaxResults( max );
 
@@ -525,7 +565,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addOrder( root -> builder.asc( root.get( "name" )  )  )
+            .addOrder( root -> builder.asc( root.get( "name" ) ) )
             .setFirstResult( first )
             .setMaxResults( max );
 
@@ -538,10 +578,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         for ( String word : nameWords )
         {
-            conjunction.add( root -> builder.like( builder.lower( root.get( "name") ), "%" + word.toLowerCase() + "%" ) ) ;
+            conjunction.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
         }
 
-        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0]) ) );
+        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
 
         return getList( builder, param );
     }
@@ -553,7 +593,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addOrder( root -> builder.asc( root.get( "name" )  )  );
+            .addOrder( root -> builder.asc( root.get( "name" ) ) );
 
         return getList( builder, param );
     }
@@ -565,7 +605,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addOrder( root -> builder.asc( root.get( "name" )  )  )
+            .addOrder( root -> builder.asc( root.get( "name" ) ) )
             .setFirstResult( first )
             .setMaxResults( max );
 
@@ -579,7 +619,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addOrder( root -> builder.asc( root.get( "lastUpdated" )  ) );
+            .addOrder( root -> builder.asc( root.get( "lastUpdated" ) ) );
 
         return getList( builder, param );
     }
@@ -591,7 +631,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root ->  builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" ) )
+            .addPredicate( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + name.toLowerCase() + "%" ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) );
 
         return getCount( builder, param ).intValue();
@@ -667,7 +707,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        CriteriaQuery<Date> query = builder.createQuery(  Date.class );
+        CriteriaQuery<Date> query = builder.createQuery( Date.class );
 
         Root<T> root = query.from( getClazz() );
 
@@ -856,7 +896,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicates( getDataSharingPredicates( builder,  AclService.LIKE_READ_DATA ) )
+            .addPredicates( getDataSharingPredicates( builder, AclService.LIKE_READ_DATA ) )
             .setFirstResult( first )
             .setMaxResults( max );
 
@@ -881,11 +921,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Creates a detached criteria with data sharing restrictions relative to the
      * given user and access string.
      *
-     * @param user the user.
+     * @param user   the user.
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    protected DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    private DetachedCriteria getDataSharingDetachedCriteria(UserInfo user, String access)
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -935,11 +975,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Creates a detached criteria with sharing restrictions relative to the given
      * user and access string.
      *
-     * @param user the user.
+     * @param user   the user.
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    protected DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
+    private DetachedCriteria getSharingDetachedCriteria(UserInfo user, String access)
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -996,7 +1036,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder )
     {
-        return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );
+        return getDataSharingPredicates( builder, currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA );
     }
 
     @Override
@@ -1008,25 +1048,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user )
     {
-        return  getDataSharingPredicates( builder,  UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
+        return getDataSharingPredicates( builder, UserInfo.fromUser( user ), AclService.LIKE_READ_DATA );
     }
 
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return  getDataSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
+        return getDataSharingPredicates( builder, currentUserService.getCurrentUserInfo(), access );
     }
 
     @Override
     public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
-        return  getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
+        return getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
     }
 
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder )
     {
-        return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
+        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA );
     }
 
     @Override
@@ -1043,8 +1083,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     /**
      * Get sharing predicates based on given user and AclService.LIKE_READ_METADATA
+     *
      * @param builder CriteriaBuilder
-     * @param user User
+     * @param user    User
      * @return List of Function<Root<T>, Predicate>
      */
     @Override
@@ -1055,21 +1096,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     /**
      * Get sharing predicates based on Access string and current user
+     *
      * @param builder CriteriaBuilder
-     * @param access Access String
+     * @param access  Access String
      * @return List of Function<Root<T>, Predicate>
      */
     @Override
     public final List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, String access )
     {
-        return  getSharingPredicates( builder,  currentUserService.getCurrentUserInfo(), access );
+        return getSharingPredicates( builder, currentUserService.getCurrentUserInfo(), access );
     }
 
     /**
      * Get sharing predicates based on given UserInfo and Access String
+     *
      * @param builder CriteriaBuilder
-     * @param user UserInfo
-     * @param access Access String
+     * @param user    UserInfo
+     * @param access  Access String
      * @return List of Function<Root<T>, Predicate>
      */
     @Override
@@ -1077,7 +1120,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        CriteriaQuery<T> criteria = builder.createQuery( getClazz() ) ;
+        CriteriaQuery<T> criteria = builder.createQuery( getClazz() );
 
         preProcessPredicates( builder, predicates );
 
@@ -1086,20 +1129,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return predicates;
         }
 
-        Function<Root<T>, Subquery<Integer>> userGroupPredicate = ( ( Root<T> root ) -> {
+        Function<Root<T>, Subquery<Integer>> userGroupPredicate = (( Root<T> root ) -> {
             Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
             Root<T> ugdc = userGroupSubQuery.from( getClazz() );
             Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
-            userGroupSubQuery.select( uga.get("id") );
+            userGroupSubQuery.select( uga.get( "id" ) );
 
             return userGroupSubQuery.where(
                 builder.and(
                     builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
                     builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
                     builder.like( uga.get( "access" ), access ) ) );
-        } );
+        });
 
-        Function<Root<T>, Subquery<Integer>> userPredicate = ( root -> {
+        Function<Root<T>, Subquery<Integer>> userPredicate = (root -> {
             Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
             Root<T> udc = userSubQuery.from( getClazz() );
             Join<T, UserAccess> ua = udc.join( "userAccesses" );
@@ -1110,7 +1153,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                     builder.equal( root.get( "id" ), udc.get( "id" ) ),
                     builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
                     builder.like( ua.get( "access" ), access ) ) );
-        } );
+        });
 
         predicates.add( root -> builder.or(
             builder.like( root.get( "publicAccess" ), access ),
@@ -1128,7 +1171,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        CriteriaQuery<T> criteria = builder.createQuery( getClazz() ) ;
+        CriteriaQuery<T> criteria = builder.createQuery( getClazz() );
 
         preProcessPredicates( builder, predicates );
 
@@ -1137,20 +1180,20 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return predicates;
         }
 
-        Function<Root<T>, Subquery<Integer>> userGroupPredicate = ( ( Root<T> root ) -> {
+        Function<Root<T>, Subquery<Integer>> userGroupPredicate = (( Root<T> root ) -> {
             Subquery<Integer> userGroupSubQuery = criteria.subquery( Integer.class );
             Root<T> ugdc = userGroupSubQuery.from( getClazz() );
             Join<T, UserGroupAccess> uga = ugdc.join( "userGroupAccesses" );
-            userGroupSubQuery.select( uga.get("id") );
+            userGroupSubQuery.select( uga.get( "id" ) );
 
             return userGroupSubQuery.where(
                 builder.and(
                     builder.equal( root.get( "id" ), ugdc.get( "id" ) ),
                     builder.equal( uga.join( "userGroup" ).join( "members" ).get( "id" ), user.getId() ),
                     builder.like( uga.get( "access" ), access ) ) );
-        } );
+        });
 
-        Function<Root<T>, Subquery<Integer>> userPredicate = ( root -> {
+        Function<Root<T>, Subquery<Integer>> userPredicate = (root -> {
             Subquery<Integer> userSubQuery = criteria.subquery( Integer.class );
             Root<T> udc = userSubQuery.from( getClazz() );
             Join<T, UserAccess> ua = udc.join( "userAccesses" );
@@ -1161,7 +1204,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
                     builder.equal( root.get( "id" ), udc.get( "id" ) ),
                     builder.equal( ua.get( "user" ).get( "id" ), user.getId() ),
                     builder.like( ua.get( "access" ), access ) ) );
-        } );
+        });
 
         predicates.add( root -> builder.or(
             builder.like( root.get( "publicAccess" ), access ),
@@ -1177,60 +1220,40 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // ----------------------------------------------------------------------
 
     /**
-     * Creates a sharing Criteria for the implementation Class type restricted by the
-     * given Criterions.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return a Criteria instance.
-     */
-    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
-    {
-        Criteria criteria = getSharingCriteria();
-
-        for ( Criterion expression : expressions )
-        {
-            criteria.add( expression );
-        }
-
-        criteria.setCacheable( cacheable );
-        return criteria;
-    }
-
-    /**
      * Checks whether the given user has public access to the given identifiable object.
      *
-     * @param user the user.
+     * @param user               the user.
      * @param identifiableObject the identifiable object.
      * @return true or false.
      */
-    protected boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
+    private boolean checkPublicAccess(User user, IdentifiableObject identifiableObject)
     {
         return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
             (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
                 !AccessStringHelper.canReadOrWrite( identifiableObject.getPublicAccess() ));
     }
 
-    protected boolean forceAcl()
+    private boolean forceAcl()
     {
         return Dashboard.class.isAssignableFrom( clazz );
     }
 
-    protected boolean sharingEnabled( User user )
+    private boolean sharingEnabled(User user)
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
     }
 
-    protected boolean sharingEnabled( UserInfo userInfo )
+    private boolean sharingEnabled(UserInfo userInfo)
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
     }
 
-    protected boolean dataSharingEnabled( UserInfo userInfo )
+    private boolean dataSharingEnabled(UserInfo userInfo)
     {
         return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
     }
 
-    protected boolean isReadAllowed( T object, User user )
+    private boolean isReadAllowed(T object, User user)
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1245,7 +1268,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    protected boolean isUpdateAllowed( T object, User user )
+    private boolean isUpdateAllowed(T object, User user)
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1260,7 +1283,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    protected boolean isDeleteAllowed( T object, User user )
+    private boolean isDeleteAllowed(T object, User user)
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {

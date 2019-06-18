@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.dataset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,10 +54,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.google.common.collect.ImmutableMap;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Repository( "org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeStore" )
 public class JdbcCompleteDataSetRegistrationExchangeStore
         implements CompleteDataSetRegistrationExchangeStore
 {

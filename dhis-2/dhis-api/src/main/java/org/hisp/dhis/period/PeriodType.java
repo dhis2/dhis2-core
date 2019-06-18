@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -692,9 +692,10 @@ public abstract class PeriodType
      * Offsets the input date with the provided number of periods within the current period type.
      * If the offset number is positive, the date is offset into later periods. When the offset is
      * negative, the date is offset into earlier periods.
+     *
      * @param dateTimeUnit for where to start the offset.
-     * @param period how many periods to go back(if negative) or forward(if positive). A value of 0 will
-     * result in the original date to be returned.
+     * @param offset how many periods to go back(if negative) or forward(if positive). A value of 0 will
+     *         result in the original date to be returned.
      * @return a new date object that has been offset from the original date passed into the function.
      */
     protected abstract DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar );
@@ -704,8 +705,8 @@ public abstract class PeriodType
      * If the offset number is positive, the date is offset into later periods. When the offset is
      * negative, the date is offset into earlier periods.
      * @param date for where to start the offset.
-     * @param period how many periods to go back(if negative) or forward(if positive). A value of 0 will
-     * result in the original date to be returned.
+     * @param offset how many periods to go back(if negative) or forward(if positive). A value of 0 will
+     *         result in the original date to be returned.
      * @return a new date object that has been offset from the original date passed into the function.
      */
     public Date getDateWithOffset( Date date, int offset )

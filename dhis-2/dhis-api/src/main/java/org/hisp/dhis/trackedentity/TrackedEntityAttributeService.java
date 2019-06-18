@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import java.util.Set;
 
 /**
  * @author Abyot Asalefew
- * @version $Id$
  */
 public interface TrackedEntityAttributeService
 {
@@ -95,7 +94,7 @@ public interface TrackedEntityAttributeService
     /**
      * Returns all {@link TrackedEntityAttribute}
      *
-     * @return a List of all TrackedEntityAttribute, or an empty
+     * @return a list of all TrackedEntityAttribute, or an empty
      * List if there are no TrackedEntityAttributes.
      */
     List<TrackedEntityAttribute> getAllTrackedEntityAttributes();
@@ -117,7 +116,7 @@ public interface TrackedEntityAttributeService
      * Get attributes which are displayed in visit schedule
      *
      * @param displayOnVisitSchedule True/False value
-     * @return List of attributes
+     * @return a list of attributes
      */
     List<TrackedEntityAttribute> getTrackedEntityAttributesByDisplayOnVisitSchedule(
         boolean displayOnVisitSchedule );
@@ -125,15 +124,15 @@ public interface TrackedEntityAttributeService
     /**
      * Get attributes which are displayed in visit schedule
      *
-     * @return List of attributes
+     * @return a list of attributes
      */
     List<TrackedEntityAttribute> getTrackedEntityAttributesDisplayInListNoProgram();
-    
+
     /**
-     * Get all attributes that user is allowed to read 
+     * Get all attributes that user is allowed to read
      * (through program and tracked entity type)
-     * 
-     * @return
+     *
+     * @return a list of attributes
      */
     Set<TrackedEntityAttribute> getAllUserReadableTrackedEntityAttributes();
 

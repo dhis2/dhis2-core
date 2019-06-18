@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -653,6 +653,27 @@ public class TrackedEntityInstanceQueryParams
     public boolean hasUser()
     {
         return user != null;
+    }
+
+    /**
+     * Indicates whether filters are unique attributes.
+     */
+    public boolean hasUniqueFilters()
+    {
+        if ( !hasFilters() )
+        {
+            return false;
+        }
+
+        for ( QueryItem filter : filters )
+        {
+            if ( !filter.isUnique() )
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -1,3 +1,5 @@
+package org.hisp.dhis.system.database;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,25 +28,28 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.system.database;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcOperations;
 
 import javax.annotation.Nonnull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "databaseInfoProvider" )
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
@@ -59,19 +64,23 @@ public class HibernateDatabaseInfoProvider
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DhisConfigurationProvider config;
+    private final DhisConfigurationProvider config;
+    private final JdbcOperations jdbcTemplate;
+    private final Environment environment;
 
-    private JdbcOperations jdbcTemplate;
-
-    private Environment environment;
-
-    public HibernateDatabaseInfoProvider( @Autowired DhisConfigurationProvider config, @Autowired JdbcOperations jdbcTemplate, @Autowired Environment environment )
+    public HibernateDatabaseInfoProvider( DhisConfigurationProvider config, JdbcOperations jdbcTemplate,
+        Environment environment )
     {
+        checkNotNull( config );
+        checkNotNull( jdbcTemplate );
+        checkNotNull( environment );
+
         this.config = config;
         this.jdbcTemplate = jdbcTemplate;
         this.environment = environment;
     }
-
+    
+    @PostConstruct
     public void init()
     {
         checkDatabaseConnectivity();
@@ -130,27 +139,35 @@ public class HibernateDatabaseInfoProvider
     @Nonnull
     private InternalDatabaseInfo getInternalDatabaseInfo()
     {
-        try
+        if ( SystemUtils.isH2( environment.getActiveProfiles() ) )
         {
-            final InternalDatabaseInfo internalDatabaseInfo = jdbcTemplate.queryForObject( "select version(),current_catalog,current_user", ( rs, rowNum ) -> {
-                String version = rs.getString( 1 );
-                final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher( version );
-
-                if ( versionMatcher.find() )
-                {
-                    version = versionMatcher.group( 1 );
-                }
-
-                return new InternalDatabaseInfo( version, rs.getString( 2 ), rs.getString( 3 ) );
-            } );
-
-            return internalDatabaseInfo == null ? new InternalDatabaseInfo() : internalDatabaseInfo;
-        }
-        catch ( Exception ex )
-        {
-            log.error( "An error occurred when retrieving database info.", ex );
-
             return new InternalDatabaseInfo();
+        }
+        else
+        {
+            try
+            {
+                final InternalDatabaseInfo internalDatabaseInfo = jdbcTemplate
+                    .queryForObject( "select version(),current_catalog,current_user", ( rs, rowNum ) -> {
+                        String version = rs.getString( 1 );
+                        final Matcher versionMatcher = POSTGRES_VERSION_PATTERN.matcher( version );
+
+                        if ( versionMatcher.find() )
+                        {
+                            version = versionMatcher.group( 1 );
+                        }
+
+                        return new InternalDatabaseInfo( version, rs.getString( 2 ), rs.getString( 3 ) );
+                    } );
+
+                return internalDatabaseInfo == null ? new InternalDatabaseInfo() : internalDatabaseInfo;
+            }
+            catch ( Exception ex )
+            {
+                log.error( "An error occurred when retrieving database info.", ex );
+
+                return new InternalDatabaseInfo();
+            }
         }
     }
 
@@ -181,7 +198,8 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
-            log.error( "Exception when checking postgis version:", ex );
+            log.error( "Exception when checking postgis_full_version(), PostGIS not available" );
+            log.debug( "Exception when checking postgis_full_version()", ex );
             return false;
         }
     }

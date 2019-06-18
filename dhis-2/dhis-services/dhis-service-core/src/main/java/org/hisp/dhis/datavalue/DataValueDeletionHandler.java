@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.datavalue.DataValueDeletionHandler" )
 public class DataValueDeletionHandler
-    extends DeletionHandler
+    extends
+    DeletionHandler
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -48,8 +53,10 @@ public class DataValueDeletionHandler
 
     private JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public DataValueDeletionHandler( JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
+
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -62,36 +69,37 @@ public class DataValueDeletionHandler
     {
         return DataValue.class.getSimpleName();
     }
-    
+
     @Override
     public String allowDeleteDataElement( DataElement dataElement )
     {
         String sql = "SELECT COUNT(*) FROM datavalue where dataelementid=" + dataElement.getId();
-        
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeletePeriod( Period period )
     {
         String sql = "SELECT COUNT(*) FROM datavalue where periodid=" + period.getId();
-        
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
         String sql = "SELECT COUNT(*) FROM datavalue where sourceid=" + unit.getId();
-        
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
-        String sql = "SELECT COUNT(*) FROM datavalue where categoryoptioncomboid=" + optionCombo.getId() + " or attributeoptioncomboid=" + optionCombo.getId();
-        
+        String sql = "SELECT COUNT(*) FROM datavalue where categoryoptioncomboid=" + optionCombo.getId()
+            + " or attributeoptioncomboid=" + optionCombo.getId();
+
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

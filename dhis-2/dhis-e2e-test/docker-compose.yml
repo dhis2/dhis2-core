@@ -10,13 +10,15 @@ services:
       POSTGRES_PASSOWRD: dhis
 
   e2e-test-web:
-    image: dhis2/dhis2-core:dev-latest
+    image: "${IMAGE_NAME}"
+    logging:
+      driver: "json-file"
     build:
       dockerfile: Dockerfile
       context: ../..
     volumes:
-      - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     depends_on:
-      - db
+    - db
     ports:
-      - 8070:8080
+    - "8080"

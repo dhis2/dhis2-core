@@ -16,37 +16,85 @@ expr
     :   WS+ expr
     |   expr WS+
 
-    // Operators (in precidence order)
+    //  Operators (in precidence order)
 
-    |   op='(' expr ')'
-    |   <assoc=right> expr op='^' expr
-    |   op=('+' | '-' | '!' | 'not') expr
-    |   expr op=('*' | '/' | '%') expr
-    |   expr op=('+' | '-') expr
-    |   expr op=('<' | '>' | '<=' | '>=') expr
-    |   expr op=('==' | '!=') expr
-    |   expr op=('&&' | 'and') expr
-    |   expr op=('||' | 'or') expr
+    |   fun='(' expr ')'
+    |   <assoc=right> expr fun='^' expr
+    |   fun=('+' | '-' | '!' | 'not') expr
+    |   expr fun=('*' | '/' | '%') expr
+    |   expr fun=('+' | '-') expr
+    |   expr fun=('<' | '>' | '<=' | '>=') expr
+    |   expr fun=('==' | '!=') expr
+    |   expr fun=('&&' | 'and') expr
+    |   expr fun=('||' | 'or') expr
 
-    // Others
+    //  Functions (alphabetical)
 
-    |   function
-    |   item
-    |   programVariable
-    |   programFunction
-    |   literal
-    ;
-
-function // (alphabtical)
-    :   fun='firstNonNull' '(' WS* itemNumStringLiteral WS* (',' WS* itemNumStringLiteral WS* )* ')'
+    |   fun='firstNonNull' '(' WS* itemNumStringLiteral WS* (',' WS* itemNumStringLiteral WS* )* ')'
     |   fun='greatest' '(' expr (',' expr )* ')'
     |   fun='if' '(' expr ',' expr ',' expr ')'
     |   fun='isNotNull' '(' WS* item WS* ')'
     |   fun='isNull' '(' WS* item WS* ')'
     |   fun='least' '(' expr (',' expr )* ')'
+
+    //  Program variables (alphabtical)
+
+    |   'V{' fun='analytics_period_end' '}'
+    |   'V{' fun='analytics_period_start' '}'
+    |   'V{' fun='creation_date' '}'
+    |   'V{' fun='current_date' '}'
+    |   'V{' fun='due_date' '}'
+    |   'V{' fun='enrollment_count' '}'
+    |   'V{' fun='enrollment_date' '}'
+    |   'V{' fun='enrollment_status' '}'
+    |   'V{' fun='event_count' '}'
+    |   'V{' fun='event_date' '}'
+    |   'V{' fun='execution_date' '}'
+    |   'V{' fun='incident_date' '}'
+    |   'V{' fun='org_unit_count' '}'
+    |   'V{' fun='program_stage_id' '}'
+    |   'V{' fun='program_stage_name' '}'
+    |   'V{' fun='sync_date' '}'
+    |   'V{' fun='tei_count' '}'
+    |   'V{' fun='value_count' '}'
+    |   'V{' fun='zero_pos_value_count' '}'
+
+    //  Program functions (alphabetical)
+
+    |   fun='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
+    |   fun='d2:count(' WS* stageDataElement WS* ')'
+    |   fun='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
+    |   fun='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
+    |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
+    |   fun='d2:hasValue(' item ')'
+    |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
+    |   fun='d2:monthsBetween(' compareDate ',' compareDate ')'
+    |   fun='d2:oizp(' expr ')'
+    |   fun='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
+    |   fun='d2:weeksBetween(' compareDate ',' compareDate ')'
+    |   fun='d2:yearsBetween(' compareDate ',' compareDate ')'
+    |   fun='d2:zing(' expr ')'
+    |   fun='d2:zpvc(' item (',' item )* ')'
+
+    // Program functions for custom aggregation
+
+    |   fun='avg(' expr ')'
+    |   fun='count(' expr ')'
+    |   fun='max(' expr ')'
+    |   fun='min(' expr ')'
+    |   fun='stddev(' expr ')'
+    |   fun='sum(' expr ')'
+    |   fun='variance(' expr ')'
+
+    //  Other
+
+    |   item
+    |   numericLiteral
+    |   stringLiteral
+    |   booleanLiteral
     ;
 
-item // (alphabtical)
+item
     :   it='#{' uid0=UID '}'
     |   it='#{' uid0=UID '.' uid1=UID '}'
     |   it='#{' uid0=UID '.' uid1=UID wild2='.*' '}'
@@ -57,48 +105,10 @@ item // (alphabtical)
     |   it='C{' uid0=UID '}'
     |   it='D{' uid0=UID '.' uid1=UID '}'
     |   it='I{' uid0=UID '}'
+    |   it='N{' uid0=UID '}' // Indicator
     |   it='OUG{' uid0=UID '}'
     |   it='R{' uid0=UID '.' REPORTING_RATE_TYPE '}'
     |   it='[days]'
-    ;
-
-programVariable // (alphabtical)
-    :   'V{' var='analytics_period_end' '}'
-    |   'V{' var='analytics_period_start' '}'
-    |   'V{' var='creation_date' '}'
-    |   'V{' var='current_date' '}'
-    |   'V{' var='due_date' '}'
-    |   'V{' var='enrollment_count' '}'
-    |   'V{' var='enrollment_date' '}'
-    |   'V{' var='enrollment_status' '}'
-    |   'V{' var='event_count' '}'
-    |   'V{' var='event_date' '}'
-    |   'V{' var='execution_date' '}'
-    |   'V{' var='incident_date' '}'
-    |   'V{' var='org_unit_count' '}'
-    |   'V{' var='program_stage_id' '}'
-    |   'V{' var='program_stage_name' '}'
-    |   'V{' var='sync_date' '}'
-    |   'V{' var='tei_count' '}'
-    |   'V{' var='value_count' '}'
-    |   'V{' var='zero_pos_value_count' '}'
-    ;
-
-programFunction // (alphabetical)
-    :   d2='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
-    |   d2='d2:count(' WS* stageDataElement WS* ')'
-    |   d2='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
-    |   d2='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
-    |   d2='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   d2='d2:hasValue(' item ')'
-    |   d2='d2:minutesBetween(' compareDate ',' compareDate ')'
-    |   d2='d2:monthsBetween(' compareDate ',' compareDate ')'
-    |   d2='d2:oizp(' expr ')'
-    |   d2='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
-    |   d2='d2:weeksBetween(' compareDate ',' compareDate ')'
-    |   d2='d2:yearsBetween(' compareDate ',' compareDate ')'
-    |   d2='d2:zing(' expr ')'
-    |   d2='d2:zpvc(' item (',' item )* ')'
     ;
 
 stageDataElement
@@ -124,12 +134,6 @@ numStringLiteral
     |   stringLiteral
     ;
 
-literal
-    :   numericLiteral
-    |   stringLiteral
-    |   BOOLEAN_LITERAL
-    ;
-
 numericLiteral
     :   NUMERIC_LITERAL
     ;
@@ -137,6 +141,10 @@ numericLiteral
 stringLiteral
     :   STRING_LITERAL
     |   QUOTED_UID // Resolve that quoted UID can also be a string literal
+    ;
+
+booleanLiteral
+    :   BOOLEAN_LITERAL
     ;
 
 // -----------------------------------------------------------------------------
@@ -181,6 +189,7 @@ A_BRACE     : 'A{';
 C_BRACE     : 'C{';
 D_BRACE     : 'D{';
 I_BRACE     : 'I{';
+N_BRACE     : 'N{';
 OUG_BRACE   : 'OUG{';
 R_BRACE     : 'R{';
 DAYS        : '[days]';
@@ -223,6 +232,16 @@ D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
 D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
 D2_ZING                 : 'd2:zing(';
 D2_ZPVC                 : 'd2:zpvc(';
+
+// Program functions for custom aggregation
+
+AVG                     : 'avg(';
+COUNT                   : 'count(';
+MAX                     : 'max(';
+MIN                     : 'min(';
+STDDEV                  : 'stddev(';
+SUM                     : 'sum(';
+VARIANCE                : 'variance(';
 
 // -----------------------------------------------------------------------------
 // Lexer rules

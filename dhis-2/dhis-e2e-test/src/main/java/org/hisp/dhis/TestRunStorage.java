@@ -28,10 +28,7 @@
 
 package org.hisp.dhis;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
@@ -59,7 +56,7 @@ public class TestRunStorage
             return new LinkedHashMap<>();
         }
 
-        return createdEntities;
+        return new LinkedHashMap<>( createdEntities );
     }
 
     public static List<String> getCreatedEntities( String resource )

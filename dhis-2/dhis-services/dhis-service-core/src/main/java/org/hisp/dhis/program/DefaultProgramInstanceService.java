@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -66,6 +67,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.program.ProgramInstanceService" )
 public class DefaultProgramInstanceService
     implements ProgramInstanceService
 {
@@ -509,9 +511,9 @@ public class DefaultProgramInstanceService
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
 
-        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance.getId() ) );
 
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
 
         // -----------------------------------------------------------------
         // Update ProgramInstance and TEI
@@ -548,14 +550,6 @@ public class DefaultProgramInstanceService
     @Transactional
     public void completeProgramInstanceStatus( ProgramInstance programInstance )
     {
-        // ---------------------------------------------------------------------
-        // Send sms-message when to completed the program
-        // ---------------------------------------------------------------------
-
-        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance ) );
-
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
-
         // -----------------------------------------------------------------
         // Update program-instance
         // -----------------------------------------------------------------
@@ -565,6 +559,14 @@ public class DefaultProgramInstanceService
         programInstance.setCompletedBy( currentUserService.getCurrentUsername() );
 
         updateProgramInstance( programInstance );
+
+        // ---------------------------------------------------------------------
+        // Send sms-message after program completion
+        // ---------------------------------------------------------------------
+
+        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance.getId() ) );
+
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
     }
 
     @Override

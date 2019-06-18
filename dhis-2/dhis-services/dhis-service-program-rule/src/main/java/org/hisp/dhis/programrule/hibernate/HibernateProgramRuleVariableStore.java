@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,20 +32,34 @@ import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.programrule.ProgramRuleVariableStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author markusbekken
  */
+@Repository( "org.hisp.dhis.programrule.ProgramRuleVariableStore" )
 public class HibernateProgramRuleVariableStore
     extends HibernateIdentifiableObjectStore<ProgramRuleVariable>
     implements ProgramRuleVariableStore
 {
+    public HibernateProgramRuleVariableStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, ProgramRuleVariable.class, currentUserService, deletedObjectService,
+            aclService, false );
+    }
+
     @Override
     public List<ProgramRuleVariable> get( Program program )
     {

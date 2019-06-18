@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
@@ -59,6 +60,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityAttributeService" )
 public class DefaultTrackedEntityAttributeService
     implements TrackedEntityAttributeService
 {
@@ -185,7 +187,7 @@ public class DefaultTrackedEntityAttributeService
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
 
-        if ( trackedEntityAttribute.getOrgunitScope() )
+        if ( trackedEntityAttribute.getOrgUnitScopeNullSafe() )
         {
             Assert.notNull( organisationUnit, "organisation unit is required for org unit scope" );
             params.addOrganisationUnit( organisationUnit );

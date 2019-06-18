@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -132,7 +132,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByTrackedEntityInstance( tei, skipAccessValidation ).stream()
-            .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
+            .map( mapDaoToDto( user ) ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     @Override
@@ -429,7 +429,8 @@ public abstract class AbstractRelationshipService
 
         if ( !errors.isEmpty() )
         {
-            throw new IllegalQueryException( errors.toString() );
+            // Dont include relationship
+            return null;
         }
 
         Relationship relationship = new Relationship();

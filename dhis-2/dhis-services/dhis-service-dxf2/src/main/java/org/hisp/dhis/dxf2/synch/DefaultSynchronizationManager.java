@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportSummaryResponseExtractor;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -50,7 +49,6 @@ import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
 import org.hisp.dhis.render.DefaultRenderService;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -60,6 +58,9 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.http.client.ClientHttpRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RequestCallback;
@@ -73,6 +74,7 @@ import java.util.Date;
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.dxf2.synch.SynchronizationManager" )
 public class DefaultSynchronizationManager
     implements SynchronizationManager
 {
@@ -105,16 +107,10 @@ public class DefaultSynchronizationManager
     private RestTemplate restTemplate;
 
     @Autowired
-    private EventService eventService;
-
-    @Autowired
-    private RenderService renderService;
-
-    @Autowired
     private CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
 
     // -------------------------------------------------------------------------
-    // SynchronizatonManager implementation
+    // SynchronizationManager implementation
     // -------------------------------------------------------------------------
 
     @Override

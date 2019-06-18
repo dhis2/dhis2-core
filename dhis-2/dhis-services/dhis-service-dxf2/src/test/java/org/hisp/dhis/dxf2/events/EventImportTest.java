@@ -1,16 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.HashSet;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +27,15 @@ import java.util.HashSet;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.HashSet;
 
 import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.DhisSpringTest;
@@ -70,7 +70,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class EventImportTest extends DhisSpringTest
+public class EventImportTest
+    extends DhisSpringTest
 {
     @Autowired
     private EventService eventService;
@@ -176,8 +177,8 @@ public class EventImportTest extends DhisSpringTest
         programStageDataElementService.addProgramStageDataElement( programStageDataElement );
 
         ProgramStageDataElement programStageDataElementA2 = new ProgramStageDataElement();
-        programStageDataElement.setDataElement( dataElementA2 );
-        programStageDataElement.setProgramStage( programStageA2 );
+        programStageDataElementA2.setDataElement( dataElementA2 );
+        programStageDataElementA2.setProgramStage( programStageA2 );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementA2 );
 
         ProgramStageDataElement programStageDataElementB = new ProgramStageDataElement();

@@ -78,8 +78,6 @@
 
     <property name="orgunitScope" />
 
-    <property name="programScope" />
-
     <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
 
     <property name="translations" type="jblTranslations"/>

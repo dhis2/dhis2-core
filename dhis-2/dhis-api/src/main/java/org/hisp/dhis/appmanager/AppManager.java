@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -113,10 +113,10 @@ public interface AppManager
     AppStatus installApp( File file, String fileName );
 
     /**
-     * Does the app with name appName exist?
+     * Indicates whether the app with the given name exist.
      *
-     * @param appName
-     * @return
+     * @param appName the name of the app-
+     * @return true if the app exists.
      */
     boolean exists( String appName );
 

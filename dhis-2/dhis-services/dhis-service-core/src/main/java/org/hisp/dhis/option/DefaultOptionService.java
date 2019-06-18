@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,19 @@ package org.hisp.dhis.option;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.option.OptionService" )
 public class DefaultOptionService
     implements OptionService
 {
@@ -47,23 +51,25 @@ public class DefaultOptionService
 
     private IdentifiableObjectStore<OptionSet> optionSetStore;
 
-    public void setOptionSetStore( IdentifiableObjectStore<OptionSet> optionSetStore )
-    {
-        this.optionSetStore = optionSetStore;
-    }
-
     private OptionStore optionStore;
-
-    public void setOptionStore( OptionStore optionStore )
-    {
-        this.optionStore = optionStore;
-    }
-
-    @Autowired
+    
     private OptionGroupStore optionGroupStore;
 
-    @Autowired
     private OptionGroupSetStore optionGroupSetStore;
+
+    public DefaultOptionService(@Qualifier("org.hisp.dhis.option.OptionSetStore") IdentifiableObjectStore<OptionSet> optionSetStore, OptionStore optionStore,
+                                OptionGroupStore optionGroupStore, OptionGroupSetStore optionGroupSetStore )
+    {
+        checkNotNull( optionSetStore );
+        checkNotNull( optionStore );
+        checkNotNull( optionGroupStore );
+        checkNotNull( optionGroupSetStore );
+
+        this.optionSetStore = optionSetStore;
+        this.optionStore = optionStore;
+        this.optionGroupStore = optionGroupStore;
+        this.optionGroupSetStore = optionGroupSetStore;
+    }
 
     // -------------------------------------------------------------------------
     // OptionService implementation

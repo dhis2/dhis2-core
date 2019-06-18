@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,18 +33,27 @@ import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.interpretation.InterpretationDeletionHandler" )
 public class InterpretationDeletionHandler
     extends DeletionHandler
 {
-    @Autowired
-    private InterpretationService interpretationService;
+    private final InterpretationService interpretationService;
+
+    public InterpretationDeletionHandler( InterpretationService interpretationService )
+    {
+        checkNotNull( interpretationService );
+
+        this.interpretationService = interpretationService;
+    }
 
     @Override
     protected String getClassName()

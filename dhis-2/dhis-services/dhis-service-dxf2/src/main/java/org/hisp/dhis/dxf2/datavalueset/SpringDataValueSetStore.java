@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,10 +56,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.csvreader.CsvWriter;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.dxf2.datavalueset.DataValueSetStore" )
 public class SpringDataValueSetStore
     implements DataValueSetStore
 {

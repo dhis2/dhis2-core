@@ -1,7 +1,7 @@
 package org.hisp.dhis.i18n.ui.locale;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,14 @@ import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Component( "org.hisp.dhis.i18n.locale.LocaleManager" )
 public class UserSettingLocaleManager
     implements LocaleManager
 {
@@ -48,17 +52,17 @@ public class UserSettingLocaleManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private UserSettingService userSettingService;
+    private final UserSettingService userSettingService;
 
-    public void setUserSettingService( UserSettingService userSettingService )
+    private final ResourceBundleManager resourceBundleManager;
+
+    public UserSettingLocaleManager( UserSettingService userSettingService,
+        ResourceBundleManager resourceBundleManager )
     {
+        checkNotNull( userSettingService );
+        checkNotNull( resourceBundleManager );
+
         this.userSettingService = userSettingService;
-    }
-    
-    private ResourceBundleManager resourceBundleManager;
-
-    public void setResourceBundleManager( ResourceBundleManager resourceBundleManager )
-    {
         this.resourceBundleManager = resourceBundleManager;
     }
 

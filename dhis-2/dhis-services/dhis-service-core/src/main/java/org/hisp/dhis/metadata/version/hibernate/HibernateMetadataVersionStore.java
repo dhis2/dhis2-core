@@ -1,7 +1,7 @@
 package org.hisp.dhis.metadata.version.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,15 @@ package org.hisp.dhis.metadata.version.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Date;
@@ -41,10 +47,18 @@ import java.util.List;
  *
  * @author aamerm
  */
+@Repository( "org.hisp.dhis.metadata.version.MetadataVersionStore" )
 public class HibernateMetadataVersionStore
     extends HibernateIdentifiableObjectStore<MetadataVersion>
     implements MetadataVersionStore
 {
+    public HibernateMetadataVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, MetadataVersion.class, currentUserService, deletedObjectService,
+            aclService, false );
+    }
+
     @Override
     public MetadataVersion getVersionByKey( long key )
     {

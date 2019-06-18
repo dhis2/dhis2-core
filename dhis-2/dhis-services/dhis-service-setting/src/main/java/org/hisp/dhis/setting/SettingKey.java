@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,8 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
@@ -46,8 +39,14 @@ import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.Locale;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -159,9 +158,6 @@ public enum SettingKey
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
     STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class ),
     FILE_RESOURCE_RETENTION_STRATEGY( "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE, FileResourceRetentionStrategy.class ),
-    TRACKER_SYNC_PAGE_SIZE( "syncTrackerPageSize", 20, Integer.class ),
-    EVENT_SYNC_PAGE_SIZE( "syncEventsPageSize", 60, Integer.class ),
-    DATA_VALUES_SYNC_PAGE_SIZE( "syncDataValuesPageSize", 10000, Integer.class ),
     MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncMaxRemoteServerAvailabilityCheckAttempts", 3, Integer.class ),
     MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
     DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class ),

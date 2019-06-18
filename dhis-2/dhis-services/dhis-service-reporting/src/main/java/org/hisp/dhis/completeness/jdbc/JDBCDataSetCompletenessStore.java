@@ -1,7 +1,7 @@
 package org.hisp.dhis.completeness.jdbc;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.completeness.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
 import java.util.ArrayList;
@@ -38,11 +39,13 @@ import org.hisp.quick.StatementManager;
 import org.hisp.dhis.completeness.DataSetCompletenessStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Repository( "org.hisp.dhis.completeness.DataSetCompletenessStore" )
 public class JDBCDataSetCompletenessStore
     implements DataSetCompletenessStore
 {
@@ -50,17 +53,16 @@ public class JDBCDataSetCompletenessStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementManager statementManager;
+    private final StatementManager statementManager;
 
-    public void setStatementManager( StatementManager statementManager )
+    private final StatementBuilder statementBuilder;
+
+    public JDBCDataSetCompletenessStore( StatementManager statementManager, StatementBuilder statementBuilder )
     {
+        checkNotNull( statementBuilder );
+        checkNotNull( statementManager );
+
         this.statementManager = statementManager;
-    }
-    
-    private StatementBuilder statementBuilder;
-
-    public void setStatementBuilder( StatementBuilder statementBuilder )
-    {
         this.statementBuilder = statementBuilder;
     }
 
