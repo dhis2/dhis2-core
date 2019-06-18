@@ -101,7 +101,5 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
             attributeValue.setAttribute( attribute );
         }
-
-        session.save( identifiableObject );
     }
 }

@@ -32,9 +32,9 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CustomAttributeSerializer;
+import org.hisp.dhis.common.CustomLastUpdatedUserSerializer;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -88,6 +88,7 @@ public class AttributeValue
         this.attribute = attribute;
         this.valueType = attribute.getValueType().name();
         this.attributeUid = attribute.getUid();
+        this.attribute = attribute;
     }
 
     public void setAutoFields()
@@ -108,8 +109,8 @@ public class AttributeValue
 
         AttributeValue that = ( AttributeValue ) o;
 
-        if ( !Objects.equals(attribute, that.attribute ) ) return false;
-        if ( !Objects.equals(value, that.value ) ) return false;
+        if ( !Objects.equals( attribute, that.attribute ) ) return false;
+        if ( !Objects.equals( value, that.value ) ) return false;
 
         return true;
     }
@@ -130,7 +131,6 @@ public class AttributeValue
                 ",attributeUid=" + attributeUid +
                 ", created=" + created +
                 ", lastUpdated=" + lastUpdated +
-                ", attribute=" + attribute +
                 ", value='" + value + '\'' +
                 '}';
     }
@@ -160,22 +160,6 @@ public class AttributeValue
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    public Attribute getAttribute()
-    {
-        return attribute;
-    }
-
-    public void setAttribute( Attribute attribute )
-    {
-        if ( attribute != null )
-        {
-            this.attribute = attribute;
-            this.attributeUid = attribute.getUid();
-        }
-    }
-
-    @JsonProperty
     @JacksonXmlProperty
     public String getValue()
     {
@@ -201,8 +185,20 @@ public class AttributeValue
         return attributeUid;
     }
 
-    public void setAttributeUid( String attributeUid )
+    public void setAttributeUid( String attribute )
     {
-        this.attributeUid = attributeUid;
+        this.attributeUid = attribute;
+    }
+
+    @JsonProperty
+    @JsonSerialize( using = CustomAttributeSerializer.class )
+    public Attribute getAttribute()
+    {
+        return attribute;
+    }
+
+    public void setAttribute( Attribute attribute )
+    {
+        this.attribute = attribute;
     }
 }

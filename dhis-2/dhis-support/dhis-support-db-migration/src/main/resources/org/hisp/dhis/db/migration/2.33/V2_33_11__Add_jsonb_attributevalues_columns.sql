@@ -1,15 +1,15 @@
 alter table dataelement add column if not exists attributevalues  jsonb  default '{}'::jsonb;
 alter table dataset add column if not exists  attributevalues jsonb  default '{}'::jsonb;
-alter table `user` add column if not exists  attributevalues jsonb  default '{}'::jsonb;
+alter table userinfo add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table usergroup add column if not exists  attributevalues jsonb  default '{}'::jsonb;
-alter table legendset add column if not exists  attributevalues jsonb  default '{}'::jsonb;
+alter table maplegendset add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table optionvalue add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table optionset add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table programindicator add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table sqlview add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table constant add column if not exists attributevalues jsonb  default '{}'::jsonb;
 alter table document add column if not exists  attributevalues jsonb  default '{}'::jsonb;
-alter table `indicator` add column if not exists  attributevalues jsonb  default '{}'::jsonb;
+alter table indicator add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table indicatorgroup add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table dataelementgroupset add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table dataelementgroup add column if not exists  attributevalues jsonb  default '{}'::jsonb;
@@ -27,4 +27,4 @@ alter table program add column if not exists  attributevalues jsonb  default '{}
 alter table programstage add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table trackedentityattribute add column if not exists  attributevalues jsonb  default '{}'::jsonb;
 alter table trackedentitytype add column if not exists  attributevalues jsonb  default '{}'::jsonb;
-alter table `section` add column if not exists  attributevalues jsonb  default '{}'::jsonb;
+alter table section add column if not exists  attributevalues jsonb  default '{}'::jsonb;

@@ -29,30 +29,32 @@ package org.hisp.dhis.attribute;
  */
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SessionFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.api.client.util.Maps;
+
+import javax.annotation.PostConstruct;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -75,27 +77,35 @@ public class DefaultAttributeService
 
     private final AttributeStore attributeStore;
 
-    private final AttributeValueStore attributeValueStore;
-
     private final IdentifiableObjectManager manager;
 
     private final CacheProvider cacheProvider;
 
-        private SessionFactory sessionFactory;
+    private SessionFactory sessionFactory;
 
-    public DefaultAttributeService( AttributeStore attributeStore, AttributeValueStore attributeValueStore,
-        IdentifiableObjectManager manager, CacheProvider cacheProvider, SessionFactory sessionFactory )
+    private final Environment env;
+
+    public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
+        CacheProvider cacheProvider, SessionFactory sessionFactory, Environment env )
     {
         checkNotNull( attributeStore );
-        checkNotNull( attributeValueStore );
         checkNotNull( manager );
-
+        checkNotNull( cacheProvider );
 
         this.attributeStore = attributeStore;
-        this.attributeValueStore = attributeValueStore;
         this.manager = manager;
         this.cacheProvider = cacheProvider;
         this.sessionFactory = sessionFactory;
+        this.env = env;
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        attributeCache = cacheProvider.newCacheBuilder( Attribute.class )
+            .forRegion( "metadataAttributes" )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -342,6 +352,14 @@ public class DefaultAttributeService
         {
             throw new MissingMandatoryAttributeValueException( mandatoryAttributes );
         }
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> void generateAttributes( List<T> entityList )
+    {
+        entityList.forEach( entity -> entity.getAttributeValues()
+            .forEach( attributeValue -> attributeValue.setAttribute( getAttribute( attributeValue.getAttributeUid() ) ) ) );
     }
 
     //--------------------------------------------------------------------------------------------------

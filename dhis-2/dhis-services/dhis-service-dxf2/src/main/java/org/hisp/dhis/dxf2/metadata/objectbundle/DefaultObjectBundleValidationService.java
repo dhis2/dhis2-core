@@ -861,7 +861,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
             return errorReports;
         }
 
-        attributeValues.forEach( attributeValue -> mandatoryAttributes.remove( attributeValue.getAttributeUid() ) );
+        attributeValues.forEach( attributeValue -> mandatoryAttributes.remove( attributeValue.getAttribute() ) );
         mandatoryAttributes.forEach( att -> errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4011, att )
             .setMainId( att ).setErrorProperty( "value" ) ) );
 

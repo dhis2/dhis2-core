@@ -50,7 +50,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -180,8 +179,6 @@ public class DefaultDataValueSetService
 
     private AggregateAccessManager accessManager;
 
-    private SessionFactory sessionFactory;
-
     public DefaultDataValueSetService( IdentifiableObjectManager identifiableObjectManager,
         CategoryService categoryService, OrganisationUnitService organisationUnitService, PeriodService periodService,
         DataApprovalService approvalService, BatchHandlerFactory batchHandlerFactory,
@@ -210,7 +207,6 @@ public class DefaultDataValueSetService
         checkNotNull( fileResourceService );
         checkNotNull( aclService );
         checkNotNull( accessManager );
-        checkNotNull( sessionFactory );
 
         this.identifiableObjectManager = identifiableObjectManager;
         this.categoryService = categoryService;
@@ -231,7 +227,6 @@ public class DefaultDataValueSetService
         this.fileResourceService = fileResourceService;
         this.aclService = aclService;
         this.accessManager = accessManager;
-        this.sessionFactory = sessionFactory;
     }
 
     /**
@@ -1375,7 +1370,6 @@ public class DefaultDataValueSetService
 
         dataValueBatchHandler.flush();
         auditBatchHandler.flush();
-        sessionFactory.getCurrentSession().flush();
 
         int ignores = totalCount - importCount - updateCount - deleteCount;
 

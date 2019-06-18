@@ -148,4 +148,6 @@ public interface AttributeService
     <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception;
 
     <T extends IdentifiableObject> void updateAttributeValues( T object, Set<AttributeValue> attributeValues ) throws Exception;
+
+    <T extends IdentifiableObject> void generateAttributes( List<T> entityList );
 }

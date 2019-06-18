@@ -697,7 +697,7 @@ public class BaseIdentifiableObject
         {
             for ( AttributeValue attributeValue : attributeValues )
             {
-                if ( idScheme.getAttribute().equals( attributeValue.getAttributeUid() ) )
+                if ( idScheme.getAttribute().equals( attributeValue.getAttribute() ) )
                 {
                     return attributeValue.getValue();
                 }

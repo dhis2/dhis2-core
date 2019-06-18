@@ -32,8 +32,7 @@ import java.io.IOException;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import org.hibernate.HibernateException;
 import org.hisp.dhis.attribute.AttributeValue;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -44,6 +43,14 @@ public class JsonAttributeValueBinaryType
     extends JsonBinaryType
 {
     static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public JsonAttributeValueBinaryType()
+    {
+        super();
+        writer = MAPPER.writerFor( new TypeReference<Map<String, AttributeValue>>() {} ).withoutAttribute( "attribute" );;
+        reader = MAPPER.readerFor( new TypeReference<Map<String, AttributeValue>>() {} ).withoutAttribute( "attribute" );;
+        returnedClass = AttributeValue.class;
+    }
 
     static
     {
@@ -71,6 +78,7 @@ public class JsonAttributeValueBinaryType
 
             for ( AttributeValue attributeValue : attributeValues )
             {
+                attributeValue.setAttribute( null );
                 attrValueMap.put( attributeValue.getAttributeUid(), attributeValue );
             }
 
@@ -81,6 +89,13 @@ public class JsonAttributeValueBinaryType
         {
             throw new RuntimeException( e );
         }
+    }
+
+    @Override
+    public Object deepCopy( Object value ) throws HibernateException
+    {
+        String json = convertObjectToJson( value );
+        return convertJsonToObject( json );
     }
 
     @Override
