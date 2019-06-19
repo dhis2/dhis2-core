@@ -78,7 +78,6 @@ public class JsonAttributeValueBinaryType
 
             for ( AttributeValue attributeValue : attributeValues )
             {
-                attributeValue.setAttribute( null );
                 attrValueMap.put( attributeValue.getAttributeUid(), attributeValue );
             }
 

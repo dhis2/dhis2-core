@@ -182,6 +182,7 @@ public class AttributeValue
     @JsonProperty( value = "attributeId" )
     public String getAttributeUid()
     {
+
         return attributeUid;
     }
 
@@ -200,5 +201,6 @@ public class AttributeValue
     public void setAttribute( Attribute attribute )
     {
         this.attribute = attribute;
+        this.attributeUid = attribute.getUid();
     }
 }

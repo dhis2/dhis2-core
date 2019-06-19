@@ -29,17 +29,13 @@ package org.hisp.dhis.hibernate;
  */
 
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,6 +51,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -442,12 +439,21 @@ public class HibernateGenericStore<T>
         CriteriaBuilder builder = getCriteriaBuilder();
 
         List<String> attributeIds = attributes.stream().map( attribute -> attribute.getUid() )
-                .collect( Collectors.toList() );
+            .collect( Collectors.toList() );
 
-        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicate( root ->   builder.function( "json_object_keys", String.class, root.get( "attributeValues" ) ).in( attributeIds ) );
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root );
 
-        return getList( builder, parameters );
+        Subquery<String> subQuery = query.subquery( String.class );
+        Root<T> subRoot = subQuery.from( getClazz() );
+        subQuery.select( builder.literal( "jsonb_object_keys( attributeValues )" ) );
+        subQuery.where( builder.equal( subRoot.get( "id" ), root.get( "id" ) ) );
+
+        query.where(
+            subQuery.in( attributeIds ) );
+
+        return getSession().createQuery( query ).list();
     }
 
     @Override
