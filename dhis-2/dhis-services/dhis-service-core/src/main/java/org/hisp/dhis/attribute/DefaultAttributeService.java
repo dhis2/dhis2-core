@@ -200,10 +200,14 @@ public class DefaultAttributeService
     @Transactional
     public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
-        Attribute attribute = getAttribute( attributeValue.getAttributeUid() );
+        if ( object == null || attributeValue == null || attributeValue.getAttribute() == null )
+        {
+            return;
+        }
 
-        if ( object == null || attributeValue == null || Objects.isNull( attribute )
-            || !attribute.getSupportedClasses().contains( object.getClass() ) )
+        Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
+
+        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( object.getClass() ) )
         {
             return;
         }
@@ -227,7 +231,7 @@ public class DefaultAttributeService
     @Transactional
     public <T extends IdentifiableObject> void updateAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
-        Attribute attribute = getAttribute( attributeValue.getAttributeUid() );
+        Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
 
         if ( object == null || attributeValue == null || Objects.isNull( attribute )
             || !attribute.getSupportedClasses().contains( object.getClass() ) )
@@ -292,7 +296,7 @@ public class DefaultAttributeService
 
         Map<String, AttributeValue> attributeValueMap = attributeValues.stream()
             .filter( SHOULD_DELETE_ON_UPDATE.negate() )
-            .collect( Collectors.toMap( av -> av.getAttributeUid(), av -> av ) );
+            .collect( Collectors.toMap( av -> av.getAttribute().getUid(), av -> av ) );
 
         Iterator<AttributeValue> iterator = object.getAttributeValues().iterator();
 
@@ -302,7 +306,7 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = iterator.next();
 
-            Attribute attribute = getAttribute( attributeValue.getAttributeUid() );
+            Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
 
             if ( attributeValueMap.containsKey( attributeValue.getAttribute() ) )
             {
@@ -359,7 +363,7 @@ public class DefaultAttributeService
     public <T extends IdentifiableObject> void generateAttributes( List<T> entityList )
     {
         entityList.forEach( entity -> entity.getAttributeValues()
-            .forEach( attributeValue -> attributeValue.setAttribute( getAttribute( attributeValue.getAttributeUid() ) ) ) );
+            .forEach( attributeValue -> attributeValue.setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
     }
 
     //--------------------------------------------------------------------------------------------------

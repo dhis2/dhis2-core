@@ -875,7 +875,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleAttributes( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, IdentifiableObject identifiableObject )
     {
         if ( identifiableObject == null ) return metadata;
-        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class,  attributeService.getAttribute( av.getAttributeUid() ) ) );
+        identifiableObject.getAttributeValues().forEach( av -> metadata.putValue( Attribute.class,  attributeService.getAttribute( av.getAttribute().getUid() ) ) );
 
         return metadata;
     }

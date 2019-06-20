@@ -63,8 +63,6 @@ public class AttributeValue
      */
     private Date lastUpdated;
 
-    private String attributeUid;
-
     private Attribute attribute;
 
     private String value;
@@ -87,7 +85,6 @@ public class AttributeValue
         this.value = value;
         this.attribute = attribute;
         this.valueType = attribute.getValueType().name();
-        this.attributeUid = attribute.getUid();
         this.attribute = attribute;
     }
 
@@ -128,7 +125,6 @@ public class AttributeValue
     {
         return "AttributeValue{" +
                 "class=" + getClass() +
-                ",attributeUid=" + attributeUid +
                 ", created=" + created +
                 ", lastUpdated=" + lastUpdated +
                 ", value='" + value + '\'' +
@@ -179,18 +175,6 @@ public class AttributeValue
         this.valueType = valueType;
     }
 
-    @JsonProperty( value = "attributeId" )
-    public String getAttributeUid()
-    {
-
-        return attributeUid;
-    }
-
-    public void setAttributeUid( String attribute )
-    {
-        this.attributeUid = attribute;
-    }
-
     @JsonProperty
     @JsonSerialize( using = CustomAttributeSerializer.class )
     public Attribute getAttribute()
@@ -201,6 +185,5 @@ public class AttributeValue
     public void setAttribute( Attribute attribute )
     {
         this.attribute = attribute;
-        this.attributeUid = attribute.getUid();
     }
 }
