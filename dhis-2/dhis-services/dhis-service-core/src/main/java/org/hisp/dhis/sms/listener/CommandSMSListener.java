@@ -68,9 +68,11 @@ import org.springframework.transaction.annotation.Transactional;
  * Created by zubair@dhis2.org on 11.08.17.
  */
 @Transactional
-public abstract class CommandSMSListener extends BaseSMSListener
-{	
-    private static final String DEFAULT_PATTERN =  "([^\\s|=]+)\\s*\\=\\s*([^|=]+)\\s*(\\=|$)*\\s*";
+public abstract class CommandSMSListener
+    extends
+    BaseSMSListener
+{
+    private static final String DEFAULT_PATTERN = "([^\\s|=]+)\\s*\\=\\s*([^|=]+)\\s*(\\=|$)*\\s*";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -97,7 +99,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
     @Override
     public boolean accept( IncomingSms sms )
     {
-        if ( sms == null || SmsUtils.isBase64(sms) )
+        if ( sms == null || SmsUtils.isBase64( sms ) )
         {
             return false;
         }
@@ -159,8 +161,8 @@ public abstract class CommandSMSListener extends BaseSMSListener
             return new HashSet<>();
         }
 
-        return SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(),
-            Collections.singleton( user ) ).get( user.getUid() );
+        return SmsUtils.getOrganisationUnitsByPhoneNumber( sms.getOriginator(), Collections.singleton( user ) )
+            .get( user.getUid() );
     }
 
     protected User getUser( IncomingSms sms )
@@ -168,7 +170,8 @@ public abstract class CommandSMSListener extends BaseSMSListener
         return userService.getUser( sms.getUser().getUid() );
     }
 
-    protected boolean validateInputValues( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms )
+    protected boolean validateInputValues( Map<String, String> commandValuePairs, SMSCommand smsCommand,
+        IncomingSms sms )
     {
         if ( !hasMandatoryParameters( commandValuePairs.keySet(), smsCommand.getCodes() ) )
         {
@@ -197,7 +200,8 @@ public abstract class CommandSMSListener extends BaseSMSListener
         return true;
     }
 
-    protected void register( List<ProgramInstance> programInstances , Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms, Set<OrganisationUnit> ous )
+    protected void register( List<ProgramInstance> programInstances, Map<String, String> commandValuePairs,
+        SMSCommand smsCommand, IncomingSms sms, Set<OrganisationUnit> ous )
     {
         if ( programInstances.isEmpty() )
         {
@@ -231,25 +235,27 @@ public abstract class CommandSMSListener extends BaseSMSListener
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setExecutionDate( sms.getSentDate() );
         programStageInstance.setDueDate( sms.getSentDate() );
-        programStageInstance
-            .setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
+        programStageInstance.setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
         programStageInstance.setCompletedBy( "DHIS 2" );
         programStageInstance.setStoredBy( currentUserName );
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSCode smsCode : smsCommand.getCodes() )
         {
-            EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(), commandValuePairs.get( smsCode.getCode() ), currentUserName );
+            EventDataValue eventDataValue = new EventDataValue( smsCode.getDataElement().getUid(),
+                commandValuePairs.get( smsCode.getCode() ), currentUserName );
             eventDataValue.setAutoFields();
 
-            //Filter empty values out -> this is "adding/saving/creating", therefore, empty values are ignored
-            if ( !StringUtils.isEmpty( eventDataValue.getValue() ))
+            // Filter empty values out -> this is "adding/saving/creating",
+            // therefore, empty values are ignored
+            if ( !StringUtils.isEmpty( eventDataValue.getValue() ) )
             {
                 dataElementsAndEventDataValues.put( smsCode.getDataElement(), eventDataValue );
             }
         }
 
-        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance, dataElementsAndEventDataValues );
+        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance,
+            dataElementsAndEventDataValues );
 
         update( sms, SmsMessageStatus.PROCESSED, true );
 
@@ -257,7 +263,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
             sms.getOriginator(), INFO );
     }
 
-    protected  Map<String, String> parseMessageInput( IncomingSms sms, SMSCommand smsCommand )
+    protected Map<String, String> parseMessageInput( IncomingSms sms, SMSCommand smsCommand )
     {
         HashMap<String, String> output = new HashMap<>();
 
@@ -306,7 +312,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
     {
         Collection<OrganisationUnit> orgUnits = getOrganisationUnits( sms );
 
-        return !( orgUnits == null || orgUnits.isEmpty() );
+        return !(orgUnits == null || orgUnits.isEmpty());
 
     }
 

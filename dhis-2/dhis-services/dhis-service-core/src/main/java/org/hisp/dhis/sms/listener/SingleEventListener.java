@@ -1,5 +1,10 @@
 package org.hisp.dhis.sms.listener;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -40,16 +45,14 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
 @Transactional
-public class SingleEventListener extends CommandSMSListener {
+public class SingleEventListener
+    extends
+    CommandSMSListener
+{
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -83,7 +86,8 @@ public class SingleEventListener extends CommandSMSListener {
     // Supportive Methods
     // -------------------------------------------------------------------------
 
-    private void registerEvent( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms, Set<OrganisationUnit> ous )
+    private void registerEvent( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms,
+        Set<OrganisationUnit> ous )
     {
         List<ProgramInstance> programInstances = new ArrayList<>(
             programInstanceService.getProgramInstances( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );

@@ -69,7 +69,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-public class J2MEDataValueSMSListener extends CommandSMSListener {
+public class J2MEDataValueSMSListener
+    extends
+    CommandSMSListener
+{
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -99,11 +102,11 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
     @Override
     public boolean accept( IncomingSms sms )
     {
-        if ( sms == null || SmsUtils.isBase64(sms) )
+        if ( sms == null || SmsUtils.isBase64( sms ) )
         {
             return false;
         }
-        
+
         return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.J2ME_PARSER ) != null;
     }
 
@@ -142,8 +145,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
         {
             if ( parsedMessage.containsKey( code.getCode() ) )
             {
-                storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, period,
-                    smsCommand.getDataset() );
+                storeDataValue( sms, orgUnit, parsedMessage, code, smsCommand, period, smsCommand.getDataset() );
                 valueStored = true;
             }
         }
@@ -176,7 +178,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
     {
     }
 
-    private Map<String, String> parse(String sms, SMSCommand smsCommand )
+    private Map<String, String> parse( String sms, SMSCommand smsCommand )
     {
         String[] keyValuePairs = null;
 
@@ -214,8 +216,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        CategoryOptionCombo optionCombo = dataElementCategoryService
-            .getCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
 
         DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgUnit, optionCombo );
 
@@ -269,15 +270,15 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
     private void registerCompleteDataSet( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         String storedBy )
     {
-        CategoryOptionCombo optionCombo = dataElementCategoryService
-            .getDefaultCategoryOptionCombo(); // TODO
+        CategoryOptionCombo optionCombo = dataElementCategoryService.getDefaultCategoryOptionCombo(); // TODO
 
         if ( registrationService.getCompleteDataSetRegistration( dataSet, period, organisationUnit,
             optionCombo ) == null )
         {
             Date now = new Date();
 
-            CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, organisationUnit, optionCombo, now, storedBy, now, storedBy, true);
+            CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period,
+                organisationUnit, optionCombo, now, storedBy, now, storedBy, true );
             registration.setPeriodName( registration.getPeriod().toString() );
 
             registrationService.saveCompleteDataSetRegistration( registration );
@@ -293,8 +294,7 @@ public class J2MEDataValueSMSListener extends CommandSMSListener {
 
         for ( SMSCode code : command.getCodes() )
         {
-            CategoryOptionCombo optionCombo = dataElementCategoryService
-                .getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
 
             DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgunit, optionCombo );
 
