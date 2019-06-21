@@ -30,6 +30,7 @@ package org.hisp.dhis.startup;
 
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 
@@ -63,9 +64,10 @@ public class TwoFAPopulator
         UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
         userQueryParams.setNot2FA( true );
 
-        userService.getUsers( userQueryParams ).forEach( user -> {
+        for ( User user : userService.getUsers( userQueryParams ) )
+        {
             user.getUserCredentials().setSecret( null );
             userService.updateUser( user );
-        } );
+        }
     }
 }
