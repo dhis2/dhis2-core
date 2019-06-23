@@ -1,7 +1,36 @@
 package org.hisp.dhis.organisationunit;
 
+import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+
+import java.awt.geom.Point2D;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.SortProperty;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.filter.FilterUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.hierarchy.HierarchyViolationException;
+import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
+import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
+import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.version.VersionService;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.Sets;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -30,33 +59,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Sets;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.hierarchy.HierarchyViolationException;
-import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
-import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
-import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.version.VersionService;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -116,6 +118,13 @@ public class DefaultOrganisationUnitService
     public void setConfigurationService( ConfigurationService configurationService )
     {
         this.configurationService = configurationService;
+    }
+
+    private UserSettingService userSettingService;
+
+    public void setUserSettingService( UserSettingService userSettingService )
+    {
+        this.userSettingService = userSettingService;
     }
 
     // -------------------------------------------------------------------------
@@ -307,11 +316,14 @@ public class DefaultOrganisationUnitService
         int rootLevel = organisationUnit.getLevel();
 
         Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
+        SortProperty orderBy = SortProperty.fromValue(
+            userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( organisationUnit ) );
         params.setMaxLevels( levels );
         params.setFetchChildren( true );
+        params.setOrderBy( orderBy );
 
         return organisationUnitStore.getOrganisationUnits( params );
     }
