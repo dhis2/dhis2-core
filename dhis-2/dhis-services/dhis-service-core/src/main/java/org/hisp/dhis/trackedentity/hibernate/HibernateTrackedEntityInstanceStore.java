@@ -83,6 +83,7 @@ public class HibernateTrackedEntityInstanceStore
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
     private final OrganisationUnitStore organisationUnitStore;
 
     private final StatementBuilder statementBuilder;
@@ -210,7 +211,8 @@ public class HibernateTrackedEntityInstanceStore
 
         }
 
-        //If it is a sync job that runs the query, fetch only TEAVs that are supposed to be synchronized
+        // If sync job, fetch only TEAVs that are supposed to be synchronized
+
         if ( params.isSynchronizationQuery() )
         {
 
@@ -240,7 +242,8 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.lastUpdated > tei.lastSynchronized";
         }
 
-        //Going for comparing milliseconds instead of always creating new Date( 0 );
+        // Comparing milliseconds instead of always creating new Date( 0 )
+
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
@@ -415,7 +418,7 @@ public class HibernateTrackedEntityInstanceStore
 
         return list;
     }
-    
+
     @Override
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
     {
@@ -840,7 +843,7 @@ public class HibernateTrackedEntityInstanceStore
             return  Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
                 .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
         }
-        return "";
-    }
 
+        return StringUtils.EMPTY;
+    }
 }
