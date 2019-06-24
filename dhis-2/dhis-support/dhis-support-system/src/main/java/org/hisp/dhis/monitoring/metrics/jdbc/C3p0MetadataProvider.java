@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,66 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.monitoring.metrics.jdbc;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import java.sql.SQLException;
+
 /**
- * @author Kenneth Haase
+ * @author Luciano Fiandesio
  */
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
-
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+public class C3p0MetadataProvider
+    extends AbstractDataSourcePoolMetadata<ComboPooledDataSource>
 {
-    public VectorSum()
+    private static final Log log = LogFactory.getLog( C3p0MetadataProvider.class );
+    /**
+     * Create an instance with the data source to use.
+     *
+     * @param dataSource the data source
+     */
+    public C3p0MetadataProvider( ComboPooledDataSource dataSource )
     {
-        numberOfParameters = 1;
+        super( dataSource );
     }
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
+    @Override
+    public Integer getActive()
     {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-
-        double sum = 0;
-
-        for ( Double v : vals )
+        try
         {
-            sum = sum + v;
+            return getDataSource().getNumBusyConnections();
         }
+        catch ( SQLException e )
+        {
+            log.error( "An error occurred while fetching number of busy connection from the DataSource", e );
+            return 0;
+        }
+    }
 
-        inStack.push( new Double( sum ) );
+    @Override
+    public Integer getMax()
+    {
+        return getDataSource().getMaxPoolSize();
+    }
+
+    @Override
+    public Integer getMin()
+    {
+        return getDataSource().getMinPoolSize();
+    }
+
+    @Override
+    public String getValidationQuery()
+    {
+        return "";
+    }
+
+    @Override
+    public Boolean getDefaultAutoCommit()
+    {
+        return getDataSource().isAutoCommitOnClose();
     }
 }

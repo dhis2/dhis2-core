@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,23 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.monitoring.metrics.jdbc;
+
+import javax.sql.DataSource;
+
 /**
- * @author Kenneth Haase
+ * @author Luciano Fiandesio
  */
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
-
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+@FunctionalInterface
+public interface DataSourcePoolMetadataProvider
 {
-    public VectorSum()
-    {
-        numberOfParameters = 1;
-    }
+    /**
+     * Return the {@link DataSourcePoolMetadata} instance able to manage the specified
+     * {@link DataSource} or {@code null} if the given data source could not be handled.
+     *
+     * @param dataSource the data source.
+     * @return the data source pool metadata.
+     */
+    DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource );
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
-    {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-
-        double sum = 0;
-
-        for ( Double v : vals )
-        {
-            sum = sum + v;
-        }
-
-        inStack.push( new Double( sum ) );
-    }
 }

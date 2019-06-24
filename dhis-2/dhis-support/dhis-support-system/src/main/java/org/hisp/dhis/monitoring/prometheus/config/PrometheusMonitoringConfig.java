@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,50 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.monitoring.prometheus.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import io.micrometer.core.instrument.Clock;
+import io.micrometer.prometheus.PrometheusConfig;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
+import io.prometheus.client.CollectorRegistry;
+
 /**
- * @author Kenneth Haase
+ * @author Luciano Fiandesio
  */
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
-
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+@Configuration
+public class PrometheusMonitoringConfig
 {
-    public VectorSum()
+    @Bean
+    public Clock micrometerClock()
     {
-        numberOfParameters = 1;
+        return Clock.SYSTEM;
     }
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
+    @Bean
+    public PrometheusProperties defaultProperties()
     {
-        checkStack( inStack );
+        return new PrometheusProperties();
+    }
 
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
+    @Bean
+    public PrometheusConfig prometheusConfig( PrometheusProperties prometheusProperties )
+    {
+        return new PrometheusPropertiesConfigAdapter( prometheusProperties );
+    }
 
-        double sum = 0;
+    @Bean
+    public PrometheusMeterRegistry prometheusMeterRegistry( PrometheusConfig prometheusConfig,
+        CollectorRegistry collectorRegistry, Clock clock )
+    {
+        return new PrometheusMeterRegistry( prometheusConfig, collectorRegistry, clock );
+    }
 
-        for ( Double v : vals )
-        {
-            sum = sum + v;
-        }
-
-        inStack.push( new Double( sum ) );
+    @Bean
+    public CollectorRegistry collectorRegistry()
+    {
+        return new CollectorRegistry( true );
     }
 }

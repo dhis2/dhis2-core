@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,50 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * @author Kenneth Haase
- */
+package org.hisp.dhis.monitoring.metrics.jdbc;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
 
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
+import javax.sql.DataSource;
 
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+/**
+ * A {@link DataSourcePoolMetadataProvider} implementation that returns the first
+ * {@link DataSourcePoolMetadata} that is found by one of its delegate.
+ *
+ * @author Stephane Nicoll
+ * @since 2.0.0
+ */
+public class CompositeDataSourcePoolMetadataProvider implements DataSourcePoolMetadataProvider
 {
-    public VectorSum()
+    private final List<DataSourcePoolMetadataProvider> providers;
+
+    /**
+     * Create a {@link CompositeDataSourcePoolMetadataProvider} instance with an
+     * initial collection of delegates to use.
+     *
+     * @param providers the data source pool metadata providers
+     */
+    public CompositeDataSourcePoolMetadataProvider( Collection<? extends DataSourcePoolMetadataProvider> providers )
     {
-        numberOfParameters = 1;
+        this.providers = (providers != null) ? Collections.unmodifiableList( new ArrayList<>( providers ) )
+            : Collections.emptyList();
     }
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
+    @Override
+    public DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource )
     {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-
-        double sum = 0;
-
-        for ( Double v : vals )
+        for ( DataSourcePoolMetadataProvider provider : this.providers )
         {
-            sum = sum + v;
+            DataSourcePoolMetadata metadata = provider.getDataSourcePoolMetadata( dataSource );
+            if ( metadata != null )
+            {
+                return metadata;
+            }
         }
-
-        inStack.push( new Double( sum ) );
+        return null;
     }
+
 }

@@ -31,20 +31,25 @@ package org.hisp.dhis.webapi.controller.metadata;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
-import org.hisp.dhis.dxf2.metadata.Metadata;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.*;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
@@ -52,17 +57,16 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -75,7 +79,7 @@ import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 @Controller
 @RequestMapping( "/metadata" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class MetadataImportController
+public class MetadataImportExportController
 {
     @Autowired
     private MetadataImportService metadataImportService;
@@ -100,6 +104,15 @@ public class MetadataImportController
 
     @Autowired
     private SchedulingManager schedulingManager;
+
+    @Autowired
+    private MetadataExportService metadataExportService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     @Autowired
     private ObjectFactory<MetadataAsyncImporter> metadataAsyncImporterFactory;
@@ -221,5 +234,35 @@ public class MetadataImportController
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + GML_IMPORT );
         webMessageService.send( jobConfigurationReport( params.getId() ), response, request );
+    }
+
+    @GetMapping
+    public ResponseEntity<RootNode> getMetadata(
+        @RequestParam( required = false, defaultValue = "false" ) boolean translate, @RequestParam( required = false ) String locale,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+    {
+        if ( translate )
+        {
+            TranslateParams translateParams = new TranslateParams( true, locale );
+            setUserContext( currentUserService.getCurrentUser(), translateParams );
+        }
+
+        MetadataExportParams params = metadataExportService.getParamsFromMap( contextService.getParameterValuesMap() );
+        metadataExportService.validate( params );
+        RootNode rootNode = metadataExportService.getMetadataAsNode( params );
+        return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
+    }
+
+    private void setUserContext(User user, TranslateParams translateParams )
+    {
+        Locale dbLocale = getLocaleWithDefault( translateParams );
+        UserContext.setUser( user );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
+    }
+
+    private Locale getLocaleWithDefault( TranslateParams translateParams )
+    {
+        return translateParams.isTranslate() ?
+            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
     }
 }

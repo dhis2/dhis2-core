@@ -63,7 +63,7 @@ public class MetadataExportControllerTest
     private UserSettingService userSettingService;
 
     @InjectMocks
-    private MetadataExportController controller;
+    private MetadataImportExportController controller;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();

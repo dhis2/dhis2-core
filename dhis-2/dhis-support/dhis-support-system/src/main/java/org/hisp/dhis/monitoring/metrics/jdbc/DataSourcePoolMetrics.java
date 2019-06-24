@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,49 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.monitoring.metrics.jdbc;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.lang.Nullable;
+
+import javax.sql.DataSource;
+import java.util.Collection;
+
 /**
- * @author Kenneth Haase
+ * @author Jon Schneider
  */
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
-
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+public class DataSourcePoolMetrics
+    implements MeterBinder
 {
-    public VectorSum()
+    private final DataSource dataSource;
+
+    private final String name;
+
+    private final Iterable<Tag> tags;
+
+    private final DataSourcePoolMetadata poolMetadata;
+
+    public DataSourcePoolMetrics( DataSource dataSource,
+        @Nullable Collection<DataSourcePoolMetadataProvider> metadataProviders, String name, Iterable<Tag> tags )
     {
-        numberOfParameters = 1;
+        this.name = name;
+        this.tags = tags;
+        this.dataSource = dataSource;
+        DataSourcePoolMetadataProvider provider = new DataSourcePoolMetadataProviders( metadataProviders );
+        this.poolMetadata = provider.getDataSourcePoolMetadata( dataSource );
     }
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
+    @Override
+    public void bindTo( MeterRegistry registry )
     {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-
-        double sum = 0;
-
-        for ( Double v : vals )
+        if ( poolMetadata != null )
         {
-            sum = sum + v;
+            registry.gauge( name + ".connections.active", tags, dataSource,
+                dataSource -> poolMetadata.getActive() != null ? poolMetadata.getActive() : 0 );
+            registry.gauge( name + ".connections.max", tags, dataSource, dataSource -> poolMetadata.getMax() );
+            registry.gauge( name + ".connections.min", tags, dataSource, dataSource -> poolMetadata.getMin() );
         }
-
-        inStack.push( new Double( sum ) );
     }
 }

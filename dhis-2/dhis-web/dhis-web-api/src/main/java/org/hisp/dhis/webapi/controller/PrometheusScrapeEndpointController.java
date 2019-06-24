@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,53 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.webapi.controller;
+
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.UncheckedIOException;
+import java.io.Writer;
+
 /**
- * @author Kenneth Haase
+ * @author Luciano Fiandesio
  */
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
-
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+@Profile("!test")
+@Controller
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+public class PrometheusScrapeEndpointController
 {
-    public VectorSum()
+    private final CollectorRegistry collectorRegistry;
+
+    public PrometheusScrapeEndpointController( CollectorRegistry collectorRegistry )
     {
-        numberOfParameters = 1;
+        this.collectorRegistry = collectorRegistry;
     }
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
+    @RequestMapping( value = "/metrics", method = RequestMethod.GET, produces = TextFormat.CONTENT_TYPE_004 )
+    @ResponseBody
+    public String scrape()
     {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-
-        double sum = 0;
-
-        for ( Double v : vals )
+        try
         {
-            sum = sum + v;
+            Writer writer = new StringWriter();
+            TextFormat.write004( writer, this.collectorRegistry.metricFamilySamples() );
+            return writer.toString();
         }
+        catch ( IOException ex )
+        {
+            // This never happens since StringWriter::write() doesn't throw IOException
 
-        inStack.push( new Double( sum ) );
+            throw new UncheckedIOException( "Writing metrics failed", ex );
+        }
     }
 }

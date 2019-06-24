@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,48 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.monitoring.metrics.jdbc;
+
+import javax.sql.DataSource;
+
 /**
- * @author Kenneth Haase
+ * A base {@link DataSourcePoolMetadata} implementation.
+ *
+ * @param <T> the data source type
+ * @author Stephane Nicoll
+ * @since 2.0.0
  */
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
+public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
+        implements DataSourcePoolMetadata {
 
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
+    private final T dataSource;
 
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
-{
-    public VectorSum()
-    {
-        numberOfParameters = 1;
+    /**
+     * Create an instance with the data source to use.
+     * @param dataSource the data source
+     */
+    protected AbstractDataSourcePoolMetadata(T dataSource) {
+        this.dataSource = dataSource;
     }
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
-    {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-
-        double sum = 0;
-
-        for ( Double v : vals )
-        {
-            sum = sum + v;
+    @Override
+    public Float getUsage() {
+        Integer maxSize = getMax();
+        Integer currentSize = getActive();
+        if (maxSize == null || currentSize == null) {
+            return null;
         }
-
-        inStack.push( new Double( sum ) );
+        if (maxSize < 0) {
+            return -1F;
+        }
+        if (currentSize == 0) {
+            return 0F;
+        }
+        return (float) currentSize / (float) maxSize;
     }
+
+    protected final T getDataSource() {
+        return this.dataSource;
+    }
+
 }

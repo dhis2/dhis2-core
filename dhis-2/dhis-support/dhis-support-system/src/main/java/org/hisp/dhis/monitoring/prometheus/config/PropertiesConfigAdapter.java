@@ -1,5 +1,3 @@
-package org.hisp.dhis.system.jep;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,43 +26,48 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.monitoring.prometheus.config;
+
+import org.springframework.util.Assert;
+
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 /**
- * @author Kenneth Haase
+ * Base class for properties to config adapters.
+ *
+ * @param <T> The properties type
+ * @author Phillip Webb
+ * @author Nikolay Rybak
  */
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
-
-public class VectorSum
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+public class PropertiesConfigAdapter<T>
 {
-    public VectorSum()
+
+    private T properties;
+
+    /**
+     * Create a new {@link PropertiesConfigAdapter} instance.
+     *
+     * @param properties the source properties
+     */
+    public PropertiesConfigAdapter( T properties )
     {
-        numberOfParameters = 1;
+        Assert.notNull( properties, "Properties must not be null" );
+        this.properties = properties;
     }
 
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
+    /**
+     * Get the value from the properties or use a fallback from the
+     * {@code defaults}.
+     *
+     * @param getter the getter for the properties
+     * @param fallback the fallback method, usually super interface method reference
+     * @param <V> the value type
+     * @return the property or fallback value
+     */
+    protected final <V> V get( Function<T, V> getter, Supplier<V> fallback )
     {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-
-        double sum = 0;
-
-        for ( Double v : vals )
-        {
-            sum = sum + v;
-        }
-
-        inStack.push( new Double( sum ) );
+        V value = getter.apply( properties );
+        return (value != null ? value : fallback.get());
     }
 }
