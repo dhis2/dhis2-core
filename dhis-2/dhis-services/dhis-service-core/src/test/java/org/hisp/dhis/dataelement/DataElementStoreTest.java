@@ -28,9 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -38,10 +36,12 @@ import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -49,16 +49,15 @@ import static org.junit.Assert.*;
  * @author Torgeir Lorange Ostby
  * @version $Id: DataElementStoreTest.java 5742 2008-09-26 11:37:35Z larshelg $
  */
-@Category( IntegrationTest.class )
 public class DataElementStoreTest
-    extends IntegrationTestBase
+    extends DhisSpringTest
 {
     @Autowired
     private DataElementStore dataElementStore;
 
     @Autowired
     private AttributeService attributeService;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -129,7 +128,7 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementD );
         long idD = dataElementD.getId();
 
-            assertNotNull( dataElementStore.get( idA ) );
+        assertNotNull( dataElementStore.get( idA ) );
         assertNotNull( dataElementStore.get( idB ) );
         assertNotNull( dataElementStore.get( idC ) );
         assertNotNull( dataElementStore.get( idD ) );
@@ -254,7 +253,7 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.get( idA ).getAggregationLevels().size() );
         assertEquals( aggregationLevels, dataElementStore.get( idA ).getAggregationLevels() );
     }
-    
+
 
     @Test
     public void testGetDataElementsWithoutGroups()
@@ -270,15 +269,15 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementC );
         dataElementStore.save( dataElementD );
         dataElementStore.save( dataElementE );
-        
+
         DataElementGroup dgA = createDataElementGroup( 'A' );
         dgA.addDataElement( dataElementA );
         dgA.addDataElement( dataElementD );
-        
+
         idObjectManager.save( dgA );
-        
+
         List<DataElement> dataElements = dataElementStore.getDataElementsWithoutGroups();
-        
+
         assertEquals( 3, dataElements.size() );
         assertTrue( dataElements.contains( dataElementB ) );
         assertTrue( dataElements.contains( dataElementC ) );
@@ -350,24 +349,28 @@ public class DataElementStoreTest
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
 
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
+
         AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
         AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
 
-        dataElementA.setAttributeValues( Sets.newHashSet( attributeValueA ) );
-        dataElementB.setAttributeValues( Sets.newHashSet( attributeValueB ) );
-        dataElementC.setAttributeValues( Sets.newHashSet( attributeValueC ) );
+        attributeService.addAttributeValue( dataElementA, attributeValueA );
+        attributeService.addAttributeValue( dataElementB, attributeValueB );
+        attributeService.addAttributeValue( dataElementC, attributeValueC );
 
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
+        dataElementStore.update( dataElementA );
+        dataElementStore.update( dataElementB );
+        dataElementStore.update( dataElementC );
 
         List<AttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
         assertEquals( 3, values.size() );
     }
 
     @Test
-    public void testGetAttributeValueFromAttributeAndValue() throws NonUniqueAttributeValueException
+    public void testAttributeValueFromAttributeAndValue() throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "test", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
@@ -377,30 +380,21 @@ public class DataElementStoreTest
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
 
-        AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
-        AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
-        AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
-
-        dataElementA.setAttributeValues( Sets.newHashSet( attributeValueA ) );
-        dataElementB.setAttributeValues( Sets.newHashSet( attributeValueB ) );
-        dataElementC.setAttributeValues( Sets.newHashSet( attributeValueC ) );
-
         dataElementStore.save( dataElementA );
         dataElementStore.save( dataElementB );
         dataElementStore.save( dataElementC );
 
-        DataElement deA = dataElementStore.getByUid(dataElementA.getUid());
-        DataElement deB = dataElementStore.getByUid(dataElementB.getUid());
-        DataElement deC = dataElementStore.getByUid(dataElementC.getUid());
+        AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
+        AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
+        AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
 
-        assertNotNull( deA );
-        assertNotNull( deB );
-        assertNotNull( deC );
-        assertEquals( 1, deA.getAttributeValues().size() );
-        assertEquals( 1, deB.getAttributeValues().size() );
-        assertEquals( 1, deC.getAttributeValues().size() );
-        assertEquals( "SOME VALUE", deA.getAttributeValues().iterator().next().getValue() );
-        assertEquals( "SOME VALUE", deB.getAttributeValues().iterator().next().getValue() );
+        attributeService.addAttributeValue( dataElementA, attributeValueA );
+        attributeService.addAttributeValue( dataElementB, attributeValueB );
+        attributeService.addAttributeValue( dataElementC, attributeValueC );
+
+        dataElementStore.update( dataElementA );
+        dataElementStore.update( dataElementB );
+        dataElementStore.update( dataElementC );
 
         List<AttributeValue> values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "SOME VALUE" );
         assertEquals( 2, values.size() );
@@ -491,7 +485,7 @@ public class DataElementStoreTest
         assertEquals( "DataElementB", dataElementStore.getByUniqueAttributeValue( attribute, "CID2" ).getName() );
         assertEquals( "DataElementC", dataElementStore.getByUniqueAttributeValue( attribute, "CID3" ).getName() );
     }
-    
+
     @Test
     public void testDataElementByNonUniqueAttributeValue() throws NonUniqueAttributeValueException
     {
@@ -601,10 +595,5 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.getCountGeCreated( dataElementA.getCreated() ) );
 
         assertEquals( 2, dataElementStore.getCountGeLastUpdated( dataElementA.getLastUpdated() ) );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest() {
-        return true;
     }
 }

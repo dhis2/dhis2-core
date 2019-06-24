@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,18 +44,18 @@ public class JsonAttributeValueBinaryType
 {
     static final ObjectMapper MAPPER = new ObjectMapper();
 
-    public JsonAttributeValueBinaryType()
-    {
-        super();
-        writer = MAPPER.writerFor( new TypeReference<Map<String, AttributeValue>>() {} ).withoutAttribute( "attribute" );;
-        reader = MAPPER.readerFor( new TypeReference<Map<String, AttributeValue>>() {} ).withoutAttribute( "attribute" );;
-        returnedClass = AttributeValue.class;
-    }
-
     static
     {
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         MAPPER.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
+    }
+
+    public JsonAttributeValueBinaryType()
+    {
+        super();
+        writer = MAPPER.writerFor( new TypeReference<Map<String, AttributeValue>>() {} );
+        reader = MAPPER.readerFor( new TypeReference<Map<String, AttributeValue>>() {} );
+        returnedClass = AttributeValue.class;
     }
 
     @Override
