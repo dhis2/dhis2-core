@@ -127,4 +127,10 @@ public class DefaultRelationshipService
     {
         return relationshipStore.getByProgramStageInstance( psi );
     }
+
+    @Override
+    public List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType )
+    {
+        return relationshipStore.getByRelationshipType( relationshipType );
+    }
 }
