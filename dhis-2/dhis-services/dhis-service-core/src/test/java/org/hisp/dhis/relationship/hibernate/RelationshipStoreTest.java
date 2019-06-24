@@ -39,6 +39,26 @@ import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipStore;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.relationship.RelationshipTypeService;
+import org.hisp.dhis.relationship.RelationshipTypeStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static org.junit.Assert.*;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.*;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -128,7 +148,7 @@ public class RelationshipStoreTest
     @Test
     public void getByProgramStageInstance()
     {
-        Program programA = createProgram('A', new HashSet<>(), organisationUnit );
+        Program programA = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( programA );
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setProgram( programA );
@@ -140,8 +160,9 @@ public class RelationshipStoreTest
 
         ProgramStage programStageA = createProgramStage( 'S', programA );
         programStageA.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
         programStageService.saveProgramStage( programStageA );
+        programA.getProgramStages().add( programStageA );
+        programService.updateProgram( programA );
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( organisationUnit );
@@ -163,10 +184,20 @@ public class RelationshipStoreTest
 
         relationshipService.addRelationship( relationshipA );
 
-        List<Relationship> relationshipList = relationshipService.getRelationshipsByProgramStageInstance( programStageInstance, true );
+        List<Relationship> relationshipList = relationshipService
+            .getRelationshipsByProgramStageInstance( programStageInstance, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
+    }
+
+    @Test
+    public void getByRelationshipType()
+    {
+        List<Relationship> relationshipList = relationshipService.getRelationshipsByRelationshipType( relationshipType );
+
+        assertEquals( 1, relationshipList.size() );
+        assertTrue( relationshipList.contains( relationship ) );
     }
 
     @Override
