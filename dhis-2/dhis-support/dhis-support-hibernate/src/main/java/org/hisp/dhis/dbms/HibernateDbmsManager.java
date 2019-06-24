@@ -266,6 +266,8 @@ public class HibernateDbmsManager
         
         emptyTable( "programstageinstancefilter" );
 
+        emptyRelationships();
+
         emptyTable( "trackedentityattributevalue" );
         emptyTable( "trackedentityattributevalueaudit" );
         emptyTable( "trackedentityattribute" );
@@ -278,6 +280,7 @@ public class HibernateDbmsManager
         emptyTable( "expressionsampleelement" );
         emptyTable( "expressionoptioncombo" );
         emptyTable( "calculateddataelement" );
+
 
         emptyTable( "dataelementgroupsetmembers" );
         emptyTable( "dataelementgroupsetusergroupaccesses" );

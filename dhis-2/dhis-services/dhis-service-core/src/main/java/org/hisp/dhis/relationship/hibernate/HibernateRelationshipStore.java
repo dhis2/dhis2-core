@@ -87,4 +87,14 @@ public class HibernateRelationshipStore
                     builder.equal( root.join( "from" ).get( "programStageInstance" ), psi )
                     ,builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
     }
+
+    @Override
+    public List<Relationship> getByRelationshipType( RelationshipType relationshipType )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.join( "relationshipType" ), relationshipType ) ) );
+
+    }
 }

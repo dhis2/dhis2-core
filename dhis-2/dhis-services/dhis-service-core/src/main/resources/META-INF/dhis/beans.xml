@@ -1641,9 +1641,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.relationship.RelationshipDeletionHandler"
-    class="org.hisp.dhis.relationship.RelationshipDeletionHandler">
-    <property name="relationshipSevice" ref="org.hisp.dhis.relationship.RelationshipService" />
-  </bean>
+    class="org.hisp.dhis.relationship.RelationshipDeletionHandler" />
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler"
     class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler">
