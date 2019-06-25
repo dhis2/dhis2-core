@@ -338,36 +338,7 @@ public class DataElementStoreTest
         assertTrue( equals( dataElements, dataElementA, dataElementB ) );
     }
 
-    @Test
-    public void testAttributeValueFromAttribute() throws NonUniqueAttributeValueException
-    {
-        Attribute attribute = new Attribute( "test", ValueType.TEXT );
-        attribute.setDataElementAttribute( true );
-        attributeService.addAttribute( attribute );
 
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
-        DataElement dataElementC = createDataElement( 'C' );
-
-        dataElementStore.save( dataElementA );
-        dataElementStore.save( dataElementB );
-        dataElementStore.save( dataElementC );
-
-        AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
-        AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
-        AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
-
-        attributeService.addAttributeValue( dataElementA, attributeValueA );
-        attributeService.addAttributeValue( dataElementB, attributeValueB );
-        attributeService.addAttributeValue( dataElementC, attributeValueC );
-
-        dataElementStore.update( dataElementA );
-        dataElementStore.update( dataElementB );
-        dataElementStore.update( dataElementC );
-
-        List<AttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
-        assertEquals( 3, values.size() );
-    }
 
     @Test
     public void testAttributeValueFromAttributeAndValue() throws NonUniqueAttributeValueException

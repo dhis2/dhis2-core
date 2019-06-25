@@ -38,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.DataElementStore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,7 +62,7 @@ public class AttributeValueServiceTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private DataElementService dataElementService;
+    private DataElementStore dataElementStore;
 
     private AttributeValue avA;
     private AttributeValue avB;
@@ -245,5 +246,36 @@ public class AttributeValueServiceTest
         attributeService.updateAttributeValues( dataElementA, jsonValues );
 
         assertEquals( "updatedvalue1", dataElementA.getAttributeValue( av.getAttribute() ).getValue() );
+    }
+
+    @Test
+    public void testAttributeValueFromAttribute() throws NonUniqueAttributeValueException
+    {
+        Attribute attribute = new Attribute( "test", ValueType.TEXT );
+        attribute.setDataElementAttribute( true );
+        attributeService.addAttribute( attribute );
+
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementC = createDataElement( 'C' );
+
+        manager.save( dataElementA );
+        manager.save( dataElementB );
+        manager.save( dataElementC );
+
+        AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
+        AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
+        AttributeValue attributeValueC = new AttributeValue( "ANOTHER VALUE", attribute );
+
+        attributeService.addAttributeValue( dataElementA, attributeValueA );
+        attributeService.addAttributeValue( dataElementB, attributeValueB );
+        attributeService.addAttributeValue( dataElementC, attributeValueC );
+
+        dataElementStore.update( dataElementA );
+        dataElementStore.update( dataElementB );
+        dataElementStore.update( dataElementC );
+
+        List<AttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
+        assertEquals( 3, values.size() );
     }
 }
