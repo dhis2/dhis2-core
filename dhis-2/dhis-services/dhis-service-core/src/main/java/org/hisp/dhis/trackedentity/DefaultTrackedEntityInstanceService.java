@@ -633,12 +633,22 @@ public class DefaultTrackedEntityInstanceService
 
     private boolean isProgramMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {
+        if ( params.hasUniqueFilters() )
+        {
+            return false;
+        }
+
         return (!params.hasFilters() && params.getProgram().getMinAttributesRequiredToSearch() > 0)
             || (params.hasFilters() && params.getFilters().size() < params.getProgram().getMinAttributesRequiredToSearch());
     }
 
     private boolean isTeTypeMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {
+        if ( params.hasUniqueFilters() )
+        {
+            return false;
+        }
+
         return (!params.hasFilters() && params.getTrackedEntityType().getMinAttributesRequiredToSearch() > 0)
             || (params.hasFilters() && params.getFilters().size() < params.getTrackedEntityType().getMinAttributesRequiredToSearch());
     }
@@ -796,7 +806,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Attribute does not exist: " + item );
         }
 
-        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() );
+        return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
     }
 
     /**

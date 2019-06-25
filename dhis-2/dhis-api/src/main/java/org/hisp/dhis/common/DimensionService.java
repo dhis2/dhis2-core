@@ -101,4 +101,13 @@ public interface DimensionService
      * @return a map from the item ids to the dimension item objects.
      */
     Map<DimensionalItemId, DimensionalItemObject> getDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds );
+
+    /**
+     * Gets a map from dimension item ids to their dimension item objects
+     * without applying sharing settings.
+     *
+     * @param itemIds a set of ids of the dimension item objects to get.
+     * @return a map from the item ids to the dimension item objects.
+     */
+    Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds );
 }

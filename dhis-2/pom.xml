@@ -686,7 +686,13 @@
         <version>1.9.2</version>
       </dependency>
 
-      <!-- Other -->
+      <!-- Image Processing -->
+      <dependency>
+        <groupId>org.imgscalr</groupId>
+        <artifactId>imgscalr-lib</artifactId>
+        <version>4.2</version>
+      </dependency>
+
       <!-- Javassist from hibernate-core -->
       <dependency>
         <groupId>org.apache.struts</groupId>
@@ -1389,6 +1395,19 @@
         <groupId>io.github.benas</groupId>
         <artifactId>random-beans</artifactId>
         <version>3.7.0</version>
+      </dependency>
+
+      <!-- application monitoring -->
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-spring-legacy</artifactId>
+        <version>1.1.4</version>
+      </dependency>
+
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>1.1.4</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

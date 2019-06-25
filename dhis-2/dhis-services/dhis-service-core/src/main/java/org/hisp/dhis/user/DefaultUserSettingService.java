@@ -98,7 +98,7 @@ public class DefaultUserSettingService implements UserSettingService
         checkNotNull( userSettingStore );
         checkNotNull( userService );
         checkNotNull( systemSettingManager );
-        
+
         this.env = env;
         this.transactionTemplate = transactionTemplate;
         this.cacheProvider = cacheProvider;
@@ -116,7 +116,7 @@ public class DefaultUserSettingService implements UserSettingService
     public void init()
     {
         userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
 
     }
 

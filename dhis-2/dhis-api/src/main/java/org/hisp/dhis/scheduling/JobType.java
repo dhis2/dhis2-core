@@ -62,6 +62,7 @@ public enum JobType
     EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true,
         EventProgramsDataSynchronizationJobParameters.class, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false, null, null ),
+    IMAGE_PROCESSING( "imageProcessingJob", false, null, null ),
     META_DATA_SYNC( "metadataSyncJob", true, MetadataSyncJobParameters.class, null ),
     SMS_SEND( "sendSmsJob", false, SmsJobParameters.class, null ),
     SEND_SCHEDULED_MESSAGE( "sendScheduledMessageJob", true, null, null ),
