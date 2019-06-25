@@ -284,7 +284,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            params.setOrganisationUnits( user.getDataViewOrganisationUnitsWithFallback() );
+            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
@@ -326,7 +326,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            params.setOrganisationUnits( user.getDataViewOrganisationUnitsWithFallback() );
+            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
