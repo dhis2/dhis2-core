@@ -299,7 +299,7 @@ public abstract class NewSMSListener
         }
     }
 
-    public SMSMetadata getMetadata( Date lastSyncDate )
+    private SMSMetadata getMetadata( Date lastSyncDate )
     {
         SMSMetadata meta = new SMSMetadata();
         meta.dataElements = getAllDataElements( lastSyncDate );
@@ -313,7 +313,7 @@ public abstract class NewSMSListener
         return meta;
     }
 
-    public List<SMSMetadata.ID> getAllUserIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllUserIds( Date lastSyncDate )
     {
         List<User> users = userService.getAllUsers();
 
@@ -321,7 +321,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllTrackedEntityTypeIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllTrackedEntityTypeIds( Date lastSyncDate )
     {
         List<TrackedEntityType> teTypes = trackedEntityTypeService.getAllTrackedEntityType();
 
@@ -329,7 +329,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllTrackedEntityAttributeIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllTrackedEntityAttributeIds( Date lastSyncDate )
     {
         List<TrackedEntityAttribute> teiAttributes = trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
@@ -337,7 +337,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllProgramIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllProgramIds( Date lastSyncDate )
     {
         List<Program> programs = programService.getAllPrograms();
 
@@ -345,7 +345,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllOrgUnitIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllOrgUnitIds( Date lastSyncDate )
     {
         List<OrganisationUnit> orgUnits = organisationUnitService.getAllOrganisationUnits();
 
@@ -353,7 +353,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllDataElements( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllDataElements( Date lastSyncDate )
     {
         List<DataElement> dataElements = dataElementService.getAllDataElements();
 
@@ -361,7 +361,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllCatOptionCombos( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllCatOptionCombos( Date lastSyncDate )
     {
         List<CategoryOptionCombo> catOptionCombos = categoryService.getAllCategoryOptionCombos();
 
@@ -369,7 +369,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public SMSMetadata.ID getIdFromMetadata( IdentifiableObject obj, Date lastSyncDate )
+    private SMSMetadata.ID getIdFromMetadata( IdentifiableObject obj, Date lastSyncDate )
     {
         if ( obj.getCreated().after( lastSyncDate ) )
         {
