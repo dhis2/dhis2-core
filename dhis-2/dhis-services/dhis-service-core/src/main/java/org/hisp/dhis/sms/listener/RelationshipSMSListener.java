@@ -75,6 +75,7 @@ public class RelationshipSMSListener
 
     @Override
     protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+        throws SMSProcessingException
     {
         RelationshipSMSSubmission subm = (RelationshipSMSSubmission) submission;
 

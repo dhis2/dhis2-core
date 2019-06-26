@@ -46,6 +46,7 @@ public class DeleteEventSMSListener
 
     @Override
     protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+        throws SMSProcessingException
     {
         DeleteSMSSubmission subm = (DeleteSMSSubmission) submission;
 

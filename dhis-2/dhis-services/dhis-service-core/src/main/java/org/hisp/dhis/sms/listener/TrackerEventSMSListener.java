@@ -73,6 +73,7 @@ public class TrackerEventSMSListener
 
     @Override
     protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+        throws SMSProcessingException
     {
         TrackerEventSMSSubmission subm = (TrackerEventSMSSubmission) submission;
 

@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.listener;
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -56,7 +55,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.hisp.dhis.sms.listener.NewSMSListener.SMSResponse;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
@@ -86,99 +85,10 @@ public abstract class NewSMSListener
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
-    protected abstract SMSResponse postProcess( IncomingSms sms, SMSSubmission submission );
+    protected abstract SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+        throws SMSProcessingException;
 
     protected abstract boolean handlesType( SubmissionType type );
-
-    // TODO: Should this be here?
-    public enum SMSResponse
-    {
-        SUCCESS( 0, "Submission has been processed successfully" ),
-
-        // Errors
-        UNKNOWN_ERROR( 101, "An unknown error occurred" ), INVALID_USER( 201,
-            "User [%s] does not exist" ), INVALID_ORGUNIT( 202,
-                "Organisation unit [%s] does not exist" ), INVALID_PROGRAM( 203,
-                    "Program [%s] does not exist" ), INVALID_TETYPE( 204,
-                        "Tracked Entity Type [%s] does not exist" ), INVALID_DATASET( 205,
-                            "DataSet [%s] does not exist" ), INVALID_PERIOD( 206,
-                                "Period [%s] is invalid" ), INVALID_AOC( 207,
-                                    "Attribute Option Combo [%s] does not exist" ), INVALID_TEI( 208,
-                                        "Tracked Entity Instance [%s] does not exist" ), INVALID_STAGE( 209,
-                                            "Program stage [%s] does not exist" ), INVALID_EVENT( 210,
-                                                "Event [%s] does not exist" ), INVALID_RELTYPE( 211,
-                                                    "Relationship Type [%s] does not exist" ), INVALID_ENROLL( 212,
-                                                        "Enrollment [%s] does not exist" ), INVALID_ATTRIB( 213,
-                                                            "Attribute [%s] does not exist" ), USER_NOTIN_OU( 301,
-                                                                "User [%s] does not not belong to organisation unit [%s]" ), OU_NOTIN_PROGRAM(
-                                                                    302,
-                                                                    "Organisation unit [%s] is not assigned to program [%s]" ), OU_NOTIN_DATASET(
-                                                                        303,
-                                                                        "Organisation unit [%s] is not assigned to dataSet [%s]" ), ENROLL_FAILED(
-                                                                            304,
-                                                                            "Enrollment of TEI [%s] in program [%s] failed" ), DATASET_LOCKED(
-                                                                                305,
-                                                                                "Dataset [%s] is locked for period [%s]" ), MULTI_PROGRAMS(
-                                                                                    306,
-                                                                                    "Multiple active program instances exists for program [%s]" ), MULTI_STAGES(
-                                                                                        307,
-                                                                                        "Multiple program stages found for event capture program [%s]" ), NO_ENROLL(
-                                                                                            308,
-                                                                                            "No enrollment was found for tracked entity instance [%s] in program stage [%s]" ), NULL_ATTRIBVAL(
-                                                                                                309,
-                                                                                                "Value for attribute [%s] was null" ),
-
-        // Warnings
-        WARN_DVERR( 401, "There was an error with some of the data values in the submission" ), WARN_DVEMPTY( 402,
-            "The submission did not include any data values" ), WARN_AVEMPTY( 403,
-                "The submission did not include any attribute values" ),
-
-        ;
-
-        private final int code;
-
-        private String description;
-
-        private List<String> uids;
-
-        private SMSResponse( int code, String description )
-        {
-            this.code = code;
-            this.description = description;
-            this.uids = new ArrayList<String>();
-        }
-
-        public SMSResponse set( String... uids )
-        {
-            this.uids = Arrays.asList( uids );
-            this.description = String.format( description, (Object[]) uids );
-            return this;
-        }
-
-        public SMSResponse set( List<String> uids )
-        {
-            this.uids = uids;
-            this.description = String.format( description, uids );
-            return this;
-        }
-
-        public String getDescription()
-        {
-            return description;
-        }
-
-        public int getCode()
-        {
-            return code;
-        }
-
-        @Override
-        public String toString()
-        {
-            String uidDelim = uids.stream().collect( Collectors.joining( "," ) );
-            return code + ":" + uidDelim + ":" + description;
-        }
-    }
 
     @Resource( name = "smsMessageSender" )
     private MessageSender smsSender;
@@ -212,54 +122,60 @@ public abstract class NewSMSListener
             return false;
         }
 
-        return handlesType( getHeader( sms ).getType() );
+        SMSSubmissionHeader header = getHeader( sms );
+        if ( header == null )
+        {
+            // If the header is null we simply accept any listener
+            // and handle the error in receive() below
+            return true;
+        }
+        return handlesType( header.getType() );
     }
 
     @Override
     public void receive( IncomingSms sms )
     {
-        SMSSubmissionHeader header = null;
+        SMSSubmissionReader reader = new SMSSubmissionReader();
+        SMSSubmissionHeader header = getHeader( sms );
+        if ( header == null )
+        {
+            // Error with the header, we have no message ID, use -1
+            sendSMSResponse( SMSResponse.HEADER_ERROR, sms, -1 );
+            return;
+        }
 
+        SMSMetadata meta = getMetadata( header.getLastSyncDate() );
+        SMSSubmission subm = null;
         try
         {
-            SMSSubmissionReader reader = new SMSSubmissionReader();
-            header = reader.readHeader( SmsUtils.getBytes( sms ) );
-            SMSMetadata meta = getMetadata( header.getLastSyncDate() );
-            SMSSubmission subm = reader.readSubmission( SmsUtils.getBytes( sms ), meta );
+            subm = reader.readSubmission( SmsUtils.getBytes( sms ), meta );
+        }
+        catch ( Exception e )
+        {
+            Log.error( e.getMessage() );
+            sendSMSResponse( SMSResponse.READ_ERROR, sms, header.getSubmissionID() );
+            return;
+        }
 
-            // TODO: Can be removed - debugging line to check SMS submissions
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            Log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
+        // TODO: Can be removed - debugging line to check SMS submissions
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        Log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
 
-            checkUserAndOrgUnit( subm );
-            SMSResponse resp = postProcess( sms, subm );
-
-            Log.info( "SMS Response: " + resp.toString() );
-            update( sms, SmsMessageStatus.PROCESSED, true );
-            sendSMSResponse( resp, sms.getOriginator(), header.getSubmissionID() );
+        checkUserAndOrgUnit( subm );
+        SMSResponse resp = null;
+        try
+        {
+            resp = postProcess( sms, subm );
         }
         catch ( SMSProcessingException e )
         {
             Log.error( e.getMessage() );
-            update( sms, SmsMessageStatus.FAILED, true );
-            sendSMSResponse( e.getResp(), sms.getOriginator(), header.getSubmissionID() );
+            sendSMSResponse( e.getResp(), sms, header.getSubmissionID() );
+            return;
         }
-        catch ( Exception e )
-        {
-            // Exceptions caught here will come from reading the header and
-            // submission
-            // itself. We may not even have a submission ID to respond to the
-            // app with.
-            // TODO: We can handle exceptions in read submission assuming we
-            // have a
-            // valid header. We can't do anything about CRC checks though.
-            Log.error( e.getMessage() );
-            update( sms, SmsMessageStatus.FAILED, true );
-            if ( header != null )
-            {
-                sendSMSResponse( SMSResponse.UNKNOWN_ERROR, sms.getOriginator(), header.getSubmissionID() );
-            }
-        }
+
+        Log.info( "SMS Response: " + resp.toString() );
+        sendSMSResponse( resp, sms, header.getSubmissionID() );
     }
 
     private void checkUserAndOrgUnit( SMSSubmission subm )
@@ -293,13 +209,13 @@ public abstract class NewSMSListener
         }
         catch ( Exception e )
         {
-            Log.error( e.getMessage() );
             e.printStackTrace();
+            Log.error( e.getMessage() );
             return null;
         }
     }
 
-    public SMSMetadata getMetadata( Date lastSyncDate )
+    private SMSMetadata getMetadata( Date lastSyncDate )
     {
         SMSMetadata meta = new SMSMetadata();
         meta.dataElements = getAllDataElements( lastSyncDate );
@@ -313,7 +229,7 @@ public abstract class NewSMSListener
         return meta;
     }
 
-    public List<SMSMetadata.ID> getAllUserIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllUserIds( Date lastSyncDate )
     {
         List<User> users = userService.getAllUsers();
 
@@ -321,7 +237,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllTrackedEntityTypeIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllTrackedEntityTypeIds( Date lastSyncDate )
     {
         List<TrackedEntityType> teTypes = trackedEntityTypeService.getAllTrackedEntityType();
 
@@ -329,7 +245,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllTrackedEntityAttributeIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllTrackedEntityAttributeIds( Date lastSyncDate )
     {
         List<TrackedEntityAttribute> teiAttributes = trackedEntityAttributeService.getAllTrackedEntityAttributes();
 
@@ -337,7 +253,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllProgramIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllProgramIds( Date lastSyncDate )
     {
         List<Program> programs = programService.getAllPrograms();
 
@@ -345,7 +261,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllOrgUnitIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllOrgUnitIds( Date lastSyncDate )
     {
         List<OrganisationUnit> orgUnits = organisationUnitService.getAllOrganisationUnits();
 
@@ -353,7 +269,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllDataElements( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllDataElements( Date lastSyncDate )
     {
         List<DataElement> dataElements = dataElementService.getAllDataElements();
 
@@ -361,7 +277,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public List<SMSMetadata.ID> getAllCatOptionCombos( Date lastSyncDate )
+    private List<SMSMetadata.ID> getAllCatOptionCombos( Date lastSyncDate )
     {
         List<CategoryOptionCombo> catOptionCombos = categoryService.getAllCategoryOptionCombos();
 
@@ -369,7 +285,7 @@ public abstract class NewSMSListener
             .collect( Collectors.toList() );
     }
 
-    public SMSMetadata.ID getIdFromMetadata( IdentifiableObject obj, Date lastSyncDate )
+    private SMSMetadata.ID getIdFromMetadata( IdentifiableObject obj, Date lastSyncDate )
     {
         if ( obj.getCreated().after( lastSyncDate ) )
         {

@@ -85,6 +85,7 @@ public class AggregateDatasetSMSListener
 
     @Override
     protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+        throws SMSProcessingException
     {
         AggregateDatasetSMSSubmission subm = (AggregateDatasetSMSSubmission) submission;
 
