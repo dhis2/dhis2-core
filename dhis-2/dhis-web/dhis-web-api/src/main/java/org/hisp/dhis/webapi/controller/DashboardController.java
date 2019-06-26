@@ -54,7 +54,7 @@ import java.util.Set;
  * @author Lars Helge Overland
  */
 @Controller
-@ApiVersion( { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.DEFAULT } )
+@ApiVersion( { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.DEFAULT } )
 @RequestMapping( value = DashboardSchemaDescriptor.API_ENDPOINT )
 public class DashboardController
     extends AbstractCrudController<Dashboard>
