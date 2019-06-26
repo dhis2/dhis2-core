@@ -28,8 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.sms.listener.NewSMSListener.SMSResponse;
-
 public class SMSProcessingException
     extends
     RuntimeException

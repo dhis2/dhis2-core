@@ -55,7 +55,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.listener.NewSMSListener.SMSResponse;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
