@@ -133,7 +133,7 @@ public class SimpleEventSMSListener
         ProgramStage programStage = programStages.iterator().next();
 
         List<String> errorUIDs = saveNewEvent( subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user,
-            subm.getValues() );
+            subm.getValues(), subm.isComplete() );
         if ( !errorUIDs.isEmpty() )
         {
             return SMSResponse.WARN_DVERR.set( errorUIDs );

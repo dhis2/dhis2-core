@@ -44,6 +44,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -298,8 +299,8 @@ public abstract class NewSMSListener
     }
 
     protected List<String> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
-        ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user,
-        List<SMSDataValue> values )
+        ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SMSDataValue> values,
+        boolean completed )
     {
 
         ArrayList<String> errorUIDs = new ArrayList<>();
@@ -313,8 +314,13 @@ public abstract class NewSMSListener
         programStageInstance.setExecutionDate( sms.getSentDate() );
         programStageInstance.setDueDate( sms.getSentDate() );
         programStageInstance.setAttributeOptionCombo( aoc );
-        programStageInstance.setCompletedBy( user.getUsername() );
         programStageInstance.setStoredBy( user.getUsername() );
+        if ( completed )
+        {
+            programStageInstance.setCompletedBy( user.getUsername() );
+            programStageInstance.setCompletedDate( new Date() );
+            programStageInstance.setStatus( EventStatus.COMPLETED );
+        }
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSDataValue dv : values )
