@@ -1,5 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
+import java.util.Map;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -44,10 +46,11 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-
 @Transactional
-public class UnregisteredSMSListener extends CommandSMSListener {
+public class UnregisteredSMSListener
+    extends
+    CommandSMSListener
+{
 
     private static final String USER_NAME = "anonymous";
 
@@ -71,8 +74,7 @@ public class UnregisteredSMSListener extends CommandSMSListener {
     @Override
     protected SMSCommand getSMSCommand( IncomingSms sms )
     {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.UNREGISTERED_PARSER );
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.UNREGISTERED_PARSER );
     }
 
     @Override
@@ -106,11 +108,8 @@ public class UnregisteredSMSListener extends CommandSMSListener {
                 anonymousUser = userService.getUserCredentialsByUsername( userName );
             }
 
-
-            messageService.sendMessage(
-                new MessageConversationParams.Builder( userGroup.getMembers(), anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM )
-                .build()
-            );
+            messageService.sendMessage( new MessageConversationParams.Builder( userGroup.getMembers(),
+                anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM ).build() );
 
             sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
 
