@@ -82,12 +82,16 @@ public abstract class BaseSMSListener
         LOGGER.getOrDefault( WARNING, log::info ).accept( NO_SMS_CONFIG );
     }
 
-    protected void sendSMSResponse( SMSResponse resp, String recipient, int messageID )
+    protected void sendSMSResponse( SMSResponse resp, IncomingSms sms, int messageID )
     {
+        // A response code < 100 is either success or just a warning
+        SmsMessageStatus status = resp.getCode() < 100 ? SmsMessageStatus.PROCESSED : SmsMessageStatus.FAILED;
+        update( sms, status, true );
+
         if ( smsSender.isConfigured() )
         {
             String msg = String.format( "%d:%s", messageID, resp.toString() );
-            smsSender.sendMessage( null, msg, recipient );
+            smsSender.sendMessage( null, msg, sms.getOriginator() );
             return;
         }
 

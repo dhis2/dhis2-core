@@ -73,6 +73,7 @@ public class SimpleEventSMSListener
 
     @Override
     protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+        throws SMSProcessingException
     {
         SimpleEventSMSSubmission subm = (SimpleEventSMSSubmission) submission;
 

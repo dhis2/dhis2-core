@@ -79,6 +79,7 @@ public class EnrollmentSMSListener
 
     @Override
     protected SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
+        throws SMSProcessingException
     {
         EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
 
