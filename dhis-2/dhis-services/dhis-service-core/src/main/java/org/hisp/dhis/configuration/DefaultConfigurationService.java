@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -59,7 +60,7 @@ public class DefaultConfigurationService
     // -------------------------------------------------------------------------
     // ConfigurationService implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     @Transactional
     public void setConfiguration( Configuration configuration )
@@ -73,21 +74,49 @@ public class DefaultConfigurationService
             configurationStore.save( configuration );
         }
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Configuration getConfiguration()
     {
         Iterator<Configuration> iterator = configurationStore.getAll().iterator();
-        
+
         return iterator.hasNext() ? iterator.next() : new Configuration();
+    }
+
+    private static String createRegexFromGlob(String glob)
+    {
+        StringBuilder out = new StringBuilder("^");
+        for(int i = 0; i < glob.length(); ++i) {
+            final char c = glob.charAt(i);
+            switch(c) {
+                case '*': out.append(".*"); break;
+                case '?': out.append('.'); break;
+                case '.': out.append("\\."); break;
+                case '\\': out.append("\\\\"); break;
+                default: out.append(c);
+            }
+        }
+        out.append('$');
+        return out.toString();
     }
 
     @Override
     @Transactional(readOnly = true)
     public boolean isCorsWhitelisted( String origin )
     {
-        return getConfiguration().getCorsWhitelist().contains( origin );
+        boolean result = false;
+        Set<String> corsWhitelist = getConfiguration().getCorsWhitelist();
+        for (String cors : corsWhitelist)
+        {
+            String regex = createRegexFromGlob(cors);
+            if (cors.matches(regex))
+            {
+                result = true;
+                break;
+            }
+        }
+        return result;
     }
 
     @Override

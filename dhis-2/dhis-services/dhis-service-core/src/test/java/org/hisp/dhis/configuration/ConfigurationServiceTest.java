@@ -38,6 +38,9 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.Assert.*;
 
 /**
@@ -81,5 +84,25 @@ public class ConfigurationServiceTest
         
         assertNotNull( config.getFeedbackRecipients() );
         assertEquals( group, config.getFeedbackRecipients() );
+    }
+
+    @Test
+    public void testCorsWhitelist()
+    {
+        Configuration config = configurationService.getConfiguration();
+
+        Set<String> cors = new HashSet<>();
+
+        cors.add("http://localhost:3000/");
+        cors.add("http://*.local.tld:3000/");
+        cors.add("*.remote.tld");
+
+        config.setCorsWhitelist(cors);
+
+        configurationService.setConfiguration(config);
+
+        assertTrue(configurationService.isCorsWhitelisted("http://localhost:3000/"));
+        assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000"));
+        assertTrue(configurationService.isCorsWhitelisted("http://magic.remote.tld"));
     }
 }
