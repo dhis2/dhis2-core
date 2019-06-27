@@ -1,5 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
+import org.hisp.dhis.smscompression.SMSResponse;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.

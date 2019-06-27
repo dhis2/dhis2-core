@@ -57,6 +57,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
+import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSMetadata;
@@ -161,7 +162,7 @@ public abstract class NewSMSListener
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         Log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
 
-        checkUserAndOrgUnit( subm );
+        checkUser( subm );
         SMSResponse resp = null;
         try
         {
@@ -178,24 +179,14 @@ public abstract class NewSMSListener
         sendSMSResponse( resp, sms, header.getSubmissionID() );
     }
 
-    private void checkUserAndOrgUnit( SMSSubmission subm )
+    private void checkUser( SMSSubmission subm )
     {
-        String ouid = subm.getOrgUnit();
         String userid = subm.getUserID();
-        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( ouid );
         User user = userService.getUser( userid );
 
-        if ( ou == null )
-        {
-            throw new SMSProcessingException( SMSResponse.INVALID_ORGUNIT.set( ouid ) );
-        }
-        else if ( user == null )
+        if ( user == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_USER.set( userid ) );
-        }
-        else if ( !user.getOrganisationUnits().contains( ou ) )
-        {
-            throw new SMSProcessingException( SMSResponse.USER_NOTIN_OU.set( userid, ouid ) );
         }
     }
 

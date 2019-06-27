@@ -136,7 +136,12 @@
       <groupId>javax.interceptor</groupId>
       <artifactId>javax.interceptor-api</artifactId>
     </dependency>
-
+    <dependency>
+    	<groupId>com.github.eHealthAfrica</groupId>
+    	<artifactId>dhis2-sms-compression</artifactId>
+    	<version>0.0.18</version>
+    </dependency>
+    
     <!-- JClouds -->
 
     <dependency>
@@ -173,12 +178,7 @@
     <dependency>
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.github.eHealthAfrica</groupId>
-      <artifactId>dhis2-sms-compression</artifactId>
-      <version>0.0.16</version>
-    </dependency>    
+    </dependency>  
 
     <!-- Security -->
     <dependency>
@@ -203,6 +203,7 @@
       <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
