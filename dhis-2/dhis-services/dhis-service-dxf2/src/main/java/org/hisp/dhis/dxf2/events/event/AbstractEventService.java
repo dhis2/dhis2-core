@@ -129,16 +129,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
@@ -592,9 +583,9 @@ public abstract class AbstractEventService
         validate( params );
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         params.handleCurrentUserSelectionMode( user );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
@@ -648,7 +639,7 @@ public abstract class AbstractEventService
         }
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
-        
+
         params.handleCurrentUserSelectionMode( user );
 
         // ---------------------------------------------------------------------
@@ -969,6 +960,7 @@ public abstract class AbstractEventService
 
         event.setRelationships( programStageInstance.getRelationshipItems().stream()
             .map( ( r ) -> relationshipService.getRelationship( r.getRelationship(), RelationshipParams.FALSE, user ) )
+            .filter( Objects::nonNull )
             .collect( Collectors.toSet() )
         );
 
@@ -1074,7 +1066,7 @@ public abstract class AbstractEventService
                 params.getDataElements().add( dataElement );
             }
         }
-        
+
         if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
             && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
         {
@@ -1178,7 +1170,7 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
                 .setReference( event.getEvent() ).incrementIgnored();
         }
-        
+
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
