@@ -30,6 +30,8 @@ package org.hisp.dhis.util;
 
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.util.DateUtils.getMediumDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -40,10 +42,12 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.Calendar;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -269,5 +273,40 @@ public class DateUtilsTest
         Date date = DateUtils.getDate( time );
 
         assertEquals( time.toInstant( ZoneOffset.UTC ).toEpochMilli(), date.getTime() );
+    }
+
+    @Test
+    public void testParseIntoDSTGap()
+    {
+        DateTimeZone original = DateTimeZone.getDefault();
+        DateTimeZone.setDefault( DateTimeZone.forID( "Asia/Gaza" ) );
+
+        try
+        {
+            Calendar cal = Calendar.getInstance();
+
+            int year = 1985;
+            int month = 4;
+            int day = 14;
+    
+            String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-"  + ( day < 10 ? "0" : "" ) + day;
+    
+            assertTrue( dateTimeIsValid( dateString + "T00:00" ) );
+    
+            Date dateParsed = parseDate( dateString );
+            cal.setTime( dateParsed );
+    
+            assertEquals( year, cal.get( Calendar.YEAR ) );
+            assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
+            assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
+            assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
+    
+            Date mediumDateParsed = getMediumDate( dateString );
+            assertEquals( dateParsed, mediumDateParsed );
+        }
+        finally
+        {
+            DateTimeZone.setDefault( original );
+        }
     }
 }
