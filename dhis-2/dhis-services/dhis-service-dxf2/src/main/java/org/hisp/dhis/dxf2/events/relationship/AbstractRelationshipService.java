@@ -35,7 +35,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import orthrow new IllegalQueryException( errors.toString() );g.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
@@ -131,6 +131,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByTrackedEntityInstance( tei, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
@@ -141,6 +142,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByProgramInstance( pi, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
@@ -152,6 +154,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByProgramStageInstance( psi, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
@@ -428,7 +431,7 @@ public abstract class AbstractRelationshipService
 
         if ( !errors.isEmpty() )
         {
-            throw new IllegalQueryException( errors.toString() );
+            return null;
         }
 
         Relationship relationship = new Relationship();
