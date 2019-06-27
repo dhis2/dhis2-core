@@ -279,7 +279,7 @@ public class DateUtils
      */
     public static Date getMediumDate( String string )
     {
-        return string != null ? MEDIUM_DATE_FORMAT.parseLocalDateTime( string ).toDate() : null;
+        return string != null ? MEDIUM_DATE_FORMAT.parseDateTime( string ).toDate() : null;
     }
 
     /**
@@ -525,7 +525,7 @@ public class DateUtils
     {
         try
         {
-            DATE_TIME_FORMAT.parseLocalDateTime( dateTimeString );
+            DATE_TIME_FORMAT.parseDateTime( dateTimeString );
             return true;
         }
         catch ( IllegalArgumentException ex )
@@ -655,7 +655,7 @@ public class DateUtils
             return null;
         }
 
-        return DATE_FORMATTER.parseLocalDateTime( dateString ).toDate();
+        return DATE_FORMATTER.parseDateTime( dateString ).toDate();
     }
 
     /**
