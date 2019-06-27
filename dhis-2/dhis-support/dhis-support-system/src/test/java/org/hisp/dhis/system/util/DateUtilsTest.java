@@ -31,15 +31,21 @@ package org.hisp.dhis.system.util;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.TimeZone;
+import java.util.Calendar;
 
 import static org.hisp.dhis.system.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.system.util.DateUtils.dateTimeIsValid;
+import static org.hisp.dhis.system.util.DateUtils.parseDate;
+import static org.hisp.dhis.system.util.DateUtils.getMediumDate;
+
 import static org.junit.Assert.*;
 
 /**
@@ -262,5 +268,52 @@ public class DateUtilsTest
         Date date = DateUtils.getDate( time );
 
         assertEquals( time.toInstant( ZoneOffset.UTC ).toEpochMilli(), date.getTime() );
+    }
+
+    @Test
+    public void testParseIntoDSTGap()
+    {
+        Calendar cal = Calendar.getInstance();
+
+        int year = 1985;
+        int month = 4;
+        int day = 14;
+
+        String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-"  + ( day < 10 ? "0" : "" ) + day;
+
+        assertTrue( dateTimeIsValid( dateString + "T00:00" ) );
+
+        Date dateParsed = parseDate( dateString );
+        cal.setTime( dateParsed );
+        
+        assertEquals( year, cal.get( Calendar.YEAR ) );
+        assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
+        assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
+
+        Date mediumDateParsed = getMediumDate( dateString );
+        assertEquals( dateParsed, mediumDateParsed );
+    }
+
+    @Test
+    public void testParseZuluDateOffset()
+    {
+        TimeZone timeZone = TimeZone.getTimeZone( "UTC" );
+        Calendar cal = Calendar.getInstance( timeZone );
+
+        int year = 1995;
+        int month = 5;
+        int day = 24;
+
+        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day + "T00:00Z";
+
+        assertTrue( dateTimeIsValid( dateString  ) );
+
+        Date dateParsed = parseDate( dateString );
+        cal.setTime( dateParsed );
+
+        assertEquals( year, cal.get( Calendar.YEAR ) );
+        assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
+        assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
+        assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
     }
 }
