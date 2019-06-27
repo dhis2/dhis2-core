@@ -504,7 +504,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), null, tedd.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
@@ -660,7 +660,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), null, tedd.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
