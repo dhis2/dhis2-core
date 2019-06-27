@@ -95,14 +95,17 @@ public class ConfigurationServiceTest
 
         cors.add("http://localhost:3000/");
         cors.add("http://*.local.tld:3000/");
-        cors.add("*.remote.tld");
+        cors.add("*.remote.tld/");
 
         config.setCorsWhitelist(cors);
 
         configurationService.setConfiguration(config);
 
         assertTrue(configurationService.isCorsWhitelisted("http://localhost:3000/"));
-        assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000"));
-        assertTrue(configurationService.isCorsWhitelisted("http://magic.remote.tld"));
+        assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000/"));
+        assertTrue(configurationService.isCorsWhitelisted("http://magic.remote.tld/"));
+        assertFalse(configurationService.isCorsWhitelisted("http://localhost:9000/"));
+        assertFalse(configurationService.isCorsWhitelisted("http://another.local.tld/"));
+        assertFalse(configurationService.isCorsWhitelisted("http://some.other.tld/"));
     }
 }

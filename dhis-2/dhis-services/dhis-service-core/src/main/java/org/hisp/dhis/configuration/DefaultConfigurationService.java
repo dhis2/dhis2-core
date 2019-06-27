@@ -87,9 +87,11 @@ public class DefaultConfigurationService
     private static String createRegexFromGlob(String glob)
     {
         StringBuilder out = new StringBuilder("^");
-        for(int i = 0; i < glob.length(); ++i) {
+        for(int i = 0; i < glob.length(); ++i)
+        {
             final char c = glob.charAt(i);
-            switch(c) {
+            switch(c)
+            {
                 case '*': out.append(".*"); break;
                 case '?': out.append('.'); break;
                 case '.': out.append("\\."); break;
@@ -110,7 +112,7 @@ public class DefaultConfigurationService
         for (String cors : corsWhitelist)
         {
             String regex = createRegexFromGlob(cors);
-            if (cors.matches(regex))
+            if (origin.matches(regex))
             {
                 result = true;
                 break;
