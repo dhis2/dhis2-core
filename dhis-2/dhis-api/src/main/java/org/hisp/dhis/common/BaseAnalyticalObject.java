@@ -316,6 +316,17 @@ public abstract class BaseAnalyticalObject
         categoryOptionGroupSetDimensions.add( dimension );
     }
 
+    /**
+     * Adds a {@link TrackedEntityDataElementDimension}.
+     *
+     * @param dimension the dimension to add.
+     */
+    @Override
+    public void addTrackedEntityDataElementDimension( TrackedEntityDataElementDimension dimension )
+    {
+        dataElementDimensions.add( dimension );
+    }
+
     @Override
     public void clearTransientState()
     {

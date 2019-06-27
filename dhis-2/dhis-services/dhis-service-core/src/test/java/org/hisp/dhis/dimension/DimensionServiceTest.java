@@ -36,6 +36,8 @@ import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
@@ -508,5 +510,34 @@ public class DimensionServiceTest
         assertEquals( itemObjectF, map.get( itemIdF ) );
         assertEquals( itemObjectG, map.get( itemIdG ) );
         assertEquals( itemObjectH, map.get( itemIdH ) );
+    }
+
+    @Test
+    public void testGetDimensionalObjectEventReport()
+    {
+        EventReport report = new EventReport();
+        report.setAutoFields();
+
+        DataElement deA = createDataElement( 'A' );
+        LegendSet lsA = createLegendSet( 'A' );
+        ProgramStage psA = createProgramStage( 'A', 1 );
+
+        TrackedEntityDataElementDimension teDeDim = new TrackedEntityDataElementDimension( deA, lsA, psA, "EQ:1" );
+
+        report.addTrackedEntityDataElementDimension( teDeDim );
+        report.getOrganisationUnits().addAll( Lists.newArrayList( ouA, ouB, ouC ) );
+
+        report.getColumnDimensions().add( deA.getUid() );
+        report.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
+
+        report.populateAnalyticalProperties();
+
+        assertEquals( 1, report.getColumns().size() );
+        assertEquals( 1, report.getRows().size() );
+
+        DimensionalObject dim = report.getColumns().get( 0 );
+
+        assertEquals( lsA, dim.getLegendSet() );
+        assertEquals( psA, dim.getProgramStage() );
     }
 }
