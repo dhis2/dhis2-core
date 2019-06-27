@@ -44,11 +44,11 @@ public class DimensionalObjectTest
     @Test
     public void testGetFilterItemsAsList()
     {
-        BaseDimensionalObject objectA = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, "IN:uidA;uidB;uidC" );
+        BaseDimensionalObject objectA = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, null, "IN:uidA;uidB;uidC" );
         List<String> expectedA = new ArrayList<>( Arrays.asList( "uidA", "uidB", "uidC" ) );
         assertEquals( expectedA, objectA.getFilterItemsAsList() );
-        
-        BaseDimensionalObject objectB = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, "EQ:uidA" );
+
+        BaseDimensionalObject objectB = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null, null, null, null, "EQ:uidA" );
         assertEquals( null, objectB.getFilterItemsAsList() );
     }
 }
