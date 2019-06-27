@@ -40,6 +40,7 @@ import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.ProgramStage;
 
 import java.util.List;
 import java.util.Map;
@@ -142,6 +143,16 @@ public interface DimensionalObject
      * Indicates whether this dimension has a legend set.
      */
     boolean hasLegendSet();
+
+    /**
+     * Gets the program stage (not persisted).
+     */
+    ProgramStage getProgramStage();
+
+    /**
+     * Indicates whether this dimension has a program stage (not persisted).
+     */
+    boolean hasProgramStage();
 
     /**
      * Gets the aggregation type.

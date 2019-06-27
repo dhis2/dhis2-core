@@ -15,6 +15,9 @@
 
     <many-to-one name="legendSet" class="org.hisp.dhis.legend.LegendSet"
       column="legendsetid" foreign-key="fk_tedataelementdimension_legendsetid" />
+      
+    <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
+      column="programstageid" foreign-key="fk_tedataelementdimension_programstageid" />
 
     <property name="filter" type="text" />
 

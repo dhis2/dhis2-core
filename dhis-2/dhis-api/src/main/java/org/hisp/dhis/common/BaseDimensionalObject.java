@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.program.ProgramStage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -82,6 +83,11 @@ public class BaseDimensionalObject
      * The legend set for this dimension.
      */
     protected LegendSet legendSet;
+
+    /**
+     * The program stage for this dimension.
+     */
+    private ProgramStage programStage;
 
     /**
      * The aggregation type for this dimension.
@@ -205,6 +211,12 @@ public class BaseDimensionalObject
     public boolean hasLegendSet()
     {
         return getLegendSet() != null;
+    }
+
+    @Override
+    public boolean hasProgramStage()
+    {
+        return getProgramStage() != null;
     }
 
     @Override
@@ -345,6 +357,20 @@ public class BaseDimensionalObject
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
     }
 
     @Override
