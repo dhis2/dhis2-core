@@ -30,6 +30,7 @@ package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
+import static org.hisp.dhis.commons.collection.ListUtils.removeAll;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -616,6 +617,7 @@ public class DefaultDataIntegrityService
 
         report.setInvalidProgramIndicatorExpressions( getInvalidProgramIndicatorExpressions() );
         report.setInvalidProgramIndicatorFilters( getInvalidProgramIndicatorFilters() );
+        report.setGetProgramIndicatorWithNoExpression( getProgramIndicatorsWithNoExpression() );
 
         log.info( "Checked ProgramIndicators" );
 
@@ -654,6 +656,12 @@ public class DefaultDataIntegrityService
     public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport()
     {
         return new FlattenedDataIntegrityReport( getDataIntegrityReport() );
+    }
+
+    @Override
+    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
+    {
+        return programIndicatorService.getProgramIndicatorsWithNoExpression();
     }
 
     @Override
