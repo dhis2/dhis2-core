@@ -186,5 +186,8 @@ public interface DimensionalObject
      */
     String getKey();
 
+    /**
+     * Returns dimensional keywords for this dimension.
+     */
     DimensionalKeywords getDimensionalKeywords();
 }
