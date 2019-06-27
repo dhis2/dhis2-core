@@ -41,6 +41,7 @@ import java.util.Date;
 
 import static org.hisp.dhis.system.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.system.util.DateUtils.dateTimeIsValid;
+import static org.hisp.dhis.system.util.DateUtils.parseDate;
 import static org.junit.Assert.*;
 
 /**
@@ -263,5 +264,14 @@ public class DateUtilsTest
         Date date = DateUtils.getDate( time );
 
         assertEquals( time.toInstant( ZoneOffset.UTC ).toEpochMilli(), date.getTime() );
+    }
+
+    @Test
+    public void testParseDate()
+    {
+        assertNotEquals( parseDate( "2019-03-30" ), null );
+        assertNotEquals( parseDate( "2019-03-31" ), null );
+        assertNotEquals( parseDate( "2019-04-01" ), null );
+        assertNotEquals( parseDate( "1985-04-14" ), null );
     }
 }
