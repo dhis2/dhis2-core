@@ -166,6 +166,8 @@ public class MapView
 
     private int eventPointRadius;
 
+    private MapViewRenderingStrategy renderingStrategy;
+
     /**
      * General configuration property for JSON values used to store information
      * for layers with arbitrary configuration needs.
@@ -698,6 +700,18 @@ public class MapView
     public void setEventPointRadius( int eventPointRadius )
     {
         this.eventPointRadius = eventPointRadius;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MapViewRenderingStrategy getRenderingStrategy()
+    {
+        return renderingStrategy;
+    }
+
+    public void setRenderingStrategy( MapViewRenderingStrategy renderingStrategy )
+    {
+        this.renderingStrategy = renderingStrategy;
     }
 
     @JsonProperty
