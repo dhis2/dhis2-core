@@ -82,6 +82,7 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.security.acl.AclService;
@@ -898,6 +899,8 @@ public class DefaultDimensionService
                     dataElementDimension.setDataElement( idObjectManager.get( DataElement.class, dimensionId ) );
                     dataElementDimension.setLegendSet( dimension.hasLegendSet() ?
                         idObjectManager.get( LegendSet.class, dimension.getLegendSet().getUid() ) : null );
+                    dataElementDimension.setProgramStage( dimension.hasProgramStage() ?
+                        idObjectManager.get( ProgramStage.class, dimension.getProgramStage().getUid() ) : null );
                     dataElementDimension.setFilter( dimension.getFilter() );
 
                     object.getDataElementDimensions().add( dataElementDimension );
