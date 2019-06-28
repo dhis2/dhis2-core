@@ -132,6 +132,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByTrackedEntityInstance( tei, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
@@ -142,6 +143,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByProgramInstance( pi, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
@@ -153,6 +155,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByProgramStageInstance( psi, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
