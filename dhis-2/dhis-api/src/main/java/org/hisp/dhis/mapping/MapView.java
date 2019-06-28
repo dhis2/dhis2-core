@@ -192,10 +192,12 @@ public class MapView
 
     public MapView()
     {
+        this.renderingStrategy = MapViewRenderingStrategy.SINGLE;
     }
 
     public MapView( String layer )
     {
+        this();
         this.layer = layer;
     }
 
