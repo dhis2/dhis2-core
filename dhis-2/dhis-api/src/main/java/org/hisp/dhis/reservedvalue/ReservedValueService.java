@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,4 +46,8 @@ public interface ReservedValueService
     boolean useReservedValue( TextPattern textPattern, String value );
 
     boolean isReserved( TextPattern textPattern, String value );
+
+    void removeExpiredReservations();
+
+    void deleteReservedValueByUid( String uid );
 }

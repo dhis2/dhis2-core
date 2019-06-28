@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,13 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.*;
@@ -63,50 +63,50 @@ public class SchedulerStart extends AbstractStartupRoutine
     private final String CRON_DAILY_2AM = "0 0 2 ? * *";
     private final String CRON_DAILY_7AM = "0 0 7 ? * *";
     private final String LEADER_JOB_CRON_FORMAT = "0 0/%s * * * *";
+    private final String DEFAULT_FILE_RESOURCE_CLEANUP_UID = "pd6O228pqr0";
     private final String DEFAULT_FILE_RESOURCE_CLEANUP = "File resource clean up";
+    private final String DEFAULT_DATA_STATISTICS_UID = "BFa3jDsbtdO";
     private final String DEFAULT_DATA_STATISTICS = "Data statistics";
+    private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID = "Js3vHn2AVuG";
     private final String DEFAULT_VALIDATION_RESULTS_NOTIFICATION = "Validation result notification";
+    private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID = "sHMedQF7VYa";
     private final String DEFAULT_CREDENTIALS_EXPIRY_ALERT = "Credentials expiry alert";
+    private final String DEFAULT_DATA_SET_NOTIFICATION_UID = "YvAwAmrqAtN";
     private final String DEFAULT_DATA_SET_NOTIFICATION = "Dataset notification";
+    private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID = "uwWCT2BMmlq";
     private final String DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES = "Remove expired reserved values";
+    private final String DEFAULT_LEADER_ELECTION_UID = "MoUd5BTQ3lY";
     private final String DEFAULT_LEADER_ELECTION = "Leader election in cluster";
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private String redisEnabled;
+    private final String redisEnabled;
 
-    private String leaderElectionTime;
+    private final String leaderElectionTime;
 
-    private JobConfigurationService jobConfigurationService;
+    private final JobConfigurationService jobConfigurationService;
 
-    public void setJobConfigurationService( JobConfigurationService jobConfigurationService )
+    private final SchedulingManager schedulingManager;
+
+    private final MessageService messageService;
+
+    public SchedulerStart( SystemSettingManager systemSettingManager, String redisEnabled, String leaderElectionTime,
+        JobConfigurationService jobConfigurationService, SchedulingManager schedulingManager,
+        MessageService messageService )
     {
-        this.jobConfigurationService = jobConfigurationService;
-    }
+        checkNotNull( systemSettingManager );
+        checkNotNull( jobConfigurationService );
+        checkNotNull( schedulingManager );
+        checkNotNull( messageService );
+        checkNotNull( leaderElectionTime );
+        checkNotNull( redisEnabled );
 
-    private SchedulingManager schedulingManager;
-
-    public void setSchedulingManager( SchedulingManager schedulingManager )
-    {
-        this.schedulingManager = schedulingManager;
-    }
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
-
-    public void setRedisEnabled( String redisEnabled )
-    {
+        this.systemSettingManager = systemSettingManager;
         this.redisEnabled = redisEnabled;
-    }
-
-    public void setLeaderElectionTime( String leaderElectionTime )
-    {
         this.leaderElectionTime = leaderElectionTime;
+        this.jobConfigurationService = jobConfigurationService;
+        this.schedulingManager = schedulingManager;
+        this.messageService = messageService;
     }
 
     @Override
@@ -161,6 +161,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         {
             JobConfiguration fileResourceCleanUp = new JobConfiguration( DEFAULT_FILE_RESOURCE_CLEANUP,
                 FILE_RESOURCE_CLEANUP, CRON_DAILY_2AM, null, false, true );
+            fileResourceCleanUp.setUid( DEFAULT_FILE_RESOURCE_CLEANUP_UID );
             fileResourceCleanUp.setLeaderOnlyJob( true );
             addAndScheduleJob( fileResourceCleanUp );
         }
@@ -171,6 +172,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                 CRON_DAILY_2AM, null, false, true );
             portJob( systemSettingManager, dataStatistics, SettingKey.LAST_SUCCESSFUL_DATA_STATISTICS );
             dataStatistics.setLeaderOnlyJob( true );
+            dataStatistics.setUid( DEFAULT_DATA_STATISTICS_UID );
             addAndScheduleJob( dataStatistics );
         }
 
@@ -179,6 +181,7 @@ public class SchedulerStart extends AbstractStartupRoutine
             JobConfiguration validationResultNotification = new JobConfiguration( DEFAULT_VALIDATION_RESULTS_NOTIFICATION,
                 VALIDATION_RESULTS_NOTIFICATION, CRON_DAILY_7AM, null, false, true );
             validationResultNotification.setLeaderOnlyJob( true );
+            validationResultNotification.setUid( DEFAULT_VALIDATION_RESULTS_NOTIFICATION_UID );
             addAndScheduleJob( validationResultNotification );
         }
 
@@ -187,6 +190,7 @@ public class SchedulerStart extends AbstractStartupRoutine
             JobConfiguration credentialsExpiryAlert = new JobConfiguration( DEFAULT_CREDENTIALS_EXPIRY_ALERT,
                 CREDENTIALS_EXPIRY_ALERT, CRON_DAILY_2AM, null, false, true );
             credentialsExpiryAlert.setLeaderOnlyJob( true );
+            credentialsExpiryAlert.setUid( DEFAULT_CREDENTIALS_EXPIRY_ALERT_UID );
             addAndScheduleJob( credentialsExpiryAlert );
         }
 
@@ -195,6 +199,7 @@ public class SchedulerStart extends AbstractStartupRoutine
             JobConfiguration dataSetNotification = new JobConfiguration( DEFAULT_DATA_SET_NOTIFICATION,
                 DATA_SET_NOTIFICATION, CRON_DAILY_2AM, null, false, true );
             dataSetNotification.setLeaderOnlyJob( true );
+            dataSetNotification.setUid( DEFAULT_DATA_SET_NOTIFICATION_UID );
             addAndScheduleJob( dataSetNotification );
         }
 
@@ -203,6 +208,7 @@ public class SchedulerStart extends AbstractStartupRoutine
             JobConfiguration removeExpiredReservedValues = new JobConfiguration( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES,
                 REMOVE_EXPIRED_RESERVED_VALUES, CRON_HOURLY, null, false, true );
             removeExpiredReservedValues.setLeaderOnlyJob( true );
+            removeExpiredReservedValues.setUid( DEFAULT_REMOVE_EXPIRED_RESERVED_VALUES_UID );
             addAndScheduleJob( removeExpiredReservedValues );
         }
 
@@ -211,6 +217,7 @@ public class SchedulerStart extends AbstractStartupRoutine
             JobConfiguration leaderElectionJobConfiguration = new JobConfiguration( DEFAULT_LEADER_ELECTION,
                 LEADER_ELECTION, String.format( LEADER_JOB_CRON_FORMAT, leaderElectionTime ), null, false, true );
             leaderElectionJobConfiguration.setLeaderOnlyJob( false );
+            leaderElectionJobConfiguration.setUid( DEFAULT_LEADER_ELECTION_UID );
             addAndScheduleJob( leaderElectionJobConfiguration );
         }
         else
@@ -253,7 +260,7 @@ public class SchedulerStart extends AbstractStartupRoutine
     }
 
 
-    public static void portJob( SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, SettingKey systemKey )
+    private static void portJob(SystemSettingManager systemSettingManager, JobConfiguration jobConfiguration, SettingKey systemKey)
     {
         Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
 

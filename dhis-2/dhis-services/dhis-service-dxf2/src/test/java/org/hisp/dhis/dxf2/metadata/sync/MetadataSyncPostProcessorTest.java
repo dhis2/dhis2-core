@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.retry.RetryContext;
 
 import java.util.Date;
-import java.util.HashMap;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,10 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -42,10 +44,11 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -57,15 +60,23 @@ import static org.mockito.Mockito.*;
 /**
  * Created by zubair@dhis2.org on 04.02.18.
  */
-@RunWith( MockitoJUnitRunner.class )
 public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 {
     private static final String NOTIFICATION_UID = "abc123";
     private static final String DATA = "abc123";
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     // -------------------------------------------------------------------------
     // Mocking Dependencies
     // -------------------------------------------------------------------------
+
+    @Mock
+    private ProgramInstanceService programInstanceService;
+
+    @Mock
+    private ProgramStageInstanceService programStageInstanceService;
 
     @Mock
     private ProgramRuleEngine programRuleEngine;
@@ -126,6 +137,10 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         }).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
 
         when( programRuleService.getProgramRule( any( Program.class ) ) ).thenReturn( programRules );
+
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
+        when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
     }
 
     @Test
@@ -144,7 +159,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
 
-        List<RuleEffect> effects = service.evaluate( programInstance );
+        List<RuleEffect> effects = service.evaluateEnrollment( programInstance.getId() );
 
         assertEquals( 1, effects.size() );
 
@@ -160,7 +175,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         assertEquals( programInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
-        verify( ruleActionSendMessage ).implement( Matchers.any( RuleEffect.class ), argumentCaptor.capture() );
+        verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), argumentCaptor.capture() );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
@@ -173,7 +188,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluate( programStageInstance );
+        List<RuleEffect> ruleEffects = service.evaluateEvent( programStageInstance.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -181,7 +196,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         assertEquals( programStageInstance, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
-        verify( ruleActionSendMessage ).implement( Matchers.any( RuleEffect.class ), argumentCaptor.capture() );
+        verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), argumentCaptor.capture() );
 
         assertEquals( 1, this.ruleEffects.size() );
         assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );

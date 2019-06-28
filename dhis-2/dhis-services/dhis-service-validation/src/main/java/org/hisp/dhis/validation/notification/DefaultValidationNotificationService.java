@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.validation.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 import static org.hisp.dhis.validation.Importance.HIGH;
 import static org.hisp.dhis.validation.Importance.LOW;
@@ -53,7 +54,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.message.MessageConversationPriority;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -62,9 +62,11 @@ import org.hisp.dhis.notification.SendStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.BiMap;
@@ -74,6 +76,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.validation.notification.ValidationNotificationService" )
 @Transactional
 public class DefaultValidationNotificationService
     implements ValidationNotificationService
@@ -89,24 +92,23 @@ public class DefaultValidationNotificationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
+    private final NotificationMessageRenderer<ValidationResult> notificationMessageRenderer;
 
-    public void setNotificationMessageRenderer( NotificationMessageRenderer<ValidationResult> notificationMessageRenderer )
+    private final MessageService messageService;
+
+    private final ValidationResultService validationResultService;
+
+    public DefaultValidationNotificationService(
+        NotificationMessageRenderer<ValidationResult> notificationMessageRenderer, MessageService messageService,
+        ValidationResultService validationResultService )
     {
+
+        checkNotNull( notificationMessageRenderer );
+        checkNotNull( messageService );
+        checkNotNull( validationResultService );
+
         this.notificationMessageRenderer = notificationMessageRenderer;
-    }
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
         this.messageService = messageService;
-    }
-
-    private ValidationResultService validationResultService;
-
-    public void setValidationResultService( ValidationResultService validationResultService )
-    {
         this.validationResultService = validationResultService;
     }
 
@@ -220,10 +222,9 @@ public class DefaultValidationNotificationService
             messagePairs );
 
         // Flatten the grouped and sorted MessagePairs into single NotificationMessages
-        Map<Set<User>, NotificationMessage> summaryMessages = createSummaryNotificationMessages(
-            groupedByRecipientsForSummary, new Date() );
 
-        return summaryMessages;
+        return createSummaryNotificationMessages(
+            groupedByRecipientsForSummary, new Date() );
     }
 
     private Map<Set<User>, NotificationMessage> createSummaryNotificationMessages(
@@ -238,7 +239,7 @@ public class DefaultValidationNotificationService
         return groupedByRecipients.entrySet().stream()
             .collect(
                 Collectors.toMap(
-                    e -> e.getKey(),
+                        Map.Entry::getKey,
                     e -> createSummarizedMessage( e.getValue(), renderedNotificationsMap, validationDate )
                 )
             );

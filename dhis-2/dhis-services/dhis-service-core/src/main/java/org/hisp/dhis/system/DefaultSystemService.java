@@ -1,7 +1,7 @@
 package org.hisp.dhis.system;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,18 +28,10 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.Configuration;
@@ -55,43 +47,69 @@ import org.hisp.dhis.logging.LoggingConfig;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.system.SystemService" )
 public class DefaultSystemService
     implements SystemService, InitializingBean
 {
     private static final Log log = LogFactory.getLog( DefaultSystemService.class );
 
-    @Autowired
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
 
-    @Autowired
-    private DatabaseInfo databaseInfo;
+    private final DatabaseInfo databaseInfo;
 
-    @Autowired
-    private ConfigurationService configurationService;
+    private final ConfigurationService configurationService;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
+    private final DhisConfigurationProvider dhisConfig;
 
-    @Autowired
-    private CalendarService calendarService;
+    private final CalendarService calendarService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private DataSourceManager dataSourceManager;
+    private final DataSourceManager dataSourceManager;
+
+    public DefaultSystemService( LocationManager locationManager, DatabaseInfo databaseInfo,
+        ConfigurationService configurationService, DhisConfigurationProvider dhisConfig,
+        CalendarService calendarService, SystemSettingManager systemSettingManager,
+        DataSourceManager dataSourceManager )
+    {
+        checkNotNull( locationManager );
+        checkNotNull( databaseInfo );
+        checkNotNull( configurationService );
+        checkNotNull( dhisConfig );
+        checkNotNull( calendarService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( dataSourceManager );
+
+        this.locationManager = locationManager;
+        this.databaseInfo = databaseInfo;
+        this.configurationService = configurationService;
+        this.dhisConfig = dhisConfig;
+        this.calendarService = calendarService;
+        this.systemSettingManager = systemSettingManager;
+        this.dataSourceManager = dataSourceManager;
+    }
 
     /**
      * Variable holding fixed system info state.
@@ -99,8 +117,7 @@ public class DefaultSystemService
     private SystemInfo systemInfo = null;
 
     @Override
-    public void afterPropertiesSet() throws Exception
-    {
+    public void afterPropertiesSet() {
         systemInfo = getFixedSystemInfo();
 
         List<String> info = ImmutableList.<String>builder()
@@ -119,6 +136,7 @@ public class DefaultSystemService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public SystemInfo getSystemInfo()
     {
         SystemInfo info = systemInfo != null ? systemInfo.instance() : null;
@@ -158,11 +176,7 @@ public class DefaultSystemService
             (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE ),
             ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_NAME )),
             LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_LEVEL )).toUpperCase() ),
-            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_FORMAT )).toUpperCase() ),
-            (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA ),
-            LogLevel.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_LEVEL )).toUpperCase() ),
-            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_FORMAT )).toUpperCase() ),
-            ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_KAFKA_TOPIC ))
+            LogFormat.valueOf( ((String) systemSettingManager.getSystemSetting( SettingKey.LOGGING_ADAPTER_FILE_FORMAT )).toUpperCase() )
         ) );
 
         return info;
@@ -238,7 +252,7 @@ public class DefaultSystemService
         // Database
         // ---------------------------------------------------------------------
 
-        info.setDatabaseInfo( databaseInfo );
+        info.setDatabaseInfo( databaseInfo.instance() );
         info.setReadReplicaCount( dataSourceManager.getReadReplicaCount() );
 
         // ---------------------------------------------------------------------

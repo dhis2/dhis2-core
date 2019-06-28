@@ -1,7 +1,7 @@
 package org.hisp.dhis.keyjsonvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
         keyJsonValue.setKey( "1" );
 
         keyJsonValueStore.save( keyJsonValue );
-        int id = keyJsonValue.getId();
+        long id = keyJsonValue.getId();
 
         assertNotNull( keyJsonValue );
         assertEquals( keyJsonValue, keyJsonValueStore.get( id ) );

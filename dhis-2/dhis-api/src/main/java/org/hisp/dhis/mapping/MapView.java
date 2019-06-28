@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -71,7 +72,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 @JacksonXmlRootElement( localName = "mapView", namespace = DxfNamespaces.DXF_2_0 )
 public class MapView
     extends BaseAnalyticalObject
-    implements EventAnalyticalObject, MetadataObject
+    implements EventAnalyticalObject, MetadataObject, EmbeddedObject
 {
     public static final String LAYER_BOUNDARY = "boundary";
     public static final String LAYER_FACILITY = "facility";
@@ -96,22 +97,27 @@ public class MapView
     private Date startDate;
 
     private Date endDate;
-    
+
     /**
      * Tracked entity instance layer.
      */
     private TrackedEntityType trackedEntityType;
-    
+
     private ProgramStatus programStatus;
-    
+
     private Boolean followUp;
-    
+
     private OrganisationUnitSelectionMode organisationUnitSelectionMode;
 
     /**
      * Dimensions to use as columns.
      */
     private List<String> columnDimensions = new ArrayList<>();
+
+    /**
+     * Dimensions to use as filter.
+     */
+    private List<String> filterDimensions = new ArrayList<>();
 
     private String layer;
 
@@ -165,7 +171,7 @@ public class MapView
      * for layers with arbitrary configuration needs.
      */
     private String config;
-    
+
     private Object styleDataItem;
 
     // -------------------------------------------------------------------------
@@ -206,6 +212,10 @@ public class MapView
         this.organisationUnitsInGroups = organisationUnitsInGroups;
     }
 
+    /**
+     * Populates analytical properties. Organisation unit dimension is
+     * fixed to "rows" currently.
+     */
     @Override
     public void populateAnalyticalProperties()
     {
@@ -216,9 +226,9 @@ public class MapView
 
         rows.add( getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID ) );
 
-        if ( !periods.isEmpty() || hasRelativePeriods() )
+        for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
+            filters.add( getDimensionalObject( filter ) );
         }
     }
 
@@ -276,11 +286,13 @@ public class MapView
     // EventAnalyticalObject
     // -------------------------------------------------------------------------
 
+    @Override
     public EventOutputType getOutputType()
     {
         return EventOutputType.EVENT;
     }
 
+    @Override
     public DimensionalItemObject getValue()
     {
         return null;
@@ -326,6 +338,7 @@ public class MapView
         return startDate;
     }
 
+    @Override
     public void setStartDate( Date startDate )
     {
         this.startDate = startDate;
@@ -339,6 +352,7 @@ public class MapView
         return endDate;
     }
 
+    @Override
     public void setEndDate( Date endDate )
     {
         this.endDate = endDate;
@@ -403,6 +417,19 @@ public class MapView
     public void setColumnDimensions( List<String> columnDimensions )
     {
         this.columnDimensions = columnDimensions;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "filterDimensions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "filterDimension", namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getFilterDimensions()
+    {
+        return filterDimensions;
+    }
+
+    public void setFilterDimensions( List<String> filterDimensions )
+    {
+        this.filterDimensions = filterDimensions;
     }
 
     @JsonProperty

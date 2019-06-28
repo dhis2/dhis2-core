@@ -1,9 +1,7 @@
 package org.hisp.dhis.system.util;
 
-import static org.junit.Assert.assertEquals;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import static org.junit.Assert.assertEquals;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 

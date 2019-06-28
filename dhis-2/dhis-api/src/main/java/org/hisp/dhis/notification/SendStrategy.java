@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,10 +52,5 @@ public enum SendStrategy
     public String getDescription()
     {
         return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
     }
 }

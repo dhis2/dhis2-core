@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -169,8 +169,8 @@ public class DataApprovalAuditStoreTest
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
 
-        optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionA, optionB );
+        optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
+        optionComboB = createCategoryOptionCombo( categoryComboA, optionA, optionB );
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
 

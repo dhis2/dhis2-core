@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,9 @@ public interface EventAnalyticsService
     String ITEM_PROGRAM_INSTANCE = "pi";
     String ITEM_PROGRAM_STAGE = "ps";
     String ITEM_EVENT_DATE = "eventdate";
+    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+    String ITEM_INCIDENT_DATE = "incidentdate";
+    String ITEM_GEOMETRY = "geometry";
     String ITEM_LONGITUDE = "longitude";
     String ITEM_LATITUDE = "latitude";
     String ITEM_ORG_UNIT_NAME = "ouname";

@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,23 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
  */
+
+@Transactional
+@Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
 public class DefaultProgramRuleEngineService 
     implements ProgramRuleEngineService
 {
@@ -50,20 +58,39 @@ public class DefaultProgramRuleEngineService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramRuleEngine programRuleEngine;
+    private final ProgramRuleEngine programRuleEngine;
 
-    @Autowired
-    private List<RuleActionImplementer> ruleActionImplementers;
+    private final List<RuleActionImplementer> ruleActionImplementers;
+
+    private final ProgramInstanceService programInstanceService;
+
+    private final ProgramStageInstanceService programStageInstanceService;
+    
+    public DefaultProgramRuleEngineService( ProgramRuleEngine programRuleEngine,
+        List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
+        ProgramStageInstanceService programStageInstanceService )
+    {
+        checkNotNull( programRuleEngine );
+        checkNotNull( ruleActionImplementers );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+
+        this.programRuleEngine = programRuleEngine;
+        this.ruleActionImplementers = ruleActionImplementers;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+    }
 
     @Override
-    public List<RuleEffect> evaluate( ProgramInstance programInstance )
+    public List<RuleEffect> evaluateEnrollment( long programInstance )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        ProgramInstance pi = programInstanceService.getProgramInstance( programInstance );
+
         try
         {
-            ruleEffects = programRuleEngine.evaluateEnrollment( programInstance );
+            ruleEffects = programRuleEngine.evaluateEnrollment( pi );
         }
         catch( Exception ex )
         {
@@ -77,7 +104,7 @@ public class DefaultProgramRuleEngineService
             {
                 log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
-                i.implement( effect, programInstance );
+                i.implement( effect, pi );
             } );
         }
 
@@ -85,13 +112,15 @@ public class DefaultProgramRuleEngineService
     }
 
     @Override
-    public List<RuleEffect> evaluate( ProgramStageInstance programStageInstance )
+    public List<RuleEffect> evaluateEvent( long programStageInstance )
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstance );
+
         try
         {
-            ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+            ruleEffects = programRuleEngine.evaluateEvent( psi );
         }
         catch( Exception ex )
         {
@@ -105,7 +134,7 @@ public class DefaultProgramRuleEngineService
             {
                 log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
-                i.implement( effect, programStageInstance );
+                i.implement( effect, psi );
             } );
         }
 

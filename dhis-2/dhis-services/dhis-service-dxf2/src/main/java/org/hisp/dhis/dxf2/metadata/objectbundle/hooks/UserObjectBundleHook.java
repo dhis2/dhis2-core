@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
     /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,12 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -51,6 +53,7 @@ import java.util.Set;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class UserObjectBundleHook extends AbstractObjectBundleHook
 {
     @Autowired
@@ -58,6 +61,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
@@ -85,6 +91,18 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         if ( !User.class.isInstance( object ) || ((User) object).getUserCredentials() == null ) return;
 
         User user = (User) object;
+
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser != null )
+        {
+            user.getUserCredentials().getCogsDimensionConstraints().addAll(
+                currentUser.getUserCredentials().getCogsDimensionConstraints() );
+
+            user.getUserCredentials().getCatDimensionConstraints().addAll(
+                currentUser.getUserCredentials().getCatDimensionConstraints() );
+        }
+
         bundle.putExtras( user, "uc", user.getUserCredentials() );
         user.setUserCredentials( null );
     }
@@ -109,6 +127,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             fileResourceService.updateFileResource( fileResource );
         }
 
+        userCredentials.setUserInfo( user );
         preheatService.connectReferences( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
         sessionFactory.getCurrentSession().save( userCredentials );
         user.setUserCredentials( userCredentials );
@@ -128,7 +147,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
         if ( persisted.getAvatar() != null && (user.getAvatar() == null || !persisted.getAvatar().getUid().equals( user.getAvatar().getUid() ) ) )
         {
             FileResource fileResource = fileResourceService.getFileResource( persisted.getAvatar().getUid() );
-            fileResource.setAssigned( false );
             fileResourceService.updateFileResource( fileResource );
 
             if ( user.getAvatar() != null )

@@ -7,13 +7,13 @@
 ##########
 # USAGE:
 # To build, run this command in the directory containing this Dockerfile:
-#   > docker build . -t <imagetag>
+#   > docker build -t <imagetag> .
 # To spin up the built image, mount read-only DHIS2_home from <localdir>, and listen on local <port>:
 #   > docker run -d --rm -p <port>:80 -v <localdir>:/DHIS2_home:ro <imagetag>
 # This will output a <containerid>, you will need this ID to manage the running service.
 #   NB: You can find the <containerid> later by running `docker ps`
 # The DHIS2 Core instance should now be running in the background
-# 
+#
 # Once the core has finished starting up it will be accessible at http://localhost:<port>
 # To tail the logs of the running service:
 #   > docker logs --follow <containerid>
@@ -26,6 +26,7 @@
 # Build the DHIS2 Core server from source (Maven)
 ##########
 FROM maven:3.5.3-jdk-8-slim as build
+LABEL stage=intermediate
 #NB - maven-frontend-plugin breaks on Alpine linux, so we use Debian Slim instead
 #NB - maven-surefire-plugin fails with maven:3.5.4-jdk-8-slim and later.
 #     This is a recent issue possibly traced to an OpenJDK bug - https://github.com/carlossg/docker-maven/issues/90
@@ -36,8 +37,8 @@ COPY . /src
 
 # TODO: We should be able to achieve much faster incremental builds and cached dependencies using
 #   a wrapper build script and intelligent Docker layer caching, but for now just naively build everything
-RUN mvn clean install -T1C -f /src/dhis-2/pom.xml
-RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml
+RUN mvn clean install -T1C -f /src/dhis-2/pom.xml -DskipTests
+RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests
 
 ##########
 # BUILD STAGE 2
@@ -47,6 +48,8 @@ RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml
 FROM tomcat:8.5.34-jre8-alpine as serve
 
 RUN rm -rf /usr/local/tomcat/webapps/*
+
+COPY server.xml /usr/local/tomcat/conf
 COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 # Expose the easy-to-remember directory /DHIS2_home for Docker volume mounting to configure the CORE instance

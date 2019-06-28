@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,7 @@ package org.hisp.dhis.analytics.data;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryGroups;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.QueryPlannerParams;
-import org.hisp.dhis.analytics.QueryValidator;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -53,15 +45,16 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -70,16 +63,24 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.QueryPlanner" )
 public class DefaultQueryPlanner
     implements QueryPlanner
 {
     private static final Log log = LogFactory.getLog( DefaultQueryPlanner.class );
 
-    @Autowired
-    private QueryValidator queryValidator;
+    private final QueryValidator queryValidator;
 
-    @Autowired
-    private PartitionManager partitionManager;
+    private final PartitionManager partitionManager;
+
+    public DefaultQueryPlanner( QueryValidator queryValidator, PartitionManager partitionManager )
+    {
+        checkNotNull( queryValidator );
+        checkNotNull( partitionManager );
+
+        this.queryValidator = queryValidator;
+        this.partitionManager = partitionManager;
+    }
 
     // -------------------------------------------------------------------------
     // QueryPlanner implementation
@@ -170,7 +171,7 @@ public class DefaultQueryPlanner
             PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
             PartitionUtils.getPartitions( params.getAllPeriods() );
 
-        if ( params.getTableName() != null && params.getCurrentUser() != null )
+        if ( params.getTableName() != null )
         {
             partitionManager.filterNonExistingPartitions( partitions, params.getTableName() );
         }
@@ -197,7 +198,7 @@ public class DefaultQueryPlanner
         {
             DimensionalObject dim = query.getDimension( dimension );
 
-            List<DimensionalItemObject> values = null;
+            List<DimensionalItemObject> values;
 
             if ( dim == null || (values = dim.getItems()) == null || values.isEmpty() )
             {
@@ -590,7 +591,7 @@ public class DefaultQueryPlanner
     {
         List<DataQueryParams> queries = new ArrayList<>();
 
-        if ( params.getAggregationType().isLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
+        if ( params.getAggregationType().isFirstOrLastPeriodAggregationType() && !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )
             {

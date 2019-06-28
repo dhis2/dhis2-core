@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,17 @@ package org.hisp.dhis.trackedentity;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Chau Thu Tran
  */
-@Transactional
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityTypeService" )
 public class DefaultTrackedEntityTypeService
     implements TrackedEntityTypeService
 {
@@ -44,10 +47,12 @@ public class DefaultTrackedEntityTypeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
+    private final IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore;
 
-    public void setTrackedEntityTypeStore( IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
+    public DefaultTrackedEntityTypeService( IdentifiableObjectStore<TrackedEntityType> trackedEntityTypeStore )
     {
+        checkNotNull( trackedEntityTypeStore );
+
         this.trackedEntityTypeStore = trackedEntityTypeStore;
     }
 
@@ -56,7 +61,8 @@ public class DefaultTrackedEntityTypeService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addTrackedEntityType( TrackedEntityType trackedEntityType )
+    @Transactional
+    public long addTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         trackedEntityTypeStore.save( trackedEntityType );
 
@@ -64,36 +70,42 @@ public class DefaultTrackedEntityTypeService
     }
 
     @Override
+    @Transactional
     public void deleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         trackedEntityTypeStore.delete( trackedEntityType );
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         trackedEntityTypeStore.update( trackedEntityType );
     }
 
     @Override
-    public TrackedEntityType getTrackedEntityType( int id )
+    @Transactional(readOnly = true)
+    public TrackedEntityType getTrackedEntityType( long id )
     {
         return trackedEntityTypeStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityType( String uid )
     {
         return trackedEntityTypeStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityByName( String name )
     {
         return trackedEntityTypeStore.getByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityType> getAllTrackedEntityType()
     {
         return trackedEntityTypeStore.getAll();

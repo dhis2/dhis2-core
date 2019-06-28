@@ -1,7 +1,7 @@
 package org.hisp.dhis.version;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@ package org.hisp.dhis.version;
  */
 public class Version
 {
-    private int id;
+    private long id;
 
     private String key;
 
@@ -96,12 +96,12 @@ public class Version
     // Getter & Setter
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.i18n.ui;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,15 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
  */
+@Component( "org.hisp.dhis.i18n.I18nManager" )
 public class DefaultI18nManager
     implements I18nManager
 {
@@ -49,17 +53,16 @@ public class DefaultI18nManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ResourceBundleManager resourceBundleManager;
+    private final ResourceBundleManager resourceBundleManager;
 
-    public void setResourceBundleManager( ResourceBundleManager resourceBundleManager )
+    private final LocaleManager localeManager;
+
+    public DefaultI18nManager( ResourceBundleManager resourceBundleManager, LocaleManager localeManager )
     {
+        checkNotNull( resourceBundleManager );
+        checkNotNull( localeManager );
+
         this.resourceBundleManager = resourceBundleManager;
-    }
-
-    private LocaleManager localeManager;
-
-    public void setLocaleManager( LocaleManager localeManager )
-    {
         this.localeManager = localeManager;
     }
 

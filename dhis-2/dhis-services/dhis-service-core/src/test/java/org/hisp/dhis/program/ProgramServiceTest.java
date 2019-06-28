@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,8 +86,8 @@ public class ProgramServiceTest
     @Test
     public void testAddProgram()
     {
-        int idA = programService.addProgram( programA );
-        int idB = programService.addProgram( programB );
+        long idA = programService.addProgram( programA );
+        long idB = programService.addProgram( programB );
 
         assertNotNull( programService.getProgram( idA ) );
         assertNotNull( programService.getProgram( idB ) );
@@ -96,7 +96,7 @@ public class ProgramServiceTest
     @Test
     public void testUpdateProgram()
     {
-        int idA = programService.addProgram( programA );
+        long idA = programService.addProgram( programA );
 
         assertNotNull( programService.getProgram( idA ) );
 
@@ -109,8 +109,8 @@ public class ProgramServiceTest
     @Test
     public void testDeleteProgram()
     {
-        int idA = programService.addProgram( programA );
-        int idB = programService.addProgram( programB );
+        long idA = programService.addProgram( programA );
+        long idB = programService.addProgram( programB );
 
         assertNotNull( programService.getProgram( idA ) );
         assertNotNull( programService.getProgram( idB ) );
@@ -129,8 +129,8 @@ public class ProgramServiceTest
     @Test
     public void testGetProgramById()
     {
-        int idA = programService.addProgram( programA );
-        int idB = programService.addProgram( programB );
+        long idA = programService.addProgram( programA );
+        long idB = programService.addProgram( programB );
 
         assertEquals( programA, programService.getProgram( idA ) );
         assertEquals( programB, programService.getProgram( idB ) );

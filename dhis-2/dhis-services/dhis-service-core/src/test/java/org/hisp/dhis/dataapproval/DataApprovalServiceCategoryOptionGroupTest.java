@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -405,12 +405,12 @@ public class DataApprovalServiceCategoryOptionGroupTest
         userService.updateUser( chinaPartner2User.getCurrentUser() );
         userService.updateUser( indiaPartner1User.getCurrentUser() );
 
-        brazilA1Combo = createCategoryOptionCombo( 'A', mechanismCategoryCombo, brazilA1 );
-        chinaA1_1Combo = createCategoryOptionCombo( 'B', mechanismCategoryCombo, chinaA1_1 );
-        chinaA1_2Combo = createCategoryOptionCombo( 'C', mechanismCategoryCombo, chinaA1_2 );
-        chinaA2Combo = createCategoryOptionCombo( 'D', mechanismCategoryCombo, chinaA2 );
-        chinaB2Combo = createCategoryOptionCombo( 'E', mechanismCategoryCombo, chinaB2 );
-        indiaA1Combo = createCategoryOptionCombo( 'F', mechanismCategoryCombo, indiaA1 );
+        brazilA1Combo = createCategoryOptionCombo( mechanismCategoryCombo, brazilA1 );
+        chinaA1_1Combo = createCategoryOptionCombo( mechanismCategoryCombo, chinaA1_1 );
+        chinaA1_2Combo = createCategoryOptionCombo( mechanismCategoryCombo, chinaA1_2 );
+        chinaA2Combo = createCategoryOptionCombo( mechanismCategoryCombo, chinaA2 );
+        chinaB2Combo = createCategoryOptionCombo( mechanismCategoryCombo, chinaB2 );
+        indiaA1Combo = createCategoryOptionCombo( mechanismCategoryCombo, indiaA1 );
 
         categoryService.addCategoryOptionCombo( brazilA1Combo );
         categoryService.addCategoryOptionCombo( chinaA1_1Combo );

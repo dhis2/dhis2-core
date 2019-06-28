@@ -1,7 +1,7 @@
 package org.hisp.dhis.completeness;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,13 +40,13 @@ public interface DataSetCompletenessStore
 {
     String ID = DataSetCompletenessStore.class.getName();
 
-    Integer getCompleteDataSetRegistrations( DataSet dataSet, Collection<Integer> periods, Collection<Integer> relevantSources );
+    Integer getCompleteDataSetRegistrations( DataSet dataSet, Collection<Long> periods, Collection<Long> relevantSources );
 
-    Integer getCompleteDataSetRegistrationsWithTimeliness( DataSet dataSet, Collection<Integer> periods, Collection<Integer> relevantSources );
+    Integer getCompleteDataSetRegistrationsWithTimeliness( DataSet dataSet, Collection<Long> periods, Collection<Long> relevantSources );
 
-    Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Integer> children, Collection<Integer> periods );
+    Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Long> children, Collection<Long> periods );
 
-    Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Integer> children, Collection<Integer> periods, int completenessOffset );
+    Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Long> children, Collection<Long> periods, int completenessOffset );
 
     List<DataSet> getDataSetsWithRegistrations( Collection<DataSet> dataSets );
 }

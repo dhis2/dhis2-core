@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,15 +40,13 @@ import java.util.Properties;
 /**
  * User defined type to handle dynamic json structures to be stored in jsonb.
  * Always deserializes into java Strings.
- * 
+ *
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@SuppressWarnings("rawtypes")
 public class JsonBinaryPlainStringType extends JsonBinaryType
 {
-
     @Override
-    public Class returnedClass()
+    public Class<?> returnedClass()
     {
         return String.class;
     }
@@ -70,9 +68,9 @@ public class JsonBinaryPlainStringType extends JsonBinaryType
             {
                 content = ((PGobject) result).getValue();
             }
-            
+
             // Other types currently ignored
-            
+
             if ( content != null )
             {
                 return content.toString();
@@ -81,7 +79,7 @@ public class JsonBinaryPlainStringType extends JsonBinaryType
 
         return null;
     }
-    
+
     @Override
     public void nullSafeSet( PreparedStatement ps, Object value, int idx, SharedSessionContractImplementor session ) throws HibernateException, SQLException
     {
@@ -107,7 +105,7 @@ public class JsonBinaryPlainStringType extends JsonBinaryType
     @Override
     public void setParameterValues( Properties parameters )
     {
-        
+
     }
 
 }

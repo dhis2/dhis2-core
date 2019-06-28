@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,11 +58,11 @@ public class DataElementResourceTable
     {
         return ResourceTableType.DATA_ELEMENT_STRUCTURE;
     }
-    
+
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "CREATE TABLE " + getTempTableName() + " (" + 
+        String sql = "CREATE TABLE " + getTempTableName() + " (" +
             "dataelementid INTEGER NOT NULL PRIMARY KEY, " +
             "dataelementuid CHARACTER(11), " +
             "dataelementname VARCHAR(230), " +
@@ -71,9 +71,9 @@ public class DataElementResourceTable
             "datasetname VARCHAR(230), " +
             "datasetapprovallevel INTEGER, " +
             "workflowid INTEGER, " +
-            "periodtypeid INTEGER, " + 
+            "periodtypeid INTEGER, " +
             "periodtypename VARCHAR(230))";
-        
+
         return sql;
     }
 

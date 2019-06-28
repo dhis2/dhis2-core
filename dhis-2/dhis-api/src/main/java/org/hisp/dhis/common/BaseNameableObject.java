@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ public class BaseNameableObject
         this.name = name;
     }
 
-    public BaseNameableObject( int id, String uid, String name, String shortName, String code, String description )
+    public BaseNameableObject( long id, String uid, String name, String shortName, String code, String description )
     {
         super( id, uid, name );
         this.shortName = shortName;

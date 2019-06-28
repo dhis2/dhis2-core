@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,16 @@ package org.hisp.dhis.user;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Service( "org.hisp.dhis.user.UserGroupAccessService" )
 public class DefaultUserGroupAccessService implements UserGroupAccessService
 {
     // -------------------------------------------------------------------------
@@ -44,9 +48,11 @@ public class DefaultUserGroupAccessService implements UserGroupAccessService
     // -------------------------------------------------------------------------
 
     private GenericStore<UserGroupAccess> userGroupAccessStore;
-
-    public void setUserGroupAccessStore( GenericStore<UserGroupAccess> userGroupAccessStore )
+    
+    public DefaultUserGroupAccessService( @Qualifier( "org.hisp.dhis.user.UserGroupAccessStore" ) GenericStore<UserGroupAccess> userGroupAccessStore )
     {
+        checkNotNull( userGroupAccessStore );
+
         this.userGroupAccessStore = userGroupAccessStore;
     }
 
@@ -55,24 +61,28 @@ public class DefaultUserGroupAccessService implements UserGroupAccessService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         userGroupAccessStore.save( userGroupAccess );
     }
 
     @Override
+    @Transactional
     public void updateUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         userGroupAccessStore.update( userGroupAccess );
     }
 
     @Override
+    @Transactional
     public void deleteUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         userGroupAccessStore.delete( userGroupAccess );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserGroupAccess> getAllUserGroupAccesses()
     {
         return userGroupAccessStore.getAll();

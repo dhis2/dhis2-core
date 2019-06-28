@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,9 +37,9 @@ package org.hisp.dhis.dataanalysis;
  */
 public class DataAnalysisMeasures
 {
-    private int orgUnitId;
+    private long orgUnitId;
 
-    private int categoryOptionComboId;
+    private long categoryOptionComboId;
 
     private double average;
 
@@ -62,12 +62,12 @@ public class DataAnalysisMeasures
     // Getters
     // -------------------------------------------------------------------------
 
-    public int getOrgUnitId()
+    public long getOrgUnitId()
     {
         return orgUnitId;
     }
 
-    public int getCategoryOptionComboId()
+    public long getCategoryOptionComboId()
     {
         return categoryOptionComboId;
     }

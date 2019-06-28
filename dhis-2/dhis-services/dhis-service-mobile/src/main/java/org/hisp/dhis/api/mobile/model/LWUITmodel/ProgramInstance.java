@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,11 +39,11 @@ import org.hisp.dhis.api.mobile.model.DataStreamSerializable;
 public class ProgramInstance
     implements DataStreamSerializable
 {
-    private Integer id;
+    private Long id;
 
     private Integer patientId;
 
-    private Integer programId;
+    private Long programId;
     
     private String name;
 
@@ -58,12 +58,12 @@ public class ProgramInstance
 
     private List<ProgramStage> programStageInstances = new ArrayList<>();
 
-    public Integer getId()
+    public Long getId()
     {
         return id;
     }
 
-    public void setId( Integer id )
+    public void setId( Long id )
     {
         this.id = id;
     }
@@ -78,12 +78,12 @@ public class ProgramInstance
         this.patientId = patientId;
     }
 
-    public Integer getProgramId()
+    public Long getProgramId()
     {
         return programId;
     }
 
-    public void setProgramId( Integer programId )
+    public void setProgramId( Long programId )
     {
         this.programId = programId;
     }
@@ -142,9 +142,9 @@ public class ProgramInstance
     public void serialize( DataOutputStream dataOutputStream )
         throws IOException
     {
-        dataOutputStream.writeInt( this.getId() );
+        dataOutputStream.writeLong( this.getId() );
         dataOutputStream.writeInt( this.getPatientId() );
-        dataOutputStream.writeInt( this.getProgramId() );
+        dataOutputStream.writeLong( this.getProgramId() );
         dataOutputStream.writeUTF( this.getName() );
         dataOutputStream.writeInt( this.getStatus() );
         dataOutputStream.writeUTF( this.getDateOfEnrollment() );
@@ -162,9 +162,9 @@ public class ProgramInstance
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
     {
-        this.setId( dataInputStream.readInt() );
+        this.setId( dataInputStream.readLong() );
         this.setPatientId( dataInputStream.readInt() );
-        this.setProgramId( dataInputStream.readInt() );
+        this.setProgramId( dataInputStream.readLong() );
         this.setName( dataInputStream.readUTF() );
         this.setStatus( dataInputStream.readInt() );
         this.setDateOfEnrollment( dataInputStream.readUTF() );

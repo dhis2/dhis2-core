@@ -1,7 +1,7 @@
 package org.hisp.dhis.deletedobject;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ import java.util.List;
  */
 public interface DeletedObjectStore
 {
-    int save( DeletedObject deletedObject );
+    long save( DeletedObject deletedObject );
 
     void delete( DeletedObject deletedObject );
 

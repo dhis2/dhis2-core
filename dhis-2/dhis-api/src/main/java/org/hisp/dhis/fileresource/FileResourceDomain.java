@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,10 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
+
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -44,6 +48,9 @@ public enum FileResourceDomain
      */
     private String containerName;
 
+    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
+        new ImmutableSet.Builder<FileResourceDomain>().add( DATA_VALUE, USER_AVATAR ).build();
+
     FileResourceDomain( String containerName )
     {
         this.containerName = containerName;
@@ -52,5 +59,10 @@ public enum FileResourceDomain
     public String getContainerName()
     {
         return containerName;
+    }
+
+    public static Set<FileResourceDomain> getDomainForMultipleImages()
+    {
+        return DOMAIN_FOR_MULTIPLE_IMAGES;
     }
 }

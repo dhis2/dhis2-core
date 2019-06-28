@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,17 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Date;
-import java.util.Properties;
-
+import com.bedatadriven.jackson.datatype.jts.JtsModule;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -46,22 +48,22 @@ import org.hisp.dhis.hibernate.objectmapper.ParseDateStdDeserializer;
 import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.postgresql.util.PGobject;
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
+import java.io.IOException;
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Date;
+import java.util.Properties;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Stian Sandvold <stian@dhis2.org>
  */
-@SuppressWarnings("rawtypes")
 public class JsonBinaryType implements UserType, ParameterizedType
 {
-    static final ObjectMapper MAPPER = new ObjectMapper();
+    public static final ObjectMapper MAPPER = new ObjectMapper();
 
     static
     {
@@ -80,7 +82,11 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     ObjectReader reader;
 
-    Class returnedClass;
+    Class<?> returnedClass;
+
+    ObjectMapper resultingMapper;
+
+    JavaType resultingJavaType;
 
     @Override
     public int[] sqlTypes()
@@ -89,7 +95,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
     }
 
     @Override
-    public Class returnedClass()
+    public Class<?> returnedClass()
     {
         return returnedClass;
     }
@@ -154,8 +160,21 @@ public class JsonBinaryType implements UserType, ParameterizedType
     @Override
     public Object deepCopy( Object value ) throws HibernateException
     {
-        String json = convertObjectToJson( value );
-        return convertJsonToObject( json );
+        if ( value == null )
+        {
+            return null;
+        }
+
+        final TokenBuffer tb = new TokenBuffer( resultingMapper, false );
+        try
+        {
+            writeValue( tb, value );
+            return readValue( tb.asParser() );
+        }
+        catch ( IOException e )
+        {
+            throw new HibernateException( "Could not deep copy JSONB object.", e );
+        }
     }
 
     @Override
@@ -203,14 +222,26 @@ public class JsonBinaryType implements UserType, ParameterizedType
         }
     }
 
-    protected void init( Class klass )
+    protected void init( Class<?> klass )
     {
+        resultingMapper = getResultingMapper();
+        resultingJavaType = getResultingJavaType( klass );
+        reader = resultingMapper.readerFor( resultingJavaType );
+        writer = resultingMapper.writerFor( resultingJavaType );
         returnedClass = klass;
-        reader = MAPPER.readerFor( klass );
-        writer = MAPPER.writerFor( klass );
     }
 
-    static Class classForName( String name ) throws ClassNotFoundException
+    protected ObjectMapper getResultingMapper()
+    {
+        return MAPPER;
+    }
+
+    protected JavaType getResultingJavaType( Class<?> returnedClass )
+    {
+        return MAPPER.getTypeFactory().constructType( returnedClass );
+    }
+
+    static Class<?> classForName( String name ) throws ClassNotFoundException
     {
         try
         {
@@ -262,5 +293,15 @@ public class JsonBinaryType implements UserType, ParameterizedType
         {
             throw new RuntimeException( e );
         }
+    }
+
+    protected void writeValue( JsonGenerator gen, Object value ) throws IOException
+    {
+        writer.writeValue( gen, value );
+    }
+
+    protected <T> T readValue( JsonParser p ) throws IOException
+    {
+        return reader.readValue( p );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -44,11 +46,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Margrethe Store
  * @author Lars Helge Overland
  * @author Jim Grace
  */
+@Service( "org.hisp.dhis.validation.ValidationRuleService" )
 @Transactional
 public class DefaultValidationRuleService
     implements ValidationRuleService
@@ -57,24 +62,22 @@ public class DefaultValidationRuleService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ValidationRuleStore validationRuleStore;
+    private final ValidationRuleStore validationRuleStore;
 
-    public void setValidationRuleStore( ValidationRuleStore validationRuleStore )
+    private final IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore;
+
+    private final ExpressionService expressionService;
+
+    public DefaultValidationRuleService( ValidationRuleStore validationRuleStore,
+        @Qualifier( "org.hisp.dhis.validation.ValidationRuleGroupStore" ) IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore,
+        ExpressionService expressionService )
     {
+        checkNotNull( validationRuleGroupStore );
+        checkNotNull( validationRuleStore );
+        checkNotNull( expressionService );
+
         this.validationRuleStore = validationRuleStore;
-    }
-
-    private IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore;
-
-    public void setValidationRuleGroupStore( IdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore )
-    {
         this.validationRuleGroupStore = validationRuleGroupStore;
-    }
-
-    private ExpressionService expressionService;
-
-    public void setExpressionService( ExpressionService expressionService )
-    {
         this.expressionService = expressionService;
     }
 
@@ -83,7 +86,7 @@ public class DefaultValidationRuleService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveValidationRule( ValidationRule validationRule )
+    public long saveValidationRule( ValidationRule validationRule )
     {
         validationRuleStore.save( validationRule );
 
@@ -103,7 +106,7 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public ValidationRule getValidationRule( int id )
+    public ValidationRule getValidationRule( long id )
     {
         return validationRuleStore.get( id );
     }
@@ -211,7 +214,7 @@ public class DefaultValidationRuleService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
+    public long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
         validationRuleGroupStore.save( validationRuleGroup );
 
@@ -231,7 +234,7 @@ public class DefaultValidationRuleService
     }
 
     @Override
-    public ValidationRuleGroup getValidationRuleGroup( int id )
+    public ValidationRuleGroup getValidationRuleGroup( long id )
     {
         return validationRuleGroupStore.get( id );
     }

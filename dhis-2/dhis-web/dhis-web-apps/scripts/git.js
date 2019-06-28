@@ -41,9 +41,7 @@ async function fetch (name, path) {
 }
 
 
-async function checkout (name, path, hash) {
-    const treeish = hash ? hash : 'master'
-
+async function checkout (name, path, treeish) {
     let retries = 0
     while (retries <= 100) {
         try {
@@ -63,22 +61,28 @@ async function checkout (name, path, hash) {
     }
 }
 
-async function clone (name, url, clone_path) {
-    console.log(`[clone] [${name}] clone started`)
+async function clone (name, url, clone_path, treeish) {
+    console.log(`[clone] [${name}] clone started, using ${treeish}`)
     let retries = 0
-    while (true) {
-        try {
-            await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
-            console.log(`[clone] [${name}] clone successful`)
-            return
-        } catch (err) {
-            if (retries >= 10) {
-                console.error(`[clone] [${name}] there was a problem with the clone operation`, err)
-                process.exit(1)
+    try { // Naively try as branch first, this will fail if treeish is a commit-sha
+        await exec(`git clone --depth 1 --branch ${treeish} ${url} ${clone_path}`)
+        console.log(`[clone] [${name}] shallow clone successful`)
+    } catch (err) {
+        console.log(`[clone] [${name}] shallow clone failed. Starting clone with --no-single-branch. This may take some time`)
+        while (true) {
+            try { // Clone other branches as well, in case of commit sha
+                await exec(`git clone --depth 1 --no-single-branch ${url} ${clone_path}`)
+                console.log(`[clone] [${name}] clone successful`)
+                return
+            } catch (err) {
+                if (retries >= 10) {
+                    console.error(`[clone] [${name}] there was a problem with the clone operation`, err)
+                    process.exit(1)
+                }
+                console.log(`[clone] [${name}] failed, retrying`)
+                await exec(`rm -rf ${clone_path}`)
+                retries++
             }
-            console.log(`[clone] [${name}] failed, retrying`)
-            await exec(`rm -rf ${clone_path}`)
-            retries++
         }
     }
 }
@@ -95,15 +99,16 @@ async function show_sha (repo_path) {
     return refspec
 }
 
-async function clone_app (repo, target, complete_callback) {
+async function clone_app (repo, target, default_branch) {
     const { url, hash } = split_repo_path(repo)
+    const treeish = hash ? hash : default_branch
     const repo_name = ex_clone_path(url)
 
     const clone_path = path.join(target, repo_name)
 
     try {
-        await clone(repo_name, url, clone_path)
-        const ref = await checkout(repo_name, clone_path, hash)
+        await clone(repo_name, url, clone_path, treeish)
+        const ref = await checkout(repo_name, clone_path, treeish)
         const sha = await show_sha(clone_path)
 
         const pkg_name = require(path.join(clone_path, 'package.json')).name

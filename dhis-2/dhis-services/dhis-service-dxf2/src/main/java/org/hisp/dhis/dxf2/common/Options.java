@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.dhis.api.util.DateUtils;
+import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.jep;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ public class MedianValue
     }
 
     // nFunk's JEP run() method uses the raw Stack type
+    @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     public void run( Stack inStack )
         throws ParseException
@@ -60,13 +61,18 @@ public class MedianValue
         List<Double> vals = CustomFunctions.checkVector( param );
         int n = vals.size();
         Collections.sort( vals );
-        if ( n % 2 == 0 )
+
+        if ( n == 0 )
         {
-            inStack.push( new Double( ( vals.get( n / 2 - 1 ) + vals.get( n / 2 ) ) / 2 ) );
+            inStack.push( 0 );
+        }
+        else if ( n % 2 == 0 )
+        {
+            inStack.push( ( vals.get( n / 2 - 1 ) + vals.get( n / 2 ) ) / 2 );
         }
         else
         {
-            inStack.push( new Double( vals.get( n / 2 ) ) );
+            inStack.push( vals.get( n / 2 ) );
         }
     }
 }

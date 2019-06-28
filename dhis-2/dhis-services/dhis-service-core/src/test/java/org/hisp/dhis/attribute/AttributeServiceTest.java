@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,7 +90,7 @@ public class AttributeServiceTest
 
         assertNotNull( attribute );
 
-        int attributeId = attribute.getId();
+        long attributeId = attribute.getId();
 
         attributeService.deleteAttribute( attribute );
         attribute = attributeService.getAttribute( attributeId );

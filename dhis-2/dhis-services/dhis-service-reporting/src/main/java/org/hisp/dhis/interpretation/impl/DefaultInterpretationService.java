@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,77 +60,83 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.interpretation.InterpretationService" )
 @Transactional
-public class DefaultInterpretationService 
+public class DefaultInterpretationService
     implements InterpretationService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    @Autowired
-    private SchemaService schemaService;
 
-    private InterpretationStore interpretationStore;
+    private final SchemaService schemaService;
 
-    public void setInterpretationStore( InterpretationStore interpretationStore )
-    {
-        this.interpretationStore = interpretationStore;
-    }
+    private final InterpretationStore interpretationStore;
 
     private CurrentUserService currentUserService;
+    
+    private UserService userService;
+    
+    private final PeriodService periodService;
 
+    private final MessageService messageService;
+
+    private final AclService aclService;
+    
+    private final I18nManager i18nManager;
+    
+    private final DhisConfigurationProvider configurationProvider;
+
+    public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
+        CurrentUserService currentUserService, UserService userService, PeriodService periodService,
+        MessageService messageService, AclService aclService, I18nManager i18nManager,
+        DhisConfigurationProvider configurationProvider )
+    {
+        checkNotNull( schemaService );
+        checkNotNull( interpretationStore );
+        checkNotNull( currentUserService );
+        checkNotNull( userService );
+        checkNotNull( periodService );
+        checkNotNull( messageService );
+        checkNotNull( aclService );
+        checkNotNull( i18nManager );
+        checkNotNull( configurationProvider );
+        this.schemaService = schemaService;
+        this.interpretationStore = interpretationStore;
+        this.currentUserService = currentUserService;
+        this.userService = userService;
+        this.periodService = periodService;
+        this.messageService = messageService;
+        this.aclService = aclService;
+        this.i18nManager = i18nManager;
+        this.configurationProvider = configurationProvider;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
 
-    private UserService userService;
-
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setUserService( UserService userService )
     {
         this.userService = userService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
-    
-    private AclService aclService;
-
-    public void setAclService( AclService aclService )
-    {
-        this.aclService = aclService;
-    }
-
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
-        this.i18nManager = i18nManager;
-    }
-
-    private DhisConfigurationProvider configurationProvider;
-
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -138,10 +144,10 @@ public class DefaultInterpretationService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveInterpretation( Interpretation interpretation )
+    public long saveInterpretation( Interpretation interpretation )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         Set<User> users = new HashSet<>();
 
         if ( interpretation != null )
@@ -156,8 +162,8 @@ public class DefaultInterpretationService
                 interpretation.setPeriod( periodService.reloadPeriod( interpretation.getPeriod() ) );
             }
 
-            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );            
-            interpretation.setMentionsFromUsers( users );            
+            users = MentionUtils.getMentionedUsers( interpretation.getText(), userService );
+            interpretation.setMentionsFromUsers( users );
             updateSharingForMentions( interpretation, users );
         }
 
@@ -170,7 +176,7 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public Interpretation getInterpretation( int id )
+    public Interpretation getInterpretation( long id )
     {
         return interpretationStore.get( id );
     }
@@ -234,7 +240,7 @@ public class DefaultInterpretationService
         return interpretationStore.getAllOrderedLastUpdated( first, max );
     }
 
-    private int sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
+    private long sendNotificationMessage( Set<User> users, Interpretation interpretation, InterpretationComment comment, NotificationType notificationType )
     {
         I18n i18n = i18nManager.getI18n();
         String currentUsername = currentUserService.getCurrentUser().getUsername();
@@ -280,7 +286,7 @@ public class DefaultInterpretationService
             Jsoup.parse( details ).text(),
             String.format( "%s %s", i18n.getString( "go_to" ), getInterpretationLink( interpretation ) )
         ) );
-        
+
         return messageService.sendSystemMessage( users, subject, fullBody );
     }
 
@@ -294,8 +300,8 @@ public class DefaultInterpretationService
             SubscribableObject object = (SubscribableObject) interpretableObject;
             Set<User> subscribers = new HashSet<>( userService.getUsers( object.getSubscribers() ) );
             subscribers.remove( currentUserService.getCurrentUser() );
-            
-            if ( !subscribers.isEmpty() ) 
+
+            if ( !subscribers.isEmpty() )
             {
                 sendNotificationMessage( subscribers, interpretation, comment, notificationType );
             }
@@ -328,8 +334,8 @@ public class DefaultInterpretationService
         User user = currentUserService.getCurrentUser();
         StringBuilder subjectContent = new StringBuilder( user.getDisplayName() ).append( " " )
             .append( i18n.getString( "mentioned_you_in_dhis2" ) );
-        
-        messageService.sendPrivateMessage( users, subjectContent.toString(), messageContent.toString(), "Meta", null );
+
+        messageService.sendSystemMessage( users, subjectContent.toString(), messageContent.toString() );
     }
 
     private String getInterpretationLink( Interpretation interpretation ) {
@@ -375,7 +381,7 @@ public class DefaultInterpretationService
             }
         }
     }
-    
+
     @Override
     public InterpretationComment addInterpretationComment( String uid, String text )
     {
@@ -419,7 +425,7 @@ public class DefaultInterpretationService
     {
         User user = currentUserService.getCurrentUser();
 
-        long count = 0;
+        long count;
 
         if ( user != null && user.getLastCheckedInterpretations() != null )
         {
@@ -433,8 +439,9 @@ public class DefaultInterpretationService
         return count;
     }
 
+    @Override
     @Transactional( isolation = Isolation.REPEATABLE_READ )
-    public boolean likeInterpretation( int id )
+    public boolean likeInterpretation( long id )
     {
         Interpretation interpretation = getInterpretation( id );
 
@@ -456,8 +463,9 @@ public class DefaultInterpretationService
         return userLike;
     }
 
+    @Override
     @Transactional( isolation = Isolation.REPEATABLE_READ )
-    public boolean unlikeInterpretation( int id )
+    public boolean unlikeInterpretation( long id )
     {
         Interpretation interpretation = getInterpretation( id );
 
@@ -495,7 +503,7 @@ public class DefaultInterpretationService
     }
 
     @Override
-    public Interpretation getInterpretationByChart( int id )
+    public Interpretation getInterpretationByChart( long id )
     {
         return interpretationStore.getByChartId( id );
     }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,16 +43,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -61,22 +52,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DataDimensionItemType;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.ListMap;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ReportingRateMetric;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -163,9 +139,6 @@ public class DataQueryParams
         DATA_X_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID );
     public static final ImmutableSet<DimensionType> COMPLETENESS_DIMENSION_TYPES = ImmutableSet.of(
         DATA_X, PERIOD, ORGANISATION_UNIT, ORGANISATION_UNIT_GROUP_SET, CATEGORY_OPTION_GROUP_SET, CATEGORY );
-
-    private static final DimensionItem[] DIM_OPT_ARR = new DimensionItem[0];
-    private static final DimensionItem[][] DIM_OPT_2D_ARR = new DimensionItem[0][];
 
     /**
      * The dimensions.
@@ -423,6 +396,19 @@ public class DataQueryParams
      */
     protected transient Set<ProcessingHint> processingHints = new HashSet<>();
 
+    /**
+     * Indicates whether to skip data dimension specific validation checks.
+     * Used when the DataQueryParams is built internally and does not require
+     * extensive validation.
+     */
+    protected transient boolean skipDataDimensionValidation = false;
+
+    /**
+     * Holds a list of {@see DimensionalItemObject} resolved during expression evaluation.
+     * The Set is used to detect cyclic dependency between items
+     */
+    protected transient Set<DimensionalItemObject> resolvedExpressionItems = new HashSet<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -511,7 +497,8 @@ public class DataQueryParams
         params.startDateRestriction = this.startDateRestriction;
         params.endDateRestriction = this.endDateRestriction;
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
-
+        params.skipDataDimensionValidation = this.skipDataDimensionValidation;
+        params.resolvedExpressionItems = this.resolvedExpressionItems;
         return params;
     }
 
@@ -714,6 +701,16 @@ public class DataQueryParams
     }
 
     /**
+     * Returns the filter periods as period objects.
+     */
+    public List<Period> getTypedFilterPeriods()
+    {
+        return getFilterPeriods().stream()
+            .map( p -> (Period ) p )
+            .collect( Collectors.toList() );
+    }
+
+    /**
      * Returns a list of dimensions which occur more than once, not including
      * the first duplicate.
      */
@@ -825,9 +822,19 @@ public class DataQueryParams
         {
             for ( DimensionalItemObject aggregatePeriod : getDimensionOrFilterItems( PERIOD_DIM_ID ) )
             {
-                Period dataPeriod = dataPeriodType.createPeriod( ((Period) aggregatePeriod).getStartDate() );
+                Period dataPeriod = dataPeriodType.createPeriod( ((Period) aggregatePeriod ).getStartDate() );
 
                 map.putValue( dataPeriod, aggregatePeriod );
+
+                if ( ((Period) aggregatePeriod).getPeriodType().spansMultipleCalendarYears() )
+                {
+                    // When dealing with a period that spans multiple years, add a second aggregated year
+                    // corresponding to the second part of the financial year so that the query will count both years.
+
+                    Period endYear = dataPeriodType.createPeriod( ((Period) aggregatePeriod).getEndDate() );
+                    map.putValue( endYear, aggregatePeriod );
+                }
+
             }
         }
 
@@ -840,7 +847,7 @@ public class DataQueryParams
      */
     public List<List<DimensionItem>> getDimensionItemPermutations()
     {
-        List<DimensionItem[]> dimensionOptions = new ArrayList<>();
+        List<List<DimensionItem>> dimensionOptions = new ArrayList<>();
 
         for ( DimensionalObject dimension : dimensions )
         {
@@ -853,11 +860,11 @@ public class DataQueryParams
                     options.add( new DimensionItem( dimension.getDimension(), option ) );
                 }
 
-                dimensionOptions.add( options.toArray( DIM_OPT_ARR ) );
+                dimensionOptions.add( options );
             }
         }
 
-        CombinationGenerator<DimensionItem> generator = new CombinationGenerator<>( dimensionOptions.toArray( DIM_OPT_2D_ARR ) );
+        CombinationGenerator<DimensionItem> generator = CombinationGenerator.newInstance( dimensionOptions );
 
         return generator.getCombinations();
     }
@@ -915,7 +922,7 @@ public class DataQueryParams
     {
         int index = filters.indexOf( new BaseDimensionalObject( filter ) );
 
-        return index != -1 ? filters.get( index ).getItems() : new ArrayList<DimensionalItemObject>();
+        return index != -1 ? filters.get( index ).getItems() : new ArrayList<>();
     }
 
     /**
@@ -1044,11 +1051,11 @@ public class DataQueryParams
      * Retrieves the options for the given dimension identifier. If the
      * {@link DimensionalObject#CATEGORYOPTIONCOMBO_DIM_ID} dimension is specified, all
      * category option combinations for the first data element is returned. Returns an
-     * empty array if the dimension is not present.
+     * empty list if the dimension is not present.
      */
-    public DimensionalItemObject[] getDimensionItemArrayExplodeCoc( String dimension )
+    public List<DimensionalItemObject> getDimensionItemsExplodeCoc( String dimension )
     {
-        return getDimensionItemObjects( dimension ).toArray( new DimensionalItemObject[0] );
+        return getDimensionItemObjects( dimension );
     }
 
     public List<EventAnalyticsDimensionalItem> getEventReportDimensionalItemArrayExploded( String dimension )
@@ -1685,6 +1692,30 @@ public class DataQueryParams
         }
     }
 
+    public void addResolvedExpressionItem( DimensionalItemObject item)
+    {
+        if ( !resolvedExpressionItems.contains(item) )
+        {
+            resolvedExpressionItems.add(item);
+        }
+        else
+        {
+            throw new CyclicReferenceException(
+                String.format( "Item of type %s with identifier '%s' has a cyclic reference to another item",
+                    item.getDimensionItemType().name(), item.getUid() ) );
+        }
+    }
+
+    private void addResolvedExpressionItems( List<DimensionalItemObject> dimensionalItemObjectList )
+    {
+        dimensionalItemObjectList.forEach( this::addResolvedExpressionItem );
+    }
+
+    public void removeResolvedExpressionItem( DimensionalItemObject item )
+    {
+        this.resolvedExpressionItems.remove( item );
+    }
+
     // -------------------------------------------------------------------------
     // Static methods
     // -------------------------------------------------------------------------
@@ -2070,6 +2101,11 @@ public class DataQueryParams
     public boolean isTimely()
     {
         return timely;
+    }
+
+    public boolean isSkipDataDimensionValidation()
+    {
+        return skipDataDimensionValidation;
     }
 
     public List<OrganisationUnitLevel> getOrgUnitLevels()
@@ -2781,6 +2817,12 @@ public class DataQueryParams
             return this;
         }
 
+        public Builder withSkipDataDimensionValidation( boolean skipDataDimensionValidation )
+        {
+            this.params.skipDataDimensionValidation = skipDataDimensionValidation;
+            return this;
+        }
+
         public Builder withOrgUnitLevels( List<OrganisationUnitLevel> orgUnitLevels )
         {
             this.params.orgUnitLevels = orgUnitLevels;
@@ -2901,9 +2943,17 @@ public class DataQueryParams
             return this;
         }
 
+        public Builder withResolvedExpressionItems( List<DimensionalItemObject> items )
+        {
+            this.params.addResolvedExpressionItems( items );
+            return this;
+        }
+
         public DataQueryParams build()
         {
             return params;
         }
+
+
     }
 }

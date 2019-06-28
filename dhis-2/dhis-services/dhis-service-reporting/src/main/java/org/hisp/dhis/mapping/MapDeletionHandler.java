@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,20 +29,24 @@ package org.hisp.dhis.mapping;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.mapping.MapDeletionHandler")
 public class MapDeletionHandler
     extends DeletionHandler
 {
-    private MappingService mappingService;
+    private final MappingService mappingService;
 
-    public void setMappingService( MappingService mappingService )
+    public MapDeletionHandler( MappingService mappingService )
     {
+        checkNotNull( mappingService );
         this.mappingService = mappingService;
     }
 
@@ -54,19 +58,6 @@ public class MapDeletionHandler
     protected String getClassName()
     {
         return Map.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteUser( User user )
-    {
-        for ( Map map : mappingService.getAllMaps() )
-        {
-            if ( map.getUser() != null && map.getUser().equals( user ) )
-            {
-                map.setUser( null );
-                mappingService.updateMap( map );
-            }
-        }
     }
 
     @Override

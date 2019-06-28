@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,13 +50,13 @@ public class UserAuthorityGroupTest
         UserAuthorityGroup roleC = createUserAuthorityGroup( 'C' );
         
         userAuthorityGroupStore.save( roleA );
-        int idA = roleA.getId();
+        long idA = roleA.getId();
 
         userAuthorityGroupStore.save( roleB );
-        int idB = roleB.getId();
+        long idB = roleB.getId();
 
         userAuthorityGroupStore.save( roleC );
-        int idC = roleC.getId();
+        long idC = roleC.getId();
 
             assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );
@@ -71,13 +71,13 @@ public class UserAuthorityGroupTest
         UserAuthorityGroup roleC = createUserAuthorityGroup( 'C' );
 
         userAuthorityGroupStore.save( roleA );
-        int idA = roleA.getId();
+        long idA = roleA.getId();
 
         userAuthorityGroupStore.save( roleB );
-        int idB = roleB.getId();
+        long idB = roleB.getId();
 
         userAuthorityGroupStore.save( roleC );
-        int idC = roleC.getId();
+        long idC = roleC.getId();
         
         assertEquals( roleA, userAuthorityGroupStore.get( idA ) );
         assertEquals( roleB, userAuthorityGroupStore.get( idB ) );

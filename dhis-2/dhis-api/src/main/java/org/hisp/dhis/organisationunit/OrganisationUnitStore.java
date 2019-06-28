@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -139,7 +139,7 @@ public interface OrganisationUnitStore
      * @param organisationUnitId the child organisation unit identifier.
      * @param parentId           the parent organisation unit identifier.
      */
-    void updateOrganisationUnitParent( int organisationUnitId, int parentId );
+    void updateOrganisationUnitParent( long organisationUnitId, long parentId );
 
     void updatePaths();
 

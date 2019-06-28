@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,14 +65,18 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.security.SecurityService" )
 public class DefaultSecurityService
     implements SecurityService
 {
@@ -98,56 +102,54 @@ public class DefaultSecurityService
     // Dependencies
     // -------------------------------------------------------------------------
     
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    @Autowired
-    private AclService aclService;
-
-    @Autowired
-    private RestTemplate restTemplate;
+    private final CurrentUserService currentUserService;
     
-    @Autowired
-    private CacheProvider cacheProvider;
-    
-    private PasswordManager passwordManager;
+    private final UserSettingService userSettingService;
 
-    public void setPasswordManager( PasswordManager passwordManager )
+    private final AclService aclService;
+
+    private final RestTemplate restTemplate;
+    
+    private final CacheProvider cacheProvider;
+    
+    private final PasswordManager passwordManager;
+
+    private final MessageSender emailMessageSender;
+
+    private final UserService userService;
+    
+    private final SystemSettingManager systemSettingManager;
+    
+    private final I18nManager i18nManager;
+
+    public DefaultSecurityService( CurrentUserService currentUserService, UserSettingService userSettingService,
+        AclService aclService, RestTemplate restTemplate, CacheProvider cacheProvider, @Lazy PasswordManager passwordManager,
+        MessageSender emailMessageSender, UserService userService, SystemSettingManager systemSettingManager,
+        I18nManager i18nManager )
     {
+        checkNotNull( currentUserService );
+        checkNotNull( userSettingService );
+        checkNotNull( aclService );
+        checkNotNull( restTemplate );
+        checkNotNull( cacheProvider );
+        checkNotNull( passwordManager );
+        checkNotNull( emailMessageSender );
+        checkNotNull( userService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( i18nManager );
+
+        this.currentUserService = currentUserService;
+        this.userSettingService = userSettingService;
+        this.aclService = aclService;
+        this.restTemplate = restTemplate;
+        this.cacheProvider = cacheProvider;
         this.passwordManager = passwordManager;
-    }
-
-    private MessageSender emailMessageSender;
-
-    public void setEmailMessageSender( MessageSender emailMessageSender )
-    {
         this.emailMessageSender = emailMessageSender;
-    }
-
-    private UserService userService;
-
-    public void setUserService( UserService userService )
-    {
         this.userService = userService;
-    }
-
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
         this.systemSettingManager = systemSettingManager;
-    }
-
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
         this.i18nManager = i18nManager;
     }
-    
+
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------

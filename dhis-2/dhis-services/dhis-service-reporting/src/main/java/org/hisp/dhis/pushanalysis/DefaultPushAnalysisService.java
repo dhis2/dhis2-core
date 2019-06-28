@@ -1,7 +1,7 @@
 package org.hisp.dhis.pushanalysis;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mapgeneration.MapGenerationService;
+import org.hisp.dhis.mapgeneration.MapUtils;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -79,8 +80,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.jfree.chart.JFreeChart;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MimeTypeUtils;
 
@@ -88,9 +89,12 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.pushanalysis.PushAnalysisService" )
 @Transactional
 public class DefaultPushAnalysisService
     implements PushAnalysisService
@@ -100,44 +104,61 @@ public class DefaultPushAnalysisService
 
     private static final Encoder encoder = new Encoder();
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
+    private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    @Autowired
-    private ExternalFileResourceService externalFileResourceService;
+    private final ExternalFileResourceService externalFileResourceService;
 
-    @Autowired
-    private FileResourceService fileResourceService;
+    private final FileResourceService fileResourceService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private ReportTableService reportTableService;
+    private final ReportTableService reportTableService;
 
-    @Autowired
-    private MapGenerationService mapGenerationService;
+    private final MapGenerationService mapGenerationService;
 
-    @Autowired
-    private ChartService chartService;
+    private final ChartService chartService;
 
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    @Autowired
-    @Qualifier( "emailMessageSender" )
-    private MessageSender messageSender;
+    private final MessageSender messageSender;
+    
+    private final IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
 
-    private IdentifiableObjectStore<PushAnalysis> pushAnalysisStore;
-
-    public void setPushAnalysisStore( IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
+    public DefaultPushAnalysisService( Notifier notifier, SystemSettingManager systemSettingManager,
+        DhisConfigurationProvider dhisConfigurationProvider, ExternalFileResourceService externalFileResourceService,
+        FileResourceService fileResourceService, CurrentUserService currentUserService,
+        ReportTableService reportTableService, MapGenerationService mapGenerationService, ChartService chartService,
+        I18nManager i18nManager, @Qualifier( "emailMessageSender" ) MessageSender messageSender,
+        @Qualifier("org.hisp.dhis.pushanalysis.PushAnalysisStore") IdentifiableObjectStore<PushAnalysis> pushAnalysisStore )
     {
+        checkNotNull( notifier );
+        checkNotNull( systemSettingManager );
+        checkNotNull( dhisConfigurationProvider );
+        checkNotNull( externalFileResourceService );
+        checkNotNull( fileResourceService );
+        checkNotNull( currentUserService );
+        checkNotNull( reportTableService );
+        checkNotNull( mapGenerationService );
+        checkNotNull( chartService );
+        checkNotNull( i18nManager );
+        checkNotNull( messageSender );
+        checkNotNull( pushAnalysisStore );
+
+        this.notifier = notifier;
+        this.systemSettingManager = systemSettingManager;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
+        this.externalFileResourceService = externalFileResourceService;
+        this.fileResourceService = fileResourceService;
+        this.currentUserService = currentUserService;
+        this.reportTableService = reportTableService;
+        this.mapGenerationService = mapGenerationService;
+        this.chartService = chartService;
+        this.i18nManager = i18nManager;
+        this.messageSender = messageSender;
         this.pushAnalysisStore = pushAnalysisStore;
     }
 
@@ -325,8 +346,6 @@ public class DefaultPushAnalysisService
      * @param item   to generate resource
      * @param user   to generate for
      * @param jobId for logging
-     * @return
-     * @throws Exception
      */
     private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
         throws IOException
@@ -380,7 +399,6 @@ public class DefaultPushAnalysisService
      * @param map  map to render and upload
      * @param user user to generate chart for
      * @return absolute URL to uploaded image
-     * @throws IOException
      */
     private String generateMapHtml( Map map, User user )
         throws IOException
@@ -388,6 +406,11 @@ public class DefaultPushAnalysisService
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
         BufferedImage image = mapGenerationService.generateMapImageForUser( map, new Date(), null, 578, 440, user );
+
+        if ( image == null )
+        {
+            image = MapUtils.createErrorImage( "No data" );
+        }
 
         ImageIO.write( image, "PNG", baos );
 
@@ -400,7 +423,6 @@ public class DefaultPushAnalysisService
      * @param chart chart to render and upload
      * @param user  user to generate chart for
      * @return absolute URL to uploaded image
-     * @throws IOException
      */
     private String generateChartHtml( Chart chart, User user )
         throws IOException
@@ -417,7 +439,6 @@ public class DefaultPushAnalysisService
      * @param reportTable reportTable to generate HTML for
      * @param user        user to generate reportTable data for
      * @return a HTML representation of the reportTable
-     * @throws Exception
      */
     private String generateReportTableHtml( ReportTable reportTable, User user )
     {
@@ -439,7 +460,6 @@ public class DefaultPushAnalysisService
      * @param name  name of the file to be stored
      * @param bytes the byte array representing the file to be stored
      * @return url pointing to the uploaded resource
-     * @throws IOException
      */
     private String uploadImage( String name, byte[] bytes )
         throws IOException

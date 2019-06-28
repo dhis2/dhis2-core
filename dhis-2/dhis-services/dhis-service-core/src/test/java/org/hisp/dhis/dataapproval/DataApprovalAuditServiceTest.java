@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Jim Grace
  */
+// FIXME refactor this test to use mocks
 public class DataApprovalAuditServiceTest
     extends DhisTest
 {
@@ -276,9 +277,9 @@ public class DataApprovalAuditServiceTest
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
 
-        optionComboA = createCategoryOptionCombo( 'A', categoryComboA, optionA );
-        optionComboB = createCategoryOptionCombo( 'B', categoryComboA, optionB );
-        optionComboC = createCategoryOptionCombo( 'C', categoryComboA, optionA, optionB );
+        optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
+        optionComboB = createCategoryOptionCombo( categoryComboA, optionB );
+        optionComboC = createCategoryOptionCombo( categoryComboA, optionA, optionB );
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
         categoryService.addCategoryOptionCombo( optionComboC );
@@ -384,7 +385,7 @@ public class DataApprovalAuditServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testDeleteDataApprovalAudits() throws Exception
+    public void testDeleteDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
@@ -401,7 +402,7 @@ public class DataApprovalAuditServiceTest
     }
 
     @Test
-    public void TestGetDataApprovalAudits() throws Exception
+    public void TestGetDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;

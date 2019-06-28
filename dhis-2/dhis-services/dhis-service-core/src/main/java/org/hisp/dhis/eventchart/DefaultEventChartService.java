@@ -1,7 +1,7 @@
 package org.hisp.dhis.eventchart;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,22 +31,28 @@ package org.hisp.dhis.eventchart;
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
 * @author Lars Helge Overland
 */
-@Transactional
+@Service( "org.hisp.dhis.eventchart.EventChartService" )
 public class DefaultEventChartService
     extends GenericAnalyticalObjectService<EventChart>
     implements EventChartService
 {
-    private HibernateAnalyticalObjectStore<EventChart> eventChartStore;
+    private final HibernateAnalyticalObjectStore<EventChart> eventChartStore;
 
-    public void setEventChartStore( HibernateAnalyticalObjectStore<EventChart> eventChartStore )
+    public DefaultEventChartService(
+        @Qualifier( "org.hisp.dhis.eventchart.EventChartStore" ) HibernateAnalyticalObjectStore<EventChart> eventChartStore )
     {
+        checkNotNull( eventChartStore );
         this.eventChartStore = eventChartStore;
     }
 
@@ -61,7 +67,7 @@ public class DefaultEventChartService
     }
     
     @Override
-    public int saveEventChart( EventChart eventChart )
+    public long saveEventChart( EventChart eventChart )
     {
         eventChartStore.save( eventChart );
 
@@ -69,30 +75,35 @@ public class DefaultEventChartService
     }
     
     @Override
+    @Transactional
     public void updateEventChart( EventChart eventChart )
     {
         eventChartStore.update( eventChart );
     }
     
     @Override
-    public EventChart getEventChart( int id )
+    @Transactional(readOnly = true)
+    public EventChart getEventChart( long id )
     {
         return eventChartStore.get( id );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public EventChart getEventChart( String uid )
     {
         return eventChartStore.getByUid( uid );
     }
-    
+
     @Override
+    @Transactional
     public void deleteEventChart( EventChart eventChart )
     {
         eventChartStore.delete( eventChart );
     }
     
     @Override
+    @Transactional(readOnly = true)
     public List<EventChart> getAllEventCharts()
     {
         return eventChartStore.getAll();

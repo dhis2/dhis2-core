@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentitydatavalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,17 @@ package org.hisp.dhis.trackedentitydatavalue;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Service( "org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService" )
 public class DefaultTrackedEntityDataValueAuditService
     implements TrackedEntityDataValueAuditService
 {
@@ -47,20 +49,29 @@ public class DefaultTrackedEntityDataValueAuditService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
+    private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
+
+    public DefaultTrackedEntityDataValueAuditService(
+        TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore )
+    {
+        checkNotNull( trackedEntityDataValueAuditStore );
+
+        this.trackedEntityDataValueAuditStore = trackedEntityDataValueAuditStore;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addTrackedEntityDataValueAudit( TrackedEntityDataValueAudit trackedEntityDataValueAudit )
     {
         trackedEntityDataValueAuditStore.addTrackedEntityDataValueAudit( trackedEntityDataValueAudit );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
@@ -68,6 +79,7 @@ public class DefaultTrackedEntityDataValueAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityDataValueAudit> getTrackedEntityDataValueAudits( List<DataElement> dataElements,
         List<ProgramStageInstance> programStageInstances, AuditType auditType, int first, int max )
     {
@@ -75,6 +87,7 @@ public class DefaultTrackedEntityDataValueAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countTrackedEntityDataValueAudits( List<DataElement> dataElements, List<ProgramStageInstance> programStageInstances, AuditType auditType )
     {
         return trackedEntityDataValueAuditStore.countTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ public interface RelationshipTypeService
      * 
      * @return A generated unique id of the added {@link RelationshipType}.
      */
-    int addRelationshipType( RelationshipType relationshipType );
+    long addRelationshipType( RelationshipType relationshipType );
 
     /**
      * Deletes a {@link RelationshipType}.
@@ -68,7 +68,7 @@ public interface RelationshipTypeService
      * 
      * @return the RelationshipType with the given id
      */
-    RelationshipType getRelationshipType( int id );
+    RelationshipType getRelationshipType( long id );
 
     /**
      * Returns a {@link RelationshipType}.

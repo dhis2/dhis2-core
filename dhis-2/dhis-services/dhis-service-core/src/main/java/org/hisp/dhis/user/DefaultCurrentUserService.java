@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,10 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -44,6 +44,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Service for retrieving information about the currently
@@ -54,6 +56,7 @@ import java.util.stream.Collectors;
  *
  * @author Torgeir Lorange Ostby
  */
+@Service( "org.hisp.dhis.user.CurrentUserService" )
 public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
@@ -61,17 +64,24 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase.
      * Take care not to cache user info which might change during runtime.
      */
-    private static Cache<String, Integer> USERNAME_ID_CACHE;
+    private static Cache<String, Long> USERNAME_ID_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private CurrentUserStore currentUserStore;
+    private final CurrentUserStore currentUserStore;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
+
+    public DefaultCurrentUserService( CurrentUserStore currentUserStore, Environment env )
+    {
+        checkNotNull( currentUserStore );
+        checkNotNull( env );
+
+        this.currentUserStore = currentUserStore;
+        this.env = env;
+    }
 
     // -------------------------------------------------------------------------
     // CurrentUserService implementation
@@ -81,14 +91,14 @@ public class DefaultCurrentUserService
     public void init()
     {
         USERNAME_ID_CACHE = Caffeine.newBuilder()
-                .expireAfterAccess( 1, TimeUnit.HOURS )
-                .initialCapacity( 200 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 4000 )
-                .build();
+            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .initialCapacity( 200 )
+            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 4000 )
+            .build();
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -98,7 +108,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Integer userId = USERNAME_ID_CACHE.get( username, un -> getUserId( un ) );
+        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId);
 
         if ( userId == null )
         {
@@ -109,6 +119,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserInfo getCurrentUserInfo()
     {
         UserDetails userDetails = getCurrentUserDetails();
@@ -118,7 +129,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Integer userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
+        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
 
         if ( userId == null )
         {
@@ -132,7 +143,7 @@ public class DefaultCurrentUserService
         return new UserInfo( userId, userDetails.getUsername(), authorities );
     }
 
-    private Integer getUserId( String username )
+    private Long getUserId( String username )
     {
         UserCredentials credentials = currentUserStore.getUserCredentialsByUsername( username );
 
@@ -140,7 +151,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean currentUserIsSuper()
     {
         User user = getCurrentUser();
@@ -149,7 +160,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Set<OrganisationUnit> getCurrentUserOrganisationUnits()
     {
         User user = getCurrentUser();
@@ -158,7 +169,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public boolean currentUserIsAuthorized( String auth )
     {
         User user = getCurrentUser();

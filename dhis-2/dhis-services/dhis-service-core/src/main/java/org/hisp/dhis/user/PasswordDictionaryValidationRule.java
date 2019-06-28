@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,10 +37,14 @@ import java.util.List;
 /**
  * Created by zubair on 16.03.17.
  */
+@Component( "org.hisp.dhis.user.PasswordDictionaryValidationRule" )
 public class PasswordDictionaryValidationRule
-        implements PasswordValidationRule
+    implements PasswordValidationRule
 {
-    List<String> dictionary = Arrays.asList( "user", "admin", "system", "administrator", "username", "password", "login", "manager");
+    public static final String ERROR = "Password must not have any generic word";
+    public static final String I18_ERROR = "password_dictionary_validation";
+
+    private static final List<String> DICTIONARY = Arrays.asList( "user", "admin", "system", "administrator", "username", "password", "login", "manager");
 
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
@@ -50,11 +55,11 @@ public class PasswordDictionaryValidationRule
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
-        for ( String reserved : dictionary )
+        for ( String reserved : DICTIONARY )
         {
             if ( StringUtils.containsIgnoreCase( credentialsInfo.getPassword(), reserved ) )
             {
-                return new PasswordValidationResult( "Password must not have any generic word", "password_dictionary_validation", false );
+                return new PasswordValidationResult( ERROR, I18_ERROR, false );
             }
         }
 

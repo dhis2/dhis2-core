@@ -1,7 +1,7 @@
 package org.hisp.dhis.render.type;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,9 @@ public enum ValueTypeRenderingType
     VALUE,
     SLIDER,
     LINEAR_SCALE,
-    AUTOCOMPLETE;
+    AUTOCOMPLETE,
+    QR_CODE,
+    BAR_CODE;
 
     /**
      * RenderingTypes supported by OptionSet ValueTypes
@@ -77,5 +79,5 @@ public enum ValueTypeRenderingType
      * RenderingTypes supported by textual valueTypes
      */
     public static final ImmutableSet<ValueTypeRenderingType> TEXT_TYPES = ImmutableSet
-        .of( DEFAULT, VALUE, AUTOCOMPLETE );
+        .of( DEFAULT, VALUE, AUTOCOMPLETE, QR_CODE, BAR_CODE );
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,13 +29,27 @@ package org.hisp.dhis.analytics.table;
  */
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.springframework.scheduling.annotation.Async;
 
 /**
@@ -44,6 +58,19 @@ import org.springframework.scheduling.annotation.Async;
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
+
+    public AbstractEventJdbcTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate )
+    {
+        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
+            databaseInfo, jdbcTemplate );
+    }
+
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
@@ -99,7 +126,7 @@ public abstract class AbstractEventJdbcTableManager
      *
      * @param valueType the value type to represent as database column type.
      */
-    String getSelectClause( ValueType valueType, String columnName )
+    protected String getSelectClause( ValueType valueType, String columnName )
     {
         if ( valueType.isDecimal() )
         {
@@ -121,6 +148,10 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
+        else if ( valueType.isOrganisationUnit() )
+        {
+            return "ou.name from organisationunit ou where ou.uid = (select " + columnName ;
+        }
         else
         {
             return columnName;
@@ -130,7 +161,8 @@ public abstract class AbstractEventJdbcTableManager
     @Override
     public String validState()
     {
-        // I have to check for '{}' -> This can happen when there were some data values, but all were removed. Then '{}' is stored instead of null
+        // Data values might be '{}' if there were some data values and all were later removed
+
         boolean hasData = jdbcTemplate.queryForRowSet( "select programstageinstanceid from programstageinstance where eventdatavalues != '{}' limit 1;" ).next();
 
         if ( !hasData )
@@ -139,5 +171,40 @@ public abstract class AbstractEventJdbcTableManager
         }
 
         return null;
+    }
+
+    /**
+     * Populates the given analytics table partition using the given columns and
+     * join statement.
+     *
+     * @param partition the {@link AnalyticsTablePartition}.
+     * @param columns the list of {@link AnalyticsTableColumn}.
+     * @param joinStatement the SQL join statement.
+     */
+    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String joinStatement )
+    {
+        final String tableName = partition.getTempTableName();
+
+        String sql = "insert into " + partition.getTempTableName() + " (";
+
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getName() + ",";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + " ";
+
+        sql += joinStatement;
+
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 }

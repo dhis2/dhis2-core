@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.security.acl;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -481,6 +482,95 @@ public class AclServiceTest
 
         Dashboard dashboard = new Dashboard( "Dashboard" );
         dashboard.setUser( user1 );
+        dashboard.setAutoFields();
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        assertFalse( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCanUpdateDeleteSharedDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        dashboard.setAutoFields();
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        UserAccess userAccess = new UserAccess(  );
+        userAccess.setUser( user2 );
+        userAccess.setAccess( AccessStringHelper.READ_WRITE );
+        dashboard.getUserAccesses().add( userAccess );
+
+        assertTrue( aclService.canRead( user2, dashboard ) );
+        assertTrue( aclService.canUpdate( user2, dashboard ) );
+        assertTrue( aclService.canDelete( user2, dashboard ) );
+        assertTrue( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCantUpdateDeletePrivateDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        dashboard.setAutoFields();
+
+        manager.save( dashboard );
+
+        assertTrue( aclService.canRead( user1, dashboard ) );
+        assertTrue( aclService.canUpdate( user1, dashboard ) );
+        assertTrue( aclService.canDelete( user1, dashboard ) );
+        assertTrue( aclService.canManage( user1, dashboard ) );
+
+        UserAccess userAccess = new UserAccess(  );
+        userAccess.setUser( user2 );
+        userAccess.setAccess( AccessStringHelper.READ );
+        dashboard.getUserAccesses().add( userAccess );
+
+        assertTrue( aclService.canRead( user2, dashboard ) );
+        assertFalse( aclService.canUpdate( user2, dashboard ) );
+        assertFalse( aclService.canDelete( user2, dashboard ) );
+        assertFalse( aclService.canManage( user2, dashboard ) );
+    }
+
+    @Test
+    public void testUserCantReadPrivateDashboard()
+    {
+        User user1 = createUser( 'A' );
+        User user2 = createUser( 'B' );
+
+        manager.save( user1 );
+        manager.save( user2 );
+
+        Dashboard dashboard = new Dashboard( "Dashboard" );
+        dashboard.setUser( user1 );
+        dashboard.setAutoFields();
 
         manager.save( dashboard );
 
@@ -743,6 +833,7 @@ public class AclServiceTest
         assertTrue( aclService.canUpdate( user1, dataElement ) );
         assertFalse( aclService.canDelete( user1, dataElement ) );
         assertTrue( aclService.canManage( user1, dataElement ) );
+        assertTrue( aclService.canDataOrMetadataRead( user1, dataElement ) );
 
         Access access = aclService.getAccess( dataElement, user2 );
         assertTrue( access.isRead() );
@@ -1075,5 +1166,35 @@ public class AclServiceTest
         manager.update( reportTable );
 
         assertTrue( aclService.canUpdate( userB, reportTable ) );
+    }
+
+    @Test
+    public void testCanDataOrMetadataRead() 
+    {
+        User user1 = createUser( "user1", "F_CATEGORY_OPTION_GROUP_SET_PUBLIC_ADD" );
+        manager.save( user1 );
+
+        // non data shareable object //
+
+        CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
+        categoryOptionGroupSet.setAutoFields();
+        categoryOptionGroupSet.setName( "cogA" );
+
+        manager.save( categoryOptionGroupSet );
+
+        assertTrue( aclService.canDataOrMetadataRead( user1, categoryOptionGroupSet ) );
+
+        // data shareable object //
+
+        CategoryOption categoryOption = new CategoryOption();
+        categoryOption.setAutoFields();
+        categoryOption.setName( "coA");
+        categoryOption.setPublicAccess( AccessStringHelper.DATA_READ );
+        categoryOption.setUser( user1 );
+        categoryOption.setPublicAccess("rwrw----");
+
+        manager.save( categoryOption , false);
+
+        assertTrue( aclService.canDataOrMetadataRead( user1, categoryOption ) );
     }
 }

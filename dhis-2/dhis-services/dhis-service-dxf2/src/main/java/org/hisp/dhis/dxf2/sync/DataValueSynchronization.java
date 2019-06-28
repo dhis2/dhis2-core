@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,6 @@ package org.hisp.dhis.dxf2.sync;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdSchemes;
@@ -43,9 +41,9 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RequestCallback;
@@ -53,32 +51,37 @@ import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Date;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author David Katuscak
  */
+@Component
 public class DataValueSynchronization
 {
     private static final Log log = LogFactory.getLog( DataValueSynchronization.class );
 
     private final DataValueService dataValueService;
-
     private final DataValueSetService dataValueSetService;
-
     private final SystemSettingManager systemSettingManager;
-
     private final RestTemplate restTemplate;
 
-    @Autowired
     public DataValueSynchronization( DataValueService dataValueService, DataValueSetService dataValueSetService,
         SystemSettingManager systemSettingManager, RestTemplate restTemplate )
     {
+        checkNotNull( dataValueService );
+        checkNotNull( dataValueSetService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( restTemplate );
+
         this.dataValueService = dataValueService;
         this.dataValueSetService = dataValueSetService;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;
     }
 
-    public SynchronizationResult syncDataValuesData()
+    public SynchronizationResult syncDataValuesData( final int pageSize )
     {
         if ( !SyncUtils.testServerAvailability( systemSettingManager, restTemplate ).isAvailable() )
         {
@@ -95,7 +98,12 @@ public class DataValueSynchronization
 
         final Clock clock = new Clock( log ).startClock().logTime( "Starting DataValueSynchronization job" );
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastSuccessTime, true );
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
+
+        final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
+
+        log.info( "DataValues last changed before " + skipChangedBefore + " will not be synchronized." );
 
         if ( objectsToSynchronize == 0 )
         {
@@ -110,8 +118,6 @@ public class DataValueSynchronization
         final String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
         final SystemInstance instance = new SystemInstance( syncUrl, username, password );
 
-        final int pageSize = (int) systemSettingManager.getSystemSetting( SettingKey.DATA_VALUES_SYNC_PAGE_SIZE );
-
         // Using this approach as (int) Match.ceil doesn't work until I cast int to double
         final int pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
 
@@ -125,7 +131,7 @@ public class DataValueSynchronization
         {
             log.info( String.format( "Synchronizing page %d with page size %d", i, pageSize ) );
 
-            if ( !sendDataValueSyncRequest( instance, lastSuccessTime, pageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
+            if ( !sendDataValueSyncRequest( instance, lastUpdatedAfter, pageSize, i, SyncEndpoint.DATA_VALUE_SETS ) )
             {
                 syncResult = false;
             }
@@ -142,15 +148,15 @@ public class DataValueSynchronization
         return SynchronizationResult.newFailureResultWithMessage( "DataValueSynchronization failed." );
     }
 
-    private boolean sendDataValueSyncRequest( SystemInstance instance, Date lastSuccessTime, int syncPageSize, int page,
-        SyncEndpoint endpoint )
+    private boolean sendDataValueSyncRequest( SystemInstance instance, Date lastUpdatedAfter, int syncPageSize,
+        int page, SyncEndpoint endpoint )
     {
         final RequestCallback requestCallback = request -> {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-            dataValueSetService.writeDataValueSetJson( lastSuccessTime, request.getBody(), new IdSchemes(),
+            dataValueSetService.writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes(),
                 syncPageSize, page );
         };
 

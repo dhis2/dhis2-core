@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ public interface ProgramStageInstanceService
      * @param programStageInstance The ProgramStageInstance to add.
      * @return A generated unique id of the added {@link ProgramStageInstance}.
      */
-    int addProgramStageInstance( ProgramStageInstance programStageInstance );
+    long addProgramStageInstance( ProgramStageInstance programStageInstance );
 
     /**
      * Deletes a {@link ProgramStageInstance}.
@@ -105,7 +105,7 @@ public interface ProgramStageInstanceService
      * @param id the id of the ProgramStageInstance to return.
      * @return the ProgramStageInstance with the given id.
      */
-    ProgramStageInstance getProgramStageInstance( int id );
+    ProgramStageInstance getProgramStageInstance( long id );
 
     /**
      * Returns the {@link ProgramStageInstance} with the given UID.

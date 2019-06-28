@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,8 @@ public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescrip
     @Override
     public Schema getSchema()
     {        
-        return new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
+        schema.setOrder( 1500 );
+        return schema;
     }
 }

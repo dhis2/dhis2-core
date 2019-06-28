@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,6 +85,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -160,8 +161,10 @@ public class UserController
             params.setMax( pager.getPageSize() );
         }
 
-        List<User> users = userService.getUsers( params );
+        List<User> users = userService.getUsers( params,
+            ( orders == null ) ? null : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() ) );
 
+        // keep the memory query on the result
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
@@ -201,6 +204,8 @@ public class UserController
             return;
         }
 
+        response.setContentType( "application/xml" );
+
         renderService.toXml( response.getOutputStream(), createUser( user, currentUser ) );
     }
 
@@ -217,6 +222,8 @@ public class UserController
             return;
         }
 
+        response.setContentType( "application/json" );
+
         renderService.toJson( response.getOutputStream(), createUser( user, currentUser ) );
     }
 
@@ -231,6 +238,8 @@ public class UserController
         {
             return;
         }
+
+        response.setContentType( "application/json" );
 
         renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
@@ -268,6 +277,8 @@ public class UserController
         {
             return;
         }
+
+        response.setContentType( "application/xml" );
 
         renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
     }
@@ -433,6 +444,13 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
 
+        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
+        // (in case it gets detached)
+        if ( currentUser != null )
+        {
+            currentUser.getUserCredentials().getAllAuthorities();
+        }
+
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
@@ -449,11 +467,9 @@ public class UserController
 
         ImportReport importReport = importService.importMetadata( params );
 
-        if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
-        {
-            User user = userService.getUser( pvUid );
-            userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
-        }
+        updateUserGroups( importReport, pvUid, parsed, currentUser );
+
+        response.setContentType( "application/xml" );
 
         renderService.toXml( response.getOutputStream(), importReport );
     }
@@ -476,6 +492,13 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
         }
 
+        // force initialization of all authorities of current user in order to prevent cases where user must be reloaded later
+        // (in case it gets detached)
+        if ( currentUser != null )
+        {
+            currentUser.getUserCredentials().getAllAuthorities();
+        }
+
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
@@ -492,14 +515,27 @@ public class UserController
 
         ImportReport importReport = importService.importMetadata( params );
 
+        updateUserGroups( importReport, pvUid, parsed, currentUser );
+
+        response.setContentType( "application/json" );
+
+        renderService.toJson( response.getOutputStream(), importReport );
+    }
+
+    protected void updateUserGroups( ImportReport importReport, String pvUid, User parsed, User currentUser )
+    {
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getUpdated() == 1 )
         {
             User user = userService.getUser( pvUid );
 
+            // current user may have been changed and detached and must become managed again
+            if ( currentUser != null && currentUser.getId() == user.getId() )
+            {
+                currentUser = currentUserService.getCurrentUser();
+            }
+
             userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
         }
-
-        renderService.toJson( response.getOutputStream(), importReport );
     }
 
     // -------------------------------------------------------------------------
@@ -580,12 +616,6 @@ public class UserController
      */
     private ImportReport createUser( User user, User currentUser ) throws Exception
     {
-        user.getUserCredentials().getCogsDimensionConstraints().addAll(
-            currentUser.getUserCredentials().getCogsDimensionConstraints() );
-
-        user.getUserCredentials().getCatDimensionConstraints().addAll(
-            currentUser.getUserCredentials().getCatDimensionConstraints() );
-
         MetadataImportParams importParams = new MetadataImportParams()
             .setImportReportMode( ImportReportMode.FULL )
             .setImportStrategy( ImportStrategy.CREATE )

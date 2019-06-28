@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,28 @@ package org.hisp.dhis.validation.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  * @version HibernateValidationRuleStore.java May 19, 2010 1:48:44 PM
  */
-
+@Repository( "org.hisp.dhis.validation.ValidationRuleStore" )
 public class HibernateValidationRuleStore
     extends HibernateIdentifiableObjectStore<ValidationRule>
     implements ValidationRuleStore
@@ -50,10 +58,17 @@ public class HibernateValidationRuleStore
     // Dependency
     // -------------------------------------------------------------------------
 
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    public void setPeriodService( PeriodService periodService )
+    public HibernateValidationRuleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        PeriodService periodService )
     {
+        super( sessionFactory, jdbcTemplate, ValidationRule.class, currentUserService, deletedObjectService,
+            aclService, true );
+
+        checkNotNull( periodService );
+
         this.periodService = periodService;
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,17 @@ package org.hisp.dhis.sms.listener;
 import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
@@ -47,9 +51,15 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.sms.listener.TrackedEntityRegistrationSMSListener" )
 @Transactional
 public class TrackedEntityRegistrationSMSListener
     extends BaseSMSListener
@@ -60,17 +70,34 @@ public class TrackedEntityRegistrationSMSListener
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private SMSCommandService smsCommandService;
+    private final SMSCommandService smsCommandService;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+    private final TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
+
+    public TrackedEntityRegistrationSMSListener( ProgramInstanceService programInstanceService,
+        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
+        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService,
+        ProgramInstanceService programInstanceService1 )
+    {
+        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+            currentUserService, incomingSmsService, smsSender );
+
+        checkNotNull( smsCommandService );
+        checkNotNull( trackedEntityTypeService );
+        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( programInstanceService );
+
+        this.smsCommandService = smsCommandService;
+        this.trackedEntityTypeService = trackedEntityTypeService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.programInstanceService = programInstanceService1;
+    }
 
     // -------------------------------------------------------------------------
     // IncomingSmsListener implementation
@@ -109,11 +136,10 @@ public class TrackedEntityRegistrationSMSListener
                 patientAttributeValues.add( trackedEntityAttributeValue );
             });
 
-        int trackedEntityInstanceId = 0;
+        long trackedEntityInstanceId = 0;
         if ( patientAttributeValues.size() > 0 )
         {
-            trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance,
-                null, null, patientAttributeValues );
+            trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance, patientAttributeValues );
         }
         else
         {

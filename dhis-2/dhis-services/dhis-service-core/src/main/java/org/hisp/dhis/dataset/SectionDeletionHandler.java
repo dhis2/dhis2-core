@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,15 @@ import java.util.Iterator;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  * @version $Id$
  */
+@Component( "org.hisp.dhis.dataset.SectionDeletionHandler" )
 public class SectionDeletionHandler
     extends DeletionHandler
 {
@@ -44,13 +48,14 @@ public class SectionDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SectionService sectionService;
+    private final SectionService sectionService;
 
-    public void setSectionService( SectionService sectionService )
+    public SectionDeletionHandler( SectionService sectionService )
     {
+        checkNotNull( sectionService );
         this.sectionService = sectionService;
     }
-    
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------

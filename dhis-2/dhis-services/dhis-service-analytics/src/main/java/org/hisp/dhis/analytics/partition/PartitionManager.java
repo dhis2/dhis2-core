@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.partition;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.partition;
 
 import java.util.Set;
 
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 
 /**
@@ -40,14 +41,11 @@ import org.hisp.dhis.analytics.Partitions;
 public interface PartitionManager
 {
     /**
-     * Returns a set of names of current data value analytics partitions.
-     */
-    Set<String> getDataValueAnalyticsPartitions();
-
-    /**
      * Returns a set of names of current event analytics partitions.
+     * 
+     * @param tableType the type to get all existing table partitions for.
      */
-    Set<String> getEventAnalyticsPartitions();
+    Set<String> getAnalyticsPartitions( AnalyticsTableType tableType );
 
     /**
      * Indicates whether the given analytics table exists.

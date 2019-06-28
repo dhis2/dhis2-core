@@ -1,3 +1,5 @@
+package org.hisp.dhis;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -41,19 +41,15 @@ import com.google.common.base.Charsets;
  */
 public class TestResourceUtils
 {
-
     public static File getFile( String path )
         throws IOException
     {
-
         return new ClassPathResource( path ).getFile();
     }
 
     public static String getFileContent( String path )
         throws IOException
     {
-
         return Files.toString( getFile( path ), Charsets.UTF_8 );
     }
-
 }

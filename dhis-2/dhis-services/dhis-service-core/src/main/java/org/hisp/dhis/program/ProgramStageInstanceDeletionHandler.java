@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,15 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.program.ProgramStageInstanceDeletionHandler" )
 public class ProgramStageInstanceDeletionHandler
     extends DeletionHandler
 {
@@ -43,16 +46,19 @@ public class ProgramStageInstanceDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    private final ProgramStageInstanceService programStageInstanceService;
+
+    public ProgramStageInstanceDeletionHandler( JdbcTemplate jdbcTemplate,
+        ProgramStageInstanceService programStageInstanceService )
     {
+        checkNotNull( jdbcTemplate );
+        checkNotNull( programStageInstanceService );
         this.jdbcTemplate = jdbcTemplate;
+        this.programStageInstanceService = programStageInstanceService;
     }
-    
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-    
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------

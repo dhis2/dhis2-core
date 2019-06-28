@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentityfilter;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,7 +13,7 @@ package org.hisp.dhis.trackedentityfilter;
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived daysFromToday this software without
+ * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
@@ -30,8 +30,12 @@ package org.hisp.dhis.trackedentityfilter;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
@@ -41,11 +45,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  */
 public class EventFilter implements Serializable
 {
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     private String programStage;
 
     private EventStatus eventStatus;
 
     private FilterPeriod eventCreatedPeriod;
+    
+    private AssignedUserSelectionMode assignedUserMode;
+    
+    private Set<String> assignedUsers = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -95,5 +108,31 @@ public class EventFilter implements Serializable
     {
         this.eventCreatedPeriod = eventCreatedPeriod;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AssignedUserSelectionMode getAssignedUserMode()
+    {
+        return assignedUserMode;
+    }
+
+    public void setAssignedUserMode( AssignedUserSelectionMode assignedUserMode )
+    {
+        this.assignedUserMode = assignedUserMode;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
+    }
+
+    public void setAssignedUsers( Set<String> assignedUsers )
+    {
+        this.assignedUsers = assignedUsers;
+    }
+    
+    
 
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.mvc.interceptor;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,12 @@ public class TranslationInterceptor extends HandlerInterceptorAdapter
         setUserContext( user, new TranslateParams( translate, locale ) );
 
         return true;
+    }
+
+    @Override
+    public void afterCompletion( HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex )
+    {
+        UserContext.reset();
     }
 
     private void setUserContext( User user, TranslateParams translateParams )

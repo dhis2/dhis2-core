@@ -1,7 +1,7 @@
 package org.hisp.dhis.appstore;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,32 +41,43 @@ import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.appstore.AppStoreManager" )
 public class DefaultAppStoreManager
     implements AppStoreManager
 {
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    @Autowired
-    private AppManager appManager;
+    private final AppManager appManager;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultAppStoreManager( RestTemplate restTemplate, AppManager appManager,
+        SystemSettingManager systemSettingManager )
+    {
+
+        checkNotNull( restTemplate );
+        checkNotNull( appManager );
+        checkNotNull( systemSettingManager );
+
+        this.restTemplate = restTemplate;
+        this.appManager = appManager;
+        this.systemSettingManager = systemSettingManager;
+    }
 
     // -------------------------------------------------------------------------
     // AppStoreManager implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public AppStore getAppStore()
-        throws IOException
-    {
+    public AppStore getAppStore() {
         String appStoreIndexUrl = (String) systemSettingManager.getSystemSetting( SettingKey.APP_STORE_INDEX_URL );
 
         return restTemplate.getForObject( appStoreIndexUrl, AppStore.class );
@@ -108,7 +119,6 @@ public class DefaultAppStoreManager
     // -------------------------------------------------------------------------
 
     private Optional<WebAppVersion> getWebAppVersion( String id )
-        throws IOException
     {
         AppStore appStore = getAppStore();
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
@@ -65,7 +64,7 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
 
     @Autowired
     private ProgramService programService;
-    
+
     private TrackedEntityInstance entityInstanceA1;
 
     private TrackedEntityInstance entityInstanceB1;
@@ -90,12 +89,12 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
 
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-        
+
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ), newHashSet( organisationUnitA ), "" );
         setDependency( trackerOwnershipAccessManager, "currentUserService", mockCurrentUserService, CurrentUserService.class );
 
-        entityInstanceA1 = createTrackedEntityInstance( 'A', organisationUnitA );
-        entityInstanceB1 = createTrackedEntityInstance( 'B', organisationUnitB );
+        entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
+        entityInstanceB1 = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
 
@@ -108,8 +107,8 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
         userB.addOrganisationUnit( organisationUnitB );
         userService.addUser( userA );
         userService.addUser( userB );
-        
-       
+
+
     }
 
     @Test
@@ -122,7 +121,7 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
         assertFalse(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
         assertTrue(trackerOwnershipAccessManager.hasAccess( userB,entityInstanceA1, programA));
     }
-    
+
     @Test
     public void testGrantTemporaryOwnershipWithAudit()
     {
@@ -140,10 +139,10 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
         trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programA, organisationUnitA, false, true );
         assertTrue(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
         assertFalse(trackerOwnershipAccessManager.hasAccess( userB,entityInstanceA1, programA ));
-        
+
         trackerOwnershipAccessManager.transferOwnership( entityInstanceA1, programA, organisationUnitB, false, true );
         assertFalse(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
         assertTrue(trackerOwnershipAccessManager.hasAccess( userB,entityInstanceA1, programA ));
-        
+
     }
 }

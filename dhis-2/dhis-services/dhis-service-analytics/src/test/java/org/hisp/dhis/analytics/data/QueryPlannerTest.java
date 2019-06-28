@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,7 +96,7 @@ import static org.junit.Assert.assertTrue;
 public class QueryPlannerTest
     extends DhisSpringTest
 {
-    private static final String ANALYTICS_TABLE_NAME = AnalyticsTableType.DATA_VALUE.getTableName();
+    private static final AnalyticsTableType ANALYTICS_TABLE_TYPE = AnalyticsTableType.DATA_VALUE;
 
     @Autowired
     private QueryPlanner queryPlanner;
@@ -534,7 +534,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ), createPeriod( "2002Q3" ), createPeriod( "2002Q4" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -563,7 +563,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 6 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -606,7 +606,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 6 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -635,7 +635,7 @@ public class QueryPlannerTest
             createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ), createPeriod( "200009" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -664,7 +664,7 @@ public class QueryPlannerTest
             createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ), createPeriod( "200009" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -692,7 +692,7 @@ public class QueryPlannerTest
             createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ), createPeriod( "200009" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -718,7 +718,7 @@ public class QueryPlannerTest
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         queryPlanner.planQuery( params, plannerParams );
     }
@@ -736,7 +736,7 @@ public class QueryPlannerTest
             .withFilterPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -765,7 +765,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 6 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 6 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -791,7 +791,7 @@ public class QueryPlannerTest
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         queryPlanner.planQuery( params, plannerParams );
     }
@@ -809,7 +809,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -838,7 +838,7 @@ public class QueryPlannerTest
             .withFilterPeriods( getList( createPeriod( "2000Q1" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -866,7 +866,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -882,19 +882,37 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries for each period due to the LAST aggregation type.
+     * Create 4 queries (one for each period) due to the FIRST aggregation type.
      */
     @Test
-    public void planQueryN()
+    public void planQueryForFirstAggregationType()
+    {
+        planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.FIRST );
+    }
+
+    /**
+     * Create 4 queries (one for each period) due to the LAST aggregation type.
+     */
+    @Test
+    public void planQueryForLastAggregationType()
+    {
+        planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST );
+    }
+    
+    private void planQueryForFirstOrLastAggregationType(AnalyticsAggregationType analyticsAggregationType)
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) )
-            .withAggregationType( AnalyticsAggregationType.LAST ).build();
+            .withPeriods( getList(
+                createPeriod( "200101" ),
+                createPeriod( "200102" ),
+                createPeriod( "200103" ),
+                createPeriod( "200104" ) ) )
+            .withAggregationType( analyticsAggregationType ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -922,7 +940,7 @@ public class QueryPlannerTest
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         queryPlanner.planQuery( params, plannerParams );
     }
@@ -944,7 +962,7 @@ public class QueryPlannerTest
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).
-            withTableName( ANALYTICS_TABLE_NAME ).
+            withTableType( ANALYTICS_TABLE_TYPE ).
             withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
@@ -987,7 +1005,7 @@ public class QueryPlannerTest
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).
-            withTableName( ANALYTICS_TABLE_NAME ).
+            withTableType( ANALYTICS_TABLE_TYPE ).
             withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
@@ -1028,7 +1046,7 @@ public class QueryPlannerTest
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1060,7 +1078,7 @@ public class QueryPlannerTest
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1087,7 +1105,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1118,7 +1136,7 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
-            withOptimalQueries( 4 ).withTableName( ANALYTICS_TABLE_NAME ).build();
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1137,7 +1155,7 @@ public class QueryPlannerTest
     }
 
     @Test
-    public void testWithTableNameAndPartition()
+    public void testWithTableTypeAndPartition()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withStartDate( getDate( 2014, 4, 1 ) )
@@ -1146,7 +1164,7 @@ public class QueryPlannerTest
         assertTrue( params.hasStartEndDate() );
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder()
-            .withTableName( ANALYTICS_TABLE_NAME ).build();
+            .withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryParams query = queryPlanner.withTableNameAndPartitions( params, plannerParams );
 
@@ -1157,7 +1175,7 @@ public class QueryPlannerTest
         assertNotNull( partitions );
         assertEquals( 3, partitions.getPartitions().size() );
         assertEquals( expected, partitions );
-        assertEquals( ANALYTICS_TABLE_NAME, query.getTableName() );
+        assertEquals( ANALYTICS_TABLE_TYPE.getTableName(), query.getTableName() );
     }
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,10 +93,10 @@ public class TrackedEntityInstanceServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
-        maleB = createTrackedEntityInstance( 'B', organisationUnitB );
-        femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
-        femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
+        maleA = createTrackedEntityInstance( organisationUnitA );
+        maleB = createTrackedEntityInstance( organisationUnitB );
+        femaleA = createTrackedEntityInstance( organisationUnitA );
+        femaleB = createTrackedEntityInstance( organisationUnitB );
 
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );

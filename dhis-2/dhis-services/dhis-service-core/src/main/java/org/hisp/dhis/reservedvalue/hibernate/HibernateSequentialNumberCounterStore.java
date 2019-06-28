@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounter;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,13 +41,14 @@ import java.util.stream.IntStream;
 /**
  * @author Stian Sandvold
  */
-@Transactional
+@Repository( "org.hisp.dhis.reservedvalue.SequentialNumberCounterStore" )
 public class HibernateSequentialNumberCounterStore
-    implements SequentialNumberCounterStore
+    implements
+    SequentialNumberCounterStore
 {
     protected SessionFactory sessionFactory;
 
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateSequentialNumberCounterStore( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
     }
@@ -60,10 +61,8 @@ public class HibernateSequentialNumberCounterStore
         int count;
 
         SequentialNumberCounter counter = (SequentialNumberCounter) session
-            .createQuery( "FROM SequentialNumberCounter WHERE owneruid = ? AND key = ?" )
-            .setParameter( 0, uid )
-            .setParameter( 1, key )
-            .uniqueResult();
+            .createQuery( "FROM SequentialNumberCounter WHERE owneruid = ? AND key = ?" ).setParameter( 0, uid )
+            .setParameter( 1, key ).uniqueResult();
 
         if ( counter == null )
         {
@@ -81,9 +80,7 @@ public class HibernateSequentialNumberCounterStore
     @Override
     public void deleteCounter( String uid )
     {
-        sessionFactory.getCurrentSession()
-            .createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
-            .setParameter( "uid", uid )
-            .executeUpdate();
+        sessionFactory.getCurrentSession().createQuery( "DELETE SequentialNumberCounter WHERE owneruid = :uid" )
+            .setParameter( "uid", uid ).executeUpdate();
     }
 }

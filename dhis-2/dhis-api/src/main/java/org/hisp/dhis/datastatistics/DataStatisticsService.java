@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,14 +72,14 @@ public interface DataStatisticsService
      * @param dataStatistics the DataStatistics instance.
      * @return identifier of the persisted DataStatistics object.
      */
-    int saveDataStatistics( DataStatistics dataStatistics );
+    long saveDataStatistics( DataStatistics dataStatistics );
 
     /**
      * Gets all information and creates a DataStatistics object and persists it.
      *
      * @return identifier of the persisted DataStatistics object.
      */
-    int saveDataStatisticsSnapshot();
+    long saveDataStatisticsSnapshot();
 
     /**
      * Returns top favorites by views

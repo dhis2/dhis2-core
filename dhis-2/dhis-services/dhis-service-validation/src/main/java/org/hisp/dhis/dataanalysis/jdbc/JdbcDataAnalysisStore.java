@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis.jdbc;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.dataanalysis.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
@@ -39,7 +40,6 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -51,13 +51,17 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
  * @author Halvdan Hoem Grelland
  */
+@Repository( "org.hisp.dhis.dataanalysis.DataAnalysisStore" )
 public class JdbcDataAnalysisStore
     implements DataAnalysisStore
 {
@@ -67,20 +71,20 @@ public class JdbcDataAnalysisStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementBuilder statementBuilder;
-
-    public void setStatementBuilder( StatementBuilder statementBuilder )
-    {
-        this.statementBuilder = statementBuilder;
-    }
+    private final StatementBuilder statementBuilder;
 
     /**
      * Read only JDBC template.
      */
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public JdbcDataAnalysisStore( StatementBuilder statementBuilder,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( statementBuilder );
+        checkNotNull( jdbcTemplate );
+
+        this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -192,7 +196,7 @@ public class JdbcDataAnalysisStore
     @Override
     public List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement,
         CategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, Map<Integer, Integer> lowerBoundMap, Map<Integer, Integer> upperBoundMap )
+        Collection<Period> periods, Map<Long, Integer> lowerBoundMap, Map<Long, Integer> upperBoundMap )
     {
         if ( lowerBoundMap == null || lowerBoundMap.isEmpty() || periods.isEmpty() )
         {
@@ -201,14 +205,14 @@ public class JdbcDataAnalysisStore
 
         //TODO parallel processes?
 
-        List<List<Integer>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 1000 )
+        List<List<Long>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 1000 )
             .getPages();
 
         log.debug( "No of pages: " + organisationUnitPages.size() );
 
         List<DeflatedDataValue> dataValues = new ArrayList<>();
 
-        for ( List<Integer> unitPage : organisationUnitPages )
+        for ( List<Long> unitPage : organisationUnitPages )
         {
             dataValues.addAll(
                 getDeflatedDataValues( dataElement, categoryOptionCombo, periods, unitPage, lowerBoundMap,
@@ -220,8 +224,8 @@ public class JdbcDataAnalysisStore
 
     private List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement,
         CategoryOptionCombo categoryOptionCombo,
-        Collection<Period> periods, List<Integer> organisationUnits, Map<Integer, Integer> lowerBoundMap,
-        Map<Integer, Integer> upperBoundMap )
+        Collection<Period> periods, List<Long> organisationUnits, Map<Long, Integer> lowerBoundMap,
+        Map<Long, Integer> upperBoundMap )
     {
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
 
@@ -239,7 +243,7 @@ public class JdbcDataAnalysisStore
                 "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
                 "and dv.periodid in (" + periodIds + ") and ( ";
 
-        for ( Integer orgUnitUid : organisationUnits )
+        for ( Long orgUnitUid : organisationUnits )
         {
             sql += "( dv.sourceid = " + orgUnitUid + " " +
                 "and ( cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < " +

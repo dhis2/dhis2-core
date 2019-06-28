@@ -1,7 +1,7 @@
 package org.hisp.dhis.metadata.version;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ public interface MetadataVersionStore
      * @param id Key to lookup.
      * @return MetadataVersion Value that matched key, or null if there was no match.
      */
-    MetadataVersion getVersionByKey( int id );
+    MetadataVersion getVersionByKey( long id );
 
     /**
      * Get the version by name.

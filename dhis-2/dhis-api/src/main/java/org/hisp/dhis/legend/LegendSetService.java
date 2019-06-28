@@ -3,7 +3,7 @@ package org.hisp.dhis.legend;
 import java.util.List;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,11 +35,11 @@ import java.util.List;
  */
 public interface LegendSetService
 {
-    int addLegendSet( LegendSet legend );
+    long addLegendSet( LegendSet legend );
 
     void updateLegendSet( LegendSet legend );
 
-    LegendSet getLegendSet( int id );
+    LegendSet getLegendSet( long id );
 
     LegendSet getLegendSet( String uid );
 

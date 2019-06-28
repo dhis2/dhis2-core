@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -46,7 +47,8 @@ import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,19 +56,28 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
  * @author Stian Sandvold
  */
+@Repository( "org.hisp.dhis.validation.ValidationResultStore" )
 public class HibernateValidationResultStore
     extends HibernateGenericStore<ValidationResult>
     implements ValidationResultStore
 {
     private static final Log log = LogFactory.getLog( HibernateValidationResultStore.class );
 
-    @Autowired
     protected CurrentUserService currentUserService;
+
+    public HibernateValidationResultStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService )
+    {
+        super( sessionFactory, jdbcTemplate, ValidationResult.class, true );
+        checkNotNull( currentUserService );
+        this.currentUserService = currentUserService;
+    }
 
     /**
      * Allows injection (e.g. by a unit test)
@@ -84,7 +95,7 @@ public class HibernateValidationResultStore
     }
 
     @Override
-    public ValidationResult getById( int id )
+    public ValidationResult getById( long id )
     {
         return getSingleResult( getQuery( "from ValidationResult vr where vr.id = :id"
             + getRestrictions( "and") ).setParameter( "id", id ) );

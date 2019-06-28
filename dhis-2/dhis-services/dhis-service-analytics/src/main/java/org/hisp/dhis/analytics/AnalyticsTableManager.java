@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
  */
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -42,7 +41,7 @@ import java.util.concurrent.Future;
  */
 public interface AnalyticsTableManager
 {
-    public static final String TABLE_TEMP_SUFFIX = "_temp";
+    String TABLE_TEMP_SUFFIX = "_temp";
 
     /**
      * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
@@ -54,10 +53,10 @@ public interface AnalyticsTableManager
     /**
      * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
      *
-     * @param earliest the start date for the first year to generate table partitions.
+     * @param params the {@link AnalyticsTableUpdateParams}.
      * @return the analytics table with partitions.
      */
-    List<AnalyticsTable> getAnalyticsTables( Date earliest );
+    List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params );
 
     /**
      * Returns a list of existing analytics database table names.
@@ -75,8 +74,10 @@ public interface AnalyticsTableManager
 
     /**
      * Performs work before tables are being created.
+     *
+     * @param the {@link AnalyticsTableUpdateParams}.
      */
-    void preCreateTables();
+    void preCreateTables( AnalyticsTableUpdateParams params );
 
     /**
      * Attempts to drop and then create analytics table.
@@ -172,4 +173,11 @@ public interface AnalyticsTableManager
      * @return a future representing the asynchronous task.
      */
     Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
+
+    /**
+     * Returns a list of non-dynamic {@see AnalyticsTableColumn}
+     *
+     * @return a List of {@see AnalyticsTableColumn}
+     */
+    List<AnalyticsTableColumn> getFixedColumns();
 }

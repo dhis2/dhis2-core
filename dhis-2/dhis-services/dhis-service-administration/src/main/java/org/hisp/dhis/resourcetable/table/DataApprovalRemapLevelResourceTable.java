@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,7 @@ public class DataApprovalRemapLevelResourceTable
             "dataapprovallevelid integer not null, " +
             "level integer not null, " +
             "primary key (workflowid,dataapprovallevelid))";
-        
+
         return sql;
     }
 
@@ -83,7 +83,7 @@ public class DataApprovalRemapLevelResourceTable
     public Optional<String> getPopulateTempTableStatement()
     {
         String sql =
-            "insert into " + getTempTableName() + 
+            "insert into " + getTempTableName() +
             " (workflowid,dataapprovallevelid,level) " +
             "select w.workflowid, w.dataapprovallevelid, " +
                 "1 + coalesce((select max(l2.level) " +
@@ -106,6 +106,6 @@ public class DataApprovalRemapLevelResourceTable
     @Override
     public List<String> getCreateIndexStatements()
     {
-        return Lists.newArrayList();        
+        return Lists.newArrayList();
     }
 }

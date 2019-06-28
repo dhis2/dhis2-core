@@ -1,33 +1,31 @@
 package org.hisp.dhis.category;
 
 /*
+ * Copyright (c) 2004-2019, University of Oslo
+ * All rights reserved.
  *
- *  Copyright (c) 2004-2018, University of Oslo
- *  All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions are met:
- *  Redistributions of source code must retain the above copyright notice, this
- *  list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
- *  this list of conditions and the following disclaimer in the documentation
- *  and/or other materials provided with the distribution.
- *  Neither the name of the HISP project nor the names of its contributors may
- *  be used to endorse or promote products derived from this software without
- *  specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- *  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- *  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 import com.google.common.collect.Lists;
@@ -36,6 +34,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -73,7 +72,10 @@ public class CategoryServiceTest
     
     @Autowired
     private IdentifiableObjectManager idObjectManager;
-    
+
+    @Autowired
+    private CategoryManager categoryManager;
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -107,9 +109,9 @@ public class CategoryServiceTest
         categoryB = createCategory( 'B', categoryOptionA, categoryOptionB, categoryOptionC );
         categoryC = createCategory( 'C', categoryOptionA, categoryOptionB, categoryOptionC );
 
-        int idA = categoryService.addCategory( categoryA );
-        int idB = categoryService.addCategory( categoryB );
-        int idC = categoryService.addCategory( categoryC );
+        long idA = categoryService.addCategory( categoryA );
+        long idB = categoryService.addCategory( categoryB );
+        long idC = categoryService.addCategory( categoryC );
 
         assertEquals( categoryA, categoryService.getCategory( idA ) );
         assertEquals( categoryB, categoryService.getCategory( idB ) );
@@ -127,9 +129,9 @@ public class CategoryServiceTest
         categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
         categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
 
-        int idA = categoryService.addCategory( categoryA );
-        int idB = categoryService.addCategory( categoryB );
-        int idC = categoryService.addCategory( categoryC );
+        long idA = categoryService.addCategory( categoryA );
+        long idB = categoryService.addCategory( categoryB );
+        long idC = categoryService.addCategory( categoryC );
 
         assertNotNull( categoryService.getCategory( idA ) );
         assertNotNull( categoryService.getCategory( idB ) );
@@ -182,9 +184,9 @@ public class CategoryServiceTest
         groupA.getMembers().add( categoryOptionB );
         groupB.getMembers().add( categoryOptionC );
 
-        int idA = categoryService.saveCategoryOptionGroup( groupA );
-        int idB = categoryService.saveCategoryOptionGroup( groupB );
-        int idC = categoryService.saveCategoryOptionGroup( groupC );
+        long idA = categoryService.saveCategoryOptionGroup( groupA );
+        long idB = categoryService.saveCategoryOptionGroup( groupB );
+        long idC = categoryService.saveCategoryOptionGroup( groupC );
 
         assertEquals( groupA, categoryService.getCategoryOptionGroup( idA ) );
         assertEquals( groupB, categoryService.getCategoryOptionGroup( idB ) );
@@ -222,9 +224,9 @@ public class CategoryServiceTest
         groupSetA.getMembers().add( groupB );
         groupSetB.getMembers().add( groupC );
 
-        int idA = categoryService.saveCategoryOptionGroupSet( groupSetA );
-        int idB = categoryService.saveCategoryOptionGroupSet( groupSetB );
-        int idC = categoryService.saveCategoryOptionGroupSet( groupSetC );
+        long idA = categoryService.saveCategoryOptionGroupSet( groupSetA );
+        long idB = categoryService.saveCategoryOptionGroupSet( groupSetB );
+        long idC = categoryService.saveCategoryOptionGroupSet( groupSetC );
 
         assertEquals( groupSetA, categoryService.getCategoryOptionGroupSet( idA ) );
         assertEquals( groupSetB, categoryService.getCategoryOptionGroupSet( idB ) );
@@ -365,5 +367,37 @@ public class CategoryServiceTest
 
         assertEquals( 1, categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true ).size() );
 
+    }
+
+    @Test
+    public void testAddAndPruneAllCategoryCombos()
+    {
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
+
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+
+        ccA = createCategoryCombo( 'A', categoryA, categoryB );
+
+        categoryService.addCategoryCombo( ccA );
+
+        categoryManager.addAndPruneAllOptionCombos();
+
+        assertEquals( 3, categoryService.getAllCategoryOptionCombos().size() );
+
+        CategoryOption categoryOption = categoryService.getCategoryOption( categoryOptionB.getUid() );
+
+        categoryOption.setName( "UpdateOption" );
+
+        categoryService.updateCategoryOption( categoryOption );
+
+        categoryManager.addAndPruneAllOptionCombos();
+
+        List<CategoryOptionCombo> cocs = categoryService.getAllCategoryOptionCombos();
+
+        assertEquals( 3, cocs.size() );
+
+        assertTrue( cocs.stream().anyMatch( coc -> coc.getName().contains( "UpdateOption" ) ) );
     }
 }

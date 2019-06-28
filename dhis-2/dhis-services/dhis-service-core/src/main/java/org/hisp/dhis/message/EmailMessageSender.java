@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,15 +59,23 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
+import org.springframework.util.concurrent.ListenableFuture;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "emailMessageSender" )
+@Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class EmailMessageSender
     implements MessageSender
 {
@@ -84,22 +92,19 @@ public class EmailMessageSender
 
     private SystemSettingManager systemSettingManager;
 
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
-    }
-
     private UserSettingService userSettingService;
-
-    public void setUserSettingService( UserSettingService userSettingService )
-    {
-        this.userSettingService = userSettingService;
-    }
 
     private DhisConfigurationProvider configurationProvider;
 
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    public EmailMessageSender( SystemSettingManager systemSettingManager, UserSettingService userSettingService,
+        DhisConfigurationProvider configurationProvider )
     {
+        checkNotNull( systemSettingManager );
+        checkNotNull( userSettingService );
+        checkNotNull( configurationProvider );
+
+        this.systemSettingManager = systemSettingManager;
+        this.userSettingService = userSettingService;
         this.configurationProvider = configurationProvider;
     }
 
@@ -184,7 +189,7 @@ public class EmailMessageSender
     public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
     {
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
-        return new AsyncResult<OutboundMessageResponse>( response );
+        return new AsyncResult<>(response);
     }
     
     @Override
@@ -262,6 +267,13 @@ public class EmailMessageSender
             .collect( Collectors.toList() );
 
         return generateSummary( statuses );
+    }
+
+    @Override
+    public ListenableFuture<OutboundMessageResponseSummary> sendMessageBatchAsync( OutboundMessageBatch batch )
+    {
+        OutboundMessageResponseSummary summary = sendMessageBatch( batch );
+        return new AsyncResult<>( summary );
     }
 
     @Override

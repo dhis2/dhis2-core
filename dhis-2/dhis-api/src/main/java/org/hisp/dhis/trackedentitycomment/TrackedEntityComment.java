@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentitycomment;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,6 @@ import org.hisp.dhis.common.DxfNamespaces;
 public class TrackedEntityComment
     extends BaseIdentifiableObject
 {
-    private int id;
-
     private String commentText;
 
     private String creator;
@@ -64,16 +62,6 @@ public class TrackedEntityComment
     // -------------------------------------------------------------------------
     // Getters/Setters
     // -------------------------------------------------------------------------
-
-    public int getId()
-    {
-        return id;
-    }
-
-    public void setId( int id )
-    {
-        this.id = id;
-    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,16 +29,12 @@ package org.hisp.dhis.analytics.table;
  */
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
-import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
-import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
-import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
-import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnDataType.*;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.api.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,30 +48,37 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.system.util.MathUtils;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
@@ -97,14 +100,35 @@ import com.google.common.collect.Sets;
  *
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.AnalyticsTableManager" )
 public class JdbcAnalyticsTableManager
     extends AbstractJdbcTableManager
 {
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    public JdbcAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate )
+    {
+        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
+            databaseInfo, jdbcTemplate );
+    }
 
-    @Autowired
-    private PartitionManager partitionManager;
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "de.uid" ),
+        new AnalyticsTableColumn( quote( "co" ), CHARACTER_11, NOT_NULL, "co.uid" )
+            .withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ),
+        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" )
+            .withIndexColumns( newArrayList( quote( "dx" ), quote( "ao" ) ) ),
+        new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
+        new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
+        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ),
+        new AnalyticsTableColumn( quote( "pe" ), TEXT, NOT_NULL, "ps.iso" ),
+        new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
+        new AnalyticsTableColumn( quote( "level" ), INTEGER, "ous.level" ) );
+
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -118,17 +142,11 @@ public class JdbcAnalyticsTableManager
 
     @Override
     @Transactional
-    public List<AnalyticsTable> getAnalyticsTables( Date earliest )
+    public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( earliest ), getDimensionColumns( null ), getValueColumns() );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
-    }
-
-    @Override
-    public Set<String> getExistingDatabaseTables()
-    {
-        return partitionManager.getDataValueAnalyticsPartitions();
     }
 
     @Override
@@ -152,7 +170,7 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public void preCreateTables()
+    public void preCreateTables( AnalyticsTableUpdateParams params )
     {
         if ( isApprovalEnabled( null ) )
         {
@@ -176,36 +194,35 @@ public class JdbcAnalyticsTableManager
         final boolean skipDataTypeValidation = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
         final boolean skipZeroValues = (Boolean) systemSettingManager.getSystemSetting( SettingKey.SKIP_ZERO_VALUES_IN_ANALYTICS_TABLE_EXPORT );
 
-        final String approvalClause = getApprovalJoinClause( partition.getYear() );
         final String numericClause = skipDataTypeValidation ? "" : ( "and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' " );
         final String zeroValueCondition = skipZeroValues ? "" : " or de.zeroissignificant = true";
         final String zeroValueClause = "(dv.value != '0' or de.aggregationtype in ('" + AggregationType.AVERAGE + ',' + AggregationType.AVERAGE_SUM_ORG_UNIT + "')" + zeroValueCondition + ") ";
         final String intClause = zeroValueClause + numericClause;
 
-        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause, approvalClause );
+        populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause );
 
-        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'", approvalClause );
+        populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'" );
 
-        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'", approvalClause );
+        populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'" );
 
-        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null, approvalClause );
+        populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null );
     }
 
     /**
      * Populates the given analytics table.
      *
-     * @param table analytics table to populate.
      * @param valueExpression numeric value expression.
      * @param textValueExpression textual value expression.
      * @param valueTypes data element value types to include data for.
      * @param whereClause where clause to constrain data query.
      */
     private void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition,
-        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause, String approvalClause )
+        String valueExpression, String textValueExpression, Set<ValueType> valueTypes, String whereClause )
     {
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
+        final String approvalClause = getApprovalJoinClause( partition.getYear() );
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
@@ -270,7 +287,7 @@ public class JdbcAnalyticsTableManager
             sql += "and " + whereClause;
         }
 
-        populateAndLog( sql, tableName + ", " + valueTypes );
+        invokeTimeAndLog( sql, String.format( "Populate %s %s", tableName, valueTypes ) );
     }
 
     /**
@@ -300,6 +317,11 @@ public class JdbcAnalyticsTableManager
         }
 
         return StringUtils.EMPTY;
+    }
+
+    private List<AnalyticsTableColumn> getDimensionColumns()
+    {
+        return getDimensionColumns( null );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Integer year )
@@ -363,28 +385,14 @@ public class JdbcAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        List<PeriodType> periodTypes = PeriodType.getAvailablePeriodTypes();
-
-        for ( PeriodType periodType : periodTypes )
-        {
-            String column = quote( periodType.getName().toLowerCase() );
-            columns.add( new AnalyticsTableColumn( column, TEXT, "ps." + column ) );
-        }
+        columns.addAll( addPeriodColumns( "ps" ) );
 
         String approvalCol = isApprovalEnabled( year ) ?
             "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED + ") as approvallevel " :
             DataApprovalLevelService.APPROVAL_LEVEL_HIGHEST + " as approvallevel";
 
-        columns.add( new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "de.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "co" ), CHARACTER_11, NOT_NULL, "co.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "co" ) ) ) );
-        columns.add( new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ).withIndexColumns( newArrayList( quote( "dx" ), quote( "ao" ) ) ) );
-        columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pe" ), TEXT, NOT_NULL, "ps.iso" ) );
-        columns.add( new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "level" ), INTEGER, "ous.level" ) );
         columns.add( new AnalyticsTableColumn( quote( "approvallevel" ), INTEGER, approvalCol ) );
+        columns.addAll( getFixedColumns() );
 
         return filterDimensionColumns( columns );
     }
@@ -474,6 +482,12 @@ public class JdbcAnalyticsTableManager
         }
 
         return ConcurrentUtils.getImmediateFuture();
+    }
+
+    @Override
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 
     /**

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.ProgramStage;
 
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,7 @@ public interface DimensionalObject
     String DIMENSION_NAME_SEP = ":";
     String OPTION_SEP = ";";
     String ITEM_SEP = "-";
+    String PROGRAMSTAGE_SEP = ".";
 
     List<String> STATIC_DIMS = ImmutableList.<String>builder().add(
         LONGITUDE_DIM_ID, LATITUDE_DIM_ID ).build();
@@ -106,6 +108,12 @@ public interface DimensionalObject
     DimensionType getDimensionType();
 
     /**
+     * Gets the data dimension type. Can be null. Only applicable for
+     * {@link DimensionType#CATEGORY}.
+     */
+    DataDimensionType getDataDimensionType();
+
+    /**
      * Gets the dimension name, which corresponds to a column in the analytics
      * tables, with fall back to dimension.
      */
@@ -135,6 +143,16 @@ public interface DimensionalObject
      * Indicates whether this dimension has a legend set.
      */
     boolean hasLegendSet();
+
+    /**
+     * Gets the program stage (not persisted).
+     */
+    ProgramStage getProgramStage();
+
+    /**
+     * Indicates whether this dimension has a program stage (not persisted).
+     */
+    boolean hasProgramStage();
 
     /**
      * Gets the aggregation type.
@@ -168,5 +186,8 @@ public interface DimensionalObject
      */
     String getKey();
 
+    /**
+     * Returns dimensional keywords for this dimension.
+     */
     DimensionalKeywords getDimensionalKeywords();
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ public class SystemSettingStoreTest
     public void testAddSystemSetting()
     {
         systemSettingStore.save( settingA );
-        int idA = settingA.getId();
+        long idA = settingA.getId();
         systemSettingStore.save( settingB );
         systemSettingStore.save( settingC );
 
@@ -92,7 +92,7 @@ public class SystemSettingStoreTest
     public void testUpdateSystemSetting()
     {
         systemSettingStore.save( settingA );
-        int id = settingA.getId();
+        long id = settingA.getId();
 
         settingA = systemSettingStore.get( id );
         
@@ -111,9 +111,9 @@ public class SystemSettingStoreTest
     public void testDeleteSystemSetting()
     {
         systemSettingStore.save( settingA );
-        int idA = settingA.getId();
+        long idA = settingA.getId();
         systemSettingStore.save( settingB );
-        int idB = settingB.getId();
+        long idB = settingB.getId();
         systemSettingStore.save( settingC );
 
         systemSettingStore.delete( settingA );

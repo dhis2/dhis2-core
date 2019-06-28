@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,23 @@ package org.hisp.dhis.datastatistics.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.asSqlDate;
+import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
+import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
@@ -52,19 +53,23 @@ import com.google.common.collect.Lists;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Repository( "org.hisp.dhis.datastatistics.DataStatisticsEventStore" )
 public class HibernateDataStatisticsEventStore
     extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore
 {
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+
+    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    {
+        super( sessionFactory, jdbcTemplate, DataStatisticsEvent.class, false);
+    }
 
     @Override
     public Map<DataStatisticsEventType, Double> getDataStatisticsEventCount( Date startDate, Date endDate )
     {
         Map<DataStatisticsEventType, Double> eventTypeCountMap = new HashMap<>();
-        
-        final String sql = 
+
+        final String sql =
             "select eventtype as eventtype, count(eventtype) as numberofviews " +
             "from datastatisticsevent " +
             "where timestamp between ? and ? " +
@@ -75,21 +80,21 @@ public class HibernateDataStatisticsEventStore
             ps.setDate( i++, asSqlDate( startDate ) );
             ps.setDate( i++, asSqlDate( endDate ) );
         };
-        
+
         jdbcTemplate.query( sql, pss, ( rs, i ) -> {
             eventTypeCountMap.put( DataStatisticsEventType.valueOf( rs.getString( "eventtype" ) ), rs.getDouble( "numberofviews" ) );
             return eventTypeCountMap;
         } );
 
-        final String totalSql = 
+        final String totalSql =
             "select count(eventtype) as total " +
             "from datastatisticsevent " +
             "where timestamp between ? and ?;";
-        
+
         jdbcTemplate.query( totalSql, pss, ( resultSet, i ) -> {
             return eventTypeCountMap.put( DataStatisticsEventType.TOTAL_VIEW, resultSet.getDouble( "total" ) );
         } );
-        
+
         return eventTypeCountMap;
     }
 
@@ -117,15 +122,15 @@ public class HibernateDataStatisticsEventStore
 
         PreparedStatementSetter pss = ( ps ) -> {
             int i = 1;
-            
+
             if ( username != null )
             {
                 ps.setString( i++, username );
             }
-            
+
             ps.setInt( i++, pageSize );
         };
-        
+
         return jdbcTemplate.query( sql, pss, ( rs, i ) -> {
             FavoriteStatistics stats = new FavoriteStatistics();
 
@@ -142,17 +147,17 @@ public class HibernateDataStatisticsEventStore
     @Override
     public FavoriteStatistics getFavoriteStatistics( String uid )
     {
-        String sql = 
+        String sql =
             "select count(dse.favoriteuid) " +
             "from datastatisticsevent dse " +
             "where dse.favoriteuid = ?;";
 
         Object[] args = Lists.newArrayList( uid ).toArray();
-        
+
         Integer views = jdbcTemplate.queryForObject( sql, args, Integer.class );
-        
+
         FavoriteStatistics stats = new FavoriteStatistics();
-        stats.setViews( views );        
+        stats.setViews( views );
         return stats;
     }
 }

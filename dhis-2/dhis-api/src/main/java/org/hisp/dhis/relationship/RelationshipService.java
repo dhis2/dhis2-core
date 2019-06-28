@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ public interface RelationshipService
      * @param relationship the relationship.
      * @return id of the added relationship.
      */
-    int addRelationship( Relationship relationship );
+    long addRelationship( Relationship relationship );
 
     /**
      * Returns a {@link Relationship}.
@@ -71,7 +71,7 @@ public interface RelationshipService
      * @param id the id of the relationship to return.
      * @return the relationship with the given identifier.
      */
-    Relationship getRelationship( int id );
+    Relationship getRelationship( long id );
 
     Relationship getRelationship( String uid );
 
@@ -80,4 +80,6 @@ public interface RelationshipService
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
+
+    List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType );
 }

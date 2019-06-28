@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.32-SNAPSHOT</version>
+    <version>2.33-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-core</artifactId>
@@ -54,6 +54,10 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-hibernate</artifactId>
     </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-expression-parser</artifactId>
+      </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
@@ -145,10 +149,24 @@
       <artifactId>aws-s3</artifactId>
     </dependency>
 
-    <!-- SMS -->
+    <!-- Image Processing -->
     <dependency>
-      <groupId>com.googlecode.jsmpp</groupId>
+      <groupId>org.imgscalr</groupId>
+      <artifactId>imgscalr-lib</artifactId>
+    </dependency>
+
+    <!-- SMPP -->
+    <dependency>
+      <groupId>org.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.velocity</groupId>

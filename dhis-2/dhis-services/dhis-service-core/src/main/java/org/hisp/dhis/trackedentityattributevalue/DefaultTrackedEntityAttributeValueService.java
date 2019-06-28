@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,19 +37,20 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 
 /**
  * @author Abyot Asalefew
  */
-@Transactional
+@Service( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService" )
 public class DefaultTrackedEntityAttributeValueService
     implements TrackedEntityAttributeValueService
 {
@@ -57,33 +58,45 @@ public class DefaultTrackedEntityAttributeValueService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private TrackedEntityAttributeValueStore attributeValueStore;
+    private final TrackedEntityAttributeValueStore attributeValueStore;
+    
+    private final FileResourceService fileResourceService;
 
-    public void setAttributeValueStore( TrackedEntityAttributeValueStore attributeValueStore )
+    private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+
+    private final ReservedValueService reservedValueService;
+
+    private final CurrentUserService currentUserService;
+
+    private final DhisConfigurationProvider dhisConfigurationProvider;
+
+    public DefaultTrackedEntityAttributeValueService( TrackedEntityAttributeValueStore attributeValueStore,
+        FileResourceService fileResourceService,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        ReservedValueService reservedValueService, CurrentUserService currentUserService,
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
+        checkNotNull( attributeValueStore );
+        checkNotNull( fileResourceService );
+        checkNotNull( trackedEntityAttributeValueAuditService );
+        checkNotNull( reservedValueService );
+        checkNotNull( currentUserService );
+        checkNotNull( dhisConfigurationProvider );
+
         this.attributeValueStore = attributeValueStore;
+        this.fileResourceService = fileResourceService;
+        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
+        this.reservedValueService = reservedValueService;
+        this.currentUserService = currentUserService;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
-
-    @Autowired
-    private FileResourceService fileResourceService;
-
-    @Autowired
-    private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
-
-    @Autowired
-    private ReservedValueService reservedValueService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
 
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         TrackedEntityAttributeValueAudit trackedEntityAttributeValueAudit = new TrackedEntityAttributeValueAudit(
@@ -96,6 +109,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
         TrackedEntityAttribute attribute )
     {
@@ -103,24 +117,28 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance )
     {
         return attributeValueStore.get( instance );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.get( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getCountOfAssignedTrackedEntityAttributeValues( TrackedEntityAttribute attribute )
     {
         return attributeValueStore.getCountOfAssignedTEAValues( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues(
         Collection<TrackedEntityInstance> instances )
     {
@@ -133,6 +151,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional
     public void addTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         if ( attributeValue == null || attributeValue.getAttribute() == null ||
@@ -175,6 +194,7 @@ public class DefaultTrackedEntityAttributeValueService
     }
 
     @Override
+    @Transactional
     public void updateTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         if ( attributeValue != null && StringUtils.isEmpty( attributeValue.getValue() ) )
@@ -224,7 +244,6 @@ public class DefaultTrackedEntityAttributeValueService
         }
 
         FileResource fileResource = fileResourceService.getFileResource( value.getValue() );
-        fileResource.setAssigned( false );
         fileResourceService.updateFileResource( fileResource );
     }
 

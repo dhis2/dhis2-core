@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,17 +109,17 @@ public class IdentifiableObjectManagerTest
         DataElement dataElementB = createDataElement( 'B' );
 
         dataElementService.addDataElement( dataElementA );
-        int dataElementIdA = dataElementA.getId();
+        long dataElementIdA = dataElementA.getId();
         dataElementService.addDataElement( dataElementB );
-        int dataElementIdB = dataElementB.getId();
+        long dataElementIdB = dataElementB.getId();
 
         DataElementGroup dataElementGroupA = createDataElementGroup( 'A' );
         DataElementGroup dataElementGroupB = createDataElementGroup( 'B' );
 
         dataElementService.addDataElementGroup( dataElementGroupA );
-        int dataElementGroupIdA = dataElementGroupA.getId();
+        long dataElementGroupIdA = dataElementGroupA.getId();
         dataElementService.addDataElementGroup( dataElementGroupB );
-        int dataElementGroupIdB = dataElementGroupB.getId();
+        long dataElementGroupIdB = dataElementGroupB.getId();
 
         assertEquals( dataElementA, identifiableObjectManager.getObject( dataElementIdA, DataElement.class.getSimpleName() ) );
         assertEquals( dataElementB, identifiableObjectManager.getObject( dataElementIdB, DataElement.class.getSimpleName() ) );

@@ -69,7 +69,7 @@
                                             #if( $categoryOption.isDefault() )
                                                 ${i18n.getString( "value" )}
                                             #else
-                                                ${encoder.htmlEncode( $categoryOption.displayName )}
+                                                ${encoder.htmlEncode( $categoryOption.displayFormName )}
                                             #end
                                         </span>
                                     </th>

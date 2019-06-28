@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.events.eventdatavalue;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,7 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
@@ -46,44 +39,47 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author David Katuscak
  */
+@Service( "org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService" )
 @Transactional
 public class DefaultEventDataValueService implements EventDataValueService
 {
-    private final ApplicationEventPublisher eventPublisher;
-
     private final ProgramStageInstanceService programStageInstanceService;
 
     private final TrackerAccessManager trackerAccessManager;
 
-    private ProgramRuleVariableService ruleVariableService;
 
-    @Autowired
-    public DefaultEventDataValueService( ApplicationEventPublisher eventPublisher, TrackerAccessManager trackerAccessManager,
-        ProgramStageInstanceService programStageInstanceService, ProgramRuleVariableService ruleVariableService )
+    public DefaultEventDataValueService( TrackerAccessManager trackerAccessManager,
+        ProgramStageInstanceService programStageInstanceService )
     {
-        this.eventPublisher = eventPublisher;
+        checkNotNull( trackerAccessManager );
+        checkNotNull( programStageInstanceService );
+
         this.trackerAccessManager = trackerAccessManager;
         this.programStageInstanceService = programStageInstanceService;
-        this.ruleVariableService = ruleVariableService;
     }
 
     @Override
@@ -101,8 +97,6 @@ public class DefaultEventDataValueService implements EventDataValueService
             return;
         }
 
-        Program program = programStageInstance.getProgramStage().getProgram();
-
         Set<EventDataValue> newDataValues = new HashSet<>();
         Set<EventDataValue> updatedDataValues = new HashSet<>();
         Set<EventDataValue> removedDataValuesDueToEmptyValue = new HashSet<>();
@@ -114,24 +108,20 @@ public class DefaultEventDataValueService implements EventDataValueService
             String storedBy = !StringUtils.isEmpty( dataValue.getStoredBy() ) ? dataValue.getStoredBy() : fallbackStoredBy;
             DataElement dataElement = dataElementsCache.get( dataValue.getDataElement() );
 
-            if ( dataElement == null ) {
+            if ( dataElement == null )
+            {
                 // This can happen if a wrong data element identifier is provided
                 importSummary.getConflicts().add( new ImportConflict( "dataElement", dataValue.getDataElement() + " is not a valid data element" ) );
             }
             else if ( validateDataValue( programStageInstance, importOptions.getUser(), dataElement, dataValue.getValue(), importSummary )
-                && !importOptions.isDryRun())
+                && !importOptions.isDryRun() )
             {
                 prepareDataValueForStorage( dataElementValueMap, dataValue, dataElement, newDataValues, updatedDataValues,
                     removedDataValuesDueToEmptyValue, storedBy );
             }
-
-            if ( isUpdate && !importOptions.isSkipNotifications() && ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement ) )
-            {
-                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance ) );
-            }
         }
 
-        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, newDataValues, dataElementsCache, programStageInstance, singleValue );
+        programStageInstanceService.auditDataValuesChangesAndHandleFileDataValues( newDataValues, updatedDataValues, removedDataValuesDueToEmptyValue, dataElementsCache, programStageInstance, singleValue );
     }
 
     private void prepareDataValueForStorage( Map<String, EventDataValue> dataElementToValueMap, DataValue dataValue,
@@ -176,7 +166,7 @@ public class DefaultEventDataValueService implements EventDataValueService
     private Map<String, EventDataValue> getDataElementToEventDataValueMap(
         Collection<EventDataValue> dataValues )
     {
-        return dataValues.stream().collect( Collectors.toMap( dv -> dv.getDataElement(), dv -> dv ) );
+        return dataValues.stream().collect( Collectors.toMap( EventDataValue::getDataElement, dv -> dv ) );
     }
 
     private boolean doValidationOfMandatoryAttributes( User user )
@@ -192,14 +182,14 @@ public class DefaultEventDataValueService implements EventDataValueService
         {
             //I am filling the set only if I know that I will do the validation. Otherwise, it would be waste of resources
             Set<String>  mandatoryDataElements = programStageInstance.getProgramStage().getProgramStageDataElements().stream()
-                .filter( psde -> psde.isCompulsory() )
+                .filter( ProgramStageDataElement::isCompulsory )
                 .map( psde -> psde.getDataElement().getUid() )
                 .collect( Collectors.toSet() );
 
             //Collect all data elements with valid data values present in the payload
             Set<String> presentDataElements = event.getDataValues().stream()
                 .filter( dv -> dv != null && dv.getValue() != null && !dv.getValue().trim().isEmpty() && !dv.getValue().trim().equals( "null" ) )
-                .map( dv -> dv.getDataElement() )
+                .map( DataValue::getDataElement )
                 .collect( Collectors.toSet());
 
             // When the request is update, then only changed data values can be in the payload and so I should take into
@@ -215,7 +205,7 @@ public class DefaultEventDataValueService implements EventDataValueService
 
             Set<String> notPresentMandatoryDataElements = Sets.difference( mandatoryDataElements, presentDataElements );
 
-            if ( notPresentMandatoryDataElements.size() > 0 )
+            if ( !notPresentMandatoryDataElements.isEmpty() )
             {
                 notPresentMandatoryDataElements.forEach( deUid -> importSummary.getConflicts().add( new ImportConflict( deUid, "value_required_but_not_provided" ) ) );
                 return false;
@@ -237,7 +227,7 @@ public class DefaultEventDataValueService implements EventDataValueService
             validationPassed = false;
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement );
+        List<String> errors = trackerAccessManager.canWrite( user, programStageInstance, dataElement, true );
 
         if ( !errors.isEmpty() )
         {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,12 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Component;
+
 /**
  * @author Henning Håkonsen
  */
+@Component( "mockJob" )
 public class MockJob
     extends AbstractJob
 {
@@ -47,9 +50,10 @@ public class MockJob
         {
             Thread.sleep( 10000 );
         }
-        catch ( InterruptedException e )
+        catch ( InterruptedException ex )
         {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            ex.printStackTrace();
         }
     }
 

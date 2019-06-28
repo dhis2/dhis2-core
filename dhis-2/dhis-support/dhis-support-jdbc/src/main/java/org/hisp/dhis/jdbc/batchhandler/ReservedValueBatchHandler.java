@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc.batchhandler;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,5 +134,11 @@ public class ReservedValueBatchHandler
         rv.setCreated( resultSet.getDate( "created" ) );
 
         return rv;
+    }
+    
+    @Override
+    public String getIdSequenceName()
+    {
+        return "reservedvalue_sequence";
     }
 }

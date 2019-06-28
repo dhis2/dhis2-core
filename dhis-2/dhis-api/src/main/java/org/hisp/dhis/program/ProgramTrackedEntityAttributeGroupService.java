@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ public interface ProgramTrackedEntityAttributeGroupService
      * 
      * @return A generated unique id of the added {@link ProgramTrackedEntityAttributeGroup}.
      */
-    int addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
+    long addProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup programTrackedEntityAttributeGroup );
 
     /**
      * Deletes a {@link ProgramTrackedEntityAttributeGroup}.
@@ -69,7 +69,7 @@ public interface ProgramTrackedEntityAttributeGroupService
      * 
      * @return the ProgramTrackedEntityAttributeGroup with the given id
      */
-    ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( int id );
+    ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( long id );
 
     /**
      * Returns a {@link ProgramTrackedEntityAttributeGroup}.

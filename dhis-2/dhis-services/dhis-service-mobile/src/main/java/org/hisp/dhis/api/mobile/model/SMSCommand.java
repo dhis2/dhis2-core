@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.model;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ public class SMSCommand
 
     private String clientVersion;
 
-    private int dataSetId;
+    private long dataSetId;
 
     @Override
     public void serialize( DataOutputStream dataOutputStream )
@@ -126,12 +126,12 @@ public class SMSCommand
         this.clientVersion = clientVersion;
     }
 
-    public int getDataSetId()
+    public long getDataSetId()
     {
         return dataSetId;
     }
 
-    public void setDataSetId( int dataSetId )
+    public void setDataSetId( long dataSetId )
     {
         this.dataSetId = dataSetId;
     }
@@ -159,7 +159,7 @@ public class SMSCommand
             dataOutputStream.writeUTF( "" );
         }
         
-        dataOutputStream.writeInt( this.dataSetId );
+        dataOutputStream.writeLong( this.dataSetId );
 
         if ( this.smsCodes == null )
         {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,8 +54,8 @@ public class DataStatisticsStoreTest
     private DataStatistics ds4;
     private DataStatistics ds5;
 
-    private int ds1Id;
-    private int ds2Id;
+    private long ds1Id;
+    private long ds2Id;
 
     private Date date;
 

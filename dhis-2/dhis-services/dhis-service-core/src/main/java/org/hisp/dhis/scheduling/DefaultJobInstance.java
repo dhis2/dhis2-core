@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,12 +33,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.system.util.Clock;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
 /**
  * @author Henning Håkonsen
  */
+@Component( "org.hisp.dhis.scheduling.JobInstance" )
 public class DefaultJobInstance 
     implements JobInstance
 {

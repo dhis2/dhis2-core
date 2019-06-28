@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ public interface ValidationResultStore
 {
     List<ValidationResult> getAllUnreportedValidationResults();
 
-    ValidationResult getById( int id );
+    ValidationResult getById( long id );
 
     List<ValidationResult> query( ValidationResultQuery query );
 

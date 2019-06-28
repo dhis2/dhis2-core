@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,11 +59,11 @@ public interface MappingService
     // Map
     // -------------------------------------------------------------------------
 
-    int addMap( Map map );
+    long addMap( Map map );
 
     void updateMap( Map map );
 
-    Map getMap( int id );
+    Map getMap( long id );
 
     Map getMap( String uid );
 
@@ -71,29 +71,23 @@ public interface MappingService
 
     void deleteMap( Map map );
 
-    List<Map> getAllMaps();
-
     // -------------------------------------------------------------------------
     // MapView
     // -------------------------------------------------------------------------
 
-    int addMapView( MapView mapView );
+    long addMapView( MapView mapView );
 
     void updateMapView( MapView mapView );
 
     void deleteMapView( MapView view );
 
-    MapView getMapView( int id );
+    MapView getMapView( long id );
 
     MapView getMapView( String uid );
-
-    MapView getMapViewByName( String name );
 
     MapView getIndicatorLastYearMapView( String indicatorUid, String organisationUnitUid, int level );
 
     List<MapView> getMapViewsByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet );
-    
-    List<MapView> getAllMapViews();
 
     int countMapViewMaps( MapView mapView );
 
@@ -101,18 +95,13 @@ public interface MappingService
     // ExternalMapLayer
     // -------------------------------------------------------------------------
 
-    int addExternalMapLayer( ExternalMapLayer mapLayer );
+    long addExternalMapLayer( ExternalMapLayer mapLayer );
 
     void updateExternalMapLayer( ExternalMapLayer mapLayer );
 
     void deleteExternalMapLayer( ExternalMapLayer mapLayer );
 
-    ExternalMapLayer getExternalMapLayer( int id );
+    ExternalMapLayer getExternalMapLayer( long id );
 
     ExternalMapLayer getExternalMapLayer( String uid );
-
-    ExternalMapLayer getExternalMapLayerByName( String name );
-
-    List<ExternalMapLayer> getAllExternalMapLayers();
-
 }

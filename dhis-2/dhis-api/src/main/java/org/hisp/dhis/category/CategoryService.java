@@ -1,40 +1,37 @@
 package org.hisp.dhis.category;
 
 /*
+ * Copyright (c) 2004-2019, University of Oslo
+ * All rights reserved.
  *
- *  Copyright (c) 2004-2018, University of Oslo
- *  All rights reserved.
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
- *  Redistribution and use in source and binary forms, with or without
- *  modification, are permitted provided that the following conditions are met:
- *  Redistributions of source code must retain the above copyright notice, this
- *  list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
- *  Redistributions in binary form must reproduce the above copyright notice,
- *  this list of conditions and the following disclaimer in the documentation
- *  and/or other materials provided with the distribution.
- *  Neither the name of the HISP project nor the names of its contributors may
- *  be used to endorse or promote products derived from this software without
- *  specific prior written permission.
- *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- *  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- *  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.user.UserCredentials;
 
 import java.util.Collection;
@@ -58,25 +55,23 @@ public interface CategoryService
      * @param category the Category to add.
      * @return a generated unique id of the added Category.
      */
-    int addCategory( Category Category );
+    long addCategory( Category category );
 
     /**
      * Updates a Category.
      *
-     * @param Category the Category to update.
+     * @param category the Category to update.
      */
-    void updateCategory( Category Category );
+    void updateCategory( Category category );
 
     /**
      * Deletes a Category. The Category is also removed
      * from any CategoryCombos if it is a member of. It is not
      * possible to delete a Category with options.
      *
-     * @param Category the Category to delete.
-     * @throws HierarchyViolationException if the Category has
-     *                                     children.
+     * @param category the Category to delete.
      */
-    void deleteCategory( Category Category );
+    void deleteCategory( Category category );
 
     /**
      * Returns a Category.
@@ -84,7 +79,7 @@ public interface CategoryService
      * @param id the id of the Category to return.
      * @return the Category with the given id, or null if no match.
      */
-    Category getCategory( int id );
+    Category getCategory( long id );
 
     /**
      * Returns a Category.
@@ -149,7 +144,7 @@ public interface CategoryService
      * @param dataElementCategoryOption the CategoryOption to add.
      * @return a generated unique id of the added CategoryOption.
      */
-    int addCategoryOption( CategoryOption dataElementCategoryOption );
+    long addCategoryOption( CategoryOption dataElementCategoryOption );
 
     /**
      * Updates a CategoryOption.
@@ -172,7 +167,7 @@ public interface CategoryService
      * @return the CategoryOption with the given id, or null if no
      * match.
      */
-    CategoryOption getCategoryOption( int id );
+    CategoryOption getCategoryOption( long id );
 
     /**
      * Returns a CategoryOption.
@@ -227,7 +222,7 @@ public interface CategoryService
      * @param dataElementCategoryCombo the CategoryCombo to add.
      * @return the generated identifier.
      */
-    int addCategoryCombo( CategoryCombo dataElementCategoryCombo );
+    long addCategoryCombo( CategoryCombo dataElementCategoryCombo );
 
     /**
      * Updates a CategoryCombo.
@@ -249,7 +244,7 @@ public interface CategoryService
      * @param id the identifier of the CategoryCombo to retrieve.
      * @return the CategoryCombo.
      */
-    CategoryCombo getCategoryCombo( int id );
+    CategoryCombo getCategoryCombo( long id );
 
     /**
      * Retrieves a CategoryCombo with the given uid.
@@ -320,7 +315,7 @@ public interface CategoryService
      *                                       to add.
      * @return the generated identifier.
      */
-    int addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
+    long addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
 
     /**
      * Updates a CategoryOptionCombo.
@@ -346,7 +341,7 @@ public interface CategoryService
      * @param id the identifier of the CategoryOptionCombo.
      * @return the CategoryOptionCombo.
      */
-    CategoryOptionCombo getCategoryOptionCombo( int id );
+    CategoryOptionCombo getCategoryOptionCombo( long id );
 
     /**
      * Retrieves the CategoryOptionCombo with the given uid.
@@ -469,11 +464,11 @@ public interface CategoryService
     // CategoryOptionGroup
     // -------------------------------------------------------------------------
 
-    int saveCategoryOptionGroup( CategoryOptionGroup group );
+    long saveCategoryOptionGroup( CategoryOptionGroup group );
 
     void updateCategoryOptionGroup( CategoryOptionGroup group );
 
-    CategoryOptionGroup getCategoryOptionGroup( int id );
+    CategoryOptionGroup getCategoryOptionGroup( long id );
 
     CategoryOptionGroup getCategoryOptionGroup( String uid );
 
@@ -496,11 +491,11 @@ public interface CategoryService
     // CategoryOptionGroupSet
     // -------------------------------------------------------------------------
 
-    int saveCategoryOptionGroupSet( CategoryOptionGroupSet group );
+    long saveCategoryOptionGroupSet( CategoryOptionGroupSet group );
 
     void updateCategoryOptionGroupSet( CategoryOptionGroupSet group );
 
-    CategoryOptionGroupSet getCategoryOptionGroupSet( int id );
+    CategoryOptionGroupSet getCategoryOptionGroupSet( long id );
 
     CategoryOptionGroupSet getCategoryOptionGroupSet( String uid );
 

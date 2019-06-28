@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentityfilter;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,7 +46,7 @@ public interface TrackedEntityInstanceFilterService
      * @param trackedEntityInstanceFilter
      * @return id of added trackedEntityInstanceFilter
      */
-    int add( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    long add( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
     
     /**
      * Deletes trackedEntityInstanceFilter
@@ -67,7 +67,7 @@ public interface TrackedEntityInstanceFilterService
      * @param id id of trackedEntityInstanceFilter to be fetched
      * @return trackedEntityInstanceFilter
      */
-    TrackedEntityInstanceFilter get( int id );
+    TrackedEntityInstanceFilter get( long id );
     
     /**
      * Gets trackedEntityInstanceFilter

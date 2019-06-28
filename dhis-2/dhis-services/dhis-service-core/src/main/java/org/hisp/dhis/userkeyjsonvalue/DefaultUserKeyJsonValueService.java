@@ -1,7 +1,7 @@
 package org.hisp.dhis.userkeyjsonvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,67 +29,73 @@ package org.hisp.dhis.userkeyjsonvalue;
  */
 
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  */
-@Transactional
+@Service( "org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueService" )
 public class DefaultUserKeyJsonValueService
     implements UserKeyJsonValueService
 {
-    private UserKeyJsonValueStore userKeyJsonValueStore;
+    private final UserKeyJsonValueStore userKeyJsonValueStore;
 
-    public void setUserKeyJsonValueStore( UserKeyJsonValueStore userKeyJsonValueStore )
+    public DefaultUserKeyJsonValueService( UserKeyJsonValueStore userKeyJsonValueStore )
     {
+        checkNotNull( userKeyJsonValueStore );
         this.userKeyJsonValueStore = userKeyJsonValueStore;
     }
 
-    public UserKeyJsonValueStore getUserKeyJsonValueStore()
-    {
-        return this.userKeyJsonValueStore;
-    }
-
     @Override
+    @Transactional(readOnly = true)
     public UserKeyJsonValue getUserKeyJsonValue( User user, String namespace, String key )
     {
         return userKeyJsonValueStore.getUserKeyJsonValue( user, namespace, key );
     }
 
     @Override
-    public int addUserKeyJsonValue( UserKeyJsonValue userKeyJsonValue )
+    @Transactional
+    public long addUserKeyJsonValue( UserKeyJsonValue userKeyJsonValue )
     {
         userKeyJsonValueStore.save( userKeyJsonValue );
         return userKeyJsonValue.getId();
     }
 
     @Override
+    @Transactional
     public void updateUserKeyJsonValue( UserKeyJsonValue userKeyJsonValue )
     {
         userKeyJsonValueStore.update( userKeyJsonValue );
     }
 
     @Override
+    @Transactional
     public void deleteUserKeyJsonValue( UserKeyJsonValue userKeyJsonValue )
     {
         userKeyJsonValueStore.delete( userKeyJsonValue );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<String> getNamespacesByUser( User user )
     {
         return userKeyJsonValueStore.getNamespacesByUser( user );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<String> getKeysByUserAndNamespace( User user, String namespace )
     {
         return userKeyJsonValueStore.getKeysByUserAndNamespace( user, namespace );
     }
 
     @Override
+    @Transactional
     public void deleteNamespaceFromUser( User user, String namespace )
     {
         userKeyJsonValueStore.getUserKeyJsonValueByUserAndNamespace( user, namespace ).forEach(

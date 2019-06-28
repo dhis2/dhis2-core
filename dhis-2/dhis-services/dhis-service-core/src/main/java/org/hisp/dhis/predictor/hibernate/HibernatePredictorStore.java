@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,26 +28,37 @@ package org.hisp.dhis.predictor.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Ken Haase
  */
+@Repository( "org.hisp.dhis.predictor.PredictorStore" )
 public class HibernatePredictorStore
     extends HibernateIdentifiableObjectStore<Predictor>
     implements PredictorStore
 {
-    // -------------------------------------------------------------------------
-    // Dependency
-    // -------------------------------------------------------------------------
+    private final PeriodService periodService;
 
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
+    public HibernatePredictorStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        PeriodService periodService )
     {
+        super( sessionFactory, jdbcTemplate, Predictor.class, currentUserService, deletedObjectService, aclService, false );
+
+        checkNotNull( periodService );
+
         this.periodService = periodService;
     }
 

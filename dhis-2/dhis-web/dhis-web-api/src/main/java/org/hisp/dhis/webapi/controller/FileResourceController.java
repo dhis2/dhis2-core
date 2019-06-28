@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,7 @@ public class FileResourceController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}" )
-    public FileResource getFileResource( @PathVariable String uid )
+    public FileResource getFileResource( @PathVariable String uid, @RequestParam ( defaultValue = "original" ) String dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -106,12 +106,14 @@ public class FileResourceController
         {
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
+
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
 
         return fileResource;
     }
 
     @GetMapping( value = "/{uid}/data" )
-    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response )
+    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response, @RequestParam ( defaultValue = "original" ) String dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -120,6 +122,8 @@ public class FileResourceController
         {
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
+
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
 
         if ( !checkSharing( fileResource ) )
         {
@@ -139,7 +143,7 @@ public class FileResourceController
         // Attempt to build signed URL request for content and redirect
         // ---------------------------------------------------------------------
 
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource.getUid() );
+        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource );
 
         if ( signedGetUri != null )
         {
@@ -161,7 +165,7 @@ public class FileResourceController
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        try (InputStream in = content.openStream())
+        try ( InputStream in = content.openStream() )
         {
             IOUtils.copy( in, response.getOutputStream() );
         }
@@ -204,12 +208,7 @@ public class FileResourceController
 
         File tmpFile = FileResourceUtils.toTempFile( file );
 
-        String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
-
-        if ( uid == null )
-        {
-            throw new WebMessageException( WebMessageUtils.error( "Saving the file failed." ) );
-        }
+        fileResourceService.saveFileResource( fileResource, tmpFile );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );

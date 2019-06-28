@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@ public class PeriodTypeExtended
 
     private Set<Period> periods = new HashSet<>();
 
-    private Map<Integer, Period> periodIdMap = new HashMap<>();
+    private Map<Long, Period> periodIdMap = new HashMap<>();
 
     private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
@@ -74,7 +74,7 @@ public class PeriodTypeExtended
 
     private Set<DataElementOperand> dataElementOperands = new HashSet<>();
 
-    private Map<Integer, DataElement> dataElementIdMap = new HashMap<>();
+    private Map<Long, DataElement> dataElementIdMap = new HashMap<>();
 
     private Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
 
@@ -123,7 +123,7 @@ public class PeriodTypeExtended
         dataElementOperandIdMap.put( deoIdKey, deo );
     }
 
-    public String getDeoIds( int dataElementId, int categoryOptionComboId )
+    public String getDeoIds( long dataElementId, long categoryOptionComboId )
     {
         return dataElementId + "." + categoryOptionComboId;
     }
@@ -167,7 +167,7 @@ public class PeriodTypeExtended
         return dataElementOperands;
     }
 
-    public Map<Integer, DataElement> getDataElementIdMap()
+    public Map<Long, DataElement> getDataElementIdMap()
     {
         return dataElementIdMap;
     }

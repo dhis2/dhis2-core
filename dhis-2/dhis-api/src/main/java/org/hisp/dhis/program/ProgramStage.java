@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,6 +125,8 @@ public class ProgramStage
     private PeriodType periodType;
 
     private Boolean hideDueDate = false;
+
+    private Boolean enableUserAssignment = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -528,5 +530,17 @@ public class ProgramStage
     public void setFeatureType( FeatureType featureType )
     {
         this.featureType = featureType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean isEnableUserAssignment()
+    {
+        return enableUserAssignment;
+    }
+
+    public void setEnableUserAssignment( Boolean enableUserAssignment )
+    {
+        this.enableUserAssignment = enableUserAssignment;
     }
 }

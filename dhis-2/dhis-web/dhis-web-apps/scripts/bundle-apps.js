@@ -24,7 +24,7 @@ const root = process.cwd()
 const apps = require(path.join(root, process.env.APPS))
 const artifact = process.env.ARTIFACT_ID
 const build_dir = process.env.BUILD_DIR
-
+const default_branch = process.env.DEFAULT_BRANCH
 
 
 
@@ -65,7 +65,7 @@ async function main(opts = {}) {
 
     const new_apps = []
     for (const app of apps) {
-        const promise = clone_app(app, path.join(build_dir, artifact))
+        const promise = clone_app(app, path.join(build_dir, artifact), default_branch)
         new_apps.push(promise)
     }
 

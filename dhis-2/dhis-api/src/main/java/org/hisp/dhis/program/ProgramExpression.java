@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ public class ProgramExpression
     public static final String OBJECT_PROGRAM_STAGE_DATAELEMENT = "DE";
     public static final String OBJECT_PROGRAM_STAGE = "PS";
 
-    private int id;
+    private long id;
 
     private String expression;
 
@@ -136,12 +136,12 @@ public class ProgramExpression
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

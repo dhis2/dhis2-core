@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,14 @@ package org.hisp.dhis.program;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-@Transactional
+@Service( "org.hisp.dhis.program.ProgramTempOwnershipAuditService" )
 public class DefaultProgramTempOwnershipAuditService implements ProgramTempOwnershipAuditService
 {
 
@@ -53,24 +54,28 @@ public class DefaultProgramTempOwnershipAuditService implements ProgramTempOwner
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit )
     {
         programTempOwnershipAuditStore.addProgramTempOwnershipAudit( programTempOwnershipAudit );
     }
 
     @Override
+    @Transactional
     public void deleteProgramTempOwnershipAudit( Program program )
     {
         programTempOwnershipAuditStore.deleteProgramTempOwnershipAudit( program );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params )
     {
         return programTempOwnershipAuditStore.getProgramTempOwnershipAudits( params );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params )
     {
         return programTempOwnershipAuditStore.getProgramTempOwnershipAuditsCount( params );

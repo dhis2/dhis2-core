@@ -1,7 +1,7 @@
 package org.hisp.dhis.version;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,18 @@ package org.hisp.dhis.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author mortenoh
  */
-@Transactional
+@Service( "org.hisp.dhis.version.VersionService" )
 public class DefaultVersionService
     implements VersionService
 {
@@ -44,10 +47,12 @@ public class DefaultVersionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private VersionStore versionStore;
+    private final VersionStore versionStore;
 
-    public void setVersionStore( VersionStore versionStore )
+    public DefaultVersionService( VersionStore versionStore )
     {
+        checkNotNull( versionStore );
+
         this.versionStore = versionStore;
     }
 
@@ -56,25 +61,29 @@ public class DefaultVersionService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addVersion( Version version )
+    @Transactional
+    public long addVersion( Version version )
     {
         versionStore.save( version );
         return version.getId();
     }
 
     @Override
+    @Transactional
     public void updateVersion( Version version )
     {
         versionStore.update( version );
     }
 
     @Override
+    @Transactional
     public void updateVersion( String key )
     {
         updateVersion( key, UUID.randomUUID().toString() );
     }
 
     @Override
+    @Transactional
     public void updateVersion( String key, String value )
     {
         Version version = getVersionByKey( key );
@@ -92,24 +101,28 @@ public class DefaultVersionService
     }
 
     @Override
+    @Transactional
     public void deleteVersion( Version version )
     {
         versionStore.delete( version );
     }
 
     @Override
-    public Version getVersion( int id )
+    @Transactional(readOnly = true)
+    public Version getVersion( long id )
     {
         return versionStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Version getVersionByKey( String key )
     {
         return versionStore.getVersionByKey( key );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Version> getAllVersions()
     {
         return versionStore.getAll();

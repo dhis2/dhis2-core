@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,27 +43,27 @@ public interface MessageService
 {
     String META_USER_AGENT = "User-agent: ";
 
-    int sendTicketMessage( String subject, String text, String metaData );
+    long sendTicketMessage( String subject, String text, String metaData );
     
-    int sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments );
+    long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments );
     
-    int sendSystemMessage( Set<User> recipients, String subject, String text );
+    long sendSystemMessage( Set<User> recipients, String subject, String text );
     
-    int sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority );
+    long sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority );
     
-    int sendMessage( MessageConversationParams params );
+    long sendMessage( MessageConversationParams params );
 
-    int sendSystemErrorNotification( String subject, Throwable t );
+    long sendSystemErrorNotification( String subject, Throwable t );
 
     void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments );
 
-    int saveMessageConversation( MessageConversation conversation );
+    long saveMessageConversation( MessageConversation conversation );
 
     void updateMessageConversation( MessageConversation conversation );
 
-    int sendCompletenessMessage( CompleteDataSetRegistration registration );
+    long sendCompletenessMessage( CompleteDataSetRegistration registration );
 
-    MessageConversation getMessageConversation( int id );
+    MessageConversation getMessageConversation( long id );
 
     MessageConversation getMessageConversation( String uid );
 

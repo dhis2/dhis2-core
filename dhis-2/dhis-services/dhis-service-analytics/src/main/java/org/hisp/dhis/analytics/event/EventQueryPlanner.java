@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,4 +50,12 @@ public interface EventQueryPlanner
      * @return an {@link EventQueryParams}.
      */
     EventQueryParams planEventQuery( EventQueryParams params );
+
+    /**
+     * Plans the given parameters and returns a list of parameters.
+     *
+     * @param params the enrollment query parameters.
+     * @return an {@link EventQueryParams}.
+     */
+    EventQueryParams planEnrollmentQuery( EventQueryParams params );
 }

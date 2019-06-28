@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -58,7 +57,7 @@ public interface DataSetService
      * @param dataSet The DataSet to add.
      * @return The generated unique identifier for this DataSet.
      */
-    int addDataSet( DataSet dataSet );
+    long addDataSet( DataSet dataSet );
 
     /**
      * Updates a DataSet.
@@ -80,7 +79,7 @@ public interface DataSetService
      * @param id The unique identifier for the DataSet to get.
      * @return The DataSet with the given id or null if it does not exist.
      */
-    DataSet getDataSet( int id );
+    DataSet getDataSet( long id );
 
     /**
      * Returns the DataSet with the given UID.
@@ -122,14 +121,6 @@ public interface DataSetService
     List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
 
     /**
-     * Returns a list of data sets with the given uids.
-     *
-     * @param uids the collection of uids.
-     * @return a list of data sets.
-     */
-    List<DataSet> getDataSetsByUid( Collection<String> uids );
-
-    /**
      * Returns all DataSets that can be collected through mobile (one
      * organisation unit).
      */
@@ -144,8 +135,9 @@ public interface DataSetService
     /**
      * Returns the data sets which given user have READ access. If the current
      * user has the ALL authority then all data sets are returned.
-     * @param User  user to query for data set list
-     * @return List of dataset which given user has data read access
+     *
+     * @param user the user to query for data set list.
+     * @return a list of data sets which the given user has data read access to.
      */
     List<DataSet> getUserDataRead( User user );
 
@@ -158,8 +150,9 @@ public interface DataSetService
     /**
      * Returns the data sets which current user have WRITE access. If the current
      * user has the ALL authority then all data sets are returned.
-     * @param User  user to query for data set list
-     * @return List of dataset which given User has data write access
+     *
+     * @param user the user to query for data set list.
+     * @return a list of data sets which given user has data write access to.
      */
     List<DataSet> getUserDataWrite( User user );
 
@@ -173,7 +166,7 @@ public interface DataSetService
      * @param lockException LockException instance to add
      * @return Database ID of LockException
      */
-    int addLockException( LockException lockException );
+    long addLockException( LockException lockException );
 
     /**
      * Update lock exception
@@ -195,7 +188,7 @@ public interface DataSetService
      * @param id ID of LockException to get
      * @return LockException with given ID, or null if not found
      */
-    LockException getLockException( int id );
+    LockException getLockException( long id );
 
     /**
      * Get number of LockExceptions in total

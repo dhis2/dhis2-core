@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -311,7 +311,7 @@ public class MessageConversationController
             attachments.add( fileResource );
         }
 
-        int id = messageService.sendPrivateMessage( messageConversation.getUsers(),
+        long id = messageService.sendPrivateMessage( messageConversation.getUsers(),
             messageConversation.getSubject(), messageConversation.getText(), metaData, attachments );
 
         org.hisp.dhis.message.MessageConversation conversation = messageService.getMessageConversation( id );

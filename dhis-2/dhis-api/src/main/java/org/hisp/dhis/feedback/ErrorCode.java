@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,6 +73,7 @@ public enum ErrorCode
     E4017( "RenderingType `{0}` is not supported for ValueType `{1}`"),
     E4018( "Property `{0}` must be set when property `{1}` is `{2}`"),
 
+
     /* TextPattern Errors */
     E4019( "Failed to parse pattern `{0}`. {1}"),
     E4020( "The value `{0}` does not conform to the attribute pattern `{1}`"),
@@ -89,9 +90,12 @@ public enum ErrorCode
 
     E4027( "Value `{0}` is not a valid for property `{1}`"),
 
+    /* Program Errors */
+    E6000( "Program `{0}` has more than one Program Instances"),
+
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),
-    E7001( "Failed to add/update job configuration - Trying to add job with continuous exection while there already is a job with continuous exectution of the same job type." ),
+    E7001( "Failed to add/update job configuration - Trying to add job with continuous execution while there already is a job with continuous exectution of the same job type." ),
     E7002( "Failed to add/update job configuration - Uid does not exist" ),
     E7003( "Failed to add/update job configuration - Only interval can be configured for non configurable job type `{0}`" ),
     E7004( "Failed to add/update job configuration - Cron Expression must not be null " ),
