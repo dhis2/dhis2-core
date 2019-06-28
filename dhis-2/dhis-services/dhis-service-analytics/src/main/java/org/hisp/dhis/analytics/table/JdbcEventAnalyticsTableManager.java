@@ -39,6 +39,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.addClosingParenthes
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -260,7 +261,7 @@ public class JdbcEventAnalyticsTableManager
 
         for ( DataElement dataElement : program.getDataElements() )
         {
-            ColumnDataType dataType = getColumnType( dataElement.getValueType() );
+            ColumnDataType dataType = getColumnType( dataElement.getValueType(), databaseInfo.isSpatialSupport() );
             // Assemble a regex dataClause with using jsonb #>> operator
             String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
 
@@ -302,7 +303,7 @@ public class JdbcEventAnalyticsTableManager
 
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
         {
-            ColumnDataType dataType = getColumnType( attribute.getValueType() );
+            ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
             String select = getSelectClause( attribute.getValueType(), "value" );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
