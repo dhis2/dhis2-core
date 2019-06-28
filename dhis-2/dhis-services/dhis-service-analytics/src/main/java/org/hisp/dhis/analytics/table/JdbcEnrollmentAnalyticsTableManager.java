@@ -38,6 +38,7 @@ import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -186,7 +187,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
         {
-            ColumnDataType dataType = getColumnType( attribute.getValueType() );
+            ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
             String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
             String select = getSelectClause( attribute.getValueType(), "value" );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
