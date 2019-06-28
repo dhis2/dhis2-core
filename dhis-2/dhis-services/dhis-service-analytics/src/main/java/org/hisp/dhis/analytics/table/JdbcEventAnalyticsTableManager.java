@@ -102,26 +102,26 @@ public class JdbcEventAnalyticsTableManager
     }
 
     private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
-            new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
-            new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
-            new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
-            new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ),
-            new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
-            new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
-            new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
-            new AnalyticsTableColumn( quote( "duedate" ),TIMESTAMP, "psi.duedate" ),
-            new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
-            new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
-            new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
-            new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
-            new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
-            new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ),
-            // TODO lat and lng deprecated in 2.30, should be removed after 2.33
-            new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
-            new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
-            new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
-            new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
-            new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" )
+        new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
+        new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
+        new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
+        new AnalyticsTableColumn( quote( "ao" ), CHARACTER_11, NOT_NULL, "ao.uid" ),
+        new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
+        new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
+        new AnalyticsTableColumn( quote( "executiondate" ), TIMESTAMP, "psi.executiondate" ),
+        new AnalyticsTableColumn( quote( "duedate" ),TIMESTAMP, "psi.duedate" ),
+        new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
+        new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
+        new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
+        new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
+        new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
+        new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ),
+        // TODO lat and lng deprecated in 2.30, should be removed after 2.33
+        new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
+        new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
+        new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
+        new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
+        new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" )
     );
 
     @Override
@@ -333,7 +333,7 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        columns.addAll(getFixedColumns());
+        columns.addAll( getFixedColumns() );
 
         if ( program.isRegistration() )
         {
