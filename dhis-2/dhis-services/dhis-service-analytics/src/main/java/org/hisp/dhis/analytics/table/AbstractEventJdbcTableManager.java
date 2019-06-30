@@ -36,7 +36,6 @@ import java.util.concurrent.Future;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -58,7 +57,6 @@ import org.springframework.scheduling.annotation.Async;
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
-
     public AbstractEventJdbcTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -84,40 +82,6 @@ public abstract class AbstractEventJdbcTableManager
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tables )
     {
         return ConcurrentUtils.getImmediateFuture();
-    }
-
-    /**
-     * Returns the database column type based on the given value type. For boolean
-     * values, 1 means true, 0 means false and null means no value.
-     *
-     * @param valueType the value type to represent as database column type.
-     */
-    protected ColumnDataType getColumnType( ValueType valueType )
-    {
-        if ( valueType.isDecimal() )
-        {
-            return ColumnDataType.DOUBLE;
-        }
-        else if ( valueType.isInteger() )
-        {
-            return ColumnDataType.BIGINT;
-        }
-        else if ( valueType.isBoolean() )
-        {
-            return ColumnDataType.INTEGER;
-        }
-        else if ( valueType.isDate() )
-        {
-            return ColumnDataType.TIMESTAMP;
-        }
-        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
-        {
-            return ColumnDataType.GEOMETRY_POINT;
-        }
-        else
-        {
-            return ColumnDataType.TEXT;
-        }
     }
 
     /**
