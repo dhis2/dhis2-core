@@ -29,10 +29,12 @@ package org.hisp.dhis.attribute;
  */
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.CustomAttributeSerializer;
 import org.hisp.dhis.common.CustomLastUpdatedUserSerializer;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -88,6 +90,24 @@ public class AttributeValue
         this.attribute = attribute;
     }
 
+    public AttributeValue( String value, long created, Attribute attribute, String valueType, long lastUpdated )
+    {
+        System.out.println(
+            "attributeUid = [" + attribute + "], created = [" + created + "], lastUpdated = [" + lastUpdated +
+                "], value = [" + value + "]" );
+        this.value = value;
+        this.created = Date.from( Instant.ofEpochMilli( Long.valueOf( created ) ) );
+        this.lastUpdated = Date.from( Instant.ofEpochMilli( Long.valueOf( lastUpdated ) ) );
+        this.attribute = attribute;
+    }
+
+    public AttributeValue( Date created, Date lastUpdated, Attribute attribute, String value )
+    {
+        this.created = created;
+        this.lastUpdated = lastUpdated;
+        this.value = value;
+    }
+
     public void setAutoFields()
     {
         if ( created == null )
@@ -128,6 +148,7 @@ public class AttributeValue
                 ", created=" + created +
                 ", lastUpdated=" + lastUpdated +
                 ", value='" + value + '\'' +
+            ", attribute='" + attribute + '\'' +
                 '}';
     }
 

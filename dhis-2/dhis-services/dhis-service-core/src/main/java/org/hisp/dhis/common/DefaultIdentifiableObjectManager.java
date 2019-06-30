@@ -1012,7 +1012,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute )
+    public <T extends IdentifiableObject> List<T> getAttributeValueByAttribute( Class<T> klass, Attribute attribute )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -1028,12 +1028,12 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return store.getAttributeValueByAttribute( attribute );
+        return store.getByAttribute( attribute );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
+    public <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -1049,7 +1049,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return store.getAttributeValueByAttributeAndValue( attribute, value );
+        return store.getByAttributeAndValue( attribute, value );
     }
 
     @Override

@@ -28,8 +28,7 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -51,7 +50,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -62,9 +60,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class HibernateGenericStore<T>
     implements GenericStore<T>
 {
-    public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
-
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
+
+    public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
+    public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+    public static final String FUNCTION_JSONB_TO_RECORD = "jsonb_to_record";
 
     protected SessionFactory sessionFactory;
     protected JdbcTemplate jdbcTemplate;
@@ -434,7 +434,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<T> getAllByAttributes( List<Attribute> attributes )
+    public  List<T> getAllByAttributes( List<Attribute> attributes )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -450,8 +450,7 @@ public class HibernateGenericStore<T>
         subQuery.select( builder.literal( "jsonb_object_keys( attributeValues )" ) );
         subQuery.where( builder.equal( subRoot.get( "id" ), root.get( "id" ) ) );
 
-        query.where(
-            subQuery.in( attributeIds ) );
+        query.where( subQuery.in( attributeIds ) );
 
         return getSession().createQuery( query ).list();
     }
@@ -465,52 +464,59 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
+    public List<T> getByAttribute( Attribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
 
         Root<T> root = query.from( getClazz() );
-        query.select( root.get( "attributeValues" ) );
-        query.where( builder.equal(
-                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ) )
-                        ,attribute.getUid() )
-        );
+
+        query.select(root );
+        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ) ).isNotNull()  );
 
         return getSession().createQuery( query ).list();
     }
 
     @Override
-    public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
+    public List<T> getByAttributeAndValue( Attribute attribute, String value )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
+
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
         Root<T> root = query.from( getClazz() );
-
-        query.select( root.get( "attributeValues" ) );
-        query.where(
-                    builder.equal(
-                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value )
-        );
-
+        query.select( root );
+        query.where( builder.equal(
+                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
         return getSession().createQuery( query ).list();
+
+    }
+
+    @Override
+    public List<T> getByAttributeValue( AttributeValue attributeValue )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root );
+        query.where( builder.equal(
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attributeValue.getAttribute().getUid() ),  builder.literal( "value" ) ) , attributeValue.getValue() ) );
+        return getSession().createQuery( query ).list();
+
     }
 
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue )
     {
-        Attribute attribute = getSession().get( Attribute.class, attributeValue.getAttribute() );
-
-        List<AttributeValue> values = getAttributeValueByAttribute( attribute );
-
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ) );
+        List<T> objects = getByAttributeValue( attributeValue );
+        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ) );
     }
 
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value )
     {
-        List<AttributeValue> values = getAttributeValueByAttributeAndValue( attribute, value );
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ) );
+        List<T> objects = getByAttributeAndValue( attribute, value );
+        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ) );
     }
 
     /**

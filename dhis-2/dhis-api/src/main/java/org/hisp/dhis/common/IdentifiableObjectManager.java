@@ -150,9 +150,9 @@ public interface IdentifiableObjectManager
 
     void evict( Object object );
 
-    <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute );
+    <T extends IdentifiableObject> List<T> getAttributeValueByAttribute( Class<T> klass, Attribute attribute );
 
-    <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
+    <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
 
     <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue );
 

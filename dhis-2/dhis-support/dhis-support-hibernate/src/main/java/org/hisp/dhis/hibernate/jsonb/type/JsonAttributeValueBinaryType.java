@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.hibernate.HibernateException;
 import org.hisp.dhis.attribute.AttributeValue;
 
@@ -48,6 +49,7 @@ public class JsonAttributeValueBinaryType
     {
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
         MAPPER.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
+        MAPPER.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
     }
 
     public JsonAttributeValueBinaryType()
@@ -67,7 +69,7 @@ public class JsonAttributeValueBinaryType
     }
 
     @Override
-    protected String convertObjectToJson( Object object )
+    public String convertObjectToJson( Object object )
     {
         try
         {
@@ -101,7 +103,7 @@ public class JsonAttributeValueBinaryType
     }
 
     @Override
-    protected Object convertJsonToObject( String content )
+    public Object convertJsonToObject( String content )
     {
         try
         {

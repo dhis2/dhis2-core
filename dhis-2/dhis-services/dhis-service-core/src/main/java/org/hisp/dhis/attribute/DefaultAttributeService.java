@@ -214,9 +214,8 @@ public class DefaultAttributeService
 
         if ( attribute.isUnique() )
         {
-            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attribute, attributeValue.getValue() );
 
-            if ( !values.isEmpty() )
+            if (  !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
             {
                 throw new NonUniqueAttributeValueException( attributeValue );
             }
@@ -224,7 +223,7 @@ public class DefaultAttributeService
 
         attributeValue.setAutoFields();
         object.getAttributeValues().add( attributeValue );
-        sessionFactory.getCurrentSession().save( object );
+        sessionFactory.getCurrentSession().update( object );
     }
 
     @Override
@@ -241,9 +240,7 @@ public class DefaultAttributeService
 
         if ( attribute.isUnique() )
         {
-            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attribute, attributeValue.getValue() );
-
-            if ( values.size() > 1 || (values.size() == 1 && !object.getAttributeValues().contains( values.get( 0 ) )) )
+            if ( !manager.isAttributeValueUnique( object.getClass(), object, attributeValue ) )
             {
                 throw new NonUniqueAttributeValueException( attributeValue );
             }
@@ -253,7 +250,7 @@ public class DefaultAttributeService
         object.setAttributeValues( object.getAttributeValues().stream()
                 .filter( av -> !av.getAttribute().equals( attribute.getUid() ) ).collect(Collectors.toSet() ) );
 
-        manager.update( object );
+        sessionFactory.getCurrentSession().update( object );
     }
 
     @Override
@@ -266,7 +263,7 @@ public class DefaultAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues )
     {
         object.getAttributeValues().removeAll( attributeValues );
