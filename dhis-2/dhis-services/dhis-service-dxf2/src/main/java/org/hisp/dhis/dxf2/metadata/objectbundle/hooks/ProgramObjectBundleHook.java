@@ -32,14 +32,15 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.springframework.stereotype.Component;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,12 +54,15 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 
     private final ProgramStageService programStageService;
 
+    private final AclService aclService;
+
     public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
-                                    ProgramStageService programStageService )
+                                    ProgramStageService programStageService, AclService aclService )
     {
         this.programInstanceService = programInstanceService;
         this.programStageService = programStageService;
         this.programService = programService;
+        this.aclService = aclService;
     }
 
     @Override
@@ -103,6 +107,8 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         {
             errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
         }
+
+        errors.addAll( validateAttributeSecurity( program , bundle ) );
 
         return errors;
     }
@@ -164,5 +170,30 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     private boolean isProgram( Object object )
     {
         return object instanceof Program;
+    }
+
+    private List<ErrorReport> validateAttributeSecurity( Program program, ObjectBundle bundle )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        if ( program.getProgramAttributes().isEmpty() )
+        {
+            return errorReports;
+        }
+
+        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+        program.getProgramAttributes().forEach( programAttr ->
+        {
+            TrackedEntityAttribute attribute = bundle.getPreheat().get( identifier, programAttr.getAttribute() );
+
+            if ( attribute == null || !aclService.canRead( bundle.getUser(), attribute ) )
+            {
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                    identifier.getIdentifiersWithName( programAttr.getAttribute() ) ) );
+            }
+        });
+
+        return errorReports;
     }
 }
