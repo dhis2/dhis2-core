@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 
 import java.util.Collection;
 import java.util.Date;
@@ -114,6 +115,8 @@ public interface IdentifiableObjectStore<T>
      * @return the attribute value.
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
+
+    T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo );
 
     /**
      * Retrieves a List of all objects (sorted on name).

@@ -33,6 +33,7 @@ import java.lang.reflect.Method;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.junit.After;
 import org.junit.Before;
@@ -42,11 +43,14 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.annotation.Import;
 import org.springframework.orm.hibernate5.SessionFactoryUtils;
 import org.springframework.orm.hibernate5.SessionHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /*
@@ -54,8 +58,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  */
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
+@Import( { HibernateConfig.class } )
 @Category( IntegrationTest.class )
 @ActiveProfiles(profiles = {"test-postgres"})
+@Transactional
 public abstract class IntegrationTestBase
     extends DhisConvenienceTest
     implements ApplicationContextAware
@@ -69,17 +75,16 @@ public abstract class IntegrationTestBase
     public void before()
         throws Exception
     {
-         bindSession();
          executeStartupRoutines();
          setUpTest();
     }
 
     @After
+    @Transactional( propagation = Propagation.REQUIRED )
     public void after()
         throws Exception
     {
         tearDownTest();
-        unbindSession();
 
         if ( emptyDatabaseAfterTest() )
         {
@@ -105,24 +110,6 @@ public abstract class IntegrationTestBase
         throws BeansException
     {
         this.webApplicationContext = applicationContext;
-    }
-
-    private void bindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
-        Session session = sessionFactory.openSession();
-        session.setHibernateFlushMode(FlushMode.ALWAYS);
-        TransactionSynchronizationManager.bindResource( sessionFactory, new SessionHolder( session ) );
-    }
-
-    private void unbindSession()
-    {
-        SessionFactory sessionFactory = (SessionFactory) webApplicationContext.getBean( "sessionFactory" );
-
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
-            .unbindResource( sessionFactory );
-
-        SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }
 
     public abstract boolean emptyDatabaseAfterTest();

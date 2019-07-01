@@ -50,6 +50,7 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -401,9 +402,18 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional( readOnly = true)
+    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
+        String value )
+    {
+       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
+    }
+
+    @Override
+    @Transactional
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value )
+    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
+        String value, UserInfo currentUserInfo )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -412,7 +422,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value );
+        return (T) store.getByUniqueAttributeValue( attribute, value, currentUserInfo );
     }
 
     @Override

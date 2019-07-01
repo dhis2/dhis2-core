@@ -50,6 +50,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.google.common.base.Preconditions.checkNotNull;

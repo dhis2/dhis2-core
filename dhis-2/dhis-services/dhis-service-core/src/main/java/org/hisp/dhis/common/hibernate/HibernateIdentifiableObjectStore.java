@@ -462,6 +462,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo )
+    {
+        if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
+        {
+            return null;
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, userInfo ) )
+            .addPredicate( root ->
+                builder.equal(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+
+        return getSingleResult( builder, param );
+    }
+
+    @Override
     public List<T> getAllEqName( String name )
     {
         CriteriaBuilder builder = getCriteriaBuilder();

@@ -32,6 +32,8 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
@@ -83,6 +85,9 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> T getByName( Class<T> clazz, String name );
 
     <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value );
+
+    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value,
+        UserInfo currentUserInfo );
 
     <T extends IdentifiableObject> T search( Class<T> clazz, String query );
 

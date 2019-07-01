@@ -33,13 +33,10 @@ import org.codehaus.jackson.node.ObjectNode;
 import org.hisp.dhis.*;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataelement.DataElementStore;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -48,6 +45,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -62,13 +61,7 @@ public class AttributeValueServiceTest
     private AttributeService attributeService;
 
     @Autowired
-    private IdentifiableObjectManager manager;
-
-    @Autowired
-    private DataElementService dataElementService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
+    private DataElementStore dataElementStore;
 
     @Autowired
     private UserService _userService;
@@ -96,9 +89,8 @@ public class AttributeValueServiceTest
     protected void setUpTest() throws NonUniqueAttributeValueException
     {
         userService = _userService;
-        createAndInjectAdminUser();
         categoryService = _categoryService;
-        System.out.println( "currentUserService.getCurrentUserInfo() = " + currentUserService.getCurrentUserInfo() );
+        createAndInjectAdminUser();
         avA = new AttributeValue( "value 1" );
         avB = new AttributeValue( "value 2" );
         avC = new AttributeValue( "value 3" );
@@ -127,17 +119,13 @@ public class AttributeValueServiceTest
         dataElementB.getAttributeValues().add( avB );
         dataElementC.getAttributeValues().add( avC );
 
+        dataElementStore.save( dataElementA );
+        dataElementStore.save( dataElementB );
+        dataElementStore.save( dataElementC );
 
-
-        dataElementService.addDataElement( dataElementA );
-        dataElementService.addDataElement( dataElementB );
-        dataElementService.addDataElement( dataElementC );
-
-//        attributeService.addAttributeValue( dataElementA, avA );
-//        attributeService.addAttributeValue( dataElementB, avB );
-//        attributeService.addAttributeValue( dataElementC, avC );
-
-
+        attributeService.addAttributeValue( dataElementA, avA );
+        attributeService.addAttributeValue( dataElementB, avB );
+        attributeService.addAttributeValue( dataElementC, avC );
 
     }
 
@@ -188,9 +176,14 @@ public class AttributeValueServiceTest
     @Test
     public void testGetAttributeValue()
     {
+        avA = dataElementA.getAttributeValue( attribute1 );
+        List<DataElement> objects = dataElementStore.getByAttribute( attribute2 );
+        List<AttributeValue> avs = objects.stream().map( o -> o.getAttributeValue( attribute2 ) )
+            .collect( Collectors.toList() );
 
         assertNotNull( avA );
-        assertNotNull( avB );
+        assertTrue( !avs.isEmpty() );
+        assertEquals( avB.getValue(), avs.get( 0 ).getValue() );
     }
 
     @Test
@@ -286,7 +279,7 @@ public class AttributeValueServiceTest
         attributeService.addAttributeValue( dataElementA, attributeValueA );
         attributeService.addAttributeValue( dataElementB, attributeValueB );
 
-        List<DataElement> dataElements = dataElementService.getByAttribute( attribute );
+        List<DataElement> dataElements = dataElementStore.getByAttribute( attribute );
         assertEquals( 2, dataElements.size() );
     }
 
@@ -313,10 +306,10 @@ public class AttributeValueServiceTest
 
         assertEquals( 3, dataElementA.getAttributeValues().size() );
 
-        List<DataElement> dataElements = dataElementService.getByAttributeAndValue( attribute, "SOME VALUE" );
+        List<DataElement> dataElements = dataElementStore.getByAttributeAndValue( attribute, "SOME VALUE" );
         assertEquals( 2, dataElements.size() );
 
-        dataElements = dataElementService.getByAttributeAndValue( attribute, "ANOTHER VALUE" );
+        dataElements = dataElementStore.getByAttributeAndValue( attribute, "ANOTHER VALUE" );
         assertEquals( 1, dataElements.size() );
     }
 
@@ -336,52 +329,50 @@ public class AttributeValueServiceTest
         attributeService.addAttributeValue( dataElementB, attributeValueB );
         attributeService.addAttributeValue( dataElementC, attributeValueC );
 
-        assertNotNull( dataElementService.getByUniqueAttributeValue( attribute, "CID1" ) );
-        assertNotNull( dataElementService.getByUniqueAttributeValue( attribute, "CID2" ) );
-        assertNotNull( dataElementService.getByUniqueAttributeValue( attribute, "CID3" ) );
-        assertNull( dataElementService.getByUniqueAttributeValue( attribute, "CID4" ) );
-        assertNull( dataElementService.getByUniqueAttributeValue( attribute, "CID5" ) );
+        assertNotNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID1" ) );
+        assertNotNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID2" ) );
+        assertNotNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID3" ) );
+        assertNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID4" ) );
+        assertNull( dataElementStore.getByUniqueAttributeValue( attribute, "CID5" ) );
 
-        assertEquals( "DataElementA", dataElementService.getByUniqueAttributeValue( attribute, "CID1" ).getName() );
-        assertEquals( "DataElementB", dataElementService.getByUniqueAttributeValue( attribute, "CID2" ).getName() );
-        assertEquals( "DataElementC", dataElementService.getByUniqueAttributeValue( attribute, "CID3" ).getName() );
+        assertEquals( "DataElementA", dataElementStore.getByUniqueAttributeValue( attribute, "CID1" ).getName() );
+        assertEquals( "DataElementB", dataElementStore.getByUniqueAttributeValue( attribute, "CID2" ).getName() );
+        assertEquals( "DataElementC", dataElementStore.getByUniqueAttributeValue( attribute, "CID3" ).getName() );
     }
 
     @Test
     public void testUniqueAttributesWithSameValues()
     {
-//        Attribute attributeA = new Attribute( "ATTRIBUTEA", ValueType.TEXT );
-//        attributeA.setDataElementAttribute( true );
-//        attributeA.setUnique( true );
-//        attributeService.addAttribute( attributeA );
-//
-//        Attribute attributeB = new Attribute( "ATTRIBUTEB", ValueType.TEXT );
-//        attributeB.setDataElementAttribute( true );
-//        attributeB.setUnique( true );
-//        attributeService.addAttribute( attributeB );
-//
-//        Attribute attributeC = new Attribute( "ATTRIBUTEC", ValueType.TEXT );
-//        attributeC.setDataElementAttribute( true );
-//        attributeC.setUnique( true );
-//        attributeService.addAttribute( attributeC );
+        Attribute attributeA = new Attribute( "ATTRIBUTEA", ValueType.TEXT );
+        attributeA.setDataElementAttribute( true );
+        attributeA.setUnique( true );
+        attributeService.addAttribute( attributeA );
 
-//        AttributeValue attributeValueA = new AttributeValue( "VALUE", attributeA );
-//        AttributeValue attributeValueB = new AttributeValue( "VALUE", attributeB );
-//        AttributeValue attributeValueC = new AttributeValue( "VALUE", attributeC );
-//
-//        attributeService.addAttributeValue( dataElementA, attributeValueA );
-//        attributeService.addAttributeValue( dataElementB, attributeValueB );
-//        attributeService.addAttributeValue( dataElementC, attributeValueC );
+        Attribute attributeB = new Attribute( "ATTRIBUTEB", ValueType.TEXT );
+        attributeB.setDataElementAttribute( true );
+        attributeB.setUnique( true );
+        attributeService.addAttribute( attributeB );
 
-        assertEquals( 1, dataElementA.getAttributeValues().size() );
-        assertEquals( 1, dataElementB.getAttributeValues().size() );
-        assertEquals( 1, dataElementC.getAttributeValues().size() );
+        Attribute attributeC = new Attribute( "ATTRIBUTEC", ValueType.TEXT );
+        attributeC.setDataElementAttribute( true );
+        attributeC.setUnique( true );
+        attributeService.addAttribute( attributeC );
 
-//        System.out.println( "currentUserService.getCurrentUserInfo() = " + currentUserService.getCurrentUserInfo() );
+        AttributeValue attributeValueA = new AttributeValue( "VALUE", attributeA );
+        AttributeValue attributeValueB = new AttributeValue( "VALUE", attributeB );
+        AttributeValue attributeValueC = new AttributeValue( "VALUE", attributeC );
 
-        DataElement de1 = dataElementService.getByUniqueAttributeValue( attribute1, "value 1" );
-        DataElement de2 = dataElementService.getByUniqueAttributeValue( attribute2, "value 2" );
-        DataElement de3 = dataElementService.getByUniqueAttributeValue( attribute3, "valye 3" );
+        attributeService.addAttributeValue( dataElementA, attributeValueA );
+        attributeService.addAttributeValue( dataElementB, attributeValueB );
+        attributeService.addAttributeValue( dataElementC, attributeValueC );
+
+        assertEquals( 2, dataElementA.getAttributeValues().size() );
+        assertEquals( 2, dataElementB.getAttributeValues().size() );
+        assertEquals( 2, dataElementC.getAttributeValues().size() );
+
+        DataElement de1 = dataElementStore.getByUniqueAttributeValue( attributeA, "VALUE" );
+        DataElement de2 = dataElementStore.getByUniqueAttributeValue( attributeB, "VALUE" );
+        DataElement de3 = dataElementStore.getByUniqueAttributeValue( attributeC, "VALUE" );
 
         assertNotNull( de1 );
         assertNotNull( de2 );
