@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceException;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
