@@ -147,8 +147,8 @@ public class RelationshipStoreTest
 
         ProgramStage programStageA = createProgramStage( 'S', programA );
         programStageA.setProgram( programA );
-        programA.getProgramStages().add( programStageA );
         programStageService.saveProgramStage( programStageA );
+        programA.getProgramStages().add( programStageA );
 
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setOrganisationUnit( organisationUnit );

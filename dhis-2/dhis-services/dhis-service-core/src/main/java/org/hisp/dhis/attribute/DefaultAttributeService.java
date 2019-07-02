@@ -211,7 +211,6 @@ public class DefaultAttributeService
         {
             return;
         }
-
         if ( attribute.isUnique() )
         {
 
@@ -223,7 +222,8 @@ public class DefaultAttributeService
 
         attributeValue.setAutoFields();
         object.getAttributeValues().add( attributeValue );
-        sessionFactory.getCurrentSession().update( object );
+
+        sessionFactory.getCurrentSession().save( object );
     }
 
     @Override
@@ -249,7 +249,6 @@ public class DefaultAttributeService
         attributeValue.setAutoFields();
         object.setAttributeValues( object.getAttributeValues().stream()
                 .filter( av -> !av.getAttribute().equals( attribute.getUid() ) ).collect(Collectors.toSet() ) );
-
         sessionFactory.getCurrentSession().update( object );
     }
 

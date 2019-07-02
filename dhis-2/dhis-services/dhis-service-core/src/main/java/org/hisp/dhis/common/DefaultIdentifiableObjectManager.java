@@ -402,7 +402,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional( readOnly = true)
+    @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
         String value )
     {
@@ -410,8 +410,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
-    @Transactional
-    @SuppressWarnings( "unchecked" )
+    @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
         String value, UserInfo currentUserInfo )
     {

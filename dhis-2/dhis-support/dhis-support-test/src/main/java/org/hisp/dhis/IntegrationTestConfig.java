@@ -30,14 +30,15 @@ package org.hisp.dhis;
 
 import java.util.Properties;
 
-import org.hisp.dhis.config.HibernateConfig;
 import org.hisp.dhis.container.DhisPostgisContainerProvider;
 import org.hisp.dhis.container.DhisPostgreSQLContainer;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.*;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 /**
@@ -45,7 +46,6 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  */
 @Configuration
 @ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
-@Import( { HibernateConfig.class } )
 @ComponentScan("org.hisp.dhis")
 public class IntegrationTestConfig
 {
