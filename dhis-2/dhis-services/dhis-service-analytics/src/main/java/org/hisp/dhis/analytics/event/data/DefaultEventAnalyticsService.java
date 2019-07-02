@@ -602,7 +602,9 @@ public class DefaultEventAnalyticsService
         if ( params.getProgram().isRegistration() )
         {
             grid.addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
-                .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) );
+                .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         grid.addHeader( new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )
@@ -610,12 +612,6 @@ public class DefaultEventAnalyticsService
             .addHeader( new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
             .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
-
-        if ( params.getProgram().isRegistration() )
-        {
-            grid.addHeader( new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) )
-                .addHeader( new GridHeader( ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) );
-        }
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
