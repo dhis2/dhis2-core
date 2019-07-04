@@ -234,7 +234,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .addColumnUnquoted( quote (d5.getUid() ) + "_geom" , GEOMETRY_POINT, toAlias(aliasD5_geo, d5.getUid()) ) // element d5 also creates a Geo column 
+            .addColumnUnquoted( d5.getUid() + "_geom" , GEOMETRY_POINT, toAlias(aliasD5_geo, d5.getUid()) ) // element d5 also creates a Geo column
             .withDefaultColumns( subject.getFixedColumns() )
             .build().verify();
     }
@@ -281,7 +281,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d1.getUid(), TEXT, toAlias( aliasD1, d1.getUid() ) )  // ValueType.TEXT
             .addColumn( tea1.getUid(), TEXT, String.format(aliasTea1, "ou.name", tea1.getId(), tea1.getUid()) )  // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
-            .addColumnUnquoted(  quote( tea1.getUid() ) + "_geom", GEOMETRY, String.format(aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid()) )
+            .addColumnUnquoted(  tea1.getUid() + "_geom", GEOMETRY, String.format(aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid()) )
             .withDefaultColumns( subject.getFixedColumns() )
             .build().verify();
     }

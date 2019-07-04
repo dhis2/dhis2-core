@@ -282,7 +282,7 @@ public class JdbcEventAnalyticsTableManager
         if ( attribute.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() ) {
             String geoSql = selectForInsert(attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause);
             columns.add(new AnalyticsTableColumn(
-                quote( attribute.getUid() ) + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ));
+                 attribute.getUid()  + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ));
         }
 
         columns.add(new AnalyticsTableColumn(
@@ -330,7 +330,7 @@ public class JdbcEventAnalyticsTableManager
         {
             String geoSql = selectForInsert(dataElement, "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause);
             // add a second column to track the OU location if available
-            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ) + OU_GEOMETRY_COL_SUFFIX , ColumnDataType.GEOMETRY_POINT, geoSql )
+            columns.add( new AnalyticsTableColumn(  dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX , ColumnDataType.GEOMETRY_POINT, geoSql )
                 .withSkipIndex( true ) );
         }
 
