@@ -31,13 +31,10 @@ package org.hisp.dhis.hibernate.jsonb.type;
 import java.io.IOException;
 import java.util.*;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.hibernate.HibernateException;
 import org.hisp.dhis.attribute.AttributeValue;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class JsonAttributeValueBinaryType
@@ -45,27 +42,10 @@ public class JsonAttributeValueBinaryType
 {
     static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static
-    {
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-        MAPPER.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        MAPPER.configure( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false );
-    }
-
-    public JsonAttributeValueBinaryType()
-    {
-        super();
-        writer = MAPPER.writerFor( new TypeReference<Map<String, AttributeValue>>() {} );
-        reader = MAPPER.readerFor( new TypeReference<Map<String, AttributeValue>>() {} );
-        returnedClass = AttributeValue.class;
-    }
-
     @Override
-    protected void init( Class<?> klass )
+    protected JavaType getResultingJavaType( Class<?> returnedClass )
     {
-        returnedClass = klass;
-        reader = MAPPER.readerFor( new TypeReference<Map<String, AttributeValue>>() {} );
-        writer = MAPPER.writerFor( new TypeReference<Map<String, AttributeValue>>() {} );
+        return MAPPER.getTypeFactory().constructMapLikeType( Map.class, String.class, returnedClass );
     }
 
     @Override

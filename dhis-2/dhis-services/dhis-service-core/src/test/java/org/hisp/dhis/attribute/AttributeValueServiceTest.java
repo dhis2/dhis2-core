@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,12 +51,14 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Category( IntegrationTest.class )
 public class AttributeValueServiceTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTestBase
 {
     @Autowired
     private AttributeService attributeService;
@@ -84,6 +86,7 @@ public class AttributeValueServiceTest
     private Attribute attribute3;
     private UserInfo currentUserInfo;
 
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -91,7 +94,7 @@ public class AttributeValueServiceTest
     }
 
     @Override
-    protected void setUpTest() throws NonUniqueAttributeValueException
+    protected void setUpTest()
     {
         userService = _userService;
         categoryService = _categoryService;
@@ -153,8 +156,11 @@ public class AttributeValueServiceTest
         attributeService.updateAttributeValue( dataElementA, avA );
         attributeService.updateAttributeValue( dataElementB, avB );
 
-        avA = dataElementA.getAttributeValue( attribute1 );
-        avB = dataElementB.getAttributeValue( attribute2 );
+        DataElement deA = dataElementStore.get( dataElementA.getId() );
+        DataElement deB = dataElementStore.get( dataElementB.getId() );
+
+        avA = deA.getAttributeValue( attribute1 );
+        avB = deB.getAttributeValue( attribute2 );
 
         assertNotNull( avA );
         assertNotNull( avB );
@@ -197,6 +203,27 @@ public class AttributeValueServiceTest
         assertTrue( !attributeValues.isEmpty() );
         assertEquals( 1, attributeValues.size() );
         assertEquals( avB.getValue(), attributeValues.get( 0 ).getValue() );
+    }
+
+    @Test
+    public void testGetAllByAttribute()
+    {
+        AttributeValue avA = new AttributeValue( "valueA", attribute1 );
+        avA.setAutoFields();
+        AttributeValue avB = new AttributeValue( "valueB", attribute2 );
+        avB.setAutoFields();
+
+        attributeService.addAttributeValue( dataElementA, avA );
+        attributeService.addAttributeValue( dataElementA, avB );
+        attributeService.addAttributeValue( dataElementB, avB );
+
+        manager.update( dataElementA );
+        manager.update( dataElementB );
+
+        List<DataElement> result = manager
+            .getAllByAttributes( DataElement.class, Lists.newArrayList( attribute1, attribute2 ) );
+
+        assertEquals( 2, result.size() );
     }
 
     @Test

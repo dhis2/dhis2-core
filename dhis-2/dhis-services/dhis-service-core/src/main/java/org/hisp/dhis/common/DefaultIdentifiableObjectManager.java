@@ -28,9 +28,15 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.google.common.collect.ImmutableMap;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,20 +61,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -551,6 +546,23 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getAllByAttributes( attributes );
+    }
+
+    @Override
+    @Transactional( readOnly = true)
+    public <T extends IdentifiableObject> List getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
+    {
+        List<T> objects = getAllByAttributes( klass, attributes );
+        Set<String> attributeIds = attributes.stream().map( attribute -> attribute.getUid() )
+            .collect( Collectors.toSet() );
+
+        ArrayList<String> result = new ArrayList<String>();
+
+        objects.forEach( object ->
+            result.addAll( object.getAttributeValues().stream()
+                .filter( attributeValue -> attributeIds.contains( attributeValue.getAttribute().getUid() ) ).map( attributeValue -> attributeValue.getValue() ).collect( Collectors.toList() ) ));
+
+        return result;
     }
 
     @Override

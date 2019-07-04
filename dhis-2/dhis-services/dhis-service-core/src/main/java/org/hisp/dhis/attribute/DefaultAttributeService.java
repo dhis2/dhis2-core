@@ -222,7 +222,6 @@ public class DefaultAttributeService
 
         attributeValue.setAutoFields();
         object.getAttributeValues().add( attributeValue );
-
         sessionFactory.getCurrentSession().save( object );
     }
 
