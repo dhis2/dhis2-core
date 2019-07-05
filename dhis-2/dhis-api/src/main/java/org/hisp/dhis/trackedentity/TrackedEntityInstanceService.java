@@ -184,9 +184,10 @@ public interface TrackedEntityInstanceService
      * normally.
      *
      * @param params the TrackedEntityInstanceQueryParams.
+     * @param isGridSearch specifies whether search is made for a Grid response
      * @throws IllegalQueryException if the given params is invalid.
      */
-    void validateSearchScope( TrackedEntityInstanceQueryParams params )
+    void validateSearchScope( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
         throws IllegalQueryException;
 
     /**
