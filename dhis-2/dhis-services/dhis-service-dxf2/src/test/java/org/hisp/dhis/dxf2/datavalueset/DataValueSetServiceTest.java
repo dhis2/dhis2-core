@@ -31,11 +31,9 @@ package org.hisp.dhis.dxf2.datavalueset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -95,7 +93,7 @@ import static org.junit.Assert.*;
  */
 @org.junit.experimental.categories.Category( IntegrationTest.class )
 public class DataValueSetServiceTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTestBase
 {
     private String ATTRIBUTE_UID = "uh6H2ff562G";
 
@@ -353,13 +351,13 @@ public class DataValueSetServiceTest
 
         // TODO This throw an error : "org.postgresql.util.PSQLException: ERROR: cannot execute UPDATE in a read-only transaction"
         //  Need to investigate
-//        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
-//
-//        assertNotNull( registration );
-//        assertEquals( dsA, registration.getDataSet() );
-//        assertEquals( peA, registration.getPeriod() );
-//        assertEquals( ouA, registration.getSource() );
-//        assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
+        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
+
+        assertNotNull( registration );
+        assertEquals( dsA, registration.getDataSet() );
+        assertEquals( peA, registration.getPeriod() );
+        assertEquals( ouA, registration.getSource() );
+        assertEquals( getDate( 2012, 1, 9 ), registration.getDate() );
     }
 
     @Test

@@ -63,7 +63,7 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
     @Override
     public boolean emptyDatabaseAfterTest()
     {
-        return false;
+        return true;
     }
 
     @Test
