@@ -505,8 +505,10 @@ public class DefaultUserService
 
         // Encode and set password
 
-        userCredentials.setPassword( passwordManager.encode( rawPassword ) );
-        userCredentials.getPreviousPasswords().add( passwordManager.encode( rawPassword ) );
+        String encodedPassword = passwordManager.encode( rawPassword );
+
+        userCredentials.setPassword( encodedPassword );
+        userCredentials.getPreviousPasswords().add( encodedPassword );
     }
 
     @Override

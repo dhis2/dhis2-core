@@ -66,6 +66,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -73,6 +74,8 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Lars Helge Overland
  */
+
+@Transactional
 public class DefaultSecurityService
     implements SecurityService
 {
