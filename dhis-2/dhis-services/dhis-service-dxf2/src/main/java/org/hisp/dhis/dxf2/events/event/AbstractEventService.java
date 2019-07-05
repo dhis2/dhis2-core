@@ -28,39 +28,9 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
@@ -160,9 +130,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1330,12 +1313,12 @@ public abstract class AbstractEventService
 
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(
             dataValueService.getTrackedEntityDataValues( programStageInstance ) );
-        Map<String, TrackedEntityDataValue> dataElementToValueMap = getDataElementDataValueMap( dataValues );
+        Map<String, TrackedEntityDataValue> dataElementToValueMap = getDataElementDataValueMap( dataValues, importOptions );
 
         Map<String, DataElement> newDataElements = new HashMap<>();
 
         ImportSummary validationResult = validateDataValues( event, programStageInstance, dataElementToValueMap,
-            newDataElements, importSummary, importOptions );
+            dataValues, newDataElements, importSummary, importOptions );
 
         if ( validationResult.getStatus() == ImportStatus.ERROR )
         {
@@ -1618,9 +1601,11 @@ public abstract class AbstractEventService
     }
 
     private ImportSummary validateDataValues( Event event, ProgramStageInstance programStageInstance,
-        Map<String, TrackedEntityDataValue> dataElementToValueMap, Map<String, DataElement> newDataElements,
-        ImportSummary importSummary, ImportOptions importOptions )
+        Map<String, TrackedEntityDataValue> dataElementToValueMap, Set<TrackedEntityDataValue> trackedEntityDataValues,
+        Map<String, DataElement> newDataElements, ImportSummary importSummary, ImportOptions importOptions )
     {
+        IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
+
         // Loop through values, if only one validation problem occurs -> FAIL
         for ( DataValue dataValue : event.getDataValues() )
         {
@@ -1631,7 +1616,8 @@ public abstract class AbstractEventService
             }
             else
             {
-                dataElement = getDataElement( importOptions.getIdSchemes().getDataElementIdScheme(), dataValue.getDataElement() );
+                boolean isNewDataElement = true;
+                dataElement = getDataElement( dataElementIdScheme, dataValue.getDataElement() );
 
                 // This can happen if a wrong data element identifier is provided
                 if ( dataElement == null )
@@ -1644,7 +1630,24 @@ public abstract class AbstractEventService
                     return importSummary;
                 }
 
-                newDataElements.put( dataValue.getDataElement(), dataElement );
+                //A special treatment for idScheme with IdentifiableProperty.ATTRIBUTE is needed
+                if ( dataElementIdScheme.isAttribute() )
+                {
+                    Optional<TrackedEntityDataValue> matchingTrackedEntityDataValue = trackedEntityDataValues.stream()
+                        .filter( tedv -> tedv.getDataElement().getUid().equals( dataElement.getUid() ) )
+                        .findFirst();
+
+                    if ( matchingTrackedEntityDataValue.isPresent() )
+                    {
+                        isNewDataElement = false;
+                        dataElementToValueMap.put( dataValue.getDataElement(), matchingTrackedEntityDataValue.get() );
+                    }
+                }
+
+                if ( isNewDataElement )
+                {
+                    newDataElements.put( dataValue.getDataElement(), dataElement );
+                }
             }
 
             // Return error if one or more values fail validation
@@ -1791,7 +1794,7 @@ public abstract class AbstractEventService
         if ( existingEvent )
         {
             dataElementValueMap = getDataElementDataValueMap(
-                dataValueService.getTrackedEntityDataValues( programStageInstance ) );
+                dataValueService.getTrackedEntityDataValues( programStageInstance ), importOptions );
         }
 
         List<DataValue> eventDataValues = event.getDataValues().stream().filter(  ObjectUtils.distinctByKey( dv -> dv.getDataElement() ) ).collect( Collectors.toList() );
@@ -2028,9 +2031,31 @@ public abstract class AbstractEventService
     }
 
     private Map<String, TrackedEntityDataValue> getDataElementDataValueMap(
-        Collection<TrackedEntityDataValue> dataValues )
+        Collection<TrackedEntityDataValue> dataValues, ImportOptions importOptions )
     {
-        return dataValues.stream().collect( Collectors.toMap( dv -> dv.getDataElement().getUid(), dv -> dv ) );
+        //idScheme with IdentifiableProperty.ATTRIBUTE has to be specially treated in the code
+
+        IdScheme idScheme = importOptions.getIdSchemes().getDataElementIdScheme();
+
+        if ( idScheme.isNull() || idScheme.is( IdentifiableProperty.UID ) )
+        {
+            return dataValues.stream().collect( Collectors.toMap( dv -> dv.getDataElement().getUid(), dv -> dv ) );
+        }
+        else if ( idScheme.is( IdentifiableProperty.CODE ) )
+        {
+            return dataValues.stream().collect( Collectors.toMap( dv -> dv.getDataElement().getCode(), dv -> dv ) );
+        }
+        else if ( idScheme.is( IdentifiableProperty.NAME ) )
+        {
+            return dataValues.stream().collect( Collectors.toMap( dv -> dv.getDataElement().getName(), dv -> dv ) );
+        }
+        else if ( idScheme.is( IdentifiableProperty.ID ) )
+        {
+            return dataValues.stream().filter( dv -> dv.getDataElement().getId() > 0 )
+                .collect( Collectors.toMap( dv -> String.valueOf( dv.getDataElement().getId() ), dv -> dv ) );
+        }
+
+        return Collections.EMPTY_MAP;
     }
 
     private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
