@@ -677,7 +677,10 @@ public class DefaultDataIntegrityService
         {
             String description = getInvalidExpressionDescription( programIndicator.getExpression() );
 
-            invalidExpressions.put( programIndicator, description );
+            if ( description != null )
+            {
+                invalidExpressions.put( programIndicator, description );
+            }
         }
 
         return invalidExpressions;
@@ -697,7 +700,10 @@ public class DefaultDataIntegrityService
         {
             String description = getInvalidExpressionDescription( programIndicator.getFilter() );
 
-            invalidFilters.put( programIndicator, description );
+            if ( description != null )
+            {
+                invalidFilters.put( programIndicator, description );
+            }
         }
 
         return invalidFilters;
@@ -785,7 +791,7 @@ public class DefaultDataIntegrityService
            return e.getMessage();
         }
 
-        return "";
+        return null;
     }
 
     private Map<Program, Collection<ProgramRule>> groupRulesByProgram( List<ProgramRule> programRules )
