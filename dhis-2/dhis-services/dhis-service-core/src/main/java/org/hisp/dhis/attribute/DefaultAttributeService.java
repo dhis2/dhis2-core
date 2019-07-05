@@ -303,9 +303,9 @@ public class DefaultAttributeService
 
             Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
 
-            if ( attributeValueMap.containsKey( attributeValue.getAttribute() ) )
+            if ( attributeValueMap.containsKey( attributeValue.getAttribute().getUid() ) )
             {
-                AttributeValue av = attributeValueMap.get( attributeValue.getAttribute() );
+                AttributeValue av = attributeValueMap.get( attributeValue.getAttribute().getUid() );
 
                 if ( attribute.isUnique() )
                 {
@@ -323,8 +323,8 @@ public class DefaultAttributeService
                     attributeValue.setValue( av.getValue() );
                 }
 
-                attributeValueMap.remove( attributeValue.getAttribute() );
-                mandatoryAttributes.remove( attributeValue.getAttribute() );
+                attributeValueMap.remove( attributeValue.getAttribute().getUid() );
+                mandatoryAttributes.remove( attributeValue.getAttribute().getUid() );
             }
             else
             {
@@ -336,7 +336,7 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = attributeValueMap.get( uid );
             addAttributeValue( object, attributeValue );
-            mandatoryAttributes.remove( attributeValue.getAttribute() );
+            mandatoryAttributes.remove( attributeValue.getAttribute().getUid() );
         }
 
         deleteAttributeValues( object, toBeDeleted );

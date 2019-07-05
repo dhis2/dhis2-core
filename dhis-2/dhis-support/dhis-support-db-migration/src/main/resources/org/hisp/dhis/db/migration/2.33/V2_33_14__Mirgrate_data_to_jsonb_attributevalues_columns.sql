@@ -28,3 +28,35 @@ update programstage de set attributevalues = to_jsonb(coalesce(nullif(replace(ar
 update trackedentityattribute de set attributevalues = to_jsonb(coalesce(nullif(replace(array_to_string(array( select jsonb_build_object( attr.uid, jsonb_build_object( 'value', av.value, 'created', av.created, 'lastUpdated', av.lastupdated, 'attribute', jsonb_build_object( 'id', attr.uid ) ) ) from attributevalue av inner join trackedentityattributeattributevalues deav on av.attributevalueid = deav.attributevalueid inner join attribute attr on av.attributeid = attr.attributeid where deav.trackedentityattributeid = de.trackedentityattributeid ), ','), '}},{', '},'), ''), NULL)::json);
 update trackedentitytype de set attributevalues = to_jsonb(coalesce(nullif(replace(array_to_string(array( select jsonb_build_object( attr.uid, jsonb_build_object( 'value', av.value, 'created', av.created, 'lastUpdated', av.lastupdated, 'attribute', jsonb_build_object( 'id', attr.uid ) ) ) from attributevalue av inner join trackedentitytypeattributevalues deav on av.attributevalueid = deav.attributevalueid inner join attribute attr on av.attributeid = attr.attributeid where deav.trackedentitytypeid = de.trackedentitytypeid ), ','), '}},{', '},'), ''), NULL)::json);
 update section de set attributevalues = to_jsonb(coalesce(nullif(replace(array_to_string(array( select jsonb_build_object( attr.uid, jsonb_build_object( 'value', av.value, 'created', av.created, 'lastUpdated', av.lastupdated, 'attribute', jsonb_build_object( 'id', attr.uid ) ) ) from attributevalue av inner join sectionattributevalues deav on av.attributevalueid = deav.attributevalueid inner join attribute attr on av.attributeid = attr.attributeid where deav.sectionid = de.sectionid ), ','), '}},{', '},'), ''), NULL)::json);
+
+
+update dataelement  set attributeValues = '{}'::jsonb where attributeValues is null;
+update dataset set attributeValues = '{}'::jsonb where attributeValues is null;
+update userinfo set attributeValues = '{}'::jsonb where attributeValues is null;
+update usergroup set attributeValues = '{}'::jsonb where attributeValues is null;
+update maplegendset set attributeValues = '{}'::jsonb where attributeValues is null;
+update optionvalue set attributeValues = '{}'::jsonb where attributeValues is null;
+update optionset set attributeValues = '{}'::jsonb where attributeValues is null;
+update programindicator set attributeValues = '{}'::jsonb where attributeValues is null;
+update sqlview set attributeValues = '{}'::jsonb where attributeValues is null;
+update constant set attributeValues = '{}'::jsonb where attributeValues is null;
+update document set attributeValues = '{}'::jsonb where attributeValues is null;
+update indicator set attributeValues = '{}'::jsonb where attributeValues is null;
+update indicatorgroup set attributeValues = '{}'::jsonb where attributeValues is null;
+update dataelementgroupset set attributeValues = '{}'::jsonb where attributeValues is null;
+update dataelementgroup set attributeValues = '{}'::jsonb where attributeValues is null;
+update orgunitgroupset set attributeValues = '{}'::jsonb where attributeValues is null;
+update orgunitgroup set attributeValues = '{}'::jsonb where attributeValues is null;
+update organisationunit set attributeValues = '{}'::jsonb where attributeValues is null;
+update categoryoptioncombo set attributeValues = '{}'::jsonb where attributeValues is null;
+update validationrule set attributeValues = '{}'::jsonb where attributeValues is null;
+update validationrulegroup set attributeValues = '{}'::jsonb where attributeValues is null;
+update categoryoptiongroupset set attributeValues = '{}'::jsonb where attributeValues is null;
+update dataelementcategoryoption set attributeValues = '{}'::jsonb where attributeValues is null;
+update categoryoptiongroup set attributeValues = '{}'::jsonb where attributeValues is null;
+update dataelementcategory set attributeValues = '{}'::jsonb where attributeValues is null;
+update program set attributeValues = '{}'::jsonb where attributeValues is null;
+update programstage set attributeValues = '{}'::jsonb where attributeValues is null;
+update trackedentityattribute set attributeValues = '{}'::jsonb where attributeValues is null;
+update trackedentitytype set attributeValues = '{}'::jsonb where attributeValues is null;
+update section set attributeValues = '{}'::jsonb where attributeValues is null;
