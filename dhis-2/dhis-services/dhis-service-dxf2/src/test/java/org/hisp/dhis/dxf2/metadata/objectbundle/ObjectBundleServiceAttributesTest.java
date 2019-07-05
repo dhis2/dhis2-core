@@ -86,103 +86,29 @@ import static org.junit.Assert.*;
 public class ObjectBundleServiceAttributesTest
     extends IntegrationTestBase
 {
-    @Mock
+    @Autowired
+    private ObjectBundleService objectBundleService;
+
+    @Autowired
     private ObjectBundleValidationService objectBundleValidationService;
 
-    @Mock
+    @Autowired
     private IdentifiableObjectManager manager;
 
-    @Mock
-    private RenderService renderService;
+    @Autowired
+    private RenderService _renderService;
 
-    @Mock
-    private AttributeService attributeService;
-
-    @Mock
-    private CurrentUserService currentUserService;
-
-    @Mock
-    private PreheatService preheatService;
-
-    @Mock
-    private SchemaService schemaService;
-
-    @Mock
-    private SessionFactory sessionFactory;
-
-    @Mock
-    private DbmsManager dbmsManager;
-
-    @Mock
-    private HibernateCacheManager cacheManager;
-
-    @Mock
-    private Notifier notifier;
-
-    @Mock
-    private MergeService mergeService;
-
-    @Mock
-    private DeletedObjectService deletedObjectService;
-
-    @Mock
-    private PatchService patchService;
-
-    @Mock
-    private MetadataAuditService metadataAuditService;
-
-    @Mock
-    private SystemService systemService;
-
-    @Spy
-    private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
-
-    @Mock
-    private DataElementObjectBundleHook dataElementObjectBundleHook;
-
-    @Mock
-    private OrganisationUnitObjectBundleHook organisationUnitObjectBundleHook;
-
-    @Mock
-    private DataSetObjectBundleHook dataSetObjectBundleHook;
-
-    @Mock
-    private UserObjectBundleHook userObjectBundleHook;
-
-    @Mock
-    private OptionObjectBundleHook optionObjectBundleHook;
-
-    @Mock
-    private TrackedEntityAttributeObjectBundleHook trackedEntityAttributeObjectBundleHook;
-
-    @Mock
-    private ProgramTrackedEntityAttributeObjectBundleHook programTrackedEntityAttributeObjectBundleHook;
-
-    @InjectMocks
-    private DefaultObjectBundleService objectBundleService;
-
-    @Mock
+    @Autowired
     private UserService _userService;
+
+    @Autowired
+    private AttributeService attributeService;
 
     @Override
     public void setUpTest()
     {
-        MockitoAnnotations.initMocks(this);
-
-        objectBundleHooks.add(dataElementObjectBundleHook);
-        objectBundleHooks.add(organisationUnitObjectBundleHook);
-        objectBundleHooks.add(dataSetObjectBundleHook);
-        objectBundleHooks.add(userObjectBundleHook);
-        objectBundleHooks.add(trackedEntityAttributeObjectBundleHook);
-        objectBundleHooks.add(optionObjectBundleHook);
-        objectBundleHooks.add(programTrackedEntityAttributeObjectBundleHook);
-
-        this.userService = _userService;
-
-        User user = createUser( "A", "ALL" );
-
-        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( user );
-
+        renderService = _renderService;
+        userService = _userService;
     }
 
     @Test
@@ -198,7 +124,6 @@ public class ObjectBundleServiceAttributesTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        System.out.println( "validationReport = " + validationReport );
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
         objectBundleService.commit( bundle );
