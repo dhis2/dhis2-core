@@ -1,5 +1,4 @@
 package org.hisp.dhis.dxf2.metadata.feedback;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -28,22 +27,23 @@ package org.hisp.dhis.dxf2.metadata.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.Stats;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.Stats;
-import org.hisp.dhis.feedback.TypeReport;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -135,6 +135,17 @@ public class ImportReport
     public List<TypeReport> getTypeReports()
     {
         return new ArrayList<>( typeReportMap.values() );
+    }
+   
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
+    public void setTypeReports( List<TypeReport> typeReports )
+    {
+        if ( typeReports != null )
+        {
+            typeReports.forEach( tr -> typeReportMap.put( tr.getKlass(), tr ) );
+        }
     }
 
     public Map<Class<?>, TypeReport> getTypeReportMap()

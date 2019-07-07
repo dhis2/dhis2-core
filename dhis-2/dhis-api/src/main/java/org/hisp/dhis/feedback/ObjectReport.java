@@ -28,17 +28,19 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,7 +64,8 @@ public class ObjectReport
 
     private Map<ErrorCode, List<ErrorReport>> errorReportsByCode = new HashMap<>();
 
-    public ObjectReport( Class<?> klass, Integer index )
+    @JsonCreator
+    public ObjectReport( @JsonProperty( "klass" ) Class<?> klass, @JsonProperty( "index" ) Integer index )
     {
         this.klass = klass;
         this.index = index;
@@ -161,6 +164,25 @@ public class ObjectReport
         errorReportsByCode.values().forEach( errorReports::addAll );
 
         return errorReports;
+    }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
+    public void setErrorReports( List<ErrorReport> errorReports )
+    {
+        if ( errorReports != null )
+        {
+            errorReports.forEach( er -> {
+                List<ErrorReport> errorReportForCode = errorReportsByCode.get( er.getErrorCode() );
+                if ( errorReportForCode == null )
+                {
+                    errorReportForCode = new ArrayList<>();
+                }
+                errorReportForCode.add( er );
+                errorReportsByCode.put( er.getErrorCode(), errorReportForCode );
+            } );
+        }
     }
 
     public List<ErrorCode> getErrorCodes()
