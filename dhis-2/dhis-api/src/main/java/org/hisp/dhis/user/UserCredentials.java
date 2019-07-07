@@ -538,6 +538,7 @@ public class UserCredentials
         this.userInfo = userInfo;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
@@ -673,6 +674,7 @@ public class UserCredentials
         this.previousPasswords = previousPasswords;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
@@ -795,7 +797,6 @@ public class UserCredentials
             "\"openId\":\"" + openId + "\", " +
             "\"password\":\"" + password + "\", " +
             "\"passwordLastUpdated\":\"" + passwordLastUpdated + "\", " +
-            "\"userAuthorityGroups\":\"" + userAuthorityGroups + "\", " +
             "\"lastLogin\":\"" + lastLogin + "\", " +
             "\"restoreToken\":\"" + restoreToken + "\", " +
             "\"restoreCode\":\"" + restoreCode + "\", " +

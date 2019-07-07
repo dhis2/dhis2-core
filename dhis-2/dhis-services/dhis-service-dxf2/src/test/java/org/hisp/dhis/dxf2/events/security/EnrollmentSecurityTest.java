@@ -33,15 +33,18 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -359,6 +362,40 @@ public class EnrollmentSecurityTest
         Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
         assertNotNull( enrollment );
         assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
+    }
+    
+    /**
+     * program = DATA READ
+     * orgUnit = Accessible in search scope
+     * status = SUCCESS
+     */
+    @Test
+    public void testGetEnrollmentsInSearchScopeForUser()
+    {
+        ImportSummary importSummary = enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
+            ImportOptions.getDefaultImportOptions() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        programA.setPublicAccess( AccessStringHelper.DATA_READ );
+        manager.update( programA );
+
+        User user = createUser( "user1" );
+        user.setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
+        user.setDataViewOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        injectSecurityContext( user );
+
+        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        params.setProgram( programA );
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+
+        Enrollments enrollments = enrollmentService.getEnrollments( params );
+        assertNotNull( enrollments );
+        assertNotNull( enrollments.getEnrollments() );
+        assertEquals( 1, enrollments.getEnrollments().size() );
+        assertEquals( importSummary.getReference(), enrollments.getEnrollments().get( 0 ).getEnrollment() );
     }
 
     /**

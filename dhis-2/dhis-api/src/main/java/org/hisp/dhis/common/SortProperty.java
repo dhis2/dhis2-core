@@ -1,7 +1,7 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,32 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
-
-import javax.transaction.Transactional;
-
-/**
- * @author Henning Håkonsen
- */
-@Transactional
-public class TwoFAPopulator
-    extends AbstractStartupRoutine
+public enum SortProperty
 {
-    private UserService userService;
+    NAME( "name" ), SHORT_NAME( "shortName" );
 
-    public void setUserService( UserService userService )
+    private String name;
+
+    SortProperty( String name )
     {
-        this.userService = userService;
+        this.name = name;
     }
 
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    public static SortProperty fromValue( String value )
     {
-        this.currentUserService = currentUserService;
-    }
-
-    @Override
-    public void execute()
-        throws Exception
-    {
-        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
-        userQueryParams.setNot2FA( true );
-
-        for ( User user : userService.getUsers( userQueryParams ) )
+        for ( SortProperty type : SortProperty.values() )
         {
-            user.getUserCredentials().setSecret( null );
-            userService.updateUser( user );
+            if ( type.getName().equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
         }
+
+        return null;
+    }
+
+    public String getName()
+    {
+        return name;
     }
 }

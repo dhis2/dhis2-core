@@ -1,7 +1,7 @@
-package org.hisp.dhis.startup;
+package org.hisp.dhis.organisationunit.comparator;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,18 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
+import java.util.Comparator;
 
-import javax.transaction.Transactional;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-/**
- * @author Henning Håkonsen
- */
-@Transactional
-public class TwoFAPopulator
-    extends AbstractStartupRoutine
-{
-    private UserService userService;
-
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
+public class OrganisationUnitDisplayShortNameComparator
+    implements Comparator<OrganisationUnit>
+{ 
+    public static final Comparator<OrganisationUnit> INSTANCE = new OrganisationUnitDisplayShortNameComparator();
 
     @Override
-    public void execute()
-        throws Exception
+    public int compare( OrganisationUnit organisationUnit1, OrganisationUnit organisationUnit2 )
     {
-        UserQueryParams userQueryParams = new UserQueryParams( currentUserService.getCurrentUser() );
-        userQueryParams.setNot2FA( true );
-
-        for ( User user : userService.getUsers( userQueryParams ) )
-        {
-            user.getUserCredentials().setSecret( null );
-            userService.updateUser( user );
-        }
+        return organisationUnit1.getDisplayShortName().compareTo( organisationUnit2.getDisplayShortName() );
     }
 }

@@ -117,6 +117,7 @@ dhis2.de.cst.separator = '.';
 dhis2.de.cst.valueMaxLength = 50000;
 dhis2.de.cst.metaData = 'dhis2.de.cst.metaData';
 dhis2.de.cst.dataSetAssociations = 'dhis2.de.cst.dataSetAssociations';
+dhis2.de.cst.downloadBatchSize = 5;
 
 // Colors
 
@@ -261,6 +262,28 @@ $( document ).ready( function()
         } );
     } );
 } );
+
+dhis2.de.chunk = function( array, size )
+{
+    if ( !array || !array.length )
+    {
+        return [];
+    }
+
+    if ( !size || size < 1 )
+    {
+        return array;
+    }
+
+    var groups = [];
+    var chunks = array.length / size;
+    for ( var i = 0, j = 0; i < chunks; i++, j += size )
+    {
+        groups[i] = array.slice(j, j + size);
+    }
+
+    return groups;
+}
 
 dhis2.de.shouldFetchDataSets = function( ids ) {
     if( !dhis2.de.multiOrganisationUnitEnabled ) {
@@ -2590,9 +2613,11 @@ function updateForms()
 {
     DAO.store.open()
         .then(purgeLocalForms)
-        .then(updateExistingLocalForms)
+        .then(getLocalFormsToUpdate)
+        .then(downloadForms)
         .then(getUserSetting)
-        .then(downloadRemoteForms)
+        .then(getRemoteFormsToDownload)
+        .then(downloadForms)
         .then(dhis2.de.loadOptionSets)
         .done( function() {
             dhis2.availability.syncCheckAvailability();
@@ -2635,12 +2660,13 @@ function purgeLocalForms()
     return def.promise();
 }
 
-function updateExistingLocalForms()
+function getLocalFormsToUpdate()
 {
     var def = $.Deferred();
 
     dhis2.de.storageManager.getAllForms().done(function( formIds ) {
         var formVersions = dhis2.de.storageManager.getAllFormVersions();
+        var formsToDownload = [];
 
         $.safeEach( formIds, function( idx, item )
         {
@@ -2650,17 +2676,17 @@ function updateExistingLocalForms()
 
             if ( remoteVersion == null || localVersion == null || remoteVersion != localVersion )
             {
-                dhis2.de.storageManager.downloadForm( item, remoteVersion )
+                formsToDownload.push({id: item, version: remoteVersion});
             }
         } );
 
-        def.resolve();
+        def.resolve( formsToDownload );
     });
 
     return def.promise();
 }
 
-function downloadRemoteForms()
+function getRemoteFormsToDownload()
 {
     var def = $.Deferred();
     var chain = [];
@@ -2673,14 +2699,72 @@ function downloadRemoteForms()
         {
             dhis2.de.storageManager.formExists( idx ).done(function( value ) {
                 if( !value ) {
-                    chain.push(dhis2.de.storageManager.downloadForm( idx, remoteVersion ));
+                    chain.push({id: idx, version: remoteVersion})
                 }
             });
         }
     } );
 
     $.when.apply($, chain).then(function() {
-        def.resolve();
+        def.resolve( chain );
+    });
+
+    return def.promise();
+}
+
+function downloadForms( forms )
+{
+    if ( !forms || !forms.length || forms.length < 1 )
+    {
+        return;
+    }
+
+    var batches = dhis2.de.chunk( forms, dhis2.de.cst.downloadBatchSize );
+
+    var mainDef = $.Deferred();
+    var mainPromise = mainDef.promise();
+
+    var batchDef = $.Deferred();
+    var batchPromise = batchDef.promise();
+
+    var builder = $.Deferred();
+    var build = builder.promise();
+
+    $.safeEach( batches, function ( idx, batch ) {
+        batchPromise = batchPromise.then(function(){
+            return downloadFormsInBatch( batch );
+        });
+    });
+
+    build.done(function() {
+        batchDef.resolve();
+        batchPromise = batchPromise.done( function () {
+            mainDef.resolve();
+        } );
+
+    }).fail(function(){
+        mainDef.resolve();
+    });
+
+    builder.resolve();
+
+    return mainPromise;
+}
+
+function downloadFormsInBatch( batch )
+{
+    var def = $.Deferred();
+    var chain = [];
+
+    $.safeEach( batch, function ( idx, item ) {
+        if ( item && item.id && item.version )
+        {
+            chain.push( dhis2.de.storageManager.downloadForm( item.id, item.version ) );
+        }
+    });
+
+    $.when.apply($, chain).then(function() {
+        def.resolve( chain );
     });
 
     return def.promise();
