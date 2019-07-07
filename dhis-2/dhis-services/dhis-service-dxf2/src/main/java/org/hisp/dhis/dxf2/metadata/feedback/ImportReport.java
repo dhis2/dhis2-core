@@ -136,6 +136,17 @@ public class ImportReport
     {
         return new ArrayList<>( typeReportMap.values() );
     }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
+    public void setTypeReports( List<TypeReport> typeReports )
+    {
+        if ( typeReports != null )
+        {
+            typeReports.forEach( tr -> typeReportMap.put( tr.getKlass(), tr ) );
+        }
+    }
 
     public Map<Class<?>, TypeReport> getTypeReportMap()
     {

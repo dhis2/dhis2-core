@@ -31,8 +31,6 @@ package org.hisp.dhis.common;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,19 +99,17 @@ public class IdScheme
         this.identifiableProperty = identifiableProperty;
     }
 
-    private IdScheme( @JsonProperty( "identifiableProperty" ) IdentifiableProperty identifiableProperty, @JsonProperty( "attribute" ) String attribute )
+    private IdScheme( IdentifiableProperty identifiableProperty, String attribute )
     {
         this.identifiableProperty = identifiableProperty;
         this.attribute = attribute;
     }
 
-    @JsonProperty
     public IdentifiableProperty getIdentifiableProperty()
     {
         return identifiableProperty;
     }
 
-    @JsonIgnore
     public String getIdentifiableString()
     {
         return identifiableProperty != null ? identifiableProperty.toString() : null;
@@ -124,7 +120,6 @@ public class IdScheme
         this.identifiableProperty = identifiableProperty;
     }
 
-    @JsonProperty
     public String getAttribute()
     {
         return attribute;
@@ -135,25 +130,21 @@ public class IdScheme
         this.attribute = attribute;
     }
 
-    @JsonIgnore
     public boolean is( IdentifiableProperty identifiableProperty )
     {
         return this.identifiableProperty == identifiableProperty;
     }
 
-    @JsonIgnore
     public boolean isNull()
     {
         return null == this.identifiableProperty;
     }
 
-    @JsonIgnore
     public boolean isNotNull()
     {
         return !isNull();
     }
 
-    @JsonIgnore
     public boolean isAttribute()
     {
         return IdentifiableProperty.ATTRIBUTE == identifiableProperty && !StringUtils.isEmpty( attribute );
