@@ -229,6 +229,13 @@ public class DefaultProgramIndicatorService
         return programIndicatorStore.getAll();
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
+    {
+        return programIndicatorStore.getProgramIndicatorsWithNoExpression();
+    }
+
     // -------------------------------------------------------------------------
     // ProgramIndicator logic
     // -------------------------------------------------------------------------
