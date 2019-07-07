@@ -29,7 +29,6 @@ package org.hisp.dhis.common;
  */
 
 import com.google.common.base.MoreObjects;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -85,81 +84,6 @@ public class IdSchemes
         return this;
     }
 
-    //--------------------------------------------------------------------------
-    // Setter id schemes
-    //--------------------------------------------------------------------------
-    @JsonProperty
-    public void setIdScheme( IdScheme idScheme )
-    {
-        this.idScheme = IdScheme.from( idScheme );
-    }
-    
-    @JsonProperty
-    public void setDataElementIdScheme( IdScheme dataElementIdScheme )
-    {
-        this.dataElementIdScheme = IdScheme.from( dataElementIdScheme );
-    }
-    
-    @JsonProperty
-    public void setCategoryOptionComboIdScheme( IdScheme categoryOptionComboIdScheme )
-    {
-        this.categoryOptionComboIdScheme = IdScheme.from( categoryOptionComboIdScheme );
-    }
-    
-    @JsonProperty
-    public void setCategoryOptionIdScheme( IdScheme categoryOptionIdScheme )
-    {
-        this.categoryOptionIdScheme = IdScheme.from( categoryOptionIdScheme );
-    }
-    
-    @JsonProperty
-    public void setOrgUnitIdScheme( IdScheme orgUnitIdScheme )
-    {
-        this.orgUnitIdScheme = IdScheme.from( orgUnitIdScheme );
-    }
-    
-    @JsonProperty
-    public void setProgramIdScheme( IdScheme programIdScheme )
-    {
-        this.programIdScheme = IdScheme.from( programIdScheme );
-    }
-    
-    @JsonProperty
-    public void setProgramStageIdScheme( IdScheme programStageIdScheme )
-    {
-        this.programStageIdScheme = IdScheme.from( programStageIdScheme );
-    }
-    
-    @JsonProperty
-    public void setTrackedEntityIdScheme( IdScheme trackedEntityIdScheme )
-    {
-        this.trackedEntityIdScheme = IdScheme.from( trackedEntityIdScheme );
-    }
-    
-    @JsonProperty
-    public void setTrackedEntityAttributeIdScheme( IdScheme trackedEntityAttributeIdScheme )
-    {
-        this.trackedEntityAttributeIdScheme = IdScheme.from( trackedEntityAttributeIdScheme );
-    }
-    
-    @JsonProperty
-    public void setDataSetIdScheme( IdScheme dataSetIdScheme )
-    {
-        this.dataSetIdScheme = IdScheme.from( dataSetIdScheme );
-    }
-    
-    @JsonProperty
-    public void setAttributeOptionComboIdScheme( IdScheme attributeOptionComboIdScheme )
-    {
-        this.attributeOptionComboIdScheme = IdScheme.from( attributeOptionComboIdScheme );
-    }
-    
-    @JsonProperty
-    public void setProgramStageInstanceIdScheme( IdScheme programStageInstanceIdScheme )
-    {
-        this.programStageInstanceIdScheme = IdScheme.from( programStageInstanceIdScheme );
-    }
-    
     //--------------------------------------------------------------------------
     // Object type id schemes
     //--------------------------------------------------------------------------
