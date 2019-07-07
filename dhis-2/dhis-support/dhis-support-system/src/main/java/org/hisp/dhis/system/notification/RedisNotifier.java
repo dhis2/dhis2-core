@@ -30,22 +30,14 @@ package org.hisp.dhis.system.notification;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.render.ParseDateStdDeserializer;
-import org.hisp.dhis.render.WriteDateStdSerializer;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonGenerator.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,33 +86,9 @@ public class RedisNotifier implements Notifier
     public RedisNotifier( RedisTemplate<String, String> redisTemplate )
     {
         this.redisTemplate = redisTemplate;
-        
         objectMapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
-        module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
-        module.addSerializer( Date.class, new WriteDateStdSerializer() );
-
-        objectMapper.registerModules( module, new JtsModule(  ) );
-
-        objectMapper.setSerializationInclusion( Include.NON_NULL );
-        objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
-        objectMapper.disable( SerializationFeature.WRITE_EMPTY_JSON_ARRAYS );
-        objectMapper.disable( SerializationFeature.FAIL_ON_EMPTY_BEANS );
-        objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
-
         objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
-        objectMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
-        objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
-
-        objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
-        objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
-
-        objectMapper.getFactory().enable( Feature.QUOTE_FIELD_NAMES );
-       
+        objectMapper.setSerializationInclusion( Include.NON_NULL );
     }
 
     // -------------------------------------------------------------------------
