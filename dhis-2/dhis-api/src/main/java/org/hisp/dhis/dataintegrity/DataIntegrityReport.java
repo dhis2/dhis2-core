@@ -105,6 +105,8 @@ public class DataIntegrityReport
 
     private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
 
+    private List<ProgramIndicator> getProgramIndicatorWithNoExpression = new ArrayList<>();
+
     private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition = new HashMap<>();
 
     private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority = new HashMap<>();
@@ -354,6 +356,16 @@ public class DataIntegrityReport
     public void setInvalidProgramIndicatorFilters( Map<ProgramIndicator, String> invalidProgramIndicatorFilters )
     {
         this.invalidProgramIndicatorFilters = invalidProgramIndicatorFilters;
+    }
+
+    public List<ProgramIndicator> getGetProgramIndicatorWithNoExpression()
+    {
+        return getProgramIndicatorWithNoExpression;
+    }
+
+    public void setGetProgramIndicatorWithNoExpression( List<ProgramIndicator> getProgramIndicatorWithNoExpression )
+    {
+        this.getProgramIndicatorWithNoExpression = getProgramIndicatorWithNoExpression;
     }
 
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
