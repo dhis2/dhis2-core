@@ -30,7 +30,6 @@ package org.hisp.dhis.common;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -395,5 +394,28 @@ public class IdentifiableObjectUtils
         }
 
         return object.getClass().getName();
+    }
+
+    public static <T extends BaseIdentifiableObject> String getIdentifierBasedOnIdScheme( T object, IdScheme idScheme )
+    {
+        //idScheme with IdentifiableProperty.ATTRIBUTE has to be specially treated in the code dealing with Attribute IDs
+        if ( idScheme.isNull() || idScheme.is( IdentifiableProperty.UID ) )
+        {
+            return object.getUid();
+        }
+        else if ( idScheme.is( IdentifiableProperty.CODE ) )
+        {
+            return object.getCode();
+        }
+        else if ( idScheme.is( IdentifiableProperty.NAME ) )
+        {
+            return object.getName();
+        }
+        else if ( idScheme.is( IdentifiableProperty.ID ) && object.getId() > 0 )
+        {
+            return String.valueOf( object.getId() );
+        }
+
+        return null;
     }
 }
