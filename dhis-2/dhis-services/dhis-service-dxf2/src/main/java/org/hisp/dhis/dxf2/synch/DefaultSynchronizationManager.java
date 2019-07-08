@@ -190,7 +190,7 @@ public class DefaultSynchronizationManager
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
-        ImportSummary summary = null;
+        ImportSummary summary;
 
         try
         {
@@ -299,7 +299,7 @@ public class DefaultSynchronizationManager
         };
 
         ResponseExtractor<ImportSummary> responseExtractor = new ImportSummaryResponseExtractor();
-        ImportSummary summary = null;
+        ImportSummary summary;
         try
         {
             summary = restTemplate.execute( instance.getUrl(), HttpMethod.POST, requestCallback, responseExtractor );

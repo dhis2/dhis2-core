@@ -42,24 +42,18 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
@@ -82,11 +76,18 @@ public class HibernateTrackedEntityInstanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementBuilder statementBuilder;
 
+    private StatementBuilder statementBuilder;
+    private OrganisationUnitStore organisationUnitStore;
+    
     public void setStatementBuilder( StatementBuilder statementBuilder )
     {
         this.statementBuilder = statementBuilder;
+    }
+
+    public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
+    {
+        this.organisationUnitStore = organisationUnitStore;
     }
 
     // -------------------------------------------------------------------------
@@ -198,7 +199,8 @@ public class HibernateTrackedEntityInstanceStore
 
         }
 
-        //If it is a sync job that runs the query, fetch only TEAVs that are supposed to be synchronized
+        // If sync job, fetch only TEAVs that are supposed to be synchronized
+
         if ( params.isSynchronizationQuery() )
         {
 
@@ -228,7 +230,8 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.lastUpdated > tei.lastSynchronized";
         }
 
-        //Going for comparing milliseconds instead of always creating new Date( 0 );
+        // Comparing milliseconds instead of always creating new Date( 0 )
+
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
@@ -393,7 +396,9 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryItem item : params.getAttributes() )
             {
-                map.put( item.getItemId(), rowSet.getString( item.getItemId() ) );
+                map.put( item.getItemId(),
+                    isOrgUnit( item ) ? getOrgUnitNameByUid( rowSet.getString( item.getItemId() ) )
+                        : rowSet.getString( item.getItemId() ) );
             }
 
             list.add( map );
@@ -812,5 +817,21 @@ public class HibernateTrackedEntityInstanceStore
     protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
     {
         return (trackedEntityInstance == null || trackedEntityInstance.isDeleted()) ? null : trackedEntityInstance;
+    }
+
+    private boolean isOrgUnit( QueryItem item )
+    {
+        return item.getValueType().isOrganisationUnit();
+    }
+
+    private String getOrgUnitNameByUid( String uid )
+    {
+        if ( uid != null )
+        {
+            return  Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
+                .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
+        }
+
+        return StringUtils.EMPTY;
     }
 }
