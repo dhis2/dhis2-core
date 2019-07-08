@@ -31,6 +31,7 @@ package org.hisp.dhis.dataintegrity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.ProgramIndicator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -116,6 +117,9 @@ public class FlattenedDataIntegrityReport
     private Map<String, String> invalidProgramIndicatorExpressions;
 
     @JsonProperty
+    private List<String> programIndicatorsWithNoExpression;
+
+    @JsonProperty
     private Map<String, String> invalidProgramIndicatorFilters;
 
     @JsonProperty
@@ -188,6 +192,8 @@ public class FlattenedDataIntegrityReport
         invalidValidationRuleLeftSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleLeftSideExpressions() );
 
         invalidValidationRuleRightSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleRightSideExpressions() );
+
+        programIndicatorsWithNoExpression = transformCollection( report.getGetProgramIndicatorWithNoExpression() );
 
         invalidProgramIndicatorExpressions = transformMapOfStrings( report.getInvalidProgramIndicatorExpressions() );
 
