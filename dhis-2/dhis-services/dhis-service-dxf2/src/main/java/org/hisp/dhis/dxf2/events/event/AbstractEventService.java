@@ -1621,12 +1621,12 @@ public abstract class AbstractEventService
         {
             if ( dataElementIdScheme.isAttribute() )
             {
-                return validatePresenceOfMandatoryDataElementsWithAttributeIdScheme( event, programStageInstance,
+                return validateMandatoryDataElementsForAttributeScheme( event, programStageInstance,
                     dataElementIdScheme, importSummary, isSingleValueUpdate );
             }
             else
             {
-                return validatePresenceOfMandatoryDataElementsWithOtherIdSchemes( event, programStageInstance,
+                return validateMandatoryDataElementsForOtherSchemes( event, programStageInstance,
                     dataElementIdScheme, importSummary, isSingleValueUpdate );
             }
         }
@@ -1634,7 +1634,7 @@ public abstract class AbstractEventService
         return Collections.emptyMap();
     }
 
-    private Map<String, String> validatePresenceOfMandatoryDataElementsWithOtherIdSchemes( Event event, ProgramStageInstance programStageInstance,
+    private Map<String, String> validateMandatoryDataElementsForOtherSchemes( Event event, ProgramStageInstance programStageInstance,
         IdScheme dataElementIdScheme, ImportSummary importSummary, boolean isSingleValueUpdate )
     {
         //The map contains <DataElement UID, DataElement identificator in given dataElementIdScheme> entries
@@ -1678,7 +1678,7 @@ public abstract class AbstractEventService
         return mandatoryDataElements;
     }
 
-    private Map<String, String> validatePresenceOfMandatoryDataElementsWithAttributeIdScheme( Event event, ProgramStageInstance programStageInstance,
+    private Map<String, String> validateMandatoryDataElementsForAttributeScheme( Event event, ProgramStageInstance programStageInstance,
         IdScheme dataElementIdScheme, ImportSummary importSummary, boolean isSingleValueUpdate )
     {
         Map<String, String> mandatoryDataElements = programStageInstance.getProgramStage().getProgramStageDataElements().stream()
@@ -1713,7 +1713,7 @@ public abstract class AbstractEventService
             presentDataElements.putAll( programStageInstance.getDataValues().stream()
                 .filter( dv -> !StringUtils.isEmpty( dv.getValue() ) )
                 .map( dv -> dv.getDataElement().getUid() )
-                .collect( Collectors.toMap( Function.identity(), v -> "temp" ) ) );
+                .collect( Collectors.toMap( Function.identity(), v -> "" ) ) );
         }
 
         Set<String> notPresentMandatoryDataElements = Sets.difference( mandatoryDataElements.keySet(), presentDataElements.keySet() );
@@ -1826,7 +1826,7 @@ public abstract class AbstractEventService
 
             if ( ( validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT ||
                 ( validationStrategy == ValidationStrategy.ON_COMPLETE && eventStatus == EventStatus.COMPLETED )) &&
-                ( mandatoryDataElements.containsKey( dataElement.getUid() ) && ( StringUtils.isEmpty( value ) || "null".equals( value ))) )
+                ( mandatoryDataElements.containsKey( dataElement.getUid() ) && ( StringUtils.isEmpty( value ) || "null".equals( value ) ) ) )
             {
                 importSummary.getConflicts().add(
                     new ImportConflict( mandatoryDataElements.get( dataElement.getUid() ), "value_required_but_not_provided" ) );
