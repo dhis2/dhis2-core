@@ -115,7 +115,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private DataElement dataElementAge;
     private DataElement assignedDataElement;
 
-    private EventDataValue eventDataValue;
+    private EventDataValue eventDataValueDate;
+    private EventDataValue eventDataValueAge;
 
     private TrackedEntityAttribute attributeA;
 
@@ -126,7 +127,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String scheduledDate;
 
-    private String dob = "1981-09-01";
+    private String dob = "1984-09-01";
 
     private String expressionA = "#{ProgramRuleVariableA}=='malaria'";
 
@@ -137,8 +138,6 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private String dataExpression = "d2:addDays('2018-04-15', '2')";
 
     private String calculatedDateExpression = "true";
-
-    private String calculatedAgeExpression = "d2:yearsBetween(#{AGE}, V{event_date})";
 
     @Autowired
     ProgramRuleEngine programRuleEngine;
@@ -302,13 +301,29 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testAssignValueByProgramRule()
+    public void testAssignValueTypeDate()
     {
-        setUpAssignValue();
+        setUpAssignValueDate();
 
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+
+        assertNotNull( ruleEffects );
+        assertEquals( ruleEffects.get( 0 ).data(), "34" );
+    }
+
+    @Test
+    public void testAssignValueTypeAge()
+    {
+        setUpAssignValueAge();
+
+        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
+
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
+
+        assertNotNull( ruleEffects );
+        assertEquals( ruleEffects.get( 0 ).data(), "34" );
     }
 
     private void setupEvents()
@@ -418,11 +433,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         Date enrollmentDate = testDate2.toDate();
 
         ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate, incidenDate, organisationUnitA );
-        programInstanceA.setUid("UID-P1");
+        programInstanceA.setUid( "UID-P1" );
         programInstanceService.updateProgramInstance( programInstanceA );
 
         ProgramInstance programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS, programS, enrollmentDate, incidenDate, organisationUnitB );
-        programInstanceS.setUid("UID-PS");
+        programInstanceS.setUid( "UID-PS" );
         programInstanceService.updateProgramInstance( programInstanceS );
 
         ProgramStageInstance programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
@@ -431,16 +446,28 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programStageInstanceA.setUid( "UID-PS1" );
         programStageInstanceService.addProgramStageInstance( programStageInstanceA );
 
-        eventDataValue = new EventDataValue();
-        eventDataValue.setDataElement( dataElementDate.getUid() );
-        eventDataValue.setAutoFields();
-        eventDataValue.setValue( dob );
+        eventDataValueDate = new EventDataValue();
+        eventDataValueDate.setDataElement( dataElementDate.getUid() );
+        eventDataValueDate.setAutoFields();
+        eventDataValueDate.setValue( dob );
+
+        eventDataValueAge = new EventDataValue();
+        eventDataValueAge.setDataElement( dataElementAge.getUid() );
+        eventDataValueAge.setAutoFields();
+        eventDataValueAge.setValue( dob );
+
+        ProgramStageInstance programStageInstanceDate = new ProgramStageInstance( programInstanceA, programStageAge );
+        programStageInstanceDate.setDueDate( enrollmentDate );
+        programStageInstanceDate.setExecutionDate( new Date() );
+        programStageInstanceDate.setUid( "UID-PS12" );
+        programStageInstanceDate.setEventDataValues( Sets.newHashSet( eventDataValueDate ) );
+        programStageInstanceService.addProgramStageInstance( programStageInstanceDate );
 
         ProgramStageInstance programStageInstanceAge = new ProgramStageInstance( programInstanceA, programStageAge );
         programStageInstanceAge.setDueDate( enrollmentDate );
         programStageInstanceAge.setExecutionDate( new Date() );
-        programStageInstanceAge.setUid( "UID-PS12" );
-        programStageInstanceAge.setEventDataValues( Sets.newHashSet( eventDataValue ) );
+        programStageInstanceAge.setUid( "UID-PS13" );
+        programStageInstanceAge.setEventDataValues( Sets.newHashSet( eventDataValueAge ) );
         programStageInstanceService.addProgramStageInstance( programStageInstanceAge );
 
         ProgramStageInstance programStageInstanceB = new ProgramStageInstance( programInstanceA, programStageB );
@@ -489,14 +516,15 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleVariableService.addProgramRuleVariable( programRuleVariableB );
 
         ProgramRuleVariable programRuleVariableDate = createProgramRuleVariable( 'X', programA );
-        programRuleVariableDate.setName("DOB");
+        programRuleVariableDate.setName( "DOB" );
         programRuleVariableDate.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariableDate.setDataElement( dataElementDate );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableDate );
 
         ProgramRuleVariable programRuleVariableAge = createProgramRuleVariable( 'K', programA );
-        programRuleVariableB.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableB.setDataElement( dataElementAge );
+        programRuleVariableAge.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariableAge.setName( "AGE" );
+        programRuleVariableAge.setDataElement( dataElementAge );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableAge );
 
         ProgramRuleVariable programRuleVariableC = createProgramRuleVariable( 'C', programA );
@@ -542,15 +570,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     {
         scheduledDate = "2018-04-17";
 
-        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
-        pnt.setName( "Test-PNT-Schedule" );
-        pnt.setMessageTemplate( "message_template" );
-        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
-        pnt.setSubjectTemplate( "subject_template" );
-        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
-        pnt.setAutoFields();
-        pnt.setUid( "PNT-1-SCH" );
-
+        ProgramNotificationTemplate pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
 
         ProgramRuleAction programRuleActionForScheduleMessage = createProgramRuleAction( 'S', programRuleS );
@@ -564,17 +584,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleService.updateProgramRule( programRuleS );
     }
 
-    private void setUpAssignValue()
+    private void setUpAssignValueDate()
     {
-        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
-        pnt.setName( "Test-PNT-Age" );
-        pnt.setMessageTemplate( "message_template" );
-        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
-        pnt.setSubjectTemplate( "subject_template" );
-        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
-        pnt.setAutoFields();
-        pnt.setUid( "PNT-1" );
-
+        ProgramNotificationTemplate pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
 
         ProgramRuleAction programRuleActionAssignValueDate = createProgramRuleAction( 'P', programRuleA2 );
@@ -585,5 +597,34 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programRuleA2.setProgramRuleActions( Sets.newHashSet( programRuleActionAssignValueDate ) );
         programRuleService.updateProgramRule( programRuleA2 );
+    }
+
+    private void setUpAssignValueAge()
+    {
+        ProgramNotificationTemplate pnt = createNotification();
+        programNotificationTemplateStore.save( pnt );
+
+        ProgramRuleAction programRuleActionAssignValueAge = createProgramRuleAction( 'P', programRuleA2 );
+        programRuleActionAssignValueAge.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
+        programRuleActionAssignValueAge.setData( " d2:yearsBetween(#{AGE}, V{event_date})" );
+
+        programRuleActionService.addProgramRuleAction( programRuleActionAssignValueAge );
+
+        programRuleA2.setProgramRuleActions( Sets.newHashSet( programRuleActionAssignValueAge ) );
+        programRuleService.updateProgramRule( programRuleA2 );
+    }
+
+    private ProgramNotificationTemplate createNotification()
+    {
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( "Test-PNT-Schedule" );
+        pnt.setMessageTemplate( "message_template" );
+        pnt.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.SMS ) );
+        pnt.setSubjectTemplate( "subject_template" );
+        pnt.setNotificationTrigger( NotificationTrigger.PROGRAM_RULE );
+        pnt.setAutoFields();
+        pnt.setUid( "PNT-1-SCH" );
+
+        return pnt;
     }
 }
