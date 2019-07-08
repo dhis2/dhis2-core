@@ -33,13 +33,11 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.CustomAttributeSerializer;
-import org.hisp.dhis.common.CustomLastUpdatedUserSerializer;
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -48,7 +46,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "attributeValues", namespace = DxfNamespaces.DXF_2_0 )
 public class AttributeValue
-        implements Serializable
+    implements Serializable
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -92,13 +90,11 @@ public class AttributeValue
 
     public AttributeValue( String value, long created, Attribute attribute, String valueType, long lastUpdated )
     {
-        System.out.println(
-            "attributeUid = [" + attribute + "], created = [" + created + "], lastUpdated = [" + lastUpdated +
-                "], value = [" + value + "]" );
         this.value = value;
         this.created = Date.from( Instant.ofEpochMilli( Long.valueOf( created ) ) );
         this.lastUpdated = Date.from( Instant.ofEpochMilli( Long.valueOf( lastUpdated ) ) );
         this.attribute = attribute;
+        this.valueType = valueType;
     }
 
     public AttributeValue( Date created, Date lastUpdated, Attribute attribute, String value )
@@ -106,6 +102,7 @@ public class AttributeValue
         this.created = created;
         this.lastUpdated = lastUpdated;
         this.value = value;
+        this.attribute = attribute;
     }
 
     public void setAutoFields()

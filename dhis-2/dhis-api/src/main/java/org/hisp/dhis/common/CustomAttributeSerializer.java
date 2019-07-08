@@ -57,7 +57,6 @@ public class CustomAttributeSerializer
             xmlGenerator.setNextName( null );
         }
         jsonGenerator.writeStringField( "id", attribute.getUid() );
-//        jsonGenerator.writeStringField( "name", attribute.getDisplayName() );
         jsonGenerator.writeEndObject();
     }
 }
