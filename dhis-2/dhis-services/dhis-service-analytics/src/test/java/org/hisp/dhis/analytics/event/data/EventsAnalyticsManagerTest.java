@@ -79,7 +79,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     private ArgumentCaptor<String> sql;
     
     private final String TABLE_NAME = "analytics_event";
-    private final String DEFAULT_COLUMNS = "psi,ps,executiondate,enrollmentdate,incidentdate,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
+    private final String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
     @Before
     public void setUp()
@@ -325,7 +325,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private void assertSql( String actual, String expected )
     {
-        assertThat( "select " + DEFAULT_COLUMNS + "," + actual, is( expected ) );
+        assertThat( "select " + DEFAULT_COLUMNS_WITH_REGISTRATION + "," + actual, is( expected ) );
     }
 
     @Override
