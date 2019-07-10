@@ -35,6 +35,7 @@ import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.DeleteSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.smscompression.models.UID;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class DeleteEventSMSListener
@@ -51,8 +52,8 @@ public class DeleteEventSMSListener
     {
         DeleteSMSSubmission subm = (DeleteSMSSubmission) submission;
 
-        String eventid = subm.getUid();
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid );
+        UID eventid = subm.getEvent();
+        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.uid );
         if ( psi == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_EVENT.set( eventid ) );

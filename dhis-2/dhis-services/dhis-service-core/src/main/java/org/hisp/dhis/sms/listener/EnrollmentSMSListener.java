@@ -44,6 +44,7 @@ import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSAttributeValue;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -85,19 +86,19 @@ public class EnrollmentSMSListener
         EnrollmentSMSSubmission subm = (EnrollmentSMSSubmission) submission;
 
         Date submissionTimestamp = subm.getTimestamp();
-        String teiUID = subm.getTrackedEntityInstance();
-        String progid = subm.getTrackerProgram();
-        String tetid = subm.getTrackedEntityType();
-        String ouid = subm.getOrgUnit();
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid );
+        UID teiUID = subm.getTrackedEntityInstance();
+        UID progid = subm.getTrackerProgram();
+        UID tetid = subm.getTrackedEntityType();
+        UID ouid = subm.getOrgUnit();
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
 
-        Program program = programService.getProgram( progid );
+        Program program = programService.getProgram( progid.uid );
         if ( program == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_PROGRAM.set( progid ) );
         }
 
-        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid );
+        TrackedEntityType entityType = trackedEntityTypeService.getTrackedEntityType( tetid.uid );
         if ( entityType == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_TETYPE.set( tetid ) );
@@ -109,18 +110,18 @@ public class EnrollmentSMSListener
         }
 
         TrackedEntityInstance entityInstance;
-        boolean existsOnServer = teiService.trackedEntityInstanceExists( teiUID );
+        boolean existsOnServer = teiService.trackedEntityInstanceExists( teiUID.uid );
 
         if ( existsOnServer )
         {
             Log.info( "Given TEI (" + teiUID + ") exists. Updating..." );
-            entityInstance = teiService.getTrackedEntityInstance( teiUID );
+            entityInstance = teiService.getTrackedEntityInstance( teiUID.uid );
         }
         else
         {
             Log.info( "Given TEI (" + teiUID + ") does not exist. Creating..." );
             entityInstance = new TrackedEntityInstance();
-            entityInstance.setUid( teiUID );
+            entityInstance.setUid( teiUID.uid );
             entityInstance.setOrganisationUnit( orgUnit );
             entityInstance.setTrackedEntityType( entityType );
         }
@@ -137,7 +138,7 @@ public class EnrollmentSMSListener
             teiService.createTrackedEntityInstance( entityInstance, attributeValues );
         }
 
-        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID );
+        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUID.uid );
 
         Date enrollmentDate = new Date();
         // TODO: Should we check if the TEI is already enrolled? If so do we
@@ -174,10 +175,10 @@ public class EnrollmentSMSListener
     private TrackedEntityAttributeValue createTrackedEntityValue( SMSAttributeValue SMSAttributeValue,
         TrackedEntityInstance tei )
     {
-        String attribUID = SMSAttributeValue.getAttribute();
+        UID attribUID = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();
 
-        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribUID );
+        TrackedEntityAttribute attribute = trackedEntityAttributeService.getTrackedEntityAttribute( attribUID.uid );
         if ( attribute == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_ATTRIB.set( attribUID ) );

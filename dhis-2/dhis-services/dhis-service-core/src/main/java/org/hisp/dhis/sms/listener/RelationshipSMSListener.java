@@ -45,6 +45,7 @@ import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,11 +81,11 @@ public class RelationshipSMSListener
     {
         RelationshipSMSSubmission subm = (RelationshipSMSSubmission) submission;
 
-        String fromid = subm.getFrom();
-        String toid = subm.getTo();
-        String typeid = subm.getRelationshipType();
+        UID fromid = subm.getFrom();
+        UID toid = subm.getTo();
+        UID typeid = subm.getRelationshipType();
 
-        RelationshipType relType = relationshipTypeService.getRelationshipType( typeid );
+        RelationshipType relType = relationshipTypeService.getRelationshipType( typeid.uid );
         if ( relType == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_RELTYPE.set( typeid ) );
@@ -97,7 +98,7 @@ public class RelationshipSMSListener
         // If we aren't given a UID for the relationship, it will be
         // auto-generated
         if ( subm.getRelationship() != null )
-            rel.setUid( subm.getRelationship() );
+            rel.setUid( subm.getRelationship().uid );
         rel.setRelationshipType( relType );
         rel.setFrom( fromItem );
         rel.setTo( toItem );
@@ -111,7 +112,7 @@ public class RelationshipSMSListener
         return SMSResponse.SUCCESS;
     }
 
-    private RelationshipItem createRelationshipItem( RelationshipType relType, RelationshipDir dir, String objId )
+    private RelationshipItem createRelationshipItem( RelationshipType relType, RelationshipDir dir, UID objId )
     {
         RelationshipItem relItem = new RelationshipItem();
         RelationshipEntity fromEnt = relType.getFromConstraint().getRelationshipEntity();
@@ -121,7 +122,7 @@ public class RelationshipSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
-            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId );
+            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.uid );
             if ( tei == null )
             {
                 throw new SMSProcessingException( SMSResponse.INVALID_TEI.set( objId ) );
@@ -130,7 +131,7 @@ public class RelationshipSMSListener
             break;
 
         case PROGRAM_INSTANCE:
-            ProgramInstance progInst = programInstanceService.getProgramInstance( objId );
+            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.uid );
             if ( progInst == null )
             {
                 throw new SMSProcessingException( SMSResponse.INVALID_ENROLL.set( objId ) );
@@ -139,7 +140,7 @@ public class RelationshipSMSListener
             break;
 
         case PROGRAM_STAGE_INSTANCE:
-            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId );
+            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.uid );
             if ( stageInst == null )
             {
                 throw new SMSProcessingException( SMSResponse.INVALID_EVENT.set( objId ) );
