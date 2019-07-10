@@ -32,6 +32,7 @@ import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.setting.SystemSetting;
 import org.hisp.dhis.setting.SystemSettingStore;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -40,6 +41,7 @@ public class HibernateSystemSettingStore
     extends HibernateGenericStore<SystemSetting> implements SystemSettingStore
 {
     @Override
+    @Transactional(readOnly = true)
     public SystemSetting getByName( String name )
     {
         return (SystemSetting) getCriteria( Restrictions.eq( "name", name ) ).uniqueResult();

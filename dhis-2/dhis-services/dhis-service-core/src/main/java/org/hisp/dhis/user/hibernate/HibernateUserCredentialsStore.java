@@ -32,6 +32,7 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserCredentialsStore;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland

@@ -36,6 +36,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -75,6 +76,7 @@ public class HibernateUserSettingStore
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserSetting getUserSetting( User user, String name )
     {
         Session session = sessionFactory.getCurrentSession();

@@ -28,17 +28,13 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -47,6 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -79,22 +77,14 @@ public class DefaultSystemSettingManager
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache<Serializable> settingCache;
-    
-  
+    private AsyncLoadingCache<SettingKey, Serializable> asyncloadingCache;
+
     private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
-    
-    @Autowired
-    private TransactionTemplate transactionTemplate;
 
     @Resource( name = "tripleDesStringEncryptor" )
     private PBEStringEncryptor pbeStringEncryptor;
     
-    @Autowired
-    private CacheProvider cacheProvider;
-
-
     public void setSystemSettingStore( SystemSettingStore systemSettingStore )
     {
         this.systemSettingStore = systemSettingStore;
@@ -115,9 +105,13 @@ public class DefaultSystemSettingManager
     @PostConstruct
     public void init()
     {
-        settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 400 ).build();
- 
+        // This is required to execute the Encryptor initialization code, that is not thread-safe
+        // and fails when executed asyncronously
+        // The initialization code is executed only once
+        pbeStringEncryptor.decrypt("");
+        asyncloadingCache = Caffeine.newBuilder().expireAfterWrite( 12, TimeUnit.HOURS ).maximumSize( SystemUtils.isTestRun() ? 0 : 400 )
+            .buildAsync( ( key, executor ) -> CompletableFuture
+                .supplyAsync( () -> getSystemSettingOptional( key.getName(), key.getDefaultValue() ).orElse( null ) ) );
     }
 
 
@@ -129,9 +123,13 @@ public class DefaultSystemSettingManager
     @Transactional
     public void saveSystemSetting( String name, Serializable value )
     {
-        settingCache.invalidate( name );
-
+        
         SystemSetting setting = systemSettingStore.getByName( name );
+        if ( setting != null )
+        {
+            asyncloadingCache.synchronous().invalidate( setting );
+        }
+
 
         if ( isConfidential( name ) )
         {
@@ -170,7 +168,7 @@ public class DefaultSystemSettingManager
 
         if ( setting != null )
         {
-            settingCache.invalidate( name );
+            asyncloadingCache.synchronous().invalidate( setting );
 
             systemSettingStore.delete( setting );
         }
@@ -204,10 +202,15 @@ public class DefaultSystemSettingManager
     @Override
     public Serializable getSystemSetting( SettingKey setting )
     {
-        Optional<Serializable> value = settingCache.get( setting.getName(),
-            key -> getSystemSettingOptional( key, setting.getDefaultValue() ).orElse( null ) );
-
-        return value.orElse( null );
+        try
+        {
+            return asyncloadingCache.get( setting ).get();
+        }
+        catch ( InterruptedException | ExecutionException e )
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -230,13 +233,7 @@ public class DefaultSystemSettingManager
      */
     private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute( new TransactionCallback<SystemSetting>()
-        {
-            public SystemSetting doInTransaction( TransactionStatus status )
-            {
-                return systemSettingStore.getByName( name );
-            }
-        } );
+        SystemSetting setting = systemSettingStore.getByName( name );
 
         if ( setting != null && setting.hasValue() )
         {
@@ -359,7 +356,7 @@ public class DefaultSystemSettingManager
     @Override
     public void invalidateCache()
     {
-        settingCache.invalidateAll();
+        asyncloadingCache.synchronous().invalidateAll();
     }
 
     // -------------------------------------------------------------------------

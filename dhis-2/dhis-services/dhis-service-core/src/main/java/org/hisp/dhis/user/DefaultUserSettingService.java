@@ -28,17 +28,15 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.github.benmanes.caffeine.cache.AsyncLoadingCache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.Sets;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serializable;
@@ -47,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,12 +62,11 @@ import javax.annotation.PostConstruct;
  */
 public class DefaultUserSettingService implements UserSettingService
 {
-    
     /**
      * Cache for user settings. Does not accept nulls. Disabled during test phase.
      */
-    private Cache<Serializable> userSettingCache;
- 
+    private AsyncLoadingCache<String, Serializable> asyncloadingCache;
+
     private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
     
@@ -78,14 +77,15 @@ public class DefaultUserSettingService implements UserSettingService
     @Autowired
     private TransactionTemplate transactionTemplate;
     
-    @Autowired
-    private CacheProvider cacheProvider;
-
     private String getCacheKey( String settingName, String username )
     {
         return settingName + DimensionalObject.ITEM_SEP + username;
     }
-
+    
+    private String getKeyNameFromCacheKey(String cacheKey) {
+        
+        return cacheKey.split(DimensionalObject.ITEM_SEP)[0];
+    }
  
     private CurrentUserService currentUserService;
 
@@ -123,11 +123,12 @@ public class DefaultUserSettingService implements UserSettingService
     @PostConstruct
     public void init()
     {
-        userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
-    
+        final String username = currentUserService.getCurrentUsername();
+        
+        asyncloadingCache = Caffeine.newBuilder().expireAfterWrite( 12, TimeUnit.HOURS )
+            .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).buildAsync( ( key, executor ) -> CompletableFuture
+                .supplyAsync( () -> getUserSettingOptional( key,  username).orElse( null ) ) );
     }
-
     // -------------------------------------------------------------------------
     // UserSettingService implementation
     // -------------------------------------------------------------------------
@@ -162,7 +163,7 @@ public class DefaultUserSettingService implements UserSettingService
             return;
         }
 
-        userSettingCache.invalidate( getCacheKey( key.getName(), user.getUsername() ) );
+        asyncloadingCache.synchronous().invalidate( getCacheKey( key.getName(), user.getUsername() ) );
 
         UserSetting userSetting = userSettingStore.getUserSetting( user, key.getName() );
 
@@ -184,7 +185,7 @@ public class DefaultUserSettingService implements UserSettingService
     @Transactional
     public void deleteUserSetting( UserSetting userSetting )
     {
-        userSettingCache.invalidate( getCacheKey( userSetting.getName(), userSetting.getUser().getUsername() ) );
+        asyncloadingCache.synchronous().invalidate( getCacheKey( userSetting.getName(), userSetting.getUser().getUsername() ) );
 
         userSettingStore.deleteUserSetting( userSetting );
     }
@@ -287,13 +288,14 @@ public class DefaultUserSettingService implements UserSettingService
     @Override
     public void invalidateCache()
     {
-        userSettingCache.invalidateAll();
+        asyncloadingCache.synchronous().invalidateAll();
     }
 
     @Override
     public Map<String, Serializable> getUserSettingsAsMap()
     {
-        Set<String> names = Stream.of( UserSettingKey.values() ).map( key -> key.getName() ).collect( Collectors.toSet() );
+        Set<String> names = Stream.of( UserSettingKey.values() ).map( UserSettingKey::getName )
+            .collect( Collectors.toSet() );
 
         return getUserSettingsWithFallbackByUserAsMap( currentUserService.getCurrentUser(), names, false );
     }
@@ -313,18 +315,24 @@ public class DefaultUserSettingService implements UserSettingService
 
         String cacheKey = getCacheKey( key.getName(), username );
 
-        Optional<Serializable> result = userSettingCache.
-            get( cacheKey, c -> getUserSettingOptional( key, username ).orElse( null ) );
-
-        if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
-        {
-            return Optional.ofNullable(
-                systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) );
+        try {
+            Optional<Serializable> result = Optional.ofNullable(asyncloadingCache.get(cacheKey).get());
+            
+            if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
+            {
+                return Optional.ofNullable(
+                        systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) );
+            }
+            else
+            {
+                return result;
+            }
         }
-        else
+        catch ( InterruptedException | ExecutionException e )
         {
-            return result;
+            return Optional.empty();
         }
+        
     }
 
     /**
@@ -335,7 +343,7 @@ public class DefaultUserSettingService implements UserSettingService
      * @param username the username of the user.
      * @return an optional user setting value.
      */
-    private Optional<Serializable> getUserSettingOptional( UserSettingKey key, String username )
+    private Optional<Serializable> getUserSettingOptional( String key, String username )
     {
         UserCredentials userCredentials = userService.getUserCredentialsByUsername( username );
 
@@ -344,13 +352,7 @@ public class DefaultUserSettingService implements UserSettingService
             return Optional.empty();
         }
 
-        UserSetting setting = transactionTemplate.execute( new TransactionCallback<UserSetting>()
-        {
-            public UserSetting doInTransaction( TransactionStatus status )
-            {
-                return userSettingStore.getUserSetting( userCredentials.getUserInfo(), key.getName() );
-            }
-        } );
+        UserSetting setting = userSettingStore.getUserSetting( userCredentials.getUserInfo(), getKeyNameFromCacheKey( key ) );
 
         return setting != null && setting.hasValue() ?
             Optional.of( setting.getValue() ) : Optional.empty();
