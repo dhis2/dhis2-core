@@ -55,6 +55,7 @@ import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.system.util.DateUtils;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -73,22 +74,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.META_DATA_NAMES_KEY;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PAGER_META_KEY;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -195,7 +182,7 @@ public class DefaultTrackedEntityInstanceService
 
         if ( !skipSearchScopeValidation )
         {
-            validateSearchScope( params );
+            validateSearchScope( params, false );
         }
 
         params.setUser( currentUserService.getCurrentUser() );
@@ -211,7 +198,7 @@ public class DefaultTrackedEntityInstanceService
     {
         decideAccess( params );
         validate( params );
-        validateSearchScope( params );
+        validateSearchScope( params, true );
         handleAttributes( params );
 
         User user = currentUserService.getCurrentUser();
@@ -329,7 +316,7 @@ public class DefaultTrackedEntityInstanceService
 
             if ( params.isTotalPages() )
             {
-                count = trackedEntityInstanceStore.getTrackedEntityInstanceCount( params );
+                count = trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
@@ -501,6 +488,16 @@ public class DefaultTrackedEntityInstanceService
             violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
         }
 
+        if ( params.hasLastUpdatedDuration() && ( params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate() ) )
+        {
+            violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
+        }
+
+        if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
+        {
+            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+        }
+
         if ( violation != null )
         {
             log.warn( "Validation failed: " + violation );
@@ -511,7 +508,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional(readOnly = true)
-    public void validateSearchScope( TrackedEntityInstanceQueryParams params )
+    public void validateSearchScope( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
         throws IllegalQueryException
     {
         if ( params == null )
@@ -613,7 +610,9 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            if ( maxTeiLimit > 0 && trackedEntityInstanceStore.getTrackedEntityInstanceCount( params ) > maxTeiLimit )
+            if ( maxTeiLimit > 0 &&
+                ( ( isGridSearch && trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params ) > maxTeiLimit ) ||
+                    ( !isGridSearch && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit ) ) )
             {
                 throw new IllegalQueryException( "maxteicountreached" );
             }
@@ -636,9 +635,11 @@ public class DefaultTrackedEntityInstanceService
     @Transactional(readOnly = true)
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate,
-        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
+        Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
+        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
+        Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
+        Date eventEndDate, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages,
+        boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders )
     {
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
 
@@ -718,6 +719,7 @@ public class DefaultTrackedEntityInstanceService
             .setFollowUp( followUp )
             .setLastUpdatedStartDate( lastUpdatedStartDate )
             .setLastUpdatedEndDate( lastUpdatedEndDate )
+            .setLastUpdatedDuration( lastUpdatedDuration )
             .setProgramEnrollmentStartDate( programEnrollmentStartDate )
             .setProgramEnrollmentEndDate( programEnrollmentEndDate )
             .setProgramIncidentStartDate( programIncidentStartDate )

@@ -31,7 +31,6 @@ package org.hisp.dhis.program.hibernate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.apache.poi.util.SuppressForbidden;
 import org.hibernate.Query;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
@@ -47,7 +46,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.jdbc.BadSqlGrammarException;
 
 import java.util.Date;
 import java.util.List;
@@ -55,7 +53,7 @@ import java.util.Set;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.DateUtils.*;
 
 /**
  * @author Abyot Asalefew
@@ -108,7 +106,12 @@ public class HibernateProgramInstanceStore
         String hql = "from ProgramInstance pi";
         SqlHelper hlp = new SqlHelper( true );
 
-        if ( params.hasLastUpdated() )
+        if ( params.hasLastUpdatedDuration() )
+        {
+            hql += hlp.whereAnd() +  "pi.lastUpdated >= '" +
+                getLongGmtDateString( nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
+        }
+        else if ( params.hasLastUpdated() )
         {
             hql += hlp.whereAnd() + "pi.lastUpdated >= '" + getMediumDateString( params.getLastUpdated() ) + "'";
         }
