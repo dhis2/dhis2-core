@@ -48,6 +48,7 @@ import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.SimpleEventSMSSubmission;
+import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,20 +79,20 @@ public class SimpleEventSMSListener
     {
         SimpleEventSMSSubmission subm = (SimpleEventSMSSubmission) submission;
 
-        String ouid = subm.getOrgUnit();
-        String aocid = subm.getAttributeOptionCombo();
-        String progid = subm.getEventProgram();
+        UID ouid = subm.getOrgUnit();
+        UID aocid = subm.getAttributeOptionCombo();
+        UID progid = subm.getEventProgram();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid );
-        User user = userService.getUser( subm.getUserID() );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
+        User user = userService.getUser( subm.getUserID().uid );
 
-        Program program = programService.getProgram( subm.getEventProgram() );
+        Program program = programService.getProgram( subm.getEventProgram().uid );
         if ( program == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_PROGRAM.set( progid ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
         if ( aoc == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
@@ -133,8 +134,8 @@ public class SimpleEventSMSListener
         }
         ProgramStage programStage = programStages.iterator().next();
 
-        List<String> errorUIDs = saveNewEvent( subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user,
-            subm.getValues(), subm.isComplete() );
+        List<UID> errorUIDs = saveNewEvent( subm.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc, user,
+            subm.getValues(), subm.getEventStatus() );
         if ( !errorUIDs.isEmpty() )
         {
             return SMSResponse.WARN_DVERR.set( errorUIDs );

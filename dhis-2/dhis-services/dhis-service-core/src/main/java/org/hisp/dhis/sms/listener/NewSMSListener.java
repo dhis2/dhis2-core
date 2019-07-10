@@ -56,6 +56,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.smscompression.SMSConsts.SMSEventStatus;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.SMSSubmissionReader;
@@ -63,6 +64,7 @@ import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSMetadata;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSSubmissionHeader;
+import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -181,8 +183,8 @@ public abstract class NewSMSListener
 
     private void checkUser( SMSSubmission subm )
     {
-        String userid = subm.getUserID();
-        User user = userService.getUser( userid );
+        UID userid = subm.getUserID();
+        User user = userService.getUser( userid.uid );
 
         if ( user == null )
         {
@@ -289,12 +291,12 @@ public abstract class NewSMSListener
         }
     }
 
-    protected List<String> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
+    protected List<UID> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
         ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SMSDataValue> values,
-        boolean completed )
+        SMSEventStatus eventStatus )
     {
 
-        ArrayList<String> errorUIDs = new ArrayList<>();
+        ArrayList<UID> errorUIDs = new ArrayList<>();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         // If we aren't given a UID for the event, it will be auto-generated
         if ( eventUid != null )
@@ -306,20 +308,21 @@ public abstract class NewSMSListener
         programStageInstance.setDueDate( sms.getSentDate() );
         programStageInstance.setAttributeOptionCombo( aoc );
         programStageInstance.setStoredBy( user.getUsername() );
-        if ( completed )
+        programStageInstance.setStatus( getCoreEventStatus( eventStatus ) );
+
+        if ( eventStatus.equals( SMSEventStatus.COMPLETED ) )
         {
             programStageInstance.setCompletedBy( user.getUsername() );
             programStageInstance.setCompletedDate( new Date() );
-            programStageInstance.setStatus( EventStatus.COMPLETED );
         }
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSDataValue dv : values )
         {
-            String deid = dv.getDataElement();
+            UID deid = dv.getDataElement();
             String val = dv.getValue();
 
-            DataElement de = dataElementService.getDataElement( deid );
+            DataElement de = dataElementService.getDataElement( deid.uid );
             // TODO: Is this the correct way of handling errors here?
             if ( de == null )
             {
@@ -333,7 +336,7 @@ public abstract class NewSMSListener
                 continue;
             }
 
-            EventDataValue eventDataValue = new EventDataValue( deid, dv.getValue(), user.getUsername() );
+            EventDataValue eventDataValue = new EventDataValue( deid.uid, dv.getValue(), user.getUsername() );
             eventDataValue.setAutoFields();
             dataElementsAndEventDataValues.put( de, eventDataValue );
         }
@@ -342,5 +345,26 @@ public abstract class NewSMSListener
             dataElementsAndEventDataValues );
 
         return errorUIDs;
+    }
+
+    private EventStatus getCoreEventStatus( SMSEventStatus eventStatus )
+    {
+        switch ( eventStatus )
+        {
+        case ACTIVE:
+            return EventStatus.ACTIVE;
+        case COMPLETED:
+            return EventStatus.COMPLETED;
+        case VISITED:
+            return EventStatus.VISITED;
+        case SCHEDULE:
+            return EventStatus.SCHEDULE;
+        case OVERDUE:
+            return EventStatus.OVERDUE;
+        case SKIPPED:
+            return EventStatus.SKIPPED;
+        default:
+            return null;
+        }
     }
 }

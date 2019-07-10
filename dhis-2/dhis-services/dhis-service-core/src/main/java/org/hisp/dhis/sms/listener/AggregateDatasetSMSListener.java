@@ -53,6 +53,7 @@ import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.AggregateDatasetSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSDataValue;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.jfree.util.Log;
@@ -90,15 +91,15 @@ public class AggregateDatasetSMSListener
     {
         AggregateDatasetSMSSubmission subm = (AggregateDatasetSMSSubmission) submission;
 
-        String ouid = subm.getOrgUnit();
-        String dsid = subm.getDataSet();
+        UID ouid = subm.getOrgUnit();
+        UID dsid = subm.getDataSet();
         String per = subm.getPeriod();
-        String aocid = subm.getAttributeOptionCombo();
+        UID aocid = subm.getAttributeOptionCombo();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid );
-        User user = userService.getUser( subm.getUserID() );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
+        User user = userService.getUser( subm.getUserID().uid );
 
-        DataSet dataSet = dataSetService.getDataSet( dsid );
+        DataSet dataSet = dataSetService.getDataSet( dsid.uid );
         if ( dataSet == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_DATASET.set( dsid ) );
@@ -110,7 +111,7 @@ public class AggregateDatasetSMSListener
             throw new SMSProcessingException( SMSResponse.INVALID_PERIOD.set( per ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
         if ( aoc == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
@@ -128,7 +129,7 @@ public class AggregateDatasetSMSListener
             throw new SMSProcessingException( SMSResponse.DATASET_LOCKED.set( dsid, per ) );
         }
 
-        List<String> errorUIDs = submitDataValues( subm.getValues(), period, orgUnit, aoc, user );
+        List<Object> errorElems = submitDataValues( subm.getValues(), period, orgUnit, aoc, user );
 
         if ( subm.isComplete() )
         {
@@ -145,9 +146,9 @@ public class AggregateDatasetSMSListener
             registrationService.saveCompleteDataSetRegistration( newReg );
         }
 
-        if ( !errorUIDs.isEmpty() )
+        if ( !errorElems.isEmpty() )
         {
-            return SMSResponse.WARN_DVERR.set( errorUIDs );
+            return SMSResponse.WARN_DVERR.set( errorElems );
         }
         else if ( subm.getValues().isEmpty() )
         {
@@ -158,30 +159,30 @@ public class AggregateDatasetSMSListener
         return SMSResponse.SUCCESS;
     }
 
-    private List<String> submitDataValues( List<SMSDataValue> values, Period period, OrganisationUnit orgUnit,
+    private List<Object> submitDataValues( List<SMSDataValue> values, Period period, OrganisationUnit orgUnit,
         CategoryOptionCombo aoc, User user )
     {
-        ArrayList<String> errorUIDs = new ArrayList<>();
+        ArrayList<Object> errorElems = new ArrayList<>();
 
         for ( SMSDataValue smsdv : values )
         {
-            String deid = smsdv.getDataElement();
-            String cocid = smsdv.getCategoryOptionCombo();
+            UID deid = smsdv.getDataElement();
+            UID cocid = smsdv.getCategoryOptionCombo();
             String combid = deid + "-" + cocid;
 
-            DataElement de = dataElementService.getDataElement( deid );
+            DataElement de = dataElementService.getDataElement( deid.uid );
             if ( de == null )
             {
                 Log.warn( "Data element [" + deid + "] does not exist. Continuing with submission..." );
-                errorUIDs.add( combid );
+                errorElems.add( combid );
                 continue;
             }
 
-            CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid );
+            CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.uid );
             if ( coc == null )
             {
                 Log.warn( "Category Option Combo [" + cocid + "] does not exist. Continuing with submission..." );
-                errorUIDs.add( combid );
+                errorElems.add( combid );
                 continue;
             }
 
@@ -216,7 +217,7 @@ public class AggregateDatasetSMSListener
                 if ( !addedDataValue )
                 {
                     Log.warn( "Failed to submit data value [" + combid + "]. Continuing with submission..." );
-                    errorUIDs.add( combid );
+                    errorElems.add( combid );
                 }
             }
             else
@@ -225,7 +226,7 @@ public class AggregateDatasetSMSListener
             }
         }
 
-        return errorUIDs;
+        return errorElems;
     }
 
     @Override

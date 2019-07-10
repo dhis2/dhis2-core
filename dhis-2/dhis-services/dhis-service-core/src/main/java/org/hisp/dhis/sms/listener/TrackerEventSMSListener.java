@@ -43,6 +43,7 @@ import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.TrackerEventSMSSubmission;
+import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,34 +76,34 @@ public class TrackerEventSMSListener
     {
         TrackerEventSMSSubmission subm = (TrackerEventSMSSubmission) submission;
 
-        String ouid = subm.getOrgUnit();
-        String stageid = subm.getProgramStage();
-        String enrolmentid = subm.getEnrollment();
-        String aocid = subm.getAttributeOptionCombo();
+        UID ouid = subm.getOrgUnit();
+        UID stageid = subm.getProgramStage();
+        UID enrolmentid = subm.getEnrollment();
+        UID aocid = subm.getAttributeOptionCombo();
 
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid );
-        User user = userService.getUser( subm.getUserID() );
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.uid );
+        User user = userService.getUser( subm.getUserID().uid );
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid );
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.uid );
         if ( programInstance == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_ENROLL.set( enrolmentid ) );
         }
 
-        ProgramStage programStage = programStageService.getProgramStage( stageid );
+        ProgramStage programStage = programStageService.getProgramStage( stageid.uid );
         if ( programStage == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_STAGE.set( stageid ) );
         }
 
-        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid );
+        CategoryOptionCombo aoc = categoryService.getCategoryOptionCombo( aocid.uid );
         if ( aoc == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<String> errorUIDs = saveNewEvent( subm.getEvent(), orgUnit, programStage, programInstance, sms, aoc, user,
-            subm.getValues(), subm.isComplete() );
+        List<UID> errorUIDs = saveNewEvent( subm.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc, user,
+            subm.getValues(), subm.getEventStatus() );
         if ( !errorUIDs.isEmpty() )
         {
             return SMSResponse.WARN_DVERR.set( errorUIDs );
