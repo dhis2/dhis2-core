@@ -105,7 +105,7 @@ public class UserActions
     public void addURoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
-        if (response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId )) {
+        if ( response.extractList( "userCredentials.userRoles.id" ).contains( userRoleId ) ) {
             return;
         }
 
@@ -122,7 +122,7 @@ public class UserActions
     public void addUserToUserGroup( String userId, String userGroupId )
     {
         ApiResponse response = this.get( userId );
-        if (response.extractList( "userGroups.id" ).contains( userGroupId )) {
+        if ( response.extractList( "userGroups.id" ).contains( userGroupId ) ) {
             return;
         }
 

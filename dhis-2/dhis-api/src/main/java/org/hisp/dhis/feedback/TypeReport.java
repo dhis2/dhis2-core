@@ -28,17 +28,19 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -52,7 +54,8 @@ public class TypeReport
 
     private Map<Integer, ObjectReport> objectReportMap = new HashMap<>();
 
-    public TypeReport( Class<?> klass )
+    @JsonCreator
+    public TypeReport( @JsonProperty( "klass" ) Class<?> klass )
     {
         this.klass = klass;
     }
@@ -114,6 +117,17 @@ public class TypeReport
         objectReportMap.values().forEach( objectReports::add );
 
         return objectReports;
+    }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )
+    public void setObjectReports( List<ObjectReport> objectReports )
+    {
+        if ( objectReports != null )
+        {
+            objectReports.forEach( or -> objectReportMap.put( or.getIndex(), or ) );
+        }
     }
 
     public List<ErrorReport> getErrorReports()

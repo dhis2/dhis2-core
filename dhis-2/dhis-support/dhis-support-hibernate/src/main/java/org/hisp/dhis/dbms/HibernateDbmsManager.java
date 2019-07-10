@@ -247,6 +247,8 @@ public class HibernateDbmsManager
         emptyTable( "programruleaction" );
         emptyTable( "programrule" );
 
+        emptyRelationships();
+
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
         emptyTable( "programstageinstance" );
@@ -264,6 +266,8 @@ public class HibernateDbmsManager
         
         emptyTable( "programstageinstancefilter" );
 
+        emptyRelationships();
+
         emptyTable( "trackedentityattributevalue" );
         emptyTable( "trackedentityattributevalueaudit" );
         emptyTable( "trackedentityattribute" );
@@ -276,6 +280,7 @@ public class HibernateDbmsManager
         emptyTable( "expressionsampleelement" );
         emptyTable( "expressionoptioncombo" );
         emptyTable( "calculateddataelement" );
+
 
         emptyTable( "dataelementgroupsetmembers" );
         emptyTable( "dataelementgroupsetusergroupaccesses" );
@@ -465,6 +470,18 @@ public class HibernateDbmsManager
         catch ( BadSqlGrammarException ex )
         {
             log.debug( "Table " + table + " does not exist" );
+        }
+    }
+
+    private void emptyRelationships()
+    {
+        try
+        {
+            jdbcTemplate.update( "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem" );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            log.debug( "Could not empty relationship tables" );
         }
     }
 }

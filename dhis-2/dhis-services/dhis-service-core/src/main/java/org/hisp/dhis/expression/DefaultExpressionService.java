@@ -995,6 +995,8 @@ public class DefaultExpressionService
                     {
                         return null;
                     }
+
+                    sb.append( "0" );
                 }
                 else
                 {

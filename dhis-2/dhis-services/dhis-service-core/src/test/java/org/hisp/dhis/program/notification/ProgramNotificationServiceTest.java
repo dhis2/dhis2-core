@@ -92,6 +92,12 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String ATT_EMAIL = "attr@test.org";
 
     @Mock
+    private ProgramInstanceStore programInstanceStore;
+
+    @Mock
+    private ProgramStageInstanceStore programStageInstanceStore;
+
+    @Mock
     private MessageService messageService;
 
     @Mock
@@ -178,6 +184,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         when( programStageNotificationMessageRenderer.render( any(), any() ) )
             .thenReturn( notificationMessage );
+
+        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
+
+        when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
     }
 
     // -------------------------------------------------------------------------

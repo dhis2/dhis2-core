@@ -470,6 +470,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetPeriodAction" class="org.hisp.dhis.commons.action.GetPeriodAction"

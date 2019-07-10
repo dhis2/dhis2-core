@@ -106,11 +106,11 @@ public interface IdentifiableObjectStore<T>
     T getByCode( String code );
 
     /**
-     * Retrieves the attribute value associated with the unique attribute and 
+     * Retrieves the attribute value associated with the unique attribute and
      * the given value.
-     * 
+     *
      * @param attribute the attribute.
-     * @param value the value.
+     * @param value     the value.
      * @return the attribute value.
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
@@ -126,7 +126,7 @@ public interface IdentifiableObjectStore<T>
      * Retrieves the objects determined by the given first result and max result.
      *
      * @param first the first result object to return.
-     * @param max  the max number of result objects to return.
+     * @param max   the max number of result objects to return.
      * @return list of objects.
      */
     List<T> getAllOrderedName( int first, int max );
@@ -150,12 +150,31 @@ public interface IdentifiableObjectStore<T>
     /**
      * Retrieves a List of objects where the name is like the given name.
      *
+     * @param name the name.
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( String name, boolean caseSensitive );
+
+    /**
+     * Retrieves a List of objects where the name is like the given name.
+     *
      * @param name  the name.
      * @param first the first result object to return.
      * @param max   the max number of result objects to return.
      * @return a List of objects.
      */
     List<T> getAllLikeName( String name, int first, int max );
+
+    /**
+     * Retrieves a List of objects where the name is like the given name.
+     *
+     * @param name          the name.
+     * @param first         the first result object to return.
+     * @param max           the max number of result objects to return.
+     * @param caseSensitive Case sensitive matches or not
+     * @return a List of objects.
+     */
+    List<T> getAllLikeName( String name, int first, int max, boolean caseSensitive );
 
     /**
      * Retrieves a List of objects where the name matches the conjunction of the
@@ -253,7 +272,7 @@ public interface IdentifiableObjectStore<T>
 
     /**
      * Returns all objects without considering sharing.
-     * 
+     *
      * @return a list of all objects.
      */
     List<T> getAllNoAcl();
