@@ -375,7 +375,7 @@ public class IdentifiableObjectUtils
         {
             return "[ object is null ]";
         }
-        else if ( object instanceof IdentifiableObject )
+        else if( IdentifiableObject.class.isInstance( object ) )
         {
             IdentifiableObject identifiableObject = (IdentifiableObject) object;
 
