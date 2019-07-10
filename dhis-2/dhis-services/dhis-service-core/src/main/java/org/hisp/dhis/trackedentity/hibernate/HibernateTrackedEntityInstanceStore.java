@@ -48,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.User;
-import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,22 +61,9 @@ import java.util.Map;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getTokens;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastAnd;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.commons.util.TextUtils.*;
+import static org.hisp.dhis.system.util.DateUtils.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -209,14 +195,24 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
         }
 
-        if ( params.hasLastUpdatedStartDate() )
+        if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+            hql += hlp.whereAnd() +  "tei.lastUpdated >= '" +
+                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
-
-        if ( params.hasLastUpdatedEndDate() )
+        else
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated < '" + getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                hql += hlp.whereAnd() + "tei.lastUpdated >= '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+            }
+
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                hql += hlp.whereAnd() + "tei.lastUpdated < '" +
+                    getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
+            }
         }
 
         if ( params.isSynchronizationQuery() )
