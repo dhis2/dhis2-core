@@ -395,7 +395,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();
 
