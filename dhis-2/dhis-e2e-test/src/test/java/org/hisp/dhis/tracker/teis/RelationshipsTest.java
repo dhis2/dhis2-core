@@ -63,8 +63,6 @@ public class RelationshipsTest
 
     private static List<String> events;
 
-    private RestApiActions relationshipTypesActions;
-
     private MetadataActions metadataActions;
 
     private String createdRelationship;
@@ -87,7 +85,6 @@ public class RelationshipsTest
     public void before()
         throws Exception
     {
-        relationshipTypesActions = new RestApiActions( "/relationshipTypes" );
         relationshipActions = new RelationshipActions();
         trackedEntityInstanceActions = new RestApiActions( "/trackedEntityInstances" );
         metadataActions = new MetadataActions();
