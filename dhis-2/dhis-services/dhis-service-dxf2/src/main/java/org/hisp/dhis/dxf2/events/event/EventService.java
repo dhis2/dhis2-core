@@ -61,11 +61,13 @@ public interface EventService
 
     EventRows getEventRows( EventSearchParams params );
 
-    EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp, String orgUnit,
-        OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
-        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes, Integer page,
-        Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes, Set<String> events,
-        Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
+    EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
+        String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
+        Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
+        Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status, CategoryOptionCombo attributeCoc,
+        IdSchemes idSchemes, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
+        List<String> gridOrders, boolean includeAttributes, Set<String> events, Set<String> filters,
+        Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
     Event getEvent( ProgramStageInstance programStageInstance );
 
