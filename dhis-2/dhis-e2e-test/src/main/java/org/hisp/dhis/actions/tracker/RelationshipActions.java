@@ -30,19 +30,21 @@ package org.hisp.dhis.actions.tracker;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipActions extends RestApiActions
+public class RelationshipActions
+    extends RestApiActions
 {
-    public RelationshipActions( )
+    public RelationshipActions()
     {
         super( "/relationships" );
     }
 
-    public JsonObject createRelationshipBody(String relationshipTypeId, String fromEntity, String fromEntityId, String toEntity, String toEntityId) {
+    public JsonObject createRelationshipBody( String relationshipTypeId, String fromEntity, String fromEntityId, String toEntity,
+        String toEntityId )
+    {
         JsonObject relationship = new JsonObject();
         relationship.addProperty( "relationshipType", relationshipTypeId );
 
