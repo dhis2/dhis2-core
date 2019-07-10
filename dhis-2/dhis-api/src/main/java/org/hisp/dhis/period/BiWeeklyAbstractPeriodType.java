@@ -167,7 +167,7 @@ public class BiWeeklyAbstractPeriodType
             WeekFields weekFields = WeekFields.of( DayOfWeek.MONDAY, 4 );
 
             year = date.get( weekFields.weekBasedYear() );
-            week = date.get( weekFields.weekOfWeekBasedYear() ) / 2;
+            week = (date.get( weekFields.weekOfWeekBasedYear() ) / 2) + 1;
         }
         else
         {
@@ -194,7 +194,7 @@ public class BiWeeklyAbstractPeriodType
         rewindedPeriods = rewindedPeriods != null ? rewindedPeriods : 1;
 
         DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( rewindedDate );
-        dateTimeUnit = cal.minusWeeks( dateTimeUnit, rewindedPeriods * 2);
+        dateTimeUnit = cal.minusWeeks( dateTimeUnit, rewindedPeriods * 2 );
 
         return cal.toIso( dateTimeUnit ).toJdkDate();
     }
@@ -202,7 +202,7 @@ public class BiWeeklyAbstractPeriodType
     public DateTimeUnit adjustToStartOfBiWeek( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
         int biWeekday = calendar.weekday( dateTimeUnit ) +
-            ( 1 - ( calendar.week( dateTimeUnit ) % 2 ) ) * 7;
+            (1 - (calendar.week( dateTimeUnit ) % 2)) * 7;
 
         if ( biWeekday > startOfWeek )
         {
@@ -216,4 +216,3 @@ public class BiWeeklyAbstractPeriodType
         return dateTimeUnit;
     }
 }
-

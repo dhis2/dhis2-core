@@ -52,6 +52,7 @@ import org.joda.time.Days;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Template formats supported:
@@ -64,6 +65,8 @@ import com.google.common.collect.Maps;
  *
  * @author Halvdan Hoem Grelland
  */
+
+@Transactional
 public abstract class BaseNotificationMessageRenderer<T>
     implements NotificationMessageRenderer<T>
 {

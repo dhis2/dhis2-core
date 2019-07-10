@@ -253,7 +253,9 @@ public class DefaultDataQueryService
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
+
             DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+
             for ( String uid : items )
             {
                 if ( uid.startsWith( KEY_DE_GROUP ) ) // DATA ELEMENT GROUP
@@ -313,9 +315,9 @@ public class DefaultDataQueryService
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
             Calendar calendar = PeriodType.getCalendar();
-            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
-
             List<Period> periods = new ArrayList<>();
+
+            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
@@ -426,20 +428,20 @@ public class DefaultDataQueryService
 
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
-            DimensionalKeywords dimensionalKeywords = null;
+            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+
             if ( !levels.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
-                dimensionalKeywords = new DimensionalKeywords(
+                dimensionalKeywords.addGroupBy(
                     levels.stream().map( l -> organisationUnitService.getOrganisationUnitLevelByLevel( l ) )
                         .filter( Objects::nonNull ).collect( Collectors.toList() ) );
-
             }
 
             if ( !groups.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
-                dimensionalKeywords = new DimensionalKeywords(
+                dimensionalKeywords.addGroupBy(
                     groups.stream().map( g -> new BaseNameableObject( g.getUid(), g.getCode(), g.getName() ) )
                         .collect( Collectors.toList() ) );
             }
@@ -451,6 +453,13 @@ public class DefaultDataQueryService
             if ( levels.isEmpty() && groups.isEmpty() )
             {
                 orgUnits.addAll( ous );
+            }
+
+            // Add boundary OUs as keywords
+
+            if ( !dimensionalKeywords.isEmpty() )
+            {
+                dimensionalKeywords.addGroupBy( ousList );
             }
 
             if ( orgUnits.isEmpty() )

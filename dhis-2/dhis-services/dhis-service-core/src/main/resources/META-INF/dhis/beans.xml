@@ -623,6 +623,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="statementBuilder" ref="statementBuilder" />
+    <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore"/>
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore"
@@ -926,6 +927,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="configurationService" ref="org.hisp.dhis.configuration.ConfigurationService" />
     <property name="env" ref="environment" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
   </bean>
 
   <bean id="org.hisp.dhis.organisationunit.OrganisationUnitGroupService"
@@ -1206,6 +1208,7 @@
     <property name="identifiableObjectManager" ref="org.hisp.dhis.common.IdentifiableObjectManager" />
     <property name="programNotificationRenderer" ref="programNotificationMessageRenderer" />
     <property name="programStageNotificationRenderer" ref="programStageNotificationMessageRenderer" />
+    <property name="programNotificationStore" ref="org.hisp.dhis.program.notification.ProgramNotificationTemplateStore" />
   </bean>
 
   <bean id="org.hisp.dhis.program.notification.ProgramNotificationListener"
@@ -1663,9 +1666,7 @@
   </bean>
 
   <bean id="org.hisp.dhis.relationship.RelationshipDeletionHandler"
-    class="org.hisp.dhis.relationship.RelationshipDeletionHandler">
-    <property name="relationshipSevice" ref="org.hisp.dhis.relationship.RelationshipService" />
-  </bean>
+    class="org.hisp.dhis.relationship.RelationshipDeletionHandler" />
 
   <bean id="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler"
     class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueDeletionHandler">

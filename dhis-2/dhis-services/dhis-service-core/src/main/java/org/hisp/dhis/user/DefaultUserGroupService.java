@@ -106,35 +106,35 @@ public class DefaultUserGroupService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<UserGroup> getAllUserGroups()
     {
         return userGroupStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public UserGroup getUserGroup( long userGroupId )
     {
         return userGroupStore.get( userGroupId );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public UserGroup getUserGroup( String uid )
     {
         return userGroupStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean canAddOrRemoveMember( String uid )
     {
         return canAddOrRemoveMember( uid, currentUserService.getCurrentUser() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean canAddOrRemoveMember( String uid, User currentUser )
     {
         UserGroup userGroup = getUserGroup( uid );
@@ -218,43 +218,43 @@ public class DefaultUserGroupService
         }
     }
 
-    private Collection<UserGroup> getUserGroupsByUid(Collection<String> uids)
+    private Collection<UserGroup> getUserGroupsByUid( Collection<String> uids )
     {
         return userGroupStore.getByUid( uids );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<UserGroup> getUserGroupByName( String name )
     {
         return userGroupStore.getAllEqName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getUserGroupCount()
     {
         return userGroupStore.getCount();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getUserGroupCountByName( String name )
     {
         return userGroupStore.getCountLikeName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<UserGroup> getUserGroupsBetween( int first, int max )
     {
         return userGroupStore.getAllOrderedName( first, max );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
-        return userGroupStore.getAllLikeName( name, first, max );
+        return userGroupStore.getAllLikeName( name, first, max, false );
     }
 }

@@ -51,7 +51,6 @@ import java.util.concurrent.ScheduledFuture;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
-
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
  * identifying the scheduled jobs.
@@ -113,6 +112,7 @@ public class DefaultSchedulingManager
 
     private List<JobConfiguration> runningJobConfigurations = new CopyOnWriteArrayList<>();
 
+    @Override
     public boolean isJobConfigurationRunning( JobConfiguration jobConfiguration )
     {
         if ( jobConfiguration.isInMemoryJob() )
@@ -125,6 +125,7 @@ public class DefaultSchedulingManager
                 !jobConfig.isContinuousExecution() );
     }
 
+    @Override
     public void jobConfigurationStarted( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() )
@@ -134,6 +135,7 @@ public class DefaultSchedulingManager
         }
     }
 
+    @Override
     public void jobConfigurationFinished( JobConfiguration jobConfiguration )
     {
         runningJobConfigurations.remove( jobConfiguration );
@@ -255,6 +257,7 @@ public class DefaultSchedulingManager
     // Supportive methods
     // -------------------------------------------------------------------------
 
+    @Override
     public Job getJob( JobType jobType )
     {
         return (Job) applicationContext.getBean( jobType.getKey() );

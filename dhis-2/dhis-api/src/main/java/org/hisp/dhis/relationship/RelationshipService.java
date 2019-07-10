@@ -32,6 +32,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -80,4 +81,6 @@ public interface RelationshipService
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
+
+    List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType );
 }

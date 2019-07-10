@@ -282,7 +282,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            params.setOrganisationUnits( user.getDataViewOrganisationUnitsWithFallback() );
+            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
@@ -324,7 +324,7 @@ public class DefaultProgramInstanceService
 
         if ( user != null && params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE ) )
         {
-            params.setOrganisationUnits( user.getDataViewOrganisationUnitsWithFallback() );
+            params.setOrganisationUnits( user.getTeiSearchOrganisationUnitsWithFallback() );
             params.setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) )
@@ -548,14 +548,6 @@ public class DefaultProgramInstanceService
     @Transactional
     public void completeProgramInstanceStatus( ProgramInstance programInstance )
     {
-        // ---------------------------------------------------------------------
-        // Send sms-message when to completed the program
-        // ---------------------------------------------------------------------
-
-        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance ) );
-
-        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
-
         // -----------------------------------------------------------------
         // Update program-instance
         // -----------------------------------------------------------------
@@ -565,6 +557,14 @@ public class DefaultProgramInstanceService
         programInstance.setCompletedBy( currentUserService.getCurrentUsername() );
 
         updateProgramInstance( programInstance );
+
+        // ---------------------------------------------------------------------
+        // Send sms-message after program completion
+        // ---------------------------------------------------------------------
+
+        eventPublisher.publishEvent( new ProgramEnrollmentCompletionNotificationEvent( this, programInstance ) );
+
+        eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance ) );
     }
 
     @Override

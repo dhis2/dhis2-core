@@ -49,4 +49,6 @@ public interface RelationshipStore
     List<Relationship> getByProgramInstance( ProgramInstance pi );
 
     List<Relationship> getByProgramStageInstance( ProgramStageInstance psi );
+
+    List<Relationship> getByRelationshipType( RelationshipType relationshipType );
 }

@@ -32,8 +32,10 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -78,6 +80,12 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
     @Mock
     private ProgramRuleService programRuleService;
+
+    @Mock
+    private ProgramInstanceService programInstanceService;
+
+    @Mock
+    private ProgramStageInstanceService programStageInstanceService;
 
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;
@@ -129,6 +137,10 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         }).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
 
         when( programRuleService.getProgramRule( any( Program.class ) ) ).thenReturn( programRules );
+
+        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+
+        when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
     }
 
     @Test

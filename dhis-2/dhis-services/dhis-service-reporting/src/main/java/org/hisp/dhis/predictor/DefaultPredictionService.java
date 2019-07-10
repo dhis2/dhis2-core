@@ -731,6 +731,11 @@ public class DefaultPredictionService
             CategoryOptionCombo attributeOptionCombo = aocLookup.get( dv.getAttributeOptionComboId() );
             String stringValue = dv.getValue();
 
+            if ( stringValue == null )
+            {
+                continue;
+            }
+
             if ( attributeOptionCombo == null )
             {
                 attributeOptionCombo = categoryService.getCategoryOptionCombo( dv.getAttributeOptionComboId() );

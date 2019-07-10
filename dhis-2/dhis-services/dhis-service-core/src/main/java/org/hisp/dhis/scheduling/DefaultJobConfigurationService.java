@@ -36,7 +36,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,11 +79,6 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            if ( jobConfiguration.getJobParameters() == null )
-            {
-                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
-            }
-
             jobConfigurationStore.save( jobConfiguration );
         }
         return jobConfiguration.getId();
@@ -94,15 +88,7 @@ public class DefaultJobConfigurationService
     @Transactional
     public void addJobConfigurations( List<JobConfiguration> jobConfigurations )
     {
-        jobConfigurations.forEach( jobConfiguration -> {
-
-            if ( jobConfiguration.getJobParameters() == null  )
-            {
-                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
-            }
-
-            jobConfigurationStore.save( jobConfiguration );
-        } );
+        jobConfigurations.forEach( jobConfiguration -> jobConfigurationStore.save( jobConfiguration ) );
     }
 
     @Override
@@ -111,11 +97,6 @@ public class DefaultJobConfigurationService
     {
         if ( !jobConfiguration.isInMemoryJob() )
         {
-            if ( jobConfiguration.getJobParameters() == null )
-            {
-                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
-            }
-
             sessionFactory.getCurrentSession().update( jobConfiguration );
         }
 
@@ -225,24 +206,5 @@ public class DefaultJobConfigurationService
             .set( 0, fieldStrings.get( 0 ).substring( 0, 1 ).toUpperCase() + fieldStrings.get( 0 ).substring( 1 ) );
 
         return String.join( " ", fieldStrings );
-    }
-
-    private JobParameters getDefaultJobParameters( JobConfiguration jobConfiguration )
-    {
-        if ( jobConfiguration.getJobType().getJobParameters() == null )
-        {
-            return null;
-        }
-
-        try
-        {
-            return jobConfiguration.getJobType().getJobParameters().newInstance();
-        }
-        catch ( InstantiationException | IllegalAccessException ex )
-        {
-            log.error( DebugUtils.getStackTrace( ex ) );
-        }
-
-        return null;
     }
 }

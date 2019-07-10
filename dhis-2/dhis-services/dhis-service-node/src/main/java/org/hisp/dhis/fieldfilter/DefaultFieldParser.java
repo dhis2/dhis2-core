@@ -79,11 +79,10 @@ public class DefaultFieldParser implements FieldParser
                     }
                     else if ( (insideParameters && c.equals( ")" )) ) // end
                     {
-                        insideParameters = false;
                         builder.append( c );
                         break;
                     }
-                    else if ( c.equals( "," ) ) // rewind and break
+                    else if ( c.equals( "," ) || ( c.equals( "[" ) && !insideParameters ) ) // rewind and break
                     {
                         i--;
                         break;
