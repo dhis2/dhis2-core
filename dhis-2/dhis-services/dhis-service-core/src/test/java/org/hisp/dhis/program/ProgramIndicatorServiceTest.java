@@ -391,6 +391,23 @@ public class ProgramIndicatorServiceTest
         assertTrue( equals( programIndicatorService.getAllProgramIndicators(), indicatorB, indicatorA ) );
     }
 
+    @Test
+    public void testProgramIndicatorsWithNoExpression()
+    {
+        ProgramIndicator piWithNoExpression = createProgramIndicator( 'A', programA, null, null );
+        ProgramIndicator piWithExpression = createProgramIndicator( 'B', programA, " 1 + 1", null );
+
+        programIndicatorService.addProgramIndicator( piWithNoExpression );
+        programIndicatorService.addProgramIndicator( piWithExpression );
+
+        List<ProgramIndicator> programIndicators = programIndicatorService.getProgramIndicatorsWithNoExpression();
+
+        assertFalse( programIndicators.isEmpty() );
+        assertEquals( 1, programIndicators.size() );
+        assertTrue( programIndicators.contains( piWithNoExpression ) );
+        assertFalse( programIndicators.contains( piWithExpression ) );
+    }
+
     // -------------------------------------------------------------------------
     // Logic tests
     // -------------------------------------------------------------------------
