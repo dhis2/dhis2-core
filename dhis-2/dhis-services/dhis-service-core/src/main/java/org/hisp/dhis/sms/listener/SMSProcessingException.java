@@ -42,9 +42,17 @@ public class SMSProcessingException
 
     private SMSResponse resp;
 
+    private Throwable err;
+
     public SMSProcessingException( SMSResponse resp )
     {
         this.resp = resp;
+    }
+
+    public SMSProcessingException( SMSResponse resp, Throwable err )
+    {
+        this.resp = resp;
+        this.err = err;
     }
 
     @Override
@@ -56,5 +64,10 @@ public class SMSProcessingException
     public SMSResponse getResp()
     {
         return resp;
+    }
+
+    public Throwable getErr()
+    {
+        return err;
     }
 }
