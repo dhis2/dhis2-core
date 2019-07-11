@@ -136,11 +136,6 @@
       <groupId>javax.interceptor</groupId>
       <artifactId>javax.interceptor-api</artifactId>
     </dependency>
-    <dependency>
-    	<groupId>com.github.eHealthAfrica</groupId>
-    	<artifactId>dhis2-sms-compression</artifactId>
-    	<version>0.1.3</version>
-    </dependency>
     
     <!-- JClouds -->
 
@@ -179,7 +174,12 @@
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
     </dependency>  
-
+    <dependency>
+    	<groupId>com.github.eHealthAfrica</groupId>
+    	<artifactId>dhis2-sms-compression</artifactId>
+    	<version>0.1.3</version>
+    </dependency>
+    
     <!-- Security -->
     <dependency>
       <groupId>org.jboss.aerogear</groupId>
