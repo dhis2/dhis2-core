@@ -164,10 +164,10 @@ public abstract class NewSMSListener
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         Log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
 
-        checkUser( subm );
         SMSResponse resp = null;
         try
         {
+            checkUser( subm );
             resp = postProcess( sms, subm );
         }
         catch ( SMSProcessingException e )
