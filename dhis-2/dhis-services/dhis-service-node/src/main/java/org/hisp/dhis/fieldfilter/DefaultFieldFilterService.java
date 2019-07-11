@@ -34,6 +34,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -93,6 +95,8 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final CurrentUserService currentUserService;
 
+    private final AttributeService attributeService;
+
     private Set<NodeTransformer> nodeTransformers;
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
@@ -102,12 +106,13 @@ public class DefaultFieldFilterService implements FieldFilterService
     private Property baseIdentifiableIdProperty;
 
     public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService, @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
+        CurrentUserService currentUserService, AttributeService attributeService, @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
+        this.attributeService = attributeService;
         this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
     }
 
@@ -253,6 +258,12 @@ public class DefaultFieldFilterService implements FieldFilterService
         if ( fieldMap.containsKey( "access" ) && schema.isIdentifiableObject() )
         {
             ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (IdentifiableObject) object, user ) );
+        }
+
+        if ( fieldMap.containsKey( "attribute" ) && AttributeValue.class.isAssignableFrom( object.getClass() ) )
+        {
+            AttributeValue attributeValue = (AttributeValue) object;
+            attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
         }
 
         for ( String fieldKey : fieldMap.keySet() )
