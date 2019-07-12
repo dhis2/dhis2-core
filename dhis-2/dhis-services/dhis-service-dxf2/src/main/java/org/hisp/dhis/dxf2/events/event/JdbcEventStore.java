@@ -74,30 +74,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.splitToArray;
+import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_CREATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DELETED;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_DUE_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ENROLLMENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_EXECUTION_DATE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_GEOMETRY;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_LAST_UPDATED_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ORG_UNIT_NAME;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_PROGRAM_STAGE_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STATUS_ID;
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_ID;
-import static org.hisp.dhis.system.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.system.util.DateUtils.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -709,16 +689,24 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " pi.followup is " + (params.getFollowUp() ? "true" : "false") + " ";
         }
 
-        if ( params.getLastUpdatedStartDate() != null )
+        if ( params.hasLastUpdatedDuration() )
         {
             sql += hlp.whereAnd() + " psi.lastupdated >= '"
-                + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+                + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
         }
-
-        if ( params.getLastUpdatedEndDate() != null )
+        else
         {
-            Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
-            sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+            }
+
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
+                sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+            }
         }
 
         //Comparing milliseconds instead of always creating new Date( 0 );
@@ -891,16 +879,24 @@ public class JdbcEventStore
                 + "')) ";
         }
 
-        if ( params.getLastUpdatedStartDate() != null )
+        if ( params.hasLastUpdatedDuration() )
         {
             sql += hlp.whereAnd() + " psi.lastupdated >= '"
-                + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+                + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
         }
-
-        if ( params.getLastUpdatedEndDate() != null )
+        else
         {
-            sql += hlp.whereAnd() + " psi.lastupdated <= '"
-                + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+            }
+
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                sql += hlp.whereAnd() + " psi.lastupdated <= '"
+                    + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
+            }
         }
 
         if ( params.isSynchronizationQuery() )
