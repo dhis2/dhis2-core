@@ -1233,22 +1233,56 @@ public class PredictionServiceTest
 
     @Test
     @org.junit.experimental.categories.Category( IntegrationTest.class )
-    public void testMissingValuesStddev()
+    public void testMissingValuesStddevSamp()
     {
         useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
 
         dataValueBatchHandler.flush();
 
-        Expression expression = new Expression( "STDDEV(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description" );
+        Expression expression = new Expression( "stddevSamp(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description" );
 
         Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null,
             periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
         predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
 
-        assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+    }
 
-        assertEquals( "33.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2010, 8 ) ) );
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testMissingValuesStddevPop()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "stddevPop(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description" );
+
+        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+    }
+
+    @Test
+    @org.junit.experimental.categories.Category( IntegrationTest.class )
+    public void testMissingValuesPercentileCont()
+    {
+        useDataValue( dataElementA, makeMonth( 2010, 8 ), sourceA, 33 );
+
+        dataValueBatchHandler.flush();
+
+        Expression expression = new Expression( "percentileCont(#{" + dataElementA.getUid() + "}) + #{" + dataElementA.getUid() + "}", "description" );
+
+        Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expression, null,
+            periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictionService.predict( predictor, monthStart( 2010, 8 ), monthStart( 2010, 9 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
     }
 
     @Test
