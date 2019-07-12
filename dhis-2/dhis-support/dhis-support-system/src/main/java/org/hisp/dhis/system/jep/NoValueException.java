@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.jep;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,59 +28,12 @@ package org.hisp.dhis.system.jep;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Stack;
-import java.lang.Object;
-
-import org.nfunk.jep.ParseException;
-import org.nfunk.jep.function.PostfixMathCommand;
-import org.nfunk.jep.function.PostfixMathCommandI;
-
 /**
- * @author Kenneth Haase
+ * Exception to signal that no value is returned from an expression.
+ *
+ * @author Jim Grace
  */
-public class StandardDeviation
-    extends PostfixMathCommand
-    implements PostfixMathCommandI
+public class NoValueException
+    extends RuntimeException
 {
-    public StandardDeviation()
-    {
-        numberOfParameters = 1;
-    }
-
-    // nFunk's JEP run() method uses the raw Stack type
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
-    public void run( Stack inStack )
-        throws ParseException
-    {
-        checkStack( inStack );
-
-        Object param = inStack.pop();
-        List<Double> vals = CustomFunctions.checkVector( param );
-        int n = vals.size();
-        
-        if ( n == 0 )
-        {
-            inStack.push( new Double( 0 ) );
-        }
-        else
-        {
-            double sum = 0, sum2 = 0, mean, variance;
-            
-            for ( Double v : vals )
-            {
-                sum = sum + v;
-            }
-
-            mean = sum / n;
-            
-            for ( Double v : vals )
-            {
-                sum2 = sum2 + ((v - mean) * (v - mean));
-            }
-            
-            variance = sum2 / n;
-            inStack.push( new Double( Math.sqrt( variance ) ) );
-        }
-    }
 }
