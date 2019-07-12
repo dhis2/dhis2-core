@@ -117,6 +117,8 @@ public interface DataValueSetService
 
     ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions );
 
+    ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions );
+
     ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );

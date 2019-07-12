@@ -618,6 +618,12 @@ public class DefaultDataValueSetService
         }
     }
 
+    @Override
+    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions )
+    {
+       return saveDataValueSetPdf( in, importOptions, null );
+    }
+
     /**
      * There are specific id schemes for data elements and organisation units and
      * a generic id scheme for all objects. The specific id schemes will take
