@@ -1,4 +1,4 @@
-package org.hisp.dhis.common;
+package org.hisp.dhis.user;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,29 +28,26 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.DisplayProperty;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * @author Lars Helge Overland
+ * Unit tests for {@link UserSettingKey}.
+ *
+ * @author Volker Schmidt
  */
-public enum DisplayProperty
+public class UserSettingKeyTest
 {
-    @JsonProperty( "name" )
-    NAME( "name" ),
-
-    @JsonProperty( "shortName" )
-    SHORTNAME( "shortName" );
-
-    private String display;
-
-    DisplayProperty( String display )
+    @Test
+    public void getAsRealClassEnum()
     {
-        this.display = display;
+        Assert.assertSame( DisplayProperty.SHORTNAME, UserSettingKey.getAsRealClass( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName" ) );
     }
 
-    @Override
-    public String toString()
+    @Test
+    public void getAsRealClassOther()
     {
-        return display;
+        Assert.assertSame( "Test Layout", UserSettingKey.getAsRealClass( UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout" ) );
     }
 }
