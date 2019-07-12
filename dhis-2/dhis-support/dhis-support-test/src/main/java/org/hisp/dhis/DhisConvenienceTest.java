@@ -135,6 +135,7 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -234,7 +235,7 @@ public abstract class DhisConvenienceTest
      */
     public static Date getDate( int year, int month, int day )
     {
-        DateTime dateTime = new DateTime( year, month, day, 0, 0 );
+        LocalDateTime dateTime = new LocalDateTime( year, month, day, 0, 0 );
         return dateTime.toDate();
     }
 

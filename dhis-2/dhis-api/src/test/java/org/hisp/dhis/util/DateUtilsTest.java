@@ -43,6 +43,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.hisp.dhis.util.DateUtils;
@@ -278,13 +279,13 @@ public class DateUtilsTest
     @Test
     public void testParseIntoDSTGap()
     {
-       Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance();
 
         int year = 1985;
         int month = 4;
         int day = 14;
 
-        String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-"  + ( day < 10 ? "0" : "" ) + day;
+        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day;
 
         assertTrue( dateTimeIsValid( dateString + "T00:00" ) );
 
@@ -294,9 +295,31 @@ public class DateUtilsTest
         assertEquals( year, cal.get( Calendar.YEAR ) );
         assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
         assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
-        assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
 
         Date mediumDateParsed = getMediumDate( dateString );
         assertEquals( dateParsed, mediumDateParsed );
+    }
+
+    @Test
+    public void testParseZuluDateOffset()
+    {
+        TimeZone timeZone = TimeZone.getTimeZone( "UTC" );
+        Calendar cal = Calendar.getInstance( timeZone );
+
+        int year = 1995;
+        int month = 5;
+        int day = 24;
+
+        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day + "T00:00Z";
+
+        assertTrue( dateTimeIsValid( dateString  ) );
+
+        Date dateParsed = parseDate( dateString );
+        cal.setTime( dateParsed );
+
+        assertEquals( year, cal.get( Calendar.YEAR ) );
+        assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
+        assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
+        assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
     }
 }
