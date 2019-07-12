@@ -1321,8 +1321,8 @@ public abstract class AbstractEventService
         }
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
-        preheatDataElementsCache( event );
-        eventDataValueService.processDataValues( programStageInstance, event, true, singleValue, importOptions, importSummary, dataElementCache );
+        preheatDataElementsCache( event, importOptions );
+        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, dataElementCache );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -1373,15 +1373,27 @@ public abstract class AbstractEventService
         return importSummary;
     }
 
-    private void preheatDataElementsCache( Event event )
+    private void preheatDataElementsCache( Event event, ImportOptions importOptions )
     {
-        Set<String> dataElementUids = event.getDataValues().stream().map( DataValue::getDataElement )
+        IdScheme dataElementIdScheme = importOptions.getIdSchemes().getDataElementIdScheme();
+
+        Set<String> dataElementIdentificators = event.getDataValues().stream()
+            .map( DataValue::getDataElement )
             .collect( Collectors.toSet() );
 
-        List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
-            dataElementUids );
+        //Should happen in the most of the cases
+        if ( dataElementIdScheme.isNull() || dataElementIdScheme.is( IdentifiableProperty.UID ) )
+        {
+            List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
+                dataElementIdentificators );
 
-        dataElements.forEach( de -> dataElementCache.put( de.getUid(), de ) );
+            dataElements.forEach( de -> dataElementCache.put( de.getUid(), de ) );
+        }
+        else
+        {
+            //Slower, but shouldn't happen so often
+            dataElementIdentificators.forEach( deId -> getDataElement( dataElementIdScheme, deId ) );
+        }
     }
 
     @Override
@@ -1836,19 +1848,19 @@ public abstract class AbstractEventService
             programStageInstance.setCompletedDate( completedDate );
         }
 
-        preheatDataElementsCache( event );
+        preheatDataElementsCache( event, importOptions );
 
         if ( programStageInstance.getId() == 0 )
         {
             programStageInstance.setAutoFields();
             programStageInstanceService.addProgramStageInstance( programStageInstance );
 
-            eventDataValueService.processDataValues( programStageInstance, event, false, false, importOptions, importSummary, dataElementCache );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
         else
         {
-            eventDataValueService.processDataValues( programStageInstance, event, false, false, importOptions, importSummary, dataElementCache );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
     }
