@@ -163,7 +163,7 @@ public class MathUtils
     public static boolean expressionHasErrors( String expression )
     {
         final JEP parser = getJep();
-        parser.parseExpression( expression );
+        parser.parseExpression( expression.toUpperCase() );
 
         return parser.hasError();
     }
