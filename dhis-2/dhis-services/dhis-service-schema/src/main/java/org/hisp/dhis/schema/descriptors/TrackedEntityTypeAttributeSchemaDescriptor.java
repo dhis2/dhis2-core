@@ -47,6 +47,8 @@ public class TrackedEntityTypeAttributeSchemaDescriptor implements SchemaDescrip
     @Override
     public Schema getSchema()
     {        
-        return new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( TrackedEntityTypeAttribute.class, SINGULAR, PLURAL );
+        schema.setOrder( 1500 );
+        return schema;
     }
 }
