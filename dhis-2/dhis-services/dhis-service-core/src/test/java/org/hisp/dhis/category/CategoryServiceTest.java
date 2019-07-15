@@ -304,7 +304,6 @@ public class CategoryServiceTest
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 0 ) ) ) );
         assertTrue( operands.contains( new DataElementOperand( deB, optionCombos.get( 1 ) ) ) );
     }
-}
 
     @Test
     public void testAddAndPruneAllCategoryCombos()
