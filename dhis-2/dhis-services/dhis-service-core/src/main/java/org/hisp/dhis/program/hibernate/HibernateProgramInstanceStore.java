@@ -55,7 +55,7 @@ import java.util.function.Function;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.system.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.DateUtils.*;
 
 /**
  * @author Abyot Asalefew
@@ -108,7 +108,12 @@ public class HibernateProgramInstanceStore
         String hql = "from ProgramInstance pi";
         SqlHelper hlp = new SqlHelper( true );
 
-        if ( params.hasLastUpdated() )
+        if ( params.hasLastUpdatedDuration() )
+        {
+            hql += hlp.whereAnd() +  "pi.lastUpdated >= '" +
+                getLongGmtDateString( nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
+        }
+        else if ( params.hasLastUpdated() )
         {
             hql += hlp.whereAnd() + "pi.lastUpdated >= '" + getMediumDateString( params.getLastUpdated() ) + "'";
         }
