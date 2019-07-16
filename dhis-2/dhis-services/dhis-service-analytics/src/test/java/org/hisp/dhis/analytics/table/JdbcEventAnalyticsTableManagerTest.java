@@ -44,9 +44,12 @@ import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,6 +60,9 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Collection;
+import java.util.Collections;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.*;
@@ -135,9 +141,37 @@ public class JdbcEventAnalyticsTableManagerTest {
 
         subject.populateTable( PartitionUtils.getTablePartitions( subject.getAnalyticsTables( getDate( 2018, 1, 1 ) ) ).get( 0 ) );
 
-        verify(jdbcTemplate).execute(sql.capture());
+        verify( jdbcTemplate ).execute( sql.capture() );
         String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select value from trackedentitydatavalue where "
                 + "programstageinstanceid=psi.programstageinstanceid and dataelementid=" + d5.getId() + ")) as \"" + d5.getUid() + "\"";
+
+        assertThat(sql.getValue(), containsString(ouQuery));
+    }
+
+    @Test
+    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    {
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        when( databaseInfo.isSpatialSupport() ).thenReturn( true );
+        Program p1 = createProgram( 'A' );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
+        tea.setId(9999);
+
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute('d');
+        programTrackedEntityAttribute.setAttribute(tea);
+
+        p1.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
+
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+
+        subject.populateTable( PartitionUtils.getTablePartitions( subject.getAnalyticsTables( getDate( 2018, 1, 1 ) ) ).get( 0 ) );
+
+        verify( jdbcTemplate ).execute( sql.capture() );
+
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
+                "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
+                "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
         assertThat(sql.getValue(), containsString(ouQuery));
     }
