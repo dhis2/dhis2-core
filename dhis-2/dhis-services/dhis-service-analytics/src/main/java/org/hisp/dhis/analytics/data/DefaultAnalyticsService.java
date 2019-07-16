@@ -111,6 +111,7 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -745,7 +746,18 @@ public class DefaultAnalyticsService
 
                     PeriodType queryPt = filterPeriodType != null ? filterPeriodType : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
-                    target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+
+                    // For data set having "Daily" Period Type, the system must calculate the correct number
+                    // of days for the selected Query Period
+                    if ( dataSetPt.hasName( DailyPeriodType.NAME ) )
+                    {
+                        Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
+                        target = target * period.getDaysInPeriod() * timeUnits;
+                    }
+                    else
+                    {
+                        target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+                    }
 
                     // ---------------------------------------------------------
                     // Calculate reporting rate and replace data set with rate
