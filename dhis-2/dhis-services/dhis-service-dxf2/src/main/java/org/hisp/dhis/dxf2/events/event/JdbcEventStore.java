@@ -83,8 +83,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -750,6 +749,8 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
         }
 
+        sql += addLastUpdatedFilters( params, hlp );
+
         //Comparing milliseconds instead of always creating new Date( 0 );
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
@@ -948,17 +949,7 @@ public class JdbcEventStore
                 + "')) ";
         }
 
-        if ( params.getLastUpdatedStartDate() != null )
-        {
-            sql += hlp.whereAnd() + " psi.lastupdated >= '"
-                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
-        }
-
-        if ( params.getLastUpdatedEndDate() != null )
-        {
-            sql += hlp.whereAnd() + " psi.lastupdated <= '"
-                    + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
-        }
+        sql += addLastUpdatedFilters( params, hlp );
 
         if ( params.isSynchronizationQuery() )
         {
@@ -1026,6 +1017,33 @@ public class JdbcEventStore
         if ( params.isIncludeOnlyAssignedEvents() )
         {
             sql += hlp.whereAnd() + " (au.uid is not null) ";
+        }
+
+        return sql;
+    }
+
+    private String addLastUpdatedFilters( EventSearchParams params, SqlHelper hlp )
+    {
+        String sql = "";
+
+        if ( params.hasLastUpdatedDuration() )
+        {
+            sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
+        }
+        else
+        {
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+            }
+
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
+                sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+            }
         }
 
         return sql;
