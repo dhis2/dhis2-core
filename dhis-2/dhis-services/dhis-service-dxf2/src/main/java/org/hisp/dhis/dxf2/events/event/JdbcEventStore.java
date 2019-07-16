@@ -737,19 +737,7 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " pi.followup is " + (params.getFollowUp() ? "true" : "false") + " ";
         }
 
-        if ( params.getLastUpdatedStartDate() != null )
-        {
-            sql += hlp.whereAnd() + " psi.lastupdated >= '"
-                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
-        }
-
-        if ( params.getLastUpdatedEndDate() != null )
-        {
-            Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
-            sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
-        }
-
-        sql += addLastUpdatedFilters( params, hlp );
+        sql += addLastUpdatedFilters( params, hlp, true );
 
         //Comparing milliseconds instead of always creating new Date( 0 );
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
@@ -949,7 +937,7 @@ public class JdbcEventStore
                 + "')) ";
         }
 
-        sql += addLastUpdatedFilters( params, hlp );
+        sql += addLastUpdatedFilters( params, hlp, false );
 
         if ( params.isSynchronizationQuery() )
         {
@@ -1022,7 +1010,7 @@ public class JdbcEventStore
         return sql;
     }
 
-    private String addLastUpdatedFilters( EventSearchParams params, SqlHelper hlp )
+    private String addLastUpdatedFilters( EventSearchParams params, SqlHelper hlp, boolean useDateAfterEndDate )
     {
         String sql = "";
 
@@ -1041,8 +1029,17 @@ public class JdbcEventStore
 
             if ( params.hasLastUpdatedEndDate() )
             {
-                Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
-                sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+                if ( useDateAfterEndDate )
+                {
+                    Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
+                    sql += hlp.whereAnd() + " psi.lastupdated < '"
+                        + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+                }
+                else
+                {
+                    sql += hlp.whereAnd() + " psi.lastupdated <= '"
+                        + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
+                }
             }
         }
 
