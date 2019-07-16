@@ -48,9 +48,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -331,6 +333,36 @@ public class JdbcEventAnalyticsTableManagerTest
             + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
+    }
+
+    @Test
+    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    {
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        when( databaseInfo.isSpatialSupport() ).thenReturn( true );
+        Program p1 = createProgram( 'A' );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
+        tea.setId(9999);
+
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(p1, tea);
+
+        p1.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
+
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+
+        subject.populateTable( params,
+                PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+
+        verify( jdbcTemplate ).execute( sql.capture() );
+
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
+                "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
+                "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+
+        assertThat(sql.getValue(), containsString(ouQuery));
     }
 
     private String toAlias( String template, String uid )
