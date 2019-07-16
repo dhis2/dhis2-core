@@ -29,6 +29,7 @@ package org.hisp.dhis.user;
  */
 
 import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.common.DisplayProperty;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -50,7 +51,7 @@ public enum UserSettingKey
     MESSAGE_SMS_NOTIFICATION( "keyMessageSmsNotification", true, Boolean.class ),
     UI_LOCALE( "keyUiLocale", Locale.class ),
     DB_LOCALE( "keyDbLocale", Locale.class ),
-    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", String.class ),
+    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", DisplayProperty.class ),
     TRACKER_DASHBOARD_LAYOUT( "keyTrackerDashboardLayout" );
 
     private final String name;
@@ -114,6 +115,7 @@ public enum UserSettingKey
         return Optional.empty();
     }
 
+    @SuppressWarnings( "unchecked" )
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<UserSettingKey> setting = getByName( name );
@@ -137,6 +139,10 @@ public enum UserSettingKey
             else if ( Locale.class.isAssignableFrom( settingClazz ) )
             {
                 return LocaleUtils.toLocale( value );
+            }
+            else if ( Enum.class.isAssignableFrom( settingClazz ) )
+            {
+                return Enum.valueOf( (Class<? extends Enum>) settingClazz, value.toUpperCase() );
             }
 
             //TODO handle Dates

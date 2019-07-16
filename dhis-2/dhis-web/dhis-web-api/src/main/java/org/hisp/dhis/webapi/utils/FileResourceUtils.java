@@ -35,11 +35,9 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -73,7 +71,7 @@ public class FileResourceUtils
 
     /**
      * Transfers the given multipart file content to a local temporary file.
-     * 
+     *
      * @param multipartFile the multipart file.
      * @return a temporary local file.
      * @throws IOException if the file content could not be transferred.
@@ -90,7 +88,7 @@ public class FileResourceUtils
     /**
      * Indicates whether the content type represented by the given string is a
      * valid, known content type.
-     * 
+     *
      * @param contentType the content type string.
      * @return true if the content is valid, false if not.
      */

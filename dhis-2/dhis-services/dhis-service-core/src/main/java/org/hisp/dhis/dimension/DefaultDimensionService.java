@@ -82,6 +82,7 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.security.acl.AclService;
@@ -428,6 +429,16 @@ public class DefaultDimensionService
         return getItemObjectMap( itemIds, atomicObjects );
     }
 
+    @Override
+    public Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds )
+    {
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds = getAtomicIds( itemIds );
+
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = getNoAclAtomicObjects( atomicIds );
+
+        return getItemObjectMap( itemIds, atomicObjects );
+    }
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
@@ -520,6 +531,21 @@ public class DefaultDimensionService
         {
             atomicObjects.putEntries( e.getKey(),
                 idObjectManager.get( e.getKey(), e.getValue() ).stream()
+                    .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
+        }
+
+        return atomicObjects;
+    }
+
+    private MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
+    {
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
+
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        {
+            atomicObjects.putEntries( e.getKey(),
+                idObjectManager.getNoAcl( e.getKey(), e.getValue() ).stream()
                     .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
         }
 
@@ -873,6 +899,8 @@ public class DefaultDimensionService
                     dataElementDimension.setDataElement( idObjectManager.get( DataElement.class, dimensionId ) );
                     dataElementDimension.setLegendSet( dimension.hasLegendSet() ?
                         idObjectManager.get( LegendSet.class, dimension.getLegendSet().getUid() ) : null );
+                    dataElementDimension.setProgramStage( dimension.hasProgramStage() ?
+                        idObjectManager.get( ProgramStage.class, dimension.getProgramStage().getUid() ) : null );
                     dataElementDimension.setFilter( dimension.getFilter() );
 
                     object.getDataElementDimensions().add( dataElementDimension );

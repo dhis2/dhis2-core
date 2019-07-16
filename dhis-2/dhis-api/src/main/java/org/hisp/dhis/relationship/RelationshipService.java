@@ -32,7 +32,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
-import java.util.Collection;
 import java.util.List;
 
 /**

@@ -56,29 +56,22 @@ public class ArithmeticMean
         checkStack( inStack );
 
         Object param = inStack.pop();
-        
-        if ( param instanceof List )
-        {
-            List<Double> vals = CustomFunctions.checkVector( param );
-            int n = vals.size();
+        List<Double> vals = CustomFunctions.checkVector( param );
+        int n = vals.size();
 
-            if ( n == 0 )
-            {
-                inStack.push( new Double( 0 ) );
-            }
-            else
-            {
-                double sum = 0;
-                for ( Double v : vals )
-                {
-                    sum = sum + v;
-                }
-                inStack.push( new Double( sum / n ) );
-            }
-        }
-        else
+        if ( n == 0 )
         {
-            throw new ParseException( "Invalid aggregate value in expression" );
+            inStack.push( 0 );
+            return;
         }
+
+        double sum = 0;
+
+        for ( Double v : vals )
+        {
+            sum = sum + v;
+        }
+
+        inStack.push( new Double( sum / n ) );
     }
 }

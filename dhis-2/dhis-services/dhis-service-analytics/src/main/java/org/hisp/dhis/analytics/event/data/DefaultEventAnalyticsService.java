@@ -125,6 +125,8 @@ public class DefaultEventAnalyticsService
     private static final Log log = LogFactory.getLog( DefaultEventAnalyticsService.class );
 
     private static final String NAME_EVENT = "Event";
+    private static final String NAME_TRACKED_ENTITY_INSTANCE = "Tracked entity instance";
+    private static final String NAME_PROGRAM_INSTANCE = "Program instance";
     private static final String NAME_PROGRAM_STAGE = "Program stage";
     private static final String NAME_EVENT_DATE = "Event date";
     private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
@@ -600,7 +602,9 @@ public class DefaultEventAnalyticsService
         if ( params.getProgram().isRegistration() )
         {
             grid.addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
-                .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) );
+                .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) )
+                .addHeader( new GridHeader( ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         grid.addHeader( new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )

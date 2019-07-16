@@ -176,7 +176,7 @@ public class GetGeneralSettingsAction
 
         currentStyle = styleManager.getCurrentStyle();
 
-        analysisDisplayProperty = (String) userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY );
+        analysisDisplayProperty = userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString();
 
         messageEmailNotification = (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION );
 

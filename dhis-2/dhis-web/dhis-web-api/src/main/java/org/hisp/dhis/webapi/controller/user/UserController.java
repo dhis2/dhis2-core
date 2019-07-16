@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
@@ -81,10 +82,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -383,6 +381,7 @@ public class UserController
         User userReplica = new User();
         mergeService.merge( new MergeParams<>( existingUser, userReplica )
             .setMergeMode( MergeMode.MERGE ) );
+        copyAttributeValues( userReplica );
         userReplica.setUid( CodeGenerator.generateUid() );
         userReplica.setCode( null );
         userReplica.setCreated( new Date() );
@@ -698,5 +697,38 @@ public class UserController
         }
 
         return null;
+    }
+
+    /**
+     * Make a copy of any existing attribute values so they can be saved
+     * as new attribute values. Don't copy unique values.
+     *
+     * @param userReplica user for which to copy attribute values.
+     */
+    private void copyAttributeValues( User userReplica )
+    {
+        if ( userReplica.getAttributeValues() == null )
+        {
+            return;
+        }
+
+        Set<AttributeValue> newAttributeValues = new HashSet<>();
+
+        for ( AttributeValue oldValue : userReplica.getAttributeValues() )
+        {
+            if ( !oldValue.getAttribute().isUnique() )
+            {
+                AttributeValue newValue = new AttributeValue( oldValue.getValue(), oldValue.getAttribute() );
+
+                newAttributeValues.add( newValue );
+            }
+        }
+
+        if ( newAttributeValues.isEmpty() )
+        {
+            userReplica.setAttributeValues( null );
+        }
+
+        userReplica.setAttributeValues( newAttributeValues );
     }
 }

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.program.ProgramStage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -84,6 +85,11 @@ public class BaseDimensionalObject
     protected LegendSet legendSet;
 
     /**
+     * The program stage for this dimension.
+     */
+    private ProgramStage programStage;
+
+    /**
      * The aggregation type for this dimension.
      */
     protected AggregationType aggregationType;
@@ -151,7 +157,7 @@ public class BaseDimensionalObject
         this.displayName = displayName;
     }
 
-    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
@@ -165,13 +171,14 @@ public class BaseDimensionalObject
         this.allItems = allItems;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, LegendSet legendSet, String filter )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, LegendSet legendSet, ProgramStage programStage, String filter )
     {
         this.uid = dimension;
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName;
         this.displayName = displayName;
         this.legendSet = legendSet;
+        this.programStage = programStage;
         this.filter = filter;
     }
 
@@ -205,6 +212,12 @@ public class BaseDimensionalObject
     public boolean hasLegendSet()
     {
         return getLegendSet() != null;
+    }
+
+    @Override
+    public boolean hasProgramStage()
+    {
+        return getProgramStage() != null;
     }
 
     @Override
@@ -345,6 +358,20 @@ public class BaseDimensionalObject
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
     }
 
     @Override

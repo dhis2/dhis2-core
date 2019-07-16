@@ -51,7 +51,9 @@ public enum ValueTypeRenderingType
     VALUE,
     SLIDER,
     LINEAR_SCALE,
-    AUTOCOMPLETE;
+    AUTOCOMPLETE,
+    QR_CODE,
+    BAR_CODE;
 
     /**
      * RenderingTypes supported by OptionSet ValueTypes
@@ -77,5 +79,5 @@ public enum ValueTypeRenderingType
      * RenderingTypes supported by textual valueTypes
      */
     public static final ImmutableSet<ValueTypeRenderingType> TEXT_TYPES = ImmutableSet
-        .of( DEFAULT, VALUE, AUTOCOMPLETE );
+        .of( DEFAULT, VALUE, AUTOCOMPLETE, QR_CODE, BAR_CODE );
 }
