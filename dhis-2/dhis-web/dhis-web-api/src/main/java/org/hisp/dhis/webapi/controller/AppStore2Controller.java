@@ -31,6 +31,10 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.appstore2.AppStoreService;
 import org.hisp.dhis.appstore2.WebApp;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -58,6 +62,9 @@ public class AppStore2Controller
 
     @Autowired
     private AppStoreService appStoreService;
+    
+    @Autowired
+    private I18nManager i18nManager;
 
     @RequestMapping( method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<WebApp> listAppStore( HttpServletResponse response )
@@ -69,8 +76,14 @@ public class AppStore2Controller
     @RequestMapping( value = "/{versionId}", method = RequestMethod.POST )
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-maintenance-appmanager')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void installAppFromStore( @PathVariable String versionId )
+    public void installAppFromStore( @PathVariable String versionId ) throws WebMessageException
     {
-        appStoreService.installAppFromAppStore( versionId );
+        AppStatus status = appStoreService.installAppFromAppStore( versionId );
+        if ( !status.ok() )
+        {
+            String message = i18nManager.getI18n().getString( status.getMessage() );
+
+            throw new WebMessageException( WebMessageUtils.conflict( message ) );
+        }
     }
 }
