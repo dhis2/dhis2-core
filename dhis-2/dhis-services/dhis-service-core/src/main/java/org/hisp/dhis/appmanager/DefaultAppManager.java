@@ -236,24 +236,38 @@ public class DefaultAppManager
     }
 
     @Override
-    public boolean deleteApp( App app, boolean deleteAppData )
+    public void deleteApp( App app, boolean deleteAppData )
     {
-        boolean deleted = false;
-
-        appCache.invalidate( app.getKey() );
-
         if ( app != null )
         {
-            deleted = getAppStorageServiceByApp( app ).deleteApp( app );
+            getAppStorageServiceByApp( app ).deleteApp( app );
         }
 
-        if ( deleted && deleteAppData )
+        if ( deleteAppData )
         {
             keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
             log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
         }
 
-        return deleted;
+        appCache.invalidate( app.getKey() );
+    }
+    
+    @Override
+    public boolean markAppToDelete( App app )
+    {
+        boolean markedAppToDelete = false;
+
+        Optional<App> appOpt = appCache.get( app.getKey() );
+
+        if ( appOpt.isPresent() )
+        {
+            markedAppToDelete = true;
+            App appFromCache = appOpt.get();
+            appFromCache.setAppState( AppStatus.DELETION_IN_PROGRESS );
+            appCache.put( app.getKey(), appFromCache );
+        }
+
+        return markedAppToDelete;
     }
 
     @Override
