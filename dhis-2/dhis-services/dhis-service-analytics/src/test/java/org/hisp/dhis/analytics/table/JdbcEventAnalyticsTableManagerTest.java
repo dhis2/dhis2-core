@@ -338,16 +338,16 @@ public class JdbcEventAnalyticsTableManagerTest
     @Test
     public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program p1 = createProgram( 'A' );
 
-        TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
-        tea.setId(9999);
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
+        tea.setId( 9999 );
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(p1, tea);
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( p1, tea );
 
-        p1.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
+        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
@@ -362,7 +362,7 @@ public class JdbcEventAnalyticsTableManagerTest
                 "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
                 "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat(sql.getValue(), containsString(ouQuery));
+        assertThat( sql.getValue(), containsString( ouQuery ) );
     }
 
     private String toAlias( String template, String uid )
