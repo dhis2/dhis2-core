@@ -126,11 +126,11 @@ public class JdbcEventAnalyticsTableManagerTest {
     @Test
     public void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program p1 = createProgram( 'A' );
 
-        DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+        DataElement d5 = createDataElement( 'G', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         d5.setId( 150 );
 
         ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d5 ) );
@@ -139,41 +139,45 @@ public class JdbcEventAnalyticsTableManagerTest {
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
-        subject.populateTable( PartitionUtils.getTablePartitions( subject.getAnalyticsTables( getDate( 2018, 1, 1 ) ) ).get( 0 ) );
+        subject.populateTable(
+            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( getDate( 2018, 1, 1 ) ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " + "(select value from trackedentitydatavalue where "
-                + "programstageinstanceid=psi.programstageinstanceid and dataelementid=" + d5.getId() + ")) as \"" + d5.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
+            + "(select value from trackedentitydatavalue where "
+            + "programstageinstanceid=psi.programstageinstanceid and dataelementid=" + d5.getId() + ")) as \""
+            + d5.getUid() + "\"";
 
-        assertThat(sql.getValue(), containsString(ouQuery));
+        assertThat( sql.getValue(), containsString( ouQuery ) );
     }
 
     @Test
     public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
-        ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program p1 = createProgram( 'A' );
 
-        TrackedEntityAttribute tea = createTrackedEntityAttribute('a', ValueType.ORGANISATION_UNIT);
-        tea.setId(9999);
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
+        tea.setId( 9999 );
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute('d');
-        programTrackedEntityAttribute.setAttribute(tea);
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( 'd' );
+        programTrackedEntityAttribute.setAttribute( tea );
 
-        p1.setProgramAttributes(Lists.newArrayList(programTrackedEntityAttribute));
+        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
-        subject.populateTable( PartitionUtils.getTablePartitions( subject.getAnalyticsTables( getDate( 2018, 1, 1 ) ) ).get( 0 ) );
+        subject.populateTable(
+            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( getDate( 2018, 1, 1 ) ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
-                "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
-                "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
+            + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
+            + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
-        assertThat(sql.getValue(), containsString(ouQuery));
+        assertThat( sql.getValue(), containsString( ouQuery ) );
     }
 
 }
