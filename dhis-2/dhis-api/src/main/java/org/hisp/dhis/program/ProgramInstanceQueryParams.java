@@ -30,9 +30,9 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -50,6 +50,11 @@ public class ProgramInstanceQueryParams
      * Last updated for PI.
      */
     private Date lastUpdated;
+
+    /**
+     * The last updated duration filter.
+     */
+    private String lastUpdatedDuration;
 
     /**
      * Organisation units for which instances in the response were registered at.
@@ -158,6 +163,14 @@ public class ProgramInstanceQueryParams
     public boolean hasLastUpdated()
     {
         return lastUpdated != null;
+    }
+
+    /**
+     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     */
+    public boolean hasLastUpdatedDuration()
+    {
+        return lastUpdatedDuration != null;
     }
 
     /**
@@ -287,6 +300,17 @@ public class ProgramInstanceQueryParams
     public ProgramInstanceQueryParams setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+        return this;
+    }
+
+    public String getLastUpdatedDuration()
+    {
+        return lastUpdatedDuration;
+    }
+
+    public ProgramInstanceQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
+    {
+        this.lastUpdatedDuration = lastUpdatedDuration;
         return this;
     }
 
