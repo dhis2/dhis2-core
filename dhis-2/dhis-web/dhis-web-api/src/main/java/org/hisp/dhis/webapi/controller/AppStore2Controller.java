@@ -1,7 +1,5 @@
 package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.appmanager.AppStatus;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -36,6 +34,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
