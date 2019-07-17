@@ -219,7 +219,7 @@ public class DefaultAppManager
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        App app = jCloudsAppStorageService.installApp( file, fileName );
+        App app = jCloudsAppStorageService.installApp( file, fileName, appCache );
 
         if ( app.getAppState().ok() )
         {
