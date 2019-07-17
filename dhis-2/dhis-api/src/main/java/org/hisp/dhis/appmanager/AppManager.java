@@ -129,7 +129,7 @@ public interface AppManager
      * the given name or if the app could not be removed from the file
      * system.
      */
-    boolean deleteApp( App app, boolean deleteAppData );
+    void deleteApp( App app, boolean deleteAppData );
 
     /**
      * Reload list of apps.
@@ -183,4 +183,6 @@ public interface AppManager
      */
     Resource getAppResource( App app, String pageName )
         throws IOException;
+
+    boolean markAppToDelete( App app );
 }
