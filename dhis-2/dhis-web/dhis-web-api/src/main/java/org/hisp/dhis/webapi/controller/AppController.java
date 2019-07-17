@@ -181,6 +181,11 @@ public class AppController
         {
             throw new ReadAccessDeniedException( "You don't have access to application " + app + "." );
         }
+        
+        if ( application.getAppState() == AppStatus.DELETION_IN_PROGRESS )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
+        }
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
@@ -249,10 +254,13 @@ public class AppController
             throw new WebMessageException( WebMessageUtils.notFound( "App does not exist: " + app ) );
         }
 
-        if ( !appManager.deleteApp( appToDelete, deleteAppData ) )
+        if ( appToDelete.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "There was an error deleting app: " + app ) );
-        }
+            throw new WebMessageException( WebMessageUtils.conflict( "App is already being deleted: " + app ) );
+        } 
+
+        appManager.markAppToDelete( appToDelete ); 
+        appManager.deleteApp( appToDelete, deleteAppData );
     }
 
     @SuppressWarnings( "unchecked" )

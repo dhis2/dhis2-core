@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -93,6 +94,8 @@ public class JCloudsAppStorageService
     private BlobStoreContext blobStoreContext;
 
     private BlobStoreProperties config;
+    
+    private ObjectMapper mapper;
 
     // -------------------------------------------------------------------------
     // Providers
@@ -161,6 +164,9 @@ public class JCloudsAppStorageService
             .description( config.provider )
             .build();
 
+        mapper = new ObjectMapper();
+        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        
         try
         {
             blobStore.createContainerInLocation( createRegionLocation( config, provider ), config.container );
@@ -191,8 +197,6 @@ public class JCloudsAppStorageService
     {
         Map<String, App> appMap = new HashMap<>();
         List<App> appList = new ArrayList<>();
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
 
         log.info( "Starting JClouds discovery" );
 
@@ -256,7 +260,7 @@ public class JCloudsAppStorageService
     }
 
     @Override
-    public App installApp( File file, String filename )
+    public App installApp( File file, String filename, Cache<App> appCache )
     {
         App app = new App();
         log.info( "Installing new app: " + filename );
@@ -286,6 +290,19 @@ public class JCloudsAppStorageService
 
             app.setFolderName( APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) ) );
             app.setAppStorageSource( AppStorageSource.JCLOUDS );
+            
+            // -----------------------------------------------------------------
+            // Check if app with same key is currently being deleted (deletion_in_progress)
+            // -----------------------------------------------------------------
+            Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
+            if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
+            {
+                log.error( "Failed to install app: App with same name is currently being deleted" );
+
+                zip.close();
+                app.setAppState( AppStatus.DELETION_IN_PROGRESS );
+                return app;
+            }
 
             // -----------------------------------------------------------------
             // Check for namespace and if it's already taken by another app
