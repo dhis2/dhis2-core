@@ -40,6 +40,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -236,6 +237,7 @@ public class DefaultAppManager
     }
 
     @Override
+    @Async
     public void deleteApp( App app, boolean deleteAppData )
     {
         if ( app != null )
