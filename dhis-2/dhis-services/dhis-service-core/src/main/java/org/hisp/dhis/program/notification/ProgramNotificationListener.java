@@ -31,52 +31,45 @@ package org.hisp.dhis.program.notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
+
+@Async
 public class ProgramNotificationListener
 {
     @Autowired
-    private ProgramNotificationAsyncTask asyncTask;
+    private ProgramNotificationService notificationService;
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
-    @Async
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
     public void onEnrollment( ProgramNotificationEvent event )
     {
-        asyncTask.setFunction( notificationService -> notificationService.sendEnrollmentNotifications( event.getProgramInstance() ) );
-        asyncTask.run();
+        notificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
-    @Async
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
     public void onCompletion( ProgramNotificationEvent event )
     {
-        asyncTask.setFunction( notificationService -> notificationService.sendCompletionNotifications( event.getProgramInstance() ) );
-        asyncTask.run();
+        notificationService.sendCompletionNotifications( event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
-    @Async
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
     public void onProgramRuleEnrollment( ProgramNotificationEvent event )
     {
-        asyncTask.setFunction( notificationService -> notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() ) );
-        asyncTask.run();
+        notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
-    @Async
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
     public void onEvent( ProgramNotificationEvent event )
     {
-        asyncTask.setFunction( notificationService -> notificationService.sendCompletionNotifications( event.getProgramStageInstance() ) );
-        asyncTask.run();
+        notificationService.sendCompletionNotifications( event.getProgramStageInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
-    @Async
+    @TransactionalEventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
     public void onProgramRuleEvent( ProgramNotificationEvent event )
     {
-        asyncTask.setFunction( notificationService -> notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() ) );
-        asyncTask.run();
+        notificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );
     }
 }
