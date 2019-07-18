@@ -28,7 +28,6 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -156,32 +155,29 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         setUpInstances();
 
-        BatchResponseStatus status = new BatchResponseStatus(Collections.emptyList());
-        when( programMessageService.sendMessages( anyList() ) )
-            .thenAnswer( invocation -> {
-                sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
-                return status;
-            } );
+        BatchResponseStatus status = new BatchResponseStatus( Collections.emptyList() );
 
-        when( messageService.sendMessage( any() ) )
-            .thenAnswer( invocation -> {
-                sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
-                return 40;
-            } );
+        when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation ->
+        {
+            sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
+            return status;
+        } );
 
-        when( programInstanceStore.getWithScheduledNotifications( any(), any()) )
-            .thenReturn( Lists.newArrayList( programInstances ) );
-        when( programStageInstanceStore.getWithScheduledNotifications( any(), any() ) )
-            .thenReturn( Lists.newArrayList( programStageInstances ) );
-
-        when( manager.getAll( ProgramNotificationTemplate.class ) )
-            .thenReturn( Collections.singletonList( programNotificationTemplate ) );
+        when( messageService.sendMessage( any() ) ).thenAnswer( invocation ->
+        {
+            sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
+            return 40l;
+        } );
 
         when( programNotificationMessageRenderer.render( any(), any() ) )
-            .thenReturn( notificationMessage );
+                .thenReturn( notificationMessage );
 
         when( programStageNotificationMessageRenderer.render( any(), any() ) )
-            .thenReturn( notificationMessage );
+                .thenReturn( notificationMessage );
+
+        when( programStageInstanceStore.get( anyInt() ) ).thenReturn( programStageInstances.iterator().next() );
+
+        when( programInstanceStore.get( anyInt() ) ).thenReturn( programInstances.iterator().next() );
     }
 
     // -------------------------------------------------------------------------
