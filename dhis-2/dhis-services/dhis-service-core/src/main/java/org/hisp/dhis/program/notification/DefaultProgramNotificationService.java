@@ -221,7 +221,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendEnrollmentNotifications( ProgramInstance programInstance )
     {
-        if ( programInstance == null  )
+        if ( programInstance == null )
         {
             return;
         }
