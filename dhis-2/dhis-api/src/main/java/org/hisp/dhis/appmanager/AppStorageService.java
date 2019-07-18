@@ -27,6 +27,7 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.cache.Cache;
 import org.springframework.core.io.Resource;
 
 import java.io.File;
@@ -62,9 +63,10 @@ public interface AppStorageService
      * 
      * @param file the zip file containing the app
      * @param filename The name of the file
+     * @param appCache The app cache
      * @return The status of the installation
      */
-    App installApp( File file, String filename );
+    App installApp( File file, String filename, Cache<App> appCache );
 
     /**
      * Deletes an app from the AppStoreService.
