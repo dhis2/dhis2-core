@@ -192,7 +192,7 @@ public class JdbcEnrollmentAnalyticsTableManager
                     "and tedv.dataelementid=" + dataElement.getId() + " " +
                     "and psi.programstageid=" + programStage.getId() + " " +
                     "order by psi.executiondate desc " +
-                    "limit 1) as " + quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() );
+                    "limit 1) " + addClosingParentheses(select) + " as " + quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() );
 
                 columns.add( new AnalyticsTableColumn( quote( programStage.getUid() + DB_SEPARATOR_ID + dataElement.getUid() ), dataType, sql, skipIndex ) );
             }
@@ -207,7 +207,8 @@ public class JdbcEnrollmentAnalyticsTableManager
 
             String sql = "(select " + select + " from trackedentityattributevalue " +
                 "where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
+                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + addClosingParentheses(select)
+                + " as " + quote( attribute.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
         }
