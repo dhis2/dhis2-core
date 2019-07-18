@@ -42,7 +42,7 @@ public class GenericHttpGatewayConfig
 
     private String recipientParameter;
 
-    private String dataTemplate;
+    private String configurationTemplate;
 
     private boolean useGet;
 
@@ -95,14 +95,14 @@ public class GenericHttpGatewayConfig
     }
 
     @JsonProperty
-    public String getDataTemplate()
+    public String getConfigurationTemplate()
     {
-        return dataTemplate;
+        return configurationTemplate;
     }
 
-    public void setDataTemplate( String dataTemplate )
+    public void setConfigurationTemplate( String configurationTemplate )
     {
-        this.dataTemplate = dataTemplate;
+        this.configurationTemplate = configurationTemplate;
     }
 
     @JsonProperty

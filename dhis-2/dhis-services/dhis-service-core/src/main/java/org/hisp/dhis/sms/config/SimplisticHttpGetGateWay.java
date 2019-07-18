@@ -52,7 +52,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
-        extends SmsGateway
+    extends SmsGateway
 {
     private static final Log log = LogFactory.getLog( SimplisticHttpGetGateWay.class );
 
@@ -139,7 +139,7 @@ public class SimplisticHttpGetGateWay
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
     {
         return parameters.stream().filter( p -> !p.isHeader() )
-                .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
+            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
