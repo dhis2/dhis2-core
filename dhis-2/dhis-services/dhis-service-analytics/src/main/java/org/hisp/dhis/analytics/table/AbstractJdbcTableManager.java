@@ -83,7 +83,16 @@ public abstract class AbstractJdbcTableManager
 {
     protected static final Log log = LogFactory.getLog( JdbcAnalyticsTableManager.class );
 
-    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?(\\d{2}:\\d{2}:\\d{2})?$";
+    /**
+     * matches:
+     *
+     * 1999-12-12
+     * 1999-12-12T
+     * 1999-12-12T10:10:10
+     * 1999-10-10 10:10:10
+     * 1999-10-10 10:10
+     */
+    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$";
 
     public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
