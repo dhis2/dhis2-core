@@ -218,7 +218,7 @@ public class DefaultProgramNotificationService
 
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateStore.get( pnt.getId() ),
                 Collections.singletonList( programStageInstanceStore.get( programStageInstance.getId() ) ) );
-        
+
         sendAll( messageBatch );
     }
 
