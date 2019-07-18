@@ -170,7 +170,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendCompletionNotifications( ProgramInstance programInstance )
     {
-        if ( programInstance == null  )
+        if ( programInstance == null )
         {
             return;
         }
@@ -192,7 +192,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramInstance programInstance )
     {
-        if ( programInstance == null  || pnt == null )
+        if ( programInstance == null || pnt == null )
         {
             return;
         }
@@ -206,7 +206,7 @@ public class DefaultProgramNotificationService
     @Override
     public void sendProgramRuleTriggeredNotifications( ProgramNotificationTemplate pnt, ProgramStageInstance programStageInstance )
     {
-        if ( programStageInstance == null  || pnt == null )
+        if ( programStageInstance == null || pnt == null )
         {
             return;
         }
