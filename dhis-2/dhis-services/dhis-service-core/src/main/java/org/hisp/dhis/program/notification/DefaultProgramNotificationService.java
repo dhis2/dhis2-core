@@ -53,9 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
@@ -132,9 +130,6 @@ public class DefaultProgramNotificationService
     {
         this.notificationTemplateStore = notificationTemplateStore;
     }
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
 
     // -------------------------------------------------------------------------
     // ProgramStageNotificationService implementation
