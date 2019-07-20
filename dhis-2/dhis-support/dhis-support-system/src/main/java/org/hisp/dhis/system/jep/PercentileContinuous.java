@@ -1,6 +1,7 @@
-package org.hisp.dhis.dxf2.events.eventdatavalue;
+package org.hisp.dhis.system.jep;
+
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +28,21 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
-
-import java.util.Map;
+import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType;
 
 /**
- * @author David Katuscak
+ * The percentileContinuous function is equivalent to
+ * the PostgreSQL function percentile_cont
+ * and the Excel function PERCENTILE.INC
+ *
+ * @author Jim Grace
  */
-public interface EventDataValueService
+public class PercentileContinuous
+    extends PercentileBase
 {
-    /**
-     * Process the data values: validates and then saves/updates/deletes data values.
-     *
-     * @param programStageInstance The ProgramStageInstance the EventDataValues are related to
-     * @param event Event that holds the data values to process
-     * @param singleValue Specifies whether request updates only a single value or not
-     * @param importOptions ImportOptions
-     * @param importSummary ImportSummary
-     * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
-     */
-    void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache );
+    @Override
+    protected EstimationType getEstimationType()
+    {
+        return EstimationType.R_7;
+    }
 }

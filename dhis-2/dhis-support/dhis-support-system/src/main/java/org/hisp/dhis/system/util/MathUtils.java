@@ -164,7 +164,7 @@ public class MathUtils
     public static boolean expressionHasErrors( String expression, boolean customFunctions )
     {
         final JEP parser = getJep( customFunctions );
-        parser.parseExpression( expression );
+        parser.parseExpression( expression.toUpperCase() );
 
         return parser.hasError();
     }

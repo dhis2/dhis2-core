@@ -1,4 +1,5 @@
-package org.hisp.dhis.dxf2.events.eventdatavalue;
+package org.hisp.dhis.system.jep;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,29 +28,65 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.nfunk.jep.ParseException;
+import org.nfunk.jep.function.PostfixMathCommand;
+import org.nfunk.jep.function.PostfixMathCommandI;
 
-import java.util.Map;
+import java.util.List;
+import java.util.Stack;
 
-/**
- * @author David Katuscak
- */
-public interface EventDataValueService
+public abstract class StandardDeviationBase
+    extends PostfixMathCommand
+    implements PostfixMathCommandI
 {
+    public StandardDeviationBase()
+    {
+        numberOfParameters = 1;
+    }
+
     /**
-     * Process the data values: validates and then saves/updates/deletes data values.
+     * Each subclass defines its variance computation.
      *
-     * @param programStageInstance The ProgramStageInstance the EventDataValues are related to
-     * @param event Event that holds the data values to process
-     * @param singleValue Specifies whether request updates only a single value or not
-     * @param importOptions ImportOptions
-     * @param importSummary ImportSummary
-     * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
+     * @param sum2 Sum of the squares of distance from the mean
+     * @param n Total number of samples
+     * @return the variances
      */
-    void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache );
+    protected abstract double getVariance( double sum2, double n );
+
+    // nFunk's JEP run() method uses the raw Stack type
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    public void run( Stack inStack )
+        throws ParseException
+    {
+        checkStack( inStack );
+
+        Object param = inStack.pop();
+        List<Double> vals = CustomFunctions.checkVector( param );
+        int n = vals.size();
+
+        if ( n == 0 )
+        {
+            throw new NoValueException();
+        }
+        else
+        {
+            double sum = 0, sum2 = 0, mean, variance;
+
+            for ( Double v : vals )
+            {
+                sum = sum + v;
+            }
+
+            mean = sum / n;
+
+            for ( Double v : vals )
+            {
+                sum2 = sum2 + ((v - mean) * (v - mean));
+            }
+
+            variance = getVariance( sum2, n );
+
+            inStack.push( new Double( Math.sqrt( variance ) ) );
+        }
+    }
 }
