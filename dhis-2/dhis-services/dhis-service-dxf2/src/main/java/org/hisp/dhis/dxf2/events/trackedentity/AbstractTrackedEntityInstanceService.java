@@ -839,10 +839,9 @@ public abstract class AbstractTrackedEntityInstanceService
 
         ImportSummaries importSummaries = new ImportSummaries();
 
-        importSummaries
-            .addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
-        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, false ) );
         importSummaries.addImportSummaries( enrollmentService.deleteEnrollments( delete, importOptions, false ) );
+        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, false ) );
+        importSummaries.addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
 
         return importSummaries;
     }
