@@ -179,21 +179,21 @@ public class TrackedEntityInstanceServiceTest
     public void testUpdateTeiByCompletingExistingEnrollmentAndOpeningNewEnrollment()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        assertNotNull(trackedEntityInstance.getEnrollments());
+        assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-        
+
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-        enrollment1.setStatus( EnrollmentStatus.COMPLETED);
+        enrollment1.setStatus( EnrollmentStatus.COMPLETED );
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
-        
+
         Enrollment enrollment2 = new Enrollment();
         enrollment2.setTrackedEntityInstance( maleA.getUid() );
         enrollment2.setEnrollmentDate( new Date() );
         enrollment2.setOrgUnit( organisationUnitA.getUid() );
         enrollment2.setProgram( programA.getUid() );
         enrollment2.setStatus( EnrollmentStatus.ACTIVE );
-        
+
         trackedEntityInstance.getEnrollments().add( enrollment2 );
 
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
@@ -201,117 +201,110 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
 
     }
-    
+
     @Test
     public void testUpdateTeiByCompletingExistingEnrollmentAndAddNewEventsToSameEnrollment()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        assertNotNull(trackedEntityInstance.getEnrollments());
+        assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-        
+
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-        enrollment1.setStatus( EnrollmentStatus.COMPLETED);
+        enrollment1.setStatus( EnrollmentStatus.COMPLETED );
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
-        
-        
+
         Event event1 = new Event();
         event1.setEnrollment( enrollment1.getEnrollment() );
         event1.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
 
         event1.setOrgUnit( organisationUnitA.getUid() );
-        
+
         event1.setProgram( programA.getUid() );
         event1.setProgramStage( programStageA1.getUid() );
         event1.setStatus( EventStatus.COMPLETED );
-        event1.setTrackedEntityInstance(  maleA.getUid() );
-        
+        event1.setTrackedEntityInstance( maleA.getUid() );
+
         Event event2 = new Event();
         event2.setEnrollment( enrollment1.getEnrollment() );
         event2.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
 
         event2.setOrgUnit( organisationUnitA.getUid() );
-        
+
         event2.setProgram( programA.getUid() );
         event2.setProgramStage( programStageA2.getUid() );
         event2.setStatus( EventStatus.ACTIVE );
-        event2.setTrackedEntityInstance(  maleA.getUid() );
-        
+        event2.setTrackedEntityInstance( maleA.getUid() );
+
         enrollment1.setEvents( Arrays.asList( event1, event2 ) );
-        
+
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
 
     }
-    
+
     @Test
     public void testUpdateTeiByCompletingExistingEnrollmentAndUpdateExistingEventsInSameEnrollment()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        assertNotNull(trackedEntityInstance.getEnrollments());
+        assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-        
+
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-       
-        
-        
+
         Event event1 = new Event();
         event1.setEnrollment( enrollment1.getEnrollment() );
         event1.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
 
         event1.setOrgUnit( organisationUnitA.getUid() );
-        
+
         event1.setProgram( programA.getUid() );
         event1.setProgramStage( programStageA1.getUid() );
         event1.setStatus( EventStatus.ACTIVE );
-        event1.setTrackedEntityInstance(  maleA.getUid() );
-        
-        
-        
+        event1.setTrackedEntityInstance( maleA.getUid() );
+
         enrollment1.setEvents( Arrays.asList( event1 ) );
-        
+
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-        
+
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        assertNotNull(trackedEntityInstance.getEnrollments());
+        assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-        
-        assertNotNull(trackedEntityInstance.getEnrollments().get( 0 ).getEvents());
+
+        assertNotNull( trackedEntityInstance.getEnrollments().get( 0 ).getEvents() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().get( 0 ).getEvents().size() );
-        
-        
+
         enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-        enrollment1.setStatus( EnrollmentStatus.COMPLETED);
+        enrollment1.setStatus( EnrollmentStatus.COMPLETED );
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
-        
-        event1 =  enrollment1.getEvents().get( 0 );
+
+        event1 = enrollment1.getEvents().get( 0 );
         event1.setStatus( EventStatus.COMPLETED );
         event1.setCompletedBy( "test" );
         event1.setCompletedDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
-        
+
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-        
 
     }
-    
+
     @Test
     public void testUpdateTeiByDeletingExistingEventAndAddNewEventForSameProgramStage()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        assertNotNull(trackedEntityInstance.getEnrollments());
+        assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-        
+
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-        
+
         Event event1 = new Event();
         event1.setEnrollment( enrollment1.getEnrollment() );
         event1.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
@@ -319,8 +312,8 @@ public class TrackedEntityInstanceServiceTest
         event1.setProgram( programA.getUid() );
         event1.setProgramStage( programStageA1.getUid() );
         event1.setStatus( EventStatus.COMPLETED );
-        event1.setTrackedEntityInstance(  maleA.getUid() );
-        
+        event1.setTrackedEntityInstance( maleA.getUid() );
+
         Event event2 = new Event();
         event2.setEnrollment( enrollment1.getEnrollment() );
         event2.setOrgUnit( organisationUnitA.getUid() );
@@ -328,29 +321,27 @@ public class TrackedEntityInstanceServiceTest
         event2.setProgramStage( programStageA2.getUid() );
         event2.setStatus( EventStatus.SCHEDULE );
         event2.setDueDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now().plusDays( 10 ) ) );
-        event2.setTrackedEntityInstance(  maleA.getUid() );
-        
+        event2.setTrackedEntityInstance( maleA.getUid() );
+
         enrollment1.setEvents( Arrays.asList( event1, event2 ) );
-        
+
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-        
+
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        assertNotNull(trackedEntityInstance.getEnrollments());
+        assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-        
-        assertNotNull(trackedEntityInstance.getEnrollments().get( 0 ).getEvents());
+
+        assertNotNull( trackedEntityInstance.getEnrollments().get( 0 ).getEvents() );
         assertEquals( 2, trackedEntityInstance.getEnrollments().get( 0 ).getEvents().size() );
-        
-        
+
         enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-        
-        
-        event2 =  enrollment1.getEvents().stream().filter( e-> e.getProgramStage().equals( programStageA2.getUid() ) ).findFirst().get();
+
+        event2 = enrollment1.getEvents().stream().filter( e -> e.getProgramStage().equals( programStageA2.getUid() ) ).findFirst().get();
         event2.setDeleted( true );
-        
+
         Event event3 = new Event();
         event3.setEnrollment( enrollment1.getEnrollment() );
         event3.setOrgUnit( organisationUnitA.getUid() );
@@ -358,19 +349,17 @@ public class TrackedEntityInstanceServiceTest
         event3.setProgramStage( programStageA2.getUid() );
         event3.setStatus( EventStatus.SCHEDULE );
         event3.setDueDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now().plusDays( 11 ) ) );
-        event3.setTrackedEntityInstance(  maleA.getUid() );
-        
+        event3.setTrackedEntityInstance( maleA.getUid() );
+
         enrollment1.getEvents().add( event3 );
-        
+
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.SYNC );
-        
+
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, importOptions, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-        
-
     }
     
 
