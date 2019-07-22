@@ -148,7 +148,7 @@ public class AggregateDatasetSMSListener
 
         if ( !errorElems.isEmpty() )
         {
-            return SMSResponse.WARN_DVERR.set( errorElems );
+            return SMSResponse.WARN_DVERR.setList( errorElems );
         }
         else if ( subm.getValues().isEmpty() )
         {

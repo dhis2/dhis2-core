@@ -102,11 +102,11 @@ public class TrackerEventSMSListener
             throw new SMSProcessingException( SMSResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<UID> errorUIDs = saveNewEvent( subm.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc, user,
-            subm.getValues(), subm.getEventStatus() );
+        List<Object> errorUIDs = saveNewEvent( subm.getEvent().uid, orgUnit, programStage, programInstance, sms, aoc,
+            user, subm.getValues(), subm.getEventStatus() );
         if ( !errorUIDs.isEmpty() )
         {
-            return SMSResponse.WARN_DVERR.set( errorUIDs );
+            return SMSResponse.WARN_DVERR.setList( errorUIDs );
         }
         else if ( subm.getValues().isEmpty() )
         {

@@ -4,25 +4,36 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.hisp.dhis.smscompression.SMSCompressionException;
+import org.hisp.dhis.smscompression.SMSSubmissionWriter;
 import org.hisp.dhis.smscompression.models.EnrollmentSMSSubmission;
 import org.hisp.dhis.smscompression.models.SMSAttributeValue;
+import org.hisp.dhis.smscompression.models.SMSMetadata;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -41,10 +52,6 @@ public class NewSMSListenerTest
     DhisConvenienceTest
 {
     private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
-
-    private static final String TEI_REGISTRATION_COMMAND = "tei";
-
-    private static final String SMS_TEXT = TEI_REGISTRATION_COMMAND + " " + "attr=sample";
 
     private static final String ORIGINATOR = "47400000";
 
@@ -70,6 +77,12 @@ public class NewSMSListenerTest
     private ProgramInstanceService programInstanceService;
 
     @Mock
+    private DataElementService dataElementService;
+
+    @Mock
+    private CategoryService categoryService;
+
+    @Mock
     private UserService userService;
 
     @Mock
@@ -85,18 +98,39 @@ public class NewSMSListenerTest
 
     private IncomingSms updatedIncomingSms;
 
+    private OutboundMessageResponse response = new OutboundMessageResponse();
+
     private OrganisationUnit organisationUnit;
 
+    private Program program;
+
+    private TrackedEntityType trackedEntityType;
+
     private User user;
+
+    private SMSSubmissionWriter writer;
 
     private String message = "";
 
     @Before
     public void initTest()
+        throws SMSCompressionException
     {
         setUpInstances();
 
+        when( userService.getUser( anyString() ) ).thenReturn( user );
+        when( programService.getProgram( (anyString()) ) ).thenReturn( program );
+        when( trackedEntityTypeService.getTrackedEntityType( (anyString()) ) ).thenReturn( trackedEntityType );
         when( smsSender.isConfigured() ).thenReturn( true );
+        when( smsSender.sendMessage( any(), any(), anyString() ) ).thenAnswer( invocation -> {
+            message = (String) invocation.getArguments()[1];
+            return response;
+        } );
+
+        doAnswer( invocation -> {
+            updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
+            return updatedIncomingSms;
+        } ).when( incomingSmsService ).update( any() );
     }
 
     @Test
@@ -112,15 +146,27 @@ public class NewSMSListenerTest
     }
 
     private void setUpInstances()
+        throws SMSCompressionException
     {
+        trackedEntityType = createTrackedEntityType( 'T' );
         organisationUnit = createOrganisationUnit( 'O' );
+
+        program = createProgram( 'P' );
+        program.getOrganisationUnits().add( organisationUnit );
+        program.setTrackedEntityType( trackedEntityType );
 
         user = createUser( 'U' );
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
+        EnrollmentSMSSubmission subm = createEnrollmentSubmission();
+        SMSMetadata meta = new SMSMetadata();
+        meta.lastSyncDate = new Date();
+        writer = new SMSSubmissionWriter( meta );
+        String smsText = Base64.getEncoder().encodeToString( writer.compress( subm ) );
+
         incomingSms = new IncomingSms();
-        incomingSms.setText( SMS_TEXT );
+        incomingSms.setText( smsText );
         incomingSms.setOriginator( ORIGINATOR );
         incomingSms.setUser( user );
     }
@@ -129,15 +175,15 @@ public class NewSMSListenerTest
     {
         EnrollmentSMSSubmission subm = new EnrollmentSMSSubmission();
 
-        subm.setUserID( "GOLswS44mh8" );
-        subm.setOrgUnit( "DiszpKrYNg8" );
-        subm.setTrackerProgram( "IpHINAT79UW" );
-        subm.setTrackedEntityType( "nEenWmSyUEp" );
-        subm.setTrackedEntityInstance( "T2bRuLEGoVN" );
-        subm.setEnrollment( "p7M1gUFK37W" );
+        subm.setUserID( "uuuuuuuuuuu" );
+        subm.setOrgUnit( "ooooooooooo" );
+        subm.setTrackerProgram( "ppppppppppp" );
+        subm.setTrackedEntityType( "ttttttttttt" );
+        subm.setTrackedEntityInstance( "iiiiiiiiiii" );
+        subm.setEnrollment( "eeeeeeeeeee" );
         subm.setTimestamp( new Date() );
         ArrayList<SMSAttributeValue> values = new ArrayList<>();
-        values.add( new SMSAttributeValue( "w75KJ2mc4zz", "Harold" ) );
+        values.add( new SMSAttributeValue( "attr", "val" ) );
         subm.setValues( values );
         subm.setSubmissionID( 1 );
 
