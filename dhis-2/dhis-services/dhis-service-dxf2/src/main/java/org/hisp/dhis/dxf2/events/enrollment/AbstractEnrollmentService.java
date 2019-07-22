@@ -917,9 +917,9 @@ public abstract class AbstractEnrollmentService
         }
 
         ImportSummaries importSummaries = new ImportSummaries();
-        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions, false ) );
-        importSummaries.addImportSummaries( eventService.updateEvents( update, importOptions, false, false ) );
         importSummaries.addImportSummaries( eventService.deleteEvents( delete, false ) );
+        importSummaries.addImportSummaries( eventService.updateEvents( update, importOptions, false, false ) );
+        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions, false ) );
 
         return importSummaries;
     }
