@@ -36,8 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
-import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.authentication.event.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -60,8 +59,8 @@ public class AuthenticationListener
     @Autowired
     private DhisConfigurationProvider config;
 
-    @EventListener
-    public void handleAuthenticationFailure( AuthenticationFailureBadCredentialsEvent event )
+    @EventListener( { AuthenticationFailureBadCredentialsEvent.class } )
+    public void handleAuthenticationFailure( AbstractAuthenticationFailureEvent event )
     {
         Authentication auth = event.getAuthentication();
 
@@ -76,8 +75,8 @@ public class AuthenticationListener
         securityService.registerFailedLogin( auth.getName() );
     }
 
-    @EventListener
-    public void handleAuthenticationSuccess( AuthenticationSuccessEvent event )
+    @EventListener( { InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class } )
+    public void handleAuthenticationSuccess( AbstractAuthenticationEvent event )
     {
         Authentication auth = event.getAuthentication();
 

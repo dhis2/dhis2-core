@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -40,11 +41,13 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -143,12 +146,19 @@ public class ObjectBundleServiceUserTest
         assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
         objectBundleService.commit( bundle );
 
+
+        User userB = manager.get( User.class, "MwhEJUnTHkn" );
+        User userA = manager.get( User.class, "sPWjoHSY03y" );
+        Date userALastLogin = userA.getUserCredentials().getLastLogin();
+        Date userBLastLogin = userB.getUserCredentials().getLastLogin();
+
         metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/users_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.UPDATE );
         params.setAtomicMode( AtomicMode.NONE );
+        params.setMergeMode( MergeMode.MERGE );
         params.setObjects( metadata );
 
         bundle = objectBundleService.create( params );
@@ -159,8 +169,8 @@ public class ObjectBundleServiceUserTest
         List<User> users = manager.getAll( User.class );
         assertEquals( 4, users.size() );
 
-        User userA = manager.get( User.class, "sPWjoHSY03y" );
-        User userB = manager.get( User.class, "MwhEJUnTHkn" );
+        userA = manager.get( User.class, "sPWjoHSY03y" );
+        userB = manager.get( User.class, "MwhEJUnTHkn" );
 
         assertNotNull( userA );
         assertNotNull( userB );
@@ -178,6 +188,12 @@ public class ObjectBundleServiceUserTest
         assertNotNull( userB.getUserCredentials().getUser().getUserCredentials() );
         assertEquals( "admin", userA.getUserCredentials().getUser().getUserCredentials().getUsername() );
         assertEquals( "admin", userB.getUserCredentials().getUser().getUserCredentials().getUsername() );
+
+        assertNotNull( userA.getUserCredentials().getLastLogin() );
+        assertNotNull( userB.getUserCredentials().getLastLogin() );
+        assertNotEquals( userALastLogin, userA.getUserCredentials().getLastLogin() );
+        assertEquals( userBLastLogin, userB.getUserCredentials().getLastLogin() );
+        assertEquals( DateUtils.parseDate( "2016-03-13T06:20:43.407+0000" ), userA.getUserCredentials().getLastLogin() );
     }
 
     @Test

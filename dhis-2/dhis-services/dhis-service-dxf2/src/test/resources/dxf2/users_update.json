@@ -161,7 +161,6 @@
         "cogsDimensionConstraints": [ ],
         "selfRegistered": false,
         "catDimensionConstraints": [ ],
-        "lastLogin": "2016-03-12T06:21:02.226+0000",
         "created": "2016-03-12T06:21:02.329+0000",
         "passwordLastUpdated": "2016-03-12T06:21:02.226+0000",
         "userInfo": {
@@ -216,7 +215,7 @@
         },
         "selfRegistered": false,
         "catDimensionConstraints": [ ],
-        "lastLogin": "2016-03-12T06:20:43.407+0000",
+        "lastLogin": "2016-03-13T06:20:43.407+0000",
         "created": "2016-03-12T06:20:43.508+0000",
         "userInfo": {
           "id": "sPWjoHSY03y"

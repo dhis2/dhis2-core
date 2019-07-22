@@ -462,6 +462,7 @@ public class UserController
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setMergeMode( MergeMode.MERGE );
         params.addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
@@ -510,6 +511,7 @@ public class UserController
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setImportReportMode( ImportReportMode.FULL );
         params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setMergeMode( MergeMode.MERGE );
         params.addObject( parsed );
 
         ImportReport importReport = importService.importMetadata( params );
