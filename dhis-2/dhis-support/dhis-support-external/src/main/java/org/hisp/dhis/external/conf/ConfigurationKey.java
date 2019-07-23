@@ -96,7 +96,9 @@ public enum ConfigurationKey
     MONITORING_API_ENABLED( "monitoring.api.enabled", "false", false ),
     MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", "false", false ),
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "false", false ),
-    MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "false", false );
+    MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "false", false ),
+    MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "false", false ),
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "false", false );
 
     private final String key;
 

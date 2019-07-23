@@ -240,6 +240,12 @@ public class DefaultHibernateConfigurationProvider
             putIfExists( "false", "hibernate.cache.use_query_cache", props );
         }
 
+        // Enable Hibernate statistics if Hibernate Monitoring is enabled
+        if ( configurationProvider.getProperty( ConfigurationKey.MONITORING_HIBERNATE_ENABLED ).equals( "true" ) )
+        {
+            props.put( Environment.GENERATE_STATISTICS, true );
+        }
+    
         return props;
     }
 
