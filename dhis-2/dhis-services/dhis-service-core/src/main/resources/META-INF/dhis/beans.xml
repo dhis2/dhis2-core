@@ -617,7 +617,8 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="statementBuilder" ref="statementBuilder" />
-  </bean>
+    <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore"/>
+   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore"
     class="org.hisp.dhis.trackedentity.hibernate.HibernateTrackedEntityProgramOwnerStore">

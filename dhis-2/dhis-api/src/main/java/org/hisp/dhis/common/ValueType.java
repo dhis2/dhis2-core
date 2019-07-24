@@ -151,6 +151,10 @@ public enum ValueType
         return GEO_TYPES.contains( this );
     }
 
+    public boolean isOrganisationUnit()
+    {
+        return ORGANISATION_UNIT == this;
+    }
     /**
      * Includes integer and decimal types.
      */
