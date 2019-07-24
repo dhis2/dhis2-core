@@ -926,7 +926,7 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
         attributeValues.forEach( attributeValue ->
         {
-            Attribute attribute =  preheat.get( identifier, attributeValue.getAttribute() );
+            Attribute attribute = preheat.get( identifier, attributeValue.getAttribute() );
 
             if ( attribute == null || !attribute.isUnique() || StringUtils.isEmpty( attributeValue.getValue() ) )
             {
