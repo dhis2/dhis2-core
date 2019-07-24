@@ -697,6 +697,7 @@
     <property name="sessionFactory" ref="sessionFactory" />
     <property name="jdbcTemplate" ref="jdbcTemplate" />
     <property name="statementBuilder" ref="statementBuilder" />
+    <property name="organisationUnitStore" ref="org.hisp.dhis.organisationunit.OrganisationUnitStore"/>
   </bean>
 
   <bean id="org.hisp.dhis.trackedentity.TrackedEntityAttributeStore"
