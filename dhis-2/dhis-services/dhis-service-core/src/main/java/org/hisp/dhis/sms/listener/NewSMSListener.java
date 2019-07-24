@@ -291,12 +291,12 @@ public abstract class NewSMSListener
         }
     }
 
-    protected List<UID> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
+    protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
         ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SMSDataValue> values,
         SMSEventStatus eventStatus )
     {
 
-        ArrayList<UID> errorUIDs = new ArrayList<>();
+        ArrayList<Object> errorUIDs = new ArrayList<>();
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         // If we aren't given a UID for the event, it will be auto-generated
         if ( eventUid != null )

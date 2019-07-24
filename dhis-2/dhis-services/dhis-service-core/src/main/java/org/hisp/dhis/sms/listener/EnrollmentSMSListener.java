@@ -172,7 +172,7 @@ public class EnrollmentSMSListener
             .collect( Collectors.toSet() );
     }
 
-    private TrackedEntityAttributeValue createTrackedEntityValue( SMSAttributeValue SMSAttributeValue,
+    protected TrackedEntityAttributeValue createTrackedEntityValue( SMSAttributeValue SMSAttributeValue,
         TrackedEntityInstance tei )
     {
         UID attribUID = SMSAttributeValue.getAttribute();
