@@ -43,6 +43,7 @@ import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -73,9 +74,16 @@ public class HibernateTrackedEntityInstanceStore
 
     private StatementBuilder statementBuilder;
 
+    private OrganisationUnitStore organisationUnitStore;
+
     public void setStatementBuilder( StatementBuilder statementBuilder )
     {
         this.statementBuilder = statementBuilder;
+    }
+
+    public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
+    {
+        this.organisationUnitStore = organisationUnitStore;
     }
 
     // -------------------------------------------------------------------------
@@ -320,7 +328,9 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryItem item : params.getAttributes() )
             {
-                map.put( item.getItemId(), rowSet.getString( item.getItemId() ) );
+                map.put( item.getItemId(),
+                    isOrgUnit( item ) ? getOrgUnitNameByUid( rowSet.getString( item.getItemId() ) )
+                        : rowSet.getString( item.getItemId() ) );
             }
 
             list.add( map );
@@ -628,5 +638,21 @@ public class HibernateTrackedEntityInstanceStore
     protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
     {
         return ( trackedEntityInstance == null || trackedEntityInstance.isDeleted() ) ? null : trackedEntityInstance;
+    }
+
+    private boolean isOrgUnit( QueryItem item )
+    {
+        return item.getValueType().isOrganisationUnit();
+    }
+
+    private String getOrgUnitNameByUid( String uid )
+    {
+        if ( uid != null )
+        {
+            return  Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
+                    .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
+        }
+
+        return StringUtils.EMPTY;
     }
 }
