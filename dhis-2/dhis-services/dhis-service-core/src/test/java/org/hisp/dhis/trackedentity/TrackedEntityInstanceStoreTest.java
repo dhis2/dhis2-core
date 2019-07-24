@@ -35,6 +35,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -44,8 +45,10 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -70,6 +73,12 @@ public class TrackedEntityInstanceStoreTest
     @Autowired
     private ProgramInstanceService programInstanceService;
 
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
+    private DbmsManager dbmsManager;
+
     private TrackedEntityInstance teiA;
     private TrackedEntityInstance teiB;
     private TrackedEntityInstance teiC;
@@ -79,6 +88,7 @@ public class TrackedEntityInstanceStoreTest
 
     private TrackedEntityAttribute atA;
     private TrackedEntityAttribute atB;
+    private TrackedEntityAttribute atC;
 
     private OrganisationUnit ouA;
     private OrganisationUnit ouB;
@@ -93,9 +103,11 @@ public class TrackedEntityInstanceStoreTest
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
         atB.setUnique( true );
+        atC = createTrackedEntityAttribute( 'C', ValueType.ORGANISATION_UNIT );
 
         idObjectManager.save( atA );
         idObjectManager.save( atB );
+        idObjectManager.save( atC );
 
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
@@ -269,5 +281,37 @@ public class TrackedEntityInstanceStoreTest
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiE ) );
+    }
+
+    @Test
+    public void testProgramAttributeOfTypeOrgUnitIsResolvedToOrgUnitName()
+    {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+        teiA.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiA );
+        attributeValueService
+                .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
+
+        programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
+
+        dbmsManager.flushSession();
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setTrackedEntityType( trackedEntityTypeA );
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+
+        QueryItem queryItem = new QueryItem( atC );
+        queryItem.setValueType( atC.getValueType() );
+
+        params.setAttributes( Collections.singletonList( queryItem ) );
+
+        List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
+
+        assertEquals( grid.size(),  1 );
+        assertEquals( grid.get( 0 ).keySet().size(),  8  );
+        assertEquals( grid.get( 0 ).get( atC.getUid() ), "OrganisationUnitC" );
+
     }
 }
