@@ -1,4 +1,5 @@
-package org.hisp.dhis.dxf2.events.eventdatavalue;
+package org.hisp.dhis.system.jep;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,29 +28,50 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.junit.Test;
 
-import java.util.Map;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author David Katuscak
+ * @author Jim Grace
  */
-public interface EventDataValueService
+
+public class StandardDeviationSampleTest
+    extends StandardDeviationTest
 {
-    /**
-     * Process the data values: validates and then saves/updates/deletes data values.
-     *
-     * @param programStageInstance The ProgramStageInstance the EventDataValues are related to
-     * @param event Event that holds the data values to process
-     * @param singleValue Specifies whether request updates only a single value or not
-     * @param importOptions ImportOptions
-     * @param importSummary ImportSummary
-     * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
-     */
-    void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache );
+    @Override
+    protected StandardDeviationBase getStandardDeviationToTest()
+    {
+        return new StandardDeviationSample();
+    }
+
+    @Test
+    public void testGetNumberOfParameters()
+    {
+        assertEquals( 1, getStandardDeviationToTest().getNumberOfParameters() );
+    }
+
+    @Test
+    public void testRun()
+        throws org.nfunk.jep.ParseException
+    {
+        assertEquals( 0.70710678118654752440, eval( 1d, 2d ), DELTA );
+        assertEquals( 1.0, eval( 1d, 2d, 3d ), DELTA );
+        assertEquals( 1.2909944487358056, eval( 1d, 2d, 3d, 4d ), DELTA );
+        assertEquals( 1.5811388300841897, eval( 1d, 2d, 3d, 4d, 5d ), DELTA );
+    }
+
+    @Test( expected = NoValueException.class )
+    public void testRunNoData()
+        throws org.nfunk.jep.ParseException
+    {
+        eval();
+    }
+
+    @Test( expected = NoValueException.class )
+    public void testRunOneValue()
+        throws org.nfunk.jep.ParseException
+    {
+        eval( 1d );
+    }
 }

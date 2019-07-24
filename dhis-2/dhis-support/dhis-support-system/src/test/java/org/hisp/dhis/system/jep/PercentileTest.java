@@ -1,4 +1,5 @@
-package org.hisp.dhis.dxf2.events.eventdatavalue;
+package org.hisp.dhis.system.jep;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,29 +28,53 @@ package org.hisp.dhis.dxf2.events.eventdatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
-
-import java.util.Map;
+import java.util.Arrays;
+import java.util.Stack;
 
 /**
- * @author David Katuscak
+ * Base abstract class for percentile tests.
+ *
+ * @author Jim Grace
  */
-public interface EventDataValueService
+
+public abstract class PercentileTest
 {
+    private final PercentileBase percentileToTest = getPercentileToTest();
+
+    protected final static double DELTA = 1e-15;
+
     /**
-     * Process the data values: validates and then saves/updates/deletes data values.
+     * Each test subclass defines its percentile function to test.
      *
-     * @param programStageInstance The ProgramStageInstance the EventDataValues are related to
-     * @param event Event that holds the data values to process
-     * @param singleValue Specifies whether request updates only a single value or not
-     * @param importOptions ImportOptions
-     * @param importSummary ImportSummary
-     * @param dataElementsCache Cache with DataElements related to EventDataValues that are being updated
+     * @return the percentile function to test.
      */
-    void processDataValues( ProgramStageInstance programStageInstance, Event event, boolean singleValue,
-        ImportOptions importOptions, ImportSummary importSummary, Map<String, DataElement> dataElementsCache );
+    protected abstract PercentileBase getPercentileToTest();
+
+    /**
+     * Evaluates the percentile function to test
+     *
+     * @param fraction the percentile fraction
+     * @param values the set of values
+     * @return the percentile value
+     * @throws org.nfunk.jep.ParseException
+     */
+    protected Double eval( double fraction, Double ... values )
+        throws org.nfunk.jep.ParseException
+    {
+        Stack inStack = new Stack();
+        inStack.push( fraction );
+
+        if ( values != null )
+        {
+            inStack.push( Arrays.asList( values ) );
+        }
+        else
+        {
+            inStack.push( Double.valueOf( 0d ) );
+        }
+
+        percentileToTest.run( inStack );
+
+        return (Double) inStack.pop();
+    }
 }
