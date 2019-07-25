@@ -38,10 +38,6 @@ public class GenericHttpGatewayConfig
 {
     private static final long serialVersionUID = 6340853488475760213L;
 
-    private String messageParameter;
-
-    private String recipientParameter;
-
     private String configurationTemplate;
 
     private boolean useGet;
@@ -59,28 +55,6 @@ public class GenericHttpGatewayConfig
     public void setParameters( List<GenericGatewayParameter> parameters )
     {
         this.parameters = parameters;
-    }
-
-    @JsonProperty
-    public String getMessageParameter()
-    {
-        return messageParameter;
-    }
-
-    public void setMessageParameter( String messageParameter )
-    {
-        this.messageParameter = messageParameter;
-    }
-
-    @JsonProperty
-    public String getRecipientParameter()
-    {
-        return recipientParameter;
-    }
-
-    public void setRecipientParameter( String recipientParameter )
-    {
-        this.recipientParameter = recipientParameter;
     }
 
     @JsonProperty

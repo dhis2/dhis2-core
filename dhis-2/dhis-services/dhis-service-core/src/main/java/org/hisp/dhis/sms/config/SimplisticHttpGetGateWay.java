@@ -93,8 +93,8 @@ public class SimplisticHttpGetGateWay
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
         UriComponentsBuilder uriBuilder = buildUrl( genericConfig );
-        uriBuilder.queryParam( genericConfig.getMessageParameter(), text );
-        uriBuilder.queryParam( genericConfig.getRecipientParameter(), StringUtils.join( recipients, "," ) );
+        uriBuilder.queryParam( "", text );
+        uriBuilder.queryParam( "", StringUtils.join( recipients, "," ) );
 
         ResponseEntity<String> responseEntity = null;
 
