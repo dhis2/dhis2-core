@@ -453,11 +453,14 @@ public class UserController
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
+        parsed = mergeLastLoginAttribute( users.get( 0 ), parsed );
+
         if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
+
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setImportReportMode( ImportReportMode.FULL );
@@ -500,6 +503,8 @@ public class UserController
 
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
+
+        parsed = mergeLastLoginAttribute( users.get( 0 ), parsed );
 
         if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
@@ -730,5 +735,25 @@ public class UserController
         }
 
         userReplica.setAttributeValues( newAttributeValues );
+    }
+
+    private User mergeLastLoginAttribute( User source, User target )
+    {
+        if ( target.getUserCredentials() == null )
+        {
+            return target;
+        }
+
+        if ( target.getUserCredentials().getLastLogin() != null )
+        {
+            return target;
+        }
+
+        if ( source.getUserCredentials() != null && source.getUserCredentials().getLastLogin() != null )
+        {
+            target.getUserCredentials().setLastLogin( source.getUserCredentials().getLastLogin() );
+        }
+
+        return target;
     }
 }
