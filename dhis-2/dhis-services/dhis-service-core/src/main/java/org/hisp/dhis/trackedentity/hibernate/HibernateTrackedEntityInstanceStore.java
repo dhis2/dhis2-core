@@ -53,15 +53,21 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -215,14 +221,24 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
         }
 
-        if ( params.hasLastUpdatedStartDate() )
+        if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+            hql += hlp.whereAnd() +  "tei.lastUpdated >= '" +
+                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
-
-        if ( params.hasLastUpdatedEndDate() )
+        else
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated < '" + getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                hql += hlp.whereAnd() + "tei.lastUpdated >= '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+            }
+
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                hql += hlp.whereAnd() + "tei.lastUpdated < '" +
+                    getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
+            }
         }
 
         if ( params.isSynchronizationQuery() )
@@ -408,7 +424,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();
 

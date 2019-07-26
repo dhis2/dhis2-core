@@ -981,10 +981,11 @@ public abstract class AbstractEventService
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
-        Date lastUpdatedStartDate, Date lastUpdatedEndDate, EventStatus status,
+        Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status,
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
-        Set<String> events, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted )
+        Set<String> events, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
+        Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted )
     {
         User user = currentUserService.getCurrentUser();
         UserCredentials userCredentials = user.getUserCredentials();
@@ -1098,6 +1099,7 @@ public abstract class AbstractEventService
         params.setDueDateEnd( dueDateEnd );
         params.setLastUpdatedStartDate( lastUpdatedStartDate );
         params.setLastUpdatedEndDate( lastUpdatedEndDate );
+        params.setLastUpdatedDuration( lastUpdatedDuration );
         params.setEventStatus( status );
         params.setCategoryOptionCombo( attributeOptionCombo );
         params.setIdSchemes( idSchemes );
@@ -2099,6 +2101,16 @@ public abstract class AbstractEventService
             && params.getEvents().isEmpty() )
         {
             violation = "At least one of the following query parameters are required: orgUnit, program, trackedEntityInstance or event";
+        }
+
+        if ( params.hasLastUpdatedDuration() && ( params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate() ) )
+        {
+            violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
+        }
+
+        if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
+        {
+            violation = "Duration is not valid: " + params.getLastUpdatedDuration();
         }
 
         if ( violation != null )
