@@ -59,8 +59,10 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserService;
 import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Component( "org.hisp.dhis.sms.listener.EnrollmentSMSListener" )
 @Transactional
 public class EnrollmentSMSListener
     extends

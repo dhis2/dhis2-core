@@ -53,8 +53,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+@Component( "org.hisp.dhis.sms.listener.TrackerEventSMSListener" )
 @Transactional
 public class TrackerEventSMSListener
     extends
