@@ -49,6 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SMSConsts.SubmissionType;
@@ -83,11 +84,12 @@ public class AggregateDatasetSMSListener
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, DataSetService dataSetService, DataValueService dataValueService,
+        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        DataSetService dataSetService, DataValueService dataValueService,
         CompleteDataSetRegistrationService registrationService )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService );
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService );
 
         this.dataSetService = dataSetService;
         this.dataValueService = dataValueService;

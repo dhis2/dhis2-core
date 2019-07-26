@@ -56,9 +56,6 @@ public class DeleteEventSMSListener
     extends
     NewSMSListener
 {
-
-    private final ProgramStageInstanceService programStageInstanceService;
-
     public DeleteEventSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
@@ -66,9 +63,7 @@ public class DeleteEventSMSListener
         DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService );
-
-        this.programStageInstanceService = programStageInstanceService;
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService );
     }
 
     @Override

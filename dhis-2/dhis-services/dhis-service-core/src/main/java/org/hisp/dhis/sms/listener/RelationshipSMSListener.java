@@ -81,24 +81,21 @@ public class RelationshipSMSListener
 
     private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
-
     public RelationshipSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, RelationshipService relationshipService,
-        RelationshipTypeService relationshipTypeService, TrackedEntityInstanceService trackedEntityInstanceService,
-        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
+        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        RelationshipService relationshipService, RelationshipTypeService relationshipTypeService,
+        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService );
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService );
 
         this.relationshipService = relationshipService;
         this.relationshipTypeService = relationshipTypeService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
     }
 
     @Override

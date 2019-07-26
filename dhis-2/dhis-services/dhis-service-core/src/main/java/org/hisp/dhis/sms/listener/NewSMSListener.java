@@ -84,9 +84,6 @@ public abstract class NewSMSListener
     extends
     BaseSMSListener
 {
-
-    private ProgramStageInstanceService programStageInstanceService;
-
     protected abstract SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
         throws SMSProcessingException;
 
@@ -106,10 +103,12 @@ public abstract class NewSMSListener
 
     protected final DataElementService dataElementService;
 
+    protected final ProgramStageInstanceService programStageInstanceService;
+
     public NewSMSListener( IncomingSmsService incomingSmsService, MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService )
+        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService )
     {
         super( incomingSmsService, smsSender );
 
@@ -128,6 +127,7 @@ public abstract class NewSMSListener
         this.organisationUnitService = organisationUnitService;
         this.categoryService = categoryService;
         this.dataElementService = dataElementService;
+        this.programStageInstanceService = programStageInstanceService;
     }
 
     @Override
