@@ -1,5 +1,7 @@
 package org.hisp.dhis.system.util;
 
+import java.text.SimpleDateFormat;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,21 +29,27 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.util.*;
-import java.text.SimpleDateFormat;
-import java.util.stream.Collectors;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.sms.parse.SMSParserException;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.sms.parse.SMSParserException;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -74,6 +82,32 @@ public class SmsUtils
         return commandString;
     }
 
+    public static boolean isBase64( IncomingSms sms )
+    {
+        try
+        {
+            Base64.getDecoder().decode( sms.getText() );
+            return true;
+        }
+        catch ( IllegalArgumentException e )
+        {
+            return false;
+        }
+    }
+
+    public static byte[] getBytes( IncomingSms sms )
+    {
+        try
+        {
+            byte[] bytes = Base64.getDecoder().decode( sms.getText() );
+            return bytes;
+        }
+        catch ( IllegalArgumentException e )
+        {
+            return null;
+        }
+    }
+
     public static Map<String, Set<OrganisationUnit>> getOrganisationUnitsByPhoneNumber( String sender,
         Collection<User> users )
     {
@@ -99,7 +133,8 @@ public class SmsUtils
 
         Date date = null;
         String[] messageSplit = message.trim().split( " " );
-        // The first element in the split is the sms command. If there are only two elements
+        // The first element in the split is the sms command. If there are only
+        // two elements
         // in the split assume the 2nd is data values, not date.
         if ( messageSplit.length <= 2 )
         {
@@ -200,10 +235,8 @@ public class SmsUtils
 
     public static Set<String> getRecipientsPhoneNumber( Collection<User> users )
     {
-        return users.parallelStream()
-            .filter( u -> u.getPhoneNumber() != null && !u.getPhoneNumber().isEmpty() )
-            .map( u -> u.getPhoneNumber() )
-            .collect( Collectors.toSet() );
+        return users.parallelStream().filter( u -> u.getPhoneNumber() != null && !u.getPhoneNumber().isEmpty() )
+            .map( u -> u.getPhoneNumber() ).collect( Collectors.toSet() );
     }
 
     public static Set<String> getRecipientsEmail( Collection<User> users )
