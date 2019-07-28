@@ -28,12 +28,7 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.node.ObjectNode;
 import org.hisp.dhis.IntegrationTest;
@@ -47,11 +42,17 @@ import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserInfo;
 import org.hisp.dhis.user.UserService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -421,5 +422,31 @@ public class AttributeValueServiceTest
         assertEquals( "DataElementA", de1.getName() );
         assertEquals( "DataElementB", de2.getName() );
         assertEquals( "DataElementC", de3.getName() );
+    }
+    
+    @Test
+    public void testGetAllValuesByAttributes()
+    {
+        AttributeValue avA = new AttributeValue( "valueA", attribute1 );
+        avA.setAutoFields();
+        AttributeValue avB = new AttributeValue( "valueB", attribute2 );
+        avB.setAutoFields();
+
+        attributeService.addAttributeValue( dataElementA, avA );
+        attributeService.addAttributeValue( dataElementB, avB );
+
+        manager.update( dataElementA );
+        manager.update( dataElementB );
+
+        List<DataElement> result = manager
+            .getAllByAttributes( DataElement.class, Lists.newArrayList( attribute1, attribute2 ) );
+
+        assertEquals( 2, result.size() );
+
+        List<String> values = manager.getAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1, attribute2 ) );
+
+        assertEquals( 2, values.size() );
+        assertTrue( values.contains( avA.getValue() ) );
+        assertTrue( values.contains( avB.getValue() ) );
     }
 }

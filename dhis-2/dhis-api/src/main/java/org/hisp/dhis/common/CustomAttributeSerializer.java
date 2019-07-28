@@ -45,17 +45,20 @@ public class CustomAttributeSerializer
         throws IOException
     {
         ToXmlGenerator xmlGenerator = null;
+
         if ( jsonGenerator instanceof ToXmlGenerator )
         {
             xmlGenerator = (ToXmlGenerator) jsonGenerator;
         }
 
         jsonGenerator.writeStartObject();
+
         if ( xmlGenerator != null )
         {
             xmlGenerator.setNextIsAttribute( true );
             xmlGenerator.setNextName( null );
         }
+
         jsonGenerator.writeStringField( "id", attribute.getUid() );
         jsonGenerator.writeEndObject();
     }

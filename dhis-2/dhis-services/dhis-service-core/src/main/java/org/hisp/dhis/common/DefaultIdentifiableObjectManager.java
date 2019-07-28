@@ -550,13 +550,13 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true)
-    public <T extends IdentifiableObject> List getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
+    public <T extends IdentifiableObject> List<String> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
     {
         List<T> objects = getAllByAttributes( klass, attributes );
         Set<String> attributeIds = attributes.stream().map( attribute -> attribute.getUid() )
             .collect( Collectors.toSet() );
 
-        ArrayList<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
 
         objects.forEach( object ->
             result.addAll( object.getAttributeValues().stream()
