@@ -220,7 +220,6 @@ public class DefaultAttributeService
             }
         }
 
-        attributeValue.setAutoFields();
         object.getAttributeValues().add( attributeValue );
         sessionFactory.getCurrentSession().save( object );
     }
@@ -245,7 +244,6 @@ public class DefaultAttributeService
             }
         }
 
-        attributeValue.setAutoFields();
         object.setAttributeValues( object.getAttributeValues().stream()
                 .filter( av -> !av.getAttribute().equals( attribute.getUid() ) ).collect(Collectors.toSet() ) );
         sessionFactory.getCurrentSession().update( object );

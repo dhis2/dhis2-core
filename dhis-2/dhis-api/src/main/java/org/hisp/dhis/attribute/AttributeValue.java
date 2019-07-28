@@ -28,18 +28,15 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.Date;
-import java.util.Objects;
-
-import org.hisp.dhis.common.CustomAttributeSerializer;
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.CustomAttributeSerializer;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,16 +50,6 @@ public class AttributeValue
      */
     private static final long serialVersionUID = -6625127769248931066L;
 
-    /**
-     * The date this object was created.
-     */
-    private Date created;
-
-    /**
-     * The date this object was last updated.
-     */
-    private Date lastUpdated;
-
     private Attribute attribute;
 
     private String value;
@@ -71,7 +58,6 @@ public class AttributeValue
 
     public AttributeValue()
     {
-        setAutoFields();
     }
 
     public AttributeValue( String value )
@@ -85,34 +71,19 @@ public class AttributeValue
         this.value = value;
         this.attribute = attribute;
         this.valueType = attribute.getValueType().name();
-        this.attribute = attribute;
     }
 
-    public AttributeValue( String value, long created, Attribute attribute, String valueType, long lastUpdated )
+    public AttributeValue( String value, Attribute attribute, String valueType )
     {
         this.value = value;
-        this.created = Date.from( Instant.ofEpochMilli( Long.valueOf( created ) ) );
-        this.lastUpdated = Date.from( Instant.ofEpochMilli( Long.valueOf( lastUpdated ) ) );
         this.attribute = attribute;
         this.valueType = valueType;
     }
 
-    public AttributeValue( Date created, Date lastUpdated, Attribute attribute, String value )
+    public AttributeValue( Attribute attribute, String value )
     {
-        this.created = created;
-        this.lastUpdated = lastUpdated;
         this.value = value;
         this.attribute = attribute;
-    }
-
-    public void setAutoFields()
-    {
-        if ( created == null )
-        {
-            created = new Date();
-        }
-
-        lastUpdated = new Date();
     }
 
     @Override
@@ -142,35 +113,9 @@ public class AttributeValue
     {
         return "AttributeValue{" +
                 "class=" + getClass() +
-                ", created=" + created +
-                ", lastUpdated=" + lastUpdated +
                 ", value='" + value + '\'' +
             ", attribute='" + attribute + '\'' +
                 '}';
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
     }
 
     @JsonProperty

@@ -127,9 +127,7 @@ public class AttributeValueServiceTest
     public void testAddAttributeValue()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
-        avA.setAutoFields();
         AttributeValue avB = new AttributeValue( "valueB", attribute2 );
-        avB.setAutoFields();
 
         attributeService.addAttributeValue( dataElementA, avA );
         attributeService.addAttributeValue( dataElementB, avB );
@@ -144,9 +142,7 @@ public class AttributeValueServiceTest
     public void testUpdateAttributeValue() throws NonUniqueAttributeValueException
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
-        avA.setAutoFields();
         AttributeValue avB = new AttributeValue( "valueB", attribute2 );
-        avB.setAutoFields();
 
         attributeService.addAttributeValue( dataElementA, avA );
         attributeService.addAttributeValue( dataElementB, avB );
@@ -174,7 +170,6 @@ public class AttributeValueServiceTest
     public void testDeleteAttributeValue()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
-        avA.setAutoFields();
 
         attributeService.addAttributeValue( dataElementA, avA );
 
@@ -187,9 +182,7 @@ public class AttributeValueServiceTest
     public void testGetAttributeValue()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
-        avA.setAutoFields();
         AttributeValue avB = new AttributeValue( "valueB", attribute2 );
-        avB.setAutoFields();
 
         attributeService.addAttributeValue( dataElementA, avA );
         attributeService.addAttributeValue( dataElementB, avB );
@@ -210,9 +203,7 @@ public class AttributeValueServiceTest
     public void testGetAllByAttribute()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
-        avA.setAutoFields();
         AttributeValue avB = new AttributeValue( "valueB", attribute2 );
-        avB.setAutoFields();
 
         attributeService.addAttributeValue( dataElementA, avA );
         attributeService.addAttributeValue( dataElementA, avB );
@@ -311,9 +302,7 @@ public class AttributeValueServiceTest
         attributeService.addAttribute( attribute );
 
         AttributeValue attributeValueA = new AttributeValue( "SOME VALUE", attribute );
-        attributeValueA.setAutoFields();
         AttributeValue attributeValueB = new AttributeValue( "SOME VALUE", attribute );
-        attributeValueB.setAutoFields();
 
         attributeService.addAttributeValue( dataElementA, attributeValueA );
         attributeService.addAttributeValue( dataElementB, attributeValueB );
@@ -428,9 +417,7 @@ public class AttributeValueServiceTest
     public void testGetAllValuesByAttributes()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
-        avA.setAutoFields();
         AttributeValue avB = new AttributeValue( "valueB", attribute2 );
-        avB.setAutoFields();
 
         attributeService.addAttributeValue( dataElementA, avA );
         attributeService.addAttributeValue( dataElementB, avB );
