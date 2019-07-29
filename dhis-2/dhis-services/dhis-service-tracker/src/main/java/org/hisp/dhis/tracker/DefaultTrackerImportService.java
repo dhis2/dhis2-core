@@ -57,7 +57,6 @@ import java.util.Map;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Transactional
 public class DefaultTrackerImportService implements TrackerImportService
 {
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerImportService.class );
@@ -80,6 +79,7 @@ public class DefaultTrackerImportService implements TrackerImportService
     }
 
     @Override
+    @Transactional
     public TrackerImportReport importTracker( TrackerImportParams params )
     {
         Timer timer = new SystemTimer().start();

@@ -64,7 +64,6 @@ import java.util.stream.Collectors;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Transactional
 public class EventTrackerConverterService
     implements TrackerConverterService<Event, ProgramStageInstance>
 {
@@ -93,6 +92,7 @@ public class EventTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<Event> to( List<ProgramStageInstance> programStageInstances )
     {
         List<Event> events = new ArrayList<>();
@@ -192,6 +192,7 @@ public class EventTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
     {
         List<ProgramStageInstance> programStageInstances = new ArrayList<>();

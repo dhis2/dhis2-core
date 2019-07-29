@@ -49,7 +49,6 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Transactional
 public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<TrackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance>
 {
@@ -78,6 +77,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<TrackedEntityInstance> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
         List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
@@ -122,6 +122,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
         List<TrackedEntityInstance> trackedEntityInstances )
     {

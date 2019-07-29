@@ -64,7 +64,6 @@ import java.util.List;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service
-@Transactional
 public class DefaultTrackerBundleService implements TrackerBundleService
 {
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerBundleService.class );
@@ -110,6 +109,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<TrackerBundle> create( TrackerBundleParams params )
     {
         TrackerBundle trackerBundle = params.toTrackerBundle();
@@ -123,6 +123,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     }
 
     @Override
+    @Transactional
     public TrackerBundleReport commit( TrackerBundle bundle )
     {
         TrackerBundleReport bundleReport = new TrackerBundleReport();
