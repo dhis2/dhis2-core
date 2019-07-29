@@ -316,7 +316,40 @@ public class JdbcEventAnalyticsTableManagerTest
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
-    
+
+    @Test
+    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    {
+        ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
+        when( databaseInfo.isSpatialSupport() ).thenReturn( true );
+        Program p1 = createProgram( 'A' );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
+        tea.setId( 9999 );
+
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( p1, tea );
+
+        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+
+        when( jdbcTemplate.queryForList( getYearsQuery( p1, params ), Integer.class ) )
+                .thenReturn( Lists.newArrayList( 2018, 2019 ) );
+
+        subject.populateTable( params,
+                PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+
+        verify( jdbcTemplate ).execute( sql.capture() );
+
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
+                "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
+                "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+
+        assertThat( sql.getValue(), containsString( ouQuery ) );
+    }
+
     @Test
     public void verifyGetAnalyticsTableWithOuLevels()
     {
@@ -470,7 +503,6 @@ public class JdbcEventAnalyticsTableManagerTest
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
-
     private String toAlias( String template, String uid )
     {
         return String.format( template, uid, uid, uid );
