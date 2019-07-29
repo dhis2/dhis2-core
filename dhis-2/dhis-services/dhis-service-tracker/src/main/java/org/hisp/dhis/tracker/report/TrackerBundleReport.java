@@ -51,8 +51,6 @@ public class TrackerBundleReport
 
     private TrackerStatus status = TrackerStatus.OK;
 
-    private TrackerStats stats = new TrackerStats();
-
     private Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
 
     public TrackerBundleReport()
@@ -111,12 +109,10 @@ public class TrackerBundleReport
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerStats getStats()
     {
-        return stats;
-    }
+        TrackerStats stats = new TrackerStats();
+        typeReportMap.values().forEach( tr -> stats.merge( tr.getStats() ) );
 
-    public void setStats( TrackerStats stats )
-    {
-        this.stats = stats;
+        return stats;
     }
 
     @JsonProperty

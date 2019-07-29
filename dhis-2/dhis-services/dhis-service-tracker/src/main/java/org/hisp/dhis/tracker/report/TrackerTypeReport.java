@@ -73,13 +73,15 @@ public class TrackerTypeReport
 
     public void addObjectReport( TrackerObjectReport objectReport )
     {
-
+        this.objectReportMap.put( objectReport.getIndex(), objectReport );
     }
 
     //-----------------------------------------------------------------------------------
     // Getters and Setters
     //-----------------------------------------------------------------------------------
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public TrackerType getTrackerType()
     {
         return trackerType;

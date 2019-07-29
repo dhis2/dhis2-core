@@ -137,9 +137,13 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
         bundleHooks.forEach( hook -> hook.preCommit( bundle ) );
 
-        handleTrackedEntities( session, bundle );
-        handleEnrollments( session, bundle );
-        handleEvents( session, bundle );
+        TrackerTypeReport trackedEntityReport = handleTrackedEntities( session, bundle );
+        TrackerTypeReport enrollmentReport = handleEnrollments( session, bundle );
+        TrackerTypeReport eventReport = handleEvents( session, bundle );
+
+        bundleReport.getTypeReportMap().put( TrackerType.TRACKED_ENTITY, trackedEntityReport );
+        bundleReport.getTypeReportMap().put( TrackerType.ENROLLMENT, enrollmentReport );
+        bundleReport.getTypeReportMap().put( TrackerType.EVENT, eventReport );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
@@ -149,7 +153,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         return bundleReport;
     }
 
-    private void handleTrackedEntities( Session session, TrackerBundle bundle )
+    private TrackerTypeReport handleTrackedEntities( Session session, TrackerBundle bundle )
     {
         List<TrackedEntityInstance> trackedEntities = bundle.getTrackedEntities();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
@@ -163,7 +167,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService.from(
                 bundle.getPreheat(), trackedEntity );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, trackedEntityInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             Date now = new Date();
@@ -188,9 +192,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
         session.flush();
         trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntityInstance.class, o, bundle ) ) );
+
+        return typeReport;
     }
 
-    private void handleEnrollments( Session session, TrackerBundle bundle )
+    private TrackerTypeReport handleEnrollments( Session session, TrackerBundle bundle )
     {
         List<Enrollment> enrollments = bundle.getEnrollments();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
@@ -203,7 +209,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             Enrollment enrollment = enrollments.get( idx );
             ProgramInstance programInstance = enrollmentTrackerConverterService.from( bundle.getPreheat(), enrollment );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             Date now = new Date();
@@ -228,9 +234,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
         session.flush();
         enrollments.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Enrollment.class, o, bundle ) ) );
+
+        return typeReport;
     }
 
-    private void handleEvents( Session session, TrackerBundle bundle )
+    private TrackerTypeReport handleEvents( Session session, TrackerBundle bundle )
     {
         List<Event> events = bundle.getEvents();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
@@ -243,7 +251,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             Event event = events.get( idx );
             ProgramStageInstance programStageInstance = eventTrackerConverterService.from( bundle.getPreheat(), event );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, programStageInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             Date now = new Date();
@@ -259,6 +267,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
             programStageInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( programStageInstance );
+            typeReport.getStats().incCreated();
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -268,6 +277,8 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
         session.flush();
         events.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
+
+        return typeReport;
     }
 
     //-----------------------------------------------------------------------------------

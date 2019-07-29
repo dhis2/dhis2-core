@@ -69,6 +69,13 @@ public class TrackerObjectReport
         this.trackerType = trackerType;
     }
 
+    public TrackerObjectReport( TrackerType trackerType, String uid, int index )
+    {
+        this.trackerType = trackerType;
+        this.uid = uid;
+        this.index = index;
+    }
+
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
