@@ -226,7 +226,7 @@ public abstract class NewSMSListener
         SMSMetadata meta = new SMSMetadata();
         meta.dataElements = getAllDataElements( lastSyncDate );
         meta.categoryOptionCombos = getAllCatOptionCombos( lastSyncDate );
-        meta.organisationUnits = getAllUserIds( lastSyncDate );
+        meta.users = getAllUserIds( lastSyncDate );
         meta.trackedEntityTypes = getAllTrackedEntityTypeIds( lastSyncDate );
         meta.trackedEntityAttributes = getAllTrackedEntityAttributeIds( lastSyncDate );
         meta.programs = getAllProgramIds( lastSyncDate );
