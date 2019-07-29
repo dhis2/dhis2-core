@@ -31,10 +31,10 @@ package org.hisp.dhis.tracker.bundle;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
@@ -85,6 +85,11 @@ public class TrackerBundle
     private boolean skipValidation;
 
     /**
+     * Give full report, or only include errors.
+     */
+    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
+
+    /**
      * Preheat bundle for all attached objects (or null if preheater not run yet).
      */
     private TrackerPreheat preheat;
@@ -104,7 +109,7 @@ public class TrackerBundle
      */
     private List<Event> events = new ArrayList<>();
 
-    private List<Relationship> relationships = new ArrayList<>(  );
+    private List<Relationship> relationships = new ArrayList<>();
 
     public TrackerBundle()
     {
@@ -192,6 +197,17 @@ public class TrackerBundle
         return this;
     }
 
+    public TrackerBundleReportMode getReportMode()
+    {
+        return reportMode;
+    }
+
+    public TrackerBundle setReportMode( TrackerBundleReportMode reportMode )
+    {
+        this.reportMode = reportMode;
+        return this;
+    }
+
     public TrackerPreheat getPreheat()
     {
         return preheat;
@@ -265,6 +281,7 @@ public class TrackerBundle
             ", atomicMode=" + atomicMode +
             ", flushMode=" + flushMode +
             ", skipValidation=" + skipValidation +
+            ", reportMode=" + reportMode +
             ", preheat=" + preheat +
             ", trackedEntities=" + trackedEntities +
             ", enrollments=" + enrollments +

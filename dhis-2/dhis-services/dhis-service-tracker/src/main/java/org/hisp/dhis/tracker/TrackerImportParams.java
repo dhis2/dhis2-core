@@ -97,6 +97,11 @@ public class TrackerImportParams
     private String filename;
 
     /**
+     * Give full report, or only include errors.
+     */
+    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
+
+    /**
      * Tracked entities to import.
      */
     private List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
@@ -237,6 +242,19 @@ public class TrackerImportParams
         return this;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackerBundleReportMode getReportMode()
+    {
+        return reportMode;
+    }
+
+    public TrackerImportParams setReportMode( TrackerBundleReportMode reportMode )
+    {
+        this.reportMode = reportMode;
+        return this;
+    }
+
     public List<TrackedEntityInstance> getTrackedEntities()
     {
         return trackedEntities;
@@ -279,6 +297,7 @@ public class TrackerImportParams
             .setAtomicMode( atomicMode )
             .setFlushMode( flushMode )
             .setSkipValidation( skipValidation )
+            .setReportMode( reportMode )
             .setTrackedEntities( trackedEntities )
             .setEnrollments( enrollments )
             .setEvents( events );

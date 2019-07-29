@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
@@ -90,6 +91,11 @@ public class TrackerBundleParams
      * Skip validation of objects (not recommended).
      */
     private boolean skipValidation;
+
+    /**
+     * Give full report, or only include errors.
+     */
+    private TrackerBundleReportMode reportMode = TrackerBundleReportMode.ERRORS;
 
     /**
      * Tracked entities to import.
@@ -221,6 +227,19 @@ public class TrackerBundleParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public TrackerBundleReportMode getReportMode()
+    {
+        return reportMode;
+    }
+
+    public TrackerBundleParams setReportMode( TrackerBundleReportMode reportMode )
+    {
+        this.reportMode = reportMode;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityInstance> getTrackedEntities()
     {
         return trackedEntities;
@@ -274,6 +293,7 @@ public class TrackerBundleParams
             .setAtomicMode( atomicMode )
             .setFlushMode( flushMode )
             .setSkipValidation( skipValidation )
+            .setReportMode( reportMode )
             .setTrackedEntities( trackedEntities )
             .setEnrollments( enrollments )
             .setEvents( events );
