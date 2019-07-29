@@ -263,6 +263,8 @@ public class JdbcEventAnalyticsManager
         if ( params.getProgram().isRegistration() )
         {
             cols.add( "enrollmentdate", "incidentdate" );
+            cols.add( "tei" );
+            cols.add( "pi" );
         }
 
         cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
