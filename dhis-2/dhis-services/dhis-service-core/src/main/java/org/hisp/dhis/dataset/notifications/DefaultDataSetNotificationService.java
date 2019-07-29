@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -67,7 +66,9 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Function;
@@ -80,6 +81,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by zubair on 04.07.17.
  */
 
+@Service( "org.hisp.dhis.dataset.notifications.DataSetNotificationService" )
 @Transactional
 public class DefaultDataSetNotificationService
     implements DataSetNotificationService

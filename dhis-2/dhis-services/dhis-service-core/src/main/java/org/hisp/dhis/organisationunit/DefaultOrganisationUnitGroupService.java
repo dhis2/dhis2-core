@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -40,10 +40,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Torgeir Lorange Ostby
  */
-@Transactional
+@Service( "org.hisp.dhis.organisationunit.OrganisationUnitGroupService" )
 public class DefaultOrganisationUnitGroupService
     implements OrganisationUnitGroupService
 {
@@ -51,17 +53,16 @@ public class DefaultOrganisationUnitGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private OrganisationUnitGroupStore organisationUnitGroupStore;
+    private final OrganisationUnitGroupStore organisationUnitGroupStore;
 
-    public void setOrganisationUnitGroupStore( OrganisationUnitGroupStore organisationUnitGroupStore )
-    {
+    private final OrganisationUnitGroupSetStore organisationUnitGroupSetStore;
+
+    public DefaultOrganisationUnitGroupService(OrganisationUnitGroupStore organisationUnitGroupStore, OrganisationUnitGroupSetStore organisationUnitGroupSetStore) {
+
+        checkNotNull( organisationUnitGroupSetStore );
+        checkNotNull( organisationUnitGroupStore );
+
         this.organisationUnitGroupStore = organisationUnitGroupStore;
-    }
-
-    private OrganisationUnitGroupSetStore organisationUnitGroupSetStore;
-
-    public void setOrganisationUnitGroupSetStore( OrganisationUnitGroupSetStore organisationUnitGroupSetStore )
-    {
         this.organisationUnitGroupSetStore = organisationUnitGroupSetStore;
     }
 
@@ -76,7 +77,8 @@ public class DefaultOrganisationUnitGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
+    @Transactional
+    public long addOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroupStore.save( organisationUnitGroup );
 
@@ -84,36 +86,42 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
+    @Transactional
     public void updateOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroupStore.update( organisationUnitGroup );
     }
 
     @Override
+    @Transactional
     public void deleteOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         organisationUnitGroupStore.delete( organisationUnitGroup );
     }
 
     @Override
-    public OrganisationUnitGroup getOrganisationUnitGroup( int id )
+    @Transactional(readOnly = true)
+    public OrganisationUnitGroup getOrganisationUnitGroup( long id )
     {
         return organisationUnitGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrganisationUnitGroup getOrganisationUnitGroup( String uid )
     {
         return organisationUnitGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrganisationUnitGroup> getAllOrganisationUnitGroups()
     {
         return organisationUnitGroupStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
     {
         return organisationUnitGroupStore.getOrganisationUnitGroupsWithGroupSets();
@@ -124,7 +132,8 @@ public class DefaultOrganisationUnitGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
+    @Transactional
+    public long addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
     {
         organisationUnitGroupSetStore.save( organisationUnitGroupSet );
 
@@ -132,36 +141,42 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
+    @Transactional
     public void updateOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
     {
         organisationUnitGroupSetStore.update( organisationUnitGroupSet );
     }
 
     @Override
+    @Transactional
     public void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
     {
         organisationUnitGroupSetStore.delete( organisationUnitGroupSet );
     }
 
     @Override
-    public OrganisationUnitGroupSet getOrganisationUnitGroupSet( int id )
+    @Transactional(readOnly = true)
+    public OrganisationUnitGroupSet getOrganisationUnitGroupSet( long id )
     {
         return organisationUnitGroupSetStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrganisationUnitGroupSet getOrganisationUnitGroupSet( String uid )
     {
         return organisationUnitGroupSetStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrganisationUnitGroupSet> getAllOrganisationUnitGroupSets()
     {
         return organisationUnitGroupSetStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSets()
     {
         List<OrganisationUnitGroupSet> groupSets = new ArrayList<>();
@@ -178,32 +193,15 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsWithMembers()
     {
-        return FilterUtils.filter( getAllOrganisationUnitGroupSets(), new Filter<OrganisationUnitGroupSet>()
-        {
-            @Override
-            public boolean retain( OrganisationUnitGroupSet object )
-            {
-                return object.isCompulsory() && object.hasOrganisationUnitGroups();
-            }
-        } );
-    }
-
-    public OrganisationUnitGroup getOrganisationUnitGroup( OrganisationUnitGroupSet groupSet, OrganisationUnit unit )
-    {
-        for ( OrganisationUnitGroup group : groupSet.getOrganisationUnitGroups() )
-        {
-            if ( group.getMembers().contains( unit ) )
-            {
-                return group;
-            }
-        }
-
-        return null;
+        return FilterUtils.filter( getAllOrganisationUnitGroupSets(),
+            object -> object.isCompulsory() && object.hasOrganisationUnitGroups() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrganisationUnitGroupSet> getCompulsoryOrganisationUnitGroupSetsNotAssignedTo(
         OrganisationUnit organisationUnit )
     {
@@ -221,6 +219,7 @@ public class DefaultOrganisationUnitGroupService
     }
 
     @Override
+    @Transactional
     public void mergeWithCurrentUserOrganisationUnits( OrganisationUnitGroup organisationUnitGroup, Collection<OrganisationUnit> mergeOrganisationUnits )
     {
         Set<OrganisationUnit> organisationUnits = new HashSet<>( organisationUnitGroup.getMembers() );

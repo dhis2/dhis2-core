@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditQueryParams;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAudit;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -46,22 +47,15 @@ import java.util.function.Function;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
- *
  */
+@Repository( "org.hisp.dhis.program.ProgramTempOwnershipAuditStore" )
 public class HibernateProgramTempOwnershipAuditStore
     extends HibernateGenericStore<ProgramTempOwnershipAudit>
     implements ProgramTempOwnershipAuditStore
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private SessionFactory sessionFactory;
-
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateProgramTempOwnershipAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
     {
-        this.sessionFactory = sessionFactory;
+        super( sessionFactory, jdbcTemplate, ProgramTempOwnershipAudit.class, false );
     }
 
     // -------------------------------------------------------------------------

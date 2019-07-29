@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,6 +95,7 @@ public class DataApprovalStoreUserTest
     private OrganisationUnit orgUnitC;
     private OrganisationUnit orgUnitD;
 
+    private CurrentUserService mockCurrentUserService;
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
@@ -143,7 +144,7 @@ public class DataApprovalStoreUserTest
         organisationUnitService.updateOrganisationUnit( orgUnitC );
         organisationUnitService.updateOrganisationUnit( orgUnitD );
 
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, Sets.newHashSet( orgUnitA ), Sets.newHashSet( orgUnitA ) );
+        mockCurrentUserService = new MockCurrentUserService( true, Sets.newHashSet( orgUnitA ), Sets.newHashSet( orgUnitA ) );
 
         setDependency( dataApprovalStore, "currentUserService", mockCurrentUserService, CurrentUserService.class );
         setDependency( dataApprovalLevelService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
@@ -167,7 +168,7 @@ public class DataApprovalStoreUserTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetDataApprovalStatuses() throws Exception
+    public void testGetDataApprovalStatuses()
     {
         CategoryOption catOptionA = new CategoryOption( "CategoryOptionA" );
         catOptionA.addOrganisationUnit( orgUnitB );
@@ -179,11 +180,13 @@ public class DataApprovalStoreUserTest
         CategoryCombo catComboA = createCategoryCombo( 'A', catA );
         categoryService.addCategoryCombo( catComboA );
 
-        CategoryOptionCombo catOptionComboA = createCategoryOptionCombo(  'A', catComboA, catOptionA );
+        CategoryOptionCombo catOptionComboA = createCategoryOptionCombo( catComboA, catOptionA );
         categoryService.addCategoryOptionCombo( catOptionComboA );
 
-        List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflowA,
-            periodA, Lists.newArrayList( orgUnitA ), orgUnitA.getHierarchyLevel(), catComboA, null );
+        List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA,
+            Lists.newArrayList( orgUnitA ), orgUnitA.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
+                .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
+            dataApprovalLevelService.getDataApprovalLevelMap() );
 
         assertEquals( 1, statuses.size() );
         DataApprovalStatus status = statuses.get( 0 );
@@ -192,8 +195,10 @@ public class DataApprovalStoreUserTest
         assertEquals( orgUnitA.getName(), status.getOrganisationUnitName() );
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
 
-        statuses = dataApprovalStore.getDataApprovalStatuses( workflowA,
-            periodA, Lists.newArrayList( orgUnitB ), orgUnitB.getHierarchyLevel(), catComboA, null );
+        statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitB ),
+            orgUnitB.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
+                .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
+            dataApprovalLevelService.getDataApprovalLevelMap() );
 
         assertEquals( 1, statuses.size() );
         status = statuses.get( 0 );
@@ -202,8 +207,10 @@ public class DataApprovalStoreUserTest
         assertEquals( orgUnitB.getName(), status.getOrganisationUnitName() );
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
 
-        statuses = dataApprovalStore.getDataApprovalStatuses( workflowA,
-            periodA, Lists.newArrayList( orgUnitC ), orgUnitC.getHierarchyLevel(), catComboA, null );
+        statuses = dataApprovalStore.getDataApprovalStatuses( workflowA, periodA, Lists.newArrayList( orgUnitC ),
+            orgUnitC.getHierarchyLevel(), catComboA, null, dataApprovalLevelService
+                .getUserDataApprovalLevelsOrLowestLevel( mockCurrentUserService.getCurrentUser(), workflowA ),
+            dataApprovalLevelService.getDataApprovalLevelMap() );
 
         assertEquals( 1, statuses.size() );
         status = statuses.get( 0 );
@@ -213,7 +220,7 @@ public class DataApprovalStoreUserTest
         assertEquals( catOptionComboA.getUid(), status.getAttributeOptionComboUid() );
 
         statuses = dataApprovalStore.getDataApprovalStatuses( workflowA,
-            periodA, Lists.newArrayList( orgUnitD ), orgUnitD.getHierarchyLevel(), catComboA, null );
+            periodA, Lists.newArrayList( orgUnitD ), orgUnitD.getHierarchyLevel(), catComboA, null, null, null );
 
         assertEquals( 0, statuses.size() );
     }

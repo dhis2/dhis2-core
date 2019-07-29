@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,15 +29,19 @@ package org.hisp.dhis.programrule;
  */
 
 import org.hisp.dhis.program.Program;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author markusbekken
  */
 @Transactional
+@Service( "org.hisp.dhis.programrule.ProgramRuleService" )
 public class DefaultProgramRuleService
     implements ProgramRuleService
 {
@@ -47,17 +51,19 @@ public class DefaultProgramRuleService
 
     private ProgramRuleStore programRuleStore;
 
-    public void setProgramRuleStore( ProgramRuleStore programRuleStore )
+    public DefaultProgramRuleService( ProgramRuleStore programRuleStore )
     {
+        checkNotNull( programRuleStore );
+
         this.programRuleStore = programRuleStore;
     }
 
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // ProgramRule implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public int addProgramRule( ProgramRule programRule )
+    public long addProgramRule( ProgramRule programRule )
     {
         programRuleStore.save( programRule );
         return programRule.getId();
@@ -76,7 +82,7 @@ public class DefaultProgramRuleService
     }
 
     @Override
-    public ProgramRule getProgramRule( int id )
+    public ProgramRule getProgramRule( long id )
     {
         return programRuleStore.get( id );
     }

@@ -14,14 +14,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +53,7 @@ import java.util.List;
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.maintenance.MaintenanceService" )
 public class DefaultMaintenanceService
     implements MaintenanceService
 {
@@ -61,43 +64,49 @@ public class DefaultMaintenanceService
     // -------------------------------------------------------------------------
 
     private MaintenanceStore maintenanceStore;
-
-    public void setMaintenanceStore( MaintenanceStore maintenanceStore )
-    {
-        this.maintenanceStore = maintenanceStore;
-    }
     
     private PeriodService periodService;
 
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
     private UserService userService;
 
-    public void setUserService( UserService userService )
-    {
-        this.userService = userService;
-    }
-    
-    @Autowired
     private CurrentUserService currentUserService;
     
-    @Autowired
     private DataValueService dataValueService;
     
-    @Autowired
     private DataValueAuditService dataValueAuditService;
     
-    @Autowired
     private CompleteDataSetRegistrationService completeRegistrationService;
 
-    @Autowired
     private DataApprovalService dataApprovalService;
 
-    @Autowired
     private DataApprovalAuditService dataApprovalAuditService;
+
+    public DefaultMaintenanceService( MaintenanceStore maintenanceStore, PeriodService periodService,
+        UserService userService, CurrentUserService currentUserService, DataValueService dataValueService,
+        DataValueAuditService dataValueAuditService, CompleteDataSetRegistrationService completeRegistrationService,
+        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService )
+    {
+
+        checkNotNull( maintenanceStore );
+        checkNotNull( periodService );
+        checkNotNull( userService );
+        checkNotNull( currentUserService );
+        checkNotNull( dataValueService );
+        checkNotNull( dataValueAuditService );
+        checkNotNull( completeRegistrationService );
+        checkNotNull( dataApprovalService );
+        checkNotNull( dataApprovalAuditService );
+
+        this.maintenanceStore = maintenanceStore;
+        this.periodService = periodService;
+        this.userService = userService;
+        this.currentUserService = currentUserService;
+        this.dataValueService = dataValueService;
+        this.dataValueAuditService = dataValueAuditService;
+        this.completeRegistrationService = completeRegistrationService;
+        this.dataApprovalService = dataApprovalService;
+        this.dataApprovalAuditService = dataApprovalAuditService;
+    }
 
     // -------------------------------------------------------------------------
     // MaintenanceService implementation
@@ -158,7 +167,7 @@ public class DefaultMaintenanceService
     {
         for ( Period period : periodService.getAllPeriods() )
         {
-            int periodId = period.getId();
+            long periodId = period.getId();
             
             try
             {

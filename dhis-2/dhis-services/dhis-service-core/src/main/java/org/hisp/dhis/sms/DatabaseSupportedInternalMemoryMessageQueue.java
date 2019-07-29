@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,12 @@ import java.util.Collection;
 import java.util.List;
 
 import org.hisp.dhis.sms.incoming.IncomingSms;
-import org.hisp.dhis.sms.incoming.IncomingSmsStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.sms.incoming.IncomingSmsService;
+import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.sms.MessageQueue" )
 public class DatabaseSupportedInternalMemoryMessageQueue
     implements MessageQueue
 {
@@ -45,8 +48,13 @@ public class DatabaseSupportedInternalMemoryMessageQueue
     // Dependencies
     // -------------------------------------------------------------------------
     
-    @Autowired
-    private IncomingSmsStore incomingSmsStore;
+    private final IncomingSmsService incomingSmsService;
+
+    public DatabaseSupportedInternalMemoryMessageQueue( IncomingSmsService incomingSmsService )
+    {
+        checkNotNull( incomingSmsService );
+        this.incomingSmsService = incomingSmsService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -78,7 +86,7 @@ public class DatabaseSupportedInternalMemoryMessageQueue
     @Override
     public void initialize()
     {
-        Collection<IncomingSms> messages = incomingSmsStore.getAllUnparsedSmses();
+        Collection<IncomingSms> messages = incomingSmsService.getAllUnparsedMessages();
 
         if ( messages != null )
         {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.csv;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@ package org.hisp.dhis.dxf2.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getMediumDate;
+import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -73,12 +73,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.csvreader.CsvReader;
 import com.google.api.client.util.Lists;
+import org.springframework.stereotype.Service;
 
 /**
  * TODO Unit testing
  *
  * @author Lars Helge Overland
  */
+@Service ( "org.hisp.dhis.dxf2.csv.CsvImportService" )
 public class DefaultCsvImportService
     implements CsvImportService
 {

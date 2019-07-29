@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -74,9 +74,9 @@ public class TrackedEntityProgramOwnerServiceTest extends DhisSpringTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        TrackedEntityInstance entityInstanceA1 = createTrackedEntityInstance( 'A', organisationUnitA );
+        TrackedEntityInstance entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceA1.setUid( TEIA1 );
-        TrackedEntityInstance entityInstanceB1 = createTrackedEntityInstance( 'B', organisationUnitA );
+        TrackedEntityInstance entityInstanceB1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceB1.setUid( TEIB1 );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );

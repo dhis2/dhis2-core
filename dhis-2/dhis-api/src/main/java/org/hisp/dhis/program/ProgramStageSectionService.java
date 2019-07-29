@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ public interface ProgramStageSectionService
      * @param programStageSection The to ProgramStageSection add.
      * @return A generated unique id of the added {@link ProgramStageSection}.
      */
-    int saveProgramStageSection( ProgramStageSection programStageSection );
+    long saveProgramStageSection( ProgramStageSection programStageSection );
 
     /**
      * Deletes a {@link ProgramStageSection}.
@@ -69,5 +69,5 @@ public interface ProgramStageSectionService
      * @param id the id of the ProgramStageSection to return.
      * @return the ProgramStageSection with the given id
      */
-    ProgramStageSection getProgramStageSection( int id );
+    ProgramStageSection getProgramStageSection( long id );
 }

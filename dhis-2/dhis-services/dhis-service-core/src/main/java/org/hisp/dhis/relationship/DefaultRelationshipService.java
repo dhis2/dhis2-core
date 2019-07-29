@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,17 @@ package org.hisp.dhis.relationship;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
-@Transactional
+@Service( "org.hisp.dhis.relationship.RelationshipService" )
 public class DefaultRelationshipService
     implements RelationshipService
 {
@@ -46,10 +49,12 @@ public class DefaultRelationshipService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private RelationshipStore relationshipStore;
+    private final RelationshipStore relationshipStore;
 
-    public void setRelationshipStore( RelationshipStore relationshipStore )
+    public DefaultRelationshipService( RelationshipStore relationshipStore )
     {
+        checkNotNull( relationshipStore );
+
         this.relationshipStore = relationshipStore;
     }
 
@@ -58,25 +63,29 @@ public class DefaultRelationshipService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteRelationship( Relationship relationship )
     {
         relationshipStore.delete( relationship );
     }
 
     @Override
-    public Relationship getRelationship( int id )
+    @Transactional(readOnly = true)
+    public Relationship getRelationship( long id )
     {
         return relationshipStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean relationshipExists( String uid )
     {
         return relationshipStore.getByUid( uid ) != null;
     }
 
     @Override
-    public int addRelationship( Relationship relationship )
+    @Transactional
+    public long addRelationship( Relationship relationship )
     {
         relationship.getFrom().setRelationship( relationship );
         relationship.getTo().setRelationship( relationship );
@@ -86,6 +95,7 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional
     public void updateRelationship( Relationship relationship )
     {
         //TODO: Do we need next 2 lines? relationship never changes during update
@@ -95,12 +105,14 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Relationship getRelationship( String uid )
     {
         return relationshipStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
         boolean skipAccessValidation )
     {
@@ -108,15 +120,23 @@ public class DefaultRelationshipService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramInstance( pi );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramStageInstance( psi );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType )
+    {
+        return relationshipStore.getByRelationshipType( relationshipType );
     }
 }

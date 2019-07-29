@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ public class HttpUtils
         DefaultHttpClient httpclient = null;
         DhisHttpResponse dhisHttpResponse = null;
         HttpParams params = new BasicHttpParams();
-        
+
         try
         {
             HttpConnectionParams.setConnectionTimeout( params, timeout );
@@ -133,7 +133,7 @@ public class HttpUtils
                 httpclient.getConnectionManager().shutdown();
             }
         }
-        
+
         return dhisHttpResponse;
     }
 
@@ -242,7 +242,7 @@ public class HttpUtils
             httpclient = new DefaultHttpClient( params );
 
             HttpDelete httpDelete = new HttpDelete( requestURL );
-            
+
             if ( headers instanceof Map )
             {
                 for ( Map.Entry<String, String> e : headers.entrySet() )

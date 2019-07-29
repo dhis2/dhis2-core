@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,11 +68,11 @@ public class OptionGroupStoreTest
     public void tetAddOptionGroup()
     {
         store.save( optionGroupA );
-        int idA = optionGroupA.getId();
+        long idA = optionGroupA.getId();
         store.save( optionGroupB );
-        int idB = optionGroupB.getId();
+        long idB = optionGroupB.getId();
         store.save( optionGroupC );
-        int idC = optionGroupC.getId();
+        long idC = optionGroupC.getId();
 
         assertEquals( optionGroupA, store.get( idA ));
         assertEquals( optionGroupB, store.get( idB ));
@@ -83,9 +83,9 @@ public class OptionGroupStoreTest
     public void testDeleteOptionGroup()
     {
         store.save( optionGroupA );
-        int idA = optionGroupA.getId();
+        long idA = optionGroupA.getId();
         store.save( optionGroupB );
-        int idB = optionGroupB.getId();
+        long idB = optionGroupB.getId();
 
         store.delete( optionGroupA );
 

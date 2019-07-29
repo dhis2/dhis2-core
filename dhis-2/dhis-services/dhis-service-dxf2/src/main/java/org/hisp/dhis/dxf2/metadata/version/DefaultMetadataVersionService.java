@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.version;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,13 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
+import org.hisp.dhis.dxf2.metadata.MetadataWrapper;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
@@ -54,15 +45,27 @@ import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Service implementation for the MetadataVersionService.
  *
  * @author aamerm
  */
-@Transactional
+@Service( "org.hisp.dhis.metadata.version.MetadataVersionService" )
 public class
 DefaultMetadataVersionService
     implements MetadataVersionService
@@ -72,28 +75,34 @@ DefaultMetadataVersionService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
-    @Autowired
-    private MetadataVersionStore versionStore;
 
-    @Autowired
-    private MetadataExportService metadataExportService;
+    private final MetadataVersionStore versionStore;
+    private final MetadataExportService metadataExportService;
+    private final KeyJsonValueService keyJsonValueService;
+    private final NodeService nodeService;
+    private final MetadataSystemSettingService metadataSystemSettingService;
+    private final RenderService renderService;
 
-    @Autowired
-    private KeyJsonValueService keyJsonValueService;
-
-    @Autowired
-    private NodeService nodeService;
-
-    @Autowired
-    private MetadataSystemSettingService metadataSystemSettingService;
+    public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
+        MetadataExportService metadataExportService, KeyJsonValueService keyJsonValueService,
+        NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
+        RenderService renderService )
+    {
+        this.versionStore = metadataVersionStore;
+        this.metadataExportService = metadataExportService;
+        this.keyJsonValueService = keyJsonValueService;
+        this.nodeService = nodeService;
+        this.metadataSystemSettingService = metadataSystemSettingService;
+        this.renderService = renderService;
+    }
 
     // -------------------------------------------------------------------------
     // MetadataVersionService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public int addVersion( MetadataVersion version )
+    @Transactional
+    public long addVersion( MetadataVersion version )
     {
         versionStore.save( version );
 
@@ -101,13 +110,15 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional
     public void updateVersion( MetadataVersion version )
     {
         versionStore.update( version );
     }
 
     @Override
-    public void updateVersionName( int id, String name )
+    @Transactional
+    public void updateVersionName( long id, String name )
     {
         MetadataVersion version = getVersionById( id );
 
@@ -119,30 +130,35 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional
     public void deleteVersion( MetadataVersion version )
     {
         versionStore.delete( version );
     }
 
     @Override
-    public MetadataVersion getVersionById( int id )
+    @Transactional( readOnly = true )
+    public MetadataVersion getVersionById( long id )
     {
         return versionStore.getVersionByKey( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataVersion getVersionByName( String versionName )
     {
         return versionStore.getVersionByName( versionName );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<MetadataVersion> getAllVersions()
     {
         return versionStore.getAll();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataVersion getCurrentVersion()
     {
         try
@@ -157,6 +173,7 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataVersion getInitialVersion()
     {
         try
@@ -171,12 +188,14 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate )
     {
         return versionStore.getAllVersionsInBetween( startDate, endDate );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Date getCreatedDate( String versionName )
     {
         MetadataVersion version = getVersionByName( versionName );
@@ -190,6 +209,7 @@ DefaultMetadataVersionService
      * 3. Creating the actual MetadataVersion entry.
      */
     @Override
+    @Transactional
     public synchronized boolean saveVersion( VersionType versionType )
     {
         MetadataVersion currentVersion = getCurrentVersion();
@@ -246,13 +266,28 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getVersionData( String versionName )
     {
         KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, versionName );
-        return (keyJsonValue != null) ? keyJsonValue.getValue() : null;
+
+        if ( keyJsonValue != null )
+        {
+            try
+            {
+                return renderService.fromJson( keyJsonValue.getValue(), MetadataWrapper.class ).getMetadata();
+            }
+            catch ( IOException e )
+            {
+                log.error( "Exception occurred while deserializing metadata.", e );
+            }
+        }
+
+        return null;
     }
 
     @Override
+    @Transactional
     public void createMetadataVersionInDataStore( String versionName, String versionSnapshot )
     {
         if ( StringUtils.isEmpty( versionSnapshot ) )
@@ -263,7 +298,9 @@ DefaultMetadataVersionService
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setKey( versionName );
         keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
-        keyJsonValue.setValue( versionSnapshot );
+
+        //MetadataWrapper is used to avoid Metadata keys reordering by jsonb (jsonb does not preserve keys order)
+        keyJsonValue.setValue( renderService.toJsonAsString( new MetadataWrapper( versionSnapshot ) ) );
 
         try
         {
@@ -279,6 +316,7 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional
     public void deleteMetadataVersionInDataStore( String nameSpaceKey )
     {
         KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, nameSpaceKey );
@@ -298,7 +336,7 @@ DefaultMetadataVersionService
     @Override
     public boolean isMetadataPassingIntegrity( MetadataVersion version, String versionSnapshot )
     {
-        String metadataVersionHashCode = null;
+        String metadataVersionHashCode;
 
         if ( version == null || versionSnapshot == null )
         {
@@ -326,7 +364,7 @@ DefaultMetadataVersionService
      */
     private ByteArrayOutputStream getMetadataExport( Date minDate )
     {
-        ByteArrayOutputStream os = null;
+        ByteArrayOutputStream os;
 
         try
         {
@@ -334,7 +372,7 @@ DefaultMetadataVersionService
 
             if ( minDate != null )
             {
-                List<String> defaultFilterList = new ArrayList<String>();
+                List<String> defaultFilterList = new ArrayList<>();
                 defaultFilterList.add( "lastUpdated:gte:" + DateUtils.getLongGmtDateString( minDate ) );
                 exportParams.setDefaultFilter( defaultFilterList );
                 metadataExportService.validate( exportParams );

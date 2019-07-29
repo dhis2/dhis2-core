@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,6 +79,14 @@ public interface DimensionService
     DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem );
 
     /**
+     * Gets a dimension item object from a dimension item id.
+     *
+     * @param dimensionalItemId the dimension item identifier.
+     * @return a dimensional item object.
+     */
+    DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId dimensionalItemId );
+
+    /**
      * Gets a set of dimension item objects from their ids.
      *
      * @param itemIds a set of ids of the dimension item objects to get.
@@ -93,4 +101,13 @@ public interface DimensionService
      * @return a map from the item ids to the dimension item objects.
      */
     Map<DimensionalItemId, DimensionalItemObject> getDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds );
+
+    /**
+     * Gets a map from dimension item ids to their dimension item objects
+     * without applying sharing settings.
+     *
+     * @param itemIds a set of ids of the dimension item objects to get.
+     * @return a map from the item ids to the dimension item objects.
+     */
+    Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds );
 }

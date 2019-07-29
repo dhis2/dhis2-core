@@ -9,7 +9,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import org.hisp.dhis.common.ValueType;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -193,7 +193,7 @@ public class DataElement
     public void serializeVersion2_8( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeUTF( this.getType() );
         dout.writeBoolean( this.isCompulsory() );
@@ -218,7 +218,7 @@ public class DataElement
     public void serializeVersion2_9( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
 		//For backwards compatibility with legacy mobile clients
 		if (this.getType().equals(TYPE_NUMBER)) {
@@ -258,7 +258,7 @@ public class DataElement
     public void serializeVersion2_10( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeUTF( this.getType() );
         dout.writeBoolean( this.isCompulsory() );

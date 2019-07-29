@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -297,6 +296,16 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
+     * Adds a {@link CategoryDimension}.
+     *
+     * @param dimension the dimension to add.
+     */
+    public void addCategoryDimension( CategoryDimension dimension )
+    {
+        categoryDimensions.add( dimension );
+    }
+
+    /**
      * Adds a {@link CategoryOptionGroupSetDimension}.
      *
      * @param dimension the dimension to add.
@@ -305,6 +314,17 @@ public abstract class BaseAnalyticalObject
     public void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension )
     {
         categoryOptionGroupSetDimensions.add( dimension );
+    }
+
+    /**
+     * Adds a {@link TrackedEntityDataElementDimension}.
+     *
+     * @param dimension the dimension to add.
+     */
+    @Override
+    public void addTrackedEntityDataElementDimension( TrackedEntityDataElementDimension dimension )
+    {
+        dataElementDimensions.add( dimension );
     }
 
     @Override
@@ -484,7 +504,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), tead.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() );
             }
 
             // Tracked entity data element
@@ -495,7 +515,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
@@ -506,7 +526,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), teid.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
             }
         }
 
@@ -640,7 +660,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), tead.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() );
             }
 
             // Tracked entity data element
@@ -651,7 +671,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
@@ -662,7 +682,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), teid.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
             }
         }
 
@@ -698,76 +718,6 @@ public abstract class BaseAnalyticalObject
         {
             RelativePeriods.setName( period, null, dynamicNames, format );
         }
-    }
-
-    /**
-     * Sorts the keys in the given map by splitting on the '-' character and
-     * sorting the components alphabetically.
-     *
-     * @param valueMap the mapping of keys and values.
-     */
-    public static void sortKeys( Map<String, Object> valueMap )
-    {
-        Map<String, Object> map = new HashMap<>();
-
-        for ( String key : valueMap.keySet() )
-        {
-            String sortKey = sortKey( key );
-
-            if ( sortKey != null )
-            {
-                map.put( sortKey, valueMap.get( key ) );
-            }
-        }
-
-        valueMap.clear();
-        valueMap.putAll( map );
-    }
-
-    /**
-     * Sorts the given key by splitting on the '-' character and sorting the
-     * components alphabetically.
-     *
-     * @param key the mapping of keys and values.
-     */
-    public static String sortKey( String key )
-    {
-        if ( key != null )
-        {
-            String[] ids = key.split( DIMENSION_SEP );
-
-            Collections.sort( Arrays.asList( ids ) );
-
-            key = StringUtils.join( ids, DIMENSION_SEP );
-        }
-
-        return key;
-    }
-
-    /**
-     * Generates an identifier based on the given lists of {@link NameableObject}. Uses
-     * the identifiers for each nameable object, sorts them and writes them out as a key.
-     *
-     * @param column list of dimension items representing a column.
-     * @param row    list of dimension items representing a row.
-     * @return an identifier representing a column item and a row item.
-     */
-    public static String getIdentifier( List<DimensionalItemObject> column, List<DimensionalItemObject> row )
-    {
-        List<String> ids = new ArrayList<>();
-
-        List<DimensionalItemObject> dimensions = new ArrayList<>();
-        dimensions.addAll( column != null ? column : new ArrayList<>() );
-        dimensions.addAll( row != null ? row : new ArrayList<>() );
-
-        for ( DimensionalItemObject item : dimensions )
-        {
-            ids.add( item.getDimensionItem() );
-        }
-
-        Collections.sort( ids );
-
-        return StringUtils.join( ids, DIMENSION_SEP );
     }
 
     /**

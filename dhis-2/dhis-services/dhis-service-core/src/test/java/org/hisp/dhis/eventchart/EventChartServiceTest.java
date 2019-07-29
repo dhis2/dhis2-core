@@ -1,7 +1,7 @@
 package org.hisp.dhis.eventchart;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,9 +71,9 @@ public class EventChartServiceTest
         ecC.setProgram( prA );
         ecC.setType( ChartType.COLUMN );
 
-        int idA = eventChartService.saveEventChart( ecA );
-        int idB = eventChartService.saveEventChart( ecB );
-        int idC = eventChartService.saveEventChart( ecC );
+        long idA = eventChartService.saveEventChart( ecA );
+        long idB = eventChartService.saveEventChart( ecB );
+        long idC = eventChartService.saveEventChart( ecC );
 
         assertEquals( "ecA", eventChartService.getEventChart( idA ).getName() );
         assertEquals( "ecB", eventChartService.getEventChart( idB ).getName() );
@@ -93,9 +93,9 @@ public class EventChartServiceTest
         ecC.setProgram( prA );
         ecC.setType( ChartType.COLUMN );
 
-        int idA = eventChartService.saveEventChart( ecA );
-        int idB = eventChartService.saveEventChart( ecB );
-        int idC = eventChartService.saveEventChart( ecC );
+        long idA = eventChartService.saveEventChart( ecA );
+        long idB = eventChartService.saveEventChart( ecB );
+        long idC = eventChartService.saveEventChart( ecC );
 
         assertNotNull( eventChartService.getEventChart( idA ) );
         assertNotNull( eventChartService.getEventChart( idB ) );

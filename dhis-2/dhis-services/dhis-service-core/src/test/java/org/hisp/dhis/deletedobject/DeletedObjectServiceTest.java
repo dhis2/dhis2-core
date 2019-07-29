@@ -1,7 +1,7 @@
 package org.hisp.dhis.deletedobject;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,8 +97,6 @@ public class DeletedObjectServiceTest
         manager.delete( dataElementC );
         manager.delete( organisationUnitA );
         manager.delete( organisationUnitB );
-
-        manager.flush(); // need to flush to make changes happen within the same tx
 
         assertEquals( 5, deletedObjectService.countDeletedObjects() );
         assertEquals( 3, deletedObjectService.getDeletedObjectsByKlass( "DataElement" ).size() );

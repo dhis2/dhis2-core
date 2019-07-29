@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -45,6 +46,7 @@ import java.util.List;
  * 
  * @author Lars Helge Overland
  */
+@Component( "deletionManager" )
 public class DefaultDeletionManager
     implements DeletionManager
 {
@@ -65,6 +67,7 @@ public class DefaultDeletionManager
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void execute( Object object )
     {
         if ( deletionHandlers == null || deletionHandlers.isEmpty() )

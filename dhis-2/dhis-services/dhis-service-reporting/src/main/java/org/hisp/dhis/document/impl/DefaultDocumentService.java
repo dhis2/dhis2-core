@@ -1,7 +1,7 @@
 package org.hisp.dhis.document.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
@@ -49,6 +50,7 @@ import java.util.List;
  * @version $Id$
  */
 @Transactional
+@Service( "org.hisp.dhis.document.DocumentService" )
 public class DefaultDocumentService
     implements DocumentService
 {
@@ -72,7 +74,7 @@ public class DefaultDocumentService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveDocument( Document document )
+    public long saveDocument( Document document )
     {
         documentStore.save( document );
 
@@ -80,7 +82,7 @@ public class DefaultDocumentService
     }
 
     @Override
-    public Document getDocument( int id )
+    public Document getDocument( long id )
     {
         return documentStore.get( id );
     }

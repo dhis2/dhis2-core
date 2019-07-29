@@ -1,7 +1,7 @@
 package org.hisp.dhis.option.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,17 @@ package org.hisp.dhis.option.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
@@ -40,11 +46,19 @@ import java.util.List;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
+@Repository( "org.hisp.dhis.option.OptionGroupStore" )
 public class HibernateOptionGroupStore
     extends HibernateIdentifiableObjectStore<OptionGroup>
     implements OptionGroupStore
 {
+    public HibernateOptionGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, OptionGroup.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
+
     @Override
     public List<OptionGroup> getOptionGroups( OptionGroupSet groupSet )
     {

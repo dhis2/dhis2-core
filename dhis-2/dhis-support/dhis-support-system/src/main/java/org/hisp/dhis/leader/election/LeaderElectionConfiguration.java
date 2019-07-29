@@ -1,7 +1,7 @@
 package org.hisp.dhis.leader.election;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,8 +62,6 @@ public class LeaderElectionConfiguration
     @Qualifier( "leaderManager" )
     @Conditional( RedisEnabledCondition.class )
     public LeaderManager redisLeaderManager()
-        throws NumberFormatException,
-        Exception
     {
         return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate );
     }

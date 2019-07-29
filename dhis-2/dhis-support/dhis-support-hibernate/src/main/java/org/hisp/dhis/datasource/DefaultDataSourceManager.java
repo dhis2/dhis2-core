@@ -1,7 +1,7 @@
 package org.hisp.dhis.datasource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -188,8 +188,11 @@ public class DefaultDataSourceManager
         try
         {
             Connection conn = dataSource.getConnection();
-            Statement stmt = conn.createStatement();
-            stmt.executeQuery( "select 'connection_test' as connection_test;" );
+
+            try ( Statement stmt = conn.createStatement() )
+            {
+                stmt.executeQuery( "select 'connection_test' as connection_test;" );
+            }
 
             log.info( String.format( "Connection test successful for read replica: '%s'", dataSource.getJdbcUrl() ) );
         }

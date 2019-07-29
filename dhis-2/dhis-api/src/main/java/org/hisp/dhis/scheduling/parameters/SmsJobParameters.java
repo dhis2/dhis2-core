@@ -1,14 +1,21 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.parameters.jackson.SmsJobParametersDeserializer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,18 +45,17 @@ import java.util.List;
 /**
  * @author Henning Håkonsen
  */
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+@JsonDeserialize( using = SmsJobParametersDeserializer.class )
 public class SmsJobParameters
     implements JobParameters
 {
     private static final long serialVersionUID = -6116489359345047961L;
 
-    @JsonProperty
     private String smsSubject;
 
-    @JsonProperty
     private List<String> recipientsList = new ArrayList<>();
 
-    @JsonProperty
     private String message;
 
     public SmsJobParameters()
@@ -63,6 +69,8 @@ public class SmsJobParameters
         this.message = message;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSmsSubject()
     {
         return smsSubject;
@@ -73,6 +81,9 @@ public class SmsJobParameters
         this.smsSubject = smsSubject;
     }
 
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "recipientsLists", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "recipientsList", namespace = DxfNamespaces.DXF_2_0 )
     public List<String> getRecipientsList()
     {
         return recipientsList;
@@ -83,6 +94,8 @@ public class SmsJobParameters
         this.recipientsList = recipientsList;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getMessage()
     {
         return message;
@@ -94,8 +107,9 @@ public class SmsJobParameters
     }
 
     @Override
-    public ErrorReport validate()
+    public Optional<ErrorReport> validate()
     {
-        return null;
+        return Optional.empty();
     }
+
 }

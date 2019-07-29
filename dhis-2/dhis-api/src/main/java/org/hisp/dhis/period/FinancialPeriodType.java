@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ public abstract class FinancialPeriodType
     // Abstract methods
     // -------------------------------------------------------------------------
 
-    protected abstract int getBaseMonth();
+    public abstract int getBaseMonth();
 
     // -------------------------------------------------------------------------
     // PeriodType functionality
@@ -176,5 +176,11 @@ public abstract class FinancialPeriodType
         dateTimeUnit = cal.minusYears( dateTimeUnit, rewindedPeriods );
 
         return cal.toIso( dateTimeUnit ).toJdkDate();
+    }
+
+    @Override
+    public boolean spansMultipleCalendarYears()
+    {
+        return true;
     }
 }

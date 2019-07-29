@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ public class DataStatisticsServiceTest
 
     private DataStatisticsEvent dse1;
     private DataStatisticsEvent dse2;
-    private int snapId1;
+    private long snapId1;
 
     private DateTimeFormatter fmt;
 
@@ -106,7 +106,7 @@ public class DataStatisticsServiceTest
         dse1 = new DataStatisticsEvent( DataStatisticsEventType.EVENT_CHART_VIEW, startDate, "TestUser" );
         dataStatisticsService.addEvent( dse1 );
         dataStatisticsService.addEvent( dse2 );
-        int snapId2 = dataStatisticsService.saveDataStatisticsSnapshot();
+        long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot();
 
         assertTrue( snapId2 != 0 );
         assertTrue( snapId1 != snapId2 );

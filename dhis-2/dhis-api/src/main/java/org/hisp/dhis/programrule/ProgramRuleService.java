@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ public interface ProgramRuleService
      * @param programRule The to ProgramRule add.
      * @return A generated unique id of the added {@link ProgramRule}.
      */
-    int addProgramRule( ProgramRule programRule );
+    long addProgramRule( ProgramRule programRule );
 
     /**
      * Deletes a {@link ProgramRule}
@@ -67,7 +67,7 @@ public interface ProgramRuleService
      * @param id the id of the ProgramRule to return.
      * @return the ProgramRule with the given id
      */
-    ProgramRule getProgramRule( int id );
+    ProgramRule getProgramRule( long id );
 
     /**
      * Returns a {@link ProgramRule}.

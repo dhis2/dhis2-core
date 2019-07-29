@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,8 @@ package org.hisp.dhis.dashboard;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.chart.ChartService;
@@ -42,6 +44,9 @@ import org.hisp.dhis.program.Program;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.stream.IntStream;
+
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 public class DashboardServiceTest
@@ -126,8 +131,8 @@ public class DashboardServiceTest
     @Test
     public void testAddGet()
     {
-        int dAId = dashboardService.saveDashboard( dA );
-        int dBId = dashboardService.saveDashboard( dB );
+        long dAId = dashboardService.saveDashboard( dA );
+        long dBId = dashboardService.saveDashboard( dB );
 
         assertEquals( dA, dashboardService.getDashboard( dAId ) );
         assertEquals( dB, dashboardService.getDashboard( dBId ) );
@@ -143,7 +148,7 @@ public class DashboardServiceTest
     @Test
     public void testUpdate()
     {
-        int dAId = dashboardService.saveDashboard( dA );
+        long dAId = dashboardService.saveDashboard( dA );
 
         assertEquals( "A", dashboardService.getDashboard( dAId ).getName() );
 
@@ -157,8 +162,8 @@ public class DashboardServiceTest
     @Test
     public void testDelete()
     {
-        int dAId = dashboardService.saveDashboard( dA );
-        int dBId = dashboardService.saveDashboard( dB );
+        long dAId = dashboardService.saveDashboard( dA );
+        long dBId = dashboardService.saveDashboard( dB );
 
         assertNotNull( dashboardService.getDashboard( dAId ) );
         assertNotNull( dashboardService.getDashboard( dBId ) );
@@ -196,7 +201,7 @@ public class DashboardServiceTest
         eventChart.setProgram( prA );
         eventChart.setType( ChartType.COLUMN );
 
-        int idA = eventChartService.saveEventChart( eventChart );
+        long idA = eventChartService.saveEventChart( eventChart );
 
         assertNotNull( eventChartService.getEventChart( idA ) );
 
@@ -229,6 +234,52 @@ public class DashboardServiceTest
         result = dashboardService.search( "Z" );
         assertEquals(0, result.getChartCount() );
         assertEquals(0, result.getResourceCount() );
+    }
 
+    @Test
+    public void testSearchDashboardWithMaxCount()
+    {
+        Program prA = createProgram( 'A', null, null );
+        objectManager.save( prA );
+
+        IntStream.range(1, 30).forEach( i -> {
+            Chart chart = createChart( 'A' );
+            chart.setName( RandomStringUtils.randomAlphabetic( 5 ) );
+            chartService.addChart( createChart( ) );
+
+        });
+
+        IntStream.range(1, 30).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ));
+
+        DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ) );
+
+        assertThat(result.getChartCount(), is(25));
+        assertThat(result.getEventChartCount(), is(6));
+
+        result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ), 3, null );
+
+        assertThat(result.getChartCount(), is(25));
+        assertThat(result.getEventChartCount(), is(3));
+
+        result = dashboardService.search( Sets.newHashSet( DashboardItemType.CHART ), 3, 29 );
+
+        assertThat( result.getChartCount(), is( 29 ) );
+        assertThat( result.getEventChartCount(), is( 3 ) );
+
+    }
+
+    private EventChart createEventChart( Program program )
+    {
+        EventChart eventChart = new EventChart( RandomStringUtils.randomAlphabetic( 5 ) );
+        eventChart.setProgram( program );
+        eventChart.setType( ChartType.COLUMN );
+        return eventChart;
+    }
+    
+    private Chart createChart( )
+    {
+        Chart chart = createChart( 'A' );
+        chart.setName( RandomStringUtils.randomAlphabetic( 5 ) );
+        return chart;
     }
 }

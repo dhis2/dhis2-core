@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-web</artifactId>
-        <version>2.32-SNAPSHOT</version>
+        <version>2.33-SNAPSHOT</version>
     </parent>
 
     <artifactId>dhis-web-apps</artifactId>
@@ -27,6 +27,7 @@
                         <BUILD_DIR>${project.build.directory}</BUILD_DIR>
                         <ARTIFACT_ID>${project.artifactId}</ARTIFACT_ID>
                         <APPS>./apps-to-bundle.json</APPS>
+                        <DEFAULT_BRANCH>master</DEFAULT_BRANCH>
                     </environmentVariables> 
                 </configuration>
                 <executions>

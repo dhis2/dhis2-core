@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,9 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.User;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -49,6 +50,11 @@ public class ProgramInstanceQueryParams
      * Last updated for PI.
      */
     private Date lastUpdated;
+
+    /**
+     * The last updated duration filter.
+     */
+    private String lastUpdatedDuration;
 
     /**
      * Organisation units for which instances in the response were registered at.
@@ -116,11 +122,20 @@ public class ProgramInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
-    
+
     /**
      * Indicates whether to include soft-deleted enrollments
      */
-    private boolean includeDeleted;    
+    private boolean includeDeleted;
+
+    // -------------------------------------------------------------------------
+    // Transient properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * Current user for query.
+     */
+    private transient User user;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -148,6 +163,14 @@ public class ProgramInstanceQueryParams
     public boolean hasLastUpdated()
     {
         return lastUpdated != null;
+    }
+
+    /**
+     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     */
+    public boolean hasLastUpdatedDuration()
+    {
+        return lastUpdatedDuration != null;
     }
 
     /**
@@ -277,6 +300,17 @@ public class ProgramInstanceQueryParams
     public ProgramInstanceQueryParams setLastUpdated( Date lastUpdated )
     {
         this.lastUpdated = lastUpdated;
+        return this;
+    }
+
+    public String getLastUpdatedDuration()
+    {
+        return lastUpdatedDuration;
+    }
+
+    public ProgramInstanceQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
+    {
+        this.lastUpdatedDuration = lastUpdatedDuration;
         return this;
     }
 
@@ -422,7 +456,7 @@ public class ProgramInstanceQueryParams
         this.skipPaging = skipPaging;
         return this;
     }
-    
+
     public boolean isIncludeDeleted()
     {
         return includeDeleted;
@@ -431,6 +465,17 @@ public class ProgramInstanceQueryParams
     public ProgramInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
     {
         this.includeDeleted = includeDeleted;
+        return this;
+    }
+
+    public User getUser()
+    {
+        return user;
+    }
+
+    public ProgramInstanceQueryParams setUser( User user )
+    {
+        this.user = user;
         return this;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.patch;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
@@ -53,6 +52,9 @@ import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -60,10 +62,13 @@ import com.google.common.base.Enums;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Service
+@Transactional // TODO not sure if this can be completely readonly
 public class DefaultPatchService implements PatchService
 {
     private static final Log log = LogFactory.getLog( DefaultPatchService.class );
@@ -80,9 +85,17 @@ public class DefaultPatchService implements PatchService
 
     private final SystemService systemService;
 
+    @Autowired
     public DefaultPatchService( SchemaService schemaService, QueryService queryService, MetadataAuditService metadataAuditService,
         CurrentUserService currentUserService, RenderService renderService, SystemService systemService )
     {
+        checkNotNull( schemaService );
+        checkNotNull( queryService );
+        checkNotNull( metadataAuditService );
+        checkNotNull( currentUserService );
+        checkNotNull( renderService );
+        checkNotNull( systemService );
+
         this.schemaService = schemaService;
         this.queryService = queryService;
         this.metadataAuditService = metadataAuditService;
@@ -129,7 +142,7 @@ public class DefaultPatchService implements PatchService
     {
         Patch patch = new Patch();
 
-        if ( source == null || target == null || !source.getClass().isInstance( target ) )
+        if ( source == null || !source.getClass().isInstance( target ) )
         {
             return patch;
         }
@@ -197,13 +210,13 @@ public class DefaultPatchService implements PatchService
 
         if ( property.isCollection() && property.isIdentifiableObject() && !property.isEmbeddedObject() )
         {
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
-            Collection sourceCollection = (Collection) ( (Collection) sourceValue ).stream()
+            Collection<Object> sourceCollection = ( (Collection<Object>) sourceValue ).stream()
                 .filter( Objects::nonNull )
                 .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
-            Collection targetCollection =  ( Collection ) ( (Collection) targetValue ).stream()
+            Collection<Object> targetCollection = ((Collection<Object>) targetValue).stream()
                 .filter( Objects::nonNull )
                 .map( o -> ( (IdentifiableObject) o ).getUid() ).collect( Collectors.toList() );
 
@@ -224,7 +237,7 @@ public class DefaultPatchService implements PatchService
                 mutations.add( new Mutation( path, addCollection ) );
             }
 
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
             delCollection.addAll( sourceCollection );
 
             if ( !delCollection.isEmpty() )
@@ -234,10 +247,10 @@ public class DefaultPatchService implements PatchService
         }
         else if ( property.isCollection() && !property.isEmbeddedObject() && !property.isIdentifiableObject() )
         {
-            List sourceCollection = new ArrayList( (Collection) sourceValue );
-            Collection targetCollection = (Collection) targetValue;
+            List<Object> sourceCollection = new ArrayList<>( (Collection<Object>) sourceValue );
+            Collection<Object> targetCollection = (Collection<Object>) targetValue;
 
-            Collection addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> addCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
 
             for ( Object o : targetCollection )
             {
@@ -256,7 +269,7 @@ public class DefaultPatchService implements PatchService
                 mutations.add( new Mutation( path, addCollection ) );
             }
 
-            Collection delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
+            Collection<Object> delCollection = ReflectionUtils.newCollectionInstance( property.getKlass() );
             delCollection.addAll( sourceCollection );
 
             if ( !delCollection.isEmpty() )
@@ -289,7 +302,6 @@ public class DefaultPatchService implements PatchService
         return mutations;
     }
 
-    @SuppressWarnings( "unchecked" )
     private List<Mutation> calculateMutations( String path, JsonNode node )
     {
         List<Mutation> mutations = new ArrayList<>();
@@ -306,7 +318,7 @@ public class DefaultPatchService implements PatchService
 
                 break;
             case ARRAY:
-                Collection identifiers = new ArrayList<>();
+                Collection<Object> identifiers = new ArrayList<>();
 
                 for ( JsonNode jsonNode : node )
                 {
@@ -396,8 +408,8 @@ public class DefaultPatchService implements PatchService
 
         if ( property.isCollection() )
         {
-            Collection collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-            Collection sourceCollection = Collection.class.isInstance( value ) ? (Collection) value : Lists.newArrayList( value );
+            Collection<Object> collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+            Collection<Object> sourceCollection = Collection.class.isInstance( value ) ? (Collection<Object>) value : Lists.newArrayList( value );
 
             if ( collection == null )
             {
@@ -410,7 +422,7 @@ public class DefaultPatchService implements PatchService
 
                 if ( property.isIdentifiableObject() && !property.isEmbeddedObject() )
                 {
-                    if ( !String.class.isInstance( object ) )
+                    if ( !(object instanceof String))
                     {
                         return;
                     }

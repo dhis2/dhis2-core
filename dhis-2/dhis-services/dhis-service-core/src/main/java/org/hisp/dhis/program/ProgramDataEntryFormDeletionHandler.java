@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,14 @@ import java.util.Set;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.program.ProgramDataEntryFormDeletionHandler" )
 public class ProgramDataEntryFormDeletionHandler
     extends DeletionHandler
 {
@@ -44,17 +48,16 @@ public class ProgramDataEntryFormDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataEntryFormService dataEntryFormService;
+    private final DataEntryFormService dataEntryFormService;
 
-    public void setDataEntryFormService( DataEntryFormService dataEntryFormService )
+    private final ProgramStageService programStageService;
+
+    public ProgramDataEntryFormDeletionHandler( DataEntryFormService dataEntryFormService,
+        ProgramStageService programStageService )
     {
+        checkNotNull( dataEntryFormService );
+        checkNotNull( programStageService );
         this.dataEntryFormService = dataEntryFormService;
-    }
-
-    private ProgramStageService programStageService;
-
-    public void setProgramStageService( ProgramStageService programStageService )
-    {
         this.programStageService = programStageService;
     }
 

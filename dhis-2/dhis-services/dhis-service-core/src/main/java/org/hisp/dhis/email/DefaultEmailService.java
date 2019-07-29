@@ -1,7 +1,7 @@
 package org.hisp.dhis.email;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,16 +37,20 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-@Transactional
+@Transactional // TODO do we need transactions at all here?
+@Service( "org.hisp.dhis.email.EmailService" )
 public class DefaultEmailService
     implements EmailService
 {
@@ -59,22 +63,19 @@ public class DefaultEmailService
 
     private MessageSender emailMessageSender;
 
-    public void setEmailMessageSender(MessageSender emailMessageSender)
-    {
-        this.emailMessageSender = emailMessageSender;
-    }
-
     private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
 
     private SystemSettingManager systemSettingManager;
 
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
+    public DefaultEmailService( MessageSender emailMessageSender, CurrentUserService currentUserService,
+        SystemSettingManager systemSettingManager )
     {
+        checkNotNull( emailMessageSender );
+        checkNotNull( currentUserService );
+        checkNotNull( emailMessageSender );
+
+        this.emailMessageSender = emailMessageSender;
+        this.currentUserService = currentUserService;
         this.systemSettingManager = systemSettingManager;
     }
 

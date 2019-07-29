@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ package org.hisp.dhis.dataintegrity;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 import java.util.*;
@@ -61,13 +61,13 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -84,6 +84,7 @@ import org.mockito.junit.MockitoRule;
  */
 public class DataIntegrityServiceTest
 {
+    private static final String INVALID_EXPRESSION = "INVALID_EXPRESSION";
     @Mock
     private I18nManager i18nManager;
 
@@ -104,9 +105,6 @@ public class DataIntegrityServiceTest
 
     private DataElement elementA;
     private DataElement elementB;
-    private DataElement elementC;
-
-    private TrackedEntityAttribute attributeA;
 
     @Mock
     private ValidationRuleService validationRuleService;
@@ -182,7 +180,8 @@ public class DataIntegrityServiceTest
     {
         subject = new DefaultDataIntegrityService( i18nManager, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
-            dataEntryFormService, categoryService, periodService, programIndicatorService, programRuleService, programRuleVariableService, programRuleActionService );
+            dataEntryFormService, categoryService, periodService, programIndicatorService,
+            programRuleService, programRuleVariableService, programRuleActionService );
         rnd = new BeanRandomizer();
         setUpFixtures();
     }
@@ -200,8 +199,6 @@ public class DataIntegrityServiceTest
 
         elementA = createDataElement( 'A' );
         elementB = createDataElement( 'B' );
-        elementC = createDataElement( 'C' );
-        attributeA = createTrackedEntityAttribute( 'A' );
 
         indicatorTypeA = createIndicatorType( 'A' );
 
@@ -233,8 +230,8 @@ public class DataIntegrityServiceTest
         dataSetA.getSources().add( unitA );
         unitA.getDataSets().add( dataSetA );
 
-        dataSetB.addDataSetElement( elementA );     
-        
+        dataSetB.addDataSetElement( elementA );
+
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
 
@@ -472,6 +469,65 @@ public class DataIntegrityServiceTest
         assertThat( actual, hasKey( programRuleA ) );
         assertThat( actual.get( programRuleA ), hasSize( 1 ) );
         assertThat( actual.get( programRuleA ), contains( programRuleActionA ) );
+    }
+
+    @Test
+    public void testInvalidProgramIndicatorExpression()
+    {
+        ProgramIndicator programIndicator = new ProgramIndicator();
+        programIndicator.setName( "Test-PI" );
+        programIndicator.setExpression( "A{someuid} + 1" );
+
+        when( programIndicatorService.expressionIsValid( anyString() ) ).thenReturn( false );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
+
+        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
+            .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
+
+        Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
+
+        assertNotNull( invalidExpressions );
+        assertEquals( invalidExpressions.size(), 1 );
+        assertTrue( invalidExpressions.containsKey( programIndicator ) );
+        assertTrue( invalidExpressions.containsValue( INVALID_EXPRESSION ) );
+    }
+
+    @Test
+    public void testInvalidProgramIndicatorFilter()
+    {
+        ProgramIndicator programIndicator = new ProgramIndicator();
+        programIndicator.setName( "Test-PI" );
+        programIndicator.setFilter( "A{someuid} + 1" );
+
+        when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
+
+        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
+            .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
+
+        Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
+
+        assertNotNull( invalidExpressions );
+        assertEquals( invalidExpressions.size(), 1 );
+        assertTrue( invalidExpressions.containsKey( programIndicator ) );
+        assertTrue( invalidExpressions.containsValue( INVALID_EXPRESSION ) );
+    }
+
+    @Test
+    public void testValidProgramIndicatorFilter()
+    {
+        ProgramIndicator programIndicator = new ProgramIndicator();
+        programIndicator.setName( "Test-PI" );
+        programIndicator.setFilter( "1 < 2" );
+
+        when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( true );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
+
+        Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
+
+        verify( expressionService, times( 0 ) ).getIndicatorExpressionDescription( anyString() );
+        assertNotNull( invalidExpressions );
+        assertTrue( invalidExpressions.isEmpty() );
     }
 
     private Map<String, DataElement> createRandomDataElements(int quantity, String uidSeed) {

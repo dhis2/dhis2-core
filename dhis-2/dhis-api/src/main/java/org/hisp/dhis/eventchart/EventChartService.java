@@ -1,7 +1,7 @@
 package org.hisp.dhis.eventchart;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,11 +38,11 @@ import org.hisp.dhis.common.AnalyticalObjectService;
 public interface EventChartService
     extends AnalyticalObjectService<EventChart>
 {
-    int saveEventChart( EventChart eventChart );
+    long saveEventChart( EventChart eventChart );
     
     void updateEventChart( EventChart eventChart );
     
-    EventChart getEventChart( int id );
+    EventChart getEventChart( long id );
     
     EventChart getEventChart( String uid );
     

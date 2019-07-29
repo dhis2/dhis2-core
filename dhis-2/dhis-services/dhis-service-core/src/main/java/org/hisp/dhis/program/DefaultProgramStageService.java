@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,17 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
-@Transactional
+@Service( "org.hisp.dhis.program.ProgramStageService" )
 public class DefaultProgramStageService
     implements ProgramStageService
 {
@@ -44,10 +47,11 @@ public class DefaultProgramStageService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageStore programStageStore;
+    private final ProgramStageStore programStageStore;
 
-    public void setProgramStageStore( ProgramStageStore programStageStore )
+    public DefaultProgramStageService( ProgramStageStore programStageStore )
     {
+        checkNotNull( programStageStore );
         this.programStageStore = programStageStore;
     }
 
@@ -56,37 +60,43 @@ public class DefaultProgramStageService
     // -------------------------------------------------------------------------
 
     @Override
-    public int saveProgramStage( ProgramStage programStage )
+    @Transactional
+    public long saveProgramStage( ProgramStage programStage )
     {
         programStageStore.save( programStage );
         return programStage.getId();
     }
 
     @Override
+    @Transactional
     public void deleteProgramStage( ProgramStage programStage )
     {
         programStageStore.delete( programStage );
     }
 
     @Override
-    public ProgramStage getProgramStage( int id )
+    @Transactional(readOnly = true)
+    public ProgramStage getProgramStage( long id )
     {
         return programStageStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStage getProgramStage( String uid )
     {
         return programStageStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramStage> getProgramStagesByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return programStageStore.getByDataEntryForm( dataEntryForm );
     }
 
     @Override
+    @Transactional
     public void updateProgramStage( ProgramStage programStage )
     {
         programStageStore.update( programStage );

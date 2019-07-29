@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,14 @@ package org.hisp.dhis.user;
 import java.util.Iterator;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.user.UserSettingDeletionHandler" )
 public class UserSettingDeletionHandler
     extends DeletionHandler
 {   
@@ -43,9 +46,15 @@ public class UserSettingDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private UserSettingService userSettingService;
-    
+    private final UserSettingService userSettingService;
+
+    public UserSettingDeletionHandler( UserSettingService userSettingService )
+    {
+        checkNotNull( userSettingService );
+
+        this.userSettingService = userSettingService;
+    }
+
     // -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------

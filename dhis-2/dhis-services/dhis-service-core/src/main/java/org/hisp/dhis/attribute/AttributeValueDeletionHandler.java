@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,27 +38,30 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.attribute.AttributeValueDeletionHandler" )
 public class AttributeValueDeletionHandler
     extends DeletionHandler
 {
-    private AttributeService attributeService;
+    private final AttributeService attributeService;
 
-    public void setAttributeService( AttributeService attributeService )
+    private final JdbcTemplate jdbcTemplate;
+
+    public AttributeValueDeletionHandler( AttributeService attributeService, JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( jdbcTemplate );
+        checkNotNull( attributeService );
+
         this.attributeService = attributeService;
-    }
-
-    private JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
         this.jdbcTemplate = jdbcTemplate;
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -76,6 +77,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.dataformat.csv.CsvFactory;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
@@ -201,7 +203,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33 } )
     public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId, HttpServletResponse response )
         throws IOException
     {
@@ -219,7 +221,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response ) throws IOException
     {
         Map<String, LinkedList<Notification>> notifications = new HashMap<>();
@@ -258,7 +260,7 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+    @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -275,7 +277,7 @@ public class SystemController
     }
 
     @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
+    @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33 } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -357,17 +359,12 @@ public class SystemController
         return rootNode;
     }
 
-    @RequestMapping( value = "/ping", method = RequestMethod.GET, produces = "text/plain" )
-    @ApiVersion( exclude = { DhisApiVersion.V28, DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32 } )
-    public @ResponseBody String pingLegacy()
-    {
-        return "pong";
-    }
-
     @RequestMapping( value = "/ping", method = RequestMethod.GET )
-    @ApiVersion( exclude = { DhisApiVersion.DEFAULT } )
-    public @ResponseBody String ping()
+    @ResponseStatus( HttpStatus.OK )
+    public @ResponseBody String ping( HttpServletResponse response )
     {
+        setNoStore( response );
+
         return "pong";
     }
 

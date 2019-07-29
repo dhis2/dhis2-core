@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,28 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Component;
+
 import java.util.regex.Pattern;
 
 /**
  * Created by zubair on 16.03.17.
  */
+@Component( "org.hisp.dhis.user.SpecialCharacterValidationRule" )
 public class SpecialCharacterValidationRule
-        implements PasswordValidationRule
+    implements PasswordValidationRule
 {
     private static final Pattern SPECIAL_CHARACTER = Pattern.compile( ".*[^A-Za-z0-9].*" );
+
+    public static final String ERROR = "Password must have at least one special character";
+    public static final String I18_ERROR = "password_specialcharacter_validation";
 
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
         if ( !SPECIAL_CHARACTER.matcher( credentialsInfo.getPassword() ).matches() )
         {
-            return new PasswordValidationResult( "Password must have at least one special character", "password_specialcharacter_validation",false );
+            return new PasswordValidationResult( ERROR, I18_ERROR ,false );
         }
 
         return new PasswordValidationResult( true );

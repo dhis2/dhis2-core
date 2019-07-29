@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,6 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
@@ -133,6 +132,7 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,14 +202,14 @@ public abstract class DhisConvenienceTest
     protected RenderService renderService;
 
     @Autowired( required = false )
-    protected CategoryService _categoryService;
+    protected CategoryService internalCategoryService;
 
     protected static CategoryService categoryService;
 
     @PostConstruct
-    protected void initStaticServices()
+    protected void initServices()
     {
-        categoryService = _categoryService;
+        categoryService = internalCategoryService;
     }
 
     static
@@ -232,7 +232,7 @@ public abstract class DhisConvenienceTest
      */
     public static Date getDate( int year, int month, int day )
     {
-        DateTime dateTime = new DateTime( year, month, day, 0, 0 );
+        LocalDateTime dateTime = new LocalDateTime( year, month, day, 0, 0 );
         return dateTime.toDate();
     }
 
@@ -365,6 +365,7 @@ public abstract class DhisConvenienceTest
      * @param dependency    the dependency.
      * @param clazz         the interface type of the dependency.
      */
+    @Deprecated
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
         try
@@ -382,7 +383,7 @@ public abstract class DhisConvenienceTest
         }
         catch ( Exception ex )
         {
-            throw new RuntimeException( "Failed to set dependency '" + fieldName + "' on service: " + getStackTrace( ex ), ex );
+            throw new IllegalArgumentException( "Failed to set dependency '" + fieldName + "' on service: " + getStackTrace( ex ), ex );
         }
     }
 
@@ -434,6 +435,7 @@ public abstract class DhisConvenienceTest
         dataElement.setValueType( ValueType.INTEGER );
         dataElement.setDomainType( DataElementDomain.AGGREGATE );
         dataElement.setAggregationType( AggregationType.SUM );
+        dataElement.setZeroIsSignificant( false );
 
         if ( categoryCombo != null )
         {
@@ -523,33 +525,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryComboUniqueIdentifier A unique character to identify the
-     *                                      category option combo.
-     * @param dataElementCategoryCombo      The associated category combination.
-     * @param categoryOptions               the category options.
-     * @return CategoryOptionCombo
-     */
-    public static CategoryOptionCombo createCategoryOptionCombo( char categoryComboUniqueIdentifier,
-        CategoryCombo dataElementCategoryCombo,
-        CategoryOption... categoryOptions )
-    {
-        CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-        categoryOptionCombo.setAutoFields();
-
-        categoryOptionCombo.setCategoryCombo( dataElementCategoryCombo );
-
-        for ( CategoryOption categoryOption : categoryOptions )
-        {
-            categoryOptionCombo.getCategoryOptions().add( categoryOption );
-
-            categoryOption.getCategoryOptionCombos().add( categoryOptionCombo );
-        }
-
-        return categoryOptionCombo;
-    }
-
-    /**
-     * @param categoryCombo   the category combo.
+     * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -1028,7 +1004,7 @@ public abstract class DhisConvenienceTest
      * @param attributeOptionCombo The attribute option combo.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        String value, CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
     {
         DataValue dataValue = new DataValue();
 
@@ -1040,36 +1016,8 @@ public abstract class DhisConvenienceTest
         dataValue.setValue( value );
         dataValue.setComment( "Comment" );
         dataValue.setStoredBy( "StoredBy" );
-
-        return dataValue;
-    }
-
-    /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param categoryOptionCombo  The category option combo.
-     * @param attributeOptionCombo The attribute option combo.
-     * @param value                The value.
-     * @param comment              The comment.
-     * @param storedBy             The stored by.
-     * @param created              The created date.
-     * @param lastupdated          The last updated date.
-     */
-    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
-        String value, String comment, String storedBy, Date created, Date lastupdated )
-    {
-        DataValue dataValue = new DataValue();
-
-        dataValue.setDataElement( dataElement );
-        dataValue.setPeriod( period );
-        dataValue.setSource( source );
-        dataValue.setCategoryOptionCombo( categoryOptionCombo );
-        dataValue.setAttributeOptionCombo( attributeOptionCombo );
-        dataValue.setValue( value );
-        dataValue.setComment( "Comment" );
-        dataValue.setStoredBy( "StoredBy" );
+        dataValue.setCreated( new Date() );
+        dataValue.setLastUpdated( new Date() );
 
         return dataValue;
     }
@@ -1293,6 +1241,11 @@ public abstract class DhisConvenienceTest
 
     public static User createUser( char uniqueCharacter )
     {
+        return createUser( uniqueCharacter, Lists.newArrayList() );
+    }
+
+    public static User createUser( char uniqueCharacter, List<String> auths )
+    {
         UserCredentials credentials = new UserCredentials();
         User user = new User();
         user.setUid( BASE_USER_UID + uniqueCharacter );
@@ -1302,6 +1255,13 @@ public abstract class DhisConvenienceTest
 
         credentials.setUsername( "username" + uniqueCharacter );
         credentials.setPassword( "password" + uniqueCharacter );
+
+        if ( auths != null && !auths.isEmpty() )
+        {
+            UserAuthorityGroup role = new UserAuthorityGroup();
+            auths.stream().forEach( auth -> role.getAuthorities().add( auth ) );
+            credentials.getUserAuthorityGroups().add( role );
+        }
 
         user.setFirstName( "FirstName" + uniqueCharacter );
         user.setSurname( "Surname" + uniqueCharacter );
@@ -1556,7 +1516,7 @@ public abstract class DhisConvenienceTest
         indicator.setAnalyticsType( analyticsType );
         indicator.setFilter( filter );
 
-        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<AnalyticsPeriodBoundary>();
+        Set<AnalyticsPeriodBoundary> boundaries = new HashSet<>();
         if ( analyticsType == AnalyticsType.EVENT )
         {
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
@@ -1609,19 +1569,13 @@ public abstract class DhisConvenienceTest
         return trackedEntityType;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit )
+    public static TrackedEntityInstance createTrackedEntityInstance( OrganisationUnit organisationUnit )
     {
         TrackedEntityInstance entityInstance = new TrackedEntityInstance();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
 
         return entityInstance;
-    }
-
-    public static ProgramStageInstance createProgramStageInstance()
-    {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        return programStageInstance;
     }
 
     public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
@@ -1677,14 +1631,15 @@ public abstract class DhisConvenienceTest
         return attribute;
     }
 
-    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( char uniqueChar )
+    public static ProgramTrackedEntityAttribute createProgramTrackedEntityAttribute( Program program, TrackedEntityAttribute attribute )
     {
-        ProgramTrackedEntityAttribute attribute = new ProgramTrackedEntityAttribute();
-        attribute.setAutoFields();
+        ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
+        ptea.setAutoFields();
 
-        attribute.setName( "Attribute" + uniqueChar );
+        ptea.setProgram( program );
+        ptea.setAttribute( attribute );
 
-        return attribute;
+        return ptea;
     }
 
     public static ProgramTrackedEntityAttributeGroup createProgramTrackedEntityAttributeGroup( char uniqueChar, Set<ProgramTrackedEntityAttribute> attributes )
@@ -1902,9 +1857,9 @@ public abstract class DhisConvenienceTest
         {
             return renderService.fromJson( new ClassPathResource( path ).getInputStream(), klass );
         }
-        catch ( IOException e )
+        catch ( IOException ex )
         {
-            e.printStackTrace();
+            log.error( ex );
         }
 
         return null;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ public abstract class BaseChart
 
     protected boolean noSpaceBetweenColumns;
 
-    protected RegressionType regressionType;
+    protected RegressionType regressionType = RegressionType.NONE;
 
     protected Double targetLineValue;
 
@@ -89,7 +89,7 @@ public abstract class BaseChart
 
     protected boolean showData;
 
-    protected HideEmptyItemStrategy hideEmptyRowItems;
+    protected HideEmptyItemStrategy hideEmptyRowItems = HideEmptyItemStrategy.NONE;
 
     protected boolean percentStackedValues;
 

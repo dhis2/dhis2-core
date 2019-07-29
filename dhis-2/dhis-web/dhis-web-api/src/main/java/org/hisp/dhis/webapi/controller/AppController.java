@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -54,6 +53,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -249,10 +249,13 @@ public class AppController
             throw new WebMessageException( WebMessageUtils.notFound( "App does not exist: " + app ) );
         }
 
-        if ( !appManager.deleteApp( appToDelete, deleteAppData ) )
+        if ( appToDelete.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "There was an error deleting app: " + app ) );
-        }
+            throw new WebMessageException( WebMessageUtils.conflict( "App is already being deleted: " + app ) );
+        } 
+
+        appManager.markAppToDelete( appToDelete ); 
+        appManager.deleteApp( appToDelete, deleteAppData );
     }
 
     @SuppressWarnings( "unchecked" )

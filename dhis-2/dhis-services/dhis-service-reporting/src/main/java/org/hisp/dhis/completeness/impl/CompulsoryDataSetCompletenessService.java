@@ -1,7 +1,7 @@
 package org.hisp.dhis.completeness.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,29 +30,48 @@ package org.hisp.dhis.completeness.impl;
 
 import java.util.Collection;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.completeness.DataSetCompletenessStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "compulsoryDataCompletenessService" )
+@Scope( proxyMode = ScopedProxyMode.TARGET_CLASS )
 public class CompulsoryDataSetCompletenessService
     extends AbstractDataSetCompletenessService
 {
+    @Autowired
+    public CompulsoryDataSetCompletenessService( OrganisationUnitService organisationUnitService,
+        DataSetService dataSetService, PeriodService periodService, DataSetCompletenessStore completenessStore,
+        IdentifiableObjectManager idObjectManager )
+    {
+        super( organisationUnitService, dataSetService, periodService, completenessStore, idObjectManager );
+    }
+
     @Override
-    public int getRegistrations( DataSet dataSet, Collection<Integer> relevantSources, Collection<Integer> periods )
+    public int getRegistrations( DataSet dataSet, Collection<Long> relevantSources, Collection<Long> periods )
     {
         return completenessStore.getCompulsoryDataElementRegistrations( dataSet, relevantSources, periods );
     }
 
     @Override
-    public int getRegistrationsOnTime( DataSet dataSet, Collection<Integer> relevantSources, Collection<Integer> periods )
+    public int getRegistrationsOnTime( DataSet dataSet, Collection<Long> relevantSources, Collection<Long> periods )
     {
         return completenessStore.getCompulsoryDataElementRegistrations( dataSet, relevantSources, periods );
     }
 
     @Override
-    public int getSources( DataSet dataSet, Collection<Integer> relevantSources, Period period )
+    public int getSources( DataSet dataSet, Collection<Long> relevantSources, Period period )
     {
         return relevantSources.size() * period.getPeriodSpan( dataSet.getPeriodType() );
     }

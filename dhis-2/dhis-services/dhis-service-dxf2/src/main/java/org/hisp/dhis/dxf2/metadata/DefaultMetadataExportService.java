@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -97,8 +97,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -108,7 +109,7 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
+@Service ( "org.hisp.dhis.dxf2.metadata.MetadataExportService" )
 public class DefaultMetadataExportService implements MetadataExportService
 {
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultMetadataExportService.class );
@@ -148,7 +149,7 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         if ( params.getClasses().isEmpty() )
         {
-            schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject )
+            schemaService.getMetadataSchemas().stream().filter( Schema::isIdentifiableObject ).filter( s -> !s.isSecondaryMetadata() )
                 .forEach( schema -> params.getClasses().add( (Class<? extends IdentifiableObject>) schema.getKlass() ) );
         }
 
@@ -276,7 +277,7 @@ public class DefaultMetadataExportService implements MetadataExportService
             Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) schema.getKlass();
 
             // class is enabled if value = true, or fields/filter/order is present
-            if ( "true".equalsIgnoreCase( parameters.get( parameterKey ).get( 0 ) ) || (parameter.length > 1 && ("fields".equalsIgnoreCase( parameter[1] )
+            if ( isSelectedClass( parameters.get( parameterKey ) ) || ( parameter.length > 1 && ( "fields".equalsIgnoreCase( parameter[1] )
                 || "filter".equalsIgnoreCase( parameter[1] ) || "order".equalsIgnoreCase( parameter[1] ))) )
             {
                 if ( !map.containsKey( klass ) ) map.put( klass, new HashMap<>() );
@@ -349,6 +350,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
 
+        if ( OptionSet.class.isInstance( object ) ) return handleOptionSet( metadata, (OptionSet) object );
         if ( DataSet.class.isInstance( object ) ) return handleDataSet( metadata, (DataSet) object );
         if ( Program.class.isInstance( object ) ) return handleProgram( metadata, (Program) object );
         if ( CategoryCombo.class.isInstance( object ) ) return handleCategoryCombo( metadata, (CategoryCombo) object );
@@ -358,7 +360,7 @@ public class DefaultMetadataExportService implements MetadataExportService
     }
 
     @Override
-    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object )
+    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
@@ -367,8 +369,10 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            rootNode.addChild( fieldFilterService.toCollectionNode( klass, new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
-                Lists.newArrayList( ":owner" ) ) ) );
+            FieldFilterParams fieldFilterParams = new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
+                Lists.newArrayList( ":owner" ) );
+            fieldFilterParams.setSkipSharing( params.getSkipSharing() );
+            rootNode.addChild( fieldFilterService.toCollectionNode( klass, fieldFilterParams ) );
         }
 
         return rootNode;
@@ -377,6 +381,16 @@ public class DefaultMetadataExportService implements MetadataExportService
     //-----------------------------------------------------------------------------------
     // Utility Methods
     //-----------------------------------------------------------------------------------
+
+    private boolean isSelectedClass( @Nonnull List<String> values )
+    {
+        if ( values.stream().anyMatch( "false"::equalsIgnoreCase ) )
+        {
+            return false;
+        }
+
+        return values.stream().anyMatch( "true"::equalsIgnoreCase );
+    }
 
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleDataSet( SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, DataSet dataSet )
     {

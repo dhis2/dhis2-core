@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,21 +31,18 @@ package org.hisp.dhis.program.hibernate;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryStore;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
+@Repository( "org.hisp.dhis.program.ProgramOwnershipHistoryStore" )
 public class HibernateProgramOwnershipHistoryStore implements ProgramOwnershipHistoryStore
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private SessionFactory sessionFactory;
 
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateProgramOwnershipHistoryStore( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
     }

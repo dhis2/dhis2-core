@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,8 +118,8 @@ public class AttributeValueServiceTest
     @Test
     public void testDeleteAttributeValue()
     {
-        int attributeValueId1 = avA.getId();
-        int attributeValueId2 = avB.getId();
+        long attributeValueId1 = avA.getId();
+        long attributeValueId2 = avB.getId();
 
         attributeService.deleteAttributeValue( avA );
         attributeService.deleteAttributeValue( avB );

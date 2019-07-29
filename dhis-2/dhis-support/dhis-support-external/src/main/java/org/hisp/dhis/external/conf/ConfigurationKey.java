@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -89,13 +89,14 @@ public enum ConfigurationKey
     LOGGING_ADAPTER_CONSOLE( "logging.console", "true" ),
     LOGGING_ADAPTER_CONSOLE_LEVEL( "logging.console.level", "INFO" ),
     LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
-    LOGGING_ADAPTER_KAFKA( "logging.kafka", "false" ),
-    LOGGING_ADAPTER_KAFKA_LEVEL( "logging.kafka.level", "INFO" ),
-    LOGGING_ADAPTER_KAFKA_FORMAT( "logging.kafka.format", "JSON" ),
-    LOGGING_ADAPTER_KAFKA_TOPIC( "logging.kafka.topic", "dhis2-log" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
-    SERVER_BASE_URL( "server.base.url", "", false );
+    SERVER_BASE_URL( "server.base.url", "", false ),
+    MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
+    MONITORING_API_ENABLED( "monitoring.api.enabled", "false", false ),
+    MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", "false", false ),
+    MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "false", false ),
+    MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "false", false );
 
     private final String key;
 

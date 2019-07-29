@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ public interface ProgramInstanceService
      * @param programInstance The to ProgramInstance add.
      * @return A generated unique id of the added {@link ProgramInstance}.
      */
-    int addProgramInstance( ProgramInstance programInstance );
+    long addProgramInstance( ProgramInstance programInstance );
 
     /**
      * Soft deletes a {@link ProgramInstance}.
@@ -82,7 +82,7 @@ public interface ProgramInstanceService
      * @param id the id of the ProgramInstance to return.
      * @return the ProgramInstance with the given id
      */
-    ProgramInstance getProgramInstance( int id );
+    ProgramInstance getProgramInstance( long id );
     
     /**
      * Returns the {@link ProgramInstance} with the given UID.
@@ -114,6 +114,7 @@ public interface ProgramInstanceService
      * @param ou                    the set of organisation unit identifiers.
      * @param ouMode                the OrganisationUnitSelectionMode.
      * @param lastUpdated           the last updated for PI.
+     * @param lastUpdatedDuration   the last updated duration filter.
      * @param program               the Program identifier.
      * @param programStatus         the ProgramStatus in the given program.
      * @param programStartDate      the start date for enrollment in the given
@@ -129,9 +130,10 @@ public interface ProgramInstanceService
      * @param includeDeleted        whether to include soft deleted ones
      * @return a ProgramInstanceQueryParams.
      */
-    ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated, String program,
-        ProgramStatus programStatus, Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
-        Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
+    ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated,
+        String lastUpdatedDuration, String program, ProgramStatus programStatus, Date programStartDate,
+        Date programEndDate, String trackedEntityType, String trackedEntityInstance, Boolean followUp, Integer page,
+        Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted );
 
     /**
      * Returns a list with program instance values based on the given

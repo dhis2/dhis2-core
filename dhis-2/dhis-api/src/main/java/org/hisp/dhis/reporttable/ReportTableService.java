@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporttable;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ public interface ReportTableService
      * @param reportTable the ReportTable to save.
      * @return the generated identifier.
      */
-    int saveReportTable( ReportTable reportTable );
+    long saveReportTable( ReportTable reportTable );
 
     /**
      * Updates a ReportTable.
@@ -74,7 +74,7 @@ public interface ReportTableService
      * @param id the identifier of the ReportTable to retrieve.
      * @return the ReportTable.
      */
-    ReportTable getReportTable( int id );
+    ReportTable getReportTable( long id );
 
     /**
      * Retrieves the ReportTable with the given uid.
@@ -111,6 +111,4 @@ public interface ReportTableService
     Grid getReportTableGrid( String uid, Date reportingPeriod, String organisationUnitUid );
 
     Grid getReportTableGridByUser( String uid, Date reportingPeriod, String organisationUnitUid, User user );
-
-    ReportTable getReportTable( String uid, String mode );
 }

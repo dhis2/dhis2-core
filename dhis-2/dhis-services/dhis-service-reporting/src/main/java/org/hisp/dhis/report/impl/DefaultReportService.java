@@ -1,7 +1,7 @@
 package org.hisp.dhis.report.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.report.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
@@ -44,9 +45,10 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -68,24 +70,28 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
  */
-@Transactional
+@Service( "org.hisp.dhis.report.ReportService" )
 public class DefaultReportService
     implements ReportService
 {
-    public static final String ORGUNIT_LEVEL_COLUMN_PREFIX = "idlevel";
-    public static final String ORGUNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
+    private static final Log log = LogFactory.getLog( DefaultReportService.class );
+
+    private static final String ORGUNIT_LEVEL_COLUMN_PREFIX = "idlevel";
+    private static final String ORGUNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
     private static final Encoder ENCODER = new Encoder();
 
@@ -93,68 +99,57 @@ public class DefaultReportService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<Report> reportStore;
+    private final IdentifiableObjectStore<Report> reportStore;
 
-    public void setReportStore( IdentifiableObjectStore<Report> reportStore )
+    private final ReportTableService reportTableService;
+
+    private final ConstantService constantService;
+
+    private final OrganisationUnitService organisationUnitService;
+
+    private final PeriodService periodService;
+
+    private final I18nManager i18nManager;
+
+    private final DataSource dataSource;
+
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultReportService(
+        @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore, ReportTableService reportTableService,
+        ConstantService constantService, OrganisationUnitService organisationUnitService, PeriodService periodService,
+        I18nManager i18nManager, DataSource dataSource, SystemSettingManager systemSettingManager )
     {
+        checkNotNull( reportStore );
+        checkNotNull( reportTableService );
+        checkNotNull( constantService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( periodService );
+        checkNotNull( i18nManager );
+        checkNotNull( dataSource );
+        checkNotNull( systemSettingManager );
+
         this.reportStore = reportStore;
-    }
-
-    private ReportTableService reportTableService;
-
-    public void setReportTableService( ReportTableService reportTableService )
-    {
         this.reportTableService = reportTableService;
-    }
-
-    private ConstantService constantService;
-
-    public void setConstantService( ConstantService constantService )
-    {
         this.constantService = constantService;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
         this.periodService = periodService;
-    }
-    
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
         this.i18nManager = i18nManager;
-    }
-
-    private DataSource dataSource;
-
-    public void setDataSource( DataSource dataSource )
-    {
         this.dataSource = dataSource;
+        this.systemSettingManager = systemSettingManager;
     }
-
-    @Autowired
-    private SystemSettingManager systemSettingManager;
 
     // -------------------------------------------------------------------------
     // ReportService implementation
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public JasperPrint renderReport( OutputStream out, String reportUid, Period period,
         String organisationUnitUid, String type )
     {
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         Report report = getReport( reportUid );
 
         Map<String, Object> params = new HashMap<>();
@@ -182,7 +177,9 @@ public class DefaultReportService
             params.put( PARAM_ORGANISATIONUNIT_UID_LEVEL_COLUMN, ORGUNIT_UID_LEVEL_COLUMN_PREFIX + level );
         }
 
-        JasperPrint print = null;
+        JasperPrint print;
+
+        log.debug( String.format( "Get report for report date: '%s', org unit: '%s'", DateUtils.getMediumDateString( reportDate ), organisationUnitUid ) );
 
         try
         {
@@ -201,8 +198,8 @@ public class DefaultReportService
                 if ( report.hasRelativePeriods() )
                 {
                     AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
-                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
-                        financialYearStart );
+
+                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false, financialYearStart );
 
                     String periodString = getCommaDelimitedString( getIdentifiers( periodService.reloadPeriods( relativePeriods ) ) );
                     String isoPeriodString = getCommaDelimitedString( IdentifiableObjectUtils.getUids( relativePeriods ) );
@@ -243,6 +240,7 @@ public class DefaultReportService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void renderHtmlReport( Writer writer, String uid, Date date, String ou )
     {
         Report report = getReport( uid );
@@ -250,9 +248,9 @@ public class DefaultReportService
         List<OrganisationUnit> organisationUnitHierarchy = new ArrayList<>();
         List<OrganisationUnit> organisationUnitChildren = new ArrayList<>();
         List<String> periods = new ArrayList<>();
-        
+
         I18nFormat format = i18nManager.getI18nFormat();
-        
+
         if ( ou != null )
         {
             organisationUnit = organisationUnitService.getOrganisationUnit( ou );
@@ -315,7 +313,8 @@ public class DefaultReportService
     }
 
     @Override
-    public int saveReport( Report report )
+    @Transactional
+    public long saveReport( Report report )
     {
         reportStore.save( report );
 
@@ -323,62 +322,58 @@ public class DefaultReportService
     }
 
     @Override
+    @Transactional
     public void deleteReport( Report report )
     {
         reportStore.delete( report );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Report> getAllReports()
     {
         return reportStore.getAll();
     }
 
     @Override
-    public Report getReport( int id )
+    @Transactional(readOnly = true)
+    public Report getReport( long id )
     {
         return reportStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Report getReport( String uid )
     {
         return reportStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getReportCount()
     {
         return reportStore.getCount();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getReportCountByName( String name )
     {
         return reportStore.getCountLikeName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Report> getReportsBetween( int first, int max )
     {
         return reportStore.getAllOrderedName( first, max );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Report> getReportsBetweenByName( String name, int first, int max )
     {
         return reportStore.getAllLikeName( name, first, max );
-    }
-
-    @Override
-    public List<Report> getReportByName( String name )
-    {
-        return reportStore.getAllEqName( name );
-    }
-
-    @Override
-    public List<Report> getReportsByUid( List<String> uids )
-    {
-        return reportStore.getByUid( uids );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ public interface TrackedEntityTypeService
      * @return A generated unique id of the added
      *         {@link TrackedEntityType}.
      */
-    int addTrackedEntityType( TrackedEntityType trackedEntityType );
+    long addTrackedEntityType( TrackedEntityType trackedEntityType );
 
     /**
      * Deletes a {@link TrackedEntityType}.
@@ -73,7 +73,7 @@ public interface TrackedEntityTypeService
      * 
      * @return the TrackedEntityType with the given id
      */
-    TrackedEntityType getTrackedEntityType( int id );
+    TrackedEntityType getTrackedEntityType( long id );
 
     /**
      * Returns a {@link TrackedEntityType}.

@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,15 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.api.util.DateUtils.getMediumDateString;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -54,15 +45,29 @@ import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.util.DateUtils.*;
 
 /**
  * @author Abyot Asalefew
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.program.ProgramInstanceStore" )
 public class HibernateProgramInstanceStore
     extends HibernateIdentifiableObjectStore<ProgramInstance>
     implements ProgramInstanceStore
@@ -73,17 +78,24 @@ public class HibernateProgramInstanceStore
             NotificationTrigger.getAllScheduledTriggers()
         );
 
+    public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, ProgramInstance.class, currentUserService, deletedObjectService,
+            aclService, true );
+    }
+
     @Override
     public int countProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildCountProgramInstanceHql( params );
 
-        Query query = getQuery( hql );
+        Query<Long> query = getTypedQuery( hql );
 
-        return ( Integer ) query.getSingleResult();
+        return query.getSingleResult().intValue();
     }
 
-    public String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
+    private String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
     {
         return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
     }
@@ -110,7 +122,12 @@ public class HibernateProgramInstanceStore
         String hql = "from ProgramInstance pi";
         SqlHelper hlp = new SqlHelper( true );
 
-        if ( params.hasLastUpdated() )
+        if ( params.hasLastUpdatedDuration() )
+        {
+            hql += hlp.whereAnd() +  "pi.lastUpdated >= '" +
+                getLongGmtDateString( nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
+        }
+        else if ( params.hasLastUpdated() )
         {
             hql += hlp.whereAnd() + "pi.lastUpdated >= '" + getMediumDateString( params.getLastUpdated() ) + "'";
         }

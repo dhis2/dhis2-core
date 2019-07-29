@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,17 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.program.ProgramStageDeletionHandler" )
 public class ProgramStageDeletionHandler
     extends DeletionHandler
 {
@@ -46,17 +50,15 @@ public class ProgramStageDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageService programStageService;
+    private final ProgramStageService programStageService;
 
-    public void setProgramStageService( ProgramStageService programStageService )
+    private final JdbcTemplate jdbcTemplate;
+
+    public ProgramStageDeletionHandler( ProgramStageService programStageService, JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( programStageService );
+        checkNotNull( jdbcTemplate );
         this.programStageService = programStageService;
-    }
-
-    private JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
         this.jdbcTemplate = jdbcTemplate;
     }
 

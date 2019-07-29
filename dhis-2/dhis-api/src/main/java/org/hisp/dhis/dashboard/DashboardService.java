@@ -1,7 +1,7 @@
 package org.hisp.dhis.dashboard;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,12 @@ public interface DashboardService
 
     DashboardSearchResult search( String query );
 
+    DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount );
+
     DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes );
-    
+
+    DashboardSearchResult search( Set<DashboardItemType> maxTypes, Integer count, Integer maxCount );
+
     DashboardSearchResult search( Set<DashboardItemType> maxTypes );
 
     DashboardItem addItemContent( String dashboardUid, DashboardItemType type, String contentUid );
@@ -61,13 +65,13 @@ public interface DashboardService
 
     void mergeDashboardItem( DashboardItem item );
 
-    int saveDashboard( Dashboard dashboard );
+    long saveDashboard( Dashboard dashboard );
 
     void updateDashboard( Dashboard dashboard );
 
     void deleteDashboard( Dashboard dashboard );
 
-    Dashboard getDashboard( int id );
+    Dashboard getDashboard( long id );
 
     Dashboard getDashboard( String uid );
 

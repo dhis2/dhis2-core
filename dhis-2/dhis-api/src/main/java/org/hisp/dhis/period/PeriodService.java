@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ public interface PeriodService
      * @param period the Period to add.
      * @return a generated unique id of the added Period.
      */
-    int addPeriod( Period period );
+    long addPeriod( Period period );
 
     /**
      * Deletes a Period.
@@ -66,7 +66,7 @@ public interface PeriodService
      * @param id the id of the Period to return.
      * @return the Period with the given id, or null if no match.
      */
-    Period getPeriod( int id );
+    Period getPeriod( long id );
 
     /**
      * Gets the Period with the given ISO period identifier.

@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -191,12 +191,8 @@ public class ExpressionUtils
         }
         catch ( JexlException | NumberFormatException ex )
         {
-            if ( ex.getMessage().contains( "divide error" ) )
-            {
-                return true; //TODO division by zero masking
-            }
-
-            return false;
+            // TODO division by zero masking
+            return ex.getMessage().contains( "divide error" );
         }
     }
 

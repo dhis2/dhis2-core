@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.jep;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ public class MinValue
     }
 
     // nFunk's JEP run() method uses the raw Stack type
+    @Override
     @SuppressWarnings( { "rawtypes", "unchecked" } )
     public void run( Stack inStack )
         throws ParseException
@@ -57,6 +58,13 @@ public class MinValue
 
         Object param = inStack.pop();
         List<Double> vals = CustomFunctions.checkVector( param );
+
+        if ( vals.size() == 0 )
+        {
+            inStack.push( 0 );
+            return;
+        }
+
         Double min = null;
         for ( Double v : vals )
         {
@@ -65,6 +73,6 @@ public class MinValue
                 min = v;
             }
         }
-        inStack.push( new Double( min ) );
+        inStack.push( min );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,9 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.time.DateUtils;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -39,6 +41,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -118,6 +121,11 @@ public class TrackedEntityInstanceQueryParams
     private Date lastUpdatedEndDate;
 
     /**
+     * The last updated duration filter.
+     */
+    private String lastUpdatedDuration;
+
+    /**
      * Start date for enrollment in the given program.
      */
     private Date programEnrollmentStartDate;
@@ -146,6 +154,16 @@ public class TrackedEntityInstanceQueryParams
      * Selection mode for the specified organisation units, default is ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode organisationUnitMode = OrganisationUnitSelectionMode.DESCENDANTS;
+    
+    /**
+     * Selection mode for user assignment of events.
+     */
+    private AssignedUserSelectionMode assignedUserSelectionMode;
+    
+    /**
+     * Set of user ids to filter based on events assigned to the users.
+     */
+    private Set<String> assignedUsers = new HashSet<>();
 
     /**
      * Status of any events in the specified program.
@@ -191,7 +209,7 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether to include soft-deleted elements
      */
     private boolean includeDeleted;
-    
+
     /**
      * Indicates whether to include all TEI attributes
      */
@@ -207,6 +225,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether the search is for synchronization purposes (for Program Data sync job).
      */
     private boolean synchronizationQuery;
+
+    /**
+     * Indicates a point in the time used to decide the data that should not be synchronized
+     */
+    private Date skipChangedBefore;
 
     /**
      * TEI order params
@@ -329,13 +352,45 @@ public class TrackedEntityInstanceQueryParams
             setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
         }
     }
-
+    
+    /**
+     * Prepares the assignedUsers list to the current user id, if the selection mode is CURRENT.
+     */
+    public void handleCurrentUserSelectionMode()
+    {
+        if ( AssignedUserSelectionMode.CURRENT.equals( this.assignedUserSelectionMode ) && this.user != null )
+        {
+            this.assignedUsers = Collections.singleton( this.user.getUid() );
+            this.assignedUserSelectionMode = AssignedUserSelectionMode.PROVIDED;
+        }
+    }
+    
+    public boolean hasAssignedUsers()
+    {
+        return this.assignedUsers != null && !this.assignedUsers.isEmpty();
+    }
+    
+    public boolean isIncludeOnlyUnassignedEvents()
+    {
+        return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
+    }
+    
+    public boolean isIncludeOnlyAssignedEvents()
+    {
+        return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
+    }
+    
     public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
         return this;
     }
-
+    
+    public boolean hasFilterForEvents()
+    {
+        return hasAssignedUsers() || isIncludeOnlyAssignedEvents() || isIncludeOnlyUnassignedEvents() || hasEventStatus();
+    }
+    
     /**
      * Add the given attributes to this params if they are not already present.
      */
@@ -501,14 +556,28 @@ public class TrackedEntityInstanceQueryParams
         return followUp != null;
     }
 
+    /**
+     * Indicates whether this parameters specifies a last updated start date.
+     */
     public boolean hasLastUpdatedStartDate()
     {
         return lastUpdatedStartDate != null;
     }
 
+    /**
+     * Indicates whether this parameters specifies a last updated end date.
+     */
     public boolean hasLastUpdatedEndDate()
     {
         return lastUpdatedEndDate != null;
+    }
+
+    /**
+     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     */
+    public boolean hasLastUpdatedDuration()
+    {
+        return lastUpdatedDuration != null;
     }
 
     /**
@@ -593,6 +662,35 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Indicates whether this parameters specifies a user.
+     */
+    public boolean hasUser()
+    {
+        return user != null;
+    }
+
+    /**
+     * Indicates whether filters are unique attributes.
+     */
+    public boolean hasUniqueFilters()
+    {
+        if ( !hasFilters() )
+        {
+            return false;
+        }
+
+        for ( QueryItem filter : filters )
+        {
+            if ( !filter.isUnique() )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Indicates whether paging is enabled.
      */
     public boolean isPaging()
@@ -641,13 +739,40 @@ public class TrackedEntityInstanceQueryParams
     @Override
     public String toString()
     {
-        return "[Query: " + query + ", Attributes: " + attributes + ", filters: " + filters +
-            ", program: " + program + ", program status " + programStatus + ", follow up: " + followUp +
-            ", program enrollemnt start date: " + programEnrollmentStartDate + ", program enrollment end date: " + programEnrollmentEndDate +
-            ", program incident start date: " + programIncidentStartDate + ", program incident end date: " + programIncidentEndDate +
-            ", tracked entity type: " + trackedEntityType + ", org unit mode: " + organisationUnitMode +
-            ", event start date: " + eventStartDate + ", event end date: " + eventEndDate +
-            ", event status: " + eventStatus + "]";
+        return MoreObjects.toStringHelper( this )
+            .add( "query", query )
+            .add( "attributes", attributes )
+            .add( "filters", filters )
+            .add( "organisationUnits", organisationUnits )
+            .add( "program", program )
+            .add( "programStatus", programStatus )
+            .add( "followUp", followUp )
+            .add( "lastUpdatedStartDate", lastUpdatedStartDate )
+            .add( "lastUpdatedEndDate", lastUpdatedEndDate )
+            .add( "lastUpdatedDuration", lastUpdatedDuration )
+            .add( "programEnrollmentStartDate", programEnrollmentStartDate )
+            .add( "programEnrollmentEndDate", programEnrollmentEndDate )
+            .add( "programIncidentStartDate", programIncidentStartDate )
+            .add( "programIncidentEndDate", programIncidentEndDate )
+            .add( "trackedEntityType", trackedEntityType )
+            .add( "organisationUnitMode", organisationUnitMode )
+            .add( "assignedUserSelectionMode", assignedUserSelectionMode )
+            .add( "assignedUsers", assignedUsers )
+            .add( "eventStatus", eventStatus )
+            .add( "eventStartDate", eventStartDate )
+            .add( "eventEndDate", eventEndDate )
+            .add( "skipMeta", skipMeta )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "totalPages", totalPages )
+            .add( "skipPaging", skipPaging )
+            .add( "includeDeleted", includeDeleted )
+            .add( "includeAllAttributes", includeAllAttributes )
+            .add( "internalSearch", internalSearch )
+            .add( "synchronizationQuery", synchronizationQuery )
+            .add( "skipChangedBefore", skipChangedBefore )
+            .add( "orders", orders )
+            .add( "user", user ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -750,6 +875,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setLastUpdatedEndDate( Date lastUpdatedEndDate )
     {
         this.lastUpdatedEndDate = lastUpdatedEndDate;
+        return this;
+    }
+
+    public String getLastUpdatedDuration()
+    {
+        return lastUpdatedDuration;
+    }
+
+    public TrackedEntityInstanceQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
+    {
+        this.lastUpdatedDuration = lastUpdatedDuration;
         return this;
     }
 
@@ -917,7 +1053,7 @@ public class TrackedEntityInstanceQueryParams
         this.includeDeleted = includeDeleted;
         return this;
     }
-    
+
     public boolean isIncludeAllAttributes()
     {
         return includeAllAttributes;
@@ -927,7 +1063,7 @@ public class TrackedEntityInstanceQueryParams
     {
         this.includeAllAttributes = includeAllAttributes;
         return this;
-    }    
+    }
 
     public boolean isInternalSearch()
     {
@@ -951,6 +1087,17 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
+    public Date getSkipChangedBefore()
+    {
+        return skipChangedBefore;
+    }
+
+    public TrackedEntityInstanceQueryParams setSkipChangedBefore( Date skipChangedBefore )
+    {
+        this.skipChangedBefore = skipChangedBefore;
+        return this;
+    }
+
     public User getUser()
     {
         return user;
@@ -971,4 +1118,28 @@ public class TrackedEntityInstanceQueryParams
     {
         this.orders = orders;
     }
+
+    public AssignedUserSelectionMode getAssignedUserSelectionMode()
+    {
+        return assignedUserSelectionMode;
+    }
+
+    public TrackedEntityInstanceQueryParams setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserMode )
+    {
+        this.assignedUserSelectionMode = assignedUserMode;
+        return this;
+    }
+
+    public Set<String> getAssignedUsers()
+    {
+        return assignedUsers;
+    }
+
+    public TrackedEntityInstanceQueryParams setAssignedUsers( Set<String> assignedUsers )
+    {
+        this.assignedUsers = assignedUsers;
+        return this;
+    }
+    
+    
 }

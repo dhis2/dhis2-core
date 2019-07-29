@@ -1,7 +1,7 @@
 package org.hisp.dhis.ouwt.manager;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,7 +117,7 @@ public class DefaultTreeStateManager
 
         Set<OrganisationUnit> collapsedUnits = new HashSet<>();
 
-        Set<Integer> treeState = getTreeState();
+        Set<Long> treeState = getTreeState();
 
         for ( OrganisationUnit unit : units )
         {
@@ -132,9 +132,9 @@ public class DefaultTreeStateManager
     }
 
     @SuppressWarnings( "unchecked" )
-    private Set<Integer> getTreeState()
+    private Set<Long> getTreeState()
     {
-        Set<Integer> treeState = (Set<Integer>) SessionUtils.getSessionVar( SESSION_KEY_TREE_STATE );
+        Set<Long> treeState = (Set<Long>) SessionUtils.getSessionVar( SESSION_KEY_TREE_STATE );
 
         if ( treeState == null )
         {

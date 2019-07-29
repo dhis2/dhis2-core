@@ -57,6 +57,9 @@ dhis2.de.categoryCombos = {};
 // Categories for data value attributes
 dhis2.de.categories = {};
 
+// LockExceptions
+dhis2.de.lockExceptions = [];
+
 // Array with keys {dataelementid}-{optioncomboid}-min/max with min/max values
 dhis2.de.currentMinMaxValueMap = [];
 
@@ -114,6 +117,7 @@ dhis2.de.cst.separator = '.';
 dhis2.de.cst.valueMaxLength = 50000;
 dhis2.de.cst.metaData = 'dhis2.de.cst.metaData';
 dhis2.de.cst.dataSetAssociations = 'dhis2.de.cst.dataSetAssociations';
+dhis2.de.cst.downloadBatchSize = 5;
 
 // Colors
 
@@ -335,7 +339,8 @@ dhis2.de.loadMetaData = function()
 	        dhis2.de.optionSets = metaData.optionSets;
 	        dhis2.de.defaultCategoryCombo = metaData.defaultCategoryCombo;
 	        dhis2.de.categoryCombos = metaData.categoryCombos;
-	        dhis2.de.categories = metaData.categories;	        
+	        dhis2.de.categories = metaData.categories;
+	        dhis2.de.lockExceptions = metaData.lockExceptions;
 	        def.resolve();
 	    }
 	} );
@@ -951,6 +956,27 @@ function getOptionComboName( optionComboId )
 	return dhis2.de.cst.defaultName;
 }
 
+function arrayChunk( array, size )
+{
+    if ( !array || !array.length )
+    {
+        return [];
+    }
+
+    if ( !size || size < 1 )
+    {
+        return array;
+    }
+
+    var groups = [];
+    var chunks = array.length / size;
+    for ( var i = 0, j = 0; i < chunks; i++, j += size )
+    {
+        groups[i] = array.slice(j, j + size);
+    }
+
+    return groups;
+}
 // ----------------------------------------------------------------------------
 // OrganisationUnit Selection
 // -----------------------------------------------------------------------------
@@ -1072,13 +1098,11 @@ function organisationUnitSelected( orgUnits, orgUnitNames, children )
 dhis2.de.fetchDataSets = function( ou )
 {
     var def = $.Deferred();
+    var fieldsParam = encodeURIComponent('id,dataSets[id],children[id,dataSets[id]]');
 
     $.ajax({
         type: 'GET',
-        url: '../api/organisationUnits/' + ou,
-        data: {
-            fields: encodeURIComponent('id,dataSets[id],children[id,dataSets[id]]')
-        }
+        url: '../api/organisationUnits/' + ou + '?fields=' + fieldsParam
     }).done(function(data) {
         dhis2.de._updateDataSets(data);
 
@@ -1777,6 +1801,10 @@ function insertDataValues( json )
         periodLocked = moment().isAfter( maxDate );
     }
 
+    var lockExceptionId = dhis2.de.currentOrganisationUnitId + "-" + dhis2.de.currentDataSetId + "-" + period.iso;
+
+    periodLocked = periodLocked && dhis2.de.lockExceptions.indexOf( lockExceptionId ) == -1;
+
     if ( json.locked || dhis2.de.blackListedPeriods.indexOf( period.iso ) > -1 || periodLocked )
 	{
 		dhis2.de.lockForm();
@@ -2099,7 +2127,7 @@ function registerCompleteDataSet( completedStatus )
 		return false;
     }
 	
-	dhis2.de.validate( true, function() 
+	dhis2.de.validate( completedStatus, true, function() 
     {
         var params = dhis2.de.storageManager.getCurrentCompleteDataSetParams();
 
@@ -2333,7 +2361,7 @@ dhis2.de.validateCompulsoryDataElements = function ()
  *        if validation is successful.
  * @param successCallback the function to execute if validation is successful.                                  
  */
-dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
+dhis2.de.validate = function( completeUncomplete, ignoreValidationSuccess, successCallback )
 {
 	var compulsoryCombinationsValid = dhis2.de.validateCompulsoryCombinations();
 
@@ -2347,7 +2375,14 @@ dhis2.de.validate = function( ignoreValidationSuccess, successCallback )
 	{
         if( !compulsoryDataElementsValid && !compulsoryFieldsCompleteOnly )
         {
-            setHeaderDelayMessage( i18n_complete_compulsory_notification );
+            if( completeUncomplete )
+            {
+                setHeaderDelayMessage( i18n_complete_compulsory_notification );
+            }
+            else
+            {
+                setHeaderDelayMessage( i18n_uncomplete_notification );
+            }
         }
         else
         {
@@ -2505,7 +2540,8 @@ dhis2.de.validateOrgUnitOpening = function(organisationUnit, period)
   var startDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.startDate );
   var endDate = dhis2.period.calendar.parseDate( dhis2.period.format, period.endDate );
 
-  if ( odate && startDate.compareTo( odate ) == -1 || cdate && endDate.compareTo( cdate ) == 1 ) {
+  if( ( cdate && cdate < startDate ) || odate > endDate )
+  {
     $( '#contentDiv input' ).attr( 'readonly', 'readonly' );
     $( '#contentDiv textarea' ).attr( 'readonly', 'readonly' );
     $( '.entrytrueonly' ).attr( 'onclick', 'return false;');
@@ -2584,9 +2620,11 @@ function updateForms()
 {
     DAO.store.open()
         .then(purgeLocalForms)
-        .then(updateExistingLocalForms)
+        .then(getLocalFormsToUpdate)
+        .then(downloadForms)
         .then(getUserSetting)
-        .then(downloadRemoteForms)
+        .then(getRemoteFormsToDownload)
+        .then(downloadForms)
         .then(dhis2.de.loadOptionSets)
         .done( function() {
             setDisplayNamePreferences();
@@ -2631,9 +2669,10 @@ function purgeLocalForms()
     return def.promise();
 }
 
-function updateExistingLocalForms()
+function getLocalFormsToUpdate()
 {
     var def = $.Deferred();
+    var formsToDownload = [];
 
     dhis2.de.storageManager.getAllForms().done(function( formIds ) {
         var formVersions = dhis2.de.storageManager.getAllFormVersions();
@@ -2646,20 +2685,20 @@ function updateExistingLocalForms()
 
             if ( remoteVersion == null || localVersion == null || remoteVersion != localVersion )
             {
-                dhis2.de.storageManager.downloadForm( item, remoteVersion )
+            	formsToDownload.push({id: item, version: remoteVersion});
             }
         } );
 
-        def.resolve();
+        def.resolve( formsToDownload );
     });
 
     return def.promise();
 }
 
-function downloadRemoteForms()
+function getRemoteFormsToDownload()
 {
     var def = $.Deferred();
-    var chain = [];
+    var formsToDownload = [];
 
     $.safeEach( dhis2.de.dataSets, function( idx, item )
     {
@@ -2669,19 +2708,76 @@ function downloadRemoteForms()
         {
             dhis2.de.storageManager.formExists( idx ).done(function( value ) {
                 if( !value ) {
-                    chain.push(dhis2.de.storageManager.downloadForm( idx, remoteVersion ));
+                	formsToDownload.push({id: idx, version: remoteVersion})
                 }
             });
         }
     } );
 
-    $.when.apply($, chain).then(function() {
-        def.resolve();
+    $.when.apply($, formsToDownload).then(function() {
+        def.resolve( formsToDownload );
     });
 
     return def.promise();
 }
 
+function downloadForms( forms )
+{
+    if ( !forms || !forms.length || forms.length < 1 )
+    {
+        return;
+    }
+
+    var batches = arrayChunk( forms, dhis2.de.cst.downloadBatchSize );
+
+    var mainDef = $.Deferred();
+    var mainPromise = mainDef.promise();
+
+    var batchDef = $.Deferred();
+    var batchPromise = batchDef.promise();
+
+    var builder = $.Deferred();
+    var build = builder.promise();
+
+    $.safeEach( batches, function ( idx, batch ) {
+        batchPromise = batchPromise.then(function(){
+            return downloadFormsInBatch( batch );
+        });
+    });
+
+    build.done(function() {
+        batchDef.resolve();
+        batchPromise = batchPromise.done( function () {
+            mainDef.resolve();
+        } );
+
+    }).fail(function(){
+        mainDef.resolve();
+    });
+
+    builder.resolve();
+
+    return mainPromise;
+}
+
+function downloadFormsInBatch( batch )
+{
+    var def = $.Deferred();
+    var chain = [];
+
+    $.safeEach( batch, function ( idx, item ) {
+        if ( item && item.id && item.version )
+        {
+            chain.push( dhis2.de.storageManager.downloadForm( item.id, item.version ) );
+        }
+    });
+
+    $.when.apply($, chain).then(function() {
+    	def.resolve( chain );
+    });
+
+    return def.promise();
+}
 // -----------------------------------------------------------------------------
 // StorageManager
 // -----------------------------------------------------------------------------

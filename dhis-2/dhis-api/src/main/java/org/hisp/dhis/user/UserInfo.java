@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class UserInfo
 {
-    private int id;
+    private long id;
     
     private String username;
     
@@ -48,7 +48,7 @@ public class UserInfo
     {
     }
     
-    public UserInfo( int id, String username, Set<String> authorities )
+    public UserInfo( long id, String username, Set<String> authorities )
     {
         this.id = id;
         this.username = username;
@@ -80,7 +80,7 @@ public class UserInfo
     // Get methods
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }

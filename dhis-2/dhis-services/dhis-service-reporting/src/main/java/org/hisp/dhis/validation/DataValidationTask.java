@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -55,7 +51,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.system.util.MathUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Calendar;
@@ -67,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.system.util.MathUtils.*;
 
@@ -77,6 +75,8 @@ import static org.hisp.dhis.system.util.MathUtils.*;
  *
  * @author Jim Grace
  */
+@Component( "validationTask" )
+@Scope( "prototype" )
 public class DataValidationTask
     implements ValidationTask
 {
@@ -86,17 +86,27 @@ public class DataValidationTask
 
     public final static String NON_AOC = ""; // String that is not an Attribute Option Combo
 
-    @Autowired
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
+
+    public DataValidationTask( ExpressionService expressionService, DataValueService dataValueService,
+        CategoryService categoryService, PeriodService periodService )
+    {
+        checkNotNull( expressionService );
+        checkNotNull( dataValueService );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+
+        this.expressionService = expressionService;
+        this.dataValueService = dataValueService;
+        this.categoryService = categoryService;
+        this.periodService = periodService;
+    }
 
     // (wired through constructor)
     private AnalyticsService analyticsService;
@@ -113,16 +123,16 @@ public class DataValidationTask
 
     private OrganisationUnit orgUnit;       // Current organisation unit.
 
-    private int orgUnitId;                  // Current organisation unit id.
+    private long orgUnitId;                  // Current organisation unit id.
 
     private ValidationRuleExtended ruleX;   // Current rule extended.
 
     // Data for current period and all rules being evaluated:
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> dataMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Double> dataMap;
 
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> eventMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Double> eventMap;
 
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> slidingWindowEventMap;
+    private MapMapMap<Long, String, DimensionalItemObject, Double> slidingWindowEventMap;
 
     public void init( List<OrganisationUnit> orgUnits, ValidationRunContext context, AnalyticsService analyticsService )
     {
@@ -363,7 +373,7 @@ public class DataValidationTask
         }
     }
 
-    private Period getPeriod( int id )
+    private Period getPeriod( long id )
     {
         Period p = context.getPeriodIdMap().get( id );
 
@@ -381,7 +391,7 @@ public class DataValidationTask
         return p;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( int id )
+    private CategoryOptionCombo getAttributeOptionCombo( long id )
     {
         CategoryOptionCombo aoc = context.getAocIdMap().get( id );
 
@@ -432,7 +442,7 @@ public class DataValidationTask
      * @return map of values.
      */
     private Map<String, Double> getExpressionValueMap( Expression expression,
-        MapMapMap<Integer, String, DimensionalItemObject, Double> valueMap )
+        MapMapMap<Long, String, DimensionalItemObject, Double> valueMap )
     {
         Map<String, Double> expressionValueMap = new HashMap<>();
 
@@ -463,7 +473,7 @@ public class DataValidationTask
                 values.putAll( nonAocValues );
             }
 
-            Double value = expressionService.getExpressionValue( expression, values,
+            Double value = expressionService.getExpressionValueRegEx( expression, values,
                 context.getConstantMap(), null, period.getDaysInPeriod() );
 
             if ( MathUtils.isValidDouble( value ) )
@@ -498,7 +508,7 @@ public class DataValidationTask
 
         dataMap = new MapMapMap<>();
 
-        MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates = new MapMapMap<>();
+        MapMapMap<Long, String, DimensionalItemObject, Long> checkForDuplicates = new MapMapMap<>();
 
         for ( DeflatedDataValue dv : dataValues )
         {
@@ -506,7 +516,7 @@ public class DataValidationTask
             String deoIdKey = periodTypeX.getDeoIds( dv.getDataElementId(), dv.getCategoryOptionComboId() );
             DataElementOperand dataElementOperand = periodTypeX.getDataElementOperandIdMap().get( deoIdKey );
             Period p = getPeriod( dv.getPeriodId() );
-            int orgUnitId = dv.getSourceId();
+            long orgUnitId = dv.getSourceId();
             String attributeOptionComboUid = getAttributeOptionCombo( dv.getAttributeOptionComboId() ).getUid();
             String valueString = dv.getValue();
             Double value;
@@ -533,8 +543,8 @@ public class DataValidationTask
         }
     }
 
-    private void addValueToDataMap( int orgUnitId, String aocUid, DimensionalItemObject dimItemObject,
-        Double value, Period p, MapMapMap<Integer, String, DimensionalItemObject, Long> checkForDuplicates )
+    private void addValueToDataMap( long orgUnitId, String aocUid, DimensionalItemObject dimItemObject,
+        Double value, Period p, MapMapMap<Long, String, DimensionalItemObject, Long> checkForDuplicates )
     {
         double existingValue = ObjectUtils.firstNonNull( dataMap.getValue( orgUnitId, aocUid, dimItemObject ), 0.0 );
 
@@ -564,7 +574,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventMap(
+    private MapMapMap<Long, String, DimensionalItemObject, Double> getEventMap(
         boolean hasAttributeOptions, Set<DimensionalItemObject> eventItems )
     {
         if ( eventItems.isEmpty() )
@@ -591,7 +601,7 @@ public class DataValidationTask
      *
      * @param hasAttributeOptions whether the event data has attribute options.
      */
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
+    private MapMapMap<Long, String, DimensionalItemObject, Double> getEventMapForSlidingWindow(
         boolean hasAttributeOptions, Set<DimensionalItemObject> eventItems )
     {
         if ( eventItems.isEmpty() )
@@ -641,10 +651,10 @@ public class DataValidationTask
      * @param hasAttributeOptions whether the event data has attribute options.
      * @return event data.
      */
-    private MapMapMap<Integer, String, DimensionalItemObject, Double> getEventData(
+    private MapMapMap<Long, String, DimensionalItemObject, Double> getEventData(
         DataQueryParams params, boolean hasAttributeOptions )
     {
-        MapMapMap<Integer, String, DimensionalItemObject, Double> map = new MapMapMap<>();
+        MapMapMap<Long, String, DimensionalItemObject, Double> map = new MapMapMap<>();
 
         Grid grid = analyticsService.getAggregatedDataValues( params );
 
@@ -654,9 +664,9 @@ public class DataValidationTask
         int vlInx = grid.getWidth() - 1;
 
         Map<String, OrganisationUnit> ouLookup = orgUnits.stream()
-            .collect( Collectors.toMap( o -> o.getUid(), o -> o ) );
+            .collect( Collectors.toMap(BaseIdentifiableObject::getUid, o -> o ) );
         Map<String, DimensionalItemObject> dxLookup = periodTypeX.getEventItems().stream()
-            .collect( Collectors.toMap( d -> d.getDimensionItem(), d -> d ) );
+            .collect( Collectors.toMap(DimensionalItemObject::getDimensionItem, d -> d ) );
 
         for ( List<Object> row : grid.getRows() )
         {

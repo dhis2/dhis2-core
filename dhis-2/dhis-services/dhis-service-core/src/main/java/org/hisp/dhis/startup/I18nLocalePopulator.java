@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,10 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.i18n.I18nLocaleService;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Populates default I18nLocales if none exists.
@@ -49,8 +50,14 @@ public class I18nLocalePopulator
 {
     private static final Log log = LogFactory.getLog( I18nLocalePopulator.class );
 
-    @Autowired
-    private I18nLocaleService localeService;
+    private final I18nLocaleService localeService;
+
+    public I18nLocalePopulator( I18nLocaleService localeService )
+    {
+        checkNotNull( localeService );
+
+        this.localeService = localeService;
+    }
 
     private static final ImmutableSet<String> DEFAULT_LOCALES = ImmutableSet.of(
         "af","ar","bi","am","de","dz","en","es","fa","fr","gu","hi","id","it",

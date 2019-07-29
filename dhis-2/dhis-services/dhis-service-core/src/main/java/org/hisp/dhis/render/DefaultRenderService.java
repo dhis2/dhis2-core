@@ -1,7 +1,7 @@
 package org.hisp.dhis.render;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.PrecisionModel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -54,7 +56,7 @@ import org.hisp.dhis.hibernate.objectmapper.WriteDateStdSerializer;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
@@ -67,11 +69,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Default implementation that uses Jackson to serialize/deserialize
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.render.RenderService" )
 public class DefaultRenderService
     implements RenderService
 {
@@ -81,8 +86,14 @@ public class DefaultRenderService
 
     private static final XmlMapper xmlMapper = new XmlMapper();
 
-    @Autowired
     private SchemaService schemaService;
+
+    public DefaultRenderService( SchemaService schemaService )
+    {
+        checkNotNull( schemaService );
+
+        this.schemaService = schemaService;
+    }
 
     //--------------------------------------------------------------------------
     // RenderService
@@ -302,7 +313,7 @@ public class DefaultRenderService
 
         for ( ObjectMapper objectMapper : objectMappers )
         {
-            objectMapper.registerModules( module, new JtsModule(  ) );
+            objectMapper.registerModules( module, new JtsModule( new GeometryFactory( new PrecisionModel(), 4326 ) ) );
 
             objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
             objectMapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
@@ -311,6 +322,7 @@ public class DefaultRenderService
             objectMapper.enable( SerializationFeature.WRAP_EXCEPTIONS );
 
             objectMapper.disable( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES );
+            objectMapper.disable( DeserializationFeature.FAIL_ON_MISSING_EXTERNAL_TYPE_ID_PROPERTY );
             objectMapper.enable( DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES );
             objectMapper.enable( DeserializationFeature.WRAP_EXCEPTIONS );
 

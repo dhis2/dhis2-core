@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,20 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.common.DigitGroupSeparator;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.common.cache.Cacheability;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.sms.config.SmsConfiguration;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -37,18 +51,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
-import org.hisp.dhis.common.DigitGroupSeparator;
-import org.hisp.dhis.common.cache.Cacheability;
-import org.hisp.dhis.configuration.Configuration;
-import org.hisp.dhis.fileresource.FileResourceRetentionStrategy;
-import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.sms.config.SmsConfiguration;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
@@ -56,7 +58,7 @@ public enum SettingKey
 {
     UI_LOCALE( "keyUiLocale", LocaleManager.DEFAULT_LOCALE, Locale.class ),
     DB_LOCALE( "keyDbLocale", Locale.class ),
-    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", "name", String.class ),
+    ANALYSIS_DISPLAY_PROPERTY( "keyAnalysisDisplayProperty", DisplayProperty.NAME, DisplayProperty.class ),
     ANALYSIS_DIGIT_GROUP_SEPARATOR( "keyAnalysisDigitGroupSeparator", DigitGroupSeparator.SPACE, DigitGroupSeparator.class ),
     CURRENT_DOMAIN_TYPE( "keyCurrentDomainType" ),
     AUTO_SAVE_CASE_ENTRY_FORM( "keyAutoSaveCaseEntryForm", Boolean.FALSE, Boolean.class ),
@@ -81,7 +83,7 @@ public enum SettingKey
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 40, Integer.class ),
     SMS_CONFIG( "keySmsSetting", SmsConfiguration.class ),
-    CACHE_STRATEGY( "keyCacheStrategy", "CACHE_6AM_TOMORROW", String.class ),
+    CACHE_STRATEGY( "keyCacheStrategy", CacheStrategy.CACHE_6AM_TOMORROW, CacheStrategy.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
     CACHE_ANALYTICS_DATA_YEAR_THRESHOLD( "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
     ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
@@ -114,6 +116,7 @@ public enum SettingKey
     LAST_SUCCESSFUL_DATA_VALUE_SYNC( "keyLastSuccessfulDataSynch", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_EVENT_DATA_SYNC( "keyLastSuccessfulEventsDataSynch", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC( "keyLastCompleteDataSetRegistrationSyncSuccess", new Date( 0 ), Date.class ),
+    SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE( "syncSkipSyncForDataChangedBefore", new Date( 0 ), Date.class ),
     LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE( "keyLastSuccessfulAnalyticsTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE( "keyLastSuccessfulResourceTablesUpdate", Date.class ),
     LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH( "keyLastSuccessfulSystemMonitoringPush", Date.class ),
@@ -121,7 +124,7 @@ public enum SettingKey
     HELP_PAGE_LINK( "helpPageLink", "https://dhis2.github.io/dhis2-docs/master/en/user/html/dhis2_user_manual_en.html", String.class ),
     ACCEPTANCE_REQUIRED_FOR_APPROVAL( "keyAcceptanceRequiredForApproval", Boolean.FALSE, Boolean.class ),
     SYSTEM_NOTIFICATIONS_EMAIL( "keySystemNotificationsEmail" ),
-    ANALYSIS_RELATIVE_PERIOD( "keyAnalysisRelativePeriod", "LAST_12_MONTHS", String.class ),
+    ANALYSIS_RELATIVE_PERIOD( "keyAnalysisRelativePeriod", RelativePeriodEnum.LAST_12_MONTHS, RelativePeriodEnum.class ),
     REQUIRE_ADD_TO_VIEW( "keyRequireAddToView", Boolean.FALSE, Boolean.class ),
     ALLOW_OBJECT_ASSIGNMENT( "keyAllowObjectAssignment", Boolean.FALSE, Boolean.class ),
     USE_CUSTOM_LOGO_FRONT( "keyUseCustomLogoFront", Boolean.FALSE, Boolean.class ),
@@ -158,9 +161,6 @@ public enum SettingKey
     SYSTEM_METADATA_VERSION( "keySystemMetadataVersion", String.class ),
     STOP_METADATA_SYNC( "keyStopMetadataSync", Boolean.FALSE, Boolean.class ),
     FILE_RESOURCE_RETENTION_STRATEGY( "keyFileResourceRetentionStrategy", FileResourceRetentionStrategy.NONE, FileResourceRetentionStrategy.class ),
-    TRACKER_SYNC_PAGE_SIZE( "syncTrackerPageSize", 20, Integer.class ),
-    EVENT_SYNC_PAGE_SIZE( "syncEventsPageSize", 60, Integer.class ),
-    DATA_VALUES_SYNC_PAGE_SIZE( "syncDataValuesPageSize", 10000, Integer.class ),
     MAX_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncMaxRemoteServerAvailabilityCheckAttempts", 3, Integer.class ),
     MAX_SYNC_ATTEMPTS( "syncMaxAttempts", 3, Integer.class ),
     DELAY_BETWEEN_REMOTE_SERVER_AVAILABILITY_CHECK_ATTEMPTS( "syncDelayBetweenRemoteServerAvailabilityCheckAttempts", 500, Integer.class ),
@@ -175,10 +175,6 @@ public enum SettingKey
     LOGGING_ADAPTER_FILE_NAME( "keyLoggingFileName", "dhis2.log", String.class ),
     LOGGING_ADAPTER_FILE_LEVEL( "keyLoggingFileLevel", "INFO", String.class ),
     LOGGING_ADAPTER_FILE_FORMAT( "keyLoggingFileFormat", "JSON", String.class ),
-    LOGGING_ADAPTER_KAFKA( "keyLoggingKafka", Boolean.FALSE, Boolean.class ),
-    LOGGING_ADAPTER_KAFKA_LEVEL( "keyLoggingKafkaLevel", "INFO", String.class ),
-    LOGGING_ADAPTER_KAFKA_FORMAT( "keyLoggingKafkaFormat", "JSON", String.class ),
-    LOGGING_ADAPTER_KAFKA_TOPIC( "keyLoggingKafkaTopic", "dhis2-log", String.class ),
     ANALYTICS_HIDE_DAILY_PERIODS( "keyHideDailyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_WEEKLY_PERIODS( "keyHideWeeklyPeriods", Boolean.FALSE, Boolean.class ),
     ANALYTICS_HIDE_MONTHLY_PERIODS( "keyHideMonthlyPeriods", Boolean.FALSE, Boolean.class ),
@@ -247,6 +243,7 @@ public enum SettingKey
         return Optional.empty();
     }
 
+    @SuppressWarnings( "unchecked" )
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<SettingKey> setting = getByName( name );
@@ -293,6 +290,10 @@ public enum SettingKey
                 LocalDateTime dateTime = LocalDateTime.parse( value );
 
                 return Date.from( dateTime.atZone( ZoneId.systemDefault() ).toInstant() );
+            }
+            else if ( Enum.class.isAssignableFrom( settingClazz ) )
+            {
+                return Enum.valueOf( (Class<? extends Enum>) settingClazz, value.toUpperCase() );
             }
 
             //TODO handle Dates

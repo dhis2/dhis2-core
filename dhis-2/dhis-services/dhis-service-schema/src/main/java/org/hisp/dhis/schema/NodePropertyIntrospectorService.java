@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
 {
     private static final Log log = LogFactory.getLog( NodePropertyIntrospectorService.class );
 
-    public Property setPropertyIfCollection( Property property, Field field, Class klass )
+    public Property setPropertyIfCollection( Property property, Field field, Class<?> klass )
     {
         property.setCollection( true );
         property.setCollectionName( field.getName() );

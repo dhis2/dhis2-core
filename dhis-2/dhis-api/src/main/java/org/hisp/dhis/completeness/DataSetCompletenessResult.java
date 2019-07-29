@@ -1,7 +1,7 @@
 package org.hisp.dhis.completeness;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ public class DataSetCompletenessResult
     // organisationUnitGroupId, value
     // -------------------------------------------------------------------------
 
-    private int dataSetId;
+    private long dataSetId;
 
     // -------------------------------------------------------------------------
     // Properties 2
@@ -129,7 +129,7 @@ public class DataSetCompletenessResult
     }
 
     @Override
-    public int getElementId()
+    public long getElementId()
     {
         return dataSetId;
     }
@@ -189,12 +189,12 @@ public class DataSetCompletenessResult
     // Getters and setters 1
     // -------------------------------------------------------------------------
 
-    public int getDataSetId()
+    public long getDataSetId()
     {
         return dataSetId;
     }
 
-    public void setDataSetId( int dataSetId )
+    public void setDataSetId( long dataSetId )
     {
         this.dataSetId = dataSetId;
     }

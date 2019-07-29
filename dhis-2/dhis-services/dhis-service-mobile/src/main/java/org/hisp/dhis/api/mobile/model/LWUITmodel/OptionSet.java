@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,7 @@ private String clientVersion;
         throws IOException
     {
 
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.options.size() );
 
@@ -90,7 +90,7 @@ private String clientVersion;
     public void deSerialize( DataInputStream dint )
         throws IOException
     {
-        int id = dint.readInt();
+        long id = dint.readLong();
         if ( id != 0 )
         {
             this.setId( id );

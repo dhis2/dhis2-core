@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataentryform;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,7 +112,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryFormA = createDataEntryForm( 'A' );
 
-        int dataEntryFormAid = dataEntryFormService.addDataEntryForm( dataEntryFormA );
+        long dataEntryFormAid = dataEntryFormService.addDataEntryForm( dataEntryFormA );
 
         dataEntryFormA = dataEntryFormService.getDataEntryForm( dataEntryFormAid );
 
@@ -129,7 +129,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormService.addDataEntryForm( dataEntryForm );
+        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
 
         dataEntryForm = dataEntryFormService.getDataEntryForm( id );
 
@@ -153,7 +153,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormService.addDataEntryForm( dataEntryForm );
+        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
 
         dataEntryForm = dataEntryFormService.getDataEntryForm( id );
 
@@ -173,7 +173,7 @@ public class DataEntryFormServiceTest
 
         DataEntryForm dataEntryForm = createDataEntryForm( 'A' );
 
-        int id = dataEntryFormService.addDataEntryForm( dataEntryForm );
+        long id = dataEntryFormService.addDataEntryForm( dataEntryForm );
 
         dataEntryForm = dataEntryFormService.getDataEntryForm( id );
 

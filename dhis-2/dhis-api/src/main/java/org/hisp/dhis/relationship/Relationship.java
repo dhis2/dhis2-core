@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,6 @@ public class Relationship
      */
     private static final long serialVersionUID = 3818815755138507997L;
 
-    private int id;
-
     private RelationshipType relationshipType;
 
     private RelationshipItem from;
@@ -77,22 +75,6 @@ public class Relationship
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
-
-    /**
-     * @return the id
-     */
-    public int getId()
-    {
-        return id;
-    }
-
-    /**
-     * @param id the id to set
-     */
-    public void setId( int id )
-    {
-        this.id = id;
-    }
 
     /**
      * @return the relationshipType

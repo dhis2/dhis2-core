@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.model;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ public class ActivityValue
 {
     private String clientVersion;
 
-    private int programInstanceId;
+    private long programInstanceId;
 
     private List<DataValue> dataValues = new ArrayList<>();
 
@@ -47,12 +47,12 @@ public class ActivityValue
     {
     }
 
-    public void setProgramInstanceId( int programInstanceId )
+    public void setProgramInstanceId( long programInstanceId )
     {
         this.programInstanceId = programInstanceId;
     }
 
-    public int getProgramInstanceId()
+    public long getProgramInstanceId()
     {
         return programInstanceId;
     }
@@ -91,7 +91,7 @@ public class ActivityValue
     {
         DataInputStream din = new DataInputStream( dataInputStream );
 
-        this.setProgramInstanceId( din.readInt() );
+        this.setProgramInstanceId( din.readLong() );
 
         int size = din.readInt();
 

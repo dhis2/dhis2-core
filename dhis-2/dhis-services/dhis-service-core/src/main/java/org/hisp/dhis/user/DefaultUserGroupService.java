@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,20 @@ package org.hisp.dhis.user;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
-@Transactional
+@Service( "org.hisp.dhis.user.UserGroupService" )
 public class DefaultUserGroupService
     implements UserGroupService
 {
@@ -48,31 +52,25 @@ public class DefaultUserGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<UserGroup> userGroupStore;
+    private final IdentifiableObjectStore<UserGroup> userGroupStore;
 
-    public void setUserGroupStore( IdentifiableObjectStore<UserGroup> userGroupStore )
+    private final CurrentUserService currentUserService;
+
+    private final AclService aclService;
+
+    private final HibernateCacheManager cacheManager;
+
+    public DefaultUserGroupService( @Qualifier("org.hisp.dhis.user.UserGroupStore") IdentifiableObjectStore<UserGroup> userGroupStore,
+        CurrentUserService currentUserService, AclService aclService, HibernateCacheManager cacheManager )
     {
+        checkNotNull( userGroupStore );
+        checkNotNull( currentUserService );
+        checkNotNull( aclService );
+        checkNotNull( cacheManager );
+
         this.userGroupStore = userGroupStore;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private AclService aclService;
-
-    public void setAclService( AclService aclService )
-    {
         this.aclService = aclService;
-    }
-
-    private HibernateCacheManager cacheManager;
-
-    public void setCacheManager( HibernateCacheManager cacheManager )
-    {
         this.cacheManager = cacheManager;
     }
 
@@ -81,19 +79,22 @@ public class DefaultUserGroupService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addUserGroup( UserGroup userGroup )
+    @Transactional
+    public long addUserGroup( UserGroup userGroup )
     {
         userGroupStore.save( userGroup );
         return userGroup.getId();
     }
 
     @Override
+    @Transactional
     public void deleteUserGroup( UserGroup userGroup )
     {
         userGroupStore.delete( userGroup );
     }
 
     @Override
+    @Transactional
     public void updateUserGroup( UserGroup userGroup )
     {
         userGroupStore.update( userGroup );
@@ -104,30 +105,35 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<UserGroup> getAllUserGroups()
     {
         return userGroupStore.getAll();
     }
 
     @Override
-    public UserGroup getUserGroup( int userGroupId )
+    @Transactional( readOnly = true )
+    public UserGroup getUserGroup( long userGroupId )
     {
         return userGroupStore.get( userGroupId );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public UserGroup getUserGroup( String uid )
     {
         return userGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean canAddOrRemoveMember( String uid )
     {
         return canAddOrRemoveMember( uid, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean canAddOrRemoveMember( String uid, User currentUser )
     {
         UserGroup userGroup = getUserGroup( uid );
@@ -144,12 +150,14 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional
     public void addUserToGroups( User user, Collection<String> uids )
     {
         addUserToGroups( user, uids, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional
     public void addUserToGroups( User user, Collection<String> uids, User currentUser )
     {
         for ( String uid : uids )
@@ -164,6 +172,7 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional
     public void removeUserFromGroups( User user, Collection<String> uids )
     {
         for ( String uid : uids )
@@ -178,12 +187,14 @@ public class DefaultUserGroupService
     }
 
     @Override
+    @Transactional
     public void updateUserGroups( User user, Collection<String> uids )
     {
         updateUserGroups( user, uids, currentUserService.getCurrentUser() );
     }
 
     @Override
+    @Transactional
     public void updateUserGroups( User user, Collection<String> uids, User currentUser )
     {
         Collection<UserGroup> updates = getUserGroupsByUid( uids );
@@ -206,38 +217,43 @@ public class DefaultUserGroupService
         }
     }
 
-    public Collection<UserGroup> getUserGroupsByUid( Collection<String> uids )
+    private Collection<UserGroup> getUserGroupsByUid( Collection<String> uids )
     {
         return userGroupStore.getByUid( uids );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<UserGroup> getUserGroupByName( String name )
     {
         return userGroupStore.getAllEqName( name );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public int getUserGroupCount()
     {
         return userGroupStore.getCount();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public int getUserGroupCountByName( String name )
     {
         return userGroupStore.getCountLikeName( name );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<UserGroup> getUserGroupsBetween( int first, int max )
     {
         return userGroupStore.getAllOrderedName( first, max );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
-        return userGroupStore.getAllLikeName( name, first, max );
+        return userGroupStore.getAllLikeName( name, first, max, false );
     }
 }

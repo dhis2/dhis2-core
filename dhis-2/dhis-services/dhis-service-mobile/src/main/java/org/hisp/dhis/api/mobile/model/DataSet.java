@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.model;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,7 +127,7 @@ public class DataSet
     public void serializeVersion2_8( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.getVersion() );
         dout.writeUTF( this.getPeriodType() );
@@ -151,7 +151,7 @@ public class DataSet
     public void serializeVersion2_9( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.getVersion() );
         dout.writeUTF( this.getPeriodType() );
@@ -175,7 +175,7 @@ public class DataSet
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
     {
-        this.setId( dataInputStream.readInt() );
+        this.setId( dataInputStream.readLong() );
         this.setName( dataInputStream.readUTF() );
         this.setVersion( dataInputStream.readInt() );
         this.setPeriodType( dataInputStream.readUTF() );
@@ -194,7 +194,7 @@ public class DataSet
     public void serializeVersion2_10( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( this.getName() );
         dout.writeInt( this.getVersion() );
         dout.writeUTF( this.getPeriodType() );
@@ -217,7 +217,7 @@ public class DataSet
     @Override
     public int hashCode()
     {
-        return this.getId();
+        return Long.hashCode( this.getId() );
     }
 
     @Override

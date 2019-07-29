@@ -1,7 +1,7 @@
 package org.hisp.dhis.ouwt.interceptor;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import java.util.List;
  */
 public class TreeNode
 {
-    private int id;
+    private long id;
 
     private String name;
 
@@ -60,12 +60,12 @@ public class TreeNode
         this.children = children;
     }
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }

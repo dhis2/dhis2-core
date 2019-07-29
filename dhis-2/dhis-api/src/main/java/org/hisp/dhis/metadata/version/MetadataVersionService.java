@@ -1,7 +1,7 @@
 package org.hisp.dhis.metadata.version;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ public interface MetadataVersionService
      * @param version the metadata version object to add.
      * @return the identifier of the saved version object.
      */
-    int addVersion( MetadataVersion version );
+    long addVersion( MetadataVersion version );
 
     /**
      * Updates the metadata version.
@@ -65,7 +65,7 @@ public interface MetadataVersionService
      * @param id   the identifier.
      * @param name the name.
      */
-    void updateVersionName( int id, String name );
+    void updateVersionName( long id, String name );
 
     /**
      * @param version Version object to delete.
@@ -78,7 +78,7 @@ public interface MetadataVersionService
      * @param id Key to lookup the value with.
      * @return Version that matched key, or null if there was no match.
      */
-    MetadataVersion getVersionById( int id );
+    MetadataVersion getVersionById( long id );
 
     /**
      * @return List of all version objects.

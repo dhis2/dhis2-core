@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,9 +46,9 @@ public interface FacilityReportingService
 
     List<DataSet> getMobileDataSetsForUnit( OrganisationUnit unit, String localeString );
 
-    DataSet getDataSet( int id );
+    DataSet getDataSet( long id );
 
-    DataSet getDataSetForLocale( int dataSetId, Locale locale );
+    DataSet getDataSetForLocale( long dataSetId, Locale locale );
 
     void saveDataSetValues( OrganisationUnit unit, DataSetValue dataSetValue )
         throws NotAllowedException;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -294,7 +294,7 @@ public class App
     {
         this.authorities = authorities;
     }
-    
+
     @JsonProperty
     public AppStatus getAppState()
     {
@@ -359,14 +359,19 @@ public class App
 
     public String getUrlFriendlyName()
     {
-        String result = name.replaceAll("[^A-Za-z0-9 -]", "");
-        result = result.replaceAll(" ", "-");
+        if ( name != null )
+        {
+            return name
+                .trim()
+                .replaceAll( "[^A-Za-z0-9\\s-]", "" )
+                .replaceAll( " ", "-" );
+        }
 
-        return result;
+        return null;
     }
 
     public String getSeeAppAuthority()
     {
-        return  SEE_APP_AUTHORITY_PREFIX + name.trim().replaceAll( "[^a-zA-Z0-9\\s]","" ).replaceAll( " ", "_" );
+        return SEE_APP_AUTHORITY_PREFIX + name.trim().replaceAll( "[^a-zA-Z0-9\\s]","" ).replaceAll( " ", "_" );
     }
 }

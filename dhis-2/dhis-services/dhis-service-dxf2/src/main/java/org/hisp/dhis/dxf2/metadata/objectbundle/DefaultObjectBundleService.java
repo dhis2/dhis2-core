@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,7 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
+@Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
 @Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {
@@ -241,7 +241,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         {
             IdentifiableObject object = objects.get( idx );
 
-            ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+            ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 
@@ -340,7 +340,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             IdentifiableObject object = objects.get( idx );
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
-            ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+            ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 
@@ -444,7 +444,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
         for ( int idx = 0; idx < persistedObjects.size(); idx++ )
         {
             IdentifiableObject object = persistedObjects.get( idx );
-            ObjectReport objectReport = new ObjectReport( klass, idx, object.getUid() );
+            ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
 

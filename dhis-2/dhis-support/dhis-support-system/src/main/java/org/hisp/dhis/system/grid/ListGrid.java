@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.grid;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -259,6 +259,7 @@ public class ListGrid
             .collect( Collectors.toList() );
     }
 
+    @Override
     public List<GridHeader> getMetadataHeaders()
     {
         return headers.stream()

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.systemsettings;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,16 @@ package org.hisp.dhis.dxf2.metadata.systemsettings;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 /**
  * Provide the endpoints for api calls in metadata versioning
  *
  * @author anilkumk.
  */
-
+@Service( "org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" )
+@Scope("prototype")
 public class DefaultMetadataSystemSettingService
     implements MetadataSystemSettingService
 {

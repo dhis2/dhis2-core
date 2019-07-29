@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@ package org.hisp.dhis.organisationunit;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.hisp.dhis.common.SortProperty;
 
 import com.google.common.base.MoreObjects;
 
@@ -78,6 +80,11 @@ public class OrganisationUnitQueryParams
      * Whether to fetch children eagerly.
      */
     private boolean fetchChildren;
+
+    /**
+     * Property used for sorting, default value is {@link SortProperty#NAME}.
+     */
+    private SortProperty orderBy = SortProperty.NAME;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -214,5 +221,18 @@ public class OrganisationUnitQueryParams
     public void setFetchChildren( boolean fetchChildren )
     {
         this.fetchChildren = fetchChildren;
+    }
+
+    public SortProperty getOrderBy()
+    {
+        return orderBy;
+    }
+
+    public void setOrderBy( SortProperty orderBy )
+    {
+        if ( orderBy != null )
+        {
+            this.orderBy = orderBy;
+        }
     }
 }

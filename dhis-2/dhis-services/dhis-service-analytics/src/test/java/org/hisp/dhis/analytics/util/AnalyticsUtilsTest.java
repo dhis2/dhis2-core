@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.util;
 import com.google.common.collect.Lists;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
@@ -45,6 +46,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.*;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -378,6 +380,14 @@ public class AnalyticsUtilsTest
     }
 
     @Test
+    public void testGetColumnType()
+    {
+        assertEquals( ColumnDataType.BIGINT, AnalyticsUtils.getColumnType( ValueType.INTEGER, true ) );
+        assertEquals( ColumnDataType.GEOMETRY_POINT, AnalyticsUtils.getColumnType( ValueType.COORDINATE, true ) );
+        assertEquals( ColumnDataType.TEXT, AnalyticsUtils.getColumnType( ValueType.COORDINATE, false ) );
+    }
+
+    @Test
     public void testGetDataValueSetFromGrid()
     {
         Grid grid = new ListGrid();
@@ -526,7 +536,27 @@ public class AnalyticsUtilsTest
         de.setDimensionItemType( DimensionItemType.DATA_ELEMENT );
         de.setValueType( ValueType.TEXT );
 
-        assertEquals( new Integer( 5 ), AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
+        assertEquals( 5, AnalyticsUtils.getIntegerOrValue( 5d, pi ) );
         assertEquals( "Male", AnalyticsUtils.getIntegerOrValue( "Male", de ) );
+    }
+
+    @Test
+    public void testCalculateYearlyWeightedAverage()
+    {
+        double avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, 20D, 9D );
+        assertEquals( 17.5, avg, 0 );
+
+        avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, -20D, 9D );
+        assertEquals( -12.5, avg, 0);
+    }
+
+    @Test
+    public void testGetBaseMonth()
+    {
+        assertEquals( 3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0 );
+        assertEquals( 6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0 );
+        assertEquals( 9, AnalyticsUtils.getBaseMonth( new FinancialOctoberPeriodType() ), 0 );
+        assertEquals( 10, AnalyticsUtils.getBaseMonth( new FinancialNovemberPeriodType() ), 0 ) ;
+        assertEquals( 0, AnalyticsUtils.getBaseMonth( new DailyPeriodType() ), 0 );
     }
 }

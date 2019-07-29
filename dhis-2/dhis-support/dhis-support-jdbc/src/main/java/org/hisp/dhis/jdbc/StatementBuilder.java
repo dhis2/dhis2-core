@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,9 +42,9 @@ import org.hisp.dhis.program.ProgramIndicator;
  */
 public interface StatementBuilder
 {
-    final String QUOTE = "'";
+    String QUOTE = "'";
     
-    final String ANALYTICS_TBL_ALIAS = "ax";
+    String ANALYTICS_TBL_ALIAS = "ax";
 
     //--------------------------------------------------------------------------
     // General
@@ -239,29 +239,29 @@ public interface StatementBuilder
      * Generates a derived table containing literals in two columns: integer
      * and string.
      *
-     * @param intValues (non-empty) Integer values for the derived table
+     * @param longValue (non-empty) Integer values for the derived table
      * @param strValues (same size) String values for the derived table
      * @param table the desired table name alias
-     * @param intColumn the desired integer column name
+     * @param longColumn the desired integer column name
      * @param strColumn the desired string column name
      * @return the derived literal table
      */
-    String literalIntStringTable( List<Integer> intValues,
-        List<String> strValues, String table, String intColumn, String strColumn );
+    String literalLongStringTable( List<Long> longValue,
+        List<String> strValues, String table, String longColumn, String strColumn );
 
     /**
      * Generates a derived table containing literals in two columns: integer
      * and integer.
      *
-     * @param int1Values (non-empty) 1st integer column values for the table
-     * @param int2Values (same size) 2nd integer column values for the table
+     * @param long1Values (non-empty) 1st integer column values for the table
+     * @param long2Values (same size) 2nd integer column values for the table
      * @param table the desired table name alias
-     * @param int1Column the desired 1st integer column name
-     * @param int2Column the desired 2nd integer column name
+     * @param long1Column the desired 1st integer column name
+     * @param long2Column the desired 2nd integer column name
      * @return the derived literal table
      */
-    String literalIntIntTable( List<Integer> int1Values,
-        List<Integer> int2Values, String table, String int1Column, String int2Column );
+    String literalLongLongTable( List<Long> long1Values,
+        List<Long> long2Values, String table, String long1Column, String long2Column );
 
     /**
      * Indicates whether the DBMS supports partial indexes (index statements with
@@ -288,14 +288,13 @@ public interface StatementBuilder
      * @param programIndicator the program indicator context
      * @param reportingStartDate the date of the start of the reporting period
      * @param reportingEndDate the date of the end of the reporting period
-     * @param sqlHelper a SQL helper that makes sure the where/and is correctly assigned in the where clause
      * @return SQL to use in where clause.
      */
     String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate );
     
     /**
      * Get a SQL for selecting a single data value in a program indicator expression, abiding to boundaries.
-     * Internally adds quotes to the param dataElementUid and calls the {@link StatementBuilder#getProgramIndicatorColumnSelectSql(String, String, Date, Date, ProgramIndicator)} function.
+     * Internally adds quotes to the param dataElementUid and calls the {@link StatementBuilder#getProgramIndicatorEventColumnSql(String, String, Date, Date, ProgramIndicator)} function.
      * @param programStageUid the program stage to get data for
      * @param dataElementUid the data element to get data for
      * @param reportingStartDate the reporting start date

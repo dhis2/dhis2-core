@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,16 +55,28 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.fieldfilter.FieldFilterService" )
 public class DefaultFieldFilterService implements FieldFilterService
 {
     private static final Log log = LogFactory.getLog( DefaultFieldFilterService.class );
@@ -81,20 +93,22 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final CurrentUserService currentUserService;
 
-    @Autowired( required = false )
-    private Set<NodeTransformer> nodeTransformers = new HashSet<>();
+    private Set<NodeTransformer> nodeTransformers;
 
     private ImmutableMap<String, Preset> presets = ImmutableMap.of();
 
     private ImmutableMap<String, NodeTransformer> transformers = ImmutableMap.of();
 
+    private Property baseIdentifiableIdProperty;
+
     public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService, @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
+        this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
     }
 
     @PostConstruct
@@ -117,6 +131,8 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         transformers = transformerBuilder.build();
+
+        baseIdentifiableIdProperty = schemaService.getDynamicSchema( BaseIdentifiableObject.class ).getProperty( "id" );
     }
 
     @Override
@@ -152,7 +168,10 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         if ( params.getSkipSharing() )
         {
-            fields = Joiner.on( "," ).join( fieldParser.modifyFilter( params.getFields(),  SHARING_FIELDS ) );
+            final List<String> fieldList = CollectionUtils.isEmpty( params.getFields() ) ? Collections.singletonList( "*" ) : params.getFields();
+            // excludes must be preserved (e.g. when field collections like :owner are used, which is not expanded by modify filter)
+            fields = Stream.concat( fieldParser.modifyFilter( fieldList, SHARING_FIELDS ).stream(), SHARING_FIELDS.stream() )
+                .filter( org.apache.commons.lang3.StringUtils::isNotBlank ).distinct().collect( Collectors.joining( "," ) );
         }
 
         if ( params.getObjects().isEmpty() )
@@ -200,6 +219,12 @@ public class DefaultFieldFilterService implements FieldFilterService
         return buildNode( fieldMap, klass, object, user, schema.getName(), defaults );
     }
 
+    private boolean mayExclude( Class<?> klass, Defaults defaults )
+    {
+        return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isAssignableFrom( klass ) &&
+            ( Preheat.isDefaultClass( klass ) || klass.isInterface() || ( klass.getModifiers() & Modifier.ABSTRACT ) != 0 );
+    }
+
     private boolean shouldExclude( Object object, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
@@ -243,7 +268,14 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
 
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-            Schema propertySchema = schemaService.getDynamicSchema( property.getKlass() );
+            Class<?> propertyClass = property.getKlass();
+            Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
+            if ( returnValue != null && propertySchema.getProperties().isEmpty() && !property.isCollection() && property.getKlass().isInterface() && !property.isIdentifiableObject() )
+            {
+                // try to retrieve schema from concrete class
+                propertyClass = returnValue.getClass();
+                propertySchema = schemaService.getDynamicSchema( propertyClass );
+            }
 
             FieldMap fieldValue = fieldMap.get( fieldKey );
 
@@ -258,7 +290,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             }
             else
             {
-                updateFields( fieldValue, property.getKlass() );
+                updateFields( fieldValue, propertyClass );
             }
 
             if ( fieldValue.isEmpty() )
@@ -269,14 +301,16 @@ public class DefaultFieldFilterService implements FieldFilterService
                 {
                     Collection<?> collection = (Collection<?>) returnValue;
 
-                    child = new CollectionNode( property.getCollectionName() );
+                    child = new CollectionNode( property.getCollectionName(), collection.size() );
                     child.setNamespace( property.getNamespace() );
 
                     if ( property.isIdentifiableObject() && isProperIdObject( property.getItemKlass() ) )
                     {
+                        final boolean mayExclude = collection.isEmpty() || mayExclude( property.getItemKlass(), defaults );
+
                         for ( Object collectionObject : collection )
                         {
-                            if ( !shouldExclude( collectionObject, defaults ) )
+                            if ( !mayExclude || !shouldExclude( collectionObject, defaults ) )
                             {
                                 child.addChild( getProperties( property, collectionObject, fields ) );
                             }
@@ -308,7 +342,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                         }
                     }
                 }
-                else if ( property.isIdentifiableObject() && isProperIdObject( property.getKlass() ) )
+                else if ( property.isIdentifiableObject() && isProperIdObject( propertyClass ) )
                 {
                     if ( !shouldExclude( returnValue, defaults ) )
                     {
@@ -327,7 +361,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        child = buildNode( getFullFieldMap( propertySchema ), property.getKlass(), returnValue, user, defaults );
+                        child = buildNode( getFullFieldMap( propertySchema ), propertyClass, returnValue, user, defaults );
                     }
                 }
             }
@@ -350,7 +384,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 }
                 else
                 {
-                    child = buildNode( fieldValue, property.getKlass(), returnValue, user, defaults );
+                    child = buildNode( fieldValue, propertyClass, returnValue, user, defaults );
                 }
             }
 
@@ -374,6 +408,11 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private void updateFields( FieldMap fieldMap, Class<?> klass )
     {
+        if ( fieldMap.isEmpty() )
+        {
+            return;
+        }
+
         // we need two run this (at least) two times, since some of the presets might contain other presets
         updateFields( fieldMap, klass, true );
         updateFields( fieldMap, klass, false );
@@ -381,6 +420,11 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private void updateFields( FieldMap fieldMap, Class<?> klass, boolean expandOnly )
     {
+        if ( fieldMap.isEmpty() )
+        {
+            return;
+        }
+
         Schema schema = schemaService.getDynamicSchema( klass );
         List<String> cleanupFields = Lists.newArrayList();
 
@@ -445,6 +489,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 String fieldName = matcher.group( "field" );
 
                 FieldMap value = new FieldMap();
+                value.putAll( fieldMap.get( fieldKey ) );
 
                 matcher = TRANSFORMER_PATTERN.matcher( fieldKey );
 
@@ -505,6 +550,12 @@ public class DefaultFieldFilterService implements FieldFilterService
             return null;
         }
 
+        // performance optimization for ID only queries on base identifiable objects
+        if ( isBaseIdentifiableObjectIdOnly( object, fields ) )
+        {
+            return createBaseIdentifiableObjectIdNode( currentProperty, object );
+        }
+
         ComplexNode complexNode = new ComplexNode( currentProperty.getName() );
         complexNode.setNamespace( currentProperty.getNamespace() );
         complexNode.setProperty( currentProperty );
@@ -541,6 +592,17 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         return complexNode;
+    }
+
+    private boolean isBaseIdentifiableObjectIdOnly( @Nonnull Object object, @Nonnull List<String> fields )
+    {
+        return fields.size() == 1 && fields.get( 0 ).equals( "id" ) && object instanceof BaseIdentifiableObject;
+    }
+
+    private ComplexNode createBaseIdentifiableObjectIdNode( @Nonnull Property currentProperty, @Nonnull Object object )
+    {
+        return new ComplexNode( currentProperty, new SimpleNode(
+            "id", baseIdentifiableIdProperty, ( (BaseIdentifiableObject) object ).getUid() ) );
     }
 
     private boolean isProperIdObject( Class<?> klass )

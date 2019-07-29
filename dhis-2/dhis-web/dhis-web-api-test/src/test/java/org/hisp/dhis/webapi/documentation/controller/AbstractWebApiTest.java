@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.documentation.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,12 +65,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramDataElementDimensionItem;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.ResponseDocumentation;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
@@ -331,7 +328,7 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             manager.save( constantA );
 
             String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "} - " + KEY_PROGRAM_VARIABLE + "{"
-                + ProgramIndicator.VAR_INCIDENT_DATE + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+                    + ProgramIndicator.VAR_INCIDENT_DATE + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
 
             return (T) createProgramIndicator( uniqueName, program, expressionA, null );
         }
@@ -429,14 +426,18 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             ProgramTrackedEntityAttributeGroup group = createProgramTrackedEntityAttributeGroup( uniqueName );
 
-            ProgramTrackedEntityAttribute attr = createProgramTrackedEntityAttribute( uniqueName );
+            Program pr = createProgram( 'A' );
+            TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );
+            ProgramTrackedEntityAttribute attr = createProgramTrackedEntityAttribute( pr, tea );
             group.addAttribute( attr );
 
             return (T) group;
         }
         else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( clazz ))
         {
-            return (T) createProgramTrackedEntityAttribute( uniqueName );
+            Program pr = createProgram( 'A' );
+            TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );
+            return (T) createProgramTrackedEntityAttribute( pr, tea );
         }
         else if ( ProgramDataElementDimensionItem.class.isAssignableFrom( clazz ) )
         {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,8 @@ import org.hisp.dhis.textpattern.TextPatternMethodUtils;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,27 +51,39 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.reservedvalue.ReservedValueService" )
 public class DefaultReservedValueService
     implements ReservedValueService
 {
+    private static final long GENERATION_TIMEOUT = (1000 * 30); // 30 seconds
 
-    private static final long GENERATION_TIMEOUT = (1000 * 30); // 30 sec
-
-    @Autowired
     private TextPatternService textPatternService;
 
-    @Autowired
     private ReservedValueStore reservedValueStore;
 
-    @Autowired
     private SequentialNumberCounterStore sequentialNumberCounterStore;
+
+    public DefaultReservedValueService( TextPatternService textPatternService, ReservedValueStore reservedValueStore,
+        SequentialNumberCounterStore sequentialNumberCounterStore )
+    {
+        checkNotNull( textPatternService );
+        checkNotNull( reservedValueStore );
+        checkNotNull( sequentialNumberCounterStore );
+
+        this.textPatternService = textPatternService;
+        this.reservedValueStore = reservedValueStore;
+        this.sequentialNumberCounterStore = sequentialNumberCounterStore;
+    }
 
     private final Log log = LogFactory.getLog( DefaultReservedValueService.class );
 
     @Override
+    @Transactional
     public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
         throws ReserveValueException, TextPatternGenerationException
     {
@@ -84,9 +97,9 @@ public class DefaultReservedValueService
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = (generatedSegment != null ?
+        String valueKey = ( generatedSegment != null ?
             key.replaceAll( Pattern.quote( generatedSegment.getRawSegment() ), "%" ) :
-            key);
+            key );
 
         ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(),
             key,
@@ -133,7 +146,7 @@ public class DefaultReservedValueService
 
                 usedGeneratedValues.addAll( generatedValues );
 
-                // Get a list of resolved patterns.
+                // Get a list of resolved patterns
                 for ( int i = 0; i < numberOfReservations - resultList.size(); i++ )
                 {
                     resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
@@ -159,18 +172,36 @@ public class DefaultReservedValueService
     }
 
     @Override
+    @Transactional
     public boolean useReservedValue( TextPattern textPattern, String value )
     {
         return reservedValueStore.useReservedValue( textPattern.getOwnerUid(), value );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isReserved( TextPattern textPattern, String value )
     {
         return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value );
     }
 
-    // Helper methods
+    @Override
+    @Transactional
+    public void removeExpiredReservations()
+    {
+        reservedValueStore.removeExpiredReservations();
+    }
+
+    @Override
+    @Transactional
+    public void deleteReservedValueByUid( String uid )
+    {
+        reservedValueStore.deleteReservedValueByUid( uid );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private TextPatternSegment getGeneratedSegment( TextPattern textPattern )
     {

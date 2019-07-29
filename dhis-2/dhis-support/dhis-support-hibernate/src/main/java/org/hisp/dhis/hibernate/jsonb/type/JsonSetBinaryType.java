@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -49,30 +48,14 @@ public class JsonSetBinaryType
     }
 
     @Override
-    protected String convertObjectToJson( Object value )
+    protected ObjectMapper getResultingMapper()
     {
-        try
-        {
-            return MAPPER.writeValueAsString( value );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
+        return MAPPER;
     }
 
     @Override
-    protected Object convertJsonToObject( String content )
+    protected JavaType getResultingJavaType( Class<?> returnedClass )
     {
-        try
-        {
-            JavaType type = MAPPER.getTypeFactory().constructCollectionType( Set.class, returnedClass() );
-
-            return MAPPER.readValue( content, type );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
+        return MAPPER.getTypeFactory().constructCollectionType( Set.class, returnedClass );
     }
 }

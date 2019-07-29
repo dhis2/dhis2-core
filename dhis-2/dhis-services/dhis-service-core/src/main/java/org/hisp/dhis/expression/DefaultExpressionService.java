@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,24 @@ package org.hisp.dhis.expression;
  */
 
 import static org.hisp.dhis.common.DimensionItemType.*;
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
-import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.*;
+import static org.hisp.dhis.parser.expression.ParserUtils.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.system.util.MathUtils.calculateExpression;
-import static org.hisp.dhis.system.util.MathUtils.isEqual;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
@@ -63,15 +58,22 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.expression.item.*;
+import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.parser.expression.*;
+import org.hisp.dhis.parser.expression.item.ItemConstant;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
+import org.hisp.dhis.system.jep.NoValueException;
 import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -81,7 +83,9 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Margrethe Store
  * @author Lars Helge Overland
+ * @author Jim Grace
  */
+@Service( "org.hisp.dhis.expression.ExpressionService" )
 public class DefaultExpressionService
     implements ExpressionService
 {
@@ -91,23 +95,35 @@ public class DefaultExpressionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericStore<Expression> expressionStore;
+    private final HibernateGenericStore<Expression> expressionStore;
 
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    private DimensionService dimensionService;
+    private final DimensionService dimensionService;
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    public DefaultExpressionService( GenericStore<Expression> expressionStore, DataElementService dataElementService,
-        ConstantService constantService, CategoryService categoryService,
+    private final static ImmutableMap<Integer, ExprItem> EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
+        .put( HASH_BRACE, new DimItemDataElementAndOperand() )
+        .put( A_BRACE, new DimItemProgramAttribute() )
+        .put( C_BRACE, new ItemConstant() )
+        .put( D_BRACE, new DimItemProgramDataElement() )
+        .put( I_BRACE, new DimItemProgramIndicator() )
+        .put( N_BRACE, new DimItemIndicator() )
+        .put( OUG_BRACE, new ItemOrgUnitGroup() )
+        .put( R_BRACE, new DimItemReportingRate() )
+        .put( DAYS, new ItemDays() )
+        .build();
+
+    public DefaultExpressionService(
+        @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
+        DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
         OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
         IdentifiableObjectManager idObjectManager )
     {
@@ -134,7 +150,7 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public int addExpression( Expression expression )
+    public long addExpression( Expression expression )
     {
         expressionStore.save( expression );
 
@@ -149,8 +165,8 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
-    public Expression getExpression( int id )
+    @Transactional(readOnly = true)
+    public Expression getExpression( long id )
     {
         return expressionStore.get( id );
     }
@@ -163,29 +179,48 @@ public class DefaultExpressionService
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Expression> getAllExpressions()
     {
         return expressionStore.getAll();
     }
 
     // -------------------------------------------------------------------------
-    // Business logic
+    // Indicator expression logic
     // -------------------------------------------------------------------------
 
     @Override
-    public Double getIndicatorValue( Indicator indicator, Period period,
-        Map<? extends DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
-        Map<String, Integer> orgUnitCountMap )
+    public Set<DimensionalItemObject> getIndicatorDimensionalItemObjects( Collection<Indicator> indicators )
     {
-        IndicatorValue value = getIndicatorValueObject( indicator, period, valueMap, constantMap, orgUnitCountMap );
+        Set<DimensionalItemId> itemIds = indicators.stream()
+            .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
+            .map( this::getExpressionDimensionalItemIds )
+            .flatMap( Set::stream )
+            .collect( Collectors.toSet() );
 
-        return value != null ? value.getValue() : null;
+        return dimensionService.getDataDimensionalItemObjects( itemIds );
     }
 
     @Override
-    public IndicatorValue getIndicatorValueObject( Indicator indicator, Period period,
-        Map<? extends DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+    public Set<OrganisationUnitGroup> getIndicatorOrgUnitGroups( Collection<Indicator> indicators )
+    {
+        Set<OrganisationUnitGroup> groups = new HashSet<>();
+
+        if ( indicators != null )
+        {
+            for ( Indicator indicator : indicators )
+            {
+                groups.addAll( getExpressionOrgUnitGroups( indicator.getNumerator() ) );
+                groups.addAll( getExpressionOrgUnitGroups( indicator.getDenominator() ) );
+            }
+        }
+
+        return groups;
+    }
+
+    @Override
+    public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap )
     {
         if ( indicator == null || indicator.getNumerator() == null || indicator.getDenominator() == null )
@@ -193,37 +228,23 @@ public class DefaultExpressionService
             return null;
         }
 
-        Integer days = period != null ? period.getDaysInPeriod() : null;
+        Integer days = periods != null ? getDaysFromPeriods( periods ) : null;
 
-        final String denominatorExpression = generateExpression( indicator.getDenominator(), valueMap,
-            constantMap, orgUnitCountMap, days, NEVER_SKIP );
+        Double denominatorValue = getExpressionValue( indicator.getDenominator(),
+            valueMap, constantMap, orgUnitCountMap, days, MissingValueStrategy.NEVER_SKIP );
 
-        if ( denominatorExpression == null )
+        Double numeratorValue = getExpressionValue( indicator.getNumerator(),
+            valueMap, constantMap, orgUnitCountMap, days, MissingValueStrategy.NEVER_SKIP );
+
+        if ( denominatorValue != null && denominatorValue != 0d && numeratorValue != null )
         {
-            return null;
-        }
-
-        final double denominatorValue = calculateExpression( denominatorExpression );
-
-        if ( !isEqual( denominatorValue, 0d ) )
-        {
-            final String numeratorExpression = generateExpression( indicator.getNumerator(), valueMap,
-                constantMap, orgUnitCountMap, days, NEVER_SKIP );
-
-            if ( numeratorExpression == null )
-            {
-                return null;
-            }
-
-            final double numeratorValue = calculateExpression( numeratorExpression );
-
             int multiplier = indicator.getIndicatorType().getFactor();
 
             int divisor = 1;
 
-            if ( indicator.isAnnualized() && period != null )
+            if ( indicator.isAnnualized() && periods != null )
             {
-                final int daysInPeriod = DateUtils.daysBetween( period.getStartDate(), period.getEndDate() ) + 1;
+                final int daysInPeriod = getDaysFromPeriods( periods );
 
                 multiplier *= DateUtils.DAYS_IN_YEAR;
 
@@ -241,15 +262,202 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
+    public ExpressionValidationOutcome indicatorExpressionIsValid( String expression )
+    {
+        try
+        {
+            getIndicatorExpressionDescription( expression );
+
+            return ExpressionValidationOutcome.VALID;
+        }
+        catch ( IllegalStateException e )
+        {
+            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
+        }
+    }
+
+    @Override
+    public String getIndicatorExpressionDescription( String expression )
+    {
+        if ( expression == null )
+        {
+            return "";
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS );
+
+        visit( expression, visitor, false );
+
+        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
+
+        String description = expression;
+
+        for ( Map.Entry<String, String> entry : itemDescriptions.entrySet() )
+        {
+            description = description.replace( entry.getKey(), entry.getValue() );
+        }
+
+        return description;
+    }
+
+    // -------------------------------------------------------------------------
+    // Expression logic
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Set<DimensionalItemObject> getExpressionDimensionalItemObjects( String expression )
+    {
+        Set<DimensionalItemId> itemIds = getExpressionDimensionalItemIds( expression );
+
+        return dimensionService.getDataDimensionalItemObjects( itemIds );
+    }
+
+    @Override
+    public Set<DimensionalItemId> getExpressionDimensionalItemIds( String expression )
+    {
+        if ( expression == null )
+        {
+            return new HashSet<>();
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_IDS );
+
+        visit( expression, visitor, true );
+
+        return visitor.getItemIds();
+    }
+
+    @Override
+    public Set<OrganisationUnitGroup> getExpressionOrgUnitGroups( String expression )
+    {
+        if ( expression == null )
+        {
+            return new HashSet<>();
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS );
+
+        visit( expression, visitor, true );
+
+        Set<String> orgUnitGroupIds = visitor.getOrgUnitGroupIds();
+
+        return orgUnitGroupIds.stream()
+            .map(organisationUnitGroupService::getOrganisationUnitGroup)
+            .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Double getExpressionValue( String expression,
+        Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
+        Map<String, Integer> orgUnitCountMap, Integer days,
+        MissingValueStrategy missingValueStrategy )
+    {
+        if ( expression == null )
+        {
+            return null;
+        }
+
+        CommonExpressionVisitor expressionExprVisitor = newVisitor(
+            FUNCTION_EVALUATE, ITEM_EVALUATE );
+
+        Map<String, Double> keyValueMap = valueMap.entrySet().stream().collect(
+            Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue) );
+
+        expressionExprVisitor.setKeyValueMap( keyValueMap );
+        expressionExprVisitor.setConstantMap( constantMap );
+        expressionExprVisitor.setOrgUnitCountMap( orgUnitCountMap );
+
+        if ( days != null )
+        {
+            expressionExprVisitor.setDays( Double.valueOf( days ) );
+        }
+
+        Double value = visit ( expression, expressionExprVisitor, true );
+
+        int itemsFound = expressionExprVisitor.getItemsFound();
+        int itemValuesFound = expressionExprVisitor.getItemValuesFound();
+
+        switch ( missingValueStrategy )
+        {
+            case SKIP_IF_ANY_VALUE_MISSING:
+                if ( itemValuesFound < itemsFound )
+                {
+                    return null;
+                }
+
+            case SKIP_IF_ALL_VALUES_MISSING:
+                if ( itemsFound != 0 && itemValuesFound == 0 )
+                {
+                    return null;
+                }
+
+            case NEVER_SKIP:
+                if ( value == null )
+                {
+                    return 0d;
+                }
+        }
+
+        return value;
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Creates a new ExpressionItemsVisitor object.
+     */
+    private CommonExpressionVisitor newVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    {
+        return CommonExpressionVisitor.newBuilder()
+            .withFunctionMap( COMMON_EXPRESSION_FUNCTIONS )
+            .withItemMap( EXPRESSION_ITEMS )
+            .withFunctionMethod( functionMethod )
+            .withItemMethod( itemMethod )
+            .withConstantService( constantService )
+            .withDimensionService( dimensionService )
+            .withOrganisationUnitGroupService( organisationUnitGroupService )
+            .buildForExpressions();
+    }
+
+    private Double visit( String expression, CommonExpressionVisitor visitor, boolean logWarnings )
+    {
+        try
+        {
+            return castDouble( Parser.visit( expression, visitor ) );
+        }
+        catch ( ParserException ex )
+        {
+            String message = ex.getMessage() + " parsing expression '" + expression + "'";
+
+            if ( logWarnings )
+            {
+                log.warn( message );
+            }
+            else
+            {
+                throw new ParserException( message );
+            }
+        }
+
+        return DOUBLE_VALUE_IF_NULL;
+    }
+
+    // -------------------------------------------------------------------------
+    // Expression logic based on regular expressions (to be refactored)
+    // -------------------------------------------------------------------------
+
+    @Override
+    public Double getExpressionValueRegEx( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days )
     {
-        return getExpressionValue( expression, valueMap, constantMap, orgUnitCountMap, days, null );
+        return getExpressionValueRegEx( expression, valueMap, constantMap, orgUnitCountMap, days, null );
 
     }
 
     @Override
-    public Double getExpressionValue( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
+    public Double getExpressionValueRegEx( Expression expression, Map<? extends DimensionalItemObject, Double> valueMap,
         Map<String, Double> constantMap, Map<String, Integer> orgUnitCountMap, Integer days,
         ListMap<String, Double> aggregateMap )
     {
@@ -257,7 +465,19 @@ public class DefaultExpressionService
             valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(),
             aggregateMap );
 
-        return expressionString != null ? calculateExpression( expressionString ) : null;
+        if ( expressionString == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return calculateExpression( expressionString );
+        }
+        catch ( NoValueException ex )
+        {
+            return null;
+        }
     }
 
     @Override
@@ -365,6 +585,17 @@ public class DefaultExpressionService
                 }
                 else if ( end > 0 )
                 {
+                    if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                    {
+                        nonAggregates.add( expression.substring( start, end ) ); // Arg 1: non-aggregate
+                        start = end + 1;
+                        end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                        if ( end < 0 )
+                        {
+                            log.warn( "Bad expression starting at " + start + " in " + expression );
+                            continue;
+                        }
+                    }
                     nonAggregates.add( expression.substring( scan, matcher.start() ) );
                     aggregates.add( expression.substring( start, end ) );
                     scan = end + 1;
@@ -453,37 +684,20 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<DimensionalItemObject> getDimensionalItemObjectsInIndicators( Collection<Indicator> indicators )
+    @Transactional
+    public ExpressionValidationOutcome predictorExpressionIsValid( String expression )
     {
-        Set<DimensionalItemId> itemIds = indicators.stream()
-            .flatMap( i -> Stream.of( i.getNumerator(), i.getDenominator() ) )
-            .map( this::getDimensionalItemIdsInExpression )
-            .flatMap( Set::stream )
-            .collect( Collectors.toSet() );
-
-        return dimensionService.getDataDimensionalItemObjects( itemIds );
-    }
-
-    @Override
-    public Set<OrganisationUnitGroup> getOrganisationUnitGroupsInIndicators( Collection<Indicator> indicators )
-    {
-        Set<OrganisationUnitGroup> groups = new HashSet<>();
-
-        if ( indicators != null )
-        {
-            for ( Indicator indicator : indicators )
-            {
-                groups.addAll( getOrganisationUnitGroupsInExpression( indicator.getNumerator() ) );
-                groups.addAll( getOrganisationUnitGroupsInExpression( indicator.getDenominator() ) );
-            }
-        }
-
-        return groups;
+        return expressionIsValid( expression, true );
     }
 
     @Override
     @Transactional
-    public ExpressionValidationOutcome expressionIsValid( String expression )
+    public ExpressionValidationOutcome validationRuleExpressionIsValid( String expression )
+    {
+        return expressionIsValid( expression, false );
+    }
+
+    private ExpressionValidationOutcome expressionIsValid( String expression, boolean customFunctions )
     {
         if ( expression == null || expression.isEmpty() )
         {
@@ -563,7 +777,7 @@ public class DefaultExpressionService
         // Well-formed expression
         // ---------------------------------------------------------------------
 
-        if ( MathUtils.expressionHasErrors( expression ) )
+        if ( MathUtils.expressionHasErrors( expression, customFunctions ) )
         {
             return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
         }
@@ -573,7 +787,7 @@ public class DefaultExpressionService
 
     @Override
     @Transactional
-    public String getExpressionDescription( String expression )
+    public String getExpressionDescriptionRegEx( String expression )
     {
         if ( expression == null || expression.isEmpty() )
         {
@@ -789,7 +1003,7 @@ public class DefaultExpressionService
 
         Map<String, Double> dimensionItemValueMap = valueMap.entrySet().stream().
             filter( e -> e.getValue() != null ).
-            collect( Collectors.toMap( e -> e.getKey().getDimensionItem(), e -> e.getValue() ) );
+            collect( Collectors.toMap( e -> e.getKey().getDimensionItem(), Map.Entry::getValue) );
 
         missingValueStrategy = ObjectUtils.firstNonNull( missingValueStrategy, NEVER_SKIP );
 
@@ -809,7 +1023,7 @@ public class DefaultExpressionService
             int start = matcher.end();
             int end = Expression.matchExpression( expression, start );
 
-            sb.append( expression.substring( scan, matcher.start() ) );
+            sb.append(expression, scan, matcher.start());
             sb.append( expression.substring( matcher.start(), start ).toUpperCase() );
 
             if ( end < 0 )
@@ -819,12 +1033,24 @@ public class DefaultExpressionService
             }
             else if ( aggregateMap == null || expression.charAt( start ) == '<' )
             {
-                sb.append( expression.substring( start, end ) );
+                sb.append(expression, start, end);
                 scan = end + 1;
                 tail = end;
             }
             else
             {
+                if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                {
+                    sb.append( expression.substring( start, end + 1 ) ); // Arg 1: non-aggregate
+                    start = end + 1;
+                    end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                    if ( end < 0 )
+                    {
+                        scan = start + 1;
+                        tail = start;
+                        continue;
+                    }
+                }
                 String subExpression = expression.substring( start, end );
                 List<Double> samples = aggregateMap.get( subExpression );
 
@@ -834,10 +1060,12 @@ public class DefaultExpressionService
                     {
                         return null;
                     }
+
+                    sb.append( "0" );
                 }
                 else
                 {
-                    String literal = (samples == null) ? ("[]") : (samples.toString());
+                    String literal = samples.toString();
                     sb.append( literal );
                 }
 
@@ -865,7 +1093,7 @@ public class DefaultExpressionService
             int start = matcher.end();
             int end = Expression.matchExpression( expression, start );
 
-            sb.append( expression.substring( scan, matcher.start() ) );
+            sb.append(expression, scan, matcher.start());
 
             scan = start + 1;
 
@@ -1013,5 +1241,10 @@ public class DefaultExpressionService
         }
 
         return TextUtils.appendTail( matcher, sb );
+    }
+
+    private int getDaysFromPeriods( List<Period> periods )
+    {
+        return periods.stream().mapToInt(Period::getDaysInPeriod).sum();
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,13 +61,13 @@ public class ExpressionStoreTest
     @Autowired
     private CategoryService categoryService;
 
-    private int dataElementIdA;
+    private long dataElementIdA;
 
-    private int dataElementIdB;
+    private long dataElementIdB;
 
-    private int dataElementIdC;
+    private long dataElementIdC;
 
-    private int dataElementIdD;
+    private long dataElementIdD;
 
     private String expressionA;
 
@@ -128,7 +128,7 @@ public class ExpressionStoreTest
         Expression expr = new Expression( expressionA, descriptionA );
 
         expressionStore.save( expr );
-        int id = expr.getId();
+        long id = expr.getId();
 
         expr = expressionStore.get( id );
 
@@ -142,7 +142,7 @@ public class ExpressionStoreTest
         Expression expr = new Expression( expressionA, descriptionA );
 
         expressionStore.save( expr );
-        int id = expr.getId();
+        long id = expr.getId();
 
         expr = expressionStore.get( id );
 
@@ -167,9 +167,9 @@ public class ExpressionStoreTest
         Expression exprB = new Expression( expressionB, descriptionB );
 
         expressionStore.save( exprA );
-        int idA = exprA.getId();
+        long idA = exprA.getId();
         expressionStore.save( exprB );
-        int idB = exprB.getId();
+        long idB = exprB.getId();
 
         assertNotNull( expressionStore.get( idA ) );
         assertNotNull( expressionStore.get( idB ) );

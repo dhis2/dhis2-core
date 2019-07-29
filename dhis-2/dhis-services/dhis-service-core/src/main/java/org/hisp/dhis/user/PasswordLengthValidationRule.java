@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,24 @@ package org.hisp.dhis.user;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by zubair on 08.03.17.
  */
+@Component( "org.hisp.dhis.user.PasswordLengthValidationRule" )
 public class PasswordLengthValidationRule implements PasswordValidationRule
 {
+    public static final String ERROR = "Password must have at least %d, and at most %d characters";
+    private static final String I18_ERROR = "password_length_validation";
+
+    private final SystemSettingManager systemSettingManager;
+
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    public PasswordLengthValidationRule( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
+    }
 
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
@@ -51,8 +61,7 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
 
         if ( password.trim().length() < minCharLimit || password.trim().length() > maxCharLimit )
         {
-            return new PasswordValidationResult( String.format(
-                    "Password must have at least %d, and at most %d characters", minCharLimit, maxCharLimit ), "password_length_validation", false );
+            return new PasswordValidationResult( String.format( ERROR, minCharLimit, maxCharLimit ), I18_ERROR, false );
         }
 
         return new PasswordValidationResult( true );

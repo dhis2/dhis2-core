@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ public class AnalyticsAggregationType
     public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
     public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
     public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
+    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
     public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
 
     /**
@@ -93,22 +94,30 @@ public class AnalyticsAggregationType
 
     public static AnalyticsAggregationType fromAggregationType( AggregationType aggregationType )
     {
-        if ( AggregationType.AVERAGE_SUM_ORG_UNIT == aggregationType )
+        AnalyticsAggregationType analyticsAggregationType;
+        switch ( aggregationType )
         {
-            return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE );
+
+        case AVERAGE_SUM_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE );
+            break;
+        case LAST:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST );
+            break;
+        case LAST_AVERAGE_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
+            break;
+        case FIRST:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.FIRST );
+            break;
+        case FIRST_AVERAGE_ORG_UNIT:
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.FIRST );
+            break;
+        default:
+            analyticsAggregationType = new AnalyticsAggregationType( aggregationType, aggregationType );
         }
-        else if ( AggregationType.LAST == aggregationType )
-        {
-            return new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST );
-        }
-        else if ( AggregationType.LAST_AVERAGE_ORG_UNIT == aggregationType )
-        {
-            return new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
-        }
-        else
-        {
-            return new AnalyticsAggregationType( aggregationType, aggregationType );
-        }
+
+        return analyticsAggregationType;
     }
 
     public boolean isAggregationType( AggregationType type )
@@ -124,6 +133,16 @@ public class AnalyticsAggregationType
     public boolean isLastPeriodAggregationType()
     {
         return AggregationType.LAST == periodAggregationType || AggregationType.LAST_AVERAGE_ORG_UNIT == periodAggregationType;
+    }
+
+    public boolean isFirstPeriodAggregationType()
+    {
+        return AggregationType.FIRST == periodAggregationType || AggregationType.FIRST_AVERAGE_ORG_UNIT == periodAggregationType;
+    }
+    
+    public boolean isFirstOrLastPeriodAggregationType()
+    {
+        return isFirstPeriodAggregationType() || isLastPeriodAggregationType();
     }
 
     public boolean isNumericDataType()

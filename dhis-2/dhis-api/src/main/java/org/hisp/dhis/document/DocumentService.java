@@ -1,7 +1,7 @@
 package org.hisp.dhis.document;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ public interface DocumentService
      * @param document the Document to save.
      * @return the generated identifier.
      */
-    int saveDocument( Document document );
+    long saveDocument( Document document );
 
     /**
      * Retrieves the Document with the given identifier.
@@ -55,7 +55,7 @@ public interface DocumentService
      * @param id the identifier of the Document.
      * @return the Document.
      */
-    Document getDocument( int id );
+    Document getDocument( long id );
 
     /**
      * Retrieves the Document with the given identifier.

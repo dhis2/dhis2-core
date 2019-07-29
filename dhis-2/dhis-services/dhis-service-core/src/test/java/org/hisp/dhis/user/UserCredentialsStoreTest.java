@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -83,9 +83,9 @@ public class UserCredentialsStoreTest
         UserCredentials credentialsB = createUserCredentials( 'B', userB );
         
         userCredentialsStore.save( credentialsA );
-        int idA = credentialsA.getId();
+        long idA = credentialsA.getId();
         userCredentialsStore.save( credentialsB );
-        int idB = credentialsB.getId();
+        long idB = credentialsB.getId();
 
         assertEquals( credentialsA, userCredentialsStore.get( idA ) );
         assertEquals( credentialsB, userCredentialsStore.get( idB ) );

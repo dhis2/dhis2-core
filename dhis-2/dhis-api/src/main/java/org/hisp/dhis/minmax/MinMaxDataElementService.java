@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,13 +40,13 @@ import java.util.List;
  */
 public interface MinMaxDataElementService
 {
-    int addMinMaxDataElement( MinMaxDataElement minMaxDataElement );
+    long addMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
     void deleteMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
     void updateMinMaxDataElement( MinMaxDataElement minMaxDataElement );
 
-    MinMaxDataElement getMinMaxDataElement( int id );
+    MinMaxDataElement getMinMaxDataElement( long id );
 
     MinMaxDataElement getMinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo );
     

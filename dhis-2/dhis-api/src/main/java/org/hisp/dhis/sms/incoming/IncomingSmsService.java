@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.incoming;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +31,11 @@ package org.hisp.dhis.sms.incoming;
 import java.util.List;
 import java.util.Date;
 
-import org.hisp.dhis.sms.MessageQueue;
 import org.hisp.dhis.user.User;
 
 /**
  * Service providing support for retrieving incoming SMSes.
  */
-
 public interface IncomingSmsService
 {
     String ID = IncomingSmsService.class.getName();
@@ -56,12 +54,9 @@ public interface IncomingSmsService
 
     int save( String message, String originator, String gateway, Date receivedTime, User user );
 
-    void setIncomingSmsQueue( MessageQueue incomingSmsQueue );
-
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
-    
-    List<IncomingSms> getAllUnparsedMessages( );
 
+    List<IncomingSms> getAllUnparsedMessages();
 }

@@ -1,6 +1,6 @@
 package org.hisp.dhis.validation;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,18 +31,26 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
+ * 
  * @author Stian Sandvold
  */
+@Component( "org.hisp.dhis.validation.ValidationResultDeletionHandler" )
 public class ValidationResultDeletionHandler
     extends DeletionHandler
 {
 
-    @Autowired
-    private
-    ValidationResultService validationResultService;
+    private final ValidationResultService validationResultService;
+
+    public ValidationResultDeletionHandler( ValidationResultService validationResultService )
+    {
+        checkNotNull( validationResultService );
+        this.validationResultService = validationResultService;
+    }
 
     @Override
     public String getClassName()

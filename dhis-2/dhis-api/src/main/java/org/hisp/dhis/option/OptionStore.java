@@ -1,7 +1,7 @@
 package org.hisp.dhis.option;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 public interface OptionStore 
     extends IdentifiableObjectStore<Option>
 {
-    List<Option> getOptions( int optionSetId, String key, Integer max  );
+    List<Option> getOptions( long optionSetId, String key, Integer max  );
 }
 

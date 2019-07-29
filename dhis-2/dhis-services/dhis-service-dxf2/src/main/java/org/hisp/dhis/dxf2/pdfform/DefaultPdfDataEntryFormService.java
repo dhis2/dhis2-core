@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.pdfform;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.api.util.DateUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -60,6 +59,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.lowagie.text.Chunk;
@@ -80,10 +80,14 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.RadioCheckField;
 import com.lowagie.text.pdf.TextField;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 /**
  * @author James Chang
  */
+@Service( "pdfDataEntryFormService" )
+@Scope("prototype")
 public class DefaultPdfDataEntryFormService
     implements PdfDataEntryFormService
 {
@@ -437,7 +441,7 @@ public class DefaultPdfDataEntryFormService
                 OptionSet optionSet = dataElement.getOptionSet();
 
                 String strFieldLabel = PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD
-                    + Integer.toString( dataElement.getId() )
+                    + Long.toString( dataElement.getId() )
                     // + "_" + Integer.toString(programStageId) + "_" +
                     // Integer.toString(rowNo);
                     + "_" + Integer.toString( rowNo );

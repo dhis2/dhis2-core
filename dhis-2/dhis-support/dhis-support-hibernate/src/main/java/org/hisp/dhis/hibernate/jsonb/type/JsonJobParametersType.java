@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,46 +28,25 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Henning Håkonsen
  */
-@SuppressWarnings("rawtypes")
 public class JsonJobParametersType extends JsonBinaryType
 {
-    @Override
-    public void setParameterValues( Properties parameters )
+    static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static
     {
-        final String clazz = (String) parameters.get( "clazz" );
-
-        if ( clazz == null )
-        {
-            throw new IllegalArgumentException(
-                String.format( "Required parameter '%s' is not configured", "clazz" ) );
-        }
-
-        try
-        {
-            init( classForName( clazz ) );
-        }
-        catch ( ClassNotFoundException e )
-        {
-            throw new IllegalArgumentException( "Class: " + clazz + " is not a known class type." );
-        }
-    }
-
-    protected void init( Class klass )
-    {
-        ObjectMapper MAPPER = new ObjectMapper();
         MAPPER.enableDefaultTyping();
         MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
+    }
 
-        returnedClass = klass;
-        reader = MAPPER.readerFor( klass );
-        writer = MAPPER.writerFor( klass );
+    @Override
+    protected ObjectMapper getResultingMapper()
+    {
+        return MAPPER;
     }
 }

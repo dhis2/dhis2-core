@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.adx;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,6 +69,7 @@ import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -98,6 +99,7 @@ import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 /**
  * @author bobj
  */
+@Service( "org.hisp.dhis.dxf2.AdxDataService" )
 public class DefaultAdxDataService
     implements AdxDataService
 {

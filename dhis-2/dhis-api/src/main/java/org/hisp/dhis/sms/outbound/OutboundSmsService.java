@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.outbound;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ public interface OutboundSmsService
 
     List<OutboundSms> getAllOutboundSms( Integer min, Integer max );
 
-    int saveOutboundSms( OutboundSms sms );
+    long saveOutboundSms( OutboundSms sms );
 
     void updateOutboundSms( OutboundSms sms );
 
@@ -48,5 +48,5 @@ public interface OutboundSmsService
 
     List<OutboundSms> getOutboundSms( OutboundSmsStatus status, Integer min, Integer max );
 
-    OutboundSms getOutboundSms( int id );
+    OutboundSms getOutboundSms( long id );
 }

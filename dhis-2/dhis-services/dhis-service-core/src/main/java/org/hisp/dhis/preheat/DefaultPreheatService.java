@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -80,37 +82,56 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Transactional // TODO check if this class can be readOnly
+@Service( "org.hisp.dhis.preheat.PreheatService" )
+@Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 public class DefaultPreheatService implements PreheatService
 {
     private static final Log log = LogFactory.getLog( DefaultPreheatService.class );
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private QueryService queryService;
+    private final QueryService queryService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private PeriodStore periodStore;
+    private final PeriodStore periodStore;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private AttributeService attributeService;
+    private final AttributeService attributeService;
 
-    @Autowired
-    private MergeService mergeService;
+    private final MergeService mergeService;
+
+    public DefaultPreheatService( SchemaService schemaService, QueryService queryService,
+        IdentifiableObjectManager manager, CurrentUserService currentUserService, PeriodStore periodStore,
+        PeriodService periodService, AttributeService attributeService, MergeService mergeService )
+    {
+        checkNotNull( schemaService );
+        checkNotNull( queryService );
+        checkNotNull( manager );
+        checkNotNull( currentUserService );
+        checkNotNull( periodStore );
+        checkNotNull( periodService );
+        checkNotNull( attributeService );
+        checkNotNull( mergeService );
+
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+        this.manager = manager;
+        this.currentUserService = currentUserService;
+        this.periodStore = periodStore;
+        this.periodService = periodService;
+        this.attributeService = attributeService;
+        this.mergeService = mergeService;
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -390,7 +411,6 @@ public class DefaultPreheatService implements PreheatService
         preheat.getUniqueAttributeValues().put( klass, new HashMap<>() );
 
         objects.forEach( object ->
-        {
             object.getAttributeValues().forEach( attributeValue ->
             {
                 Set<String> uids = preheat.getUniqueAttributes().get( klass );
@@ -405,8 +425,7 @@ public class DefaultPreheatService implements PreheatService
                     preheat.getUniqueAttributeValues().get( klass ).get( attributeValue.getAttribute().getUid() )
                         .put( attributeValue.getValue(), object.getUid() );
                 }
-            } );
-        } );
+            } ));
     }
 
     @Override
@@ -950,9 +969,9 @@ public class DefaultPreheatService implements PreheatService
 
     private IdentifiableObject getPersistedObject( Preheat preheat, PreheatIdentifier identifier, IdentifiableObject ref )
     {
-        if ( Period.class.isInstance( ref ) )
+        if (ref instanceof Period)
         {
-            IdentifiableObject period = preheat.getPeriodMap().get( ref.getName() );
+            Period period = preheat.getPeriodMap().get( ref.getName() );
 
             if ( period == null )
             {
@@ -961,7 +980,7 @@ public class DefaultPreheatService implements PreheatService
 
             if ( period != null )
             {
-                preheat.getPeriodMap().put( period.getName(), (Period) period );
+                preheat.getPeriodMap().put( period.getName(), period);
             }
 
             return period;

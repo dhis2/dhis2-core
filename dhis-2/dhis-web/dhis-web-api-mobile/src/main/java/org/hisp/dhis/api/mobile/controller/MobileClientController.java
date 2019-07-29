@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -238,7 +238,7 @@ public class MobileClientController
         return orgUnit;
     }
 
-    private static String getUrl( HttpServletRequest request, int id, String path )
+    private static String getUrl( HttpServletRequest request, long id, String path )
     {
         String url = UrlUtils.buildFullRequestUrl( request );
         if ( url.endsWith( "/" ) )

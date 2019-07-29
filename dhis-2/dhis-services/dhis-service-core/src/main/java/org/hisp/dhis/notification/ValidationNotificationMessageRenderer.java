@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.notification.ValidationRuleTemplateVariable;
+import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.Date;
@@ -54,6 +55,7 @@ import static org.hisp.dhis.validation.notification.ValidationRuleTemplateVariab
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "validationNotificationMessageRenderer" )
 public class ValidationNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ValidationResult>
 {

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,8 +69,8 @@ public class TrackedEntityAttributeStoreTest
     @Test
     public void testSaveTrackedEntityAttribute()
     {
-        int idA = attributeService.addTrackedEntityAttribute( attributeA );
-        int idB = attributeService.addTrackedEntityAttribute( attributeB );
+        long idA = attributeService.addTrackedEntityAttribute( attributeA );
+        long idB = attributeService.addTrackedEntityAttribute( attributeB );
 
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
@@ -79,8 +79,8 @@ public class TrackedEntityAttributeStoreTest
     @Test
     public void testDeleteTrackedEntityAttribute()
     {
-        int idA = attributeService.addTrackedEntityAttribute( attributeA );
-        int idB = attributeService.addTrackedEntityAttribute( attributeB );
+        long idA = attributeService.addTrackedEntityAttribute( attributeA );
+        long idB = attributeService.addTrackedEntityAttribute( attributeB );
 
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
@@ -99,7 +99,7 @@ public class TrackedEntityAttributeStoreTest
     @Test
     public void testUpdateTrackedEntityAttribute()
     {
-        int idA = attributeService.addTrackedEntityAttribute( attributeA );
+        long idA = attributeService.addTrackedEntityAttribute( attributeA );
 
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
 
@@ -112,8 +112,8 @@ public class TrackedEntityAttributeStoreTest
     @Test
     public void testGetTrackedEntityAttributeById()
     {
-        int idA = attributeService.addTrackedEntityAttribute( attributeA );
-        int idB = attributeService.addTrackedEntityAttribute( attributeB );
+        long idA = attributeService.addTrackedEntityAttribute( attributeA );
+        long idB = attributeService.addTrackedEntityAttribute( attributeB );
 
         assertEquals( attributeA, attributeService.getTrackedEntityAttribute( idA ) );
         assertEquals( attributeB, attributeService.getTrackedEntityAttribute( idB ) );
@@ -131,7 +131,7 @@ public class TrackedEntityAttributeStoreTest
     @Test
     public void testGetTrackedEntityAttributeByName()
     {
-        int idA = attributeService.addTrackedEntityAttribute( attributeA );
+        long idA = attributeService.addTrackedEntityAttribute( attributeA );
 
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertEquals( attributeA.getName(), attributeService.getTrackedEntityAttributeByName( "AttributeA" ).getName() );

@@ -1,7 +1,7 @@
 package org.hisp.dhis.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,23 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,7 +68,18 @@ public class ObjectReport
 
     private Map<ErrorCode, List<ErrorReport>> errorReportsByCode = new HashMap<>();
 
-    public ObjectReport( Class<?> klass, Integer index )
+    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider )
+    {
+        this( object, objectIndexProvider, null );
+    }
+
+    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider, @Nullable String uid )
+    {
+        this( object.getClass(), objectIndexProvider.mergeObjectIndex( object ), uid == null ? object.getUid() : uid );
+    }
+
+    @JsonCreator
+    public ObjectReport( @JsonProperty( "klass" ) Class<?> klass, @JsonProperty( "index" ) Integer index )
     {
         this.klass = klass;
         this.index = index;
@@ -161,6 +178,25 @@ public class ObjectReport
         errorReportsByCode.values().forEach( errorReports::addAll );
 
         return errorReports;
+    }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )
+    public void setErrorReports( List<ErrorReport> errorReports )
+    {
+        if ( errorReports != null )
+        {
+            errorReports.forEach( er -> {
+                List<ErrorReport> errorReportForCode = errorReportsByCode.get( er.getErrorCode() );
+                if ( errorReportForCode == null )
+                {
+                    errorReportForCode = new ArrayList<>();
+                }
+                errorReportForCode.add( er );
+                errorReportsByCode.put( er.getErrorCode(), errorReportForCode );
+            } );
+        }
     }
 
     public List<ErrorCode> getErrorCodes()

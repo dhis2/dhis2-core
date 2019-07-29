@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -57,4 +58,12 @@ public interface TrackedEntityAttributeStore
      */
     List<TrackedEntityAttribute> getDisplayInListNoProgram();
 
+    /**
+     * Check whether there already exists a TrackedEntityInstance with given unique attribute value. If yes, return
+     * Optional containing UID of it. Otherwise, return empty Optional.
+     *
+     * @param params Query params. Contains value of unique attribute that should be checked.
+     * @return Optional of TrackedEntityInstance UID or empty Optional.
+     */
+    Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
 }

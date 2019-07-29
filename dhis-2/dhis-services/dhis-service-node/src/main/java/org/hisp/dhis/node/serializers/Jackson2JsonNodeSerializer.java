@@ -1,7 +1,7 @@
 package org.hisp.dhis.node.serializers;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,26 +28,25 @@ package org.hisp.dhis.node.serializers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
-
-import org.hisp.dhis.api.util.DateUtils;
-import org.hisp.dhis.node.AbstractNodeSerializer;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.stereotype.Component;
-
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
+import org.hisp.dhis.node.AbstractNodeSerializer;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.node.types.ComplexNode;
+import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.stereotype.Component;
+
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -119,7 +118,7 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
 
         if ( Date.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
         {
-            value = DateUtils.getIso8601NoTz( (Date) simpleNode.getValue() );
+            value = DateUtils.getIso8601NoTz( (Date) value );
         }
 
         if ( Geometry.class.isAssignableFrom( simpleNode.getValue().getClass() ) )
@@ -132,6 +131,10 @@ public class Jackson2JsonNodeSerializer extends AbstractNodeSerializer
         if ( simpleNode.getParent().isCollection() )
         {
             generator.writeObject( value );
+        }
+        else if ( value instanceof String )
+        {
+            generator.writeStringField( simpleNode.getName(), (String) value );
         }
         else
         {

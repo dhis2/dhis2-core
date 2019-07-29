@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.notifications;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import java.util.List;
  */
 public interface DataSetNotificationTemplateService
 {
-    DataSetNotificationTemplate get( int id );
+    DataSetNotificationTemplate get( long id );
 
     DataSetNotificationTemplate get( String uid );
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,12 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingStore;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.user.UserSettingStore" )
 public class HibernateUserSettingStore
     implements UserSettingStore
 {
@@ -51,7 +53,7 @@ public class HibernateUserSettingStore
 
     private SessionFactory sessionFactory;
 
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateUserSettingStore( SessionFactory sessionFactory )
     {
         this.sessionFactory = sessionFactory;
     }

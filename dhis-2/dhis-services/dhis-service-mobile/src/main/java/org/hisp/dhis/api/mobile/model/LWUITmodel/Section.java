@@ -1,7 +1,7 @@
 package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ public class Section
     public void serialize( DataOutputStream dout )
         throws IOException
     {
-        dout.writeInt( this.getId() );
+        dout.writeLong( this.getId() );
         dout.writeUTF( getName() );
 
         if ( dataElementIds == null )
@@ -93,7 +93,7 @@ public class Section
     public void deSerialize( DataInputStream dint )
         throws IOException
     {
-        this.setId( dint.readInt() );
+        this.setId( dint.readLong() );
         this.setName( dint.readUTF() );
 
         int numbOfDataElement = dint.readInt();

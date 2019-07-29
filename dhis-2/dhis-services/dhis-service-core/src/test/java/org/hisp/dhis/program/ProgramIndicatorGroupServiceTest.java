@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ public class ProgramIndicatorGroupServiceTest
     @Test
     public void testDeleteProgramIndicatorGroup()
     {
-        int id = service.addProgramIndicatorGroup( programIndicatorGroupA );
+        long id = service.addProgramIndicatorGroup( programIndicatorGroupA );
 
         service.deleteProgramIndicatorGroup( programIndicatorGroupA );
 

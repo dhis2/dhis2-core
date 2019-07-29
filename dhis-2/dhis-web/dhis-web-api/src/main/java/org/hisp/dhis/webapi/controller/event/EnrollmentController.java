@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import com.google.common.collect.Lists;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -129,6 +128,7 @@ public class EnrollmentController
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Date programStartDate,
         @RequestParam( required = false ) Date programEndDate,
         @RequestParam( required = false ) String trackedEntityType,
@@ -159,8 +159,9 @@ public class EnrollmentController
 
         if ( enrollment == null )
         {
-            ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated, program, programStatus, programStartDate,
-                programEndDate, trackedEntityType, trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
+            ProgramInstanceQueryParams params = programInstanceService.getFromUrl( orgUnits, ouMode, lastUpdated,
+                lastUpdatedDuration, program, programStatus, programStartDate, programEndDate, trackedEntityType,
+                trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -391,32 +392,8 @@ public class EnrollmentController
         return enrollment;
     }
 
-    private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
-    {
-        String idScheme = getParamValue( params, "idScheme" );
-
-        if ( idScheme != null )
-        {
-            idSchemes.setIdScheme( idScheme );
-        }
-
-        String programStageInstanceIdScheme = getParamValue( params, "programStageInstanceIdScheme" );
-
-        if ( programStageInstanceIdScheme != null )
-        {
-            idSchemes.setProgramStageInstanceIdScheme( programStageInstanceIdScheme );
-        }
-
-        return idSchemes;
-    }
-
     private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
     {
         return ContextUtils.getContextPath( request ) + "/api/" + "enrollments" + "/" + importSummary.getReference();
-    }
-
-    private String getParamValue( Map<String, List<String>> params, String key )
-    {
-        return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
     }
 }

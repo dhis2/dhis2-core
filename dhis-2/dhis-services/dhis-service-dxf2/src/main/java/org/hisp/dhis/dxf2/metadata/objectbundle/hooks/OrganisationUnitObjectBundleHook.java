@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitParentCountComparator;
+import org.hisp.dhis.system.util.GeoUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +45,7 @@ import java.util.Map;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
 {
     @Override
@@ -90,9 +93,24 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
+    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    {
+        setSRID( object );
+    }
+
+    @Override
+    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    {
+        setSRID( object );
+    }
+
+    @Override
     public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
     {
-        if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) ) return new ArrayList<>();
+        if ( object == null || !object.getClass().isAssignableFrom( OrganisationUnit.class ) )
+        {
+            return new ArrayList<>();
+        }
 
         OrganisationUnit organisationUnit = ( OrganisationUnit ) object;
 
@@ -105,5 +123,17 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook
         }
 
         return errors;
+    }
+
+    private void setSRID( IdentifiableObject object )
+    {
+        if ( !OrganisationUnit.class.isInstance( object ) ) return;
+
+        OrganisationUnit organisationUnit = ( OrganisationUnit ) object;
+
+        if ( organisationUnit.getGeometry() != null )
+        {
+            organisationUnit.getGeometry().setSRID( GeoUtils.SRID );
+        }
     }
 }

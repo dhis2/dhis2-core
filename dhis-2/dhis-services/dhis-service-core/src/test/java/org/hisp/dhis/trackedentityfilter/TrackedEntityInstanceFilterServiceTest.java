@@ -1,15 +1,7 @@
 package org.hisp.dhis.trackedentityfilter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 /*
- * Copyright (c) 2004-2017, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +27,14 @@ import java.util.List;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
@@ -76,8 +76,8 @@ public class TrackedEntityInstanceFilterServiceTest
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
 
-        int idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
-        int idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+        long idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
 
         assertEquals( idA, trackedEntityInstanceFilterA.getId() );
         assertEquals( idB, trackedEntityInstanceFilterB.getId() );
@@ -127,7 +127,7 @@ public class TrackedEntityInstanceFilterServiceTest
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
 
-        int idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
 
         trackedEntityInstanceFilterA.setProgram( programB );
 
@@ -152,8 +152,8 @@ public class TrackedEntityInstanceFilterServiceTest
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
 
-        int idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
-        int idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
+        long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
+        long idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
 
         List<TrackedEntityInstanceFilter> trackedEntityInstanceFilters = trackedEntityInstanceFilterService.getAll();
 

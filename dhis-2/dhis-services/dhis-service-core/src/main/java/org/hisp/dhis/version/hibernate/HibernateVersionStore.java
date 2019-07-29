@@ -1,7 +1,7 @@
 package org.hisp.dhis.version.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,25 @@ package org.hisp.dhis.version.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.version.Version;
 import org.hisp.dhis.version.VersionStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
+@Repository( "org.hisp.dhis.version.VersionStore" )
 public class HibernateVersionStore
     extends HibernateGenericStore<Version>
     implements VersionStore
 {
+    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate)
+    {
+        super( sessionFactory, jdbcTemplate, Version.class, true );
+    }
+
     @Override
     public Version getVersionByKey( String key )
     {

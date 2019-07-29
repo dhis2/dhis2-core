@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -51,6 +53,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  *
  * @author Stian Sandvold
  */
+@Component( " org.hisp.dhis.validation.ValidationRunContext" )
+@Scope( "prototype" )
 public class ValidationRunContext
 {
     public static final int ORG_UNITS_PER_TASK = 500;
@@ -83,7 +87,7 @@ public class ValidationRunContext
 
     private MapMapMap<OrganisationUnit, ValidationRule, Period, List<ValidationResult>> initialValidationResults = new MapMapMap<>();
 
-    public ValidationRunContext()
+    private ValidationRunContext()
     {
         validationResults = new ConcurrentLinkedQueue<>();
     }
@@ -92,9 +96,9 @@ public class ValidationRunContext
     // Id-to-Object Caches
     // -------------------------------------------------------------------------
 
-    private Map<Integer, Period> periodIdMap = new ConcurrentHashMap<>();
+    private Map<Long, Period> periodIdMap = new ConcurrentHashMap<>();
 
-    private Map<Integer, CategoryOptionCombo> aocIdMap = new ConcurrentHashMap<>();
+    private Map<Long, CategoryOptionCombo> aocIdMap = new ConcurrentHashMap<>();
 
     private Map<String, CategoryOptionCombo> aocUidMap = new ConcurrentHashMap<>();
 
@@ -157,12 +161,12 @@ public class ValidationRunContext
         return validationResults;
     }
 
-    public Map<Integer, Period> getPeriodIdMap()
+    public Map<Long, Period> getPeriodIdMap()
     {
         return periodIdMap;
     }
 
-    public Map<Integer, CategoryOptionCombo> getAocIdMap()
+    public Map<Long, CategoryOptionCombo> getAocIdMap()
     {
         return aocIdMap;
     }

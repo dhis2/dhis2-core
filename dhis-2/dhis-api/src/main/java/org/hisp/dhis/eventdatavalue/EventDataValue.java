@@ -1,6 +1,6 @@
 package org.hisp.dhis.eventdatavalue;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,7 @@ public class EventDataValue implements Serializable
      */
     private static final long serialVersionUID = 2738519623273453182L;
 
-    private String dataElement;
+    private String dataElement = "";
 
     private Date created = new Date();
 

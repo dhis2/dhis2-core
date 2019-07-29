@@ -8,7 +8,9 @@
   <class name="org.hisp.dhis.message.UserMessage" table="usermessage">
 
     <id name="id" column="usermessageid">
-      <generator class="native" />
+      <generator class="sequence">
+         <param name="sequence_name">usermessage_sequence</param>
+      </generator>
     </id>
 
     <property name="key" column="usermessagekey"/>

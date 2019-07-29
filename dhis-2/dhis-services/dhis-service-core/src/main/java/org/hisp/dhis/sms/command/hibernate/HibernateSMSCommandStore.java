@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.command.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,26 +28,40 @@ package org.hisp.dhis.sms.command.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.parse.ParserType;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
+@Repository( "org.hisp.dhis.sms.command.hibernate.SMSCommandStore" )
 public class HibernateSMSCommandStore
     extends HibernateIdentifiableObjectStore<SMSCommand> implements SMSCommandStore
 {
+    public HibernateSMSCommandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, SMSCommand.class, currentUserService, deletedObjectService, aclService,
+            true );
+    }
+
     @Override
     public List<SMSCommand> getJ2MESMSCommands()
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-                .addPredicate( root -> builder.equal( root.get( "parserType" ), ParserType.J2ME_PARSER ) ) );
+            .addPredicate( root -> builder.equal( root.get( "parserType" ), ParserType.J2ME_PARSER ) ) );
     }
 
     @Override
@@ -72,7 +86,7 @@ public class HibernateSMSCommandStore
     {
         Query<Long> query = getTypedQuery( "select count(distinct c) from SMSCommand c where c.dataset=:dataSet" );
         query.setParameter( "dataSet", dataSet );
-        // TODO rename dataset prop
+        // TODO rename data set property
 
         return  query.getSingleResult().intValue();
     }

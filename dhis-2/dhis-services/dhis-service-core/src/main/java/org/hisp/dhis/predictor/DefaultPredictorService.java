@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,9 @@ package org.hisp.dhis.predictor;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -37,16 +39,18 @@ import java.util.List;
  * @author Ken Haase
  * @author Jim Grace
  */
+@Service( "org.hisp.dhis.predictor.PredictorService" )
 public class DefaultPredictorService
     implements PredictorService
 {
-    @Autowired
-    private PredictorStore predictorStore;
+    private final PredictorStore predictorStore;
 
-    private IdentifiableObjectStore<PredictorGroup> predictorGroupStore;
+    private final IdentifiableObjectStore<PredictorGroup> predictorGroupStore;
 
-    public void setPredictorGroupStore( IdentifiableObjectStore<PredictorGroup> predictorGroupStore )
+    public DefaultPredictorService( PredictorStore predictorStore,
+        @Qualifier( "org.hisp.dhis.predictor.PredictorGroupStore" ) IdentifiableObjectStore<PredictorGroup> predictorGroupStore )
     {
+        this.predictorStore = predictorStore;
         this.predictorGroupStore = predictorGroupStore;
     }
 
@@ -55,37 +59,43 @@ public class DefaultPredictorService
     // -------------------------------------------------------------------------
 
     @Override
-    public int addPredictor( Predictor predictor )
+    @Transactional
+    public long addPredictor( Predictor predictor )
     {
         predictorStore.save( predictor );
         return predictor.getId();
     }
 
     @Override
+    @Transactional
     public void updatePredictor( Predictor predictor )
     {
         predictorStore.update( predictor );
     }
 
     @Override
+    @Transactional
     public void deletePredictor( Predictor predictor )
     {
         predictorStore.delete( predictor );
     }
 
     @Override
-    public Predictor getPredictor( int id )
+    @Transactional(readOnly = true)
+    public Predictor getPredictor( long id )
     {
         return predictorStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Predictor getPredictor( String uid )
     {
         return predictorStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Predictor> getAllPredictors()
     {
         return predictorStore.getAll();
@@ -95,7 +105,9 @@ public class DefaultPredictorService
     // Predictor group
     // -------------------------------------------------------------------------
 
-    public int addPredictorGroup( PredictorGroup predictorGroup )
+    @Override
+    @Transactional
+    public long addPredictorGroup( PredictorGroup predictorGroup )
     {
         predictorGroupStore.save( predictorGroup );
 
@@ -103,30 +115,35 @@ public class DefaultPredictorService
     }
 
     @Override
+    @Transactional
     public void deletePredictorGroup( PredictorGroup predictorGroup )
     {
         predictorGroupStore.delete( predictorGroup );
     }
 
     @Override
+    @Transactional
     public void updatePredictorGroup( PredictorGroup predictorGroup )
     {
         predictorGroupStore.update( predictorGroup );
     }
 
     @Override
-    public PredictorGroup getPredictorGroup( int id )
+    @Transactional(readOnly = true)
+    public PredictorGroup getPredictorGroup( long id )
     {
         return predictorGroupStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PredictorGroup getPredictorGroup( String uid )
     {
         return predictorGroupStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<PredictorGroup> getAllPredictorGroups()
     {
         return predictorGroupStore.getAll();

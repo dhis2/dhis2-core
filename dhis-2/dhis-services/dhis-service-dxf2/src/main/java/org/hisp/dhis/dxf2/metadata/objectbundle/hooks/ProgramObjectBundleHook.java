@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,31 +30,60 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.springframework.stereotype.Component;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
+
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class ProgramObjectBundleHook extends AbstractObjectBundleHook
 {
+    private final ProgramInstanceService programInstanceService;
+
+    private final ProgramService programService;
+
+    private final ProgramStageService programStageService;
+
+    private final AclService aclService;
+
+    public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
+                                    ProgramStageService programStageService, AclService aclService )
+    {
+        this.programInstanceService = programInstanceService;
+        this.programStageService = programStageService;
+        this.programService = programService;
+        this.aclService = aclService;
+    }
+
     @Override
     public void postCreate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !isProgram( object ) )
         {
             return;
         }
 
         syncSharingForEventProgram( (Program) object );
+
+        addProgramInstance( (Program) object );
+
+        updateProgramStage( (Program) object );
     }
 
     @Override
     public void postUpdate( IdentifiableObject object, ObjectBundle bundle )
     {
-        if ( !Program.class.isInstance( object ) )
+        if ( !isProgram( object ) )
         {
             return;
         }
@@ -62,10 +91,31 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         syncSharingForEventProgram( (Program) object );
     }
 
+    @Override
+    public <T extends IdentifiableObject> List<ErrorReport> validate(T object, ObjectBundle bundle )
+    {
+        List<ErrorReport> errors = new ArrayList<>();
+
+        if ( !isProgram( object ) )
+        {
+            return errors;
+        }
+
+        Program program = (Program) object;
+
+        if ( program.getId() != 0 && getProgramInstancesCount( program ) > 1 )
+        {
+            errors.add( new ErrorReport( Program.class, ErrorCode.E6000, program.getName() ) );
+        }
+
+        errors.addAll( validateAttributeSecurity( program , bundle ) );
+
+        return errors;
+    }
+
     private void syncSharingForEventProgram( Program program )
     {
-        if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
-            || program.getProgramStages().isEmpty() )
+        if ( ProgramType.WITHOUT_REGISTRATION != program.getProgramType() || program.getProgramStages().isEmpty() )
         {
             return;
         }
@@ -74,6 +124,76 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
         AccessStringHelper.copySharing( program, programStage );
 
         programStage.setUser( program.getUser() );
-        sessionFactory.getCurrentSession().update( programStage );
+        programStageService.updateProgramStage( programStage );
+    }
+
+    private void updateProgramStage( Program program )
+    {
+        if ( program.getProgramStages().isEmpty() )
+        {
+            return;
+        }
+
+        program.getProgramStages().stream().forEach( ps -> {
+
+            if ( Objects.isNull( ps.getProgram() ) )
+            {
+                ps.setProgram( program );
+            }
+
+            programStageService.saveProgramStage( ps );
+        });
+
+        programService.updateProgram( program );
+    }
+
+    private void addProgramInstance( Program program )
+    {
+        if ( getProgramInstancesCount( program ) == 0 )
+        {
+            ProgramInstance pi = new ProgramInstance();
+            pi.setEnrollmentDate( new Date() );
+            pi.setIncidentDate( new Date() );
+            pi.setProgram( program );
+            pi.setStatus( ProgramStatus.ACTIVE );
+            pi.setStoredBy( "system-process" );
+
+            this.programInstanceService.addProgramInstance( pi );
+        }
+    }
+
+    private int getProgramInstancesCount( Program program )
+    {
+        return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ).size();
+    }
+
+    private boolean isProgram( Object object )
+    {
+        return object instanceof Program;
+    }
+
+    private List<ErrorReport> validateAttributeSecurity( Program program, ObjectBundle bundle )
+    {
+        List<ErrorReport> errorReports = new ArrayList<>();
+
+        if ( program.getProgramAttributes().isEmpty() )
+        {
+            return errorReports;
+        }
+
+        PreheatIdentifier identifier = bundle.getPreheatIdentifier();
+
+        program.getProgramAttributes().forEach( programAttr ->
+        {
+            TrackedEntityAttribute attribute = bundle.getPreheat().get( identifier, programAttr.getAttribute() );
+
+            if ( attribute == null || !aclService.canRead( bundle.getUser(), attribute ) )
+            {
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                    identifier.getIdentifiersWithName( programAttr.getAttribute() ) ) );
+            }
+        });
+
+        return errorReports;
     }
 }
