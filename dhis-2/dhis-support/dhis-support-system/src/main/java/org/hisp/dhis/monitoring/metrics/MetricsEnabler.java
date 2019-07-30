@@ -28,6 +28,8 @@
 
 package org.hisp.dhis.monitoring.metrics;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;
@@ -39,6 +41,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 public abstract class MetricsEnabler
     extends PropertiesAwareConfigurationCondition
 {
+    private static final Log log = LogFactory.getLog( MetricsEnabler.class );
+
     @Override
     public ConfigurationPhase getConfigurationPhase()
     {
@@ -48,7 +52,12 @@ public abstract class MetricsEnabler
     @Override
     public boolean matches( ConditionContext conditionContext, AnnotatedTypeMetadata annotatedTypeMetadata )
     {
-        return !isTestRun( conditionContext ) && getBooleanValue( getConfigKey() );
+        ConfigurationKey key = getConfigKey();
+
+        boolean isEnabled = !isTestRun( conditionContext ) && getBooleanValue( getConfigKey() );
+        log.info(
+            String.format( "Monitoring metric for key %s is %s", key.getKey(), isEnabled ? "enabled" : "disabled" ) );
+        return isEnabled;
     }
 
     protected abstract ConfigurationKey getConfigKey();
