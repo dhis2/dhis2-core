@@ -65,8 +65,12 @@ public class DefaultQueryValidator
 {
     private static final Log log = LogFactory.getLog( DefaultQueryValidator.class );
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
+    }
 
     // -------------------------------------------------------------------------
     // QueryValidator implementation

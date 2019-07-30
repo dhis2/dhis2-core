@@ -85,6 +85,7 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -94,7 +95,6 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.Timer;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -110,6 +110,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
@@ -165,50 +166,74 @@ public class DefaultAnalyticsService
     private static final int MAX_CACHE_ENTRIES = 20000;
     private static final String CACHE_REGION = "analyticsQueryResponse";
 
-    @Autowired
-    private AnalyticsManager analyticsManager;
+    private final AnalyticsManager analyticsManager;
 
-    @Autowired
-    private RawAnalyticsManager rawAnalyticsManager;
+    private final RawAnalyticsManager rawAnalyticsManager;
 
-    @Autowired
-    private AnalyticsSecurityManager securityManager;
+    private final AnalyticsSecurityManager securityManager;
 
-    @Autowired
-    private QueryPlanner queryPlanner;
+    private final QueryPlanner queryPlanner;
 
-    @Autowired
-    private QueryValidator queryValidator;
+    private final QueryValidator queryValidator;
 
-    @Autowired
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
 
-    @Autowired
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private EventAnalyticsService eventAnalyticsService;
+    private final EventAnalyticsService eventAnalyticsService;
 
-    @Autowired
-    private DataQueryService dataQueryService;
+    private final DataQueryService dataQueryService;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfig;
+    private final DhisConfigurationProvider dhisConfig;
 
-    @Autowired
-    private CacheProvider cacheProvider;
+    private final CacheProvider cacheProvider;
+
 
     // -------------------------------------------------------------------------
     // AnalyticsService implementation
     // -------------------------------------------------------------------------
 
     private Cache<Grid> queryCache;
+
+    public DefaultAnalyticsService( AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
+                                    AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
+                                    ExpressionService expressionService, ConstantService constantService,
+                                    OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
+                                    EventAnalyticsService eventAnalyticsService, DataQueryService dataQueryService,
+                                    DhisConfigurationProvider dhisConfig, CacheProvider cacheProvider )
+    {
+        checkNotNull( analyticsManager );
+        checkNotNull( rawAnalyticsManager );
+        checkNotNull( securityManager );
+        checkNotNull( queryPlanner );
+        checkNotNull( queryValidator );
+        checkNotNull( constantService );
+        checkNotNull( expressionService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( eventAnalyticsService );
+        checkNotNull( dataQueryService );
+        checkNotNull( dhisConfig );
+        checkNotNull( cacheProvider );
+
+        this.analyticsManager = analyticsManager;
+        this.rawAnalyticsManager = rawAnalyticsManager;
+        this.securityManager = securityManager;
+        this.queryPlanner = queryPlanner;
+        this.queryValidator = queryValidator;
+        this.expressionService = expressionService;
+        this.constantService = constantService;
+        this.organisationUnitService = organisationUnitService;
+        this.systemSettingManager = systemSettingManager;
+        this.eventAnalyticsService = eventAnalyticsService;
+        this.dataQueryService = dataQueryService;
+        this.dhisConfig = dhisConfig;
+        this.cacheProvider = cacheProvider;
+    }
 
     @PostConstruct
     public void init()
@@ -739,7 +764,19 @@ public class DefaultAnalyticsService
 
                     PeriodType queryPt = filterPeriodType != null ? filterPeriodType : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
-                    target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+
+                    // Use number of days for daily data sets as target, as query
+                    // periods might often span/contain different numbers of days
+
+                    if ( dataSetPt.equalsName( DailyPeriodType.NAME ) )
+                    {
+                        Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
+                        target = target * period.getDaysInPeriod() * timeUnits;
+                    }
+                    else
+                    {
+                        target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+                    }
 
                     // ---------------------------------------------------------
                     // Calculate reporting rate and replace data set with rate
