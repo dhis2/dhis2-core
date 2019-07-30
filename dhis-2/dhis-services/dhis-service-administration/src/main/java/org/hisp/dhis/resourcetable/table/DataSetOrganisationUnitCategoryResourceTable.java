@@ -147,7 +147,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
         {
             Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
 
-            for( CategoryOption categoryOption : optionComboOptions )
+            for ( CategoryOption categoryOption : optionComboOptions )
             {
                 if ( categoryOption.getOrganisationUnits().isEmpty() )
                 {
