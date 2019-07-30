@@ -66,6 +66,6 @@ public abstract class PropertiesAwareConfigurationCondition
 
     protected boolean getBooleanValue( ConfigurationKey key )
     {
-        return getConfiguration().getProperty( key ).equalsIgnoreCase( "true" );
+        return getConfiguration().isEnabled(key);
     }
 }

@@ -241,7 +241,7 @@ public class DefaultHibernateConfigurationProvider
         }
 
         // Enable Hibernate statistics if Hibernate Monitoring is enabled
-        if ( configurationProvider.getProperty( ConfigurationKey.MONITORING_HIBERNATE_ENABLED ).equals( "true" ) )
+        if ( configurationProvider.isEnabled( ConfigurationKey.MONITORING_HIBERNATE_ENABLED ) )
         {
             props.put( Environment.GENERATE_STATISTICS, true );
         }
