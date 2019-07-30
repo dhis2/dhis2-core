@@ -28,18 +28,24 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -92,9 +98,7 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        UriComponentsBuilder uriBuilder = buildUrl( genericConfig );
-        uriBuilder.queryParam( "", text );
-        uriBuilder.queryParam( "", StringUtils.join( recipients, "," ) );
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
 
         ResponseEntity<String> responseEntity = null;
 
@@ -102,7 +106,14 @@ public class SimplisticHttpGetGateWay
         {
             URI url = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, null, String.class );
+            String data = encodedUrlParameters( genericConfig, text, recipients );
+
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.put( "Content-type", Collections.singletonList( genericConfig.getContentType().getValue() ) );
+
+            HttpEntity<String> requestEntity = new HttpEntity<>( data, httpHeaders );
+
+            responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -124,16 +135,28 @@ public class SimplisticHttpGetGateWay
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private UriComponentsBuilder buildUrl( GenericHttpGatewayConfig config )
+    private String encodedUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        Map<String, String> requestParams = getUrlParameters( config.getParameters() );
 
-        for ( Map.Entry<String, String> entry : getUrlParameters( config.getParameters() ).entrySet() )
+        return requestParams.entrySet().stream()
+            .map( v -> v.getKey() + "=" + encodeUrl( v.getValue() ) )
+            .collect( Collectors.joining( "&" ) );
+    }
+
+    private String encodeUrl( String value )
+    {
+        String v = "";
+        try
         {
-            uriBuilder.queryParam( entry.getKey(), entry.getValue() );
+            v = URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
+        }
+        catch( UnsupportedEncodingException e )
+        {
+            DebugUtils.getStackTrace( e );
         }
 
-        return uriBuilder;
+        return v;
     }
 
     private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
