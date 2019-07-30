@@ -78,7 +78,7 @@ public abstract class AbstractEventJdbcTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    protected final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
     private final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
 
     @Override
@@ -184,7 +184,7 @@ public abstract class AbstractEventJdbcTableManager
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
-    List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
+    protected List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
@@ -201,7 +201,7 @@ public abstract class AbstractEventJdbcTableManager
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
-        return columns;
 
+        return columns;
     }
 }

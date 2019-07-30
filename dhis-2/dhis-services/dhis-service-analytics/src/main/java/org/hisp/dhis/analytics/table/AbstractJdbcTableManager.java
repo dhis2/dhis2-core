@@ -448,7 +448,7 @@ public abstract class AbstractJdbcTableManager
             throw new IllegalStateException( "Analytics table dimensions contain duplicates: " + duplicates );
         }
     }
-    
+
     /**
      * Filters out analytics table columns which were created
      * after the time of the last successful resource table update.
@@ -492,7 +492,7 @@ public abstract class AbstractJdbcTableManager
      * @param prefix the prefix to use for the column name
      * @return a List of {@see AnalyticsTableColumn}
      */
-    List<AnalyticsTableColumn> addPeriodColumns( String prefix )
+    protected List<AnalyticsTableColumn> addPeriodColumns( String prefix )
     {
         return PeriodType.getAvailablePeriodTypes().stream().map( pt -> {
             String column = quote( pt.getName().toLowerCase() );
@@ -503,10 +503,10 @@ public abstract class AbstractJdbcTableManager
     /**
      * Collects all the {@see OrganisationUnitLevel} as a List of
      * {@see AnalyticsTableColumn}
-     * 
+     *
      * @return a List of {@see AnalyticsTableColumn}
      */
-    List<AnalyticsTableColumn> addOrganizationUnitLevels()
+    protected List<AnalyticsTableColumn> addOrganisationUnitLevels()
     {
         return organisationUnitService.getFilledOrganisationUnitLevels().stream().map( lv -> {
 

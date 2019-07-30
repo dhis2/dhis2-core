@@ -29,8 +29,9 @@
 package org.hisp.dhis.analytics.table;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.program.ProgramIndicator.DB_SEPARATOR_ID;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -43,7 +44,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -63,7 +63,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.google.common.collect.Lists;
-
 
 /**
  * @author Luciano Fiandesio
