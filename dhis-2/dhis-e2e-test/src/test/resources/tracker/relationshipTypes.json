@@ -1,0 +1,139 @@
+{
+  "relationshipTypes": [
+    {
+      "id": "HrS7b5Lis6w",
+      "name": "TA tei to event",
+      "bidirectional": true,
+      "displayName": "TA tei to event",
+      "publicAccess": "rw------",
+      "fromToName": "TEI of event",
+      "toFromName": "Event of TEI",
+      "externalAccess": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true,
+        "data": {
+          "read": true,
+          "write": true
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "Zd2rkv8FsWq"
+        }
+      },
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "id": "HrS7b5Lis6E",
+      "name": "TA event to TEI",
+      "bidirectional": true,
+      "displayName": "TA event to TEI",
+      "publicAccess": "rw------",
+      "fromToName": "Event of TEI",
+      "toFromName": "TEI of event",
+      "externalAccess": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true,
+        "data": {
+          "read": true,
+          "write": true
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "Zd2rkv8FsWq"
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": []
+    },
+    {
+      "id": "HrS7b5Lis6P",
+      "name": "TA event to event",
+      "bidirectional": true,
+      "displayName": "TA event to event",
+      "publicAccess": "rw------",
+      "fromToName": "Related event",
+      "toFromName": "Related event",
+      "externalAccess": false,
+      "favorite": false,
+      "access": {
+        "read": true,
+        "update": true,
+        "externalize": true,
+        "delete": true,
+        "write": true,
+        "manage": true,
+        "data": {
+          "read": true,
+          "write": true
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "Zd2rkv8FsWq"
+        }
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_STAGE_INSTANCE",
+        "program": {
+          "id": "Zd2rkv8FsWq"
+        }
+      },
+      "favorites": [],
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "id": "OPVIvvXzNTw",
+          "access": "rwrw----"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": []
+    }
+  ]
+}
