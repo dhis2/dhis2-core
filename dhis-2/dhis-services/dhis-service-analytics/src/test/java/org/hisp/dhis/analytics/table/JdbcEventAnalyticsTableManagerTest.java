@@ -203,12 +203,12 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
         String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
-        String aliasD2 = "(select cast(eventdatavalues #>> '{%s, value}' as null) "+ FROM_CLAUSE +"  and eventdatavalues #>> '{%s,value}' null '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        String aliasD2 = "(select cast(eventdatavalues #>> '{%s, value}' as " + statementBuilder.getDoubleColumnType() + ") "+ FROM_CLAUSE +"  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch() + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD3 = "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end " + FROM_CLAUSE + " ) as \"%s\"";
-        String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' null '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?(\\d{2}:\\d{2}:\\d{2})?$') as \"%s\"";
+        String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch() + " '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$') as \"%s\"";
         String aliasD5 = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
-        String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' null '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch() + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
         String aliasD5_geo = "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
         + d5.getUid() +", value}' " + FROM_CLAUSE + " )) as \"" +  d5.getUid() + "\"";

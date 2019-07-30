@@ -63,6 +63,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
@@ -228,16 +229,14 @@ public class JdbcEventAnalyticsTableManager
         }
 
         // Wrapper object for Program, required to avoid errors with Hibernate and non thread-safe Session
-
         DetachedProgram detachedProgram = new DetachedProgram(program);
 
         List<CompletableFuture<List<AnalyticsTableColumn>>> allFutures = new ArrayList<>();
-        columns.addAll( addOrganisationUnitLevels() );
-        columns.addAll( addOrganisationUnitGroupSets() );
-
+        allFutures.add( supplyAsync( this::addOrganisationUnitLevels ) );
+        allFutures.add( supplyAsync( this::addOrganisationUnitGroupSets ) );
+        
         allFutures.add( supplyAsync( () -> categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-                .map( l -> toCharColumn(quote( l.getUid() ), "acs", l.getCreated()))
-                .collect(Collectors.toList() ) ) );
+            .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) ).collect( Collectors.toList() ) ) );
 
         allFutures.add( supplyAsync( () -> addPeriodColumns( "dps" ) ) );
 
@@ -406,6 +405,10 @@ public class JdbcEventAnalyticsTableManager
         return new AnalyticsTableColumn( name, CHARACTER_11, prefix + "." + name ).withCreated( created );
     }
 
+    /**
+     * Wrapper object for {@see Program} that has the only responsibility to initialize
+     * the Program's "lazy" collections
+     */
     class DetachedProgram
     {
         private Set<DataElement> allDataElements;

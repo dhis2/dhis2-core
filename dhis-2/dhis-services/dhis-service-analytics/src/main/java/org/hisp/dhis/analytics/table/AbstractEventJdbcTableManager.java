@@ -184,7 +184,7 @@ public abstract class AbstractEventJdbcTableManager
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
-    protected List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
+    List<AnalyticsTableColumn> addTrackedEntityAttributes(Program program)
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
