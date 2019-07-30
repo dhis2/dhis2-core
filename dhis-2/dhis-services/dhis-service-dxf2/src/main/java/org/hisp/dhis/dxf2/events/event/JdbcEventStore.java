@@ -1097,7 +1097,7 @@ public class JdbcEventStore
             + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
             + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
             + "left join useraccess ua on coua.useraccessid = ua.useraccessid "
-            + "where ua.userid=" + user.getId();
+            + "where ua.userid = " + user.getId();
 
         if ( userGroupIds != null && !userGroupIds.isEmpty() )
         {
