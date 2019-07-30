@@ -67,8 +67,8 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
-public class JdbcEnrollmentAnalyticsTableManagerTest {
-
+public class JdbcEnrollmentAnalyticsTableManagerTest
+{
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -113,8 +113,8 @@ public class JdbcEnrollmentAnalyticsTableManagerTest {
     {
         ReflectionTestUtils.setField( subject, "statementBuilder", statementBuilder );
         when( jdbcTemplate.queryForList(
-                "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
-                Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
     }
 
     @Test
@@ -140,11 +140,10 @@ public class JdbcEnrollmentAnalyticsTableManagerTest {
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
-        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = "
-                + "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and "
-                + "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+        String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
+            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
+            "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
-
 }
