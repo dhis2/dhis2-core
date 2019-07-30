@@ -58,9 +58,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -125,7 +123,7 @@ public class JdbcEventAnalyticsTableManagerTest
     private List<AnalyticsTableColumn> periodColumns = PeriodType.getAvailablePeriodTypes().stream().map( pt -> {
         String column = quote( pt.getName().toLowerCase() );
         return new AnalyticsTableColumn( column, TEXT, "dps" + "." + column );
-    }).collect(Collectors.toList());
+    } ).collect( Collectors.toList() );
 
     @Before
     public void setUp()
@@ -367,7 +365,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
-    
+
     private String toAlias( String template, String uid )
     {
         return String.format( template, uid, uid, uid );
