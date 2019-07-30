@@ -104,7 +104,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
             {
                 if ( !categoryCombo.isDefault() )
                 {
-                    Set<CategoryOption> orgUnitOptions = availableOptions;
+                    Set<CategoryOption> orgUnitOptions = new HashSet<>( availableOptions );
 
                     if ( orgUnit.hasCategoryOptions() )
                     {
