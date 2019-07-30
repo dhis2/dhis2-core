@@ -130,7 +130,7 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         statementBuilder = new PostgreSQLStatementBuilder();
         subject = new JdbcEventAnalyticsTableManager(idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-                dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate);
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate);
         when( jdbcTemplate.queryForList(
             "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
