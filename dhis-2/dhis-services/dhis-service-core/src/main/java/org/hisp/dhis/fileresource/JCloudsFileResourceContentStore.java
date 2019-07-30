@@ -118,7 +118,7 @@ public class JCloudsFileResourceContentStore
         this.configurationProvider = configurationProvider;
     }
 
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Life cycle management
     // -------------------------------------------------------------------------
 
@@ -227,7 +227,7 @@ public class JCloudsFileResourceContentStore
         return isEmptyOrFailed ? null : byteSource;
     }
 
-    @Override 
+    @Override
     public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
     {
         Blob blob = createBlob( fileResource, bytes );
