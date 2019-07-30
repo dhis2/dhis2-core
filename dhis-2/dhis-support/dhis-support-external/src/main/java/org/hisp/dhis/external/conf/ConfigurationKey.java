@@ -93,10 +93,12 @@ public enum ConfigurationKey
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
-    MONITORING_API_ENABLED( "monitoring.api.enabled", "false", false ),
-    MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", "false", false ),
-    MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "false", false ),
-    MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "false", false );
+    MONITORING_API_ENABLED( "monitoring.api.enabled", "off", false ),
+    MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", "off", false ),
+    MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "off", false ),
+    MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
+    MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false );
 
     private final String key;
 
