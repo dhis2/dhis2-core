@@ -98,20 +98,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
         {
             CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
-            Set<CategoryOption> availableOptions = new HashSet<>();
-
-            for( CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
-            {
-                Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
-
-                for( CategoryOption categoryOption : optionComboOptions )
-                {
-                    if( categoryOption.getOrganisationUnits().isEmpty() )
-                    {
-                        availableOptions.add( categoryOption );
-                    }
-                }
-            }
+            Set<CategoryOption> availableOptions = getAvailableCategoryOptions( categoryCombo );
 
             for ( OrganisationUnit orgUnit : dataSet.getSources() )
             {
@@ -150,6 +137,26 @@ public class DataSetOrganisationUnitCategoryResourceTable
         }
 
         return Optional.of( batchArgs );
+    }
+
+    private Set<CategoryOption> getAvailableCategoryOptions( CategoryCombo categoryCombo )
+    {
+        Set<CategoryOption> availableOptions = new HashSet<>();
+
+        for ( CategoryOptionCombo optionCombo : categoryCombo.getOptionCombos() )
+        {
+            Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
+
+            for( CategoryOption categoryOption : optionComboOptions )
+            {
+                if ( categoryOption.getOrganisationUnits().isEmpty() )
+                {
+                    availableOptions.add( categoryOption );
+                }
+            }
+        }
+
+        return availableOptions;
     }
 
     @Override
