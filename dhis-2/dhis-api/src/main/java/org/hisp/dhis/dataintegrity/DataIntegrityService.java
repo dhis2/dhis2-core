@@ -210,6 +210,11 @@ public interface DataIntegrityService
     FlattenedDataIntegrityReport getFlattenedDataIntegrityReport();
 
     /**
+     * Get all ProgramIndicators with no expression.
+     */
+    List<ProgramIndicator> getProgramIndicatorsWithNoExpression();
+
+    /**
      * Get all ProgramIndicators with invalid expressions.
      */
     Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions();

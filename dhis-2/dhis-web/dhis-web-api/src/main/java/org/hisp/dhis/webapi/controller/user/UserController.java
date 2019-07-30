@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
@@ -81,10 +82,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -383,6 +381,7 @@ public class UserController
         User userReplica = new User();
         mergeService.merge( new MergeParams<>( existingUser, userReplica )
             .setMergeMode( MergeMode.MERGE ) );
+        copyAttributeValues( userReplica );
         userReplica.setUid( CodeGenerator.generateUid() );
         userReplica.setCode( null );
         userReplica.setCreated( new Date() );
@@ -454,11 +453,14 @@ public class UserController
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
 
+        parsed = mergeLastLoginAttribute( users.get( 0 ), parsed );
+
         if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
+
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
         params.setImportReportMode( ImportReportMode.FULL );
@@ -501,6 +503,8 @@ public class UserController
 
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );
         parsed.setUid( pvUid );
+
+        parsed = mergeLastLoginAttribute( users.get( 0 ), parsed );
 
         if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
@@ -698,5 +702,58 @@ public class UserController
         }
 
         return null;
+    }
+
+    /**
+     * Make a copy of any existing attribute values so they can be saved
+     * as new attribute values. Don't copy unique values.
+     *
+     * @param userReplica user for which to copy attribute values.
+     */
+    private void copyAttributeValues( User userReplica )
+    {
+        if ( userReplica.getAttributeValues() == null )
+        {
+            return;
+        }
+
+        Set<AttributeValue> newAttributeValues = new HashSet<>();
+
+        for ( AttributeValue oldValue : userReplica.getAttributeValues() )
+        {
+            if ( !oldValue.getAttribute().isUnique() )
+            {
+                AttributeValue newValue = new AttributeValue( oldValue.getValue(), oldValue.getAttribute() );
+
+                newAttributeValues.add( newValue );
+            }
+        }
+
+        if ( newAttributeValues.isEmpty() )
+        {
+            userReplica.setAttributeValues( null );
+        }
+
+        userReplica.setAttributeValues( newAttributeValues );
+    }
+
+    private User mergeLastLoginAttribute( User source, User target )
+    {
+        if ( target.getUserCredentials() == null )
+        {
+            return target;
+        }
+
+        if ( target.getUserCredentials().getLastLogin() != null )
+        {
+            return target;
+        }
+
+        if ( source.getUserCredentials() != null && source.getUserCredentials().getLastLogin() != null )
+        {
+            target.getUserCredentials().setLastLogin( source.getUserCredentials().getLastLogin() );
+        }
+
+        return target;
     }
 }

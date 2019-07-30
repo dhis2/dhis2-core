@@ -94,7 +94,7 @@ public class ContextUtilsTest
         contextUtils.configureResponse( response, null, CacheStrategy.CACHE_TWO_WEEKS, null, false );
         assertEquals( "max-age=1209600, public", response.getHeader( "Cache-Control" ) );
 
-        systemSettingManager.saveSystemSetting( SettingKey.CACHE_STRATEGY, CacheStrategy.CACHE_1_HOUR.toString() );
+        systemSettingManager.saveSystemSetting( SettingKey.CACHE_STRATEGY, SettingKey.getAsRealClass( SettingKey.CACHE_STRATEGY.getName(), CacheStrategy.CACHE_1_HOUR.toString() ) );
 
         response.reset();
         contextUtils.configureResponse( response, null, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false );

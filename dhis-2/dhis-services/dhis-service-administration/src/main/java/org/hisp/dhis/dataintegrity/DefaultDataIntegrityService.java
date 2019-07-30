@@ -616,6 +616,7 @@ public class DefaultDataIntegrityService
 
         report.setInvalidProgramIndicatorExpressions( getInvalidProgramIndicatorExpressions() );
         report.setInvalidProgramIndicatorFilters( getInvalidProgramIndicatorFilters() );
+        report.setGetProgramIndicatorWithNoExpression( getProgramIndicatorsWithNoExpression() );
 
         log.info( "Checked ProgramIndicators" );
 
@@ -657,13 +658,30 @@ public class DefaultDataIntegrityService
     }
 
     @Override
+    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
+    {
+        return programIndicatorService.getProgramIndicatorsWithNoExpression();
+    }
+
+    @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
     {
-        Map<ProgramIndicator, String> invalidExpressions;
+        Map<ProgramIndicator, String> invalidExpressions = new HashMap<>();
 
-        invalidExpressions = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ! programIndicatorService.expressionIsValid( pi.getExpression() ) )
-            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getExpression ) );
+        List<ProgramIndicator> programIndicators = programIndicatorService.getAllProgramIndicators()
+            .stream()
+            .filter( pi -> !programIndicatorService.expressionIsValid( pi.getExpression() ) )
+            .collect( Collectors.toList() );
+
+        for ( ProgramIndicator programIndicator : programIndicators )
+        {
+            String description = getInvalidExpressionDescription( programIndicator.getExpression() );
+
+            if ( description != null )
+            {
+                invalidExpressions.put( programIndicator, description );
+            }
+        }
 
         return invalidExpressions;
     }
@@ -671,11 +689,22 @@ public class DefaultDataIntegrityService
     @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
     {
-        Map<ProgramIndicator, String> invalidFilters;
+        Map<ProgramIndicator, String> invalidFilters = new HashMap<>();
 
-        invalidFilters = programIndicatorService.getAllProgramIndicators().stream()
-            .filter( pi -> ! programIndicatorService.filterIsValid( pi.getFilter() ) )
-            .collect( Collectors.toMap( pi -> pi, ProgramIndicator::getFilter ) );
+        List<ProgramIndicator> programIndicators = programIndicatorService.getAllProgramIndicators()
+            .stream()
+            .filter( pi -> !programIndicatorService.filterIsValid( pi.getFilter() ) )
+            .collect( Collectors.toList() );
+
+        for ( ProgramIndicator programIndicator : programIndicators )
+        {
+            String description = getInvalidExpressionDescription( programIndicator.getFilter() );
+
+            if ( description != null )
+            {
+                invalidFilters.put( programIndicator, description );
+            }
+        }
 
         return invalidFilters;
     }
@@ -749,6 +778,20 @@ public class DefaultDataIntegrityService
         List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoAttribute();
 
         return groupVariablesByProgram( ruleVariables );
+    }
+
+    private String getInvalidExpressionDescription( String expression )
+    {
+        try
+        {
+            expressionService.getIndicatorExpressionDescription( expression );
+        }
+        catch ( org.hisp.dhis.parser.expression.ParserException e )
+        {
+           return e.getMessage();
+        }
+
+        return null;
     }
 
     private Map<Program, Collection<ProgramRule>> groupRulesByProgram( List<ProgramRule> programRules )
