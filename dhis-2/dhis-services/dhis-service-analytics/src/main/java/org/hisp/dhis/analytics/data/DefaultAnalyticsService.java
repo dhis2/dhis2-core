@@ -747,9 +747,10 @@ public class DefaultAnalyticsService
                     PeriodType queryPt = filterPeriodType != null ? filterPeriodType : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
 
-                    // For data set having "Daily" Period Type, the system must calculate the correct number
-                    // of days for the selected Query Period
-                    if ( dataSetPt.hasName( DailyPeriodType.NAME ) )
+                    // Use number of days for daily data sets as target, as query
+                    // periods might often span/contain different numbers of days
+
+                    if ( dataSetPt.equalsName( DailyPeriodType.NAME ) )
                     {
                         Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
                         target = target * period.getDaysInPeriod() * timeUnits;
