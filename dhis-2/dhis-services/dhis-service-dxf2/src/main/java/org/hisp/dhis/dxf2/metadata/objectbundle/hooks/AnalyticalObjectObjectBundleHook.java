@@ -98,7 +98,7 @@ public class AnalyticalObjectObjectBundleHook
             dataDimensionItem.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getDataElement() ) );
             dataDimensionItem.setIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getIndicator() ) );
             dataDimensionItem.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramIndicator() ) );
-            
+
             if ( dataDimensionItem.getDataElementOperand() != null )
             {
                 preheatService.connectReferences( dataDimensionItem.getDataElementOperand(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
@@ -110,23 +110,23 @@ public class AnalyticalObjectObjectBundleHook
                 dataDimensionItem.getReportingRate().setDataSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getReportingRate().getDataSet() ) );
             }
-            
+
             if ( dataDimensionItem.getProgramDataElement() != null )
             {
-                dataDimensionItem.getProgramDataElement().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                dataDimensionItem.getProgramDataElement().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramDataElement().getProgram() ) );
                 dataDimensionItem.getProgramDataElement().setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramDataElement().getDataElement() ) );
             }
-            
+
             if ( dataDimensionItem.getProgramAttribute() != null )
             {
-                dataDimensionItem.getProgramAttribute().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                dataDimensionItem.getProgramAttribute().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramAttribute().getProgram() ) );
-                dataDimensionItem.getProgramAttribute().setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                dataDimensionItem.getProgramAttribute().setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramAttribute().getAttribute() ) );
             }
-            
+
             preheatService.connectReferences( dataDimensionItem, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             session.save( dataDimensionItem );
         }
@@ -171,6 +171,7 @@ public class AnalyticalObjectObjectBundleHook
 
             dataElementDimension.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getDataElement() ) );
             dataElementDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getLegendSet() ) );
+            dataElementDimension.setProgramStage( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getProgramStage() ) );
 
             preheatService.connectReferences( dataElementDimension, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             session.save( dataElementDimension );
