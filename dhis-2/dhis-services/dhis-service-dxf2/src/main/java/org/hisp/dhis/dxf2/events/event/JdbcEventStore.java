@@ -696,7 +696,7 @@ public class JdbcEventStore
                 if ( item.hasOptionSet() && item.hasFilter() )
                 {
                     sql += "inner join optionvalue as " + optCol + " on lower(" + optCol + ".code) = " +
-                            "lower(" + dataValueValueSql + ") and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
+                        "lower(" + dataValueValueSql + ") and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
                 }
 
                 joinedColumns.add( col );
@@ -718,19 +718,19 @@ public class JdbcEventStore
                         }
 
                         eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                                 filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
                         sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                                 filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                     else
                     {
                         sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                                 filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                 }
@@ -794,16 +794,16 @@ public class JdbcEventStore
         if ( params.getStartDate() != null )
         {
             sql += hlp.whereAnd() + " (psi.executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' "
-                    + "or (psi.executiondate is null and psi.duedate >= '" + getMediumDateString( params.getStartDate() )
-                    + "')) ";
+                + "or (psi.executiondate is null and psi.duedate >= '" + getMediumDateString( params.getStartDate() )
+                + "')) ";
         }
 
         if ( params.getEndDate() != null )
         {
             Date dateAfterEndDate = getDateAfterAddition( params.getEndDate(), 1 );
             sql += hlp.whereAnd() + " (psi.executiondate < '" + getMediumDateString( dateAfterEndDate ) + "' "
-                    + "or (psi.executiondate is null and psi.duedate < '" + getMediumDateString( dateAfterEndDate )
-                    + "')) ";
+                + "or (psi.executiondate is null and psi.duedate < '" + getMediumDateString( dateAfterEndDate )
+                + "')) ";
         }
 
         if ( params.getProgramType() != null )
@@ -816,12 +816,12 @@ public class JdbcEventStore
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
                 sql += hlp.whereAnd() + " psi.status = '" + EventStatus.ACTIVE.name()
-                        + "' and psi.executiondate is not null ";
+                    + "' and psi.executiondate is not null ";
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
                 sql += hlp.whereAnd() + " date(now()) > date(psi.duedate) and psi.status = '"
-                        + EventStatus.SCHEDULE.name() + "' ";
+                    + EventStatus.SCHEDULE.name() + "' ";
             }
             else
             {
@@ -1009,12 +1009,12 @@ public class JdbcEventStore
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
                 sql += hlp.whereAnd() + " psi.status = '" + EventStatus.ACTIVE.name()
-                        + "' and psi.executiondate is not null ";
+                    + "' and psi.executiondate is not null ";
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
                 sql += hlp.whereAnd() + " date(now()) > date(psi.duedate) and psi.status = '"
-                        + EventStatus.SCHEDULE.name() + "' ";
+                    + EventStatus.SCHEDULE.name() + "' ";
             }
             else
             {
@@ -1096,8 +1096,8 @@ public class JdbcEventStore
             + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
             + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
             + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
-            + "left join useraccess ua on coua.useraccessid = ua.useraccessid " + " where ua.userid="
-            + user.getId();
+            + "left join useraccess ua on coua.useraccessid = ua.useraccessid "
+            + "where ua.userid = " + user.getId();
 
         if ( userGroupIds != null && !userGroupIds.isEmpty() )
         {
