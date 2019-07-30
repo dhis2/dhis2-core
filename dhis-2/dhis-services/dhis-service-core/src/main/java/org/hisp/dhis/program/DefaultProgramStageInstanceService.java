@@ -1,5 +1,7 @@
 package org.hisp.dhis.program;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -30,6 +32,7 @@ package org.hisp.dhis.program;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,14 +58,13 @@ import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Abyot Asalefew
  */
 @Service( "org.hisp.dhis.program.ProgramStageInstanceService" )
 public class DefaultProgramStageInstanceService
-    implements ProgramStageInstanceService
+    implements
+    ProgramStageInstanceService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -78,9 +80,9 @@ public class DefaultProgramStageInstanceService
 
     private final FileResourceService fileResourceService;
 
-    public DefaultProgramStageInstanceService( CurrentUserService currentUserService, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceStore programStageInstanceStore, TrackedEntityDataValueAuditService dataValueAuditService,
-        FileResourceService fileResourceService)
+    public DefaultProgramStageInstanceService( CurrentUserService currentUserService,
+        ProgramInstanceService programInstanceService, ProgramStageInstanceStore programStageInstanceStore,
+        TrackedEntityDataValueAuditService dataValueAuditService, FileResourceService fileResourceService )
     {
         checkNotNull( currentUserService );
         checkNotNull( programInstanceService );
@@ -134,21 +136,21 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramStageInstance getProgramStageInstance( long id )
     {
         return programStageInstanceStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramStageInstance getProgramStageInstance( String uid )
     {
         return programStageInstanceStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramStageInstance getProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
     {
         return programStageInstanceStore.get( programInstance, programStage );
@@ -166,25 +168,26 @@ public class DefaultProgramStageInstanceService
     @Transactional
     public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
     {
-        programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( programStageInstanceUIDs, lastSynchronized );
+        programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( programStageInstanceUIDs,
+            lastSynchronized );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean programStageInstanceExists( String uid )
     {
         return programStageInstanceStore.exists( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean programStageInstanceExistsIncludingDeleted( String uid )
     {
         return programStageInstanceStore.existsIncludingDeleted( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public long getProgramStageInstanceCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -296,7 +299,8 @@ public class DefaultProgramStageInstanceService
 
         if ( singleValue )
         {
-            // If it is only a single value update, I don't won't to miss the values that
+            // If it is only a single value update, I don't won't to miss the
+            // values that
             // are missing in the payload but already present in the DB
             Set<EventDataValue> changedDataValues = Sets.union( updatedOrNewDataValues, removedDataValues );
             Set<EventDataValue> unchangedDataValues = Sets.difference( programStageInstance.getEventDataValues(),
@@ -320,7 +324,7 @@ public class DefaultProgramStageInstanceService
         Map<DataElement, EventDataValue> dataElementEventDataValueMap )
     {
         validateEventDataValues( dataElementEventDataValueMap );
-        Set<EventDataValue> eventDataValues = new HashSet<EventDataValue>(dataElementEventDataValueMap.values());
+        Set<EventDataValue> eventDataValues = new HashSet<EventDataValue>( dataElementEventDataValueMap.values() );
         programStageInstance.setEventDataValues( eventDataValues );
         addProgramStageInstance( programStageInstance );
 
