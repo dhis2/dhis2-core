@@ -42,6 +42,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -57,7 +58,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -102,7 +102,6 @@ public class JdbcEventAnalyticsTableManagerTest
     @Mock
     private AnalyticsTableHookService tableHookService;
 
-    @Mock
     private StatementBuilder statementBuilder;
 
     @Mock
@@ -117,7 +116,6 @@ public class JdbcEventAnalyticsTableManagerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @InjectMocks
     private JdbcEventAnalyticsTableManager subject;
 
     private final static String FROM_CLAUSE = "from programstageinstance where programstageinstanceid=psi.programstageinstanceid";
@@ -125,11 +123,14 @@ public class JdbcEventAnalyticsTableManagerTest
     private List<AnalyticsTableColumn> periodColumns = PeriodType.getAvailablePeriodTypes().stream().map( pt -> {
         String column = quote( pt.getName().toLowerCase() );
         return new AnalyticsTableColumn( column, TEXT, "dps" + "." + column );
-    }).collect(Collectors.toList());
+    } ).collect( Collectors.toList() );
 
     @Before
     public void setUp()
     {
+        statementBuilder = new PostgreSQLStatementBuilder();
+        subject = new JdbcEventAnalyticsTableManager(idObjectManager, organisationUnitService, categoryService, systemSettingManager,
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate);
         when( jdbcTemplate.queryForList(
             "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
@@ -278,12 +279,12 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
         String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
-        String aliasD2 = "(select cast(eventdatavalues #>> '{%s, value}' as null) "+ FROM_CLAUSE +"  and eventdatavalues #>> '{%s,value}' null '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        String aliasD2 = "(select cast(eventdatavalues #>> '{%s, value}' as double precision) "+ FROM_CLAUSE +"  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD3 = "(select case when eventdatavalues #>> '{%s, value}' = 'true' then 1 when eventdatavalues #>> '{%s, value}' = 'false' then 0 else null end " + FROM_CLAUSE + " ) as \"%s\"";
-        String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' null '^\\d{4}-\\d{2}-\\d{2}(\\s|T)?(\\d{2}:\\d{2}:\\d{2})?$') as \"%s\"";
+        String aliasD4 = "(select cast(eventdatavalues #>> '{%s, value}' as timestamp) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' ~* '" + AbstractJdbcTableManager.DATE_REGEXP + "') as \"%s\"";
         String aliasD5 = "(select ou.name from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
-        String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' null '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
+        String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
@@ -336,7 +337,7 @@ public class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    public void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
