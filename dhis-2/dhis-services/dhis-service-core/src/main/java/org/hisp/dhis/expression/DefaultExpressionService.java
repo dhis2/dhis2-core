@@ -301,6 +301,17 @@ public class DefaultExpressionService
     }
 
     // -------------------------------------------------------------------------
+    // Validation Rule expression logic
+    // -------------------------------------------------------------------------
+
+    @Override
+    @Transactional
+    public ExpressionValidationOutcome validationRuleExpressionIsValid( String expression )
+    {
+        return indicatorExpressionIsValid( expression ); // Currently the same syntax.
+    }
+
+    // -------------------------------------------------------------------------
     // Expression logic
     // -------------------------------------------------------------------------
 
@@ -688,13 +699,6 @@ public class DefaultExpressionService
     public ExpressionValidationOutcome predictorExpressionIsValid( String expression )
     {
         return expressionIsValid( expression, true );
-    }
-
-    @Override
-    @Transactional
-    public ExpressionValidationOutcome validationRuleExpressionIsValid( String expression )
-    {
-        return expressionIsValid( expression, false );
     }
 
     private ExpressionValidationOutcome expressionIsValid( String expression, boolean customFunctions )

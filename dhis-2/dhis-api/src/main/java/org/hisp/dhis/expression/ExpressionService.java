@@ -245,6 +245,18 @@ public interface ExpressionService
     String getIndicatorExpressionDescription( String expression );
 
     // -------------------------------------------------------------------------
+    // Validation Rule expression logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tests whether the validation rule expression is valid.
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
+
+    // -------------------------------------------------------------------------
     // Expression logic
     // -------------------------------------------------------------------------
 
@@ -427,14 +439,6 @@ public interface ExpressionService
      * @return the ExpressionValidationOutcome of the validation.
      */
     ExpressionValidationOutcome predictorExpressionIsValid( String expression );
-
-    /**
-     * Tests whether the validation rule expression is valid.
-     *
-     * @param expression the expression formula.
-     * @return the ExpressionValidationOutcome of the validation.
-     */
-    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing DataElement names and the names

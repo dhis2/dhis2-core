@@ -57,7 +57,7 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "Predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
-    extends BaseNameableObject implements MetadataObject
+    extends   implements MetadataObject
 {
     /**
      * The data element into which the predictor writes

@@ -70,6 +70,8 @@ public class PeriodTypeExtended
 
     private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
 
+    private Set<DimensionalItemObject> indicators = new HashSet<>();
+
     private Set<DataElement> dataElements = new HashSet<>();
 
     private Set<DataElementOperand> dataElementOperands = new HashSet<>();
@@ -77,6 +79,10 @@ public class PeriodTypeExtended
     private Map<Long, DataElement> dataElementIdMap = new HashMap<>();
 
     private Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
+
+    private boolean slidingWindowsNeeded = false;
+
+    private boolean nonSlidingWindowsNeeded = false;
 
     public PeriodTypeExtended( PeriodType periodType )
     {
@@ -91,6 +97,7 @@ public class PeriodTypeExtended
             .append( "ruleXs", ruleXs.toArray() )
             .append( "eventItems", eventItems )
             .append( "eventItemsWithoutAttributeOptions", eventItemsWithoutAttributeOptions )
+            .append( "indicators", indicators )
             .append( "dataElements", dataElements )
             .append( "dataElementOperands", dataElementOperands )
             .append( "allowedPeriodTypes", allowedPeriodTypes ).toString();
@@ -105,6 +112,11 @@ public class PeriodTypeExtended
         periods.add( p );
 
         periodIdMap.put( p.getId(), p );
+    }
+
+    public void addIndicator( DimensionalItemObject indicator )
+    {
+        indicators.add( indicator );
     }
 
     public void addDataElement( DataElement de )
@@ -126,6 +138,18 @@ public class PeriodTypeExtended
     public String getDeoIds( long dataElementId, long categoryOptionComboId )
     {
         return dataElementId + "." + categoryOptionComboId;
+    }
+
+    public void setSlidingWindows( boolean slidingWindows )
+    {
+        if ( slidingWindows )
+        {
+            slidingWindowsNeeded = true;
+        }
+        else
+        {
+            nonSlidingWindowsNeeded = true;
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -157,6 +181,11 @@ public class PeriodTypeExtended
         return eventItemsWithoutAttributeOptions;
     }
 
+    public Set<DimensionalItemObject> getIndicators()
+    {
+        return indicators;
+    }
+
     public Set<DataElement> getDataElements()
     {
         return dataElements;
@@ -180,5 +209,15 @@ public class PeriodTypeExtended
     public Set<PeriodType> getAllowedPeriodTypes()
     {
         return allowedPeriodTypes;
+    }
+
+    public boolean areSlidingWindowsNeeded()
+    {
+        return slidingWindowsNeeded;
+    }
+
+    public boolean areNonSlidingWindowsNeeded()
+    {
+        return nonSlidingWindowsNeeded;
     }
 }
