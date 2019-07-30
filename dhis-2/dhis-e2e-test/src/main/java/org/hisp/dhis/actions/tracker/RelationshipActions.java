@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +26,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
+package org.hisp.dhis.actions.tracker;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class JsonParserUtils
+public class RelationshipActions
+    extends RestApiActions
 {
-    private static JsonParser parser = new JsonParser();
-
-    public static JsonObject toJsonObject( Object object )
+    public RelationshipActions()
     {
-        JsonObject jsonObject = parser.parse( new Gson().toJson( object ) ).getAsJsonObject();
+        super( "/relationships" );
+    }
 
-        return jsonObject;
+    public JsonObject createRelationshipBody( String relationshipTypeId, String fromEntity, String fromEntityId, String toEntity,
+        String toEntityId )
+    {
+        JsonObject relationship = new JsonObject();
+        relationship.addProperty( "relationshipType", relationshipTypeId );
+
+        JsonObject from = new JsonObject();
+        JsonObject fromEntityObj = new JsonObject();
+        fromEntityObj.addProperty( fromEntity, fromEntityId );
+        from.add( fromEntity, fromEntityObj );
+
+        relationship.add( "from", from );
+
+        JsonObject to = new JsonObject();
+        JsonObject toEntityObj = new JsonObject();
+        toEntityObj.addProperty( toEntity, toEntityId );
+        to.add( toEntity, toEntityObj );
+
+        relationship.add( "to", to );
+
+        return relationship;
+
     }
 }
