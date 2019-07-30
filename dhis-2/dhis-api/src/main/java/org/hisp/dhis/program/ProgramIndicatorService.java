@@ -96,6 +96,8 @@ public interface ProgramIndicatorService
      */
     List<ProgramIndicator> getAllProgramIndicators();
 
+    List<ProgramIndicator> getProgramIndicatorsWithNoExpression();
+
     // -------------------------------------------------------------------------
     // ProgramIndicator logic
     // -------------------------------------------------------------------------

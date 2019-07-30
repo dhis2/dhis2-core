@@ -59,7 +59,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
@@ -137,9 +136,7 @@ public class ContextUtils
 
         if ( CacheStrategy.RESPECT_SYSTEM_SETTING.equals( cacheStrategy ) )
         {
-            String strategy = trimToNull( (String) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY ) );
-
-            cacheStrategy = strategy != null ? CacheStrategy.valueOf( strategy ) : CacheStrategy.NO_CACHE;
+            cacheStrategy = (CacheStrategy) systemSettingManager.getSystemSetting( SettingKey.CACHE_STRATEGY );
         }
 
         if ( CacheStrategy.CACHE_15_MINUTES.equals( cacheStrategy ) )

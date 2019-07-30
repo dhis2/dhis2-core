@@ -64,6 +64,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
@@ -77,6 +78,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -91,11 +93,14 @@ public class MetadataImportTest
 
     private SchemasActions schemasActions;
 
+    private SystemActions systemActions;
+
     @BeforeEach
     public void before()
     {
         schemasActions = new SchemasActions();
         metadataActions = new RestApiActions( "/metadata" );
+        systemActions = new SystemActions();
 
         new LoginActions().loginAsSuperUser();
     }
@@ -217,7 +222,7 @@ public class MetadataImportTest
         // arrange
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
-            "&importStrategy=CREATE" +
+            "&importStrategy=CREATE_AND_UPDATE" +
             "&atomicMode=NONE";
 
         // import metadata so that we have references and can clean up
@@ -241,10 +246,19 @@ public class MetadataImportTest
 
         // Validate that job was successful
 
-        response = new SystemActions().waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
+        response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
 
         assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Start" ) ) );
         assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );
+
+        // validate task summaries were created
+        response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
+
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "OK" ) )
+            .body( "typeReports", notNullValue() )
+            .body( "typeReports.stats.total", everyItem( greaterThan( 0 ) ))
+            .body( "typeReports.objectReports", hasSize( greaterThan( 0 ) ) );
     }
 
     private List<ObjectReport> getObjectReports( List<TypeReport> typeReports )
