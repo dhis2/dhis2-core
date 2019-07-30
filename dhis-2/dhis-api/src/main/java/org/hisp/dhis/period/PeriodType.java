@@ -701,8 +701,6 @@ public abstract class PeriodType
      * If the offset number is positive, the date is offset into later periods. When the offset is
      * negative, the date is offset into earlier periods.
      * @param dateTimeUnit for where to start the offset.
-     * @param period how many periods to go back(if negative) or forward(if positive). A value of 0 will
-     * result in the original date to be returned.
      * @return a new date object that has been offset from the original date passed into the function.
      */
     protected abstract DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, org.hisp.dhis.calendar.Calendar calendar );
@@ -712,8 +710,6 @@ public abstract class PeriodType
      * If the offset number is positive, the date is offset into later periods. When the offset is
      * negative, the date is offset into earlier periods.
      * @param date for where to start the offset.
-     * @param period how many periods to go back(if negative) or forward(if positive). A value of 0 will
-     * result in the original date to be returned.
      * @return a new date object that has been offset from the original date passed into the function.
      */
     public Date getDateWithOffset( Date date, int offset )
@@ -730,6 +726,17 @@ public abstract class PeriodType
     public boolean spansMultipleCalendarYears()
     {
         return false;
+    }
+
+    /**
+     * Returns true if the supplied name equals the name of this period type.
+     * @param periodTypeName the period type name.
+     *
+     * @return true if the supplied name equals the name of the period type.
+     */
+    public boolean equalsName( String periodTypeName )
+    {
+        return this.getName().equals( periodTypeName );
     }
 
     // -------------------------------------------------------------------------
