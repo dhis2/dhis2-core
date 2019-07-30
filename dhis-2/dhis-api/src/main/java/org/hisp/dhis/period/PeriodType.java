@@ -725,6 +725,16 @@ public abstract class PeriodType
         return false;
     }
 
+    /**
+     * Returns true if the supplied name equals the name of this period type.
+     * @param periodTypeName the period type name.
+     *
+     * @return true if the supplied name equals the name of the period type.
+     */
+    public boolean equalsName( String periodTypeName )
+    {
+        return this.getName().equals( periodTypeName );
+    }
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
