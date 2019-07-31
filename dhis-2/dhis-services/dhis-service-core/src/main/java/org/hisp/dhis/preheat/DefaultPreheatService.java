@@ -433,7 +433,7 @@ public class DefaultPreheatService implements PreheatService
     {
         if ( PreheatMode.ALL == params.getPreheatMode() || PreheatMode.NONE == params.getPreheatMode() )
         {
-            // nothing to validate for now, if classes is empty it will get all metadata classes
+            // Nothing to validate for now, if classes is empty it will get all metadata classes
         }
         else if ( PreheatMode.REFERENCE == params.getPreheatMode() )
         {
@@ -502,7 +502,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         Map<Class<?>, List<?>> targets = new HashMap<>();
-        targets.putAll( objects ); // clone objects list, we don't want to modify it
+        targets.putAll( objects ); // Clone objects list, we don't want to modify it
         collectScanTargets( targets );
 
         for ( Class<?> klass : targets.keySet() )
@@ -559,67 +559,7 @@ public class DefaultPreheatService implements PreheatService
                     }
                 } );
 
-                if ( AnalyticalObject.class.isInstance( object ) )
-                {
-                    BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
-                    List<DataDimensionItem> dataDimensionItems = analyticalObject.getDataDimensionItems();
-                    List<CategoryDimension> categoryDimensions = analyticalObject.getCategoryDimensions();
-                    List<TrackedEntityDataElementDimension> trackedEntityDataElementDimensions = analyticalObject.getDataElementDimensions();
-                    List<TrackedEntityAttributeDimension> attributeDimensions = analyticalObject.getAttributeDimensions();
-                    List<TrackedEntityProgramIndicatorDimension> programIndicatorDimensions = analyticalObject.getProgramIndicatorDimensions();
-
-                    CollectionUtils.nullSafeForEach( dataDimensionItems, dataDimensionItem ->
-                    {
-                        addIdentifiers( map, dataDimensionItem.getDimensionalItemObject() );
-
-                        if ( dataDimensionItem.getDataElementOperand() != null )
-                        {
-                            addIdentifiers( map, dataDimensionItem.getDataElementOperand().getDataElement() );
-                            addIdentifiers( map, dataDimensionItem.getDataElementOperand().getCategoryOptionCombo() );
-                        }
-
-                        if ( dataDimensionItem.getReportingRate() != null )
-                        {
-                            addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
-                        }
-
-                        if ( dataDimensionItem.getProgramDataElement() != null )
-                        {
-                            addIdentifiers( map, dataDimensionItem.getProgramDataElement().getDataElement() );
-                            addIdentifiers( map, dataDimensionItem.getProgramDataElement().getProgram() );
-                        }
-
-                        if ( dataDimensionItem.getProgramAttribute() != null )
-                        {
-                            addIdentifiers( map, dataDimensionItem.getProgramAttribute().getAttribute() );
-                            addIdentifiers( map, dataDimensionItem.getProgramAttribute().getProgram() );
-                        }
-                    } );
-
-                    CollectionUtils.nullSafeForEach( categoryDimensions, categoryDimension ->
-                    {
-                        addIdentifiers( map, categoryDimension.getDimension() );
-                        categoryDimension.getItems().forEach( item -> addIdentifiers( map, item ) );
-                    } );
-
-                    CollectionUtils.nullSafeForEach( trackedEntityDataElementDimensions, trackedEntityDataElementDimension ->
-                    {
-                        addIdentifiers( map, trackedEntityDataElementDimension.getDataElement() );
-                        addIdentifiers( map, trackedEntityDataElementDimension.getLegendSet() );
-                    } );
-
-                    CollectionUtils.nullSafeForEach( attributeDimensions, trackedEntityAttributeDimension ->
-                    {
-                        addIdentifiers( map, trackedEntityAttributeDimension.getAttribute() );
-                        addIdentifiers( map, trackedEntityAttributeDimension.getLegendSet() );
-                    } );
-
-                    CollectionUtils.nullSafeForEach( programIndicatorDimensions, programIndicatorDimension ->
-                    {
-                        addIdentifiers( map, programIndicatorDimension.getProgramIndicator() );
-                        addIdentifiers( map, programIndicatorDimension.getLegendSet() );
-                    } );
-                }
+                collectAnalyticalObjectReferences( map, object );
             }
         }
 
@@ -627,6 +567,78 @@ public class DefaultPreheatService implements PreheatService
         cleanEmptyEntries( codeMap );
 
         return map;
+    }
+
+    /**
+     * Collect references for {@link AnalyticalObject}.
+     *
+     * @param map the mapping between {@link PreheatIdentifier} and object identifiers.
+     * @param object the object.
+     */
+    private void collectAnalyticalObjectReferences( Map<PreheatIdentifier, Map<Class<? extends IdentifiableObject>, Set<String>>> map, Object object )
+    {
+        if ( AnalyticalObject.class.isInstance( object ) )
+        {
+            BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
+            List<DataDimensionItem> dataDimensionItems = analyticalObject.getDataDimensionItems();
+            List<CategoryDimension> categoryDimensions = analyticalObject.getCategoryDimensions();
+            List<TrackedEntityDataElementDimension> trackedEntityDataElementDimensions = analyticalObject.getDataElementDimensions();
+            List<TrackedEntityAttributeDimension> attributeDimensions = analyticalObject.getAttributeDimensions();
+            List<TrackedEntityProgramIndicatorDimension> programIndicatorDimensions = analyticalObject.getProgramIndicatorDimensions();
+
+            CollectionUtils.nullSafeForEach( dataDimensionItems, dataDimensionItem ->
+            {
+                addIdentifiers( map, dataDimensionItem.getDimensionalItemObject() );
+
+                if ( dataDimensionItem.getDataElementOperand() != null )
+                {
+                    addIdentifiers( map, dataDimensionItem.getDataElementOperand().getDataElement() );
+                    addIdentifiers( map, dataDimensionItem.getDataElementOperand().getCategoryOptionCombo() );
+                }
+
+                if ( dataDimensionItem.getReportingRate() != null )
+                {
+                    addIdentifiers( map, dataDimensionItem.getReportingRate().getDataSet() );
+                }
+
+                if ( dataDimensionItem.getProgramDataElement() != null )
+                {
+                    addIdentifiers( map, dataDimensionItem.getProgramDataElement().getDataElement() );
+                    addIdentifiers( map, dataDimensionItem.getProgramDataElement().getProgram() );
+                }
+
+                if ( dataDimensionItem.getProgramAttribute() != null )
+                {
+                    addIdentifiers( map, dataDimensionItem.getProgramAttribute().getAttribute() );
+                    addIdentifiers( map, dataDimensionItem.getProgramAttribute().getProgram() );
+                }
+            } );
+
+            CollectionUtils.nullSafeForEach( categoryDimensions, categoryDimension ->
+            {
+                addIdentifiers( map, categoryDimension.getDimension() );
+                categoryDimension.getItems().forEach( item -> addIdentifiers( map, item ) );
+            } );
+
+            CollectionUtils.nullSafeForEach( trackedEntityDataElementDimensions, trackedEntityDataElementDimension ->
+            {
+                addIdentifiers( map, trackedEntityDataElementDimension.getDataElement() );
+                addIdentifiers( map, trackedEntityDataElementDimension.getLegendSet() );
+                addIdentifiers( map, trackedEntityDataElementDimension.getProgramStage() );
+            } );
+
+            CollectionUtils.nullSafeForEach( attributeDimensions, trackedEntityAttributeDimension ->
+            {
+                addIdentifiers( map, trackedEntityAttributeDimension.getAttribute() );
+                addIdentifiers( map, trackedEntityAttributeDimension.getLegendSet() );
+            } );
+
+            CollectionUtils.nullSafeForEach( programIndicatorDimensions, programIndicatorDimension ->
+            {
+                addIdentifiers( map, programIndicatorDimension.getProgramIndicator() );
+                addIdentifiers( map, programIndicatorDimension.getLegendSet() );
+            } );
+        }
     }
 
     @Override
