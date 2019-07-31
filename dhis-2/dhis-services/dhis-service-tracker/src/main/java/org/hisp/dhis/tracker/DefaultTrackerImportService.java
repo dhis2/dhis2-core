@@ -120,6 +120,8 @@ public class DefaultTrackerImportService implements TrackerImportService
         message = "(" + params.getUsername() + ") Import:Done took " + timer.toString();
         log.info( message );
 
+        TrackerBundleReportModeUtils.filter( importReport, params.getReportMode() );
+
         return importReport;
     }
 
