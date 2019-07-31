@@ -1152,7 +1152,7 @@ public abstract class AbstractEventService
         if (  programStageInstance != null && ( programStageInstance.isDeleted() || importOptions.getImportStrategy().isCreate() ) )
         {
             return new ImportSummary( ImportStatus.ERROR, "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                    .setReference( event.getEvent() ).incrementIgnored();
+                .setReference( event.getEvent() ).incrementIgnored();
         }
 
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, false );
@@ -1295,9 +1295,9 @@ public abstract class AbstractEventService
             if ( programStageInstance.getProgramStage().getFeatureType().equals( FeatureType.NONE ) ||
                 !programStageInstance.getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
             {
-                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() +
-                    ") does not conform to the feature type (" + programStageInstance.getProgramStage().getFeatureType().value() +
-                    ") specified for the program stage: " + programStageInstance.getProgramStage().getUid() );
+                return new ImportSummary( ImportStatus.ERROR, String.format(
+                    "Geometry '%s' does not conform to the feature type '%s' specified for the program stage: '%s'",
+                    programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) );
             }
 
             event.getGeometry().setSRID( GeoUtils.SRID );
@@ -1308,8 +1308,7 @@ public abstract class AbstractEventService
 
             try
             {
-                event
-                    .setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
+                event.setGeometry( GeoUtils.getGeoJsonPoint( coordinate.getLongitude(), coordinate.getLatitude() ) );
             }
             catch ( IOException e )
             {
@@ -1329,7 +1328,7 @@ public abstract class AbstractEventService
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
-        // trigger rule engine
+        // Trigger rule engine:
         // 1. only once for whole event
         // 2. only if data value is associated with any ProgramRuleVariable
 
@@ -2005,7 +2004,7 @@ public abstract class AbstractEventService
         {
             program = manager.getObject( Program.class, idScheme, id );
 
-            if( program != null )
+            if ( program != null )
             {
                 programCache.put( id, program );
 
