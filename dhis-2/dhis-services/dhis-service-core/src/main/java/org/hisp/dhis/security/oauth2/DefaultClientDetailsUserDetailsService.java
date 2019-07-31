@@ -35,7 +35,6 @@ import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
 import org.springframework.stereotype.Service;
 
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
