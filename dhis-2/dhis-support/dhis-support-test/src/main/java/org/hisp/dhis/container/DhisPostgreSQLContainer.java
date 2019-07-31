@@ -35,11 +35,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 /**
- * Custom {@link PostgreSQLContainer} that provides additional fluent api to
- * customize postgres configuration.
- * 
- * @author Ameen Mohamed <ameen@dhis2.org>
+ * Custom {@link PostgreSQLContainer} that provides additional fluent API to
+ * customize PostgreSQL configuration.
  *
+ * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>> extends PostgreSQLContainer<SELF>
 {
@@ -80,7 +79,7 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
      * container. The configAndValue should be of the form
      * "configName=configValue". This method can be invoked multiple times to
      * add multiple custom commands.
-     * 
+     *
      * @param configAndValue The configuration and value of the form
      *        "configName=configValue"
      * @return the DhisPostgreSQLContainer
@@ -93,6 +92,6 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
         }
         return self();
     }
-    
-    
+
+
 }
