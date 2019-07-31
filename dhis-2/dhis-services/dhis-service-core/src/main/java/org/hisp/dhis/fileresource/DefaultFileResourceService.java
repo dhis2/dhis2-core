@@ -28,7 +28,6 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -40,10 +39,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -163,9 +165,16 @@ public class DefaultFileResourceService
     }
 
     @Override
-    public ByteSource getFileResourceContent( FileResource fileResource )
+    public InputStream getFileResourceContent( FileResource fileResource )
     {
         return fileResourceContentStore.getFileResourceContent( fileResource.getStorageKey() );
+    }
+
+    @Override
+    public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+        throws IOException, NoSuchElementException
+    {
+        fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );
     }
 
     @Override
