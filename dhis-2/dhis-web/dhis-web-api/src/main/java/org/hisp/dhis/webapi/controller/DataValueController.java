@@ -562,49 +562,19 @@ public class DataValueController
             throw new WebMessageException( webMessage );
         }
 
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
-
-        if ( content == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
-        }
-
-        // ---------------------------------------------------------------------
-        // Attempt to build signed URL request for content and redirect
-        // ---------------------------------------------------------------------
-
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( uid );
-
-        if ( signedGetUri != null )
-        {
-            response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
-            response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------
-        // Build response and return
-        // ---------------------------------------------------------------------
-
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
         setNoStore( response );
 
-        // ---------------------------------------------------------------------
-        // Request signing is not available, stream content back to client
-        // ---------------------------------------------------------------------
-
-        try ( InputStream inputStream = content.openStream() )
+        try
         {
-            IOUtils.copy( inputStream, response.getOutputStream() );
+            fileResourceService.copyFileResourceContentTo( fileResource, response.getOutputStream() );
         }
         catch ( IOException e )
         {
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
-                "There was an exception when trying to fetch the file from the storage backend. " +
-                    "Depending on the provider the root cause could be network or file system related." ) );
+                "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
     }
 
