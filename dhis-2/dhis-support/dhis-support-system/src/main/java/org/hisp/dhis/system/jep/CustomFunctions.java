@@ -69,7 +69,7 @@ public class CustomFunctions
         ImmutableMap.<String, PostfixMathCommandI>builder().putAll( AGGREGATE_FUNCTIONS ).putAll( SCALAR_FUNCTIONS ).build();
 
     public static void addFunctions( JEP parser )
-    {        
+    {
         for ( Entry<String, PostfixMathCommandI> e : ALL_FUNCTIONS.entrySet() )
         {
             String fname = e.getKey();
@@ -107,7 +107,6 @@ public class CustomFunctions
         }
     }
 
-    @SuppressWarnings( "unchecked" )
     public static Double checkDouble( Object param )
         throws ParseException
     {
