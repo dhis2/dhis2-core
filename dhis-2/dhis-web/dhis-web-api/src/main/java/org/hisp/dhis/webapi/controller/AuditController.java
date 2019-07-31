@@ -29,8 +29,6 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteSource;
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -88,8 +86,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -166,42 +162,13 @@ public class AuditController
             throw new WebMessageException( webMessage );
         }
 
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
-
-        if ( content == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
-        }
-
-        // ---------------------------------------------------------------------
-        // Attempt to build signed URL request for content and redirect
-        // ---------------------------------------------------------------------
-
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( uid );
-
-        if ( signedGetUri != null )
-        {
-            response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
-            response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------
-        // Build response and return
-        // ---------------------------------------------------------------------
-
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-        // ---------------------------------------------------------------------
-        // Request signing is not available, stream content back to client
-        // ---------------------------------------------------------------------
-
-        try ( InputStream inputStream = content.openStream() )
+        try
         {
-            IOUtils.copy( inputStream, response.getOutputStream() );
+            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
         }
         catch ( IOException e )
         {
