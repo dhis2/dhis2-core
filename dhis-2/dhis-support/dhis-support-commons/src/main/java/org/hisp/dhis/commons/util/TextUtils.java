@@ -679,7 +679,7 @@ public class TextUtils
     /**
      * Creates a regular expression from the given glob string.
      *
-     * @param glob teh glob string.
+     * @param glob the glob string.
      * @return a regular expression.
      */
     public static static String createRegexFromGlob( String glob )
