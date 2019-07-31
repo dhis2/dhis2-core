@@ -51,6 +51,7 @@ import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,6 +62,7 @@ import com.google.common.io.ByteSource;
 /**
  * @author Lars Helge Overland
  */
+@Component
 public class FileResourceUtils
 {
     @Autowired
