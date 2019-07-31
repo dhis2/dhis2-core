@@ -72,7 +72,6 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.csvreader.CsvReader;
-import com.google.api.client.util.Lists;
 import org.springframework.stereotype.Service;
 
 /**
@@ -192,7 +191,7 @@ public class DefaultCsvImportService
             }
         }
 
-        return Lists.newArrayList( uidMap.values() );
+        return new ArrayList<>( uidMap.values() );
     }
 
     private List<IndicatorGroup> indicatorGroupMembership( CsvReader reader )
@@ -227,7 +226,7 @@ public class DefaultCsvImportService
                 }
             }
         }
-        return Lists.newArrayList( uidMap.values() );
+        return new ArrayList<>( uidMap.values() );
     }
 
     private List<OrganisationUnitGroup> organisationUnitGroupMembership( CsvReader reader )
@@ -264,7 +263,7 @@ public class DefaultCsvImportService
                 }
             }
         }
-        return Lists.newArrayList( uidMap.values() );
+        return new ArrayList<>( uidMap.values() );
     }
 
     // -------------------------------------------------------------------------

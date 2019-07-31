@@ -28,7 +28,6 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.api.client.util.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -37,6 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -76,9 +76,9 @@ public class ProgramStageSectionStoreTest
     private ProgramStageSection sectionA;
 
     private ProgramStageSection sectionB;
-    
+
     private List<DataElement> dataElements;
-    
+
     @Override
     public void setUpTest()
     {
@@ -103,10 +103,10 @@ public class ProgramStageSectionStoreTest
         programStageDataElementService.addProgramStageDataElement( stageDeA );
         programStageDataElementService.addProgramStageDataElement( stageDeB );
 
-        dataElements = Lists.newArrayList();
+        dataElements = new ArrayList<>();
         dataElements.add( dataElementA );
         dataElements.add( dataElementB );
-        
+
         stageB = new ProgramStage( "B", program );
         programStageService.saveProgramStage( stageB );
 
@@ -132,7 +132,7 @@ public class ProgramStageSectionStoreTest
     {
         ProgramStageSection sectionA = createProgramStageSection( 'A', 1 );
         sectionA.setDataElements( dataElements );
-        
+
         programStageSectionStore.save( sectionA );
         long idA = sectionA.getId();
 
