@@ -40,6 +40,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -55,11 +56,10 @@ public class HibernateAnalyticsTableHookStore
 {
     private static final Log log = LogFactory.getLog( HibernateAnalyticsTableHookStore.class );
 
-    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, AnalyticsTableHook.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, AnalyticsTableHook.class, currentUserService, deletedObjectService, aclService, false );
     }
 
     @Override
@@ -95,7 +95,7 @@ public class HibernateAnalyticsTableHookStore
         for ( AnalyticsTableHook hook : hooks )
         {
             log.info( String.format( "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName() ) );
-            
+
             jdbcTemplate.execute( hook.getSql() );
         }
     }

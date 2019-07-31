@@ -37,6 +37,7 @@ import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionGroupStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -52,10 +53,10 @@ public class HibernateOptionGroupStore
     implements OptionGroupStore
 {
     public HibernateOptionGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
         AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, OptionGroup.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, OptionGroup.class, currentUserService, deletedObjectService, aclService,
             true );
     }
 

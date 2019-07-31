@@ -47,7 +47,6 @@ import static org.junit.Assert.*;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DataElementStoreTest.java 5742 2008-09-26 11:37:35Z larshelg $
  */
 public class DataElementStoreTest
     extends DhisSpringTest
@@ -57,7 +56,7 @@ public class DataElementStoreTest
 
     @Autowired
     private AttributeService attributeService;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -128,7 +127,7 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementD );
         long idD = dataElementD.getId();
 
-            assertNotNull( dataElementStore.get( idA ) );
+        assertNotNull( dataElementStore.get( idA ) );
         assertNotNull( dataElementStore.get( idB ) );
         assertNotNull( dataElementStore.get( idC ) );
         assertNotNull( dataElementStore.get( idD ) );
@@ -253,7 +252,7 @@ public class DataElementStoreTest
         assertEquals( 2, dataElementStore.get( idA ).getAggregationLevels().size() );
         assertEquals( aggregationLevels, dataElementStore.get( idA ).getAggregationLevels() );
     }
-    
+
 
     @Test
     public void testGetDataElementsWithoutGroups()
@@ -269,15 +268,15 @@ public class DataElementStoreTest
         dataElementStore.save( dataElementC );
         dataElementStore.save( dataElementD );
         dataElementStore.save( dataElementE );
-        
+
         DataElementGroup dgA = createDataElementGroup( 'A' );
         dgA.addDataElement( dataElementA );
         dgA.addDataElement( dataElementD );
-        
+
         idObjectManager.save( dgA );
-        
+
         List<DataElement> dataElements = dataElementStore.getDataElementsWithoutGroups();
-        
+
         assertEquals( 3, dataElements.size() );
         assertTrue( dataElements.contains( dataElementB ) );
         assertTrue( dataElements.contains( dataElementC ) );
@@ -485,7 +484,7 @@ public class DataElementStoreTest
         assertEquals( "DataElementB", dataElementStore.getByUniqueAttributeValue( attribute, "CID2" ).getName() );
         assertEquals( "DataElementC", dataElementStore.getByUniqueAttributeValue( attribute, "CID3" ).getName() );
     }
-    
+
     @Test
     public void testDataElementByNonUniqueAttributeValue() throws NonUniqueAttributeValueException
     {

@@ -45,6 +45,7 @@ import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -65,10 +66,10 @@ public class HibernateSqlViewStore
 {
     private static final Log log = LogFactory.getLog( HibernateSqlViewStore.class );
 
-    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = 
+    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP =
         ImmutableMap.of( SqlViewType.VIEW, "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 
-    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = 
+    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP =
         ImmutableMap.of( SqlViewType.VIEW, "DROP VIEW ", SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
 
     private final StatementBuilder statementBuilder;
@@ -76,13 +77,13 @@ public class HibernateSqlViewStore
     private final JdbcTemplate readOnlyJdbcTemplate;
 
     private final SystemSettingManager systemSettingManager;
-    
+
     public HibernateSqlViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
-        StatementBuilder statementBuilder, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate,
-        SystemSettingManager systemSettingManager )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService, StatementBuilder statementBuilder,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate, SystemSettingManager systemSettingManager )
     {
-        super( sessionFactory, jdbcTemplate, SqlView.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, SqlView.class, currentUserService, deletedObjectService, aclService, false );
 
         checkNotNull( statementBuilder );
         checkNotNull( readOnlyJdbcTemplate );
@@ -137,7 +138,7 @@ public class HibernateSqlViewStore
     public void populateSqlViewGrid( Grid grid, String sql )
     {
         SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
-        
+
         int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
         log.debug( "Get view SQL: " + sql + ", max limit: " + maxLimit );
@@ -173,13 +174,13 @@ public class HibernateSqlViewStore
     public void dropViewTable( SqlView sqlView )
     {
         String viewName = sqlView.getViewName();
-        
+
         try
         {
             final String sql = TYPE_DROP_PREFIX_MAP.get( sqlView.getType() ) + " IF EXISTS " + statementBuilder.columnQuote( viewName );
-            
+
             log.debug( "Drop view SQL: " + sql );
-            
+
             jdbcTemplate.update( sql );
         }
         catch ( Exception ex )
@@ -192,19 +193,19 @@ public class HibernateSqlViewStore
     public boolean refreshMaterializedView( SqlView sqlView )
     {
         final String sql = "REFRESH MATERIALIZED VIEW " + sqlView.getViewName();
-        
+
         log.debug( "Refresh materialized view: " + sql );
-        
+
         try
         {
             jdbcTemplate.update( sql );
-            
+
             return true;
         }
         catch ( Exception ex )
         {
             log.warn( "Could not refresh materialized view: " + sqlView.getViewName(), ex );
-            
+
             return false;
         }
     }

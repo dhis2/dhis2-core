@@ -34,6 +34,7 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -46,9 +47,9 @@ public class HibernateOutboundSmsStore
     extends HibernateGenericStore<OutboundSms>
     implements OutboundSmsStore
 {
-    public HibernateOutboundSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    public HibernateOutboundSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, OutboundSms.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, OutboundSms.class, false );
     }
 
     // -------------------------------------------------------------------------
