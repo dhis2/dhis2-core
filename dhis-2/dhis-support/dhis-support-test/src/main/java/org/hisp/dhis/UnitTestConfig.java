@@ -38,9 +38,9 @@ import org.springframework.context.annotation.ImportResource;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Configuration
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/security.xml" } )
+@ImportResource( locations = { "classpath*:/META-INF/dhis/security.xml" } )
 @ComponentScan( "org.hisp.dhis" )
-public class UnitTestConfiguration
+public class UnitTestConfig
 {
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
