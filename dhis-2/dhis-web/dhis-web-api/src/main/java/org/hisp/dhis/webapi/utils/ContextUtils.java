@@ -41,6 +41,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.InvalidMediaTypeException;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -64,6 +65,7 @@ import static org.hisp.dhis.util.DateUtils.getSecondsUntilTomorrow;
 /**
  * @author Lars Helge Overland
  */
+@Component
 public class ContextUtils
 {
     public static final String CONTENT_TYPE_PDF = "application/pdf";
