@@ -35,6 +35,7 @@ import io.restassured.mapper.ObjectMapperType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 import org.apache.commons.collections.CollectionUtils;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
@@ -105,7 +106,7 @@ public class RestApiActions
         ApiResponse response = post( object );
 
         response.validate()
-            .statusCode( 201 );
+            .statusCode( Matchers.isOneOf( 200, 201 ) );
 
         return response.extractUid();
     }

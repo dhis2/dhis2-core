@@ -38,7 +38,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.springframework.stereotype.Component;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 
 import java.util.*;
 
@@ -57,7 +56,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook
     private final AclService aclService;
 
     public ProgramObjectBundleHook( ProgramInstanceService programInstanceService, ProgramService programService,
-                                    ProgramStageService programStageService, AclService aclService )
+        ProgramStageService programStageService, AclService aclService )
     {
         this.programInstanceService = programInstanceService;
         this.programStageService = programStageService;

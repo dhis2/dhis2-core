@@ -26,83 +26,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.monitoring.metrics.jdbc;
+package org.hisp.dhis.monitoring.metrics;
 
-import java.sql.SQLException;
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_UPTIME_ENABLED;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 
 /**
  * @author Luciano Fiandesio
  */
-public class C3p0MetadataProvider
-    extends
-    AbstractDataSourcePoolMetadata<ComboPooledDataSource>
+@Configuration
+@Conditional( UptimeMetricsConfig.UptimeMetricsConfigEnabledCondition.class )
+public class UptimeMetricsConfig
 {
-    private static final Log log = LogFactory.getLog( C3p0MetadataProvider.class );
-
-    /**
-     * Create an instance with the data source to use.
-     *
-     * @param dataSource the data source
-     */
-    public C3p0MetadataProvider( ComboPooledDataSource dataSource )
+    @Bean
+    public UptimeMetrics uptimeMetrics()
     {
-        super( dataSource );
+        return new UptimeMetrics();
     }
 
-    @Override
-    public Integer getActive()
+    @Autowired
+    public void bindToRegistry( MeterRegistry registry, UptimeMetrics uptimeMetrics )
     {
-        try
+        uptimeMetrics.bindTo( registry );
+    }
+
+    static class UptimeMetricsConfigEnabledCondition
+        extends
+        MetricsEnabler
+    {
+        @Override
+        protected ConfigurationKey getConfigKey()
         {
-            return getDataSource().getNumBusyConnections();
-        }
-        catch ( SQLException e )
-        {
-            log.error( "An error occurred while fetching number of busy connection from the DataSource", e );
-            return 0;
-        }
-    }
-
-    @Override
-    public Integer getMax()
-    {
-        return getDataSource().getMaxPoolSize();
-    }
-
-    @Override
-    public Integer getMin()
-    {
-        return getDataSource().getMinPoolSize();
-    }
-
-    @Override
-    public String getValidationQuery()
-    {
-        return "";
-    }
-
-    @Override
-    public Boolean getDefaultAutoCommit()
-    {
-        return getDataSource().isAutoCommitOnClose();
-    }
-
-    @Override
-    public Integer getIdle()
-    {
-        try
-        {
-            return getDataSource().getNumIdleConnections();
-        }
-        catch ( SQLException e )
-        {
-            log.error( "An error occurred while fetching number of idle connection from the DataSource", e );
-            return 0;
+            return MONITORING_UPTIME_ENABLED;
         }
     }
 }

@@ -41,7 +41,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
