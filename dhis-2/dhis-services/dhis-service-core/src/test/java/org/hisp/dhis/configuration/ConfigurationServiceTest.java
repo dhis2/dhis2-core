@@ -38,6 +38,9 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static org.junit.Assert.*;
 
 /**
@@ -48,38 +51,61 @@ public class ConfigurationServiceTest
 {
     @Autowired
     private UserService userService;
-    
+
     @Autowired
     private UserGroupService userGroupService;
-    
+
     @Autowired
     private ConfigurationService configurationService;
-    
+
     @Test
     public void testConfiguration()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-        
+
         UserGroup group = new UserGroup( "UserGroupA" );
         group.getMembers().add( userA );
         group.getMembers().add(  userB );
-        
+
         userService.addUser( userA );
         userService.addUser( userB );
         userGroupService.addUserGroup( group );
-        
+
         Configuration config = configurationService.getConfiguration();
-        
+
         assertNull( config.getFeedbackRecipients() );
-        
+
         config.setFeedbackRecipients( group );
-        
+
         configurationService.setConfiguration( config );
-        
+
         config = configurationService.getConfiguration();
-        
+
         assertNotNull( config.getFeedbackRecipients() );
         assertEquals( group, config.getFeedbackRecipients() );
+    }
+
+    @Test
+    public void testCorsWhitelist()
+    {
+        Configuration config = configurationService.getConfiguration();
+
+        Set<String> cors = new HashSet<>();
+
+        cors.add( "http://localhost:3000/" );
+        cors.add( "http://*.local.tld:3000/" );
+        cors.add( "*.remote.tld/" );
+
+        config.setCorsWhitelist( cors );
+
+        configurationService.setConfiguration( config );
+
+        assertTrue( configurationService.isCorsWhitelisted( "http://localhost:3000/" ) );
+        assertTrue( configurationService.isCorsWhitelisted( "http://foobar.local.tld:3000/" ) );
+        assertTrue( configurationService.isCorsWhitelisted( "http://magic.remote.tld/" ) );
+        assertFalse( configurationService.isCorsWhitelisted( "http://localhost:9000/" ) );
+        assertFalse( configurationService.isCorsWhitelisted( "http://another.local.tld/" ) );
+        assertFalse( configurationService.isCorsWhitelisted( "http://some.other.tld/" ) );
     }
 }
