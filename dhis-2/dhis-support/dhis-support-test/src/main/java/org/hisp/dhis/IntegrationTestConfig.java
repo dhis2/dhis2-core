@@ -46,7 +46,7 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  */
 @Configuration
 @ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
-@ComponentScan("org.hisp.dhis")
+@ComponentScan( "org.hisp.dhis" )
 public class IntegrationTestConfig
 {
     private static final Logger log = LoggerFactory.getLogger(IntegrationTestConfig.class);
@@ -57,7 +57,6 @@ public class IntegrationTestConfig
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
-
         PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
         JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 

@@ -37,13 +37,13 @@ import org.springframework.aop.support.AopUtils;
  */
 public class ProxyUtils
 {
-
     public static <T> T getProxyTarget( Object proxy )
     {
         if ( !AopUtils.isAopProxy( proxy ) )
         {
             throw new IllegalStateException( "Target must be a proxy" );
         }
+
         TargetSource targetSource = ((Advised) proxy).getTargetSource();
         return getTarget( targetSource );
     }
