@@ -29,6 +29,7 @@ package org.hisp.dhis.configuration;
  */
 
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -84,41 +85,23 @@ public class DefaultConfigurationService
         return iterator.hasNext() ? iterator.next() : new Configuration();
     }
 
-    private static String createRegexFromGlob(String glob)
-    {
-        StringBuilder out = new StringBuilder("^");
-        for(int i = 0; i < glob.length(); ++i)
-        {
-            final char c = glob.charAt(i);
-            switch(c)
-            {
-                case '*': out.append(".*"); break;
-                case '?': out.append('.'); break;
-                case '.': out.append("\\."); break;
-                case '\\': out.append("\\\\"); break;
-                default: out.append(c);
-            }
-        }
-        out.append('$');
-        return out.toString();
-    }
-
     @Override
     @Transactional(readOnly = true)
     public boolean isCorsWhitelisted( String origin )
     {
-        boolean result = false;
         Set<String> corsWhitelist = getConfiguration().getCorsWhitelist();
-        for (String cors : corsWhitelist)
+
+        for ( String cors : corsWhitelist )
         {
-            String regex = createRegexFromGlob(cors);
-            if (origin.matches(regex))
+            String regex = TextUtils.createRegexFromGlob( cors );
+
+            if ( origin.matches( regex ) )
             {
-                result = true;
-                break;
+                return true;
             }
         }
-        return result;
+
+        return false;
     }
 
     @Override
