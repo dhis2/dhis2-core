@@ -30,6 +30,9 @@ package org.hisp.dhis.common;
 
 import org.springframework.context.ApplicationEvent;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class ObjectDeletionRequestedEvent
     extends ApplicationEvent
 {
