@@ -53,7 +53,7 @@ import java.lang.reflect.Method;
  */
 @RunWith( SpringRunner.class )
 @ActiveProfiles( "test-h2" )
-@ContextConfiguration( classes = { UnitTestConfiguration.class } )
+@ContextConfiguration( classes = { UnitTestConfig.class } )
 public abstract class DhisTest
     extends DhisConvenienceTest implements ApplicationContextAware
 {
