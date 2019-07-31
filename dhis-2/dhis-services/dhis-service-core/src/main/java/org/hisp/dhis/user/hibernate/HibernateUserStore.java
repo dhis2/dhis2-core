@@ -47,6 +47,7 @@ import org.hisp.dhis.user.UserStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -73,10 +74,12 @@ public class HibernateUserStore
 {
     private final SchemaService schemaService;
 
-    public HibernateUserStore(SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-                              CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService, SchemaService schemaService )
+    public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, SchemaService schemaService )
     {
-        super( sessionFactory, jdbcTemplate, User.class, currentUserService, deletedObjectService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, deletedObjectService,
+            aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;

@@ -35,6 +35,7 @@ import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -44,9 +45,9 @@ public class HibernateDataElementGroupStore
     implements DataElementGroupStore
 {
     public HibernateDataElementGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
         AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, DataElementGroup.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataElementGroup.class, currentUserService, deletedObjectService, aclService, false );
     }
 }
