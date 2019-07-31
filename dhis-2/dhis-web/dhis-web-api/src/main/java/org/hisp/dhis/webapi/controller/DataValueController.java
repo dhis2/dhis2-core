@@ -29,8 +29,6 @@ package org.hisp.dhis.webapi.controller;
  */
 
 import com.google.common.base.Strings;
-import com.google.common.io.ByteSource;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -79,8 +77,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -569,7 +565,7 @@ public class DataValueController
 
         try
         {
-            fileResourceService.copyFileResourceContentTo( fileResource, response.getOutputStream() );
+            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
         }
         catch ( IOException e )
         {

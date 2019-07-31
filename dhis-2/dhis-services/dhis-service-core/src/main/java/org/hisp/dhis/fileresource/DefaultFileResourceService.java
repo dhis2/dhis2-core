@@ -171,7 +171,7 @@ public class DefaultFileResourceService
     }
 
     @Override
-    public void copyFileResourceContentTo( FileResource fileResource, OutputStream outputStream )
+    public void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
         throws IOException, NoSuchElementException
     {
         fileResourceContentStore.copyContent( fileResource.getStorageKey(), outputStream );

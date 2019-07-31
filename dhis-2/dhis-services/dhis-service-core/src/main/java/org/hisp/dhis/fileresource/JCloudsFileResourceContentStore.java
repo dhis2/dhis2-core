@@ -296,11 +296,10 @@ public class JCloudsFileResourceContentStore
             throw new NoSuchElementException( "key '" + key + "' not found." );
         }
 
-        InputStream in = getBlob( key ).getPayload().openStream();
-
-        IOUtils.copy( in, output );
-
-        in.close();
+        try ( InputStream in = getBlob( key ).getPayload().openStream() )
+        {
+            IOUtils.copy( in, output );
+        }
 
     }
 
