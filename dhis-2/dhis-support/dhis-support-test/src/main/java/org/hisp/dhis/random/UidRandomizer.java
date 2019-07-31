@@ -39,7 +39,6 @@ public class UidRandomizer
     implements
     Randomizer<String>
 {
-
     @Override
     public String getRandomValue()
     {
