@@ -89,6 +89,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -317,13 +318,6 @@ public class TrackedEntityInstanceController
                     "The content requested is in transit to the file store and will be available at a later time." ) );
         }
 
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
-
-        if ( content == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
-        }
-
         // ---------------------------------------------------------------------
         // Build response and return
         // ---------------------------------------------------------------------
@@ -332,13 +326,9 @@ public class TrackedEntityInstanceController
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-        URI uri = fileResourceService.getSignedGetFileResourceContentUri( value.getValue() );
-        InputStream inputStream = null;
-
-        try
+        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource  ) )
         {
 
-            inputStream = uri == null ? content.openStream() : uri.toURL().openStream();
             BufferedImage img = ImageIO.read( inputStream );
             height = height == null ? img.getHeight() : height;
             width = width == null ? img.getWidth() : width;
@@ -354,10 +344,6 @@ public class TrackedEntityInstanceController
             throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
                     "There was an exception when trying to fetch the file from the storage backend. " +
                             "Depending on the provider the root cause could be network or file system related." ) );
-        }
-        finally
-        {
-            IOUtils.closeQuietly( inputStream );
         }
     }
 
