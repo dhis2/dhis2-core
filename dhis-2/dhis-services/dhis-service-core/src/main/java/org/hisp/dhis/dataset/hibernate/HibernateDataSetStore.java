@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -65,10 +66,10 @@ public class HibernateDataSetStore
     private final PeriodService periodService;
 
     public HibernateDataSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
         PeriodService periodService )
     {
-        super( sessionFactory, jdbcTemplate, DataSet.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, DataSet.class, currentUserService, deletedObjectService, aclService,
             true );
 
         checkNotNull( periodService );

@@ -1,11 +1,7 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +28,10 @@ import org.apache.commons.logging.LogFactory;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -50,6 +50,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -78,10 +79,10 @@ public class HibernateOrganisationUnitStore
     private final DbmsManager dbmsManager;
 
     public HibernateOrganisationUnitStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
-        DbmsManager dbmsManager )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService, DbmsManager dbmsManager )
     {
-        super( sessionFactory, jdbcTemplate, OrganisationUnit.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnit.class, currentUserService, deletedObjectService,
             aclService, true );
 
         checkNotNull( dbmsManager );
@@ -176,7 +177,7 @@ public class HibernateOrganisationUnitStore
             hql += hlp.whereAnd() + " o.hierarchyLevel <= :maxLevels ";
         }
 
-        hql += "order by o.name";
+        hql += "order by o." +  params.getOrderBy().getName();
 
         Query query = getQuery( hql );
 

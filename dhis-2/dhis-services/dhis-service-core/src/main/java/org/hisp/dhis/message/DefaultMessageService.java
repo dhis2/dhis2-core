@@ -1,7 +1,7 @@
 package org.hisp.dhis.message;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,6 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -149,8 +148,8 @@ public class DefaultMessageService
             .withMessageType( MessageType.TICKET )
             .withMetaData( metaData )
             .withStatus( MessageConversationStatus.OPEN ).build();
-        
-        return sendMessage( params );        
+
+        return sendMessage( params );
     }
 
     @Override
@@ -167,10 +166,10 @@ public class DefaultMessageService
             .withMessageType( MessageType.PRIVATE )
             .withMetaData( metaData )
             .withAttachments( attachments ).build();
-        
+
         return sendMessage( params );
     }
-    
+
     @Override
     @Transactional
     public long sendSystemMessage( Set<User> recipients, String subject, String text )
@@ -180,7 +179,7 @@ public class DefaultMessageService
             .withSubject( subject )
             .withText( text )
             .withMessageType( MessageType.SYSTEM ).build();
-        
+
         return sendMessage( params );
     }
 
@@ -198,7 +197,7 @@ public class DefaultMessageService
 
         return sendMessage( params );
     }
-    
+
     @Override
     @Transactional
     public long sendMessage( MessageConversationParams params )
@@ -247,7 +246,7 @@ public class DefaultMessageService
             .withSubject( subject )
             .withText( text )
             .withMessageType( MessageType.SYSTEM ).build();
-        
+
         return sendMessage( params );
     }
 
@@ -450,7 +449,7 @@ public class DefaultMessageService
     public boolean hasAccessToManageFeedbackMessages( User user )
     {
         user = (user == null ? currentUserService.getCurrentUser() : user);
-        
+
         return configurationService.isUserInFeedbackRecipientUserGroup( user ) || user.isAuthorized( "ALL" );
     }
 

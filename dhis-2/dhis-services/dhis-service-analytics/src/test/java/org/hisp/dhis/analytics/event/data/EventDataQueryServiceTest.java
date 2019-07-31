@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -363,7 +363,7 @@ public class EventDataQueryServiceTest
         eventChart.getFilterDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
 
         eventChart.getAttributeDimensions().add( new TrackedEntityAttributeDimension( atA, null, "LE:5" ) );
-        eventChart.getDataElementDimensions().add( new TrackedEntityDataElementDimension( deA, null, "GE:100" ) );
+        eventChart.getDataElementDimensions().add( new TrackedEntityDataElementDimension( deA, null, null, "GE:100" ) );
         eventChart.getPeriods().add( peA );
         eventChart.getPeriods().add( peB );
         eventChart.getOrganisationUnits().add( ouA );
@@ -389,7 +389,7 @@ public class EventDataQueryServiceTest
         eventChart.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
         eventChart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
 
-        eventChart.getDataElementDimensions().add( new TrackedEntityDataElementDimension( deA, null, "GT:2000" ) );
+        eventChart.getDataElementDimensions().add( new TrackedEntityDataElementDimension( deA, null, null, "GT:2000" ) );
         eventChart.getAttributeDimensions().add( new TrackedEntityAttributeDimension( atA, null, "LE:5" ) );
         eventChart.getPeriods().add( peA );
         eventChart.getPeriods().add( peB );

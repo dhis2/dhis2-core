@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,11 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -53,10 +55,10 @@ public class HibernateRelationshipStore
     implements RelationshipStore
 {
     public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, Relationship.class, currentUserService, deletedObjectService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, Relationship.class, currentUserService, deletedObjectService,
+            aclService, true );
     }
 
     @Override
@@ -65,7 +67,10 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei ) ));
+            .addPredicate( root ->
+                builder.or(
+                    builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei )
+                    ,builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ) );
     }
 
     @Override
@@ -74,7 +79,10 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.join( "from" ).get( "programInstance" ), pi ) ));
+            .addPredicate( root ->
+                builder.or(
+                    builder.equal( root.join( "from" ).get( "programInstance" ), pi )
+                    ,builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ) );
     }
 
     @Override
@@ -83,6 +91,19 @@ public class HibernateRelationshipStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ) ));
+            .addPredicate( root ->
+                builder.or(
+                    builder.equal( root.join( "from" ).get( "programStageInstance" ), psi )
+                    ,builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
+    }
+
+    @Override
+    public List<Relationship> getByRelationshipType( RelationshipType relationshipType )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.join( "relationshipType" ), relationshipType ) ) );
+
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -353,6 +353,21 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getByUid( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (List<T>) store.getByUidNoAcl( uids );
     }
 
     @Override

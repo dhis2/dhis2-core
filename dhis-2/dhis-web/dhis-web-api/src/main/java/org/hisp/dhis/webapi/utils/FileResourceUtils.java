@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.utils;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.Date;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -46,9 +47,11 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,6 +62,7 @@ import com.google.common.io.ByteSource;
 /**
  * @author Lars Helge Overland
  */
+@Component
 public class FileResourceUtils
 {
     @Autowired
@@ -69,7 +73,7 @@ public class FileResourceUtils
 
     /**
      * Transfers the given multipart file content to a local temporary file.
-     * 
+     *
      * @param multipartFile the multipart file.
      * @return a temporary local file.
      * @throws IOException if the file content could not be transferred.
@@ -86,7 +90,7 @@ public class FileResourceUtils
     /**
      * Indicates whether the content type represented by the given string is a
      * valid, known content type.
-     * 
+     *
      * @param contentType the content type string.
      * @return true if the content is valid, false if not.
      */
@@ -121,6 +125,22 @@ public class FileResourceUtils
     {
         return new FileResource( key, file.getName(), file.getContentType(), file.getSize(),
             ByteSource.wrap( file.getBytes() ).hash( Hashing.md5() ).toString(), domain );
+    }
+
+    public static void setImageFileDimensions( FileResource fileResource, String dimension )
+    {
+        if ( FileResource.IMAGE_CONTENT_TYPES.contains( fileResource.getContentType() ) &&
+            FileResourceDomain.getDomainForMultipleImages().contains( fileResource.getDomain() ) )
+        {
+            if ( fileResource.isHasMultipleStorageFiles() )
+            {
+                Optional<ImageFileDimension> optional = ImageFileDimension.from( dimension );
+
+                ImageFileDimension imageFileDimension = optional.orElse( ImageFileDimension.ORIGINAL );
+
+                fileResource.setStorageKey( StringUtils.join( fileResource.getStorageKey(), imageFileDimension.getDimension() ) );
+            }
+        }
     }
 
     public void configureFileResourceResponse( HttpServletResponse response, FileResource fileResource )
@@ -202,14 +222,9 @@ public class FileResourceUtils
 
         File tmpFile = toTempFile( file );
 
-        String uid = fileResourceService.saveFileResource( fileResource, tmpFile );
+       fileResourceService.saveFileResource( fileResource, tmpFile );
 
-        if ( uid == null )
-        {
-            throw new WebMessageException( WebMessageUtils.error( "Saving the file failed." ) );
-        }
-
-        return fileResource;
+       return fileResource;
     }
 
     // -------------------------------------------------------------------------

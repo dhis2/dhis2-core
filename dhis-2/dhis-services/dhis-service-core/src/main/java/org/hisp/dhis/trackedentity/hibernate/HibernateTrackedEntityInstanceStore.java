@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
@@ -51,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
@@ -65,6 +67,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -72,8 +75,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.*;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -89,18 +91,23 @@ public class HibernateTrackedEntityInstanceStore
     // Dependencies
     // -------------------------------------------------------------------------
 
+    private final OrganisationUnitStore organisationUnitStore;
+
     private final StatementBuilder statementBuilder;
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
-        StatementBuilder statementBuilder )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService,
+        OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, TrackedEntityInstance.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, deletedObjectService,
             aclService, false );
 
         checkNotNull( statementBuilder );
+        checkNotNull( organisationUnitStore );
 
         this.statementBuilder = statementBuilder;
+        this.organisationUnitStore = organisationUnitStore;
     }
 
     // -------------------------------------------------------------------------
@@ -212,7 +219,8 @@ public class HibernateTrackedEntityInstanceStore
 
         }
 
-        //If it is a sync job that runs the query, fetch only TEAVs that are supposed to be synchronized
+        // If sync job, fetch only TEAVs that are supposed to be synchronized
+
         if ( params.isSynchronizationQuery() )
         {
 
@@ -227,14 +235,24 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
         }
 
-        if ( params.hasLastUpdatedStartDate() )
+        if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+            hql += hlp.whereAnd() +  "tei.lastUpdated >= '" +
+                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
-
-        if ( params.hasLastUpdatedEndDate() )
+        else
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated < '" + getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                hql += hlp.whereAnd() + "tei.lastUpdated >= '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+            }
+
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                hql += hlp.whereAnd() + "tei.lastUpdated < '" +
+                    getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
+            }
         }
 
         if ( params.isSynchronizationQuery() )
@@ -242,7 +260,8 @@ public class HibernateTrackedEntityInstanceStore
             hql += hlp.whereAnd() + "tei.lastUpdated > tei.lastSynchronized";
         }
 
-        //Going for comparing milliseconds instead of always creating new Date( 0 );
+        // Comparing milliseconds instead of always creating new Date( 0 )
+
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
@@ -407,7 +426,9 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( QueryItem item : params.getAttributes() )
             {
-                map.put( item.getItemId(), rowSet.getString( item.getItemId() ) );
+                map.put( item.getItemId(),
+                    isOrgUnit( item ) ? getOrgUnitNameByUid( rowSet.getString( item.getItemId() ) )
+                        : rowSet.getString( item.getItemId() ) );
             }
 
             list.add( map );
@@ -417,7 +438,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params )
     {
         SqlHelper hlp = new SqlHelper();
 
@@ -826,5 +847,21 @@ public class HibernateTrackedEntityInstanceStore
     protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
     {
         return (trackedEntityInstance == null || trackedEntityInstance.isDeleted()) ? null : trackedEntityInstance;
+    }
+
+    private boolean isOrgUnit( QueryItem item )
+    {
+        return item.getValueType().isOrganisationUnit();
+    }
+
+    private String getOrgUnitNameByUid( String uid )
+    {
+        if ( uid != null )
+        {
+            return  Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
+                .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
+        }
+
+        return StringUtils.EMPTY;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -118,6 +119,11 @@ public class TrackedEntityInstanceQueryParams
      * End date for last updated.
      */
     private Date lastUpdatedEndDate;
+
+    /**
+     * The last updated duration filter.
+     */
+    private String lastUpdatedDuration;
 
     /**
      * Start date for enrollment in the given program.
@@ -567,6 +573,14 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     */
+    public boolean hasLastUpdatedDuration()
+    {
+        return lastUpdatedDuration != null;
+    }
+
+    /**
      * Indicates whether this parameters specifies a program enrollment start date.
      */
     public boolean hasProgramEnrollmentStartDate()
@@ -656,6 +670,27 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
+     * Indicates whether filters are unique attributes.
+     */
+    public boolean hasUniqueFilters()
+    {
+        if ( !hasFilters() )
+        {
+            return false;
+        }
+
+        for ( QueryItem filter : filters )
+        {
+            if ( !filter.isUnique() )
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Indicates whether paging is enabled.
      */
     public boolean isPaging()
@@ -704,13 +739,40 @@ public class TrackedEntityInstanceQueryParams
     @Override
     public String toString()
     {
-        return "[Query: " + query + ", Attributes: " + attributes + ", filters: " + filters +
-            ", program: " + program + ", program status " + programStatus + ", follow up: " + followUp +
-            ", program enrollemnt start date: " + programEnrollmentStartDate + ", program enrollment end date: " + programEnrollmentEndDate +
-            ", program incident start date: " + programIncidentStartDate + ", program incident end date: " + programIncidentEndDate +
-            ", tracked entity type: " + trackedEntityType + ", org unit mode: " + organisationUnitMode +
-            ", event start date: " + eventStartDate + ", event end date: " + eventEndDate +
-            ", event status: " + eventStatus + "]";
+        return MoreObjects.toStringHelper( this )
+            .add( "query", query )
+            .add( "attributes", attributes )
+            .add( "filters", filters )
+            .add( "organisationUnits", organisationUnits )
+            .add( "program", program )
+            .add( "programStatus", programStatus )
+            .add( "followUp", followUp )
+            .add( "lastUpdatedStartDate", lastUpdatedStartDate )
+            .add( "lastUpdatedEndDate", lastUpdatedEndDate )
+            .add( "lastUpdatedDuration", lastUpdatedDuration )
+            .add( "programEnrollmentStartDate", programEnrollmentStartDate )
+            .add( "programEnrollmentEndDate", programEnrollmentEndDate )
+            .add( "programIncidentStartDate", programIncidentStartDate )
+            .add( "programIncidentEndDate", programIncidentEndDate )
+            .add( "trackedEntityType", trackedEntityType )
+            .add( "organisationUnitMode", organisationUnitMode )
+            .add( "assignedUserSelectionMode", assignedUserSelectionMode )
+            .add( "assignedUsers", assignedUsers )
+            .add( "eventStatus", eventStatus )
+            .add( "eventStartDate", eventStartDate )
+            .add( "eventEndDate", eventEndDate )
+            .add( "skipMeta", skipMeta )
+            .add( "page", page )
+            .add( "pageSize", pageSize )
+            .add( "totalPages", totalPages )
+            .add( "skipPaging", skipPaging )
+            .add( "includeDeleted", includeDeleted )
+            .add( "includeAllAttributes", includeAllAttributes )
+            .add( "internalSearch", internalSearch )
+            .add( "synchronizationQuery", synchronizationQuery )
+            .add( "skipChangedBefore", skipChangedBefore )
+            .add( "orders", orders )
+            .add( "user", user ).toString();
     }
 
     // -------------------------------------------------------------------------
@@ -813,6 +875,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setLastUpdatedEndDate( Date lastUpdatedEndDate )
     {
         this.lastUpdatedEndDate = lastUpdatedEndDate;
+        return this;
+    }
+
+    public String getLastUpdatedDuration()
+    {
+        return lastUpdatedDuration;
+    }
+
+    public TrackedEntityInstanceQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
+    {
+        this.lastUpdatedDuration = lastUpdatedDuration;
         return this;
     }
 

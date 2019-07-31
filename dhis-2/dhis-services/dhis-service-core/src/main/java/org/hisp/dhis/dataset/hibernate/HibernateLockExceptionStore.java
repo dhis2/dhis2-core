@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Repository;
@@ -68,9 +69,9 @@ public class HibernateLockExceptionStore
     private PeriodService periodService;
 
     public HibernateLockExceptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        DataSetStore dataSetStore, PeriodService periodService )
+        ApplicationEventPublisher publisher, DataSetStore dataSetStore, PeriodService periodService )
     {
-        super( sessionFactory, jdbcTemplate, LockException.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, LockException.class, false );
 
         checkNotNull( dataSetStore );
         checkNotNull( periodService );
@@ -183,12 +184,12 @@ public class HibernateLockExceptionStore
             .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
             .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
     }
-    
+
     @Override
     public boolean anyExists()
     {
         String hql = "from LockException";
-        
+
         return getQuery( hql )
             .setMaxResults( 1 )
             .list().size() > 0;

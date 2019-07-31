@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -725,6 +725,16 @@ public abstract class PeriodType
         return false;
     }
 
+    /**
+     * Returns true if the supplied name equals the name of this period type.
+     * @param periodTypeName the period type name.
+     *
+     * @return true if the supplied name equals the name of the period type.
+     */
+    public boolean equalsName( String periodTypeName )
+    {
+        return this.getName().equals( periodTypeName );
+    }
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------

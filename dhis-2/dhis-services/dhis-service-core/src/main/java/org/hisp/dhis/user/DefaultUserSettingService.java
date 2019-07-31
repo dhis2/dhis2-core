@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,7 +98,7 @@ public class DefaultUserSettingService implements UserSettingService
         checkNotNull( userSettingStore );
         checkNotNull( userService );
         checkNotNull( systemSettingManager );
-        
+
         this.env = env;
         this.transactionTemplate = transactionTemplate;
         this.cacheProvider = cacheProvider;
@@ -116,7 +116,7 @@ public class DefaultUserSettingService implements UserSettingService
     public void init()
     {
         userSettingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "userSetting" )
-            .expireAfterAccess( 1, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .expireAfterWrite( 12, TimeUnit.HOURS ).withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
 
     }
 

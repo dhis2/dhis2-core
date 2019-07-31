@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -59,9 +60,9 @@ public class HibernateCompleteDataSetRegistrationStore extends HibernateGenericS
     private final PeriodStore periodStore;
 
     public HibernateCompleteDataSetRegistrationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        PeriodStore periodStore )
+        ApplicationEventPublisher publisher, PeriodStore periodStore )
     {
-        super( sessionFactory, jdbcTemplate, CompleteDataSetRegistration.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, CompleteDataSetRegistration.class, false );
 
         checkNotNull( periodStore );
 

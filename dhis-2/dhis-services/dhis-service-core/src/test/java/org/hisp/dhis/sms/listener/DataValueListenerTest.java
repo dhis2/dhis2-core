@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -126,18 +126,16 @@ public class DataValueListenerTest extends DhisConvenienceTest
 
     @Mock
     private DataSetService dataSetService;
-    
+
     @Mock
     private DataElementService dataElementService;
-    
+
     private DataValueSMSListener subject;
 
     private CompleteDataSetRegistration fetchedCompleteDataSetRegistration;
-    private CompleteDataSetRegistration savedCompleteDataSetRegistration;
     private CompleteDataSetRegistration deletedCompleteDataSetRegistration;
 
     private DataValue fetchedDataValue;
-    private DataValue addedDataValue;
     private DataValue updatedDataValue;
 
     private DataElement dataElement;

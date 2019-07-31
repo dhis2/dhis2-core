@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,9 +79,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private final ProgramOwnershipHistoryService programOwnershipHistoryService;
 
     public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
-                                           TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
-                                           ProgramTempOwnershipAuditService programTempOwnershipAuditService,
-                                           ProgramOwnershipHistoryService programOwnershipHistoryService )
+        TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
+        ProgramTempOwnershipAuditService programTempOwnershipAuditService,
+        ProgramOwnershipHistoryService programOwnershipHistoryService )
     {
         checkNotNull( currentUserService );
         checkNotNull( trackedEntityProgramOwnerService );
@@ -97,13 +97,15 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     /**
-     * Used only by test harness. Remove after test refactoring
+     * Used only by test harness. Remove after test refactor.
      *
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
         this.currentUserService = currentUserService;
     }
+
     /**
      * Cache for storing temporary ownership grants.
      */
@@ -113,11 +115,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     public void init()
     {
         temporaryTrackerOwnershipCache = cacheProvider.newCacheBuilder( Boolean.class )
-                .forRegion( "tempTrackerOwnership" )
-                .withDefaultValue( false )
-                .expireAfterWrite( TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS, TimeUnit.HOURS )
-                .withMaximumSize( 100000 )
-                .build();
+            .forRegion( "tempTrackerOwnership" )
+            .withDefaultValue( false )
+            .expireAfterWrite( TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS, TimeUnit.HOURS )
+            .withMaximumSize( 100000 )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -200,10 +202,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         {
             return;
         }
-        if (program.isProtected())
+
+        if ( program.isProtected() )
         {
             programTempOwnershipAuditService
                     .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
+
             temporaryTrackerOwnershipCache.put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
         }
     }
@@ -218,6 +222,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
 
         OrganisationUnit ou = getOwner( entityInstance, program );
+
         if ( program.isOpen() || program.isAudited() )
         {
             return isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() );
@@ -306,6 +311,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         {
             return true;
         }
+
         return temporaryTrackerOwnershipCache.get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).orElse( false );
     }
 

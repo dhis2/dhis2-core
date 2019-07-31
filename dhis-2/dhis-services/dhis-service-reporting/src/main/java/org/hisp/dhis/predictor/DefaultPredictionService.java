@@ -1,7 +1,7 @@
 package org.hisp.dhis.predictor;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -750,6 +750,11 @@ public class DefaultPredictionService
             OrganisationUnit orgUnit = orgUnitLookup.get( dv.getSourceId() );
             CategoryOptionCombo attributeOptionCombo = aocLookup.get( dv.getAttributeOptionComboId() );
             String stringValue = dv.getValue();
+
+            if ( stringValue == null )
+            {
+                continue;
+            }
 
             if ( attributeOptionCombo == null )
             {

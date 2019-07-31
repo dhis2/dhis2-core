@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,6 +81,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -503,6 +504,44 @@ public abstract class AbstractEnrollmentService
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
             importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( programInstance.getIncidentDate() != null && !DateUtils.dateIsValid( DateUtils.getMediumDateString( programInstance.getIncidentDate() ) ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enollment incident date:  " + programInstance.getIncidentDate() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( programInstance.getEnrollmentDate() != null && !DateUtils.dateIsValid( DateUtils.getMediumDateString( programInstance.getEnrollmentDate() ) ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enollment date:  " + programInstance.getEnrollmentDate() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( enrollment.getCreatedAtClient() != null && !DateUtils.dateIsValid( enrollment.getCreatedAtClient() ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enrollment created at client date: " + enrollment.getCreatedAtClient() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( enrollment.getLastUpdatedAtClient() != null && !DateUtils.dateIsValid( enrollment.getLastUpdatedAtClient() ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enrollment last updated at client date: " + enrollment.getCreatedAtClient() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
         }
 
         return importSummary;
@@ -701,6 +740,13 @@ public abstract class AbstractEnrollmentService
             }
         }
 
+        ImportSummary importSummary = validateProgramInstance( program, programInstance, enrollment );
+
+        if ( importSummary.getStatus() != ImportStatus.SUCCESS )
+        {
+            return importSummary;
+        }
+
         updateAttributeValues( enrollment, importOptions );
         updateDateFields( enrollment, programInstance );
 
@@ -709,7 +755,7 @@ public abstract class AbstractEnrollmentService
 
         saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
-        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
+        importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
 
         importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
@@ -877,9 +923,9 @@ public abstract class AbstractEnrollmentService
         }
 
         ImportSummaries importSummaries = new ImportSummaries();
-        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions, false ) );
-        importSummaries.addImportSummaries( eventService.updateEvents( update, importOptions, false, false ) );
         importSummaries.addImportSummaries( eventService.deleteEvents( delete, false ) );
+        importSummaries.addImportSummaries( eventService.updateEvents( update, importOptions, false, false ) );
+        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions, false ) );
 
         return importSummaries;
     }
@@ -936,6 +982,11 @@ public abstract class AbstractEnrollmentService
             {
                 programInstance.setGeometry( null );
             }
+        }
+
+        if ( programInstance.getGeometry() != null )
+        {
+            programInstance.getGeometry().setSRID( GeoUtils.SRID );
         }
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 
 /**
 * @author Lars Helge Overland
@@ -71,6 +72,8 @@ public interface AnalyticalObject
     void addOrganisationUnitGroupSetDimension( OrganisationUnitGroupSetDimension dimension );
 
     void addCategoryOptionGroupSetDimension( CategoryOptionGroupSetDimension dimension );
+
+    void addTrackedEntityDataElementDimension( TrackedEntityDataElementDimension dimension );
 
     boolean isCompletedOnly();
 

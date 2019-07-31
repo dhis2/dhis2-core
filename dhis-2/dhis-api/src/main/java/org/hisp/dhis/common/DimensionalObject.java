@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.program.ProgramStage;
 
 import java.util.List;
 import java.util.Map;
@@ -144,6 +145,16 @@ public interface DimensionalObject
     boolean hasLegendSet();
 
     /**
+     * Gets the program stage (not persisted).
+     */
+    ProgramStage getProgramStage();
+
+    /**
+     * Indicates whether this dimension has a program stage (not persisted).
+     */
+    boolean hasProgramStage();
+
+    /**
      * Gets the aggregation type.
      */
     AggregationType getAggregationType();
@@ -175,5 +186,8 @@ public interface DimensionalObject
      */
     String getKey();
 
+    /**
+     * Returns dimensional keywords for this dimension.
+     */
     DimensionalKeywords getDimensionalKeywords();
 }

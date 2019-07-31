@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -110,6 +110,11 @@ public class EventSearchParams
 
     private Date lastUpdatedEndDate;
 
+    /**
+     * The last updated duration filter.
+     */
+    private String lastUpdatedDuration;
+
     private Date dueDateStart;
 
     private Date dueDateEnd;
@@ -209,6 +214,30 @@ public class EventSearchParams
     public boolean hasProgramStage()
     {
     	return programStage != null;
+    }
+
+    /**
+     * Indicates whether this parameters specifies a last updated start date.
+     */
+    public boolean hasLastUpdatedStartDate()
+    {
+        return lastUpdatedStartDate != null;
+    }
+
+    /**
+     * Indicates whether this parameters specifies a last updated end date.
+     */
+    public boolean hasLastUpdatedEndDate()
+    {
+        return lastUpdatedEndDate != null;
+    }
+
+    /**
+     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     */
+    public boolean hasLastUpdatedDuration()
+    {
+        return lastUpdatedDuration != null;
     }
 
     /**
@@ -397,6 +426,16 @@ public class EventSearchParams
     public void setLastUpdatedEndDate( Date lastUpdatedEndDate )
     {
         this.lastUpdatedEndDate = lastUpdatedEndDate;
+    }
+
+    public String getLastUpdatedDuration()
+    {
+        return lastUpdatedDuration;
+    }
+
+    public void setLastUpdatedDuration( String lastUpdatedDuration )
+    {
+        this.lastUpdatedDuration = lastUpdatedDuration;
     }
 
     public Date getDueDateStart()

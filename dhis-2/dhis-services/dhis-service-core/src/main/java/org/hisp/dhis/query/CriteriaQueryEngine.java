@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -282,14 +282,20 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         }
 
         org.hibernate.criterion.Order criteriaOrder;
+        String fieldName = order.getProperty().getFieldName();
+
+        if ( fieldName == null )
+        {
+            fieldName = order.getProperty().getName();
+        }
 
         if ( order.isAscending() )
         {
-            criteriaOrder = org.hibernate.criterion.Order.asc( order.getProperty().getFieldName() );
+            criteriaOrder = org.hibernate.criterion.Order.asc( fieldName );
         }
         else
         {
-            criteriaOrder = org.hibernate.criterion.Order.desc( order.getProperty().getFieldName() );
+            criteriaOrder = org.hibernate.criterion.Order.desc( fieldName );
         }
 
         if ( order.isIgnoreCase() )

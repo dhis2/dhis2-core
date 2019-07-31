@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import com.google.common.io.ByteSource;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Map;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -63,6 +64,14 @@ public interface FileResourceContentStore
      * @return the key on success or null if saving failed.
      */
     String saveFileResourceContent( FileResource fileResource, File file);
+
+    /**
+     * Save the content of image files.
+     * @param fileResource  the FileResource object.
+     * @param imageFile will map image dimension to its associated file.
+     * @return the key on success or null if saving failed.
+     */
+    String saveFileResourceContent( FileResource fileResource, Map<ImageFileDimension, File> imageFile );
 
     /**
      * Delete the content bytes of a file resource.

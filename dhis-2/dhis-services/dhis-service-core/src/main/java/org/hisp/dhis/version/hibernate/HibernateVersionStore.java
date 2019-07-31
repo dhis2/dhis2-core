@@ -1,7 +1,7 @@
 package org.hisp.dhis.version.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.version.Version;
 import org.hisp.dhis.version.VersionStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -42,9 +43,9 @@ public class HibernateVersionStore
     extends HibernateGenericStore<Version>
     implements VersionStore
 {
-    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate)
+    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, Version.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, Version.class, true );
     }
 
     @Override

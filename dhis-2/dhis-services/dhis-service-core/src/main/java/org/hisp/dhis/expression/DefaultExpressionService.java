@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,6 +68,7 @@ import org.hisp.dhis.parser.expression.*;
 import org.hisp.dhis.parser.expression.item.ItemConstant;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
+import org.hisp.dhis.system.jep.NoValueException;
 import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
@@ -109,16 +110,15 @@ public class DefaultExpressionService
     private final IdentifiableObjectManager idObjectManager;
 
     private final static ImmutableMap<Integer, ExprItem> EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
-
-        .put(HASH_BRACE, new DimItemDataElementAndOperand() )
-        .put(A_BRACE, new DimItemProgramAttribute() )
-        .put(C_BRACE, new ItemConstant() )
-        .put(D_BRACE, new DimItemProgramDataElement() )
-        .put(I_BRACE, new DimItemProgramIndicator() )
-        .put(OUG_BRACE, new ItemOrgUnitGroup() )
-        .put(R_BRACE, new DimItemReportingRate() )
-        .put(DAYS, new ItemDays() )
-
+        .put( HASH_BRACE, new DimItemDataElementAndOperand() )
+        .put( A_BRACE, new DimItemProgramAttribute() )
+        .put( C_BRACE, new ItemConstant() )
+        .put( D_BRACE, new DimItemProgramDataElement() )
+        .put( I_BRACE, new DimItemProgramIndicator() )
+        .put( N_BRACE, new DimItemIndicator() )
+        .put( OUG_BRACE, new ItemOrgUnitGroup() )
+        .put( R_BRACE, new DimItemReportingRate() )
+        .put( DAYS, new ItemDays() )
         .build();
 
     public DefaultExpressionService(
@@ -217,7 +217,8 @@ public class DefaultExpressionService
 
         return groups;
     }
-    
+
+    @Override
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemObject, Double> valueMap, Map<String, Double> constantMap,
         Map<String, Integer> orgUnitCountMap )
@@ -464,7 +465,19 @@ public class DefaultExpressionService
             valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(),
             aggregateMap );
 
-        return expressionString != null ? calculateExpression( expressionString ) : null;
+        if ( expressionString == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return calculateExpression( expressionString );
+        }
+        catch ( NoValueException ex )
+        {
+            return null;
+        }
     }
 
     @Override
@@ -572,6 +585,17 @@ public class DefaultExpressionService
                 }
                 else if ( end > 0 )
                 {
+                    if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                    {
+                        nonAggregates.add( expression.substring( start, end ) ); // Arg 1: non-aggregate
+                        start = end + 1;
+                        end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                        if ( end < 0 )
+                        {
+                            log.warn( "Bad expression starting at " + start + " in " + expression );
+                            continue;
+                        }
+                    }
                     nonAggregates.add( expression.substring( scan, matcher.start() ) );
                     aggregates.add( expression.substring( start, end ) );
                     scan = end + 1;
@@ -1015,6 +1039,18 @@ public class DefaultExpressionService
             }
             else
             {
+                if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                {
+                    sb.append( expression.substring( start, end + 1 ) ); // Arg 1: non-aggregate
+                    start = end + 1;
+                    end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                    if ( end < 0 )
+                    {
+                        scan = start + 1;
+                        tail = start;
+                        continue;
+                    }
+                }
                 String subExpression = expression.substring( start, end );
                 List<Double> samples = aggregateMap.get( subExpression );
 
@@ -1024,6 +1060,8 @@ public class DefaultExpressionService
                     {
                         return null;
                     }
+
+                    sb.append( "0" );
                 }
                 else
                 {

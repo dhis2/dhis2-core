@@ -1,7 +1,7 @@
 package org.hisp.dhis.minmax.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,7 @@ import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -73,9 +74,9 @@ public class HibernateMinMaxDataElementStore
     private final SchemaService schemaService;
 
     public HibernateMinMaxDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        QueryParser queryParser, QueryPlanner queryPlanner, SchemaService schemaService )
+        ApplicationEventPublisher publisher, QueryParser queryParser, QueryPlanner queryPlanner, SchemaService schemaService )
     {
-        super( sessionFactory, jdbcTemplate, MinMaxDataElement.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, MinMaxDataElement.class, false );
 
         checkNotNull(queryParser);
         checkNotNull(queryPlanner);

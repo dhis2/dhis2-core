@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,29 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author Lars Helge Overland
  */
 public enum DisplayProperty
 {
-    NAME, SHORTNAME
+    @JsonProperty( "name" )
+    NAME( "name" ),
+
+    @JsonProperty( "shortName" )
+    SHORTNAME( "shortName" );
+
+    private String display;
+
+    DisplayProperty( String display )
+    {
+        this.display = display;
+    }
+
+    @Override
+    public String toString()
+    {
+        return display;
+    }
 }

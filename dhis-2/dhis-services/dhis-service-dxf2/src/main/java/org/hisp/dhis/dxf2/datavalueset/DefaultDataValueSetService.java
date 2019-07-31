@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -655,6 +655,12 @@ public class DefaultDataValueSetService
             notifier.clear( id ).notify( id, ERROR, "Process failed: " + ex.getMessage(), true );
             return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
         }
+    }
+
+    @Override
+    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions )
+    {
+       return saveDataValueSetPdf( in, importOptions, null );
     }
 
     /**

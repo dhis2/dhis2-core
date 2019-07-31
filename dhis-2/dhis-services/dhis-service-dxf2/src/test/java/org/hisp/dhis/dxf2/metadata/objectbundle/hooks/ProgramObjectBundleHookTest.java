@@ -1,3 +1,5 @@
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,13 +28,12 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 import com.google.common.collect.Lists;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.*;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Rule;
@@ -68,6 +69,9 @@ public class ProgramObjectBundleHookTest
     private ProgramStageService programStageService;
 
     @Mock
+    private AclService aclService;
+
+    @Mock
     private SessionFactory sessionFactory;
 
     @Rule
@@ -78,7 +82,7 @@ public class ProgramObjectBundleHookTest
     @Before
     public void setUp()
     {
-        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService );
+        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService, aclService );
 
         programA = createProgram( 'A' );
         programA.setId( 100 );
@@ -183,6 +187,5 @@ public class ProgramObjectBundleHookTest
         assertThat( argument.getValue().getName(), is( equalToIgnoringCase("ProgramA" ) ) );
         assertThat( argument.getValue().getProgramStages().size(), is( 1 ) );
         assertThat( argument.getValue().getProgramStages().iterator().next().getName(), is( equalToIgnoringCase( "ProgramStageA" )));
-
     }
 }

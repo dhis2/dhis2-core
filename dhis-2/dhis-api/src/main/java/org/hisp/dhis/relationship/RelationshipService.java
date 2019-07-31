@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,4 +80,6 @@ public interface RelationshipService
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi, boolean skipAccessValidation );
+
+    List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType );
 }

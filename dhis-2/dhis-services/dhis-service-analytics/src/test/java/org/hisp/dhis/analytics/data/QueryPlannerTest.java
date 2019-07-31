@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -882,16 +882,34 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries for each period due to the LAST aggregation type.
+     * Create 4 queries (one for each period) due to the FIRST aggregation type.
      */
     @Test
-    public void planQueryN()
+    public void planQueryForFirstAggregationType()
+    {
+        planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.FIRST );
+    }
+
+    /**
+     * Create 4 queries (one for each period) due to the LAST aggregation type.
+     */
+    @Test
+    public void planQueryForLastAggregationType()
+    {
+        planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST );
+    }
+    
+    private void planQueryForFirstOrLastAggregationType(AnalyticsAggregationType analyticsAggregationType)
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) )
-            .withAggregationType( AnalyticsAggregationType.LAST ).build();
+            .withPeriods( getList(
+                createPeriod( "200101" ),
+                createPeriod( "200102" ),
+                createPeriod( "200103" ),
+                createPeriod( "200104" ) ) )
+            .withAggregationType( analyticsAggregationType ).build();
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
             withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
@@ -1137,7 +1155,7 @@ public class QueryPlannerTest
     }
 
     @Test
-    public void testwithTableTypeAndPartition()
+    public void testWithTableTypeAndPartition()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withStartDate( getDate( 2014, 4, 1 ) )

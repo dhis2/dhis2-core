@@ -1,3 +1,5 @@
+package org.hisp.dhis.random;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,8 +28,6 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.random;
-
 import org.hisp.dhis.common.CodeGenerator;
 
 import io.github.benas.randombeans.api.Randomizer;
@@ -39,7 +39,6 @@ public class UidRandomizer
     implements
     Randomizer<String>
 {
-
     @Override
     public String getRandomValue()
     {

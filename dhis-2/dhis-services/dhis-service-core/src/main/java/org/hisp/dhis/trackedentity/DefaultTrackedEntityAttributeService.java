@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -187,7 +187,7 @@ public class DefaultTrackedEntityAttributeService
         params.addAttribute( new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
             trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );
 
-        if ( trackedEntityAttribute.getOrgunitScope() )
+        if ( trackedEntityAttribute.getOrgUnitScopeNullSafe() )
         {
             Assert.notNull( organisationUnit, "organisation unit is required for org unit scope" );
             params.addOrganisationUnit( organisationUnit );

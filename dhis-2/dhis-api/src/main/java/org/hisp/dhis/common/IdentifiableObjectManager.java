@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -163,6 +163,8 @@ public interface IdentifiableObjectManager
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
+
+    <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids );
 
     boolean isDefault( IdentifiableObject object );
 

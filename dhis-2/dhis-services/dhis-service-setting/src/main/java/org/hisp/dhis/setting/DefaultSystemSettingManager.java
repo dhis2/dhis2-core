@@ -1,7 +1,7 @@
 package org.hisp.dhis.setting;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -121,7 +121,7 @@ public class DefaultSystemSettingManager
     public void init()
     {
         settingCache = cacheProvider.newCacheBuilder( Serializable.class ).forRegion( "systemSetting" )
-            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
     }
 
@@ -131,13 +131,13 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void saveSystemSetting( SettingKey settingKey, Serializable value )
+    public void saveSystemSetting( SettingKey key, Serializable value )
     {
-        settingCache.invalidate( settingKey.getName() );
+        settingCache.invalidate( key.getName() );
 
-        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
 
-        if ( isConfidential( settingKey.getName() ) )
+        if ( isConfidential( key.getName() ) )
         {
             value = pbeStringEncryptor.encrypt( value.toString() );
         }
@@ -146,7 +146,7 @@ public class DefaultSystemSettingManager
         {
             setting = new SystemSetting();
 
-            setting.setName( settingKey.getName() );
+            setting.setName( key.getName() );
             setting.setValue( value );
 
             systemSettingStore.save( setting );
@@ -161,13 +161,13 @@ public class DefaultSystemSettingManager
 
     @Override
     @Transactional
-    public void deleteSystemSetting( SettingKey settingKey )
+    public void deleteSystemSetting( SettingKey key )
     {
-        SystemSetting setting = systemSettingStore.getByName( settingKey.getName() );
+        SystemSetting setting = systemSettingStore.getByName( key.getName() );
 
         if ( setting != null )
         {
-            settingCache.invalidate( settingKey.getName() );
+            settingCache.invalidate( key.getName() );
 
             systemSettingStore.delete( setting );
         }
@@ -178,10 +178,10 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional} on cache miss.
      */
     @Override
-    public Serializable getSystemSetting( SettingKey setting )
+    public Serializable getSystemSetting( SettingKey key )
     {
-        Optional<Serializable> value = settingCache.get( setting.getName(),
-            key -> getSystemSettingOptional( key, setting.getDefaultValue() ).orElse( null ) );
+        Optional<Serializable> value = settingCache.get( key.getName(),
+            k -> getSystemSettingOptional( k, key.getDefaultValue() ).orElse( null ) );
 
         return value.orElse( null );
     }
@@ -191,9 +191,9 @@ public class DefaultSystemSettingManager
      * {@link #getSystemSettingOptional}.
      */
     @Override
-    public Serializable getSystemSetting( SettingKey setting, Serializable defaultValue )
+    public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
-        return getSystemSettingOptional( setting.getName(), defaultValue ).orElse( null );
+        return getSystemSettingOptional( key.getName(), defaultValue ).orElse( null );
     }
 
     /**
@@ -206,7 +206,7 @@ public class DefaultSystemSettingManager
      */
     private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute(status -> systemSettingStore.getByName( name ));
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( name ) );
 
         if ( setting != null && setting.hasValue() )
         {
@@ -278,11 +278,11 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    public Map<String, Serializable> getSystemSettings( Collection<SettingKey> settings )
+    public Map<String, Serializable> getSystemSettings( Collection<SettingKey> keys )
     {
         Map<String, Serializable> map = new HashMap<>();
 
-        for ( SettingKey setting : settings )
+        for ( SettingKey setting : keys )
         {
             Serializable value = getSystemSetting( setting );
 

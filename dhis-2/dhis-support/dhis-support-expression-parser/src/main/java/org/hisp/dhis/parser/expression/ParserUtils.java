@@ -1,7 +1,7 @@
 package org.hisp.dhis.parser.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,7 @@ import org.hisp.dhis.parser.expression.operator.*;
 
 import java.util.Date;
 
-import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
-import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 

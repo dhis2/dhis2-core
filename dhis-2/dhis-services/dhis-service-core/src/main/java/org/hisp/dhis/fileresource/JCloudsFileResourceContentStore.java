@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,10 @@ package org.hisp.dhis.fileresource;
  */
 
 import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.input.NullInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,6 +43,7 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.ContainerNotFoundException;
 import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
@@ -65,6 +68,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -100,9 +104,9 @@ public class JCloudsFileResourceContentStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private LocationManager locationManager;
+    private final LocationManager locationManager;
 
-    private DhisConfigurationProvider configurationProvider;
+    private final DhisConfigurationProvider configurationProvider;
 
     public JCloudsFileResourceContentStore( LocationManager locationManager,
         DhisConfigurationProvider configurationProvider )
@@ -114,7 +118,7 @@ public class JCloudsFileResourceContentStore
         this.configurationProvider = configurationProvider;
     }
 
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Life cycle management
     // -------------------------------------------------------------------------
 
@@ -223,7 +227,7 @@ public class JCloudsFileResourceContentStore
         return isEmptyOrFailed ? null : byteSource;
     }
 
-    @Override 
+    @Override
     public String saveFileResourceContent( FileResource fileResource, byte[] bytes )
     {
         Blob blob = createBlob( fileResource, bytes );
@@ -233,7 +237,15 @@ public class JCloudsFileResourceContentStore
             return null;
         }
 
-        blobStore.putBlob( config.container, blob );
+        try
+        {
+            blobStore.putBlob( config.container, blob );
+        }
+        catch ( Exception e )
+        {
+            log.error( "File upload failed: ", e );
+            return null;
+        }
 
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
 
@@ -243,7 +255,7 @@ public class JCloudsFileResourceContentStore
     @Override
     public String saveFileResourceContent( FileResource fileResource, File file )
     {
-        Blob blob = createBlob( fileResource, file );
+        Blob blob = createBlob( fileResource, StringUtils.EMPTY, file );
 
         if ( blob == null )
         {
@@ -262,6 +274,65 @@ public class JCloudsFileResourceContentStore
         }
 
         log.debug( String.format( "File resource saved with key: %s", fileResource.getStorageKey() ) );
+
+        return fileResource.getStorageKey();
+    }
+
+    @Override
+    public String saveFileResourceContent( FileResource fileResource, Map<ImageFileDimension, File> imageFiles )
+    {
+        if ( imageFiles.isEmpty() )
+        {
+            return null;
+        }
+
+        Blob blob;
+
+        for ( Map.Entry<ImageFileDimension, File> entry : imageFiles.entrySet() )
+        {
+            File file = entry.getValue();
+
+            fileResource.setContentLength( file.length() );
+
+            String contentMd5;
+
+            try
+            {
+                HashCode hash = com.google.common.io.Files.hash( file, Hashing.md5() );
+                contentMd5 = hash.toString();
+            }
+            catch ( IOException e )
+            {
+                log.error( "Hashing error: " + e.getMessage(), e );
+                return null;
+            }
+
+            fileResource.setContentMd5( contentMd5 );
+            blob = createBlob( fileResource, entry.getKey().getDimension(), file );
+
+            if ( blob != null )
+            {
+                try
+                {
+                    blobStore.putBlob( config.container, blob );
+
+                    Files.deleteIfExists( file.toPath() );
+                }
+                catch ( ContainerNotFoundException e )
+                {
+                    log.error( "Container not found", e );
+                    return null;
+                }
+                catch ( IOException ioe )
+                {
+                    log.warn( String.format( "Temporary file '%s' could not be deleted: ", file.toPath() ), ioe );
+                }
+            }
+            else
+            {
+                return null;
+            }
+        }
 
         return fileResource.getStorageKey();
     }
@@ -332,14 +403,14 @@ public class JCloudsFileResourceContentStore
             .build();
     }
 
-    private Blob createBlob( FileResource fileResource, File file )
+    private Blob createBlob( FileResource fileResource, String fileDimension, File file )
     {
-        return blobStore.blobBuilder( fileResource.getStorageKey() )
+        return blobStore.blobBuilder( StringUtils.join( fileResource.getStorageKey(), fileDimension ) )
             .payload( file )
             .contentLength( fileResource.getContentLength() )
             .contentMD5( HashCode.fromString( fileResource.getContentMd5() ) )
             .contentType( fileResource.getContentType() )
-            .contentDisposition( "filename=" + fileResource.getName() )
+            .contentDisposition( "filename=" + fileResource.getName() + fileDimension )
             .build();
     }
 

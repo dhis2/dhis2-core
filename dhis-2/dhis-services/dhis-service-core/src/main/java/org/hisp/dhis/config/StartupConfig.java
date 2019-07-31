@@ -1,3 +1,5 @@
+package org.hisp.dhis.config;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.config;
 
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -60,11 +60,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration
 public class StartupConfig
 {
-
     @Bean( "org.hisp.dhis.period.PeriodTypePopulator" )
     public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore )
     {
-
         PeriodTypePopulator populator = new PeriodTypePopulator( periodStore );
         populator.setName( "PeriodTypePopulator" );
         populator.setRunlevel( 2 );
@@ -74,7 +72,6 @@ public class StartupConfig
     @Bean
     public TwoFAPopulator twoFAPopulator( UserService userService, CurrentUserService currentUserService )
     {
-
         TwoFAPopulator populator = new TwoFAPopulator( userService, currentUserService );
         populator.setName( "PeriodTypePopulator" );
         populator.setRunlevel( 2 );

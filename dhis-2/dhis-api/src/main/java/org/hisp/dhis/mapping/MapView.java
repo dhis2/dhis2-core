@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -166,6 +166,8 @@ public class MapView
 
     private int eventPointRadius;
 
+    private MapViewRenderingStrategy renderingStrategy;
+
     /**
      * General configuration property for JSON values used to store information
      * for layers with arbitrary configuration needs.
@@ -190,10 +192,12 @@ public class MapView
 
     public MapView()
     {
+        this.renderingStrategy = MapViewRenderingStrategy.SINGLE;
     }
 
     public MapView( String layer )
     {
+        this();
         this.layer = layer;
     }
 
@@ -698,6 +702,18 @@ public class MapView
     public void setEventPointRadius( int eventPointRadius )
     {
         this.eventPointRadius = eventPointRadius;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MapViewRenderingStrategy getRenderingStrategy()
+    {
+        return renderingStrategy;
+    }
+
+    public void setRenderingStrategy( MapViewRenderingStrategy renderingStrategy )
+    {
+        this.renderingStrategy = renderingStrategy;
     }
 
     @JsonProperty

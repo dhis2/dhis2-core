@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -64,9 +65,9 @@ public class HibernateDataApprovalAuditStore
     private CurrentUserService currentUserService;
 
     public HibernateDataApprovalAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService )
     {
-        super( sessionFactory, jdbcTemplate, DataApprovalAudit.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataApprovalAudit.class, false );
 
         checkNotNull( currentUserService );
 

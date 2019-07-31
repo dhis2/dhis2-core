@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
 import org.springframework.stereotype.Repository;
@@ -58,10 +59,9 @@ public class HibernateDataStatisticsEventStore
     extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore
 {
-
-    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, DataStatisticsEvent.class, false);
+        super( sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false );
     }
 
     @Override

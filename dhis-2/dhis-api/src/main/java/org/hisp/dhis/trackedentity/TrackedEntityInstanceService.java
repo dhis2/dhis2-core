@@ -1,9 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +28,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -139,8 +138,10 @@ public interface TrackedEntityInstanceService
      * @param program                    the Program identifier.
      * @param programStatus              the ProgramStatus in the given program.
      * @param followUp                   indicates follow up status in the given Program.
-     * @param programEnrollmentStartDate the start date for enrollment in the given
-     *                                   Program.
+     * @param lastUpdatedStart           the start date for lastUpdated property
+     * @param lastUpdatedEndDate         the end date for lastUpdated property
+     * @param lastUpdatedDuration        the last updated duration filter.
+     * @param programEnrollmentStartDate the start date for enrollment in the given Program.
      * @param programEnrollmentEndDate   the end date for enrollment in the given Program.
      * @param programIncidentStartDate   the start date for incident in the given Program.
      * @param programIncidentEndDate     the end date for enrollment in the given Program.
@@ -157,12 +158,17 @@ public interface TrackedEntityInstanceService
      * @param skipPaging                 whether to skip paging.
      * @param includeDeleted             whether to include soft deleted items
      * @param includeAllAttributes       whether to include all user attributes that user has access
+     * @param orders                     specifies the ordering of the results
      * @return a TrackedEntityInstanceQueryParams.
      */
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
-        Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate, Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus,
-        Date eventStartDate, Date eventEndDate, AssignedUserSelectionMode assignedUserMode, Set<String> assignedUsers, boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
+        Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, String lastUpdatedDuration,
+        Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
+        Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
+        Date eventEndDate, AssignedUserSelectionMode assignedUserMode, Set<String> assignedUsers,
+        boolean skipMeta, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
+        boolean includeDeleted, boolean includeAllAttributes, List<String> orders );
 
     /**
      * Decides whether current user is authorized to perform the given query.
@@ -178,9 +184,10 @@ public interface TrackedEntityInstanceService
      * normally.
      *
      * @param params the TrackedEntityInstanceQueryParams.
+     * @param isGridSearch specifies whether search is made for a Grid response
      * @throws IllegalQueryException if the given params is invalid.
      */
-    void validateSearchScope( TrackedEntityInstanceQueryParams params )
+    void validateSearchScope( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
         throws IllegalQueryException;
 
     /**

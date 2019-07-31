@@ -1,7 +1,7 @@
 package org.hisp.dhis.dimension;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,6 +67,7 @@ import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -81,6 +82,7 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.security.acl.AclService;
@@ -427,6 +429,16 @@ public class DefaultDimensionService
         return getItemObjectMap( itemIds, atomicObjects );
     }
 
+    @Override
+    public Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds )
+    {
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds = getAtomicIds( itemIds );
+
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = getNoAclAtomicObjects( atomicIds );
+
+        return getItemObjectMap( itemIds, atomicObjects );
+    }
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
@@ -466,6 +478,10 @@ public class DefaultDimensionService
                     {
                         atomicIds.putValue( CategoryOptionCombo.class, id.getId2() );
                     }
+                    break;
+
+                case INDICATOR:
+                    atomicIds.putValue( Indicator.class, id.getId0() );
                     break;
 
                 case REPORTING_RATE:
@@ -521,6 +537,21 @@ public class DefaultDimensionService
         return atomicObjects;
     }
 
+    private MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
+    {
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
+
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> e : atomicIds.entrySet() )
+        {
+            atomicObjects.putEntries( e.getKey(),
+                idObjectManager.getNoAcl( e.getKey(), e.getValue() ).stream()
+                    .collect( Collectors.toMap( IdentifiableObject::getUid, o -> o ) ) );
+        }
+
+        return atomicObjects;
+    }
+
     /**
      * Gets a map from dimension item ids to their dimension item objects.
      *
@@ -548,6 +579,14 @@ public class DefaultDimensionService
                     if ( dataElement != null )
                     {
                         itemObjectMap.put( id, dataElement );
+                    }
+                    break;
+
+                case INDICATOR:
+                    Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
+                    if ( indicator != null )
+                    {
+                        itemObjectMap.put( id, indicator );
                     }
                     break;
 
@@ -860,6 +899,8 @@ public class DefaultDimensionService
                     dataElementDimension.setDataElement( idObjectManager.get( DataElement.class, dimensionId ) );
                     dataElementDimension.setLegendSet( dimension.hasLegendSet() ?
                         idObjectManager.get( LegendSet.class, dimension.getLegendSet().getUid() ) : null );
+                    dataElementDimension.setProgramStage( dimension.hasProgramStage() ?
+                        idObjectManager.get( ProgramStage.class, dimension.getProgramStage().getUid() ) : null );
                     dataElementDimension.setFilter( dimension.getFilter() );
 
                     object.getDataElementDimensions().add( dataElementDimension );

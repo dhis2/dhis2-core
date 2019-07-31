@@ -1,3 +1,5 @@
+package org.hisp.dhis.program;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.program;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -169,7 +169,7 @@ public class ProgramSqlGeneratorItemsTest
     public void testDataElementNotFound()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "#{ProgrmStagA.NotElementA}" );
+        test( "#{ProgrmStagA.NotElementA}" );
     }
 
     @Test
@@ -190,7 +190,7 @@ public class ProgramSqlGeneratorItemsTest
     public void testAttributeNotFound()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "A{NoAttribute}" );
+        test( "A{NoAttribute}" );
     }
 
     @Test
@@ -204,14 +204,14 @@ public class ProgramSqlGeneratorItemsTest
     public void testConstantNotFound()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "C{notConstant}" );
+        test( "C{notConstant}" );
     }
 
     @Test
     public void testInvalidItemType()
     {
         thrown.expect( ParserException.class );
-        String sql = test( "I{notValidItm}" );
+        test( "I{notValidItm}" );
     }
 
     // -------------------------------------------------------------------------

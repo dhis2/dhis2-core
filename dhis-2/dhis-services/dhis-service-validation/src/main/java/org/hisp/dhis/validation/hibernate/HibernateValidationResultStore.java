@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -72,9 +73,9 @@ public class HibernateValidationResultStore
     protected CurrentUserService currentUserService;
 
     public HibernateValidationResultStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService )
     {
-        super( sessionFactory, jdbcTemplate, ValidationResult.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, ValidationResult.class, true );
         checkNotNull( currentUserService );
         this.currentUserService = currentUserService;
     }

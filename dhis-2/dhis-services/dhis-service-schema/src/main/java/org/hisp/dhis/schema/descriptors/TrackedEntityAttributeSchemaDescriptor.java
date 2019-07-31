@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.descriptors;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ public class TrackedEntityAttributeSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( TrackedEntityAttribute.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1490 );
+        schema.setOrder( 1450 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD" ) ) );
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD" ) ) );

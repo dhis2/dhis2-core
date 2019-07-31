@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -53,10 +54,10 @@ public class HibernateAttributeStore
 {
 
     @Autowired
-    public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
         CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, Attribute.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, Attribute.class, currentUserService, deletedObjectService, aclService,
             true );
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -208,6 +208,11 @@ public interface DataIntegrityService
      * Returns a FlattenedDataIntegrityReport.
      */
     FlattenedDataIntegrityReport getFlattenedDataIntegrityReport();
+
+    /**
+     * Get all ProgramIndicators with no expression.
+     */
+    List<ProgramIndicator> getProgramIndicatorsWithNoExpression();
 
     /**
      * Get all ProgramIndicators with invalid expressions.

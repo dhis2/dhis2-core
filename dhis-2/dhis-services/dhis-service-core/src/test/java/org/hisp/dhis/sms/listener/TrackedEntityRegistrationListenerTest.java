@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -196,7 +196,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( 'Q' );
+        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( program, trackedEntityAttribute );
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
         program.getProgramAttributes().add( programTrackedEntityAttribute );
         program.getOrganisationUnits().add( organisationUnit );

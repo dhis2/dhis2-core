@@ -1,5 +1,12 @@
 version: '3'
 services:
+  redis:
+    image: redis:5.0.5-alpine
+    volumes:
+    - ./config/redis/redis.conf:/usr/local/etc/redis.conf
+    ports:
+       - "6379"
+
   db:
     restart: always
     image: mdillon/postgis:10-alpine
@@ -10,13 +17,14 @@ services:
       POSTGRES_PASSOWRD: dhis
 
   e2e-test-web:
-    image: dhis2/dhis2-core:dev-latest
+    image: "${IMAGE_NAME}"
     build:
       dockerfile: Dockerfile
       context: ../..
     volumes:
-      - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
+    - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     depends_on:
-      - db
+    - db
+    - redis
     ports:
-      - 8070:8080
+    - "8080"

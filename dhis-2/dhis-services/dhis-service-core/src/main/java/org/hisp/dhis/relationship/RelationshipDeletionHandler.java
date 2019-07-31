@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import java.util.Collection;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -49,8 +50,8 @@ public class RelationshipDeletionHandler
 
     private final RelationshipService relationshipService;
 
-    public RelationshipDeletionHandler(RelationshipService relationshipService) {
-        checkNotNull( relationshipService );
+    public RelationshipDeletionHandler( RelationshipService relationshipService )
+    {
         this.relationshipService = relationshipService;
     }
 
@@ -77,5 +78,13 @@ public class RelationshipDeletionHandler
                 relationshipService.deleteRelationship( relationship );
             }
         }
-    }    
+    }
+
+    @Override
+    public String allowDeleteRelationshipType( RelationshipType relationshipType )
+    {
+        Collection<Relationship> relationships = relationshipService.getRelationshipsByRelationshipType( relationshipType );
+
+        return relationships.isEmpty() ? null : ERROR;
+    }
 }

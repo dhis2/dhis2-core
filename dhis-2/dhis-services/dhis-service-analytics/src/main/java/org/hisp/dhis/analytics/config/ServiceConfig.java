@@ -1,3 +1,5 @@
+package org.hisp.dhis.analytics.config;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.analytics.config;
 
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.table.DefaultAnalyticsTableService;
@@ -67,7 +67,7 @@ public class ServiceConfig
 
     @Bean( "org.hisp.dhis.analytics.CompletenessTargetTableService" )
     public DefaultAnalyticsTableService completenessTargetTableService(
-            @Qualifier( "org.hisp.dhis.analytics.CompletenessTableManager" ) AnalyticsTableManager tableManager,
+            @Qualifier( "org.hisp.dhis.analytics.CompletenessTargetTableManager" ) AnalyticsTableManager tableManager,
             OrganisationUnitService organisationUnitService, DataElementService dataElementService,
             ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
     {

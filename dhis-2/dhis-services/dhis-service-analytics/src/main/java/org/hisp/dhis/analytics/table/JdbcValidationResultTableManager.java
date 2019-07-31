@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -92,6 +92,13 @@ public class JdbcValidationResultTableManager
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
             databaseInfo, jdbcTemplate );
     }
+
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+        new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
+        new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
+        new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),
+        new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" )
+    );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -241,11 +248,7 @@ public class JdbcValidationResultTableManager
             columns.add( new AnalyticsTableColumn( column, TEXT, "ps." + column ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ) );
-        columns.add( new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ) );
-        columns.add( new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
-
+        columns.addAll( getFixedColumns() );
         return filterDimensionColumns( columns );
     }
 
@@ -264,5 +267,11 @@ public class JdbcValidationResultTableManager
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         return ConcurrentUtils.getImmediateFuture();
+    }
+
+    @Override
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }

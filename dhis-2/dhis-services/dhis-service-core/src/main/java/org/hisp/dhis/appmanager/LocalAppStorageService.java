@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,9 @@ import com.google.common.collect.Lists;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -189,7 +189,7 @@ public class LocalAppStorageService
     }
 
     @Override
-    public App installApp( File file, String fileName )
+    public App installApp( File file, String fileName, Cache<App> appCache )
     {
         throw new UnsupportedOperationException( "LocalAppStorageService.installApp is deprecated and should no longer be used." );
     }
@@ -239,6 +239,7 @@ public class LocalAppStorageService
         }
     }
 
+    @Override
     public Resource getAppResource( App app, String pageName )
         throws IOException
     {

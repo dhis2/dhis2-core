@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -571,8 +571,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
         trackedEntityAttributeEmail = createTrackedEntityAttribute( 'E' );
         trackedEntityAttribute.setValueType( ValueType.PHONE_NUMBER );
         trackedEntityAttribute.setValueType( ValueType.EMAIL );
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( 'O' );
-        programTrackedEntityAttributeEmail = createProgramTrackedEntityAttribute( 'L' );
+        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, trackedEntityAttribute );
+        programTrackedEntityAttributeEmail = createProgramTrackedEntityAttribute( programA, trackedEntityAttributeEmail );
         programTrackedEntityAttribute.setAttribute( trackedEntityAttribute );
         programTrackedEntityAttributeEmail.setAttribute( trackedEntityAttributeEmail );
 

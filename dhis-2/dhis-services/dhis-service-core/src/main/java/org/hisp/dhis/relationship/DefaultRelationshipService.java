@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -132,5 +132,11 @@ public class DefaultRelationshipService
         boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramStageInstance( psi );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType )
+    {
+        return relationshipStore.getByRelationshipType( relationshipType );
     }
 }

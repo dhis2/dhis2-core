@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -51,13 +52,14 @@ public class HibernateProgramTrackedEntityAttributeStore
         implements ProgramTrackedEntityAttributeStore
 {
     public HibernateProgramTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ProgramTrackedEntityAttribute.class, currentUserService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttribute.class, currentUserService,
             deletedObjectService, aclService, true );
     }
 
+    @Override
     public ProgramTrackedEntityAttribute get(Program program, TrackedEntityAttribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();

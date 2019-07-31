@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -164,7 +164,7 @@ public class MathUtils
     public static boolean expressionHasErrors( String expression, boolean customFunctions )
     {
         final JEP parser = getJep( customFunctions );
-        parser.parseExpression( expression );
+        parser.parseExpression( expression.toUpperCase() );
 
         return parser.hasError();
     }

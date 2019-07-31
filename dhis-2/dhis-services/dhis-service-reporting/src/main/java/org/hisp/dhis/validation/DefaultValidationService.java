@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -388,7 +388,7 @@ public class DefaultValidationService
 
         // 2. Get the dimensional objects from the IDs. (Get them all at once for best performance.)
 
-        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService.getDataDimensionalItemObjectMap( allItemIds );
+        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService.getNoAclDataDimensionalItemObjectMap( allItemIds );
 
         // 3. Save the dimensional objects in the extended period types.
 

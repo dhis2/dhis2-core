@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -181,4 +181,11 @@ public interface AnalyticsTableManager
      * @return a future representing the asynchronous task.
      */
     Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
+
+    /**
+     * Returns a list of non-dynamic {@see AnalyticsTableColumn}
+     *
+     * @return a List of {@see AnalyticsTableColumn}
+     */
+    List<AnalyticsTableColumn> getFixedColumns();
 }

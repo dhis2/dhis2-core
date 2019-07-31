@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -86,6 +86,9 @@ public class JdbcOrgUnitTargetTableManager
             dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
             databaseInfo, jdbcTemplate );
     }
+
+    private List<AnalyticsTableColumn> FIXED_COLS = Lists
+        .newArrayList( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -173,7 +176,7 @@ public class JdbcOrgUnitTargetTableManager
             columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( "oug" ), CHARACTER_11, NOT_NULL, "oug.uid" ) );
+        columns.addAll( getFixedColumns() );
 
         return filterDimensionColumns( columns );
     }
@@ -195,5 +198,11 @@ public class JdbcOrgUnitTargetTableManager
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
     {
         return ConcurrentUtils.getImmediateFuture();
+    }
+
+    @Override
+    public List<AnalyticsTableColumn> getFixedColumns()
+    {
+        return FIXED_COLS;
     }
 }
