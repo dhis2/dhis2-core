@@ -32,6 +32,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.version.Version;
 import org.hisp.dhis.version.VersionStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -42,9 +43,9 @@ public class HibernateVersionStore
     extends HibernateGenericStore<Version>
     implements VersionStore
 {
-    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate)
+    public HibernateVersionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, Version.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, Version.class, true );
     }
 
     @Override

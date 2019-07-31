@@ -37,6 +37,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -52,9 +53,9 @@ public class HibernateTrackedEntityAttributeValueStore
     extends HibernateGenericStore<TrackedEntityAttributeValue>
     implements TrackedEntityAttributeValueStore
 {
-    public HibernateTrackedEntityAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    public HibernateTrackedEntityAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, TrackedEntityAttributeValue.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttributeValue.class, false );
     }
     // -------------------------------------------------------------------------
     // Implementation methods

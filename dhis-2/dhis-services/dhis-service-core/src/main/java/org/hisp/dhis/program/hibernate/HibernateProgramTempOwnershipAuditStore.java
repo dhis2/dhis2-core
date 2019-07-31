@@ -35,6 +35,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwnershipAudit;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditQueryParams;
 import org.hisp.dhis.program.ProgramTempOwnershipAuditStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -53,9 +54,9 @@ public class HibernateProgramTempOwnershipAuditStore
     extends HibernateGenericStore<ProgramTempOwnershipAudit>
     implements ProgramTempOwnershipAuditStore
 {
-    public HibernateProgramTempOwnershipAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    public HibernateProgramTempOwnershipAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, ProgramTempOwnershipAudit.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramTempOwnershipAudit.class, false );
     }
 
     // -------------------------------------------------------------------------

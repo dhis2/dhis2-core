@@ -62,6 +62,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -86,9 +87,9 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
     private StatementBuilder statementBuilder;
 
     public HibernateDataValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        PeriodStore periodStore, StatementBuilder statementBuilder )
+        ApplicationEventPublisher publisher, PeriodStore periodStore, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, DataValue.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataValue.class, false );
         this.periodStore = periodStore;
         this.statementBuilder = statementBuilder;
     }

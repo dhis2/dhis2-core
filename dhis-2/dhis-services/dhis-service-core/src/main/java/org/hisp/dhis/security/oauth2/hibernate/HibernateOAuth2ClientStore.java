@@ -35,6 +35,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.security.oauth2.OAuth2ClientStore;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -49,9 +50,10 @@ public class HibernateOAuth2ClientStore
     implements OAuth2ClientStore
 {
     public HibernateOAuth2ClientStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, OAuth2Client.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, OAuth2Client.class, currentUserService, deletedObjectService, aclService,
             true );
     }
 

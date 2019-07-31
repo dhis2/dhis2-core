@@ -37,6 +37,7 @@ import org.hisp.dhis.mapping.MapStore;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -48,9 +49,9 @@ public class HibernateMapStore
     extends HibernateIdentifiableObjectStore<Map> implements MapStore
 {
     public HibernateMapStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, Map.class, currentUserService, deletedObjectService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, Map.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Override

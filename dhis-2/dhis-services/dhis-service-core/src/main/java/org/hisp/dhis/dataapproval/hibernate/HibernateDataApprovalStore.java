@@ -76,6 +76,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -117,12 +118,12 @@ public class HibernateDataApprovalStore
     private final Environment env;
 
     public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CacheProvider cacheProvider, PeriodService periodService,
+        ApplicationEventPublisher publisher, CacheProvider cacheProvider, PeriodService periodService,
         CurrentUserService currentUserService, CategoryService categoryService,
         SystemSettingManager systemSettingManager,
         StatementBuilder statementBuilder, Environment env )
     {
-        super( sessionFactory, jdbcTemplate, DataApproval.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataApproval.class, false );
 
         checkNotNull( cacheProvider );
         checkNotNull( periodService );

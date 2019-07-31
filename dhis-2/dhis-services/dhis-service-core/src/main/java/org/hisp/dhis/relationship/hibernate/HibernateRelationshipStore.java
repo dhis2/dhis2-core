@@ -39,6 +39,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -54,10 +55,10 @@ public class HibernateRelationshipStore
     implements RelationshipStore
 {
     public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, Relationship.class, currentUserService, deletedObjectService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, Relationship.class, currentUserService, deletedObjectService,
+            aclService, true );
     }
 
     @Override

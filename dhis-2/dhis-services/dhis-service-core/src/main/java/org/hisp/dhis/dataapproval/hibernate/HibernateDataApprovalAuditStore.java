@@ -46,6 +46,7 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -64,9 +65,9 @@ public class HibernateDataApprovalAuditStore
     private CurrentUserService currentUserService;
 
     public HibernateDataApprovalAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService )
     {
-        super( sessionFactory, jdbcTemplate, DataApprovalAudit.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, DataApprovalAudit.class, false );
 
         checkNotNull( currentUserService );
 

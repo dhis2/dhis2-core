@@ -48,7 +48,6 @@ import java.util.TimeZone;
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Test;
 
