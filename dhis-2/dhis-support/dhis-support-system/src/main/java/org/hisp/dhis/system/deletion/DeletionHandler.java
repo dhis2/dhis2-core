@@ -503,15 +503,6 @@ public abstract class DeletionHandler
     {
     }
 
-    public void deleteUserCredentials( UserCredentials credentials )
-    {
-    }
-
-    public String allowDeleteUserCredentials( UserCredentials credentials )
-    {
-        return null;
-    }
-
     public String allowDeleteUser( User user )
     {
         return null;
