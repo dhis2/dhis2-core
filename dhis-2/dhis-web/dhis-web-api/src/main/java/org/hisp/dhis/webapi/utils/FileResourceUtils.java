@@ -126,30 +126,12 @@ public class FileResourceUtils
     public void configureFileResourceResponse( HttpServletResponse response, FileResource fileResource )
         throws WebMessageException
     {
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
+        InputStream content = fileResourceService.getFileResourceContent( fileResource );
 
         if ( content == null )
         {
             throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
         }
-
-        // ---------------------------------------------------------------------
-        // Attempt to build signed URL request for content and redirect
-        // ---------------------------------------------------------------------
-
-        URI signedGetUri = fileResourceService.getSignedGetFileResourceContentUri( fileResource.getUid() );
-
-        if ( signedGetUri != null )
-        {
-            response.setStatus( HttpServletResponse.SC_TEMPORARY_REDIRECT );
-            response.setHeader( HttpHeaders.LOCATION, signedGetUri.toASCIIString() );
-
-            return;
-        }
-
-        // ---------------------------------------------------------------------
-        // Build response and return
-        // ---------------------------------------------------------------------
 
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
@@ -159,9 +141,9 @@ public class FileResourceUtils
         // Request signing is not available, stream content back to client
         // ---------------------------------------------------------------------
 
-        try (InputStream in = content.openStream())
+        try
         {
-            IOUtils.copy( in, response.getOutputStream() );
+            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
         }
         catch ( IOException e )
         {
