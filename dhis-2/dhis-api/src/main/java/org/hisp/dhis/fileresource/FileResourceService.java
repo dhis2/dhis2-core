@@ -31,8 +31,12 @@ package org.hisp.dhis.fileresource;
 import com.google.common.io.ByteSource;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -53,7 +57,10 @@ public interface FileResourceService
 
     void deleteFileResource( FileResource fileResource );
 
-    ByteSource getFileResourceContent( FileResource fileResource );
+    InputStream getFileResourceContent( FileResource fileResource );
+
+    void copyFileResourceContent( FileResource fileResource, OutputStream outputStream )
+        throws IOException, NoSuchElementException;
     
     boolean fileResourceExists( String uid );
     
