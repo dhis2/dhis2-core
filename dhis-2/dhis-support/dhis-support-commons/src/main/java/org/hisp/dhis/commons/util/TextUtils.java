@@ -682,7 +682,7 @@ public class TextUtils
      * @param glob the glob string.
      * @return a regular expression.
      */
-    public static static String createRegexFromGlob( String glob )
+    public static String createRegexFromGlob( String glob )
     {
         StringBuilder out = new StringBuilder( "^" );
         for ( int i = 0; i < glob.length(); ++i )
