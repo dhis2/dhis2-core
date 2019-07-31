@@ -1,4 +1,4 @@
-package org.hisp.dhis.program.hibernate;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,30 +28,13 @@ package org.hisp.dhis.program.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.springframework.context.ApplicationEvent;
 
-/**
- * @author Viet Nguyen
- */
-@Repository( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" )
-public class HibernateProgramTrackedEntityAttributeGroupStore
-    extends HibernateIdentifiableObjectStore<ProgramTrackedEntityAttributeGroup>
-        implements ProgramTrackedEntityAttributeGroupStore
+public class ObjectDeletionRequestedEvent
+    extends ApplicationEvent
 {
-    public HibernateProgramTrackedEntityAttributeGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+    public ObjectDeletionRequestedEvent( Object source )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttributeGroup.class, currentUserService,
-            deletedObjectService, aclService, true );
+        super( source );
     }
 }

@@ -35,6 +35,7 @@ import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.ExternalMapLayerStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -47,9 +48,9 @@ public class HibernateExternalMapLayerStore
     implements ExternalMapLayerStore
 {
     public HibernateExternalMapLayerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
         AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ExternalMapLayer.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, ExternalMapLayer.class, currentUserService, deletedObjectService, aclService, false );
     }
 }

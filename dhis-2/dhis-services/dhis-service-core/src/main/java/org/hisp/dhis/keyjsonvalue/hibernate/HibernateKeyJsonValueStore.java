@@ -36,6 +36,7 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -52,9 +53,9 @@ public class HibernateKeyJsonValueStore
     implements KeyJsonValueStore
 {
     public HibernateKeyJsonValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, KeyJsonValue.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, KeyJsonValue.class, currentUserService, deletedObjectService, aclService,
             true );
     }
 
@@ -78,15 +79,15 @@ public class HibernateKeyJsonValueStore
     public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
         String hql = "select key from KeyJsonValue where namespace = :namespace";
-        
+
         if ( lastUpdated != null )
         {
             hql += " and lastupdated >= :lastUpdated ";
         }
-        
+
         Query<String> query = getTypedQuery( hql );
         query.setParameter( "namespace", namespace );
-        
+
         if ( lastUpdated != null )
         {
             query.setParameter( "lastUpdated", lastUpdated );

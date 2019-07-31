@@ -36,6 +36,7 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsStore;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -46,9 +47,9 @@ import java.util.List;
 public class HibernateIncomingSmsStore extends HibernateGenericStore<IncomingSms>
     implements IncomingSmsStore
 {
-    public HibernateIncomingSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    public HibernateIncomingSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, IncomingSms.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, IncomingSms.class, false );
     }
 
     // -------------------------------------------------------------------------

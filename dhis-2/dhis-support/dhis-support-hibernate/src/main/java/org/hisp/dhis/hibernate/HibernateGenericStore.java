@@ -57,6 +57,8 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -71,17 +73,20 @@ public class HibernateGenericStore<T>
 
     protected SessionFactory sessionFactory;
     protected JdbcTemplate jdbcTemplate;
+    protected ApplicationEventPublisher publisher;
     protected Class<T> clazz;
     protected boolean cacheable;
 
-    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, Class<T> clazz, boolean cacheable )
+    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
     {
         checkNotNull( sessionFactory );
         checkNotNull( jdbcTemplate );
+        checkNotNull( publisher );
         checkNotNull( clazz );
 
         this.sessionFactory = sessionFactory;
         this.jdbcTemplate = jdbcTemplate;
+        this.publisher = publisher;
         this.clazz = clazz;
         this.cacheable = cacheable;
     }
@@ -408,6 +413,8 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+
         getSession().delete( object );
     }
 
