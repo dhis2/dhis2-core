@@ -151,10 +151,10 @@ public class JdbcEventStore
         if ( !isSuperUser )
         {
             params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                    .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
 
             params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                    .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
 
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
@@ -262,7 +262,7 @@ public class JdbcEventStore
                 if ( !attributeCategoryCombination.contains( currentAttributeCategoryCombination ) )
                 {
                     event.setAttributeCategoryOptions(
-                            attributeCategoryCombination + ";" + currentAttributeCategoryCombination );
+                        attributeCategoryCombination + ";" + currentAttributeCategoryCombination );
                 }
             }
 
@@ -356,10 +356,10 @@ public class JdbcEventStore
         if ( !isSuperUser )
         {
             params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                    .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
 
             params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                    .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
 
         List<EventRow> eventRows = new ArrayList<>();

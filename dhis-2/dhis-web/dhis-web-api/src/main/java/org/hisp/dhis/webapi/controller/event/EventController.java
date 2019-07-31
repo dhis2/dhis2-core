@@ -579,7 +579,6 @@ public class EventController
             rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
         }
 
-
         if ( !StringUtils.isEmpty( attachment ) )
         {
             response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
