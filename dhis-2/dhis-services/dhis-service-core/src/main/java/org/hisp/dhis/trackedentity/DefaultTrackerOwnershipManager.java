@@ -128,22 +128,25 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional
-    public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit, boolean skipAccessValidation,
-                                   boolean createIfNotExists )
+    public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
+        boolean skipAccessValidation, boolean createIfNotExists )
     {
         if ( entityInstance == null || program == null || orgUnit == null )
         {
             return;
         }
+
         if ( hasAccess( currentUserService.getCurrentUser(), entityInstance, program ) || skipAccessValidation )
         {
-            TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+            TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
+                entityInstance.getId(), program.getId() );
+
             if ( teProgramOwner != null )
             {
                 if ( !teProgramOwner.getOrganisationUnit().equals( orgUnit ) )
                 {
                     ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program, entityInstance, teProgramOwner.getLastUpdated(),
-                            teProgramOwner.getCreatedBy() );
+                        teProgramOwner.getCreatedBy() );
                     programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
                     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, orgUnit );
                 }
@@ -162,22 +165,24 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional
-    public void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit, boolean skipAccessValidation,
-                                 boolean overwriteIfExists )
+    public void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit,
+        boolean skipAccessValidation, boolean overwriteIfExists )
     {
         if ( entityInstance == null || program == null || organisationUnit == null )
         {
             return;
         }
+
         if ( hasAccess( currentUserService.getCurrentUser(), entityInstance, program ) || skipAccessValidation )
         {
             TrackedEntityProgramOwner teProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
+
             if ( teProgramOwner != null )
             {
                 if ( overwriteIfExists && !teProgramOwner.getOrganisationUnit().equals( organisationUnit ) )
                 {
                     ProgramOwnershipHistory programOwnershipHistory = new ProgramOwnershipHistory( program, entityInstance, teProgramOwner.getLastUpdated(),
-                            teProgramOwner.getCreatedBy() );
+                        teProgramOwner.getCreatedBy() );
                     programOwnershipHistoryService.addProgramOwnershipHistory( programOwnershipHistory );
                     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( entityInstance, program, organisationUnit );
                 }
@@ -206,7 +211,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         if ( program.isProtected() )
         {
             programTempOwnershipAuditService
-                    .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
+                .addProgramTempOwnershipAudit( new ProgramTempOwnershipAudit( program, entityInstance, reason, user.getUsername() ) );
 
             temporaryTrackerOwnershipCache.put( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ), true );
         }
@@ -283,8 +288,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private OrganisationUnit getOwner( TrackedEntityInstance entityInstance, Program program )
     {
         OrganisationUnit ou;
-        TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner( entityInstance.getId(),
-                program.getId() );
+        TrackedEntityProgramOwner trackedEntityProgramOwner = trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
+            entityInstance.getId(), program.getId() );
+
         if ( trackedEntityProgramOwner == null )
         {
             ou = entityInstance.getOrganisationUnit();
@@ -293,6 +299,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         {
             ou = trackedEntityProgramOwner.getOrganisationUnit();
         }
+
         return ou;
     }
 
