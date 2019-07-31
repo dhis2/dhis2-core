@@ -28,7 +28,6 @@ package org.hisp.dhis.security.oauth2;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,7 +39,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "oAuth2ClientService" )
-public class DefaultOAuth2ClientService implements OAuth2ClientService
+public class DefaultOAuth2ClientService
+    implements OAuth2ClientService
 {
     // -------------------------------------------------------------------------
     // Dependencies
