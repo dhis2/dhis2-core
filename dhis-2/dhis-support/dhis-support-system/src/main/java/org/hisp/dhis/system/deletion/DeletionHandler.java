@@ -517,6 +517,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteUserCredentials( UserCredentials credentials )
+    {
+    }
+
+    public String allowDeleteUserCredentials( UserCredentials credentials )
+    {
+        return null;
+    }
+
     public void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
     }

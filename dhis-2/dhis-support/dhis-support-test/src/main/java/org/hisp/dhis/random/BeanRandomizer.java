@@ -47,7 +47,7 @@ public class BeanRandomizer
     public BeanRandomizer()
     {
         rand = aNewEnhancedRandomBuilder()
-            .randomize(PeriodType.class, new PeriodTypeRandomizer() )
+            .randomize( PeriodType.class, new PeriodTypeRandomizer() )
             .randomize( FieldDefinitionBuilder.field().named( "uid" ).ofType( String.class ).get(), new UidRandomizer() )
             .build();
     }
