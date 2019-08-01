@@ -68,7 +68,7 @@ public interface EventService
         Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
         Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status, CategoryOptionCombo attributeCoc,
         IdSchemes idSchemes, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
-        List<String> gridOrders, boolean includeAttributes, Set<String> events, AssignedUserSelectionMode assignedUserMode, 
+        List<String> gridOrders, boolean includeAttributes, Set<String> events, Boolean skipEventId, AssignedUserSelectionMode assignedUserMode,
         Set<String> assignedUserIds, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
     Event getEvent( ProgramStageInstance programStageInstance );
