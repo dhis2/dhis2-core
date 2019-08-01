@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -39,7 +38,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.api.client.util.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DhisApiVersion;
