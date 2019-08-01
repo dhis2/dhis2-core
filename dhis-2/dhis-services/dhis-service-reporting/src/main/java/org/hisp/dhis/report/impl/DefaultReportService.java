@@ -348,32 +348,4 @@ public class DefaultReportService
     {
         return reportStore.getByUid( uid );
     }
-
-    @Override
-    @Transactional(readOnly = true)
-    public int getReportCount()
-    {
-        return reportStore.getCount();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public int getReportCountByName( String name )
-    {
-        return reportStore.getCountLikeName( name );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Report> getReportsBetween( int first, int max )
-    {
-        return reportStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Report> getReportsBetweenByName( String name, int first, int max )
-    {
-        return reportStore.getAllLikeName( name, first, max );
-    }
 }
