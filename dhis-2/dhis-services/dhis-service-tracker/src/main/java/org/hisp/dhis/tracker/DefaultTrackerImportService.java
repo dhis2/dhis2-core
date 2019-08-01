@@ -32,8 +32,6 @@ import com.google.common.base.Enums;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dxf2.metadata.AtomicMode;
-import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;

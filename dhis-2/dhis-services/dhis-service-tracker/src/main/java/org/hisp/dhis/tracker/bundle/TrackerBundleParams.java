@@ -35,8 +35,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.metadata.AtomicMode;
-import org.hisp.dhis.dxf2.metadata.FlushMode;
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -193,7 +193,7 @@ public class TrackerBundleParams
         return atomicMode;
     }
 
-    public TrackerBundleParams setAtomicMode( AtomicMode atomicMode )
+    public TrackerBundleParams setAtomicMode( org.hisp.dhis.tracker.AtomicMode atomicMode )
     {
         this.atomicMode = atomicMode;
         return this;
