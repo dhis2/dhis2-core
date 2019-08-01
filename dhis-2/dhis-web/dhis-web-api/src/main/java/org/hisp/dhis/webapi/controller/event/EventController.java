@@ -260,7 +260,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp, orgUnit,
             ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
@@ -327,7 +327,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp, orgUnit,
             ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
@@ -393,7 +393,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp, orgUnit,
             ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
@@ -460,7 +460,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, programStage, programStatus, followUp, orgUnit,
             ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
-            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, filter,
+            totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false, filter,
             dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
@@ -499,6 +499,7 @@ public class EventController
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Boolean skipEventId,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
@@ -515,9 +516,9 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         Map<String,String> dataElementOrders = getDataElementsFromOrder( order );
-        
+
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
@@ -526,7 +527,7 @@ public class EventController
             ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ),
-            false, eventIds, filter, dataElementOrders.keySet(), false,
+            false, eventIds, skipEventId, filter, dataElementOrders.keySet(), false,
             includeDeleted );
 
         Events events = eventService.getEvents( params );
@@ -590,6 +591,7 @@ public class EventController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
         @RequestParam( required = false ) String event,
+        @RequestParam( required = false ) Boolean skipEventId,
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
@@ -600,11 +602,11 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         List<Order> schemaOrders = getOrderParams( order );
-        
+
         Map<String,String> dataElementOrders = getDataElementsFromOrder( order );
-        
+
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
@@ -613,7 +615,7 @@ public class EventController
             ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, schemaOrders, getGridOrderParams( order, dataElementOrders ), false,
-            eventIds, filter, dataElementOrders.keySet(), false, includeDeleted );
+            eventIds, skipEventId, filter, dataElementOrders.keySet(), false, includeDeleted );
 
         Events events = eventService.getEvents( params );
 
@@ -650,6 +652,7 @@ public class EventController
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) String order,
+        @RequestParam( required = false ) Boolean skipEventId,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam Map<String, String> parameters, Model model )
         throws WebMessageException
@@ -662,7 +665,7 @@ public class EventController
             orgUnit, ouMode, null, startDate, endDate, null, null,
             null, null, null, eventStatus, attributeOptionCombo,
             null, null, null, totalPages, skipPaging, getOrderParams( order ), null,
-            true, null, null, null, false,
+            true, null, skipEventId, null, null, false,
             includeDeleted );
 
         return eventRowService.getEventRows( params );
@@ -1006,7 +1009,7 @@ public class EventController
     private Map<String,String> getDataElementsFromOrder( String allOrders )
     {
         Map<String,String> dataElements = new HashMap<>();
-        
+
         if ( allOrders != null )
         {
             for ( String order : TextUtils.splitToArray( allOrders, TextUtils.SEMICOLON ) )
@@ -1026,7 +1029,7 @@ public class EventController
         }
         return dataElements;
     }
-    
+
     /**
      * Starts an asynchronous import task.
      *
@@ -1084,15 +1087,15 @@ public class EventController
 
         return null;
     }
-    
+
     private List<String> getGridOrderParams( String order, Map<String,String> dataElementOrders )
     {
         List<String> dataElementOrderList = new ArrayList<String>();
-        
+
         if ( !StringUtils.isEmpty( order ) && dataElementOrders != null && dataElementOrders.size() > 0 )
         {
             List<String> orders = Arrays.asList( order.split( ";" ) );
-            
+
             for ( String orderItem : orders )
             {
                 String dataElementCandidate = orderItem.split( ":" )[0];
@@ -1102,7 +1105,7 @@ public class EventController
                 }
             }
         }
-        
+
         return dataElementOrderList;
     }
 

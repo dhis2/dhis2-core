@@ -160,10 +160,13 @@ public class JdbcEventStore
             {
                 event = new Event();
 
-                event.setUid( rowSet.getString( "psi_uid" ) );
+                if ( !params.isSkipEventId() )
+                {
+                    event.setUid( rowSet.getString( "psi_uid" ) );
+                    event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
+                        idSchemes.getProgramStageInstanceIdScheme() ) );
+                }
 
-                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
-                    idSchemes.getProgramStageInstanceIdScheme() ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
 

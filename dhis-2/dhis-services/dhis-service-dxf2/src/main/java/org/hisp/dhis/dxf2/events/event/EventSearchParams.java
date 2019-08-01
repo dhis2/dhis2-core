@@ -134,6 +134,8 @@ public class EventSearchParams
 
     private Set<String> events = new HashSet<>();
 
+    private Boolean skipEventId;
+
     /**
      * Filters for the response.
      */
@@ -198,12 +200,12 @@ public class EventSearchParams
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
     }
-    
+
     public boolean hasProgram()
     {
     	return program != null;
     }
-    
+
     public boolean hasProgramStage()
     {
     	return programStage != null;
@@ -231,6 +233,14 @@ public class EventSearchParams
     public boolean hasLastUpdatedDuration()
     {
         return lastUpdatedDuration != null;
+    }
+
+    /**
+     * Null-safe check for skip event ID parameter.
+     */
+    public boolean isSkipEventId()
+    {
+        return skipEventId != null && skipEventId;
     }
 
     /**
@@ -479,6 +489,16 @@ public class EventSearchParams
     public void setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+    }
+
+    public Boolean getSkipEventId()
+    {
+        return skipEventId;
+    }
+
+    public void setSkipEventId( Boolean skipEventId )
+    {
+        this.skipEventId = skipEventId;
     }
 
     public boolean isIncludeAttributes()
