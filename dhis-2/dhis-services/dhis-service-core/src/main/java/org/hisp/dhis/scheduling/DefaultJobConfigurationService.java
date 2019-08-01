@@ -197,6 +197,21 @@ public class DefaultJobConfigurationService
         return propertyMap;
     }
 
+    @Override
+    public void refreshScheduling( JobConfiguration jobConfiguration )
+    {
+        if ( jobConfiguration.isEnabled() )
+        {
+            jobConfiguration.setJobStatus( JobStatus.SCHEDULED );
+        }
+        else
+        {
+            jobConfiguration.setJobStatus( JobStatus.DISABLED );
+        }
+
+        jobConfigurationStore.update( jobConfiguration );
+    }
+
     private String prettyPrint( String field )
     {
         List<String> fieldStrings = Arrays.stream( field.split( "(?=[A-Z])" ) ).map( String::toLowerCase )
