@@ -97,9 +97,9 @@ public class StaticContentController
 
     private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = FileResourceDomain.DOCUMENT;
 
-    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.<String, SettingKey>builder()
-        .put( LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER ).put( LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT )
-        .build();
+    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.of(
+        LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER,
+        LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT );
 
     @Autowired
     public StaticContentController(
@@ -108,7 +108,6 @@ public class StaticContentController
         JCloudsFileResourceContentStore contentStore
     )
     {
-
         checkNotNull( systemSettingManager );
         checkNotNull( styleManager );
         checkNotNull( contentStore );
