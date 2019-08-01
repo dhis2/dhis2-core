@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,8 @@ public enum AggregationType
     AVERAGE_SUM_ORG_UNIT( "avg_sum_org_unit", true ),
     LAST( "last", true ), // Sum org unit
     LAST_AVERAGE_ORG_UNIT( "last_avg_org_unit", true ),
+    FIRST( "first", true ),
+    FIRST_AVERAGE_ORG_UNIT( "first_avg_org_unit", true ),
     COUNT( "count", true ),
     STDDEV( "stddev", true ),
     VARIANCE( "variance", true ),

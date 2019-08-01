@@ -7,7 +7,9 @@
   <class name="org.hisp.dhis.message.Message" table="message">
 
     <id name="id" column="messageid">
-      <generator class="native" />
+      <generator class="sequence">
+         <param name="sequence_name">message_sequence</param>
+      </generator>
     </id>
 
     <property name="uid" column="uid" length="11" />

@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+  xsi:schemaLocation="
 		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
 
-	<!-- Web Portal -->
+  <!-- Web Portal -->
   
-   <context:component-scan base-package="org.hisp.dhis.configuration" />
- 
+  <context:component-scan base-package="org.hisp.dhis.configuration" /> 
 
   <bean id="org.hisp.dhis.webportal.module.ModuleManager" class="org.hisp.dhis.webportal.module.DefaultModuleManager">
     <property name="actionAccessResolver" ref="org.hisp.dhis.security.ActionAccessResolver" />
@@ -72,9 +71,7 @@
 
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalModuleInterceptor"
     class="org.hisp.dhis.webportal.interceptor.XWorkPortalModuleInterceptor">
-    <property name="moduleManager">
-      <ref bean="org.hisp.dhis.webportal.module.ModuleManager" />
-    </property>
+    <property name="moduleManager" ref="org.hisp.dhis.webportal.module.ModuleManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.webportal.menu.MenuStateManager" class="org.hisp.dhis.webportal.menu.SessionMenuStateManager" />
@@ -85,9 +82,7 @@
 
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalMenuInterceptor"
     class="org.hisp.dhis.webportal.interceptor.XWorkPortalMenuInterceptor">
-    <property name="menuStateManager">
-      <ref bean="org.hisp.dhis.webportal.menu.MenuStateManager" />
-    </property>
+    <property name="menuStateManager" ref="org.hisp.dhis.webportal.menu.MenuStateManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalUserInterceptor"
@@ -115,38 +110,26 @@
 
   <bean id="org.hisp.dhis.ouwt.interceptor.OrganisationUnitTreeInterceptor"
     class="org.hisp.dhis.ouwt.interceptor.OrganisationUnitTreeInterceptor">
-    <property name="selectionManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
-    </property>
-    <property name="treeStateManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
-    </property>
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager"/>
+    <property name="treeStateManager" ref="org.hisp.dhis.ouwt.manager.TreeStateManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.ouwt.action.ExpandSubtreeAction" class="org.hisp.dhis.ouwt.action.ExpandSubtreeAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="treeStateManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
-    </property>
+    <property name="treeStateManager" ref="org.hisp.dhis.ouwt.manager.TreeStateManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.ouwt.action.CollapseSubtreeAction" class="org.hisp.dhis.ouwt.action.CollapseSubtreeAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="treeStateManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
-    </property>
+    <property name="treeStateManager" ref="org.hisp.dhis.ouwt.manager.TreeStateManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.ouwt.action.GetExpandedTreeAction" class="org.hisp.dhis.ouwt.action.GetExpandedTreeAction"
     scope="prototype">
-    <property name="selectionManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
-    </property>
-    <property name="treeStateManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.TreeStateManager" />
-    </property>
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager"/>
+    <property name="treeStateManager" ref="org.hisp.dhis.ouwt.manager.TreeStateManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.ouwt.action.ClearSelectedOrganisationUnitsAction"
@@ -158,9 +141,7 @@
   <bean id="org.hisp.dhis.ouwt.action.SetSelectedOrganisationUnitAction" class="org.hisp.dhis.ouwt.action.SetSelectedOrganisationUnitAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="selectionManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
-    </property>
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.ouwt.action.GetSelectedOrganisationUnitsAction"
@@ -172,18 +153,14 @@
   <bean id="org.hisp.dhis.ouwt.action.AddSelectedOrganisationUnitAction" class="org.hisp.dhis.ouwt.action.AddSelectedOrganisationUnitAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="selectionManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
-    </property>
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.ouwt.action.RemoveSelectedOrganisationUnitAction"
     class="org.hisp.dhis.ouwt.action.RemoveSelectedOrganisationUnitAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="selectionManager">
-      <ref bean="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager" />
-    </property>
+    <property name="selectionManager" ref="org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.ouwt.action.GetOrganisationUnitsByNameAction" class="org.hisp.dhis.ouwt.action.GetOrganisationUnitsByNameAction"
@@ -202,26 +179,20 @@
 
   <bean id="org.hisp.dhis.oust.action.GetExpandedTreeAction" class="org.hisp.dhis.oust.action.GetExpandedTreeAction"
     scope="prototype">
-    <property name="selectionTreeManager">
-      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
-    </property>
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.oust.action.SetSelectedOrganisationUnitAction" class="org.hisp.dhis.oust.action.SetSelectedOrganisationUnitAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="selectionTreeManager">
-      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
-    </property>
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.oust.action.AddSelectedOrganisationUnitAction" class="org.hisp.dhis.oust.action.AddSelectedOrganisationUnitAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
-    <property name="selectionTreeManager">
-      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
-    </property>
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.oust.action.RemoveSelectedOrganisationUnitAction"
@@ -229,25 +200,19 @@
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="organisationUnitGroupService" ref="org.hisp.dhis.organisationunit.OrganisationUnitGroupService" />
-    <property name="selectionTreeManager">
-      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
-    </property>
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.oust.action.SelectAllOrganisationUnitAction" class="org.hisp.dhis.oust.action.SelectAllOrganisationUnitAction"
     scope="prototype">
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
-    <property name="selectionTreeManager">
-      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
-    </property>
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.oust.action.ClearSelectedOrganisationUnitsAction"
     class="org.hisp.dhis.oust.action.ClearSelectedOrganisationUnitsAction"
     scope="prototype">
-    <property name="selectionTreeManager">
-      <ref bean="org.hisp.dhis.oust.manager.SelectionTreeManager" />
-    </property>
+    <property name="selectionTreeManager" ref="org.hisp.dhis.oust.manager.SelectionTreeManager"/>
   </bean>
 
   <bean id="org.hisp.dhis.oust.action.GetUserCountAction" class="org.hisp.dhis.oust.action.GetUserCountAction" scope="prototype" />
@@ -470,6 +435,7 @@
     <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
     <property name="organisationUnitService" ref="org.hisp.dhis.organisationunit.OrganisationUnitService" />
     <property name="versionService" ref="org.hisp.dhis.version.VersionService" />
+    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetPeriodAction" class="org.hisp.dhis.commons.action.GetPeriodAction"

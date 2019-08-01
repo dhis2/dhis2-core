@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.jep;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,13 @@ public class MaxValue
 
         Object param = inStack.pop();
         List<Double> vals = CustomFunctions.checkVector( param );
+
+        if ( vals.size() == 0 )
+        {
+            inStack.push( 0 );
+            return;
+        }
+
         Double max = null;
 
         for ( Double v : vals )

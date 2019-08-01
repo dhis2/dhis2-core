@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -254,6 +254,11 @@ public class Property implements Ordered, Klass
      * Used by LinkService to link to the API endpoint containing this type.
      */
     private String apiEndpoint;
+
+    /**
+     * Default value of the Property
+     */
+    private Object defaultValue;
 
     public Property()
     {
@@ -752,6 +757,25 @@ public class Property implements Ordered, Klass
         this.apiEndpoint = apiEndpoint;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Object getDefaultValue()
+    {
+        return defaultValue;
+    }
+
+    public void setDefaultValue( Object defaultValue )
+    {
+        if ( defaultValue != null && klass.isAssignableFrom( defaultValue.getClass() ))
+        {
+            this.defaultValue = defaultValue;
+        }
+        else
+        {
+            this.defaultValue = null;
+        }
+    }
+
     public String key()
     {
         return isCollection() ? collectionName : name;
@@ -773,7 +797,7 @@ public class Property implements Ordered, Klass
     {
         return Objects.hash( klass, propertyType, itemKlass, itemPropertyType, getterMethod, setterMethod, name, fieldName, persisted, collectionName,
             collectionWrapping, description, namespace, attribute, simple, collection, owner, identifiableObject, nameableObject, readable, writable,
-            unique, required, length, max, min, cascade, manyToMany, oneToOne, manyToOne, owningRole, inverseRole, constants );
+            unique, required, length, max, min, cascade, manyToMany, oneToOne, manyToOne, owningRole, inverseRole, constants, defaultValue );
     }
 
     @Override
@@ -823,7 +847,8 @@ public class Property implements Ordered, Klass
             && Objects.equals( this.manyToOne, other.manyToOne )
             && Objects.equals( this.owningRole, other.owningRole )
             && Objects.equals( this.inverseRole, other.inverseRole )
-            && Objects.equals( this.constants, other.constants );
+            && Objects.equals( this.constants, other.constants )
+            && Objects.equals( this.defaultValue, other.defaultValue );
     }
 
     @Override
@@ -863,6 +888,7 @@ public class Property implements Ordered, Klass
             .add( "owningRole", owningRole )
             .add( "inverseRole", inverseRole )
             .add( "constants", constants )
+            .add( "defaultValue", defaultValue )
             .toString();
     }
 }

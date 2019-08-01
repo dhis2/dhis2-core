@@ -1,7 +1,7 @@
 package org.hisp.dhis.datastatistics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,19 +33,27 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
+@Component( "dataStatisticsJob" )
 public class DataStatisticsJob
     extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( DataStatisticsJob.class );
-    
-    @Autowired
-    private DataStatisticsService dataStatisticsService;
+
+    private final DataStatisticsService dataStatisticsService;
+
+    public DataStatisticsJob( DataStatisticsService dataStatisticsService )
+    {
+        checkNotNull( dataStatisticsService );
+        this.dataStatisticsService = dataStatisticsService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

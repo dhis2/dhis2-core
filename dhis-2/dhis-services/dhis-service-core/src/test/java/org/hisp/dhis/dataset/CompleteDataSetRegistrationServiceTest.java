@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -59,9 +56,6 @@ import static org.junit.Assert.*;
 public class CompleteDataSetRegistrationServiceTest
     extends DhisSpringTest
 {
-    @Autowired
-    private UserService userService;
-
     @Autowired
     private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
@@ -83,16 +77,11 @@ public class CompleteDataSetRegistrationServiceTest
     @Autowired
     private CategoryService categoryService;
 
-    private CompleteDataSetRegistration registrationA;
-    private CompleteDataSetRegistration registrationB;
-    private CompleteDataSetRegistration registrationC;
-    private CompleteDataSetRegistration registrationD;
-
-    DataElement elementA;
-    DataElement elementB;
-    DataElement elementC;
-    DataElement elementD;
-    DataElement elementE;
+    private DataElement elementA;
+    private DataElement elementB;
+    private DataElement elementC;
+    private DataElement elementD;
+    private DataElement elementE;
 
     private DataSet dataSetA;
     private DataSet dataSetB;
@@ -109,8 +98,6 @@ public class CompleteDataSetRegistrationServiceTest
 
     private CategoryOptionCombo optionCombo;
 
-    private User user;
-
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -121,9 +108,6 @@ public class CompleteDataSetRegistrationServiceTest
         sourceA = createOrganisationUnit( 'A' );
         sourceB = createOrganisationUnit( 'B' );
         sourceC = createOrganisationUnit( 'C' );
-
-        user = createUser( 'A' );
-        userService.addUser( user );
 
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
@@ -173,35 +157,6 @@ public class CompleteDataSetRegistrationServiceTest
         onTimeA = getDate( 2000, 1, 10 );
     }
 
-    public static User createUser( char uniqueCharacter )
-    {
-        UserCredentials credentials = new UserCredentials();
-        User user = new User();
-        user.setUid( BASE_USER_UID + uniqueCharacter );
-
-        credentials.setUserInfo( user );
-        user.setUserCredentials( credentials );
-
-        credentials.setUsername( "username" + uniqueCharacter );
-        credentials.setPassword( "password" + uniqueCharacter );
-
-        user.setFirstName( "FirstName" + uniqueCharacter );
-        user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( "Email" + uniqueCharacter );
-        user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
-        user.setCode( "UserCode" + uniqueCharacter );
-        user.setAutoFields();
-
-        return user;
-    }
-
-
-//    @Override
-//    public boolean emptyDatabaseAfterTest()
-//    {
-//        return true;
-//    }
-
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
@@ -209,8 +164,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testSaveGet()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true );
+        CompleteDataSetRegistration registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true );
+        CompleteDataSetRegistration registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -224,8 +179,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testDelete()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
+        CompleteDataSetRegistration registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true );
+        CompleteDataSetRegistration registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -242,8 +197,8 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testGetAll()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
-        registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
+        CompleteDataSetRegistration registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
+        CompleteDataSetRegistration registrationB = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true  );
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
@@ -259,15 +214,15 @@ public class CompleteDataSetRegistrationServiceTest
     @Test
     public void testDeleteByDataSet()
     {
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
-        registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
-        registrationC = new CompleteDataSetRegistration( dataSetB, periodA, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
-        registrationD = new CompleteDataSetRegistration( dataSetB, periodB, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
+        CompleteDataSetRegistration registrationA = new CompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
+        CompleteDataSetRegistration registrationB = new CompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo, onTimeA, "", onTimeA, "", true );
+        CompleteDataSetRegistration registrationC = new CompleteDataSetRegistration(dataSetB, periodA, sourceA, optionCombo, onTimeA, "", onTimeA, "", true);
+        CompleteDataSetRegistration registrationD = new CompleteDataSetRegistration(dataSetB, periodB, sourceA, optionCombo, onTimeA, "", onTimeA, "", true);
 
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationA );
         completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationB );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationC );
-        completeDataSetRegistrationService.saveCompleteDataSetRegistration( registrationD );
+        completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationC);
+        completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationD);
 
         assertNotNull( completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetA, periodA, sourceA, optionCombo ) );
         assertNotNull( completeDataSetRegistrationService.getCompleteDataSetRegistration( dataSetA, periodB, sourceA, optionCombo ) );

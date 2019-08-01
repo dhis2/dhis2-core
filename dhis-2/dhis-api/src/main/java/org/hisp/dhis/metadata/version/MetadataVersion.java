@@ -1,7 +1,7 @@
 package org.hisp.dhis.metadata.version;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,10 +114,11 @@ public class MetadataVersion
     @Override
     public String toString()
     {
-        return "{" +
-            "\"importDate\": \"" + importDate + "\"" +
-            ", \"type\": \"" + type + "\"" +
-            ", \"name\": \"" + name + "\"" +
-            "}";
+        return "MetadataVersion{" +
+            "importDate=" + importDate +
+            ", type=" + type +
+            ", name='" + name + '\'' +
+            ", hashCode='" + hashCode + '\'' +
+            '}';
     }
 }

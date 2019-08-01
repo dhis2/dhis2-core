@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.dataapproval.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
@@ -44,10 +46,14 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Jim Grace
  */
+@Repository( "org.hisp.dhis.dataapproval.DataApprovalAuditStore" )
 public class HibernateDataApprovalAuditStore
     extends HibernateGenericStore<DataApprovalAudit>
     implements DataApprovalAuditStore
@@ -58,8 +64,21 @@ public class HibernateDataApprovalAuditStore
 
     private CurrentUserService currentUserService;
 
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    public HibernateDataApprovalAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService )
     {
+        super( sessionFactory, jdbcTemplate, publisher, DataApprovalAudit.class, false );
+
+        checkNotNull( currentUserService );
+
+        this.currentUserService = currentUserService;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setCurrentUserService(CurrentUserService currentUserService) {
         this.currentUserService = currentUserService;
     }
 

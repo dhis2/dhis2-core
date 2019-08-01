@@ -1,7 +1,7 @@
 package org.hisp.dhis.outboundmessage;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -69,6 +70,7 @@ public class DefaultOutboundMessageBatchService
     // ---------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public List<OutboundMessageResponseSummary> sendBatches( List<OutboundMessageBatch> batches )
     {
         // Partition by channel (sender) first to avoid sender config checks

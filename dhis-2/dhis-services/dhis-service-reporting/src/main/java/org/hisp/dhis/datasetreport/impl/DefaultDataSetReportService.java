@@ -1,7 +1,7 @@
 package org.hisp.dhis.datasetreport.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.datasetreport.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.DATAELEMENT_TOTAL_PATTERN;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.IDENTIFIER_PATTERN;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.INDICATOR_PATTERN;
@@ -35,7 +36,6 @@ import static org.hisp.dhis.dataentryform.DataEntryFormService.INPUT_PATTERN;
 import static org.hisp.dhis.datasetreport.DataSetReportStore.SEPARATOR;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,13 +68,14 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.hisp.dhis.commons.filter.FilterUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Abyot Asalefew
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.datasetreport.DataSetReportService" )
 public class DefaultDataSetReportService
     implements DataSetReportService
 {
@@ -89,22 +90,24 @@ public class DefaultDataSetReportService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    public void setDataValueService( DataValueService dataValueService )
+    private final DataSetReportStore dataSetReportStore;
+
+    private final I18nManager i18nManager;
+
+    public DefaultDataSetReportService( DataValueService dataValueService, DataSetReportStore dataSetReportStore,
+        I18nManager i18nManager )
     {
+
+        checkNotNull( dataSetReportStore );
+        checkNotNull( dataValueService );
+        checkNotNull( i18nManager );
+
         this.dataValueService = dataValueService;
-    }
-
-    private DataSetReportStore dataSetReportStore;
-
-    public void setDataSetReportStore( DataSetReportStore dataSetReportStore )
-    {
         this.dataSetReportStore = dataSetReportStore;
+        this.i18nManager = i18nManager;
     }
-
-    @Autowired
-    private I18nManager i18nManager;
 
     // -------------------------------------------------------------------------
     // DataSetReportService implementation
@@ -126,7 +129,7 @@ public class DefaultDataSetReportService
     @Override
     public List<Grid> getDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> filters, boolean selectedUnitOnly )
     {
-        List<Grid> grids = new ArrayList<>();
+        List<Grid> grids;
 
         FormType formType = dataSet.getFormType();
 
@@ -170,7 +173,7 @@ public class DefaultDataSetReportService
         I18n i18n = i18nManager.getI18n();
 
         List<Section> sections = new ArrayList<>( dataSet.getSections() );
-        Collections.sort( sections, new SectionOrderComparator() );
+        sections.sort(new SectionOrderComparator());
 
         Map<String, Object> valueMap = dataSetReportStore.getAggregatedValues( dataSet, period, unit, filters );
         Map<String, Object> subTotalMap = dataSetReportStore.getAggregatedSubTotals( dataSet, period, unit, filters );
@@ -236,7 +239,7 @@ public class DefaultDataSetReportService
                         attributes.put( ATTR_DE, dataElement.getUid() );
                         attributes.put( ATTR_CO, optionCombo.getUid() );
 
-                        Object value = null;
+                        Object value;
 
                         if ( selectedUnitOnly )
                         {
@@ -313,7 +316,7 @@ public class DefaultDataSetReportService
      * whole report text.
      *
      * @param dataEntryForm the data entry form.
-     * @param a map with aggregated data values mapped to data element operands.
+     * @param dataValues map with aggregated data values mapped to data element operands.
      * @return data entry form HTML code populated with aggregated data in the
      *         input fields.
      */

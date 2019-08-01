@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@ package org.hisp.dhis.program;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -38,6 +40,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
 import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE;
 import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT;
@@ -48,7 +51,7 @@ import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
 /**
  * @author Chau Thu Tran
  */
-@Transactional
+@Service( "org.hisp.dhis.program.ProgramExpressionService" )
 public class DefaultProgramExpressionService
     implements ProgramExpressionService
 {
@@ -60,24 +63,22 @@ public class DefaultProgramExpressionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private GenericStore<ProgramExpression> programExpressionStore;
+    private final GenericStore<ProgramExpression> programExpressionStore;
 
-    public void setProgramExpressionStore( GenericStore<ProgramExpression> programExpressionStore )
+    private final ProgramStageService programStageService;
+
+    private final DataElementService dataElementService;
+
+    public DefaultProgramExpressionService(
+        @Qualifier( "org.hisp.dhis.program.ProgramExpressionStore" ) GenericStore<ProgramExpression> programExpressionStore,
+        ProgramStageService programStageService, DataElementService dataElementService )
     {
+        checkNotNull( programExpressionStore );
+        checkNotNull( programStageService );
+        checkNotNull( dataElementService );
+
         this.programExpressionStore = programExpressionStore;
-    }
-
-    private ProgramStageService programStageService;
-
-    public void setProgramStageService( ProgramStageService programStageService )
-    {
         this.programStageService = programStageService;
-    }
-
-    private DataElementService dataElementService;
-
-    public void setDataElementService( DataElementService dataElementService )
-    {
         this.dataElementService = dataElementService;
     }
 
@@ -86,6 +87,7 @@ public class DefaultProgramExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramExpression( ProgramExpression programExpression )
     {
         programExpressionStore.save( programExpression );
@@ -93,24 +95,28 @@ public class DefaultProgramExpressionService
     }
 
     @Override
+    @Transactional
     public void updateProgramExpression( ProgramExpression programExpression )
     {
         programExpressionStore.update( programExpression );
     }
 
     @Override
+    @Transactional
     public void deleteProgramExpression( ProgramExpression programExpression )
     {
         programExpressionStore.delete( programExpression );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramExpression getProgramExpression( long id )
     {
         return programExpressionStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public String getExpressionDescription( String programExpression )
     {
         StringBuffer description = new StringBuffer();
@@ -167,6 +173,7 @@ public class DefaultProgramExpressionService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Collection<DataElement> getDataElements( String programExpression )
     {
         Collection<DataElement> dataElements = new HashSet<>();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -248,7 +248,10 @@ public class MapController
         dimensionService.mergeEventAnalyticalObject( view );
 
         view.getColumnDimensions().clear();
+        view.getFilterDimensions().clear();
+
         view.getColumnDimensions().addAll( getDimensions( view.getColumns() ) );
+        view.getFilterDimensions().addAll( getDimensions( view.getFilters() ) );
 
         if ( view.getLegendSet() != null )
         {
@@ -269,7 +272,7 @@ public class MapController
         {
             view.setProgramStage( programStageService.getProgramStage( view.getProgramStage().getUid() ) );
         }
-        
+
         if ( view.getTrackedEntityType() != null )
         {
             view.setTrackedEntityType( idObjectManager.get( TrackedEntityType.class, view.getTrackedEntityType().getUid() ) );

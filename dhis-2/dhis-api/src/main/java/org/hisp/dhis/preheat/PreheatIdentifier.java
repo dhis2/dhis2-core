@@ -1,7 +1,7 @@
 package org.hisp.dhis.preheat;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,6 @@ public enum PreheatIdentifier
      */
     AUTO;
 
-    @SuppressWarnings( "incomplete-switch" )
     public <T extends IdentifiableObject> String getIdentifier( T object )
     {
         switch ( this )

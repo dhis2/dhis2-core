@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,15 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 @Configuration
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
+@ComponentScan( "org.hisp.dhis" )
 public class IntegrationTestConfig
 {
     private static final Logger log = LoggerFactory.getLogger(IntegrationTestConfig.class);
@@ -55,7 +55,6 @@ public class IntegrationTestConfig
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
-
         PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
         JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,4 @@ package org.hisp.dhis.system.deletion;
 public interface DeletionManager
 {
     String ID = DeletionManager.class.getName();
-    
-    void execute( Object object );
 }

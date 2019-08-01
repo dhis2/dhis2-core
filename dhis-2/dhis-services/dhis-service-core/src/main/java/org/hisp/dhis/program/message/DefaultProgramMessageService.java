@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.message;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,31 +34,39 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.concurrent.ListenableFuture;
 
+import javax.annotation.Resource;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Transactional
+@Service( "org.hisp.dhis.program.message.ProgramMessageService" )
 public class DefaultProgramMessageService
     implements ProgramMessageService
 {
@@ -68,41 +76,67 @@ public class DefaultProgramMessageService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+    protected final IdentifiableObjectManager manager;
+
+    private final ProgramMessageStore programMessageStore;
+
+    private final OrganisationUnitService organisationUnitService;
+
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
+
+    private final ProgramService programService;
+
+    private final OutboundMessageBatchService messageBatchService;
+
+    private final CurrentUserService currentUserService;
+
+    private final List<DeliveryChannelStrategy> strategies;
+
+    private final List<MessageBatchCreatorService> batchCreators;
+
+    private final AclService aclService;
+
+    public DefaultProgramMessageService( IdentifiableObjectManager manager, ProgramMessageStore programMessageStore,
+        OrganisationUnitService organisationUnitService, TrackedEntityInstanceService trackedEntityInstanceService,
+        ProgramService programService, OutboundMessageBatchService messageBatchService,
+        CurrentUserService currentUserService, List<DeliveryChannelStrategy> strategies,
+        List<MessageBatchCreatorService> batchCreators, AclService aclService )
+    {
+        checkNotNull( manager );
+        checkNotNull( programMessageStore );
+        checkNotNull( organisationUnitService );
+        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( programService );
+        checkNotNull( messageBatchService );
+        checkNotNull( currentUserService );
+        checkNotNull( strategies );
+        checkNotNull( batchCreators );
+        checkNotNull( aclService );
+
+        this.manager = manager;
+        this.programMessageStore = programMessageStore;
+        this.organisationUnitService = organisationUnitService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.programService = programService;
+        this.messageBatchService = messageBatchService;
+        this.currentUserService = currentUserService;
+        this.strategies = strategies;
+        this.batchCreators = batchCreators;
+        this.aclService = aclService;
+    }
+
+    @Resource( name = "smsMessageSender" )
+    private MessageSender smsSender;
 
     @Autowired
-    private ProgramMessageStore programMessageStore;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private ProgramService programService;
-
-    @Autowired
-    private OutboundMessageBatchService messageBatchService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private List<DeliveryChannelStrategy> strategies;
-
-    @Autowired
-    private List<MessageBatchCreatorService> batchCreators;
-
-    @Autowired
-    private AclService aclService;
+    private MessageSendingCallback sendingCallback;
 
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessageQueryParams getFromUrl( Set<String> ou, String piUid, String psiUid,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate )
     {
@@ -143,30 +177,35 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean exists( String uid )
     {
         return programMessageStore.exists( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessage getProgramMessage( long id )
     {
         return programMessageStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramMessage getProgramMessage( String uid )
     {
         return programMessageStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramMessage> getAllProgramMessages()
     {
         return programMessageStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
     {
         hasAccess( params, currentUserService.getCurrentUser() );
@@ -176,6 +215,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public long saveProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.save( programMessage );
@@ -183,6 +223,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public void updateProgramMessage( ProgramMessage programMessage )
     {
         programMessageStore.update( programMessage );
@@ -195,6 +236,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
     public BatchResponseStatus sendMessages( List<ProgramMessage> programMessages )
     {
         List<ProgramMessage> populatedProgramMessages = programMessages.stream()
@@ -212,11 +254,30 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional
+    public void sendMessagesAsync( List<ProgramMessage> programMessages )
+    {
+        List<ProgramMessage> populatedProgramMessages = programMessages.stream()
+                .filter( this::hasDataWriteAccess )
+                .map( this::setAttributesBasedOnStrategy )
+                .collect( Collectors.toList() );
+
+        List<OutboundMessageBatch> batches = createBatches( populatedProgramMessages );
+
+        for ( OutboundMessageBatch batch : batches )
+        {
+            ListenableFuture<OutboundMessageResponseSummary> future = smsSender.sendMessageBatchAsync( batch );
+            future.addCallback( sendingCallback.getBatchCallBack() );
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public void hasAccess( ProgramMessageQueryParams params, User user )
     {
         ProgramInstance programInstance = null;
 
-        Set<Program> programs = new HashSet<>();
+        Set<Program> programs;
 
         if ( params.hasProgramInstance() )
         {
@@ -242,6 +303,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validateQueryParameters( ProgramMessageQueryParams params )
     {
         String violation = null;
@@ -260,6 +322,7 @@ public class DefaultProgramMessageService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validatePayload( ProgramMessage message )
     {
         String violation = null;

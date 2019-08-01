@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import java.util.ArrayList;
@@ -64,6 +65,10 @@ public class QueryItem
 
     private Program program;
 
+    private ProgramStage programStage;
+
+    private Boolean unique = false;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -80,6 +85,16 @@ public class QueryItem
         this.valueType = valueType;
         this.aggregationType = aggregationType;
         this.optionSet = optionSet;
+    }
+
+    public QueryItem( DimensionalItemObject item, LegendSet legendSet, ValueType valueType, AggregationType aggregationType, OptionSet optionSet, Boolean unique )
+    {
+        this.item = item;
+        this.legendSet = legendSet;
+        this.valueType = valueType;
+        this.aggregationType = aggregationType;
+        this.optionSet = optionSet;
+        this.unique = unique;
     }
 
     public QueryItem( DimensionalItemObject item, QueryOperator operator, String filter, ValueType valueType, AggregationType aggregationType, OptionSet optionSet )
@@ -184,6 +199,11 @@ public class QueryItem
     {
         return program != null;
     }
+
+    public boolean hasProgramStage()
+    {
+        return programStage != null;
+    }   
 
     public boolean isProgramIndicator()
     {
@@ -405,5 +425,25 @@ public class QueryItem
     public void setProgram( Program program )
     {
         this.program = program;
+    }
+
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
+    }
+
+    public Boolean isUnique()
+    {
+        return unique;
+    }
+
+    public void setUnique( Boolean unique )
+    {
+        this.unique = unique;
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,14 +28,17 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
-@Transactional
+@Service( "org.hisp.dhis.relationship.RelationshipTypeService" )
 public class DefaultRelationshipTypeService
     implements RelationshipTypeService
 {
@@ -43,10 +46,11 @@ public class DefaultRelationshipTypeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private RelationshipTypeStore relationshipTypeStore;
+    private final RelationshipTypeStore relationshipTypeStore;
 
-    public void setRelationshipTypeStore( RelationshipTypeStore relationshipTypeStore )
+    public DefaultRelationshipTypeService( RelationshipTypeStore relationshipTypeStore )
     {
+        checkNotNull( relationshipTypeStore );
         this.relationshipTypeStore = relationshipTypeStore;
     }
 
@@ -55,30 +59,35 @@ public class DefaultRelationshipTypeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void deleteRelationshipType( RelationshipType relationshipType )
     {
         relationshipTypeStore.delete( relationshipType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RelationshipType> getAllRelationshipTypes()
     {
         return relationshipTypeStore.getAll();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RelationshipType getRelationshipType( long id )
     {
         return relationshipTypeStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RelationshipType getRelationshipType( String uid )
     {
         return relationshipTypeStore.getByUid( uid );
     }
 
     @Override
+    @Transactional
     public long addRelationshipType( RelationshipType relationshipType )
     {
         relationshipTypeStore.save( relationshipType );
@@ -86,12 +95,14 @@ public class DefaultRelationshipTypeService
     }
 
     @Override
+    @Transactional
     public void updateRelationshipType( RelationshipType relationshipType )
     {
         relationshipTypeStore.update( relationshipType );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RelationshipType getRelationshipType( String aIsToB, String bIsToA )
     {
         return relationshipTypeStore.getRelationshipType( aIsToB, bIsToA );

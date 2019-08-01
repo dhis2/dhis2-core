@@ -1,9 +1,7 @@
 package org.hisp.dhis.analytics.util;
 
-import org.apache.commons.lang3.StringUtils;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +27,8 @@ import org.apache.commons.lang3.StringUtils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.util.Assert;
 
@@ -118,5 +118,42 @@ public class AnalyticsSqlUtils
         }
 
         return quote ? ( SINGLE_QUOTE + value + SINGLE_QUOTE ) : value;
+    }
+
+    /**
+     * Counts the number of open parentheses in a String and returns a String containing the missing closed
+     * parenthesis.
+     * 
+     * input: ((( ))
+     * output: )
+     * 
+     * @param selectSql a String
+     * @return a String containing 0 or more "closing" parenthesis
+     *
+     */
+    public static String addClosingParentheses( String selectSql )
+    {
+        if ( StringUtils.isEmpty( selectSql ) )
+        {
+            return "";
+        }
+        int open = 0;
+
+        for ( int i = 0; i < selectSql.length(); i++ )
+        {
+            if ( selectSql.charAt( i ) == '(' )
+            {
+                open++;
+            }
+            else if ( selectSql.charAt( i ) == ')' )
+            {
+                if ( open >= 1 )
+                {
+                    open--;
+                }
+            }
+
+        }
+        return StringUtils.repeat( ")", open );
     }
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,5 +43,6 @@ public enum ChartType
     RADAR,
     GAUGE,
     YEAR_OVER_YEAR_LINE,
-    YEAR_OVER_YEAR_COLUMN
+    YEAR_OVER_YEAR_COLUMN,
+    SINGLE_VALUE
 }

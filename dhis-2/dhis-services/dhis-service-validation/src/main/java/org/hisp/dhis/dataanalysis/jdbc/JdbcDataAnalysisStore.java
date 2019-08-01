@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis.jdbc;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.dataanalysis.jdbc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
@@ -51,13 +52,16 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.objectmapper.DeflatedDataValueNameMinMaxRowMapper;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Lars Helge Overland
  * @author Halvdan Hoem Grelland
  */
+@Repository( "org.hisp.dhis.dataanalysis.DataAnalysisStore" )
 public class JdbcDataAnalysisStore
     implements DataAnalysisStore
 {
@@ -67,20 +71,20 @@ public class JdbcDataAnalysisStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementBuilder statementBuilder;
-
-    public void setStatementBuilder( StatementBuilder statementBuilder )
-    {
-        this.statementBuilder = statementBuilder;
-    }
+    private final StatementBuilder statementBuilder;
 
     /**
      * Read only JDBC template.
      */
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public JdbcDataAnalysisStore( StatementBuilder statementBuilder,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( statementBuilder );
+        checkNotNull( jdbcTemplate );
+
+        this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
     }
 

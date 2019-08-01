@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,37 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ConcurrentUtils;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.springframework.scheduling.annotation.Async;
+
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.addClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
+import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 
 /**
  * @author Markus Bekken
@@ -44,6 +66,21 @@ import org.springframework.scheduling.annotation.Async;
 public abstract class AbstractEventJdbcTableManager
     extends AbstractJdbcTableManager
 {
+    public AbstractEventJdbcTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate )
+    {
+        super( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
+            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager,
+            databaseInfo, jdbcTemplate );
+    }
+
+    protected final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    private final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
@@ -60,46 +97,12 @@ public abstract class AbstractEventJdbcTableManager
     }
 
     /**
-     * Returns the database column type based on the given value type. For boolean
-     * values, 1 means true, 0 means false and null means no value.
-     *
-     * @param valueType the value type to represent as database column type.
-     */
-    protected ColumnDataType getColumnType( ValueType valueType )
-    {
-        if ( valueType.isDecimal() )
-        {
-            return ColumnDataType.DOUBLE;
-        }
-        else if ( valueType.isInteger() )
-        {
-            return ColumnDataType.BIGINT;
-        }
-        else if ( valueType.isBoolean() )
-        {
-            return ColumnDataType.INTEGER;
-        }
-        else if ( valueType.isDate() )
-        {
-            return ColumnDataType.TIMESTAMP;
-        }
-        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
-        {
-            return ColumnDataType.GEOMETRY_POINT;
-        }
-        else
-        {
-            return ColumnDataType.TEXT;
-        }
-    }
-
-    /**
      * Returns the select clause, potentially with a cast statement, based on the
      * given value type.
      *
      * @param valueType the value type to represent as database column type.
      */
-    String getSelectClause( ValueType valueType, String columnName )
+    protected String getSelectClause( ValueType valueType, String columnName )
     {
         if ( valueType.isDecimal() )
         {
@@ -121,6 +124,10 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
+        else if ( valueType.isOrganisationUnit() )
+        {
+            return "ou.name from organisationunit ou where ou.uid = (select " + columnName ;
+        }
         else
         {
             return columnName;
@@ -140,5 +147,61 @@ public abstract class AbstractEventJdbcTableManager
         }
 
         return null;
+    }
+
+    /**
+     * Populates the given analytics table partition using the given columns and
+     * join statement.
+     *
+     * @param partition the {@link AnalyticsTablePartition}.
+     * @param columns the list of {@link AnalyticsTableColumn}.
+     * @param joinStatement the SQL join statement.
+     */
+    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String joinStatement )
+    {
+        final String tableName = partition.getTempTableName();
+
+        String sql = "insert into " + partition.getTempTableName() + " (";
+
+        validateDimensionColumns( columns );
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getName() + ",";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + ") select ";
+
+        for ( AnalyticsTableColumn col : columns )
+        {
+            sql += col.getAlias() + ",";
+        }
+
+        sql = TextUtils.removeLastComma( sql ) + " ";
+
+        sql += joinStatement;
+
+        invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
+    }
+
+    protected List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
+    {
+        List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
+        {
+            ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
+            String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
+            String select = getSelectClause( attribute.getValueType(), "value" );
+            boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
+
+            String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
+                    "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + addClosingParentheses( select )
+                    + " as " + quote( attribute.getUid() );
+
+            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
+        }
+
+        return columns;
     }
 }

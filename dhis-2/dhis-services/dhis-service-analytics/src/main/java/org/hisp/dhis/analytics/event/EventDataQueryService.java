@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@ public interface EventDataQueryService
      * Used for aggregate query.
      * @param request the request wrapper containing the url params.
      */
-    EventQueryParams getFromRequest( EventDataQueryRequest request);
+    EventQueryParams getFromRequest( EventDataQueryRequest request );
 
     EventQueryParams getFromAnalyticalObject( EventAnalyticalObject object );
 

@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.32-SNAPSHOT</version>
+    <version>2.33-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-core</artifactId>
@@ -98,14 +98,6 @@
       <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjrt</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjweaver</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant-compress</artifactId>
     </dependency>
@@ -149,11 +141,16 @@
       <artifactId>aws-s3</artifactId>
     </dependency>
 
+    <!-- Image Processing -->
+    <dependency>
+      <groupId>org.imgscalr</groupId>
+      <artifactId>imgscalr-lib</artifactId>
+    </dependency>
+
     <!-- SMPP -->
     <dependency>
       <groupId>org.jsmpp</groupId>
       <artifactId>jsmpp</artifactId>
-      <version>2.3.7</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>

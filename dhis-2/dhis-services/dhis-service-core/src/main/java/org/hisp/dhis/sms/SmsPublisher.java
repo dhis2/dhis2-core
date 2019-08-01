@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,31 @@ package org.hisp.dhis.sms;
 
 import java.util.concurrent.ScheduledFuture;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.sms.SmsPublisher" )
 public class SmsPublisher
 {
-    @Autowired
-    private MessageQueue messageQueue;
+    private final MessageQueue messageQueue;
 
-    @Autowired
-    private SmsConsumerThread smsConsumer;
+    private final SmsConsumerThread smsConsumer;
 
-    @Autowired
-    private TaskScheduler taskScheduler;
+    private final TaskScheduler taskScheduler;
+
+    public SmsPublisher( MessageQueue messageQueue, SmsConsumerThread smsConsumer, TaskScheduler taskScheduler )
+    {
+
+        checkNotNull( messageQueue );
+        checkNotNull( smsConsumer );
+        checkNotNull( taskScheduler );
+
+        this.messageQueue = messageQueue;
+        this.smsConsumer = smsConsumer;
+        this.taskScheduler = taskScheduler;
+    }
 
     private ScheduledFuture<?> future;
 
@@ -50,13 +62,7 @@ public class SmsPublisher
     {
         messageQueue.initialize();
 
-        future = taskScheduler.scheduleWithFixedDelay( new Runnable()
-        {
-            public void run()
-            {
-                smsConsumer.spawnSmsConsumer();
-            }
-        }, 5000 );
+        future = taskScheduler.scheduleWithFixedDelay(smsConsumer::spawnSmsConsumer, 5000 );
     }
 
     public void stop()

@@ -1,6 +1,6 @@
 package org.hisp.dhis.fileresource.hibernate;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,33 @@ package org.hisp.dhis.fileresource.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.fileresource.ExternalFileResource;
 import org.hisp.dhis.fileresource.ExternalFileResourceStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Stian Sandvold
  */
+@Repository( "org.hisp.dhis.fileresource.ExternalFileResourceStore" )
 public class HibernateExternalFileResourceStore
     extends HibernateIdentifiableObjectStore<ExternalFileResource>
     implements ExternalFileResourceStore
 {
+    public HibernateExternalFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, ExternalFileResource.class, currentUserService, deletedObjectService,
+            aclService, false );
+    }
+
     @Override
     public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {

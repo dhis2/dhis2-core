@@ -1,7 +1,7 @@
 package org.hisp.dhis.reporttable.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,13 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -47,10 +48,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
-@Transactional
+@Service( "org.hisp.dhis.reporttable.ReportTableService" )
 public class DefaultReportTableService
     extends GenericAnalyticalObjectService<ReportTable>
     implements ReportTableService
@@ -59,45 +62,31 @@ public class DefaultReportTableService
     // Dependencies
     // ---------------------------------------------------------------------
 
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
 
-    public void setAnalyticsService( AnalyticsService analyticsService )
-    {
-        this.analyticsService = analyticsService;
-    }
-
-    private AnalyticalObjectStore<ReportTable> reportTableStore;
-
-    public void setReportTableStore( AnalyticalObjectStore<ReportTable> reportTableStore )
-    {
-        this.reportTableStore = reportTableStore;
-    }
-
-    private IdentifiableObjectStore<Report> reportStore;
-
-    public void setReportStore( IdentifiableObjectStore<Report> reportStore )
-    {
-        this.reportStore = reportStore;
-    }
+    private final AnalyticalObjectStore<ReportTable> reportTableStore;
 
     private OrganisationUnitService organisationUnitService;
 
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
+    private final CurrentUserService currentUserService;
+
+    private final I18nManager i18nManager;
+
+    public DefaultReportTableService( AnalyticsService analyticsService,
+        @Qualifier( "org.hisp.dhis.reporttable.ReportTableStore" ) AnalyticalObjectStore<ReportTable> reportTableStore,
+       OrganisationUnitService organisationUnitService,
+        CurrentUserService currentUserService, I18nManager i18nManager )
     {
+        checkNotNull( analyticsService );
+        checkNotNull( reportTableStore );
+        checkNotNull( organisationUnitService );
+        checkNotNull( currentUserService );
+        checkNotNull( i18nManager );
+
+        this.analyticsService = analyticsService;
+        this.reportTableStore = reportTableStore;
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
         this.i18nManager = i18nManager;
     }
 
@@ -112,14 +101,15 @@ public class DefaultReportTableService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Grid getReportTableGrid( String uid, Date reportingPeriod, String organisationUnitUid )
     {
         return getReportTableGridByUser( uid, reportingPeriod, organisationUnitUid,
             currentUserService.getCurrentUser() );
-
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Grid getReportTableGridByUser( String uid, Date reportingPeriod, String organisationUnitUid, User user )
     {
         I18nFormat format = i18nManager.getI18nFormat();
@@ -155,26 +145,12 @@ public class DefaultReportTableService
         return reportTableGrid;
     }
 
-    @Override
-    public ReportTable getReportTable( String uid, String mode )
-    {
-        if ( mode.equals( MODE_REPORT_TABLE ) )
-        {
-            return getReportTable( uid );
-        }
-        else if ( mode.equals( MODE_REPORT ) )
-        {
-            return reportStore.getByUid( uid ).getReportTable();
-        }
-
-        return null;
-    }
-
     // -------------------------------------------------------------------------
-    // Persistence
+    // CRUD
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long saveReportTable( ReportTable reportTable )
     {
         reportTableStore.save( reportTable );
@@ -183,37 +159,42 @@ public class DefaultReportTableService
     }
 
     @Override
+    @Transactional
     public void updateReportTable( ReportTable reportTable )
     {
         reportTableStore.update( reportTable );
     }
 
     @Override
+    @Transactional
     public void deleteReportTable( ReportTable reportTable )
     {
         reportTableStore.delete( reportTable );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReportTable getReportTable( long id )
     {
         return reportTableStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReportTable getReportTable( String uid )
     {
         return reportTableStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ReportTable getReportTableNoAcl( String uid )
     {
         return reportTableStore.getByUidNoAcl( uid );
     }
 
-
     @Override
+    @Transactional(readOnly = true)
     public List<ReportTable> getAllReportTables()
     {
         return reportTableStore.getAll();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -47,15 +47,23 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.schema.validation.SchemaValidator" )
 public class DefaultSchemaValidator implements SchemaValidator
 {
     private Pattern BCRYPT_PATTERN = Pattern.compile( "\\A\\$2a?\\$\\d\\d\\$[./0-9A-Za-z]{53}" );
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
+
+    public DefaultSchemaValidator( SchemaService schemaService )
+    {
+        checkNotNull( schemaService );
+        this.schemaService = schemaService;
+    }
 
     @Override
     public List<ErrorReport> validate( Object object )

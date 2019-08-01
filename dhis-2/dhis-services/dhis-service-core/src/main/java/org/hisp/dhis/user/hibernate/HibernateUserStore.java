@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.user.hibernate;
  */
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -43,7 +44,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserStore;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.*;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -56,17 +62,26 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Nguyen Hong Duc
  */
+@Repository( "org.hisp.dhis.user.UserStore" )
 public class HibernateUserStore
     extends HibernateIdentifiableObjectStore<User>
     implements UserStore
 {
     private final SchemaService schemaService;
 
-    public HibernateUserStore( @Nonnull @Autowired SchemaService schemaService )
+    public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, SchemaService schemaService )
     {
+        super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, deletedObjectService,
+            aclService, true );
+
+        checkNotNull( schemaService );
         this.schemaService = schemaService;
     }
 

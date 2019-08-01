@@ -1,7 +1,7 @@
 package org.hisp.dhis.jdbc.statementbuilder;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,8 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.quick.StatementDialect;
 import org.springframework.beans.factory.FactoryBean;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  * @version $Id$
@@ -43,10 +45,11 @@ public class StatementBuilderFactoryBean
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private StatementDialect statementDialect;
+    private final StatementDialect statementDialect;
 
-    public void setStatementDialect( StatementDialect statementDialect )
+    public StatementBuilderFactoryBean( StatementDialect statementDialect )
     {
+        checkNotNull( statementDialect );
         this.statementDialect = statementDialect;
     }
 
@@ -81,9 +84,7 @@ public class StatementBuilderFactoryBean
     // -------------------------------------------------------------------------
 
     @Override
-    public StatementBuilder getObject()
-        throws Exception
-    {
+    public StatementBuilder getObject() {
         return statementBuilder;
     }
 

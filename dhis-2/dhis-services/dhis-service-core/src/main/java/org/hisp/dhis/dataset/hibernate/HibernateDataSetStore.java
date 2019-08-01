@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,22 +29,32 @@ package org.hisp.dhis.dataset.hibernate;
  */
 
 import com.google.common.collect.Lists;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Kristian Nordal
  */
+@Repository ( "org.hisp.dhis.dataset.DataSetStore" )
 public class HibernateDataSetStore
     extends HibernateIdentifiableObjectStore<DataSet>
     implements DataSetStore
@@ -53,10 +63,17 @@ public class HibernateDataSetStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    public void setPeriodService( PeriodService periodService )
+    public HibernateDataSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        PeriodService periodService )
     {
+        super( sessionFactory, jdbcTemplate, publisher, DataSet.class, currentUserService, deletedObjectService, aclService,
+            true );
+
+        checkNotNull( periodService );
+
         this.periodService = periodService;
     }
 

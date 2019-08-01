@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,9 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceAudit;
 import org.hisp.dhis.program.ProgramInstanceAuditQueryParams;
 import org.hisp.dhis.program.ProgramInstanceAuditStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -47,20 +50,16 @@ import java.util.function.Function;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@Repository( "org.hisp.dhis.program.ProgramInstanceAuditStore" )
 public class HibernateProgramInstanceAuditStore
     extends HibernateGenericStore<ProgramInstanceAudit>
     implements ProgramInstanceAuditStore
 {
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    
-    public void setSessionFactory( SessionFactory sessionFactory )
+    public HibernateProgramInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        this.sessionFactory = sessionFactory;
+        super( sessionFactory, jdbcTemplate, publisher, ProgramInstanceAudit.class, false );
     }
-    
+
     // -------------------------------------------------------------------------
     // ProgramInstanceAuditStore implementation
     // -------------------------------------------------------------------------
@@ -113,17 +112,17 @@ public class HibernateProgramInstanceAuditStore
         {
             predicates.add( root -> root.get( "programInstance" ).in( params.getProgramInstances() ) );
         }
-        
+
         if ( params.hasPrograms() )
         {
             predicates.add( root -> root.join( "programInstance" ).get( "program" ).in( params.getPrograms() ) );
         }
-        
+
         if ( params.hasUsers() )
         {
             predicates.add( root -> root.get( "accessedBy" ).in( params.getUsers() ) );
         }
-        
+
         if ( params.hasAuditType() )
         {
             predicates.add( root -> builder.equal( root.get( "auditType" ), params.getAuditType() ) );

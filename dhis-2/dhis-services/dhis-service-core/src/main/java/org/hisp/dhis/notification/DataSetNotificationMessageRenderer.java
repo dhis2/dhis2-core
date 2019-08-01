@@ -1,7 +1,7 @@
 package org.hisp.dhis.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,15 +37,17 @@ import java.util.function.Function;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair on 04.07.17.
  */
+@Component
 public class DataSetNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<CompleteDataSetRegistration>
 {
@@ -57,17 +59,19 @@ public class DataSetNotificationMessageRenderer
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_PERIOD, CompleteDataSetRegistration::getPeriodName )
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_USER, CompleteDataSetRegistration::getStoredBy )
             .put( DataSetNotificationTemplateVariables.COMPLETE_REG_TIME, cdsr -> DateUtils.getMediumDateString() )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_ATT_OPT_COMBO, cdsr -> getAttributeOptionCombo( cdsr ) )
+            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_ATT_OPT_COMBO, this::getAttributeOptionCombo)
             .put( DataSetNotificationTemplateVariables.CURRENT_DATE, cdsr -> formatDate( new Date() ) )
             .build();
 
     private static final ImmutableSet<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet.of( ExpressionType.VARIABLE );
 
-    @Autowired
-    private CategoryService dataElementCategoryService;
+    private final CategoryService dataElementCategoryService;
 
-    public DataSetNotificationMessageRenderer()
+    public DataSetNotificationMessageRenderer( CategoryService dataElementCategoryService )
     {
+        checkNotNull( dataElementCategoryService );
+
+        this.dataElementCategoryService = dataElementCategoryService;
     }
 
     @Override

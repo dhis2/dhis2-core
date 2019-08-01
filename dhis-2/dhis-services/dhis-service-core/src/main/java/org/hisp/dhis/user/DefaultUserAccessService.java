@@ -2,7 +2,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,18 @@ package org.hisp.dhis.user;
  */
 
 import org.hisp.dhis.common.GenericStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Service( "org.hisp.dhis.user.UserAccessService" )
 public class DefaultUserAccessService implements UserAccessService
 {
     // -------------------------------------------------------------------------
@@ -46,8 +50,12 @@ public class DefaultUserAccessService implements UserAccessService
 
     private GenericStore<UserAccess> userAccessStore;
 
-    public void setUserAccessStore( GenericStore<UserAccess> userAccessStore )
+    public DefaultUserAccessService(
+        @Qualifier( "org.hisp.dhis.user.UserAccessStore" ) GenericStore<UserAccess> userAccessStore )
     {
+
+        checkNotNull( userAccessStore );
+
         this.userAccessStore = userAccessStore;
     }
 
@@ -56,24 +64,28 @@ public class DefaultUserAccessService implements UserAccessService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addUserAccess( UserAccess userAccess )
     {
         userAccessStore.save( userAccess );
     }
 
     @Override
+    @Transactional
     public void updateUserAccess( UserAccess userAccess )
     {
         userAccessStore.update( userAccess );
     }
 
     @Override
+    @Transactional
     public void deleteUserAccess( UserAccess userAccess )
     {
         userAccessStore.delete( userAccess );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserAccess> getAllUserAccesses()
     {
         return userAccessStore.getAll();

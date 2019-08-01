@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.program.ProgramStage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,7 +20,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +57,12 @@ public class BaseDimensionalObject
     private DimensionType dimensionType;
 
     /**
+     * The data dimension type of this dimension. Can be null. Only applicable for
+     * {@link DimensionType#CATEGORY}.
+     */
+    protected DataDimensionType dataDimensionType;
+
+    /**
      * The name of this dimension. For the dynamic dimensions this will be equal
      * to dimension identifier. For the period dimension, this will reflect the
      * period type. For the org unit dimension, this will reflect the level.
@@ -76,6 +83,11 @@ public class BaseDimensionalObject
      * The legend set for this dimension.
      */
     protected LegendSet legendSet;
+
+    /**
+     * The program stage for this dimension.
+     */
+    private ProgramStage programStage;
 
     /**
      * The aggregation type for this dimension.
@@ -145,7 +157,7 @@ public class BaseDimensionalObject
         this.displayName = displayName;
     }
 
-    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
@@ -159,13 +171,14 @@ public class BaseDimensionalObject
         this.allItems = allItems;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, LegendSet legendSet, String filter )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, LegendSet legendSet, ProgramStage programStage, String filter )
     {
         this.uid = dimension;
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName;
         this.displayName = displayName;
         this.legendSet = legendSet;
+        this.programStage = programStage;
         this.filter = filter;
     }
 
@@ -199,6 +212,12 @@ public class BaseDimensionalObject
     public boolean hasLegendSet()
     {
         return getLegendSet() != null;
+    }
+
+    @Override
+    public boolean hasProgramStage()
+    {
+        return getProgramStage() != null;
     }
 
     @Override
@@ -281,6 +300,19 @@ public class BaseDimensionalObject
         this.dimensionType = dimensionType;
     }
 
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataDimensionType getDataDimensionType()
+    {
+        return dataDimensionType;
+    }
+
+    public void setDataDimensionType( DataDimensionType dataDimensionType )
+    {
+        this.dataDimensionType = dataDimensionType;
+    }
+
     public void setDimensionName( String dimensionName )
     {
         this.dimensionName = dimensionName;
@@ -326,6 +358,20 @@ public class BaseDimensionalObject
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @Override
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
     }
 
     @Override

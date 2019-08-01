@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ import java.util.List;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 @Order( 10 )
 public class AnalyticalObjectObjectBundleHook
     extends AbstractObjectBundleHook
@@ -96,7 +98,7 @@ public class AnalyticalObjectObjectBundleHook
             dataDimensionItem.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getDataElement() ) );
             dataDimensionItem.setIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getIndicator() ) );
             dataDimensionItem.setProgramIndicator( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataDimensionItem.getProgramIndicator() ) );
-            
+
             if ( dataDimensionItem.getDataElementOperand() != null )
             {
                 preheatService.connectReferences( dataDimensionItem.getDataElementOperand(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
@@ -108,23 +110,23 @@ public class AnalyticalObjectObjectBundleHook
                 dataDimensionItem.getReportingRate().setDataSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getReportingRate().getDataSet() ) );
             }
-            
+
             if ( dataDimensionItem.getProgramDataElement() != null )
             {
-                dataDimensionItem.getProgramDataElement().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                dataDimensionItem.getProgramDataElement().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramDataElement().getProgram() ) );
                 dataDimensionItem.getProgramDataElement().setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramDataElement().getDataElement() ) );
             }
-            
+
             if ( dataDimensionItem.getProgramAttribute() != null )
             {
-                dataDimensionItem.getProgramAttribute().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                dataDimensionItem.getProgramAttribute().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramAttribute().getProgram() ) );
-                dataDimensionItem.getProgramAttribute().setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(), 
+                dataDimensionItem.getProgramAttribute().setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
                     dataDimensionItem.getProgramAttribute().getAttribute() ) );
             }
-            
+
             preheatService.connectReferences( dataDimensionItem, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             session.save( dataDimensionItem );
         }
@@ -169,6 +171,7 @@ public class AnalyticalObjectObjectBundleHook
 
             dataElementDimension.setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getDataElement() ) );
             dataElementDimension.setLegendSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getLegendSet() ) );
+            dataElementDimension.setProgramStage( bundle.getPreheat().get( bundle.getPreheatIdentifier(), dataElementDimension.getProgramStage() ) );
 
             preheatService.connectReferences( dataElementDimension, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             session.save( dataElementDimension );

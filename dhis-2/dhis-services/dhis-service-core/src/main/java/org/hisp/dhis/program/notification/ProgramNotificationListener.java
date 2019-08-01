@@ -1,7 +1,7 @@
 package org.hisp.dhis.program.notification;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,44 +28,60 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
+import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
+import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
  */
+@Async
+@Component( "org.hisp.dhis.program.notification.ProgramNotificationListener" )
 public class ProgramNotificationListener
 {
-    @Autowired
-    private ProgramNotificationService programNotificationService;
+    private final ProgramNotificationService programNotificationService;
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_ENROLLMENT'" )
-    public void onEnrollment( ProgramNotificationEvent event )
+    public ProgramNotificationListener( ProgramNotificationService programNotificationService )
+    {
+        checkNotNull( programNotificationService );
+        this.programNotificationService = programNotificationService;
+    }
+
+    @TransactionalEventListener
+    public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
         programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_COMPLETION'" )
-    public void onCompletion( ProgramNotificationEvent event )
+    @TransactionalEventListener
+    public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
-        programNotificationService.sendCompletionNotifications( event.getProgramInstance() );
+        programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_ENROLLMENT'" )
-    public void onProgramRuleEnrollment( ProgramNotificationEvent event )
+    @TransactionalEventListener
+    public void onEvent( ProgramStageCompletionNotificationEvent event )
+    {
+        programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
+    }
+
+    // Published by rule engine
+    @TransactionalEventListener
+    public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
     }
 
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_STAGE_COMPLETION'" )
-    public void onEvent( ProgramNotificationEvent event )
+    @TransactionalEventListener
+    public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
-        programNotificationService.sendCompletionNotifications( event.getProgramStageInstance() );
-    }
-
-    @EventListener( condition = "#event.eventType.name() == 'PROGRAM_RULE_EVENT'" )
-    public void onProgramRuleEvent( ProgramNotificationEvent event )
-    {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramStageInstance() );
+        programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(), event.getProgramStageInstance() );
     }
 }

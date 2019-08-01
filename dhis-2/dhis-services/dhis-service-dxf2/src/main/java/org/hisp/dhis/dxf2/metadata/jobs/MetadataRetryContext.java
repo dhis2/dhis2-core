@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,9 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
+import org.springframework.context.annotation.Scope;
 import org.springframework.retry.RetryContext;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -44,7 +46,8 @@ import java.util.List;
  *
  * @author aamerm
  */
-
+@Component( "metadataRetryContext" )
+@Scope( "prototype" )
 public class MetadataRetryContext
 {
     private static final Log log = LogFactory.getLog( MetadataRetryContext.class );

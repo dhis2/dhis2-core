@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,16 +49,18 @@ import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
-@Transactional
+@Service( "org.hisp.dhis.program.ProgramStageInstanceService" )
 public class DefaultProgramStageInstanceService
     implements ProgramStageInstanceService
 {
@@ -76,11 +78,16 @@ public class DefaultProgramStageInstanceService
 
     private final FileResourceService fileResourceService;
 
-    @Autowired
     public DefaultProgramStageInstanceService( CurrentUserService currentUserService, ProgramInstanceService programInstanceService,
         ProgramStageInstanceStore programStageInstanceStore, TrackedEntityDataValueAuditService dataValueAuditService,
         FileResourceService fileResourceService)
     {
+        checkNotNull( currentUserService );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceStore );
+        checkNotNull( dataValueAuditService );
+        checkNotNull( fileResourceService );
+
         this.currentUserService = currentUserService;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceStore = programStageInstanceStore;
@@ -93,6 +100,7 @@ public class DefaultProgramStageInstanceService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         programStageInstance.setAutoFields();
@@ -102,12 +110,14 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    @Transactional
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         deleteProgramStageInstance( programStageInstance, false );
     }
 
     @Override
+    @Transactional
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance, boolean forceDelete )
     {
         if ( forceDelete )
@@ -124,24 +134,28 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStageInstance getProgramStageInstance( long id )
     {
         return programStageInstanceStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStageInstance getProgramStageInstance( String uid )
     {
         return programStageInstanceStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStageInstance getProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
     {
         return programStageInstanceStore.get( programInstance, programStage );
     }
 
     @Override
+    @Transactional
     public void updateProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         programStageInstance.setAutoFields();
@@ -149,24 +163,28 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    @Transactional
     public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
     {
         programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( programStageInstanceUIDs, lastSynchronized );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean programStageInstanceExists( String uid )
     {
         return programStageInstanceStore.exists( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean programStageInstanceExistsIncludingDeleted( String uid )
     {
         return programStageInstanceStore.existsIncludingDeleted( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public long getProgramStageInstanceCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -176,6 +194,7 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    @Transactional
     public void completeProgramStageInstance( ProgramStageInstance programStageInstance, boolean skipNotifications,
         I18nFormat format, Date completedDate )
     {
@@ -222,12 +241,13 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    @Transactional
     public ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
         ProgramStageInstance programStageInstance = null;
         Date currentDate = new Date();
-        Date dateCreatedEvent = null;
+        Date dateCreatedEvent;
 
         if ( programStage.getGeneratedByEnrollmentDate() )
         {
@@ -267,6 +287,7 @@ public class DefaultProgramStageInstanceService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void auditDataValuesChangesAndHandleFileDataValues( Set<EventDataValue> newDataValues,
         Set<EventDataValue> updatedDataValues, Set<EventDataValue> removedDataValues,
         Map<String, DataElement> dataElementsCache, ProgramStageInstance programStageInstance, boolean singleValue )
@@ -294,6 +315,7 @@ public class DefaultProgramStageInstanceService
     }
 
     @Override
+    @Transactional
     public void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance,
         Map<DataElement, EventDataValue> dataElementEventDataValueMap )
     {

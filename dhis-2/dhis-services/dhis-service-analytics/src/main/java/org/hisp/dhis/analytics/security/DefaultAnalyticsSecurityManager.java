@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.security;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,9 +51,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.AnalyticsSecurityManager" )
 public class DefaultAnalyticsSecurityManager
     implements AnalyticsSecurityManager
 {
@@ -61,20 +64,33 @@ public class DefaultAnalyticsSecurityManager
 
     private static final String AUTH_VIEW_EVENT_ANALYTICS = "F_VIEW_EVENT_ANALYTICS";
 
-    @Autowired
-    private DataApprovalLevelService approvalLevelService;
+    private final DataApprovalLevelService approvalLevelService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private DimensionService dimensionService;
+    private final DimensionService dimensionService;
 
-    @Autowired
-    private AclService aclService;
+    private final AclService aclService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
+
+    public DefaultAnalyticsSecurityManager( DataApprovalLevelService approvalLevelService,
+        SystemSettingManager systemSettingManager, DimensionService dimensionService, AclService aclService,
+        CurrentUserService currentUserService )
+    {
+
+        checkNotNull( approvalLevelService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( dimensionService );
+        checkNotNull( aclService );
+        checkNotNull( currentUserService );
+
+        this.approvalLevelService = approvalLevelService;
+        this.systemSettingManager = systemSettingManager;
+        this.dimensionService = dimensionService;
+        this.aclService = aclService;
+        this.currentUserService = currentUserService;
+    }
 
     // -------------------------------------------------------------------------
     // AnalyticsSecurityManager implementation

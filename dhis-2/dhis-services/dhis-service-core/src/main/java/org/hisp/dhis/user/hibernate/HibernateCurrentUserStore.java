@@ -1,7 +1,7 @@
 package org.hisp.dhis.user.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,18 +33,23 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.user.CurrentUserStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.Query;
 
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.user.CurrentUserStore" )
 public class HibernateCurrentUserStore
     implements CurrentUserStore
 {
-    @Autowired
     private SessionFactory sessionFactory;
+
+    public HibernateCurrentUserStore( SessionFactory sessionFactory )
+    {
+        this.sessionFactory = sessionFactory;
+    }
 
     @Override
     public User getUser( long id )

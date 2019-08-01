@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,12 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -51,12 +50,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import javax.persistence.Transient;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Nguyen Hong Duc
@@ -130,7 +131,7 @@ public class UserCredentials
     private Set<Category> catDimensionConstraints = new HashSet<>();
 
     /**
-     * Retaining password history so user cannot pick one of the previous 24 passwords
+     * List of previously used passwords.
      */
     private List<String> previousPasswords = new ArrayList<>();
 
@@ -165,6 +166,20 @@ public class UserCredentials
      */
     private boolean disabled;
 
+    /**
+     * Cached all authorities {@link #getAllAuthorities()}.
+     */
+    @JsonIgnore
+    @Transient
+    private transient volatile Set<String> cachedAllAuthorities;
+
+    /**
+     * Cached state if user is super user {@link #isSuper()}.
+     */
+    @JsonIgnore
+    @Transient
+    private transient volatile Boolean cachedSuper;
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -197,12 +212,23 @@ public class UserCredentials
      */
     public Set<String> getAllAuthorities()
     {
+        // cached all authorities can be reset to null by different thread and must be assigned before evaluation
+        final Set<String> resultingAuthorities = cachedAllAuthorities;
+
+        if ( resultingAuthorities != null )
+        {
+            return resultingAuthorities;
+        }
+
         Set<String> authorities = new HashSet<>();
 
         for ( UserAuthorityGroup group : userAuthorityGroups )
         {
             authorities.addAll( group.getAuthorities() );
         }
+
+        authorities = Collections.unmodifiableSet( authorities );
+        cachedAllAuthorities = authorities;
 
         return authorities;
     }
@@ -260,15 +286,18 @@ public class UserCredentials
      */
     public boolean isSuper()
     {
-        for ( UserAuthorityGroup group : userAuthorityGroups )
+        final Boolean superUser = cachedSuper;
+
+        if ( superUser != null )
         {
-            if ( group.isSuper() )
-            {
-                return true;
-            }
+            return superUser;
         }
 
-        return false;
+        final boolean resultingSuper = userAuthorityGroups.stream().anyMatch( UserAuthorityGroup::isSuper );
+
+        cachedSuper = resultingSuper;
+
+        return resultingSuper;
     }
 
     /**
@@ -499,6 +528,7 @@ public class UserCredentials
         this.userInfo = userInfo;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.PASSWORD, access = Access.WRITE_ONLY )
@@ -592,6 +622,8 @@ public class UserCredentials
     public void setUserAuthorityGroups( Set<UserAuthorityGroup> userAuthorityGroups )
     {
         this.userAuthorityGroups = userAuthorityGroups;
+        this.cachedSuper = null;
+        this.cachedAllAuthorities = null;
     }
 
     @JsonProperty
@@ -632,6 +664,7 @@ public class UserCredentials
         this.previousPasswords = previousPasswords;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()
@@ -744,7 +777,6 @@ public class UserCredentials
             "\"openId\":\"" + openId + "\", " +
             "\"password\":\"" + password + "\", " +
             "\"passwordLastUpdated\":\"" + passwordLastUpdated + "\", " +
-            "\"userAuthorityGroups\":\"" + userAuthorityGroups + "\", " +
             "\"lastLogin\":\"" + lastLogin + "\", " +
             "\"restoreToken\":\"" + restoreToken + "\", " +
             "\"restoreExpiry\":\"" + restoreExpiry + "\", " +

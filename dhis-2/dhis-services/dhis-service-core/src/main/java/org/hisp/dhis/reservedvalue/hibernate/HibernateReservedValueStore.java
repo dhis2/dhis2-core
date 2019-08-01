@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -36,40 +37,76 @@ import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 
 /**
  * @author Stian Sandvold
  */
-@Transactional
+@Repository( "org.hisp.dhis.reservedvalue.ReservedValueStore" )
 public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
 {
+    private final BatchHandlerFactory batchHandlerFactory;
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+    public HibernateReservedValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, BatchHandlerFactory batchHandlerFactory )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, ReservedValue.class, false );
+
+        checkNotNull( batchHandlerFactory );
+
+        this.batchHandlerFactory = batchHandlerFactory;
+    }
 
     @Override
     public List<ReservedValue> reserveValues( ReservedValue reservedValue,
         List<String> values )
     {
+        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
+
         BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
             .createBatchHandler( ReservedValueBatchHandler.class ).init();
 
+        toAdd.forEach( rv -> batchHandler.addObject( rv ) );
+        batchHandler.flush();
+
+        return toAdd;
+    }
+
+    @Override
+    public List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values )
+    {
+        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, values );
+        toAdd.forEach( rv -> save( rv ) );
+        return toAdd;
+    }
+
+    /**
+     * Generates a list of reserved values based on the given input.
+     *
+     * @param reservedValue the reserved value.
+     * @param values the values to reserve.
+     * @return a list of {@link ReservedValue}.
+     */
+    private List<ReservedValue> getGeneratedValues( ReservedValue reservedValue, List<String> values )
+    {
         List<String> availableValues = getIfAvailable( reservedValue, values );
 
-        List<ReservedValue> toAdd = new ArrayList<>();
+        List<ReservedValue> generatedValues = new ArrayList<>();
 
         availableValues.forEach( ( value ) -> {
+
             ReservedValue rv = new ReservedValue(
                 reservedValue.getOwnerObject(),
                 reservedValue.getOwnerUid(),
@@ -80,15 +117,12 @@ public class HibernateReservedValueStore
 
             rv.setCreated( reservedValue.getCreated() );
 
-            batchHandler.addObject( rv );
-            toAdd.add( rv );
-
+            generatedValues.add( rv );
         } );
 
-        batchHandler.flush();
-
-        return toAdd;
+        return generatedValues;
     }
+
 
     @Override
     public List<ReservedValue> getIfReservedValues( ReservedValue reservedValue,
@@ -172,13 +206,17 @@ public class HibernateReservedValueStore
             .isEmpty();
     }
 
-    // Helper methods
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
 
     private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
     {
-        values.removeAll( getIfReservedValues( reservedValue, values ).stream()
+        List<String> reservedValues = getIfReservedValues( reservedValue, values ).stream()
             .map( ReservedValue::getValue )
-            .collect( Collectors.toList() ) );
+            .collect( Collectors.toList() );
+
+        values.removeAll( reservedValues );
 
         // All values supplied is unavailable
         if ( values.isEmpty() )
@@ -188,7 +226,7 @@ public class HibernateReservedValueStore
 
         if ( Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
         {
-            values.removeAll( getSqlQuery(
+            values.removeAll( getUntypedSqlQuery(
                 "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = ?1) AND value IN ?2" )
                 .setParameter( 1, reservedValue.getOwnerUid() )
                 .setParameter( 2, values )

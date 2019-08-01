@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,13 +37,17 @@ import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.util.MathUtils;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService" )
 public class StdDevOutlierAnalysisService
     implements DataAnalysisService
 {
@@ -53,10 +57,11 @@ public class StdDevOutlierAnalysisService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataAnalysisStore dataAnalysisStore;
+    private final DataAnalysisStore dataAnalysisStore;
 
-    public void setDataAnalysisStore( DataAnalysisStore dataAnalysisStore )
+    public StdDevOutlierAnalysisService( DataAnalysisStore dataAnalysisStore )
     {
+        checkNotNull( dataAnalysisStore );
         this.dataAnalysisStore = dataAnalysisStore;
     }
 

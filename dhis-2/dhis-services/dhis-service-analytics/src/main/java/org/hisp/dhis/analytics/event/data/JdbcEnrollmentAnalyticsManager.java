@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,31 +38,124 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryTimeoutException;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.system.util.MathUtils;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.vividsolutions.jts.util.Assert;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Markus Bekken
  */
+@Component( "org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager" )
 public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
         implements EnrollmentAnalyticsManager
 {
+    private static final Log log = LogFactory.getLog( JdbcEnrollmentAnalyticsManager.class );
+    
+    private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
+        "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
+
+    public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
+        ProgramIndicatorService programIndicatorService )
+    {
+        super( jdbcTemplate, statementBuilder, programIndicatorService );
+    }
+
+    @Override
+    public void getEnrollments( EventQueryParams params, Grid grid, int maxLimit )
+    {
+        withExceptionHandling( () -> getEnrollments( params, grid, getEventsOrEnrollmentsSql( params, maxLimit ) ) );
+    }
+
+    private void getEnrollments( EventQueryParams params, Grid grid, String sql )
+    {
+        log.debug( String.format( "Analytics enrollment query SQL: %s", sql ) );
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        while ( rowSet.next() )
+        {
+            grid.addRow();
+
+            int index = 1;
+
+            for ( GridHeader header : grid.getHeaders() )
+            {
+                if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
+                {
+                    double val = rowSet.getDouble( index );
+                    grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
+                }
+                else
+                {
+                    grid.addValue( rowSet.getString( index ) );
+                }
+
+                index++;
+            }
+        }
+    }
+
+    @Override
+    public long getEnrollmentCount( EventQueryParams params )
+    {
+        String sql = "select count(pi) ";
+
+        sql += getFromClause( params );
+
+        sql += getWhereClause( params );
+
+        long count = 0;
+
+        try
+        {
+            log.debug( "Analytics enrollment count SQL: " + sql );
+
+            count = jdbcTemplate.queryForObject( sql, Long.class );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            log.info( AnalyticsUtils.ERR_MSG_TABLE_NOT_EXISTING, ex );
+        }
+        catch ( DataAccessResourceFailureException ex )
+        {
+            log.warn( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+            throw new QueryTimeoutException( AnalyticsUtils.ERR_MSG_QUERY_TIMEOUT, ex );
+        }
+
+        return count;
+    }
+
     /**
      * Returns a from SQL clause for the given analytics table partition.
      *
@@ -168,7 +261,7 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -179,7 +272,7 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getColumn( item ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
         }
@@ -190,8 +283,8 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter() )
         {
-            String filter = programIndicatorService.getFilterAnalyticsSql( params.getProgramIndicator(),
-                params.getEarliestStartDate(), params.getLatestEndDate() );
+            String filter = programIndicatorService.getAnalyticsSql( params.getProgramIndicator().getFilter(),
+                params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
 
             String sqlFilter = ExpressionUtils.asSql( filter );
 
@@ -204,12 +297,7 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasProgramStatus() )
         {
-            sql += "and pistatus = '" + params.getProgramStatus().name() + "' ";
-        }
-
-        if ( params.hasEventStatus() )
-        {
-            sql += "and psistatus = '" + params.getEventStatus().name() + "' ";
+            sql += "and enrollmentstatus = '" + params.getProgramStatus().name() + "' ";
         }
 
         if ( params.isCoordinatesOnly() )
@@ -235,25 +323,39 @@ public class JdbcEnrollmentAnalyticsManager
         return sql;
     }
 
-    protected String getBoundedDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
-        Date reportingEndDate, ProgramIndicator programIndicator )
+    @Override
+    protected String getSelectClause( EventQueryParams params )
     {
-        if ( programIndicator.hasNonDefaultBoundaries() && programIndicator.hasEventBoundary() )
+        List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params ) );
+
+        return  "select " + StringUtils.join( selectCols, "," ) + " ";
+    }
+
+    /**
+     * Returns an encoded column name wrapped in lower directive if not numeric
+     * or boolean.
+     *
+     * @param item the {@link QueryItem}.
+     */
+    @Override
+    protected String getColumn( QueryItem item )
+    {
+        String colName = item.getItemName();
+
+        if ( item.hasProgramStage() )
         {
-            String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            String columnName = "\"" + dataElementUid + "\"";
-            return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
-                ".pi = enrollmenttable.pi and " + columnName + " is not null " +
-                ( programIndicator.getEndEventBoundary() != null ? ( "and " +
-                statementBuilder.getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
-                    " ") : "" ) + (programIndicator.getStartEventBoundary() != null ? ("and " +
-                statementBuilder.getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate, reportingEndDate ) +
-                    " ") : "" ) + "and ps = '" + programStageUid + "' " + "order by executiondate " + "desc limit 1 )";
+            colName = quote( colName );
+            Assert.isTrue( item.hasProgram(), "Can not query item with program stage but no program:" + item.getItemName() );
+            String eventTableName = "analytics_event_" + item.getProgram().getUid();
+            return "(select " +  colName  + " from " + eventTableName +
+            " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " + 
+            "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
+            "order by executiondate " + "desc limit 1 )";
         }
         else
         {
-            return statementBuilder.columnQuote( programStageUid + ProgramIndicator.DB_SEPARATOR_ID + dataElementUid );
+            colName = quoteAlias( colName );
+            return  item.isText() ? "lower(" + colName + ")" : colName;
         }
     }
-
 }

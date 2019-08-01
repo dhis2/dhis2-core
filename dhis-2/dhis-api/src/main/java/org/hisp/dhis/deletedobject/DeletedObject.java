@@ -1,7 +1,7 @@
 package org.hisp.dhis.deletedobject;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@ import org.springframework.util.StringUtils;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -67,7 +67,8 @@ public class DeletedObject
      */
     @Id
     @Column( name = "deletedobjectid")
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue( generator = "deletedobject_sequence" )
+    @SequenceGenerator( name = "deletedobject_sequence", sequenceName = "deletedobject_sequence", allocationSize = 1 )
     private long id;
 
     /**

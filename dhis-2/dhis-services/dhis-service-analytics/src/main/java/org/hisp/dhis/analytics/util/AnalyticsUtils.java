@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
@@ -248,6 +249,41 @@ public class AnalyticsUtils
         }
 
         return MathUtils.getRounded( (Double) value );
+    }
+
+    /**
+     * Returns the database column type based on the given value type. For boolean
+     * values, 1 means true, 0 means false and null means no value.
+     *
+     * @param valueType the value type to represent as database column type.
+     * @param spatialSupport indicates whether spatial data types are enabled.
+     */
+    public static ColumnDataType getColumnType( ValueType valueType, boolean spatialSupport )
+    {
+        if ( valueType.isDecimal() )
+        {
+            return ColumnDataType.DOUBLE;
+        }
+        else if ( valueType.isInteger() )
+        {
+            return ColumnDataType.BIGINT;
+        }
+        else if ( valueType.isBoolean() )
+        {
+            return ColumnDataType.INTEGER;
+        }
+        else if ( valueType.isDate() )
+        {
+            return ColumnDataType.TIMESTAMP;
+        }
+        else if ( valueType.isGeo() && spatialSupport )
+        {
+            return ColumnDataType.GEOMETRY_POINT;
+        }
+        else
+        {
+            return ColumnDataType.TEXT;
+        }
     }
 
     /**

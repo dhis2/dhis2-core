@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,6 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
@@ -49,6 +42,13 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.JobConfiguration;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,8 +66,8 @@ public interface EventService
     EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
         String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode, String trackedEntityInstance,
         Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd, Date lastUpdatedStartDate,
-        Date lastUpdatedEndDate, EventStatus status, CategoryOptionCombo attributeCoc, IdSchemes idSchemes,
-        Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
+        Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status, CategoryOptionCombo attributeCoc,
+        IdSchemes idSchemes, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging, List<Order> orders,
         List<String> gridOrders, boolean includeAttributes, Set<String> events, AssignedUserSelectionMode assignedUserMode, 
         Set<String> assignedUserIds, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted );
 
@@ -81,8 +81,6 @@ public interface EventService
 
     Grid getEventsGrid( EventSearchParams params );
 
-    int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime );
-
     /**
      * Returns the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
      *
@@ -90,8 +88,6 @@ public interface EventService
      * @return the count of anonymous event that are ready for synchronization (lastUpdated > lastSynchronized)
      */
     int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore );
-
-    Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime );
 
     /**
      * Returns the anonymous events that are supposed to be synchronized (lastUpdated > lastSynchronized)
@@ -156,4 +152,6 @@ public interface EventService
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
     void validate( EventSearchParams params );
+
+    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 }

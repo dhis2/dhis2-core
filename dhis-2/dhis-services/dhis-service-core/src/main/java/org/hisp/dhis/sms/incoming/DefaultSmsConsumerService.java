@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.incoming;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,13 +33,16 @@ import org.apache.commons.logging.LogFactory;
 
 import org.hisp.dhis.sms.SmsPublisher;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
+@Service( "org.hisp.dhis.sms.incoming.SmsConsumerService" )
 public class DefaultSmsConsumerService
     implements SmsConsumerService
 {
@@ -49,8 +52,14 @@ public class DefaultSmsConsumerService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private SmsPublisher smsPublisher;
+    private final SmsPublisher smsPublisher;
+
+    public DefaultSmsConsumerService( SmsPublisher smsPublisher )
+    {
+        checkNotNull( smsPublisher );
+
+        this.smsPublisher = smsPublisher;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation

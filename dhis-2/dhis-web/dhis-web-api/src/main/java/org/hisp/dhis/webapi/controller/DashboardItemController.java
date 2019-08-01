@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,8 @@ import javax.servlet.http.HttpServletResponse;
 public class DashboardItemController
     extends AbstractCrudController<DashboardItem>
 {
+    //TODO this controller class is only needed for the pre 2.30 old dashboard app and should be removed
+
     @Autowired
     private DashboardService dashboardService;
 

@@ -1,14 +1,7 @@
 package org.hisp.dhis.dataanalysis;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +28,13 @@ import java.util.stream.Collectors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -43,10 +43,14 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Halvdan Hoem Grelland
  */
+@Service( "org.hisp.dhis.dataanalysis.FollowupAnalysisService" )
 public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
@@ -56,10 +60,11 @@ public class DefaultFollowupAnalysisService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataAnalysisStore dataAnalysisStore;
+    private final DataAnalysisStore dataAnalysisStore;
 
-    public void setDataAnalysisStore( DataAnalysisStore dataAnalysisStore )
+    public DefaultFollowupAnalysisService( DataAnalysisStore dataAnalysisStore )
     {
+        checkNotNull( dataAnalysisStore );
         this.dataAnalysisStore = dataAnalysisStore;
     }
 

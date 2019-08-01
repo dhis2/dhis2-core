@@ -1,7 +1,7 @@
 package org.hisp.dhis.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 import org.springframework.util.StringUtils;
+import org.joda.time.IllegalInstantException;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -220,7 +221,7 @@ public class DateUtils
     /**
      * Returns the latest of the given dates.
      *
-     * @param date the collection of dates.
+     * @param dates the collection of dates.
      * @return the latest of the given dates.
      */
     public static Date max( Collection<Date> dates )
@@ -255,7 +256,7 @@ public class DateUtils
     /**
      * Returns the earliest of the given dates.
      *
-     * @param date the collection of dates.
+     * @param dates the collection of dates.
      * @return the earliest of the given dates.
      */
     public static Date min( Collection<Date> dates )
@@ -274,13 +275,13 @@ public class DateUtils
      * Parses a date from a String on the format YYYY-MM-DD. Returns null if the
      * given string is null.
      *
-     * @param dateString the String to parse.
+     * @param string the String to parse.
      * @return a Date based on the given String.
      * @throws IllegalArgumentException if the given string is invalid.
      */
     public static Date getMediumDate( String string )
     {
-        return string != null ? MEDIUM_DATE_FORMAT.parseDateTime( string ).toDate() : null;
+        return safeParseDateTime( string, MEDIUM_DATE_FORMAT );
     }
 
     /**
@@ -473,7 +474,7 @@ public class DateUtils
         return yearString + "-" + monthString + "-" + dayString;
     }
 
-    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])\\b";
+    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
 
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
 
@@ -526,7 +527,7 @@ public class DateUtils
     {
         try
         {
-            DATE_TIME_FORMAT.parseDateTime( dateTimeString );
+            safeParseDateTime( dateTimeString, DATE_TIME_FORMAT );
             return true;
         }
         catch ( IllegalArgumentException ex )
@@ -634,12 +635,7 @@ public class DateUtils
      */
     public static Date parseDate( final String dateString )
     {
-        if ( StringUtils.isEmpty( dateString ) )
-        {
-            return null;
-        }
-
-        return DATE_FORMATTER.parseDateTime( dateString ).toDate();
+        return safeParseDateTime( dateString, DATE_FORMATTER );
     }
 
     /**
@@ -659,7 +655,7 @@ public class DateUtils
     /**
      * Return the current date minus the duration specified by the given string.
      *
-     * @param duration the duration string, see {@link DateUtils.getDuration}.
+     * @param duration the duration string.
      * @return a Date.
      */
     public static Date nowMinusDuration( String duration )
@@ -727,5 +723,32 @@ public class DateUtils
     public static java.sql.Date asSqlDate( Date date )
     {
         return new java.sql.Date( date.getTime() );
+    }
+
+    /**
+     * Parses the given string into a Date object. In case the date parsed falls in a
+     * daylight savings transition, the date is parsed via a local date and converted to the
+     * first valid time after the DST gap. When the fallback is used, any timezone offset in the given
+     * format would be ignored.
+     * 
+     * @param dateString The string to parse
+     * @param formatter The formatter to use for parsing
+     * @return Parsed Date object. Null if the supplied dateString is empty.
+     */
+    private static Date safeParseDateTime( final String dateString, final DateTimeFormatter formatter )
+    {
+        if ( StringUtils.isEmpty( dateString ) )
+        {
+            return null;
+        }
+
+        try
+        {
+            return formatter.parseDateTime( dateString ).toDate();
+        }
+        catch( IllegalInstantException e )
+        {
+            return formatter.parseLocalDateTime( dateString ).toDate();
+        }
     }
 }

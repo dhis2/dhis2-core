@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,29 +75,28 @@ public class ProgramElementsAndAttributesCollecter
         switch ( ctx.it.getType() )
         {
             case HASH_BRACE:
-                if ( isStageElementSyntax( ctx ) )
-                {
-                    String programStageId = ctx.uid0.getText();
-                    String dataElementId = ctx.uid1.getText();
+                assumeStageElementSyntax( ctx );
 
-                    if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
-                    {
-                        items.add( programStageId + "_" + dataElementId );
-                    }
-                    else
-                    {
-                        items.add( dataElementId );
-                    }
+                String programStageId = ctx.uid0.getText();
+                String dataElementId = ctx.uid1.getText();
+
+                if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
+                {
+                    items.add( programStageId + "_" + dataElementId );
+                }
+                else
+                {
+                    items.add( dataElementId );
                 }
                 break;
 
             case A_BRACE:
-                if ( isProgramExpressionProgramAttribute( ctx ) )
-                {
-                    String attributeId = ctx.uid0.getText();
+                assumeProgramExpressionProgramAttribute( ctx );
 
-                    items.add( attributeId );
-                }
+                String attributeId = ctx.uid0.getText();
+
+                items.add( attributeId );
+
                 break;
 
             default:

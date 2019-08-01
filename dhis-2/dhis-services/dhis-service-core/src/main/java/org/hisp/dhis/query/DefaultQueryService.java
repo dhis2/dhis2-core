@@ -1,7 +1,7 @@
 package org.hisp.dhis.query;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,18 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component( "org.hisp.dhis.query.QueryService" )
 public class DefaultQueryService
     implements QueryService
 {
@@ -62,6 +66,11 @@ public class DefaultQueryService
         CriteriaQueryEngine<? extends IdentifiableObject> criteriaQueryEngine,
         InMemoryQueryEngine<? extends IdentifiableObject> inMemoryQueryEngine )
     {
+        checkNotNull( queryParser );
+        checkNotNull( queryPlanner );
+        checkNotNull( criteriaQueryEngine );
+        checkNotNull( inMemoryQueryEngine );
+
         this.queryParser = queryParser;
         this.queryPlanner = queryPlanner;
         this.criteriaQueryEngine = criteriaQueryEngine;

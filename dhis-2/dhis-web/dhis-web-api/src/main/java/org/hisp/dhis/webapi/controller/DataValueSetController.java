@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -49,6 +50,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,22 +59,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Date;
 import java.util.Set;
+import java.util.zip.GZIPOutputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.*;
 
 /**
  * @author Lars Helge Overland
@@ -126,6 +122,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String compression,
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_XML );
@@ -135,7 +132,9 @@ public class DataValueSetController
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo, 
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
-        dataValueSetService.writeDataValueSetXml( params, response.getOutputStream() );
+        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "xml" );
+
+        dataValueSetService.writeDataValueSetXml( params, outputStream );
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML_ADX )
@@ -149,6 +148,7 @@ public class DataValueSetController
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String compression,
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException, AdxException
     {
         response.setContentType( CONTENT_TYPE_XML_ADX );
@@ -157,7 +157,9 @@ public class DataValueSetController
         DataExportParams params = adxDataService.getFromUrl( dataSet, period,
             startDate, endDate, orgUnit, children, includeDeleted, lastUpdated, limit, idSchemes );
 
-        adxDataService.writeDataValueSet( params, response.getOutputStream() );
+        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "xml" );
+
+        adxDataService.writeDataValueSet( params, outputStream );
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_JSON )
@@ -175,6 +177,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String compression,
         IdSchemes idSchemes, HttpServletResponse response ) throws IOException
     {
         response.setContentType( CONTENT_TYPE_JSON );
@@ -184,7 +187,9 @@ public class DataValueSetController
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
-        dataValueSetService.writeDataValueSetJson( params, response.getOutputStream() );
+        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "json" );
+
+        dataValueSetService.writeDataValueSetJson( params, outputStream );
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_CSV )
@@ -202,6 +207,7 @@ public class DataValueSetController
         @RequestParam( required = false ) Date lastUpdated,
         @RequestParam( required = false ) String lastUpdatedDuration,
         @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String compression,
         IdSchemes idSchemes,
         HttpServletResponse response ) throws IOException
     {
@@ -212,7 +218,11 @@ public class DataValueSetController
             period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
             includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
 
-        dataValueSetService.writeDataValueSetCsv( params, response.getWriter() );
+        OutputStream outputStream = compress( response, Compression.fromValue( compression ), "csv" );
+
+        PrintWriter printWriter = new PrintWriter( outputStream );
+
+        dataValueSetService.writeDataValueSetCsv( params, printWriter );
     }
 
     // -------------------------------------------------------------------------
@@ -305,6 +315,25 @@ public class DataValueSetController
         }
     }
 
+    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_PDF )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
+    public void postPdfDataValueSet( ImportOptions importOptions,
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
+    {
+        if ( importOptions.isAsync() )
+        {
+            startAsyncImport( importOptions, ImportDataValueTask.FORMAT_PDF, request, response );
+        }
+        else
+        {
+            ImportSummary summary = dataValueSetService.saveDataValueSetPdf( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
+
+            response.setContentType( CONTENT_TYPE_JSON );
+            renderService.toJson( response.getOutputStream(), summary );
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -353,5 +382,40 @@ public class DataValueSetController
         }
 
         return new BufferedInputStream( new FileInputStream( tmpFile ) );
+    }
+
+    /**
+     *
+     * @param response HttpServletResponse
+     * @param compression Compression {@link Compression}
+     * @param format File format, can be json, xml or csv
+     * @return Compressed OutputStream if given compression is given, otherwise just return uncompressed outputStream
+     * @throws IOException
+     * @throws HttpMessageNotWritableException
+     */
+    private OutputStream compress( HttpServletResponse response, Compression compression, String format )
+        throws IOException,
+        HttpMessageNotWritableException
+    {
+        if ( Compression.GZIP == compression )
+        {
+            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=datavalue." + format + ".gzip" );
+            response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            return new GZIPOutputStream( response.getOutputStream() );
+        }
+        else if ( Compression.ZIP == compression )
+        {
+            response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=datavalue." + format + ".zip" );
+            response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+
+            ZipOutputStream outputStream = new ZipOutputStream( response.getOutputStream() );
+            outputStream.putNextEntry( new ZipEntry( "datavalue" ) );
+
+            return outputStream;
+        }
+        else
+        {
+            return response.getOutputStream();
+        }
     }
 }

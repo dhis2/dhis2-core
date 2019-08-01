@@ -1,7 +1,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.datavalue.hibernate;
  */
 
 import com.google.common.collect.Lists;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -39,6 +40,9 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
@@ -47,10 +51,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
+@Repository( "org.hisp.dhis.datavalue.DataValueAuditStore" )
 public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValueAudit>
     implements DataValueAuditStore
 {
@@ -60,10 +67,16 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
     private PeriodStore periodStore;
 
-    public void setPeriodStore( PeriodStore periodStore )
+    public HibernateDataValueAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, PeriodStore periodStore )
     {
+        super( sessionFactory, jdbcTemplate, publisher, DataValueAudit.class, false );
+
+        checkNotNull( periodStore );
+
         this.periodStore = periodStore;
     }
+
 
     // -------------------------------------------------------------------------
     // DataValueAuditStore implementation
@@ -79,7 +92,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     public void deleteDataValueAudits( OrganisationUnit organisationUnit )
     {
         String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
-        
+
         getSession().createQuery( hql ).setParameter( "unit", organisationUnit ).executeUpdate();
     }
 

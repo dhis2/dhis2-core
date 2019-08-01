@@ -1,7 +1,7 @@
 package org.hisp.dhis.report;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,10 +78,10 @@ public interface ReportService
      */
     JasperPrint renderReport( OutputStream out, String reportUid, Period period,
         String organisationUnitUid, String type );
-    
+
     /**
      * Renders and writes a HTML-based standard report to the given Writer.
-     * 
+     *
      * @param writer the Writer.
      * @param uid the report uid.
      * @param date the date.
@@ -159,20 +159,4 @@ public interface ReportService
      * @return a List of Reports.
      */
     List<Report> getAllReports();
-
-    /**
-     * Retrieves the Report with the given name.
-     *
-     * @param name the name.
-     * @return the Report.
-     */
-    List<Report> getReportByName( String name );
-
-    /**
-     * Retrieves Reports with the given uids.
-     * 
-     * @param uids the list of uids.
-     * @return a list of ReportTables.
-     */
-    List<Report> getReportsByUid( List<String> uids );
 }

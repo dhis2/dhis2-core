@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,12 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
-@Transactional
+@Service( "org.hisp.dhis.program.ProgramStageSectionService" )
 public class DefaultProgramStageSectionService
     implements ProgramStageSectionService
 {
@@ -41,10 +44,12 @@ public class DefaultProgramStageSectionService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramStageSectionStore programStageSectionStore;
+    private final ProgramStageSectionStore programStageSectionStore;
 
-    public void setProgramStageSectionStore( ProgramStageSectionStore programStageSectionStore )
+    public DefaultProgramStageSectionService( ProgramStageSectionStore programStageSectionStore )
     {
+        checkNotNull( programStageSectionStore );
+
         this.programStageSectionStore = programStageSectionStore;
     }
 
@@ -72,6 +77,7 @@ public class DefaultProgramStageSectionService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ProgramStageSection getProgramStageSection( long id )
     {
         return programStageSectionStore.get( id );

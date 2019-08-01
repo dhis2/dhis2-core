@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Utility class with methods for managing strings.
@@ -320,19 +321,12 @@ public class TextUtils
      */
     public static String getCommaDelimitedString( Collection<?> elements )
     {
-        final StringBuilder builder = new StringBuilder();
-
-        if ( elements != null && !elements.isEmpty() )
+        if ( elements != null )
         {
-            for ( Object element : elements )
-            {
-                builder.append( element.toString() ).append( DELIMITER );
-            }
-
-            return builder.substring( 0, builder.length() - DELIMITER.length() );
+            return elements.stream().map( Object::toString ).collect( Collectors.joining( DELIMITER ) );
         }
 
-        return builder.toString();
+        return "";
     }
 
     /**
@@ -680,5 +674,40 @@ public class TextUtils
         }
 
         return ListUtils.newList( param.split( OPTION_SEP ) );
+    }
+
+    /**
+     * Creates a regular expression from the given glob string.
+     *
+     * @param glob the glob string.
+     * @return a regular expression.
+     */
+    public static String createRegexFromGlob( String glob )
+    {
+        StringBuilder out = new StringBuilder( "^" );
+        for ( int i = 0; i < glob.length(); ++i )
+        {
+            final char c = glob.charAt( i );
+            switch ( c )
+            {
+            case '*':
+                out.append( ".*" );
+                break;
+            case '?':
+                out.append( '.' );
+                break;
+            case '.':
+                out.append( "\\." );
+                break;
+            case '\\':
+                out.append( "\\\\" );
+                break;
+            default:
+                out.append( c );
+            }
+        }
+
+        out.append( '$' );
+        return out.toString();
     }
 }

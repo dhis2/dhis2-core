@@ -1,7 +1,7 @@
 package org.hisp.dhis.external.conf;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -91,7 +91,14 @@ public enum ConfigurationKey
     LOGGING_ADAPTER_CONSOLE_FORMAT( "logging.console.format", "TEXT" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0" ),
-    SERVER_BASE_URL( "server.base.url", "", false );
+    SERVER_BASE_URL( "server.base.url", "", false ),
+    MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
+    MONITORING_API_ENABLED( "monitoring.api.enabled", "off", false ),
+    MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", "off", false ),
+    MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", "off", false ),
+    MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", "off", false ),
+    MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", "off", false ),
+    MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false );
 
     private final String key;
 

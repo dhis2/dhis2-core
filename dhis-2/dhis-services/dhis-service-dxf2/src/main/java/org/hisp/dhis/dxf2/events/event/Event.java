@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.event;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -80,7 +81,7 @@ public class Event
 
     private Coordinate coordinate;
 
-    private List<DataValue> dataValues = new ArrayList<>();
+    private Set<DataValue> dataValues = new HashSet<>();
 
     private List<Note> notes = new ArrayList<>();
 
@@ -295,12 +296,12 @@ public class Event
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "dataValues", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataValue> getDataValues()
+    public Set<DataValue> getDataValues()
     {
         return dataValues;
     }
 
-    public void setDataValues( List<DataValue> dataValues )
+    public void setDataValues( Set<DataValue> dataValues )
     {
         this.dataValues = dataValues;
     }

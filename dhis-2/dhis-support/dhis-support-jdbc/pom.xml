@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-support</artifactId>
-    <version>2.32-SNAPSHOT</version>
+    <version>2.33-SNAPSHOT</version>
   </parent>
   
   <artifactId>dhis-support-jdbc</artifactId>
@@ -39,14 +39,6 @@
     <dependency>
       <groupId>org.hisp</groupId>
       <artifactId>quick</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjrt</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.aspectj</groupId>
-      <artifactId>aspectjweaver</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>

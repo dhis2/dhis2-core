@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,14 +30,16 @@ package org.hisp.dhis.program;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.program.ProgramIndicatorDeletionHandler" )
 public class ProgramIndicatorDeletionHandler
     extends DeletionHandler
 {
@@ -45,8 +47,13 @@ public class ProgramIndicatorDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramIndicatorService programIndicatorService;
+    private final ProgramIndicatorService programIndicatorService;
+
+    public ProgramIndicatorDeletionHandler( ProgramIndicatorService programIndicatorService )
+    {
+        checkNotNull( programIndicatorService );
+        this.programIndicatorService = programIndicatorService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -61,14 +68,10 @@ public class ProgramIndicatorDeletionHandler
     @Override
     public void deleteProgram( Program program )
     {
-        Collection<ProgramIndicator> indicators = new HashSet<ProgramIndicator>( program.getProgramIndicators() );
+        Collection<ProgramIndicator> indicators = new HashSet<>( program.getProgramIndicators() );
 
-        Iterator<ProgramIndicator> iter = indicators.iterator();
-
-        while ( iter.hasNext() )
-        {
-            ProgramIndicator indicator = iter.next();
-            programIndicatorService.deleteProgramIndicator( indicator );
+        for (ProgramIndicator indicator : indicators) {
+            programIndicatorService.deleteProgramIndicator(indicator);
         }
     }
 }

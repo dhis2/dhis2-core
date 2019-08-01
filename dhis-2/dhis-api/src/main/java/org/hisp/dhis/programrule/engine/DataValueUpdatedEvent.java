@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,23 +28,22 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * @Author Zubair Asghar.
+ * @author Zubair Asghar
  */
 public class DataValueUpdatedEvent extends ApplicationEvent
 {
-    private ProgramStageInstance programStageInstance;
+    private long programStageInstance;
 
-    public DataValueUpdatedEvent( Object source, ProgramStageInstance programStageInstance )
+    public DataValueUpdatedEvent( Object source, long programStageInstance )
     {
         super( source );
         this.programStageInstance = programStageInstance;
     }
 
-    public ProgramStageInstance getProgramStageInstance()
+    public long getProgramStageInstance()
     {
         return programStageInstance;
     }

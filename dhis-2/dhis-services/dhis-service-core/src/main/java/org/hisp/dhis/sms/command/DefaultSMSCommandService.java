@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.command;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,15 +35,23 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Service( "org.hisp.dhis.sms.command.SMSCommandService" )
 public class DefaultSMSCommandService
     implements SMSCommandService
 {
-    @Autowired
     private SMSCommandStore smsCommandStore;
+
+    public DefaultSMSCommandService( SMSCommandStore smsCommandStore )
+    {
+        checkNotNull( smsCommandStore );
+
+        this.smsCommandStore = smsCommandStore;
+    }
 
     @Override
     public List<SMSCommand> getSMSCommands()
@@ -75,6 +83,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional
     public void addSmsCodes( Set<SMSCode> codes, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
@@ -88,24 +97,28 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional
     public void delete( SMSCommand cmd )
     {
         smsCommandStore.delete( cmd );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SMSCommand> getJ2MESMSCommands()
     {
         return smsCommandStore.getJ2MESMSCommands();
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SMSCommand getSMSCommand( String commandName, ParserType parserType )
     {
         return smsCommandStore.getSMSCommand( commandName, parserType );
     }
 
     @Override
+    @Transactional
     public void addSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
@@ -119,6 +132,7 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional
     public void deleteCodeSet( Set<SMSCode> codes, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );
@@ -129,12 +143,14 @@ public class DefaultSMSCommandService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int countDataSetSmsCommands( DataSet dataSet )
     {
         return smsCommandStore.countDataSetSmsCommands( dataSet );
     }
 
     @Override
+    @Transactional
     public void deleteSpecialCharacterSet( Set<SMSSpecialCharacter> specialCharacters, long commandId )
     {
         SMSCommand command = smsCommandStore.get( commandId );

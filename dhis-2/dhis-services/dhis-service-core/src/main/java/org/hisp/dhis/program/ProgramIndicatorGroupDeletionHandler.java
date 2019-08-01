@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,11 +29,14 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen
  */
+@Component( "org.hisp.dhis.program.ProgramIndicatorGroupDeletionHandler" )
 public class ProgramIndicatorGroupDeletionHandler
     extends DeletionHandler
 {
@@ -41,8 +44,13 @@ public class ProgramIndicatorGroupDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
     private ProgramIndicatorService programIndicatorService;
+
+    public ProgramIndicatorGroupDeletionHandler( ProgramIndicatorService programIndicatorService )
+    {
+        checkNotNull( programIndicatorService );
+        this.programIndicatorService = programIndicatorService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation

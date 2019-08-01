@@ -45,7 +45,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                 <tr>
                                     <td rowspan="$rowSpan"></td>
                                     #foreach( $dataElement in $dataElements )
-                                    <th colspan="$colCount">$dataElement.getFormNameFallback()</th>
+                                    <th colspan="$colCount">${encoder.htmlEncode( $dataElement.displayFormName )}</th>
                                     #end
                                 </tr>
 
@@ -58,7 +58,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                             #foreach( $dataElement in $dataElements )
                                                 #foreach( $col in $cols )
                                                     #foreach( $categoryOption in $categoryOptions1 )
-                                                        <th colspan="$colCount"><span align="center">${encoder.htmlEncode( $categoryOption.displayName )}</span></th>
+                                                        <th colspan="$colCount"><span align="center">${encoder.htmlEncode( $categoryOption.displayFormName )}</span></th>
                                                     #end
                                                 #end
                                             #end
@@ -83,7 +83,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                         <td #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $organisationUnit.displayName )}</td>
 
                                         #foreach( $dataElement in $dataElements )
-                                            <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
+                                            <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.displayFormName )}</span>
                                             #foreach( $optionCombo in $optionCombos )
                                                 #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                                 #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
@@ -165,10 +165,10 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                     #set( $count = $count + 1 )
                                     #if( $isDefaultCategory )
                                         <tr>
-                                            <td rowspan="$colCount" #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</td>
+                                            <td rowspan="$colCount" #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $dataElement.displayFormName )}</td>
 
                                             #foreach( $organisationUnit in $organisationUnits )
-                                                <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
+                                                <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.displayFormName )}</span>
                                                 #foreach( $optionCombo in $optionCombos )
                                                     #set( $canWriteOptionCombo = $optionComboAccessMap.get( $optionCombo.uid ) )
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
@@ -210,7 +210,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                             #set( $categoryOptions2 = $optionsMap.get( $category2.id ) )
                                             <tr>
                                                 #if( $velocityCount == 1 )
-                                                    <td rowspan="$colCount" #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</td>
+                                                    <td rowspan="$colCount" #if( $mark == 1 )class="alt"#else class="reg"#end>${encoder.htmlEncode( $dataElement.displayFormName )}</td>
                                                 #end
 
                                                 #set( $catRowSpan = $colCount / 2)
@@ -222,7 +222,7 @@ var organisationUnitList = JSON.parse( '$organisationUnits' );
                                                 <td #if( $mark == 1 )class="alt"#else class="reg"#end>$categoryOptions2.get( $catPart ).displayName</td>
 
                                                 #foreach( $organisationUnit in $organisationUnits )
-                                                    <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.getFormNameFallback() )}</span>
+                                                    <span class="hidden" id="${dataElement.uid}-dataelement">${encoder.htmlEncode( $dataElement.displayFormName )}</span>
                                                     #set( $dataEntryId = "${organisationUnit.uid}-${dataElement.uid}-${optionCombo.uid}-val" )
                                                     #set( $greyedField = false )
                                                     #set( $greyedField = $greyedFields.get( "$dataElement.uid:$optionCombo.uid" ) )

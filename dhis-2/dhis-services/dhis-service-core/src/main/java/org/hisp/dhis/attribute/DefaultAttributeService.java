@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,18 @@ package org.hisp.dhis.attribute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.util.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -50,10 +50,12 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
+@Service( "org.hisp.dhis.attribute.AttributeService" )
 public class DefaultAttributeService
     implements AttributeService
 {
@@ -65,88 +67,100 @@ public class DefaultAttributeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private AttributeStore attributeStore;
+    private final AttributeStore attributeStore;
 
-    public void setAttributeStore( AttributeStore attributeStore )
+    private final AttributeValueStore attributeValueStore;
+
+    private final IdentifiableObjectManager manager;
+
+    public DefaultAttributeService( AttributeStore attributeStore, AttributeValueStore attributeValueStore,
+        IdentifiableObjectManager manager )
     {
+        checkNotNull( attributeStore );
+        checkNotNull( attributeValueStore );
+        checkNotNull( manager );
+
         this.attributeStore = attributeStore;
-    }
-
-    private AttributeValueStore attributeValueStore;
-
-    public void setAttributeValueStore( AttributeValueStore attributeValueStore )
-    {
         this.attributeValueStore = attributeValueStore;
+        this.manager = manager;
     }
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     // -------------------------------------------------------------------------
     // Attribute implementation
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void addAttribute( Attribute attribute )
     {
         attributeStore.save( attribute );
     }
 
     @Override
+    @Transactional
     public void updateAttribute( Attribute attribute )
     {
         attributeStore.update( attribute );
     }
 
     @Override
+    @Transactional
     public void deleteAttribute( Attribute attribute )
     {
         attributeStore.delete( attribute );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttribute( long id )
     {
         return attributeStore.get( id );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttribute( String uid )
     {
         return attributeStore.getByUid( uid );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttributeByName( String name )
     {
         return attributeStore.getByName( name );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Attribute getAttributeByCode( String code )
     {
         return attributeStore.getByCode( code );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getAllAttributes()
     {
         return new ArrayList<>( attributeStore.getAll() );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getAttributes( klass ) );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getMandatoryAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getMandatoryAttributes( klass ) );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Attribute> getUniqueAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getUniqueAttributes( klass ) );
@@ -157,6 +171,7 @@ public class DefaultAttributeService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
@@ -181,6 +196,7 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void updateAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
@@ -205,24 +221,28 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional
     public void deleteAttributeValue( AttributeValue attributeValue )
     {
         attributeValueStore.delete( attributeValue );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AttributeValue getAttributeValue( long id )
     {
         return attributeValueStore.get( id );
     }
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception
     {
         updateAttributeValues( object, getJsonAttributeValues( jsonAttributeValues ) );
     }
 
     @Override
+    @Transactional
     public <T extends IdentifiableObject> void updateAttributeValues( T object, Set<AttributeValue> attributeValues ) throws Exception
     {
         if ( attributeValues.isEmpty() )
@@ -359,7 +379,7 @@ public class DefaultAttributeService
     private Map<Integer, String> jsonToMap( List<String> jsonAttributeValues )
         throws IOException
     {
-        Map<Integer, String> parsed = Maps.newHashMap();
+        Map<Integer, String> parsed = new HashMap<>();
 
         ObjectMapper mapper = new ObjectMapper();
 

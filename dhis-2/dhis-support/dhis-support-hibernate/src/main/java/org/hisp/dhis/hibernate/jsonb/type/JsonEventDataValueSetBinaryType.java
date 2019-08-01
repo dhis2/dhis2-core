@@ -1,6 +1,6 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +27,16 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.hibernate.HibernateException;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-
-import com.fasterxml.jackson.core.type.TypeReference;
 
 /**
  * @author David Katuscak
@@ -57,6 +57,13 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType
         returnedClass = klass;
         reader = MAPPER.readerFor( new TypeReference<Map<String, EventDataValue>>() {} );
         writer = MAPPER.writerFor( new TypeReference<Map<String, EventDataValue>>() {} );
+    }
+
+    @Override
+    public Object deepCopy( Object value ) throws HibernateException
+    {
+        String json = convertObjectToJson( value );
+        return convertJsonToObject( json );
     }
 
     /**

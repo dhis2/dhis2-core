@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,19 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  *
  */
-@Transactional
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService" )
 public class DefaultTrackedEntityInstanceAuditService
     implements TrackedEntityInstanceAuditService
 {
@@ -46,28 +48,36 @@ public class DefaultTrackedEntityInstanceAuditService
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    @Autowired 
-    private TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
-    
-    
+    private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+
+    public DefaultTrackedEntityInstanceAuditService( TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore )
+    {
+        checkNotNull( trackedEntityInstanceAuditStore );
+
+        this.trackedEntityInstanceAuditStore = trackedEntityInstanceAuditStore;
+    }
+
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceAuditService implementation
     // -------------------------------------------------------------------------
 
     @Override
     @Async
+    @Transactional
     public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
     {
         trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
     }
 
     @Override
+    @Transactional
     public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
     {
         trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntityInstance );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
         TrackedEntityInstanceAuditQueryParams params )
     {
@@ -75,6 +85,7 @@ public class DefaultTrackedEntityInstanceAuditService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
     {
         return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );

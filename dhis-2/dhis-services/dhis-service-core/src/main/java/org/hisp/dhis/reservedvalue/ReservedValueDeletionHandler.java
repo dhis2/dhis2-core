@@ -1,7 +1,7 @@
 package org.hisp.dhis.reservedvalue;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,15 +30,20 @@ package org.hisp.dhis.reservedvalue;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Component;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+@Component( "org.hisp.dhis.reservedvalue.ReservedValueDeletionHandler" )
 public class ReservedValueDeletionHandler extends DeletionHandler
 {
 
-    private final ReservedValueStore reservedValueStore;
+    private final ReservedValueService reservedValueService;
 
-    public ReservedValueDeletionHandler( ReservedValueStore reservedValueStore )
+    public ReservedValueDeletionHandler( ReservedValueService reservedValueService )
     {
-        this.reservedValueStore = reservedValueStore;
+        checkNotNull( reservedValueService );
+        this.reservedValueService = reservedValueService;
     }
 
     @Override
@@ -50,6 +55,6 @@ public class ReservedValueDeletionHandler extends DeletionHandler
     @Override
     public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
-        reservedValueStore.deleteReservedValueByUid( attribute.getUid() );
+        reservedValueService.deleteReservedValueByUid( attribute.getUid() );
     }
 }

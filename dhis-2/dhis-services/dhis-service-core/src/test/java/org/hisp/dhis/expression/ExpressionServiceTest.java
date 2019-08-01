@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,16 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.core.IsCollectionContaining.*;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE;
 import static org.hisp.dhis.common.ReportingRateMetric.REPORTING_RATE_ON_TIME;
+import static org.hisp.dhis.expression.ExpressionValidationOutcome.*;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
@@ -49,10 +54,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ReportingRate;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,6 +64,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -93,6 +96,9 @@ public class ExpressionServiceTest
     private DataElementService dataElementService;
 
     @Autowired
+    private IndicatorService indicatorService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
@@ -109,7 +115,6 @@ public class ExpressionServiceTest
 
     @Autowired
     private ConstantService constantService;
-
     private OrganisationUnit orgUnitA;
     private OrganisationUnit orgUnitB;
     private OrganisationUnit orgUnitC;
@@ -135,6 +140,9 @@ public class ExpressionServiceTest
     private static DataElement dataElementC;
     private static DataElement dataElementD;
     private static DataElement dataElementE;
+
+    private static IndicatorType indicatorTypeB;
+    private static Indicator indicatorA;
 
     private static CategoryOption categoryOptionA;
     private static CategoryOption categoryOptionB;
@@ -230,6 +238,14 @@ public class ExpressionServiceTest
         dataElementService.addDataElement( dataElementD );
         dataElementService.addDataElement( dataElementE );
 
+        indicatorTypeB = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+
+        indicatorA = createIndicator( 'A', indicatorTypeB );
+        indicatorA.setUid( "mindicatorA" );
+
+        indicatorService.addIndicator( indicatorA );
+        
         categoryOptionA = createCategoryOption( 'A' );
         categoryOptionB = createCategoryOption( 'B' );
 
@@ -474,6 +490,8 @@ public class ExpressionServiceTest
             .put( reportingRateE, 405.0 )
             .put( reportingRateF, 406.0 )
 
+            .put ( indicatorA, 88.0)
+
             .build();
     }
 
@@ -495,7 +513,7 @@ public class ExpressionServiceTest
     {
         try
         {
-            expressionService.getExpressionDescription( expr );
+            expressionService.getIndicatorExpressionDescription( expr );
         }
         catch ( ParserException ex )
         {
@@ -540,11 +558,11 @@ public class ExpressionServiceTest
         }
         else if ( value instanceof Double )
         {
-            Double d = (double)value;
+            double d = (double)value;
 
-            if ( d == d.intValue() )
+            if ( d == (int) d)
             {
-                valueString = Integer.toString( d.intValue() );
+                valueString = Integer.toString((int) d);
             }
             else
             {
@@ -553,14 +571,14 @@ public class ExpressionServiceTest
         }
         else if ( value instanceof String )
         {
-            valueString = "'" + ( (String) value ) + "'";
+            valueString = "'" + value + "'";
         }
         else
         {
             valueString = "Class " + value.getClass().getName() + " " + value.toString();
         }
 
-        List<String> itemNames = items.stream().map( i -> i.getName() ).sorted().collect( Collectors.toList() );
+        List<String> itemNames = items.stream().map(IdentifiableObject::getName).sorted().collect( Collectors.toList() );
 
         String itemsString = String.join( " ", itemNames );
 
@@ -584,7 +602,7 @@ public class ExpressionServiceTest
 
         try
         {
-            description = expressionService.getExpressionDescription( expr );
+            description = expressionService.getIndicatorExpressionDescription( expr );
         }
         catch ( ParserException ex )
         {
@@ -604,9 +622,9 @@ public class ExpressionServiceTest
     {
         Set<OrganisationUnitGroup> orgUnitGroups = expressionService.getExpressionOrgUnitGroups( expr );
 
-        List<String> orgUnitGroupNames = orgUnitGroups.stream().map( g -> g.getName() ).collect( Collectors.toList() );
-
-        Collections.sort( orgUnitGroupNames );
+        List<String> orgUnitGroupNames = orgUnitGroups.stream()
+            .map(BaseIdentifiableObject::getName)
+            .sorted().collect(Collectors.toList());
 
         return String.join( ", " , orgUnitGroupNames );
     }
@@ -619,7 +637,7 @@ public class ExpressionServiceTest
      */
     private String desc( String expr )
     {
-        return expressionService.getExpressionDescription( expr );
+        return expressionService.getIndicatorExpressionDescription( expr );
     }
 
     // -------------------------------------------------------------------------
@@ -931,6 +949,10 @@ public class ExpressionServiceTest
         assertEquals( "9 DeA * CocB", eval( "#{dataElemenA.*.catOptCombB}" ) );
         assertEquals( "19 DeB * CocA", eval( "#{dataElemenB.*.catOptCombA}" ) );
 
+        // Indicator operand
+
+        assertEquals( "88 IndicatorA", eval( "N{mindicatorA}" ) );
+
         // Program data element
 
         assertEquals( "101 PA DeC", eval( "D{programUidA.dataElemenC}" ) );
@@ -1069,6 +1091,23 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     @Test
+    public void testMultipleNestedIndicators()
+    {
+        Indicator indicatorB = createIndicator( 'B', indicatorTypeB, "10" );
+        Indicator indicatorC = createIndicator( 'C', indicatorTypeB, "20" );
+        Indicator indicatorD = createIndicator( 'D', indicatorTypeB, "30" );
+        Indicator indicatorE = createIndicator( 'E', indicatorTypeB, "N{mindicatorC}*N{mindicatorB}-N{mindicatorD}" );
+
+        List<Indicator> indicators = singletonList(indicatorE);
+
+        Set<DimensionalItemObject> items = expressionService.getIndicatorDimensionalItemObjects( indicators );
+        assertThat( items, hasSize( 3 ) );
+        assertThat( items, hasItems( indicatorB, indicatorC, indicatorD ) );
+
+    }
+
+
+    @Test
     public void testGetIndicatorDimensionalItemObjects()
     {
         Indicator indicatorA = createIndicator( 'A', indicatorTypeA );
@@ -1084,8 +1123,9 @@ public class ExpressionServiceTest
         Set<DimensionalItemObject> items = expressionService.getIndicatorDimensionalItemObjects( indicators );
 
         assertEquals( 4, items.size() );
-
-        List<String> nameList = items.stream().map( i -> i.getName() ).sorted().collect( Collectors.toList() );
+        List<String> nameList = items.stream().map(IdentifiableObject::getName)
+            .sorted()
+            .collect( Collectors.toList() );
 
         String names = String.join( ",", nameList );
 
@@ -1109,7 +1149,7 @@ public class ExpressionServiceTest
 
         assertEquals( 3, items.size() );
 
-        List<String> nameList = items.stream().map( i -> i.getName() ).sorted().collect( Collectors.toList() );
+        List<String> nameList = items.stream().map(BaseIdentifiableObject::getName).sorted().collect( Collectors.toList() );
 
         String names = String.join( ",", nameList );
 
@@ -1130,7 +1170,8 @@ public class ExpressionServiceTest
 
         Period period = createPeriod( "20010101" );
 
-        IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA, period, valueMap, constantMap, null );
+        IndicatorValue value = expressionService.getIndicatorValueObject( indicatorA,
+            singletonList( period ), valueMap, constantMap, null );
 
         assertEquals( 2.5, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
@@ -1139,7 +1180,8 @@ public class ExpressionServiceTest
         assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 50.0, value.getValue(), DELTA );
 
-        value = expressionService.getIndicatorValueObject( indicatorB, period, valueMap, constantMap, null );
+        value = expressionService.getIndicatorValueObject( indicatorB, singletonList( period ), valueMap,
+            constantMap, null );
 
         assertEquals( 20.0, value.getNumeratorValue(), DELTA );
         assertEquals( 5.0, value.getDenominatorValue(), DELTA );
@@ -1147,5 +1189,45 @@ public class ExpressionServiceTest
         assertEquals( 36500, value.getMultiplier(), DELTA );
         assertEquals( 1, value.getDivisor(), DELTA );
         assertEquals( 146000.0, value.getValue(), DELTA );
+    }
+
+    private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator )
+    {
+        Indicator indicator = createIndicator( uniqueCharacter, type );
+
+        indicator.setUid( "mindicator" + uniqueCharacter );
+        indicator.setNumerator( numerator );
+        indicator.setDenominator( "1" );
+
+        indicatorService.addIndicator( indicator );
+        return indicator;
+
+    }
+    // -------------------------------------------------------------------------
+    // Valid expression tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    public void testIndicatorExpressionIsValid()
+    {
+        assertEquals( VALID, expressionService.indicatorExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.indicatorExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
+        assertEquals( VALID, expressionService.indicatorExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+    }
+
+    @Test
+    public void testValidationRuleExpressionIsValid()
+    {
+        assertEquals( VALID, expressionService.validationRuleExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.validationRuleExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.validationRuleExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+    }
+
+    @Test
+    public void testPredictorExpressionIsValid()
+    {
+        assertEquals( VALID, expressionService.predictorExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
+        assertEquals( VALID, expressionService.predictorExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
+        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.predictorExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
     }
 }

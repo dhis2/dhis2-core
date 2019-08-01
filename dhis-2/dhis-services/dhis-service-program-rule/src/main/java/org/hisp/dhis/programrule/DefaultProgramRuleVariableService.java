@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,16 @@ import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author markusbekken
  */
 @Transactional
+@Service( "org.hisp.dhis.programrule.ProgramRuleVariableService" )
 public class DefaultProgramRuleVariableService
     implements ProgramRuleVariableService
 {
@@ -47,8 +51,10 @@ public class DefaultProgramRuleVariableService
 
     private ProgramRuleVariableStore programRuleVariableStore;
 
-    public void setProgramRuleVariableStore( ProgramRuleVariableStore programRuleVariableStore )
+    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore )
     {
+        checkNotNull( programRuleVariableStore );
+
         this.programRuleVariableStore = programRuleVariableStore;
     }
 

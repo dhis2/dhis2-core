@@ -1,7 +1,7 @@
 package org.hisp.dhis.sqlview.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,58 +32,65 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 import com.google.common.collect.ImmutableMap;
+import org.springframework.stereotype.Repository;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Dang Duy Hieu
  */
+@Repository( "org.hisp.dhis.sqlview.SqlViewStore" )
 public class HibernateSqlViewStore
     extends HibernateIdentifiableObjectStore<SqlView>
     implements SqlViewStore
 {
     private static final Log log = LogFactory.getLog( HibernateSqlViewStore.class );
 
-    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = 
+    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP =
         ImmutableMap.of( SqlViewType.VIEW, "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 
-    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = 
+    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP =
         ImmutableMap.of( SqlViewType.VIEW, "DROP VIEW ", SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final StatementBuilder statementBuilder;
 
-    private StatementBuilder statementBuilder;
+    private final JdbcTemplate readOnlyJdbcTemplate;
 
-    public void setStatementBuilder( StatementBuilder statementBuilder )
+    private final SystemSettingManager systemSettingManager;
+
+    public HibernateSqlViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService, StatementBuilder statementBuilder,
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate, SystemSettingManager systemSettingManager )
     {
+        super( sessionFactory, jdbcTemplate, publisher, SqlView.class, currentUserService, deletedObjectService, aclService, false );
+
+        checkNotNull( statementBuilder );
+        checkNotNull( readOnlyJdbcTemplate );
+        checkNotNull( systemSettingManager );
+
         this.statementBuilder = statementBuilder;
-    }
-    
-    private JdbcTemplate readOnlyJdbcTemplate;
-
-    public void setReadOnlyJdbcTemplate( JdbcTemplate readOnlyJdbcTemplate )
-    {
         this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
-    }
-    
-    private SystemSettingManager systemSettingManager;
-    
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
         this.systemSettingManager = systemSettingManager;
     }
 
@@ -131,7 +138,7 @@ public class HibernateSqlViewStore
     public void populateSqlViewGrid( Grid grid, String sql )
     {
         SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
-        
+
         int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
         log.debug( "Get view SQL: " + sql + ", max limit: " + maxLimit );
@@ -155,11 +162,7 @@ public class HibernateSqlViewStore
 
             jdbcTemplate.execute( "DROP VIEW IF EXISTS " + viewName );
         }
-        catch ( BadSqlGrammarException ex )
-        {
-            return ex.getCause().getMessage();
-        }
-        catch ( UncategorizedSQLException ex )
+        catch ( BadSqlGrammarException | UncategorizedSQLException ex )
         {
             return ex.getCause().getMessage();
         }
@@ -171,13 +174,13 @@ public class HibernateSqlViewStore
     public void dropViewTable( SqlView sqlView )
     {
         String viewName = sqlView.getViewName();
-        
+
         try
         {
             final String sql = TYPE_DROP_PREFIX_MAP.get( sqlView.getType() ) + " IF EXISTS " + statementBuilder.columnQuote( viewName );
-            
+
             log.debug( "Drop view SQL: " + sql );
-            
+
             jdbcTemplate.update( sql );
         }
         catch ( Exception ex )
@@ -190,19 +193,19 @@ public class HibernateSqlViewStore
     public boolean refreshMaterializedView( SqlView sqlView )
     {
         final String sql = "REFRESH MATERIALIZED VIEW " + sqlView.getViewName();
-        
+
         log.debug( "Refresh materialized view: " + sql );
-        
+
         try
         {
             jdbcTemplate.update( sql );
-            
+
             return true;
         }
         catch ( Exception ex )
         {
             log.warn( "Could not refresh materialized view: " + sqlView.getViewName(), ex );
-            
+
             return false;
         }
     }

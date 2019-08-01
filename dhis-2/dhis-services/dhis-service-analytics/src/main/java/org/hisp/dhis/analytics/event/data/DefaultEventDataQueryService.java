@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,51 +48,73 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import java.util.Date;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.event.EventDataQueryService" )
 public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
+    private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
+    private static final String COL_NAME_INCIDENTDATE = "incidentdate";
+    
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
-        ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
+        ITEM_ENROLLMENT_DATE, ITEM_INCIDENT_DATE, ITEM_EVENT_DATE, ITEM_ORG_UNIT_NAME, ITEM_ORG_UNIT_CODE );
 
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
 
-    @Autowired
-    private ProgramStageService programStageService;
+    private final ProgramStageService programStageService;
 
-    @Autowired
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    @Autowired
-    private TrackedEntityAttributeService attributeService;
+    private final TrackedEntityAttributeService attributeService;
 
-    @Autowired
-    private ProgramIndicatorService programIndicatorService;
+    private final ProgramIndicatorService programIndicatorService;
 
-    @Autowired
-    private LegendSetService legendSetService;
+    private final LegendSetService legendSetService;
 
-    @Autowired
-    private DataQueryService dataQueryService;
+    private final DataQueryService dataQueryService;
 
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
+
+    public DefaultEventDataQueryService( ProgramService programService, ProgramStageService programStageService,
+        DataElementService dataElementService, TrackedEntityAttributeService attributeService,
+        ProgramIndicatorService programIndicatorService, LegendSetService legendSetService,
+        DataQueryService dataQueryService, I18nManager i18nManager )
+    {
+        checkNotNull( programService );
+        checkNotNull( programStageService );
+        checkNotNull( dataElementService );
+        checkNotNull( attributeService );
+        checkNotNull( programIndicatorService );
+        checkNotNull( legendSetService );
+        checkNotNull( dataQueryService );
+        checkNotNull( i18nManager );
+
+        this.programService = programService;
+        this.programStageService = programStageService;
+        this.dataElementService = dataElementService;
+        this.attributeService = attributeService;
+        this.programIndicatorService = programIndicatorService;
+        this.legendSetService = legendSetService;
+        this.dataQueryService = dataQueryService;
+        this.i18nManager = i18nManager;
+    }
 
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
@@ -134,7 +156,7 @@ public class DefaultEventDataQueryService
                 }
                 else
                 {
-                    params.addItem( getQueryItem( dim, pr ) );
+                    params.addItem( getQueryItem( dim, pr, request.getOutputType() ) );
                 }
             }
         }
@@ -154,7 +176,7 @@ public class DefaultEventDataQueryService
                 }
                 else
                 {
-                    params.addItemFilter( getQueryItem( dim, pr ) );
+                    params.addItemFilter( getQueryItem( dim, pr, request.getOutputType() ) );
                 }
             }
         }
@@ -163,7 +185,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getAsc() )
             {
-                params.addAscSortItem( getSortItem( sort, pr ) );
+                params.addAscSortItem( getSortItem( sort, pr, request.getOutputType() ) );
             }
         }
 
@@ -171,7 +193,7 @@ public class DefaultEventDataQueryService
         {
             for ( String sort : request.getDesc() )
             {
-                params.addDescSortItem( getSortItem( sort, pr ) );
+                params.addDescSortItem( getSortItem( sort, pr, request.getOutputType() ) );
             }
         }
 
@@ -239,7 +261,7 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram() ) );
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(), object.getOutputType() ) );
             }
         }
 
@@ -254,7 +276,7 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram() ) );
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(), object.getOutputType() ) );
             }
         }
 
@@ -312,17 +334,17 @@ public class DefaultEventDataQueryService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private QueryItem getQueryItem( String dimension, String filter, Program program )
+    private QueryItem getQueryItem( String dimension, String filter, Program program, EventOutputType type )
     {
         if ( filter != null )
         {
             dimension += DIMENSION_NAME_SEP + filter;
         }
 
-        return getQueryItem( dimension, program );
+        return getQueryItem( dimension, program, type );
     }
 
-    private QueryItem getQueryItem( String dimensionString, Program program )
+    private QueryItem getQueryItem( String dimensionString, Program program, EventOutputType type )
     {
         String[] split = dimensionString.split( DIMENSION_NAME_SEP );
 
@@ -331,7 +353,7 @@ public class DefaultEventDataQueryService
             throw new IllegalQueryException( "Query item or filter is invalid: " + dimensionString );
         }
 
-        QueryItem queryItem = getQueryItemFromDimension( split[0], program );
+        QueryItem queryItem = getQueryItemFromDimension( split[0], program, type );
 
         if ( split.length > 1 ) // Filters specified
         {
@@ -346,38 +368,65 @@ public class DefaultEventDataQueryService
         return queryItem;
     }
 
-    private DimensionalItemObject getSortItem( String item, Program program )
+    private DimensionalItemObject getSortItem( String item, Program program, EventOutputType type )
     {
-        QueryItem queryItem = null;
+        QueryItem queryItem;
 
         if ( SORTABLE_ITEMS.contains( item.toLowerCase() ) )
         {
             item = ITEM_EVENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_EVENTDATE : item;
+            item = ITEM_ENROLLMENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_ENROLLMENTDATE : item;
+            item = ITEM_INCIDENT_DATE.equalsIgnoreCase( item ) ? COL_NAME_INCIDENTDATE : item;
             queryItem = new QueryItem( new BaseDimensionalItemObject( item ) );
         }
         else
         {
-            queryItem = getQueryItem( item, program );
+            queryItem = getQueryItem( item, program, type );
         }
 
         return queryItem.getItem();
     }
 
-    private QueryItem getQueryItemFromDimension( String dimension, Program program )
+    private QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type )
     {
-        String[] split = dimension.split( ITEM_SEP );
+        String[] legendSplit = dimension.split( ITEM_SEP );
 
-        String item = split[0];
+        LegendSet legendSet = legendSplit.length > 1 && legendSplit[1] != null ? legendSetService.getLegendSet( legendSplit[1] ) : null;
 
-        LegendSet legendSet = split.length > 1 && split[1] != null ? legendSetService.getLegendSet( split[1] ) : null;
+        String[] programStageSplit = legendSplit[0].split( "\\" + PROGRAMSTAGE_SEP );
+
+        if( programStageSplit.length == 0 )
+        {
+            throw new IllegalQueryException( "Dimension: " + dimension + " could not be translated into a valid query item" );
+        }
+
+        String item = programStageSplit.length > 1 ? programStageSplit[1] : programStageSplit[0];
 
         DataElement de = dataElementService.getDataElement( item );
+
+        ProgramStage programStage = programStageSplit.length > 1 ? programStageService.getProgramStage( programStageSplit[0] ) : null;
+
+        if( programStageSplit.length > 1 && programStage == null )
+        {
+            throw new IllegalQueryException( "Dimension: " + dimension + " did not have a valid program stage" );
+        }
+
+        QueryItem qi = null;
 
         if ( de != null && program.containsDataElement( de ) )
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : de.getValueType();
 
-            return new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
+            qi = new QueryItem( de, legendSet, valueType, de.getAggregationType(), de.getOptionSet() );
+            if ( programStage != null )
+            {
+                qi.setProgramStage( programStage );
+            }
+            else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
+            {
+                throw new IllegalQueryException( "For enrollment analytics queries," + 
+                    "program stage is mandatory for data element dimensions: " + dimension );
+            }
         }
 
         TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute( item );
@@ -386,14 +435,20 @@ public class DefaultEventDataQueryService
         {
             ValueType valueType = legendSet != null ? ValueType.TEXT : at.getValueType();
 
-            return new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
+            qi = new QueryItem( at, legendSet, valueType, at.getAggregationType(), at.getOptionSet() );
         }
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( item );
 
         if ( pi != null && program.getProgramIndicators().contains( pi ) )
         {
-            return new QueryItem( pi, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
+            qi = new QueryItem( pi, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
+        }
+
+        if ( qi != null )
+        {
+            qi.setProgram( program );   
+            return qi;
         }
 
         throw new IllegalQueryException(

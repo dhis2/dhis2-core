@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,12 +60,13 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.DataQueryService" )
 public class DefaultDataQueryService
     implements DataQueryService
 {
@@ -85,7 +86,6 @@ public class DefaultDataQueryService
 
     private I18nManager i18nManager;
 
-    @Autowired
     public DefaultDataQueryService( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, DimensionService dimensionService,
         AnalyticsSecurityManager securityManager, SystemSettingManager systemSettingManager, AclService aclService,
@@ -253,7 +253,9 @@ public class DefaultDataQueryService
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
             List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
+
             DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+
             for ( String uid : items )
             {
                 if ( uid.startsWith( KEY_DE_GROUP ) ) // DATA ELEMENT GROUP
@@ -313,9 +315,9 @@ public class DefaultDataQueryService
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
             Calendar calendar = PeriodType.getCalendar();
-            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
-
             List<Period> periods = new ArrayList<>();
+
+            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
 
             AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
@@ -426,20 +428,20 @@ public class DefaultDataQueryService
 
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
-            DimensionalKeywords dimensionalKeywords = null;
+            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+
             if ( !levels.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
-                dimensionalKeywords = new DimensionalKeywords(
+                dimensionalKeywords.addGroupBy(
                     levels.stream().map( l -> organisationUnitService.getOrganisationUnitLevelByLevel( l ) )
                         .filter( Objects::nonNull ).collect( Collectors.toList() ) );
-
             }
 
             if ( !groups.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
-                dimensionalKeywords = new DimensionalKeywords(
+                dimensionalKeywords.addGroupBy(
                     groups.stream().map( g -> new BaseNameableObject( g.getUid(), g.getCode(), g.getName() ) )
                         .collect( Collectors.toList() ) );
             }
@@ -451,6 +453,13 @@ public class DefaultDataQueryService
             if ( levels.isEmpty() && groups.isEmpty() )
             {
                 orgUnits.addAll( ous );
+            }
+
+            // Add boundary OUs as keywords
+
+            if ( !dimensionalKeywords.isEmpty() )
+            {
+                dimensionalKeywords.addGroupBy( ousList );
             }
 
             if ( orgUnits.isEmpty() )

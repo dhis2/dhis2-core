@@ -1,7 +1,7 @@
 package org.hisp.dhis.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,10 +32,12 @@ import java.util.Collection;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.relationship.RelationshipDeletionHandler" )
 public class RelationshipDeletionHandler
     extends DeletionHandler
 {
@@ -43,11 +45,11 @@ public class RelationshipDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private RelationshipService relationshipSevice;
+    private final RelationshipService relationshipService;
 
-    public void setRelationshipSevice( RelationshipService relationshipSevice )
+    public RelationshipDeletionHandler( RelationshipService relationshipService )
     {
-        this.relationshipSevice = relationshipSevice;
+        this.relationshipService = relationshipService;
     }
 
     // -------------------------------------------------------------------------
@@ -63,15 +65,23 @@ public class RelationshipDeletionHandler
     @Override
     public void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
     {
-        Collection<Relationship> relationships = relationshipSevice
+        Collection<Relationship> relationships = relationshipService
             .getRelationshipsByTrackedEntityInstance( entityInstance, false );
 
         if ( relationships != null )
         {
             for ( Relationship relationship : relationships )
             {
-                relationshipSevice.deleteRelationship( relationship );
+                relationshipService.deleteRelationship( relationship );
             }
         }
-    }    
+    }
+
+    @Override
+    public String allowDeleteRelationshipType( RelationshipType relationshipType )
+    {
+        Collection<Relationship> relationships = relationshipService.getRelationshipsByRelationshipType( relationshipType );
+
+        return relationships.isEmpty() ? null : ERROR;
+    }
 }

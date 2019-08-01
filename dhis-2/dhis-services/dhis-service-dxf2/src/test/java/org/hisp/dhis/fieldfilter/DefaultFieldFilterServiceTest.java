@@ -1,7 +1,7 @@
 package org.hisp.dhis.fieldfilter;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -78,7 +79,7 @@ public class DefaultFieldFilterServiceTest
     @Before
     public void setUp() throws Exception
     {
-        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService );
+        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService, new HashSet<>() );
     }
 
     @Test

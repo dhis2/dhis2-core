@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,14 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.sync.*;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
@@ -45,10 +46,14 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -59,6 +64,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author anilkumk
  */
+@Component
 public class MetadataSyncJob
     extends AbstractJob
 {
@@ -74,25 +80,24 @@ public class MetadataSyncJob
 
     private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private RetryTemplate retryTemplate;
+    private final RetryTemplate retryTemplate;
 
-    private SynchronizationManager synchronizationManager;
+    private final SynchronizationManager synchronizationManager;
 
-    private MetadataSyncPreProcessor metadataSyncPreProcessor;
+    private final MetadataSyncPreProcessor metadataSyncPreProcessor;
 
-    private MetadataSyncPostProcessor metadataSyncPostProcessor;
+    private final MetadataSyncPostProcessor metadataSyncPostProcessor;
 
-    private MetadataSyncService metadataSyncService;
+    private final MetadataSyncService metadataSyncService;
 
-    private MetadataRetryContext metadataRetryContext;
+    private final MetadataRetryContext metadataRetryContext;
 
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
-    @Autowired
     public MetadataSyncJob( SystemSettingManager systemSettingManager, RetryTemplate retryTemplate,
         SynchronizationManager synchronizationManager, MetadataSyncPreProcessor metadataSyncPreProcessor,
         MetadataSyncPostProcessor metadataSyncPostProcessor, MetadataSyncService metadataSyncService,
@@ -129,11 +134,12 @@ public class MetadataSyncJob
 
         try
         {
+            MetadataSyncJobParameters jobParameters = (MetadataSyncJobParameters) jobConfiguration.getJobParameters();
             retryTemplate.execute( retryContext ->
                 {
                     metadataRetryContext.setRetryContext( retryContext );
                     clearFailedVersionSettings();
-                    runSyncTask( metadataRetryContext );
+                    runSyncTask( metadataRetryContext, jobParameters );
                     return null;
                 }
                 , retryContext ->
@@ -164,15 +170,16 @@ public class MetadataSyncJob
         return super.validate();
     }
 
-    public synchronized void runSyncTask( MetadataRetryContext context ) throws MetadataSyncServiceException, DhisVersionMismatchException
+    synchronized void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters jobParameters )
+        throws MetadataSyncServiceException, DhisVersionMismatchException
     {
         metadataSyncPreProcessor.setUp( context );
 
-        metadataSyncPreProcessor.handleDataValuePush( context );
+        metadataSyncPreProcessor.handleDataValuePush( context, jobParameters );
 
-        metadataSyncPreProcessor.handleEventDataPush( context );
+        metadataSyncPreProcessor.handleEventProgramsDataPush( context, jobParameters );
         metadataSyncPreProcessor.handleCompleteDataSetRegistrationDataPush( context );
-        metadataSyncPreProcessor.handleTrackerDataPush( context );
+        metadataSyncPreProcessor.handleTrackerProgramsDataPush( context, jobParameters );
 
         MetadataVersion metadataVersion = metadataSyncPreProcessor.handleCurrentMetadataVersion( context );
 

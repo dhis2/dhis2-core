@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.COMPLETENESS_DIMENSION_TYPES;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
@@ -53,20 +54,27 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.QueryValidator" )
 public class DefaultQueryValidator
     implements QueryValidator
 {
     private static final Log log = LogFactory.getLog( DefaultQueryValidator.class );
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
+    {
+        checkNotNull( systemSettingManager );
+
+        this.systemSettingManager = systemSettingManager;
+    }
 
     // -------------------------------------------------------------------------
     // QueryValidator implementation
@@ -87,19 +95,24 @@ public class DefaultQueryValidator
         params.getProgramDataElements().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
         final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
 
-        if ( params.getDimensions().isEmpty() )
+        if ( !params.isSkipDataDimensionValidation() )
         {
-            violation = "At least one dimension must be specified";
-        }
+            if ( params.getDimensions().isEmpty() )
+            {
+                violation = "At least one dimension must be specified";
+            }
 
-        if ( !params.isSkipData() && params.getDataDimensionAndFilterOptions().isEmpty() && params.getAllDataElementGroups().isEmpty() )
-        {
-            violation = "At least one data dimension item or data element group set dimension item must be specified";
-        }
+            if ( !params.isSkipData() && params.getDataDimensionAndFilterOptions().isEmpty()
+                && params.getAllDataElementGroups().isEmpty() )
+            {
+                violation = "At least one data dimension item or data element group set dimension item must be specified";
+            }
 
-        if ( !params.getDimensionsAsFilters().isEmpty() )
-        {
-            violation = "Dimensions cannot be specified as dimension and filter simultaneously: " + params.getDimensionsAsFilters();
+            if ( !params.getDimensionsAsFilters().isEmpty() )
+            {
+                violation = "Dimensions cannot be specified as dimension and filter simultaneously: "
+                    + params.getDimensionsAsFilters();
+            }
         }
 
         if ( !params.hasPeriods() && !params.isSkipPartitioning() && !params.hasStartEndDate() )

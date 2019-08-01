@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
@@ -81,6 +82,9 @@ public class ProgramStageInstanceStoreTest
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
+    
+    @Autowired
+    private DbmsManager dbmsManager;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -256,6 +260,8 @@ public class ProgramStageInstanceStoreTest
         programStageInstanceStore.save( programStageInstanceA );
         programStageInstanceStore.save( programStageInstanceB );
 
+        dbmsManager.flushSession();
+        
         assertTrue( programStageInstanceStore.exists( programStageInstanceA.getUid() ) );
         assertTrue( programStageInstanceStore.exists( programStageInstanceB.getUid() ) );
         assertFalse( programStageInstanceStore.exists( "aaaabbbbccc" ) );

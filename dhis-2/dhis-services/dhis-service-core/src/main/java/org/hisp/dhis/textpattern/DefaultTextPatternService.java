@@ -1,7 +1,7 @@
 package org.hisp.dhis.textpattern;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.textpattern;
  */
 
 import com.google.common.collect.ImmutableMap;
+import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
 /**
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.textpattern.TextPatternService" )
 public class DefaultTextPatternService
     implements TextPatternService
 {

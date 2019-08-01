@@ -1,7 +1,7 @@
 package org.hisp.dhis.system;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -146,6 +146,8 @@ public class SystemInfo
     {
         SystemInfo info = new SystemInfo();
         BeanUtils.copyProperties( this, info );
+        // clear sensitive info may reset the data
+        info.setDatabaseInfo( databaseInfo == null ? null : databaseInfo.instance() );
         return info;
     }
 
