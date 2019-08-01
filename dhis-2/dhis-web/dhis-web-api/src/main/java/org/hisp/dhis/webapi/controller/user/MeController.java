@@ -386,6 +386,7 @@ public class MeController
         dashboard.setUnreadMessageConversations( messageService.getUnreadMessageConversationCount() );
         dashboard.setUnreadInterpretations( interpretationService.getNewInterpretationCount() );
 
+        setNoStore( response );
         return dashboard;
     }
 
