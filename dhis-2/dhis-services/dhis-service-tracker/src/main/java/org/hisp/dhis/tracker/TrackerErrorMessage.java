@@ -28,22 +28,30 @@ package org.hisp.dhis.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.text.MessageFormat;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerErrorCode
+public class TrackerErrorMessage
 {
-    NONE( "No error message given." );
+    private final TrackerErrorCode errorCode;
 
-    private String message;
+    private final Object[] args;
 
-    TrackerErrorCode( String message )
+    public TrackerErrorMessage( TrackerErrorCode errorCode, Object... args )
     {
-        this.message = message;
+        this.errorCode = errorCode;
+        this.args = args;
+    }
+
+    public TrackerErrorCode getErrorCode()
+    {
+        return errorCode;
     }
 
     public String getMessage()
     {
-        return message;
+        return MessageFormat.format( errorCode.getMessage(), args );
     }
 }
