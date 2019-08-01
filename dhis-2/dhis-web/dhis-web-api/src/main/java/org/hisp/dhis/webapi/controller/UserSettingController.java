@@ -97,6 +97,8 @@ public class UserSettingController
     {
         User user = getUser( userId, username );
 
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+
         if ( keys == null )
         {
             return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_KEYS, useFallback );
@@ -110,7 +112,6 @@ public class UserSettingController
             result.put( userSettingKey.getName(), userSettingService.getUserSetting( userSettingKey ) );
         }
 
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         return result;
     }
 
