@@ -40,6 +40,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -137,8 +138,10 @@ public class SystemSettingController
     }
 
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_TEXT )
-    public @ResponseBody String getSystemSettingAsText( @PathVariable( "key" ) String key )
+    public @ResponseBody String getSystemSettingAsText( @PathVariable( "key" ) String key, HttpServletResponse response )
     {
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+
         if ( systemSettingManager.isConfidential( key ) )
         {
             return StringUtils.EMPTY;
@@ -174,8 +177,9 @@ public class SystemSettingController
             settingKeys = keys.stream().map( key -> SettingKey.getByName( key ) ).filter( settingKeyOpt -> settingKeyOpt.isPresent() )
                 .map( settingKeyOpt -> settingKeyOpt.get() ).collect( Collectors.toSet() );
         }
-        
+
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), getSystemSettings( settingKeys ) );
     }
 
@@ -192,8 +196,9 @@ public class SystemSettingController
             settingKeys = keys.stream().map( key -> SettingKey.getByName( key ) ).filter( settingKeyOpt -> settingKeyOpt.isPresent() )
                 .map( settingKeyOpt -> settingKeyOpt.get() ).collect( Collectors.toSet() );
         }
-        
-        response.setContentType( "application/javascript" );
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJsonP( response.getOutputStream(), getSystemSettings( settingKeys ), callback );
     }
 

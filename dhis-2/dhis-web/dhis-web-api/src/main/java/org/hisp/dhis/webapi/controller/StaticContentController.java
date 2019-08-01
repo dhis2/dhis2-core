@@ -108,7 +108,6 @@ public class StaticContentController
         JCloudsFileResourceContentStore contentStore
     )
     {
-
         checkNotNull( systemSettingManager );
         checkNotNull( styleManager );
         checkNotNull( contentStore );
