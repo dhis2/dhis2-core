@@ -34,6 +34,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.AttributeValueStore;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -48,9 +49,9 @@ public class HibernateAttributeValueStore
     extends HibernateGenericStore<AttributeValue>
     implements AttributeValueStore
 {
-    public HibernateAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate )
+    public HibernateAttributeValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, AttributeValue.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, AttributeValue.class, true );
     }
 
     @Override

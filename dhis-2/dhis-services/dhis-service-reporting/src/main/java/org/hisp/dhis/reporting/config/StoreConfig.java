@@ -34,6 +34,7 @@ import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -46,10 +47,10 @@ public class StoreConfig
 {
     @Bean( "org.hisp.dhis.pushanalysis.PushAnalysisStore" )
     public HibernateIdentifiableObjectStore<PushAnalysis> indicatorTypeStore( SessionFactory sessionFactory,
-        JdbcTemplate jdbcTemplate, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
-        AclService aclService )
+        JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
         return new HibernateIdentifiableObjectStore<PushAnalysis>( sessionFactory,
-            jdbcTemplate, PushAnalysis.class, currentUserService, deletedObjectService, aclService, false );
+            jdbcTemplate, publisher, PushAnalysis.class, currentUserService, deletedObjectService, aclService, false );
     }
 }

@@ -62,6 +62,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
@@ -98,11 +99,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     protected AclService aclService;
 
     protected boolean transientIdentifiableProperties = false;
-    
-    public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, Class<T> clazz,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
+
+    public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, Class<T> clazz, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
     {
-        super( sessionFactory, jdbcTemplate, clazz, cacheable );
+        super( sessionFactory, jdbcTemplate, publisher, clazz, cacheable );
 
         checkNotNull( currentUserService );
         checkNotNull( deletedObjectService );
@@ -118,7 +120,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Only used by tests, remove after fixing the tests
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
         this.currentUserService = currentUserService;
     }
 
@@ -314,7 +317,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             getSession().update( object );
         }
 
-        if (object instanceof MetadataObject)
+        if ( object instanceof MetadataObject )
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
@@ -323,7 +326,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void delete( T object )
     {
-        delete( object, currentUserService.getCurrentUser() );
+        this.delete( object, currentUserService.getCurrentUser() );
     }
 
     @Override
@@ -341,7 +344,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( object != null )
         {
-            getSession().delete( object );
+            super.delete( object );
         }
     }
 

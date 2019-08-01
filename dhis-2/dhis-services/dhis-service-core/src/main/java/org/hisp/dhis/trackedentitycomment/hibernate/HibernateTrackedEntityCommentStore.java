@@ -61,6 +61,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentStore;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -74,9 +75,10 @@ public class HibernateTrackedEntityCommentStore
 {
 
     public HibernateTrackedEntityCommentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, TrackedEntityComment.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityComment.class, currentUserService, deletedObjectService,
             aclService, false );
     }
 

@@ -35,6 +35,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroup;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -47,10 +48,10 @@ public class HibernateProgramTrackedEntityAttributeGroupStore
         implements ProgramTrackedEntityAttributeGroupStore
 {
     public HibernateProgramTrackedEntityAttributeGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ProgramTrackedEntityAttributeGroup.class, currentUserService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramTrackedEntityAttributeGroup.class, currentUserService,
             deletedObjectService, aclService, true );
     }
 }

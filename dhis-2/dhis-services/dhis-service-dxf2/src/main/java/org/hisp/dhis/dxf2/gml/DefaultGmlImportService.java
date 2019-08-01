@@ -45,7 +45,6 @@ import javax.xml.transform.stream.StreamSource;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.xerces.impl.io.MalformedByteSequenceException;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
@@ -352,10 +351,6 @@ public class DefaultGmlImportService
                     sb.append( " column " ).append( e.getColumnNumber() );
                 }
             }
-        }
-        else if ( rootThrowable instanceof MalformedByteSequenceException )
-        {
-            sb.append( "Malformed GML file." );
         }
         else
         {

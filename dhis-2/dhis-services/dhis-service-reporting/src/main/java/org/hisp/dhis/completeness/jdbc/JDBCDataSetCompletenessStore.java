@@ -35,10 +35,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.quick.StatementManager;
 import org.hisp.dhis.completeness.DataSetCompletenessStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -53,16 +53,16 @@ public class JDBCDataSetCompletenessStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final StatementManager statementManager;
+    private final JdbcTemplate jdbcTemplate;
 
     private final StatementBuilder statementBuilder;
 
-    public JDBCDataSetCompletenessStore( StatementManager statementManager, StatementBuilder statementBuilder )
+    public JDBCDataSetCompletenessStore( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder )
     {
+        checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
-        checkNotNull( statementManager );
 
-        this.statementManager = statementManager;
+        this.jdbcTemplate = jdbcTemplate;
         this.statementBuilder = statementBuilder;
     }
 
@@ -76,16 +76,16 @@ public class JDBCDataSetCompletenessStore
         if ( relevantSources == null || relevantSources.isEmpty() || periods == null || periods.isEmpty() )
         {
             return 0;
-        }        
-        
+        }
+
         final String sql =
             "SELECT COUNT(*) " +
             "FROM completedatasetregistration cr " +
             "WHERE cr.datasetid = " + dataSet.getId() + " " +
             "AND cr.periodid IN ( " + getCommaDelimitedString( periods ) + " ) " +
             "AND cr.sourceid IN ( " + getCommaDelimitedString( relevantSources ) + " )";
-        
-        return statementManager.getHolder().queryForInteger( sql );
+
+        return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
     @Override
@@ -94,8 +94,8 @@ public class JDBCDataSetCompletenessStore
         if ( relevantSources == null || relevantSources.isEmpty() || periods == null || periods.isEmpty() )
         {
             return 0;
-        }        
-        
+        }
+
         final String sql =
             "SELECT COUNT(*) " +
             "FROM completedatasetregistration cr " +
@@ -104,10 +104,10 @@ public class JDBCDataSetCompletenessStore
             "AND cr.periodid IN ( " + getCommaDelimitedString( periods ) + " ) " +
             "AND cr.sourceid IN ( " + getCommaDelimitedString( relevantSources ) + " ) " +
             "AND cr.date <= " + statementBuilder.getAddDate( "pe.enddate", dataSet.getTimelyDays() );
-        
-        return statementManager.getHolder().queryForInteger( sql );
+
+        return jdbcTemplate.queryForObject( sql, Integer.class );
     }
-    
+
     // -------------------------------------------------------------------------
     // Based on compulsory data element operands
     // -------------------------------------------------------------------------
@@ -117,7 +117,7 @@ public class JDBCDataSetCompletenessStore
     {
         return getCompulsoryDataElementRegistrations( dataSet, children, periods, -1 );
     }
-    
+
     @Override
     public Integer getCompulsoryDataElementRegistrations( DataSet dataSet, Collection<Long> children, Collection<Long> periods, int completenessOffset )
     {
@@ -125,12 +125,12 @@ public class JDBCDataSetCompletenessStore
         {
             return 0;
         }
-        
+
         final int compulsoryElements = dataSet.getCompulsoryDataElementOperands().size();
-        
+
         final String deadlineCriteria = completenessOffset >= 0 ? "AND lastupdated <= " + statementBuilder.getAddDate( "pe.enddate", completenessOffset ) : "";
-        
-        final String sql = 
+
+        final String sql =
             "SELECT COUNT(completed) FROM ( " +
                 "SELECT sourceid, COUNT(sourceid) AS sources " +
                 "FROM datavalue dv " +
@@ -143,29 +143,29 @@ public class JDBCDataSetCompletenessStore
                 "AND dv.deleted is false " +
                 "GROUP BY sourceid) AS completed " +
             "WHERE completed.sources = " + compulsoryElements;
-        
-        return statementManager.getHolder().queryForInteger( sql );
+
+        return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
     // -------------------------------------------------------------------------
     // Based on number of data values
     // -------------------------------------------------------------------------
-    
+
     @Override
     public List<DataSet> getDataSetsWithRegistrations( Collection<DataSet> dataSets )
     {
         List<DataSet> selection = new ArrayList<>();
-        
+
         for ( DataSet dataSet : dataSets )
         {
             final String sql = "SELECT count(*) FROM completedatasetregistration WHERE datasetid = " + dataSet.getId();
-            
-            if ( statementManager.getHolder().queryForInteger( sql ) > 0 )
+
+            if ( jdbcTemplate.queryForObject( sql, Integer.class ) > 0 )
             {
                 selection.add( dataSet );
             }
         }
-        
+
         return selection;
     }
 }

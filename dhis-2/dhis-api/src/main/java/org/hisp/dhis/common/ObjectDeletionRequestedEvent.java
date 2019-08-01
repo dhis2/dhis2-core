@@ -1,4 +1,4 @@
-package org.hisp.dhis.random;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,20 +28,16 @@ package org.hisp.dhis.random;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.CodeGenerator;
-
-import io.github.benas.randombeans.api.Randomizer;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Luciano Fiandesio
+ * @author Lars Helge Overland
  */
-public class UidRandomizer
-    implements
-    Randomizer<String>
+public class ObjectDeletionRequestedEvent
+    extends ApplicationEvent
 {
-    @Override
-    public String getRandomValue()
+    public ObjectDeletionRequestedEvent( Object source )
     {
-        return CodeGenerator.generateUid();
+        super( source );
     }
 }

@@ -35,6 +35,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -47,9 +48,9 @@ public class HibernateOrganisationUnitGroupSetStore
     implements OrganisationUnitGroupSetStore
 {
     public HibernateOrganisationUnitGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, OrganisationUnitGroupSet.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroupSet.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 }

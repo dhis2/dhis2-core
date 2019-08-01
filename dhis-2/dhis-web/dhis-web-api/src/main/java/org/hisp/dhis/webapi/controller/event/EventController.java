@@ -199,7 +199,11 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
-    // READ
+    // Read
+    // -------------------------------------------------------------------------
+
+    // -------------------------------------------------------------------------
+    // Query Read
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
@@ -254,7 +258,7 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-      
+
         Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
@@ -325,7 +329,7 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
@@ -395,7 +399,7 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
@@ -466,7 +470,7 @@ public class EventController
         }
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         lastUpdatedStartDate = lastUpdatedStartDate != null ? lastUpdatedStartDate : lastUpdated;
@@ -485,7 +489,11 @@ public class EventController
 
     }
 
-    @RequestMapping( value = "", method = RequestMethod.GET )
+    // -------------------------------------------------------------------------
+    // Object Read
+    // -------------------------------------------------------------------------
+
+    @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -533,7 +541,7 @@ public class EventController
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         Map<String, String> dataElementOrders = getDataElementsFromOrder( order );
@@ -571,7 +579,6 @@ public class EventController
             rootNode.addChild( NodeUtils.createPager( events.getPager() ) );
         }
 
-
         if ( !StringUtils.isEmpty( attachment ) )
         {
             response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
@@ -583,7 +590,7 @@ public class EventController
         return rootNode;
     }
 
-    @RequestMapping( value = "", method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
+    @RequestMapping( method = RequestMethod.GET, produces = { "application/csv", "application/csv+gzip", "text/csv" } )
     public void getCsvEvents(
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) String programStage,
@@ -618,11 +625,10 @@ public class EventController
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         IdSchemes idSchemes, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
     {
-
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos, true );
 
         Set<String> eventIds = TextUtils.splitToArray( event, TextUtils.SEMICOLON );
-        
+
         Set<String> assignedUserIds = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         List<Order> schemaOrders = getOrderParams( order );
@@ -659,6 +665,10 @@ public class EventController
 
         csvEventService.writeEvents( outputStream, events, !skipHeader );
     }
+
+    // -------------------------------------------------------------------------
+    // Rows Read
+    // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/eventRows", method = RequestMethod.GET )
     public @ResponseBody EventRows getEventRows(
@@ -823,7 +833,7 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
-    // CREATE
+    // Create
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/xml" )
@@ -955,7 +965,7 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
-    // UPDATE
+    // Update
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { "application/xml", "text/xml" } )
@@ -1024,7 +1034,7 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
-    // DELETE
+    // Delete
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
@@ -1036,7 +1046,7 @@ public class EventController
     }
 
     // -------------------------------------------------------------------------
-    // Helpers
+    // Supportive methods
     // -------------------------------------------------------------------------
 
     private Map<String, String> getDataElementsFromOrder( String allOrders )
@@ -1085,7 +1095,7 @@ public class EventController
     {
         for ( String field : fields )
         {
-            // for now assume href/access if * or preset is requested
+            // For now assume href/access if * or preset is requested
             if ( field.contains( match ) || field.equals( "*" ) || field.startsWith( ":" ) )
             {
                 return true;
@@ -1163,7 +1173,6 @@ public class EventController
 
     private IdSchemes getIdSchemesFromParameters( IdSchemes idSchemes, Map<String, List<String>> params )
     {
-
         String idScheme = getParamValue( params, "idScheme" );
 
         if ( idScheme != null )
