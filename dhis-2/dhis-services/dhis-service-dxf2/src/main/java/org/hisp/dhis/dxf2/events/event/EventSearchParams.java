@@ -141,6 +141,8 @@ public class EventSearchParams
 
     private Set<String> events = new HashSet<>();
 
+    private Boolean skipEventId;
+
     /**
      * Filters for the response.
      */
@@ -246,6 +248,14 @@ public class EventSearchParams
     public boolean hasFilters()
     {
         return filters != null && !filters.isEmpty();
+    }
+
+    /**
+     * Null-safe check for skip event ID parameter.
+     */
+    public boolean isSkipEventId()
+    {
+        return skipEventId != null && skipEventId;
     }
 
     /**
@@ -594,6 +604,17 @@ public class EventSearchParams
     public EventSearchParams setEvents( Set<String> events )
     {
         this.events = events;
+        return this;
+    }
+
+    public Boolean getSkipEventId()
+    {
+        return skipEventId;
+    }
+
+    public EventSearchParams setSkipEventId( Boolean skipEventId )
+    {
+        this.skipEventId = skipEventId;
         return this;
     }
 

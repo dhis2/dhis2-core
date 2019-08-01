@@ -655,9 +655,9 @@ public abstract class AbstractEventService
 
         // ---------------------------------------------------------------------
         // If includeAllDataElements is set to true, return all data elements.
-        // If no data element is specified, use those configured for display
-        // in report
+        // If no data element is specified, use those set as display in report.
         // ---------------------------------------------------------------------
+
         if ( params.isIncludeAllDataElements() )
         {
             for ( ProgramStageDataElement pde : params.getProgramStage().getProgramStageDataElements() )
@@ -986,7 +986,7 @@ public abstract class AbstractEventService
         Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration, EventStatus status,
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<Order> orders, List<String> gridOrders, boolean includeAttributes,
-        Set<String> events, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
+        Set<String> events, Boolean skipEventId, AssignedUserSelectionMode assignedUserSelectionMode, Set<String> assignedUsers,
         Set<String> filters, Set<String> dataElements, boolean includeAllDataElements, boolean includeDeleted )
     {
         User user = currentUserService.getCurrentUser();
@@ -1110,6 +1110,7 @@ public abstract class AbstractEventService
             .setPageSize( pageSize )
             .setTotalPages( totalPages )
             .setSkipPaging( skipPaging )
+            .setSkipEventId( skipEventId )
             .setIncludeAttributes( includeAttributes )
             .setIncludeAllDataElements( includeAllDataElements )
             .setOrders( orders )

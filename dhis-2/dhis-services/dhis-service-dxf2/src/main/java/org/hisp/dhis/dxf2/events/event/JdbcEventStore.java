@@ -139,7 +139,6 @@ public class JdbcEventStore
     // EventStore implementation
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( "unchecked" )
     @Override
     public List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits, Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
@@ -185,10 +184,13 @@ public class JdbcEventStore
                 event = new Event();
                 eventUidToEventMap.put( psiUid, event );
 
-                event.setUid( psiUid );
+                if ( !params.isSkipEventId() )
+                {
+                    event.setUid( psiUid );
+                    event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
+                        idSchemes.getProgramStageInstanceIdScheme() ) );
+                }
 
-                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
-                    idSchemes.getProgramStageInstanceIdScheme() ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
 
