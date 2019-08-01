@@ -131,13 +131,6 @@ public class FileResourceController
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-<<<<<<< HEAD
-        // ---------------------------------------------------------------------
-        // Request signing is not available, stream content back to client
-        // ---------------------------------------------------------------------
-
-=======
->>>>>>> 902323aebeee3d76a0daeb12f9b4254fbd23dc03
         try
         {
             fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
