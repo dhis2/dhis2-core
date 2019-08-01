@@ -203,7 +203,7 @@ public class JCloudsFileResourceContentStore
         }
         catch ( IOException e )
         {
-            e.printStackTrace();
+            log.warn( String.format( "Unable to retrieve fileResource with key: %s. Message: %s", key, e.getMessage() ) );
             return null;
         }
     }
