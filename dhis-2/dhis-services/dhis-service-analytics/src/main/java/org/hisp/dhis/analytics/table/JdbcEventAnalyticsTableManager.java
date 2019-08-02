@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.addClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -249,7 +249,7 @@ public class JdbcEventAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
-                dataClause + ")" + addClosingParentheses(select)  + " as " + quote( dataElement.getUid() );
+                dataClause + ")" + getClosingParentheses( select )  + " as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
