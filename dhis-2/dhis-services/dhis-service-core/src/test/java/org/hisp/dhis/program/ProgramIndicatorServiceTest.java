@@ -453,6 +453,22 @@ public class ProgramIndicatorServiceTest
     }
 
     @Test
+    public void testGetAnalyticsSqlForD2HasValue()
+    {
+        String dataElement = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deA.getUid() + "}";
+
+        String expected = "not ((\"deabcdefghA\") is not null) AND ((\"deabcdefghA\") is not null)";
+
+        String filter = "!d2:hasValue(" + dataElement + ") AND d2:hasValue(" + dataElement + ")";
+
+        ProgramIndicator programIndicator = createProgramIndicator( 'D', programB, "V{event_count}", filter );
+
+        String sql = programIndicatorService.getAnalyticsSQl( filter, programIndicator, new Date(), new Date() );
+
+        assertEquals( sql, expected );
+    }
+
+    @Test
     public void testGetAnalyticsSqlWithFunctionsZingA()
     {
         String col = COL_QUOTE + deA.getUid() + COL_QUOTE;
