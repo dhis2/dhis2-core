@@ -351,12 +351,12 @@ public class DefaultProgramIndicatorService
 
                 if ( function == null )
                 {
-                    throw new IllegalStateException( "Character not recognized: " + func );
+                    throw new IllegalStateException( "Character not recognized: " + logicalNot );
                 }
 
                 String result = function.evaluate( null );
 
-                matcher.appendReplacement( buffer, result );
+                buffer.insert( 0, result );
             }
         }
 
