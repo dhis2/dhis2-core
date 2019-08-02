@@ -1571,7 +1571,7 @@ public abstract class AbstractEventService
 
                     for ( ProgramStage programStage : program.getProgramStages() )
                     {
-                        dataElementCache.putAll( programStage.getAllDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
+                        dataElementCache.putAll( programStage.getDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
                     }
                 }
             }
@@ -2012,7 +2012,7 @@ public abstract class AbstractEventService
 
                 for ( ProgramStage programStage : program.getProgramStages() )
                 {
-                    dataElementCache.putAll( programStage.getAllDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
+                    dataElementCache.putAll( programStage.getDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
                 }
             }
         }
@@ -2037,7 +2037,7 @@ public abstract class AbstractEventService
             {
                 programStageCache.put( id, programStage );
 
-                dataElementCache.putAll( programStage.getAllDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
+                dataElementCache.putAll( programStage.getDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
             }
         }
 

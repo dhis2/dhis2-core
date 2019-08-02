@@ -121,39 +121,44 @@ public class AnalyticsSqlUtils
     }
 
     /**
-     * Counts the number of open parentheses in a String and returns a String containing the missing closed
-     * parenthesis.
-     * 
-     * input: ((( ))
-     * output: )
-     * 
-     * @param selectSql a String
-     * @return a String containing 0 or more "closing" parenthesis
+     * <p>Returns a string containing closing parenthesis. The number of
+     * parenthesis is based on the number of missing closing parenthesis
+     * in the argument string.
      *
+     * <p>Example:
+     *
+     * {@code}
+     * input: "((( ))" -> output: ")"
+     * {@code}
+     *
+     * @param str a string.
+     *
+     * @return a String containing 0 or more "closing" parenthesis
      */
-    public static String addClosingParentheses( String selectSql )
+    public static String getClosingParentheses( String str )
     {
-        if ( StringUtils.isEmpty( selectSql ) )
+        if ( StringUtils.isEmpty( str ) )
         {
-            return "";
+            return StringUtils.EMPTY;
         }
+
         int open = 0;
 
-        for ( int i = 0; i < selectSql.length(); i++ )
+        for ( int i = 0; i < str.length(); i++ )
         {
-            if ( selectSql.charAt( i ) == '(' )
+            if ( str.charAt( i ) == '(' )
             {
                 open++;
             }
-            else if ( selectSql.charAt( i ) == ')' )
+            else if ( str.charAt( i ) == ')' )
             {
                 if ( open >= 1 )
                 {
                     open--;
                 }
             }
-
         }
+
         return StringUtils.repeat( ")", open );
     }
 }
