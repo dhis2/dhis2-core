@@ -243,7 +243,7 @@ public enum SettingKey
         return Optional.empty();
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings( {"unchecked", "rawtypes"} )
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<SettingKey> setting = getByName( name );

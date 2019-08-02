@@ -224,12 +224,11 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
+        columns.addAll( addOrganisationUnitLevels() );
+        columns.addAll( addOrganisationUnitGroupSets() );
+
         List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
             categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
-
-        columns.addAll( addOrganisationUnitLevels() );
-
-        columns.addAll( addOrganisationUnitGroupSets() );
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
