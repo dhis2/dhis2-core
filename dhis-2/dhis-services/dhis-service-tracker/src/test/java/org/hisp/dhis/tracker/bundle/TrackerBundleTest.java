@@ -28,10 +28,10 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.metadata.AtomicMode;
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -47,7 +47,7 @@ public class TrackerBundleTest
         TrackerBundle trackerBundle = new TrackerBundle()
             .setAtomicMode( AtomicMode.ALL )
             .setSkipValidation( true )
-            .addTrackedEntity( new TrackedEntityInstance() )
+            .addTrackedEntity( new TrackedEntity() )
             .addEnrollment( new Enrollment() )
             .addEvent( new Event() );
 
@@ -64,7 +64,7 @@ public class TrackerBundleTest
         TrackerBundle trackerBundle = new TrackerBundle()
             .setAtomicMode( AtomicMode.ALL )
             .setSkipValidation( true )
-            .addTrackedEntity( new TrackedEntityInstance(), new TrackedEntityInstance() )
+            .addTrackedEntity( new TrackedEntity(), new TrackedEntity() )
             .addEnrollment( new Enrollment(), new Enrollment() )
             .addEvent( new Event(), new Event() );
 

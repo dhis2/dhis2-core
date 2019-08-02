@@ -32,14 +32,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.user.User;
 
@@ -100,7 +100,7 @@ public class TrackerBundleParams
     /**
      * Tracked entities to import.
      */
-    private List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
+    private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
@@ -240,19 +240,19 @@ public class TrackerBundleParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntityInstance> getTrackedEntities()
+    public List<TrackedEntity> getTrackedEntities()
     {
         return trackedEntities;
     }
 
-    public TrackerBundleParams setTrackedEntities( List<TrackedEntityInstance> trackedEntities )
+    public TrackerBundleParams setTrackedEntities( List<TrackedEntity> trackedEntities )
     {
         this.trackedEntities = trackedEntities;
         return this;
     }
 
     @JsonSetter
-    public TrackerBundleParams setTrackedEntityInstances( List<TrackedEntityInstance> trackedEntities )
+    public TrackerBundleParams setTrackedEntityInstances( List<TrackedEntity> trackedEntities )
     {
         this.trackedEntities = trackedEntities;
         return this;

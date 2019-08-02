@@ -30,10 +30,10 @@ package org.hisp.dhis.tracker.converter;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -50,7 +50,7 @@ import java.util.List;
  */
 @Service
 public class TrackedEntityTrackerConverterService
-    implements TrackerConverterService<TrackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance>
+    implements TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance>
 {
     private final TrackerPreheatService trackerPreheatService;
     private final IdentifiableObjectManager manager;
@@ -64,9 +64,9 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public TrackedEntityInstance to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
+    public TrackedEntity to( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
-        List<TrackedEntityInstance> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
+        List<TrackedEntity> trackedEntities = to( Collections.singletonList( trackedEntityInstance ) );
 
         if ( trackedEntities.isEmpty() )
         {
@@ -78,9 +78,9 @@ public class TrackedEntityTrackerConverterService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstance> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
+    public List<TrackedEntity> to( List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances )
     {
-        List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
+        List<TrackedEntity> trackedEntities = new ArrayList<>();
 
         trackedEntityInstances.forEach( tei -> {
 
@@ -90,7 +90,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntityInstance trackedEntityInstance )
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackedEntity trackedEntityInstance )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( Collections.singletonList( trackedEntityInstance ) );
 
@@ -103,7 +103,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntityInstance trackedEntityInstance )
+    public org.hisp.dhis.trackedentity.TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity trackedEntityInstance )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstances = from( preheat, Collections.singletonList( trackedEntityInstance ) );
 
@@ -116,7 +116,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     @Override
-    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( List<TrackedEntityInstance> trackedEntityInstances )
+    public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( List<TrackedEntity> trackedEntityInstances )
     {
         return from( preheat( trackedEntityInstances ), trackedEntityInstances );
     }
@@ -124,13 +124,13 @@ public class TrackedEntityTrackerConverterService
     @Override
     @Transactional( readOnly = true )
     public List<org.hisp.dhis.trackedentity.TrackedEntityInstance> from( TrackerPreheat preheat,
-        List<TrackedEntityInstance> trackedEntityInstances )
+        List<TrackedEntity> trackedEntityInstances )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities = new ArrayList<>();
 
         trackedEntityInstances.forEach( te -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntity = preheat.getTrackedEntity(
-                TrackerIdentifier.UID, te.getTrackedEntityInstance() );
+                TrackerIdentifier.UID, te.getTrackedEntity() );
             OrganisationUnit organisationUnit = preheat.get( TrackerIdentifier.UID, OrganisationUnit.class, te.getOrgUnit() );
             TrackedEntityType trackedEntityType = preheat.get( TrackerIdentifier.UID, TrackedEntityType.class, te.getTrackedEntityType() );
 
@@ -139,7 +139,7 @@ public class TrackedEntityTrackerConverterService
                 Date now = new Date();
 
                 trackedEntity = new org.hisp.dhis.trackedentity.TrackedEntityInstance();
-                trackedEntity.setUid( te.getTrackedEntityInstance() );
+                trackedEntity.setUid( te.getTrackedEntity() );
                 trackedEntity.setCreated( now );
                 trackedEntity.setCreatedAtClient( now );
                 trackedEntity.setLastUpdated( now );
@@ -163,7 +163,7 @@ public class TrackedEntityTrackerConverterService
         return trackedEntities;
     }
 
-    private TrackerPreheat preheat( List<TrackedEntityInstance> trackedEntities )
+    private TrackerPreheat preheat( List<TrackedEntity> trackedEntities )
     {
         TrackerPreheatParams params = new TrackerPreheatParams()
             .setTrackedEntities( trackedEntities );

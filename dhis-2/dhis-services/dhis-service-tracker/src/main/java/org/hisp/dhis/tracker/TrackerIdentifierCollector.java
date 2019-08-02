@@ -30,15 +30,15 @@ package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.util.StringUtils;
 
@@ -76,7 +76,7 @@ public class TrackerIdentifierCollector
     }
 
     private static void collectTrackedEntities(
-        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<TrackedEntityInstance> trackedEntities )
+        Map<Class<?>, Set<String>> map, TrackerIdentifier identifier, List<TrackedEntity> trackedEntities )
     {
         if ( trackedEntities.isEmpty() )
         {
@@ -84,7 +84,7 @@ public class TrackerIdentifierCollector
         }
 
         trackedEntities.forEach( trackedEntity -> {
-            addIdentifier( map, TrackedEntityInstance.class, identifier, trackedEntity.getTrackedEntityInstance() );
+            addIdentifier( map, TrackedEntity.class, identifier, trackedEntity.getTrackedEntity() );
             addIdentifier( map, OrganisationUnit.class, identifier, trackedEntity.getOrgUnit() );
 
             collectEnrollments( map, identifier, trackedEntity.getEnrollments() );
@@ -101,7 +101,7 @@ public class TrackerIdentifierCollector
         }
 
         enrollments.forEach( enrollment -> {
-            addIdentifier( map, TrackedEntityInstance.class, identifier, enrollment.getTrackedEntityInstance() );
+            addIdentifier( map, TrackedEntity.class, identifier, enrollment.getTrackedEntityInstance() );
             addIdentifier( map, Enrollment.class, identifier, enrollment.getEnrollment() );
             addIdentifier( map, Program.class, identifier, enrollment.getProgram() );
             addIdentifier( map, OrganisationUnit.class, identifier, enrollment.getOrgUnit() );
@@ -120,7 +120,7 @@ public class TrackerIdentifierCollector
         }
 
         events.forEach( event -> {
-            addIdentifier( map, TrackedEntityInstance.class, identifier, event.getTrackedEntityInstance() );
+            addIdentifier( map, TrackedEntity.class, identifier, event.getTrackedEntityInstance() );
             addIdentifier( map, Enrollment.class, identifier, event.getEnrollment() );
             addIdentifier( map, Event.class, identifier, event.getEvent() );
             addIdentifier( map, Program.class, identifier, event.getProgram() );

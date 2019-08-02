@@ -34,9 +34,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.ProgramInstance;
@@ -52,6 +49,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -121,7 +121,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
             Set<String> identifiers = identifierMap.get( klass ); // assume UID for now, will be done according to IdSchemes
             List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), 20000 );
 
-            if ( klass.isAssignableFrom( TrackedEntityInstance.class ) )
+            if ( klass.isAssignableFrom( TrackedEntity.class ) )
             {
                 for ( List<String> ids : splitList )
                 {
@@ -182,8 +182,8 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService
     private void generateUid( TrackerPreheatParams params )
     {
         params.getTrackedEntities().stream()
-            .filter( o -> StringUtils.isEmpty( o.getTrackedEntityInstance() ) )
-            .forEach( o -> o.setTrackedEntityInstance( CodeGenerator.generateUid() ) );
+            .filter( o -> StringUtils.isEmpty( o.getTrackedEntity() ) )
+            .forEach( o -> o.setTrackedEntity( CodeGenerator.generateUid() ) );
 
         params.getEnrollments().stream()
             .filter( o -> StringUtils.isEmpty( o.getEnrollment() ) )

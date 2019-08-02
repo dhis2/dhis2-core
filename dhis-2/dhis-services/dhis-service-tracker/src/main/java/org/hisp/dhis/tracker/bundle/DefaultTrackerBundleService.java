@@ -33,15 +33,15 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
@@ -69,7 +69,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
     private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerBundleService.class );
 
     private final TrackerPreheatService trackerPreheatService;
-    private final TrackerConverterService<TrackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService;
+    private final TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService;
     private final TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
     private final TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
     private final CurrentUserService currentUserService;
@@ -88,7 +88,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
     public DefaultTrackerBundleService(
         TrackerPreheatService trackerPreheatService,
-        TrackerConverterService<TrackedEntityInstance, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService,
+        TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService,
         TrackerConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService,
         TrackerConverterService<Event, ProgramStageInstance> eventTrackerConverterService,
         CurrentUserService currentUserService,
@@ -155,15 +155,15 @@ public class DefaultTrackerBundleService implements TrackerBundleService
 
     private TrackerTypeReport handleTrackedEntities( Session session, TrackerBundle bundle )
     {
-        List<TrackedEntityInstance> trackedEntities = bundle.getTrackedEntities();
+        List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
 
-        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( TrackedEntityInstance.class, o, bundle ) ) );
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( TrackedEntity.class, o, bundle ) ) );
         session.flush();
 
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
-            TrackedEntityInstance trackedEntity = trackedEntities.get( idx );
+            TrackedEntity trackedEntity = trackedEntities.get( idx );
             org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService.from(
                 bundle.getPreheat(), trackedEntity );
 
@@ -191,7 +191,7 @@ public class DefaultTrackerBundleService implements TrackerBundleService
         }
 
         session.flush();
-        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntityInstance.class, o, bundle ) ) );
+        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
     }

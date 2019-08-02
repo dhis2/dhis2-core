@@ -28,15 +28,15 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
@@ -97,7 +97,7 @@ public class TrackerBundle
     /**
      * Tracked entities to import.
      */
-    private List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
+    private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
@@ -219,18 +219,18 @@ public class TrackerBundle
         return this;
     }
 
-    public List<TrackedEntityInstance> getTrackedEntities()
+    public List<TrackedEntity> getTrackedEntities()
     {
         return trackedEntities;
     }
 
-    public TrackerBundle setTrackedEntities( List<TrackedEntityInstance> trackedEntities )
+    public TrackerBundle setTrackedEntities( List<TrackedEntity> trackedEntities )
     {
         this.trackedEntities = trackedEntities;
         return this;
     }
 
-    public TrackerBundle addTrackedEntity( TrackedEntityInstance... trackedEntity )
+    public TrackerBundle addTrackedEntity( TrackedEntity... trackedEntity )
     {
         trackedEntities.addAll( Arrays.asList( trackedEntity ) );
         return this;

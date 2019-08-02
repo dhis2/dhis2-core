@@ -32,11 +32,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 import java.util.ArrayList;
@@ -102,7 +102,7 @@ public class TrackerImportParams
     /**
      * Tracked entities to import.
      */
-    private List<TrackedEntityInstance> trackedEntities = new ArrayList<>();
+    private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     /**
      * Enrollments to import.
@@ -253,12 +253,12 @@ public class TrackerImportParams
         return this;
     }
 
-    public List<TrackedEntityInstance> getTrackedEntities()
+    public List<TrackedEntity> getTrackedEntities()
     {
         return trackedEntities;
     }
 
-    public TrackerImportParams setTrackedEntities( List<TrackedEntityInstance> trackedEntities )
+    public TrackerImportParams setTrackedEntities( List<TrackedEntity> trackedEntities )
     {
         this.trackedEntities = trackedEntities;
         return this;

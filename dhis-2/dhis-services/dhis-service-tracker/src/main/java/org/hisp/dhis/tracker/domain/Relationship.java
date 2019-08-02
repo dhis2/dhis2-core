@@ -1,4 +1,4 @@
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.tracker.domain;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -30,135 +30,141 @@ package org.hisp.dhis.tracker.preheat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.user.User;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Stian Sandvold
  */
-public class TrackerPreheatParams
+@JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
+public class Relationship
 {
-    /**
-     * User uid to use for import job.
-     */
-    private String userId;
+    private String relationshipType;
 
-    /**
-     * User to use for import job.
-     */
+    private String relationshipName;
 
-    private User user;
+    private String relationship;
 
-    /**
-     * What identifiers to match on.
-     */
-    private TrackerIdentifier identifier = TrackerIdentifier.UID;
+    private boolean bidirectional;
 
-    /**
-     * Tracked entities to import.
-     */
-    private List<TrackedEntity> trackedEntities = new ArrayList<>();
+    private RelationshipItem from;
 
-    /**
-     * Enrollments to import.
-     */
-    private List<Enrollment> enrollments = new ArrayList<>();
+    private RelationshipItem to;
 
-    /**
-     * Events to import.
-     */
-    private List<Event> events = new ArrayList<>();
+    private String created;
 
-    public TrackerPreheatParams()
+    private String lastUpdated;
+
+    public Relationship()
     {
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUserId()
+    public String getRelationshipType()
     {
-        return userId;
+        return relationshipType;
     }
 
-    public TrackerPreheatParams setUserId( String userId )
+    public void setRelationshipType( String relationshipType )
     {
-        this.userId = userId;
-        return this;
-    }
-
-    public User getUser()
-    {
-        return user;
-    }
-
-    public TrackerPreheatParams setUser( User user )
-    {
-        this.user = user;
-        return this;
+        this.relationshipType = relationshipType;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUsername()
+    public String getRelationship()
     {
-        return user != null ? user.getUsername() : "system-process";
+        return relationship;
+    }
+
+    public void setRelationship( String relationship )
+    {
+        this.relationship = relationship;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackerIdentifier getIdentifier()
+    public RelationshipItem getFrom()
     {
-        return identifier;
+        return from;
     }
 
-    public void setIdentifier( TrackerIdentifier identifier )
+    public void setFrom( RelationshipItem from )
     {
-        this.identifier = identifier;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntity> getTrackedEntities()
-    {
-        return trackedEntities;
-    }
-
-    public TrackerPreheatParams setTrackedEntities( List<TrackedEntity> trackedEntities )
-    {
-        this.trackedEntities = trackedEntities;
-        return this;
+        this.from = from;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Enrollment> getEnrollments()
+    public RelationshipItem getTo()
     {
-        return enrollments;
+        return to;
     }
 
-    public TrackerPreheatParams setEnrollments( List<Enrollment> enrollments )
+    public void setTo( RelationshipItem to )
     {
-        this.enrollments = enrollments;
-        return this;
+        this.to = to;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<Event> getEvents()
+    public String getRelationshipName()
     {
-        return events;
+        return relationshipName;
     }
 
-    public TrackerPreheatParams setEvents( List<Event> events )
+    public void setRelationshipName( String relationshipName )
     {
-        this.events = events;
-        return this;
+        this.relationshipName = relationshipName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getCreated()
+    {
+        return created;
+    }
+
+    public void setCreated( String created )
+    {
+        this.created = created;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public String getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( String lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isBidirectional()
+    {
+        return bidirectional;
+    }
+
+    public void setBidirectional( boolean bidirectional )
+    {
+        this.bidirectional = bidirectional;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "Relationship{" +
+            "relationshipType='" + relationshipType + '\'' +
+            ", relationshipName='" + relationshipName + '\'' +
+            ", relationship='" + relationship + '\'' +
+            ", from=" + from +
+            ", to=" + to +
+            '}';
     }
 }
