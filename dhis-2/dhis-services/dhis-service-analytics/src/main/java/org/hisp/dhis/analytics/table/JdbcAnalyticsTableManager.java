@@ -129,7 +129,6 @@ public class JdbcAnalyticsTableManager
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "level" ), INTEGER, "ous.level" ) );
 
-
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------

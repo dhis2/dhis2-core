@@ -229,7 +229,7 @@ public class JdbcEventAnalyticsTableManager
 
         columns.addAll( addOrganisationUnitLevels() );
 
-        columns.addAll( addOrganizationUnitGroupSets() );
+        columns.addAll( addOrganisationUnitGroupSets() );
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
