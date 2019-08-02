@@ -139,7 +139,7 @@ public class AnalyticsSqlUtils
     {
         if ( StringUtils.isEmpty( str ) )
         {
-            return "";
+            return StringUtils.EMPTY;
         }
 
         int open = 0;
@@ -157,7 +157,6 @@ public class AnalyticsSqlUtils
                     open--;
                 }
             }
-
         }
 
         return StringUtils.repeat( ")", open );
