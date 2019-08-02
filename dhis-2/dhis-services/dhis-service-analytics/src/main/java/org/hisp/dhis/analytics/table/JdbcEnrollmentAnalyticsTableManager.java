@@ -153,7 +153,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
         columns.addAll( addOrganisationUnitLevels() );
-        columns.addAll( addOrganizationUnitGroupSets() );
+        columns.addAll( addOrganisationUnitGroupSets() );
         columns.addAll( addPeriodColumns( "dps" ) );
 
         columns.addAll( addTrackedEntityAttributes( program ) );
