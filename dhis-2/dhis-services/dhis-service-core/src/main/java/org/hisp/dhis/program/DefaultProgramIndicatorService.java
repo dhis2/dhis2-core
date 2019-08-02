@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.OperatorLogicalNot;
 import org.hisp.dhis.commons.sqlfunc.RelationshipCountSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.ZeroIfNegativeSqlFunction;
@@ -78,6 +79,7 @@ public class DefaultProgramIndicatorService
         .put( ZeroPositiveValueCountFunction.KEY, new ZeroPositiveValueCountFunction() )
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() )
+        .put( OperatorLogicalNot.KEY, new OperatorLogicalNot() )
         .put( RelationshipCountSqlFunction.KEY, new RelationshipCountSqlFunction() ).build();
     
     private static final Map<String, ProgramIndicatorFunction> PI_FUNC_MAP = ImmutableMap.<String, ProgramIndicatorFunction> builder()
@@ -323,6 +325,7 @@ public class DefaultProgramIndicatorService
         {
             String func = trim( matcher.group( "func" ) );
             String arguments = trim( matcher.group( "args" ) );
+            String logicalNot = trim( matcher.group( 1 ) );
 
             if ( func != null && arguments != null )
             {
@@ -358,6 +361,20 @@ public class DefaultProgramIndicatorService
                 }
 
                 matcher.appendReplacement( buffer, result );
+            }
+
+            if ( logicalNot != null )
+            {
+                SqlFunction function = SQL_FUNC_MAP.get( logicalNot );
+
+                if ( function == null )
+                {
+                    throw new IllegalStateException( "Character not recognized: " + logicalNot );
+                }
+
+                String result = function.evaluate( null );
+
+                buffer.insert( 0, result );
             }
         }
 
