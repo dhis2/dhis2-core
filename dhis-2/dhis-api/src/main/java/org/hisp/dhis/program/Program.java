@@ -266,7 +266,7 @@ public class Program
     public Set<DataElement> getDataElements()
     {
         return programStages.stream()
-            .flatMap( ps -> ps.getAllDataElements().stream() )
+            .flatMap( ps -> ps.getDataElements().stream() )
             .collect( Collectors.toSet() );
     }
 
