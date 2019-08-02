@@ -51,12 +51,14 @@ RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests
 ##########
 FROM tomcat:8.5.34-jre8-alpine as serve
 
+ENV DHIS2_HOME=/DHIS2_home
+
 COPY docker-entrypoint.sh /usr/local/bin/
 
 RUN rm -rf /usr/local/tomcat/webapps/* && \
     mkdir /usr/local/tomcat/webapps/ROOT && \
     chmod +rx /usr/local/bin/docker-entrypoint.sh && \
-    mkdir /DHIS2_home && \
+    mkdir $DHIS2_HOME && \
     addgroup -S tomcat && \
     addgroup root tomcat && \
     adduser -S -D -G tomcat tomcat
@@ -68,7 +70,6 @@ RUN apk add --update --no-cache \
 COPY server.xml /usr/local/tomcat/conf
 COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
-ENV DHIS2_HOME=/DHIS2_home
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 CMD ["catalina.sh", "run"]
