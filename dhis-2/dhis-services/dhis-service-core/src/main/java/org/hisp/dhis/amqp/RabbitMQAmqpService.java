@@ -44,6 +44,7 @@ import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -67,6 +68,7 @@ public class RabbitMQAmqpService implements AmqpService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean isEnabled()
     {
         if ( enabled == null )

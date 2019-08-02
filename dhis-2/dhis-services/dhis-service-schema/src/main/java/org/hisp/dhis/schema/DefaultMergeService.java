@@ -31,9 +31,7 @@ package org.hisp.dhis.schema;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -81,6 +79,7 @@ public class DefaultMergeService implements MergeService
             {
                 Collection<T> sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
                 Collection<T> targetObject = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
+
 
                 if ( sourceObject == null )
                 {

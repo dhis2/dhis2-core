@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata;
 import com.google.api.client.util.Lists;
 import com.google.common.base.Enums;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.amqp.AmqpService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -94,6 +95,9 @@ public class DefaultMetadataImportService implements MetadataImportService
     @Autowired
     private Notifier notifier;
 
+    @Autowired
+    private AmqpService amqpService;
+
     @Override
     public ImportReport importMetadata( MetadataImportParams params )
     {
@@ -122,6 +126,9 @@ public class DefaultMetadataImportService implements MetadataImportService
         }
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
+
+        bundleParams.setAmqpServiceEnabled( amqpService.isEnabled() );
+
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
         prepareBundle( bundle, bundleParams );

@@ -82,6 +82,8 @@ public class ObjectBundleParams
 
     private boolean skipValidation;
 
+    private boolean amqpServiceEnabled;
+
     private JobConfiguration jobId;
 
     public ObjectBundleParams()
@@ -251,6 +253,17 @@ public class ObjectBundleParams
     public ObjectBundleParams setJobId( JobConfiguration jobId )
     {
         this.jobId = jobId;
+        return this;
+    }
+
+    public boolean isAmqpServiceEnabled()
+    {
+        return amqpServiceEnabled;
+    }
+
+    public ObjectBundleParams setAmqpServiceEnabled( boolean amqpServiceEnabled )
+    {
+        this.amqpServiceEnabled = amqpServiceEnabled;
         return this;
     }
 

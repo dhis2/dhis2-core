@@ -273,7 +273,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.CREATE );
 
-            if ( amqpService.isEnabled() )
+            if ( bundle.isAmqpServiceEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( object ) );
                 amqpService.publish( audit );
@@ -390,7 +390,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.UPDATE );
 
-            if ( amqpService.isEnabled() )
+            if ( bundle.isAmqpServiceEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( patch ) );
                 amqpService.publish( audit );
@@ -482,7 +482,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             audit.setCode( object.getCode() );
             audit.setType( AuditType.DELETE );
 
-            if ( amqpService.isEnabled() )
+            if ( bundle.isAmqpServiceEnabled() )
             {
                 audit.setValue( renderService.toJsonAsString( object ) );
                 amqpService.publish( audit );

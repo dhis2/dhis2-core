@@ -128,6 +128,8 @@ public class ObjectBundle implements ObjectIndexProvider
      */
     private final boolean skipValidation;
 
+    private final boolean amqpServiceEnabled;
+
     /**
      * Job id to use for threaded imports.
      */
@@ -180,6 +182,7 @@ public class ObjectBundle implements ObjectIndexProvider
         this.skipValidation = params.isSkipValidation();
         this.jobId = params.getJobId();
         this.preheat = preheat;
+        this.amqpServiceEnabled = params.isAmqpServiceEnabled();
 
         addObject( objectMap );
     }
@@ -272,6 +275,11 @@ public class ObjectBundle implements ObjectIndexProvider
     public ObjectBundleStatus getObjectBundleStatus()
     {
         return objectBundleStatus;
+    }
+
+    public boolean isAmqpServiceEnabled()
+    {
+        return amqpServiceEnabled;
     }
 
     public void setObjectBundleStatus( ObjectBundleStatus objectBundleStatus )
