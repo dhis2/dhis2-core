@@ -40,15 +40,11 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationR
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -78,13 +74,7 @@ public class TrackerBundleServiceTest
     private UserService _userService;
 
     @Autowired
-    private TrackerPreheatService trackerPreheatService;
-
-    @Autowired
     private TrackerBundleService trackerBundleService;
-
-    @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
     private IdentifiableObjectManager manager;
