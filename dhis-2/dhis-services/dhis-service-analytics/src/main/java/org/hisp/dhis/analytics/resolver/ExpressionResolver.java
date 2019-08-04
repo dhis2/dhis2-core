@@ -1,5 +1,3 @@
-package org.hisp.dhis.category;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,29 +26,14 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import java.util.List;
-import java.util.Set;
+package org.hisp.dhis.analytics.resolver;
 
 /**
- * @author Lars Helge Overland
+ * A component that can analyze and resolve analytics expressions so that they
+ *
+ * @author Luciano Fiandesio
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+public interface ExpressionResolver
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
-    
-    void updateNames();
-
-    /**
-     * Fetch all {@see CategoryOptionCombo} from a given {@see CategoryOptionGroup} uid.
-     *
-     * A {@see CategoryOptionGroup} is a collection of {@see CategoryOption}. Therefore, this method finds all
-     * {@see CategoryOptionCombo} for all the members of the given {@see CategoryOptionGroup}
-     *
-     * @param groupId a {@see CategoryOptionGroup} uid
-     * @return a List of {@see CategoryOptionCombo} or empty List
-     */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId );
+    String resolve( String expression );
 }
