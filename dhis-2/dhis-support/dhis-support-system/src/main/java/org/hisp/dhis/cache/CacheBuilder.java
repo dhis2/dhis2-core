@@ -63,18 +63,24 @@ public class CacheBuilder<V>
     private V defaultValue;
     
     private boolean expiryEnabled;
+    
+    private boolean forceInMemory;
+    
+    private boolean disabled;
 
     public CacheBuilder( RedisTemplate<String, ?> redisTemplate, DhisConfigurationProvider configurationProvider )
     {
         this.configurationProvider = configurationProvider;
         this.redisTemplate = redisTemplate;
-        //Applying sensible defaults
+        //Applying sensible defaults explicitly
         this.maximumSize = -1;
         this.region = "default";
         this.refreshExpiryOnAccess = false;
         this.expiryInSeconds = 0;
         this.defaultValue = null;
         this.expiryEnabled = false;
+        this.forceInMemory = false;
+        this.disabled = false;
     }
 
     /**
@@ -167,7 +173,30 @@ public class CacheBuilder<V>
         this.defaultValue = defaultValue;
         return this;
     }
+    
+    /**
+     * Configure the cache instance to use local inmemory storage even in clustered or standalone environment.
+     * Ideally used in scenarios where stale data is not critical and faster lookup is preferred.
+     * 
+     * @return The builder instance.
+     */
+    public CacheBuilder<V> forceInMemory()
+    {
+        this.forceInMemory = true;
+        return this;
+    }
 
+    /**
+     * Configure the cache instance to disable caching.
+     * 
+     * @return The builder instance.
+     */
+    public CacheBuilder<V> disabled()
+    {
+        this.disabled = true;
+        return this;
+    }
+    
     /**
      * Creates and returns a cacheInstance based on the system configuration and
      * the cache builder parameters. If {@code maximumSize} is 0 then a
@@ -187,10 +216,15 @@ public class CacheBuilder<V>
      */
     public Cache<V> build()
     {
-        if ( maximumSize == 0 )
+        if ( maximumSize == 0 || disabled )
         {
             log.info( String.format( "NoOp Cache instance created for region:'%s'", region ) );
             return new NoOpCache<V>( this );
+        }
+        else if ( forceInMemory )
+        {
+            log.info( String.format( "Local Cache (forced) instance created for region:'%s'", region ) );
+            return new LocalCache<V>( this );
         }
         else if ( configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ) )
         {
@@ -223,7 +257,7 @@ public class CacheBuilder<V>
     {
         return expiryEnabled;
     }
-
+    
     public long getExpiryInSeconds()
     {
         return expiryInSeconds;

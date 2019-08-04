@@ -173,4 +173,10 @@ public class RedisCache<V> implements Cache<V>
     {
         // No operation
     }
+
+    @Override
+    public CacheType getCacheType()
+    {
+        return CacheType.REDIS;
+    }
 }

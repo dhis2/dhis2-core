@@ -130,4 +130,10 @@ public class LocalCache<V> implements Cache<V>
     {
         caffeineCache.invalidateAll();
     }
+
+    @Override
+    public CacheType getCacheType()
+    {
+        return CacheType.IN_MEMORY;
+    }
 }
