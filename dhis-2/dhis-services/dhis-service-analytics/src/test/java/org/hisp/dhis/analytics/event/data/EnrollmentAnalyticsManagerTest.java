@@ -157,12 +157,12 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()  + " where analytics_event_"
-                + programA.getUid()  + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-                + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()  + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
-                + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
-                + "and ps = '" + programStage.getUid() + "' and lower(" + subSelect + ") > '10' limit 10001";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
+            + "and ps = '" + programStage.getUid() + "' and lower(" + subSelect + ") > '10' limit 10001";
 
         assertSql( expected, sql.getValue() );
     }
@@ -177,12 +177,12 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()  + " where analytics_event_"
-                + programA.getUid()  + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
-                + programStage.getUid() + "' order by executiondate desc limit 1 )";
+            + programA.getUid()  + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
+            + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
-                + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
-                + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
+            + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
+            + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
 
         assertSql( expected, sql.getValue() );
     }

@@ -136,7 +136,7 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
 
         subject.populateTable( params,
-                PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
