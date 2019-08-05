@@ -42,7 +42,9 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -57,6 +59,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Lars Helge Overland
@@ -86,11 +90,14 @@ public class UserSettingController
     public Map<String, Serializable> getAllUserSettings(
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId
+        @RequestParam( value = "userId", required = false ) String userId,
+        HttpServletResponse response
     )
         throws WebMessageException
     {
         User user = getUser( userId, username );
+
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return userSettingService.getUserSettingsWithFallbackByUserAsMap( user, USER_SETTING_NAMES, useFallback );
     }
@@ -100,7 +107,7 @@ public class UserSettingController
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId
+        @RequestParam( value = "userId", required = false ) String userId, HttpServletResponse response
     )
         throws WebMessageException
     {
@@ -110,6 +117,8 @@ public class UserSettingController
         Serializable value = userSettingService
             .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey.getName() ), useFallback )
             .get( key );
+
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return String.valueOf( value );
     }
@@ -177,7 +186,7 @@ public class UserSettingController
      * Tries to find a user based on the uid or username. If none is supplied, currentUser will be returned.
      * If uid or username is found, it will also make sure the current user has access to the user.
      *
-     * @param uid      the user uid
+     * @param uid the user uid
      * @param username the user username
      * @return the user found with uid or username, or current user if no uid or username was specified
      * @throws WebMessageException throws an exception if user was not found, or current user don't have access

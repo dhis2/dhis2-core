@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteSource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
@@ -106,10 +105,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -139,7 +136,7 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
-    
+
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
 
@@ -169,7 +166,7 @@ public class TrackedEntityInstanceController
 
     @Autowired
     private SchedulingManager schedulingManager;
-    
+
     @Autowired
     private ProgramService programService;
 
@@ -286,7 +283,7 @@ public class TrackedEntityInstanceController
         {
             params.setIncludeEvents( true );
         }
-        
+
         if ( joined.contains( "programOwners" ) )
         {
             params.setIncludeProgramOwners( true );
@@ -629,7 +626,7 @@ public class TrackedEntityInstanceController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
-    public @ResponseBody RootNode getTrackedEntityInstanceById( 
+    public @ResponseBody RootNode getTrackedEntityInstanceById(
     		@PathVariable( "id" ) String pvId,
     		@RequestParam( required = false ) String program ) throws WebMessageException, NotFoundException
     {
@@ -747,8 +744,8 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
-    public void updateTrackedEntityInstanceXml( 
-        @PathVariable String id, 
+    public void updateTrackedEntityInstanceXml(
+        @PathVariable String id,
         @RequestParam( required = false ) String program,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -761,8 +758,8 @@ public class TrackedEntityInstanceController
     }
 
     @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void updateTrackedEntityInstanceJson( 
-        @PathVariable String id, 
+    public void updateTrackedEntityInstanceJson(
+        @PathVariable String id,
         @RequestParam( required = false ) String program,
         ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
         throws IOException
@@ -839,9 +836,9 @@ public class TrackedEntityInstanceController
         {
             throw new NotFoundException( "TrackedEntityInstance", id );
         }
-        
+
         User user = currentUserService.getCurrentUser();
-        
+
         if ( pr != null )
         {
             Program program = programService.getProgram( pr );
@@ -864,7 +861,7 @@ public class TrackedEntityInstanceController
                 throw new WebMessageException(
                     WebMessageUtils.unathorized( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED ) );
             }
-            
+
             if (trackedEntityInstanceParams.isIncludeProgramOwners())
             {
                 List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream().filter( tei-> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );

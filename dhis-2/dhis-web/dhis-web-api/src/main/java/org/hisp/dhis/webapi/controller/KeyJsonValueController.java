@@ -55,6 +55,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Date;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
 /**
  * @author Stian Sandvold
  */
@@ -83,6 +85,8 @@ public class KeyJsonValueController
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
         throws IOException
     {
+        setNoStore( response );
+
         return keyJsonValueService.getNamespaces();
     }
 
@@ -98,6 +102,8 @@ public class KeyJsonValueController
             throw new WebMessageException(
                 WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
         }
+
+        setNoStore( response );
 
         return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated );
     }
