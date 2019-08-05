@@ -39,7 +39,7 @@ import org.junit.Test;
 public class AnalyticsSqlUtilsTest
 {
     @Test
-    public void testAddClosingParentheses()
+    public void testGetClosingParentheses()
     {
         assertThat( AnalyticsSqlUtils.getClosingParentheses( null ), is( "" ) );
         assertThat( AnalyticsSqlUtils.getClosingParentheses( "" ), is( "" ) );
