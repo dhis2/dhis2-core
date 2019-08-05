@@ -28,10 +28,10 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -72,9 +72,7 @@ class DataApprovalPermissionsEvaluator
     {
     }
 
-    private static Cache<String, DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE = Caffeine.newBuilder()
-        .expireAfterAccess( 10, TimeUnit.MINUTES ).initialCapacity( 10000 )
-        .maximumSize( 50000 ).build();
+    private static Cache<DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE;
 
     /**
      * Clears the user approval level cache, for unit testing when the same user
@@ -97,9 +95,18 @@ class DataApprovalPermissionsEvaluator
      */
     public static DataApprovalPermissionsEvaluator makePermissionsEvaluator( CurrentUserService currentUserService,
             OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
-            DataApprovalLevelService dataApprovalLevelService )
+            DataApprovalLevelService dataApprovalLevelService, CacheProvider cacheProvider )
     {
         DataApprovalPermissionsEvaluator ev = new DataApprovalPermissionsEvaluator();
+        
+        if ( USER_APPROVAL_LEVEL_CACHE == null )
+        {
+            USER_APPROVAL_LEVEL_CACHE = cacheProvider.newCacheBuilder( DataApprovalLevel.class )
+                .expireAfterAccess( 10, TimeUnit.MINUTES )
+                .forceInMemory()
+                .withMaximumSize( 50000 )
+                .build();
+        }
 
         ev.organisationUnitService = organisationUnitService;
         ev.dataApprovalLevelService = dataApprovalLevelService;
@@ -237,7 +244,7 @@ class DataApprovalPermissionsEvaluator
         userApprovalLevel = USER_APPROVAL_LEVEL_CACHE.get( user.getId() + "-" + organisationUnitUid,
             c -> dataApprovalLevelService.getUserApprovalLevel( user,
                 organisationUnitService.getOrganisationUnit( organisationUnitUid ),
-                dataApprovalWorkflow.getSortedLevels() ) );
+                dataApprovalWorkflow.getSortedLevels() ) ).orElse( null );
 
         return userApprovalLevel;
     }

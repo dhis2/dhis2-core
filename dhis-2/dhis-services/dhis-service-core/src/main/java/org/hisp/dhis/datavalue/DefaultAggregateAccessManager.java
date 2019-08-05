@@ -35,9 +35,9 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -56,16 +56,19 @@ import java.util.concurrent.TimeUnit;
 public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
-    private static Cache<String, List<String>> CAN_DATA_WRITE_COC_CACHE;
+    private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
 
     private final AclService aclService;
+    
+    private final CacheProvider cacheProvider;
 
     @Autowired
     private Environment env;
 
-    public DefaultAggregateAccessManager( AclService aclService )
+    public DefaultAggregateAccessManager( AclService aclService, CacheProvider cacheProvider )
     {
         this.aclService = aclService;
+        this.cacheProvider = cacheProvider;
     }
 
     // ---------------------------------------------------------------------
@@ -75,10 +78,11 @@ public class DefaultAggregateAccessManager
     @PostConstruct
     public void init()
     {
-        CAN_DATA_WRITE_COC_CACHE = Caffeine.newBuilder()
+        CAN_DATA_WRITE_COC_CACHE = cacheProvider.newCacheBuilderForList( String.class )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     @Override
@@ -181,7 +185,7 @@ public class DefaultAggregateAccessManager
     {
         String cacheKey = user.getUid() + "-" + optionCombo.getUid();
 
-        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) );
+        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) ).orElse( null );
     }
 
     @Override

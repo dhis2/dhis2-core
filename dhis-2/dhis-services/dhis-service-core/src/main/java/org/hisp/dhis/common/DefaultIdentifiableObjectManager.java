@@ -28,8 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -38,6 +36,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -85,7 +85,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
+    private static Cache<IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -98,6 +98,8 @@ public class DefaultIdentifiableObjectManager
     protected final SchemaService schemaService;
 
     private final Environment env;
+    
+    private final CacheProvider cacheProvider;
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
@@ -108,7 +110,7 @@ public class DefaultIdentifiableObjectManager
         Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
         Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
         SessionFactory sessionFactory, CurrentUserService currentUserService, SchemaService schemaService,
-        Environment env )
+        Environment env, CacheProvider cacheProvider )
     {
         checkNotNull( identifiableObjectStores );
         checkNotNull( dimensionalObjectStores );
@@ -116,6 +118,7 @@ public class DefaultIdentifiableObjectManager
         checkNotNull( currentUserService );
         checkNotNull( schemaService );
         checkNotNull( env );
+        checkNotNull( cacheProvider );
 
         this.identifiableObjectStores = identifiableObjectStores;
         this.dimensionalObjectStores = dimensionalObjectStores;
@@ -123,15 +126,16 @@ public class DefaultIdentifiableObjectManager
         this.currentUserService = currentUserService;
         this.schemaService = schemaService;
         this.env = env;
+        this.cacheProvider = cacheProvider;
     }
 
     @PostConstruct
     public void init()
     {
-        DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
+        DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
             .expireAfterAccess( 2, TimeUnit.HOURS )
-            .initialCapacity( 4 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
             .build();
     }
 
@@ -1072,10 +1076,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> getByName( Category.class, "default" ) ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> getByName( CategoryCombo.class, "default" ) ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> getByName( CategoryOption.class, "default" ) ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getByName( CategoryOptionCombo.class, "default" ) ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> getByName( Category.class, "default" ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
             .build();
     }
 

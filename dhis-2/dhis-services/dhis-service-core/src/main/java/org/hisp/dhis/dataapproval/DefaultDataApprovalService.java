@@ -39,6 +39,7 @@ import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
@@ -93,12 +94,14 @@ public class DefaultDataApprovalService
     private final PeriodService periodService;
 
     private final SystemSettingManager systemSettingManager;
+    
+    private final CacheProvider cacheProvider;
 
     public DefaultDataApprovalService( DataApprovalStore dataApprovalStore,
         DataApprovalAuditStore dataApprovalAuditStore, DataApprovalWorkflowStore workflowStore,
         DataApprovalLevelService dataApprovalLevelService, CurrentUserService currentUserService,
         OrganisationUnitService organisationUnitService, PeriodService periodService,
-        SystemSettingManager systemSettingManager )
+        SystemSettingManager systemSettingManager, CacheProvider cacheProvider )
     {
         checkNotNull( dataApprovalStore );
         checkNotNull( dataApprovalAuditStore );
@@ -108,6 +111,7 @@ public class DefaultDataApprovalService
         checkNotNull( organisationUnitService );
         checkNotNull( periodService );
         checkNotNull( systemSettingManager );
+        checkNotNull( cacheProvider );
 
         this.dataApprovalStore = dataApprovalStore;
         this.dataApprovalAuditStore = dataApprovalAuditStore;
@@ -117,6 +121,7 @@ public class DefaultDataApprovalService
         this.organisationUnitService = organisationUnitService;
         this.periodService = periodService;
         this.systemSettingManager = systemSettingManager;
+        this.cacheProvider = cacheProvider;
     }
 
     /**
@@ -833,6 +838,6 @@ public class DefaultDataApprovalService
     private DataApprovalPermissionsEvaluator makePermissionsEvaluator()
     {
         return DataApprovalPermissionsEvaluator.makePermissionsEvaluator(
-            currentUserService, organisationUnitService, systemSettingManager, dataApprovalLevelService );
+            currentUserService, organisationUnitService, systemSettingManager, dataApprovalLevelService, cacheProvider );
     }
 }
