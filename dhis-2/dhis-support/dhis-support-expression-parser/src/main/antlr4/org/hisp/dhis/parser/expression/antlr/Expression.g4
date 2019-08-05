@@ -57,6 +57,7 @@ item // (alphabtical)
     |   it='C{' uid0=UID '}'
     |   it='D{' uid0=UID '.' uid1=UID '}'
     |   it='I{' uid0=UID '}'
+    |   it='N{' uid0=UID '}' // Indicator
     |   it='OUG{' uid0=UID '}'
     |   it='R{' uid0=UID '.' REPORTING_RATE_TYPE '}'
     |   it='[days]'
@@ -191,6 +192,7 @@ A_BRACE     : 'A{';
 C_BRACE     : 'C{';
 D_BRACE     : 'D{';
 I_BRACE     : 'I{';
+N_BRACE     : 'N{';
 OUG_BRACE   : 'OUG{';
 R_BRACE     : 'R{';
 DAYS        : '[days]';

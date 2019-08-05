@@ -37,7 +37,6 @@ import org.hisp.dhis.user.User;
 /**
  * Service providing support for retrieving incoming SMSes.
  */
-
 public interface IncomingSmsService
 {
     String ID = IncomingSmsService.class.getName();
@@ -61,7 +60,7 @@ public interface IncomingSmsService
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword );
 
     List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max );
-    
+
     List<IncomingSms> getAllUnparsedMessages( );
 
 }

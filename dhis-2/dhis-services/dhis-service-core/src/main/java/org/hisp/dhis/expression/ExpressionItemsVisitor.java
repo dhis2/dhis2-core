@@ -182,6 +182,11 @@ public class ExpressionItemsVisitor
                     new DimensionalItemId( PROGRAM_INDICATOR,
                         ctx.uid0.getText() ) );
 
+            case N_BRACE:
+                return getExpressionItem( ctx.getText(),
+                        new DimensionalItemId( INDICATOR,
+                                ctx.uid0.getText() ) );
+
             case OUG_BRACE:
                 return getOrgUnitGroupCount( ctx );
 
