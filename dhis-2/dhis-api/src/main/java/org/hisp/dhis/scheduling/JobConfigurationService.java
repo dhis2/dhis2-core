@@ -113,4 +113,10 @@ public interface JobConfigurationService
      * @return map with parameters classes
      */
     Map<String, Map<String, Property>> getJobParametersSchema();
+
+    /**
+     * Update the state of the jobConfiguration.
+     * @param jobConfiguration
+     */
+    void refreshScheduling( JobConfiguration jobConfiguration );
 }
