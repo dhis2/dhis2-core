@@ -36,6 +36,7 @@ import org.hisp.dhis.commons.sqlfunc.ConditionalSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.DaysBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.MonthsBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.OneIfZeroOrPositiveSqlFunction;
+import org.hisp.dhis.commons.sqlfunc.OperatorLogicalNot;
 import org.hisp.dhis.commons.sqlfunc.SqlFunction;
 import org.hisp.dhis.commons.sqlfunc.WeeksBetweenSqlFunction;
 import org.hisp.dhis.commons.sqlfunc.YearsBetweenSqlFunction;
@@ -84,6 +85,7 @@ public class DefaultProgramIndicatorService
         .put( YearsBetweenSqlFunction.KEY, new YearsBetweenSqlFunction() )
         .put( MinutesBetweenSqlFunction.KEY, new MinutesBetweenSqlFunction() )
         .put( ConditionalSqlFunction.KEY, new ConditionalSqlFunction() )
+        .put( OperatorLogicalNot.KEY, new OperatorLogicalNot() )
         .put( HasValueSqlFunction.KEY, new HasValueSqlFunction() ).build();
 
     private static final Map<String, String> VARIABLE_SAMPLE_VALUE_MAP = ImmutableMap.<String, String> builder()
@@ -314,6 +316,7 @@ public class DefaultProgramIndicatorService
         {
             String func = trim( matcher.group( "func" ) );
             String arguments = trim( matcher.group( "args" ) );
+            String logicalNot = trim( matcher.group( 1 ) );
 
             if ( func != null && arguments != null )
             {
@@ -336,6 +339,20 @@ public class DefaultProgramIndicatorService
                 String result = function.evaluate( args );
 
                 matcher.appendReplacement( buffer, result );
+            }
+
+            if ( logicalNot != null )
+            {
+                SqlFunction function = SQL_FUNC_MAP.get( logicalNot );
+
+                if ( function == null )
+                {
+                    throw new IllegalStateException( "Character not recognized: " + logicalNot );
+                }
+
+                String result = function.evaluate( null );
+
+                buffer.insert( 0, result );
             }
         }
 
