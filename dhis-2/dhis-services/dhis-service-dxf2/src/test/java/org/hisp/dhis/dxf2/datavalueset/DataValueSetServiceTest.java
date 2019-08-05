@@ -37,12 +37,15 @@ import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.category.*;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
@@ -73,6 +76,9 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -85,8 +91,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -384,17 +388,7 @@ public class DataValueSetServiceTest
         assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
         assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
 
-        CompleteDataSetRegistration registration = null;
-        try
-        {
-
-            registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
-        }
-        catch ( Exception ex )
-        {
-            System.out.println( DebugUtils.getStackTrace( ex ) );
-        }
-
+        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
 
         assertNotNull( registration );
         assertEquals( dsA, registration.getDataSet() );

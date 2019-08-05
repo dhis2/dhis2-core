@@ -28,19 +28,7 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.Array;
-import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.*;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.Metamodel;
-
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -55,10 +43,19 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -70,7 +67,6 @@ public class HibernateGenericStore<T>
 
     public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
     public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
-    public static final String FUNCTION_JSONB_TO_RECORD = "jsonb_to_record";
 
     protected SessionFactory sessionFactory;
     protected JdbcTemplate jdbcTemplate;
@@ -451,7 +447,7 @@ public class HibernateGenericStore<T>
         List<Predicate> predicates = attributes.stream()
             .map( attribute ->
                 builder.isNotNull(
-                builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ),
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
                     builder.literal( attribute.getUid() ) ) ) )
             .collect( Collectors.toList() );
 

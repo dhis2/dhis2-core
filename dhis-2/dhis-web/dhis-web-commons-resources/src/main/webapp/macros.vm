@@ -353,9 +353,8 @@ jQuery.each(attributes, function(i, item) {
 
 <table>
 	#foreach( $attribute in $args.attributes )
-        <span>${attribute.id}</span>
 		#set( $text = $attribute.displayName )
-		#set( $id = $attribute.id )
+		#set( $id = $attribute.uid )
 		#set( $mandatory = $attribute.mandatory )
     #set( $valueType = $attribute.valueType )
 

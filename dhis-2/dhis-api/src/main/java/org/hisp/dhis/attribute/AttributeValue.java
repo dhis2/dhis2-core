@@ -54,8 +54,6 @@ public class AttributeValue
 
     private String value;
 
-    private String valueType;
-
     public AttributeValue()
     {
     }
@@ -70,14 +68,12 @@ public class AttributeValue
     {
         this.value = value;
         this.attribute = attribute;
-        this.valueType = attribute.getValueType().name();
     }
 
     public AttributeValue( String value, Attribute attribute, String valueType )
     {
         this.value = value;
         this.attribute = attribute;
-        this.valueType = valueType;
     }
 
     public AttributeValue( Attribute attribute, String value )
@@ -128,14 +124,6 @@ public class AttributeValue
     public void setValue( String value )
     {
         this.value = value;
-    }
-
-    public String getValueType() {
-        return valueType;
-    }
-
-    public void setValueType(String valueType) {
-        this.valueType = valueType;
     }
 
     @JsonProperty

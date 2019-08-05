@@ -28,14 +28,10 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import com.github.benmanes.caffeine.cache.Caffeine;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.util.Maps;
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
@@ -50,13 +46,19 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.util.Maps;
-
 import javax.annotation.PostConstruct;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -67,7 +69,7 @@ public class DefaultAttributeService
 {
     private static final Predicate<AttributeValue> SHOULD_DELETE_ON_UPDATE =
         ( attributeValue ) ->
-            attributeValue.getValue() == null && attributeValue.getValueType() == ValueType.TRUE_ONLY.name();
+            attributeValue.getValue() == null && attributeValue.getAttribute().getValueType() == ValueType.TRUE_ONLY;
 
     private Cache<Attribute> attributeCache;
 
@@ -368,11 +370,11 @@ public class DefaultAttributeService
     {
         Set<AttributeValue> attributeValues = new HashSet<>();
 
-        Map<Integer, String> attributeValueMap = jsonToMap( jsonAttributeValues );
+        Map<String, String> attributeValueMap = jsonToMap( jsonAttributeValues );
 
-        for ( Map.Entry<Integer, String> entry : attributeValueMap.entrySet() )
+        for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
         {
-            int id = entry.getKey();
+            String id = entry.getKey();
             String value = entry.getValue();
 
             Attribute attribute = getAttribute( id );
@@ -421,10 +423,10 @@ public class DefaultAttributeService
      * Parses raw JSON into a map of ID -> Value.
      * Allows null and empty values (must be handled later).
      */
-    private Map<Integer, String> jsonToMap( List<String> jsonAttributeValues )
+    private Map<String, String> jsonToMap( List<String> jsonAttributeValues )
         throws IOException
     {
-        Map<Integer, String> parsed = Maps.newHashMap();
+        Map<String, String> parsed = Maps.newHashMap();
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -440,7 +442,7 @@ public class DefaultAttributeService
                 continue;
             }
 
-            parsed.put( nId.asInt(), nValue.asText() );
+            parsed.put( nId.asText(), nValue.asText() );
         }
 
         return parsed;
