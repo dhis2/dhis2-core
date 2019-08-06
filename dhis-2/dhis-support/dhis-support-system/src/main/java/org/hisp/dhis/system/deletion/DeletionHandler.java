@@ -43,6 +43,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
@@ -202,6 +203,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    {
+        return null;
+    }
+
+    public void deleteDataApprovalAudit( DataApprovalAudit audit )
+    {
+    }
+
+    public String allowDeleteDataApprovalAudit( DataApprovalAudit audit )
     {
         return null;
     }
