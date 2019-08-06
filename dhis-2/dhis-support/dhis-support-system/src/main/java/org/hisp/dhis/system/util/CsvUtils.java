@@ -29,7 +29,7 @@ package org.hisp.dhis.system.util;
  */
 
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,11 +106,11 @@ public class CsvUtils
     /**
      * Returns a {@link CsvWriter} using the UTF-8 char set.
      *
-     * @param out the {@link OutputStream}.
+     * @param writer the {@link Writer}.
      * @return a {@link CsvWriter}.
      */
-    public static CsvWriter getWriter( OutputStream out )
+    public static CsvWriter getWriter( Writer writer )
     {
-        return new CsvWriter( out, DELIMITER, StandardCharsets.UTF_8 );
+        return new CsvWriter( writer, DELIMITER );
     }
 }
