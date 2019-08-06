@@ -40,6 +40,9 @@ import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 import java.io.IOException;
 
+/**
+ * @author Lars Helge Overland
+ */
 public class CsvUtils
 {
     private static final char DELIMITER = ',';
