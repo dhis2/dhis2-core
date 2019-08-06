@@ -102,13 +102,11 @@ public class ImageResizingJob extends AbstractJob
                     continue;
                 }
 
-                ByteSource content = Resources.asByteSource( fileResourceContentStore.getSignedGetContentUri( key ).toURL() );
-
                 tmpFile = new File( UUID.randomUUID().toString() );
 
                 FileOutputStream fileOutputStream = new FileOutputStream( tmpFile );
 
-                fileOutputStream.write( content.read() );
+                fileResourceContentStore.copyContent( key, fileOutputStream );
 
                 Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, tmpFile );
 
