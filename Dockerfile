@@ -31,7 +31,11 @@ LABEL stage=intermediate
 #NB - maven-surefire-plugin fails with maven:3.5.4-jdk-8-slim and later.
 #     This is a recent issue possibly traced to an OpenJDK bug - https://github.com/carlossg/docker-maven/issues/90
 
-RUN apt-get update && apt-get install --no-install-recommends -y git=1:2.11.0-3+deb9u4 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install --no-install-recommends -y \
+        git=1:2.11.0-3+deb9u4 && \
+    rm -rf /var/lib/apt/lists/*
+
 #NB - web-apps build uses `git rev-parse` to tag the build, so just copy over the whole tree for now
 COPY . /src
 
@@ -47,10 +51,27 @@ RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests
 ##########
 FROM tomcat:8.5.34-jre8-alpine as serve
 
-RUN rm -rf /usr/local/tomcat/webapps/*
+ENV DHIS2_HOME=/DHIS2_home
+
+COPY docker-entrypoint.sh /usr/local/bin/
+
+RUN rm -rf /usr/local/tomcat/webapps/* && \
+    mkdir /usr/local/tomcat/webapps/ROOT && \
+    chmod +rx /usr/local/bin/docker-entrypoint.sh && \
+    mkdir $DHIS2_HOME && \
+    addgroup -S tomcat && \
+    addgroup root tomcat && \
+    adduser -S -D -G tomcat tomcat
+
+RUN apk add --update --no-cache \
+        bash  \
+        su-exec
 
 COPY server.xml /usr/local/tomcat/conf
 COPY --from=build /src/dhis-2/dhis-web/dhis-web-portal/target/dhis.war /usr/local/tomcat/webapps/ROOT.war
 
-# Expose the easy-to-remember directory /DHIS2_home for Docker volume mounting to configure the CORE instance
-ENV DHIS2_HOME=/DHIS2_home
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
+CMD ["catalina.sh", "run"]
+
+
