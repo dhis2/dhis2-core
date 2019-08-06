@@ -184,7 +184,7 @@ public class JdbcEventAnalyticsTableManager
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );
         final String end = DateUtils.getMediumDateString( partition.getEndDate() );
 
-        String sqlJoin = "from programstageinstance psi " +
+        String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
@@ -204,7 +204,7 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate is not null " +
             "and psi.deleted is false ";
 
-        populateTableInternal( partition, getDimensionColumns( program ), sqlJoin );
+        populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
