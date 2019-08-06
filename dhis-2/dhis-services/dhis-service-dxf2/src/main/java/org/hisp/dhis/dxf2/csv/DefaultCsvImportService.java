@@ -105,6 +105,7 @@ public class DefaultCsvImportService
         throws IOException
     {
         CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
+        reader.setSafetySwitch( false ); // Disabled due to large geometry values for org units
 
         if ( options.isFirstRowIsHeader() )
         {
