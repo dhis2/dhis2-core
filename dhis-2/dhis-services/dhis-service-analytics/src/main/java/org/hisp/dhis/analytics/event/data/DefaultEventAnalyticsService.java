@@ -504,13 +504,13 @@ public class DefaultEventAnalyticsService
             {
                 for ( QueryItem item : params.getItems() )
                 {
-                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+                    grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
                 }
             }
 
             for ( DimensionalObject dimension : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
+                grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT, String.class.getName(), false, true ) );
             }
 
             grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
@@ -615,12 +615,12 @@ public class DefaultEventAnalyticsService
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
-            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayName(), ValueType.TEXT, String.class.getName(), false, true ) );
+            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT, String.class.getName(), false, true ) );
         }
 
         for ( QueryItem item : params.getItems() )
         {
-            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName(), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(), item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
         }
 
         // ---------------------------------------------------------------------

@@ -784,6 +784,8 @@ public class EventController
             throw new WebMessageException( webMessage );
         }
 
+        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
+
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );

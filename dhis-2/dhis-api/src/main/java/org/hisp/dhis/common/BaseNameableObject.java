@@ -105,6 +105,7 @@ public class BaseNameableObject
      * @param displayProperty the display property.
      * @return the display property.
      */
+    @Override
     @JsonIgnore
     public String getDisplayProperty( DisplayProperty displayProperty )
     {
