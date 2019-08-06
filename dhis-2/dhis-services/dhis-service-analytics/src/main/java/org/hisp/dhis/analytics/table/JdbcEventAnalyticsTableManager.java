@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.addClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -184,7 +184,7 @@ public class JdbcEventAnalyticsTableManager
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );
         final String end = DateUtils.getMediumDateString( partition.getEndDate() );
 
-        String sqlJoin = "from programstageinstance psi " +
+        String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
@@ -204,7 +204,7 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate is not null " +
             "and psi.deleted is false ";
 
-        populateTableInternal( partition, getDimensionColumns( program ), sqlJoin );
+        populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
@@ -224,12 +224,11 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
+        columns.addAll( addOrganisationUnitLevels() );
+        columns.addAll( addOrganisationUnitGroupSets() );
+
         List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
             categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
-
-        columns.addAll( addOrganisationUnitLevels() );
-
-        columns.addAll( addOrganizationUnitGroupSets() );
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
@@ -250,7 +249,7 @@ public class JdbcEventAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
-                dataClause + ")" + addClosingParentheses(select)  + " as " + quote( dataElement.getUid() );
+                dataClause + ")" + getClosingParentheses( select )  + " as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }

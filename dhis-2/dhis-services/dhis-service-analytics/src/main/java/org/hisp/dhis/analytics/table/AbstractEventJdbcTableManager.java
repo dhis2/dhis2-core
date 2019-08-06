@@ -55,7 +55,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.springframework.scheduling.annotation.Async;
 
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.addClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
@@ -155,9 +155,9 @@ public abstract class AbstractEventJdbcTableManager
      *
      * @param partition the {@link AnalyticsTablePartition}.
      * @param columns the list of {@link AnalyticsTableColumn}.
-     * @param joinStatement the SQL join statement.
+     * @param fromClause the SQL from clause.
      */
-    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String joinStatement )
+    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause )
     {
         final String tableName = partition.getTempTableName();
 
@@ -179,7 +179,7 @@ public abstract class AbstractEventJdbcTableManager
 
         sql = TextUtils.removeLastComma( sql ) + " ";
 
-        sql += joinStatement;
+        sql += fromClause;
 
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
@@ -196,7 +196,7 @@ public abstract class AbstractEventJdbcTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                    "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + addClosingParentheses( select )
+                    "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( select )
                     + " as " + quote( attribute.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );

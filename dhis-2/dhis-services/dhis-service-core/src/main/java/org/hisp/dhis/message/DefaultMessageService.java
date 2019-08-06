@@ -63,8 +63,6 @@ import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Sets;
-
 /**
  * @author Lars Helge Overland
  */
@@ -466,7 +464,7 @@ public class DefaultMessageService
             return feedbackRecipients.getMembers();
         }
 
-        return Sets.newHashSet();
+        return new HashSet<>();
     }
 
     private void invokeMessageSenders( String subject, String text, String footer, User sender, Set<User> users,

@@ -370,7 +370,7 @@ public class DefaultPdfDataEntryFormService
         else
         {
             // Default one
-            insertTable_ProgramStageSections( mainTable, rectangle, writer, programStage.getAllDataElements() );
+            insertTable_ProgramStageSections( mainTable, rectangle, writer, programStage.getDataElements() );
         }
     }
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.orgunitdistribution;
+package org.hisp.dhis;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,19 +28,23 @@ package org.hisp.dhis.orgunitdistribution;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.jfree.chart.JFreeChart;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
 /**
- * @author Lars Helge Overland
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface OrgUnitDistributionService
+@Configuration
+@ImportResource( locations = { "classpath*:/META-INF/dhis/security.xml" } )
+@ComponentScan( "org.hisp.dhis" )
+public class UnitTestConfig
 {
-    String ID = OrgUnitDistributionService.class.getName();
-    
-    JFreeChart getOrganisationUnitDistributionChart( OrganisationUnitGroupSet groupSet, OrganisationUnit organisationUnit );
-    
-    Grid getOrganisationUnitDistribution( OrganisationUnitGroupSet groupSet, OrganisationUnit organisationUnit, boolean organisationUnitOnly );
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
+    {
+        return new H2DhisConfigurationProvider();
+    }
 }

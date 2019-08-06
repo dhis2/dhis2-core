@@ -29,7 +29,6 @@
 package org.hisp.dhis.expression.item;
 
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ItemContext;
 
 import org.hisp.dhis.common.DimensionalItemId;

@@ -42,14 +42,14 @@ import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRand
  */
 public class BeanRandomizer
 {
-    private EnhancedRandom rnd;
+    private EnhancedRandom rand;
 
-    public BeanRandomizer() {
-        rnd = aNewEnhancedRandomBuilder()
-                .randomize(PeriodType.class, new PeriodTypeRandomizer())
-                .randomize(FieldDefinitionBuilder.field().named("uid").ofType(String.class).get(),
-                        new UidRandomizer())
-                .build();
+    public BeanRandomizer()
+    {
+        rand = aNewEnhancedRandomBuilder()
+            .randomize( PeriodType.class, new PeriodTypeRandomizer() )
+            .randomize( FieldDefinitionBuilder.field().named( "uid" ).ofType( String.class ).get(), new UidRandomizer() )
+            .build();
     }
 
     /**
@@ -61,7 +61,7 @@ public class BeanRandomizer
      */
     public <T> T randomObject(final Class<T> type, final String... excludedFields )
     {
-        return rnd.nextObject( type, excludedFields );
+        return rand.nextObject( type, excludedFields );
     }
 
     /**
@@ -74,7 +74,6 @@ public class BeanRandomizer
      */
     public <T> List<T> randomObjects(final Class<T> type, int amount, final String... excludedFields )
     {
-        return rnd.objects( type, amount, excludedFields ).collect( Collectors.toList() );
+        return rand.objects( type, amount, excludedFields ).collect( Collectors.toList() );
     }
-
 }

@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Date;
 
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
 /**
  * @author Stian Sandvold
  */
@@ -71,10 +73,10 @@ public class KeyJsonValueController
 
     @Autowired
     private RenderService renderService;
-    
+
     @Autowired
     private AclService aclService;
-    
+
     @Autowired
     private CurrentUserService currentUserService;
 
@@ -92,6 +94,8 @@ public class KeyJsonValueController
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
         throws IOException
     {
+        setNoStore( response );
+
         return keyJsonValueService.getNamespaces();
     }
 
@@ -99,13 +103,17 @@ public class KeyJsonValueController
      * Returns a list of strings representing keys in the given namespace.
      */
     @RequestMapping( value = "/{namespace}", method = RequestMethod.GET, produces = "application/json" )
-    public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated, @PathVariable String namespace, HttpServletResponse response )
+    public @ResponseBody List<String> getKeysInNamespace(
+        @RequestParam( required = false ) Date lastUpdated,
+        @PathVariable String namespace, HttpServletResponse response )
         throws IOException, WebMessageException
     {
         if ( !keyJsonValueService.getNamespaces().contains( namespace ) )
         {
             throw new WebMessageException( WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
         }
+
+        setNoStore( response );
 
         return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated );
     }
@@ -128,7 +136,7 @@ public class KeyJsonValueController
             throw new WebMessageException(
                 WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
         }
-        
+
         List<KeyJsonValue> keys = keyJsonValueService.getKeyJsonValuesInNamespace( namespace ).stream()
             .filter( keyJsonValue -> !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
             .collect( Collectors.toList() );
@@ -137,7 +145,7 @@ public class KeyJsonValueController
         {
             throw new WebMessageException( WebMessageUtils.forbidden( "You do not have the authority to delete the namespace:'" + namespace + "'" ) );
         }
-        
+
         keyJsonValueService.deleteNamespace( namespace );
 
         messageService.sendJson( WebMessageUtils.ok( "Namespace '" + namespace + "' deleted." ), response );
@@ -165,7 +173,7 @@ public class KeyJsonValueController
             throw new WebMessageException( WebMessageUtils
                 .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
         }
-        
+
         if ( !aclService.canRead( currentUserService.getCurrentUser(), keyJsonValue ) )
         {
             throw new WebMessageException(
@@ -202,7 +210,7 @@ public class KeyJsonValueController
             throw new WebMessageException(
                 WebMessageUtils.forbidden( "You do not have the authority to access the key: '" + key + "' in the namespace:'" + namespace + "'" ) );
         }
-        
+
         KeyJsonValue metaDataValue = new KeyJsonValue();
         BeanUtils.copyProperties( metaDataValue, keyJsonValue );
         metaDataValue.setValue( null );
@@ -276,7 +284,7 @@ public class KeyJsonValueController
             throw new WebMessageException(
                 WebMessageUtils.forbidden( "You do not have the authority to update the key: '" + key + "' in the namespace: '" + namespace + "'" ) );
         }
-        
+
         if ( !renderService.isValidJson( body ) )
         {
             throw new WebMessageException( WebMessageUtils.badRequest( "The data is not valid JSON." ) );
@@ -311,7 +319,7 @@ public class KeyJsonValueController
             throw new WebMessageException( WebMessageUtils
                 .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
         }
-        
+
         if ( !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
         {
             throw new WebMessageException(
