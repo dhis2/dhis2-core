@@ -88,4 +88,11 @@ public class JobConfigurationController
 
         return objectReport;
     }
+
+    @Override
+    protected void postPatchEntity( JobConfiguration jobConfiguration )
+    {
+        jobConfigurationService.refreshScheduling( jobConfiguration );
+    }
+
 }
