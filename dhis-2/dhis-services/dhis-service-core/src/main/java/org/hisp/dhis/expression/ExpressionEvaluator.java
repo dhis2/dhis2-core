@@ -161,6 +161,9 @@ public class ExpressionEvaluator
                 return getItemValue(
                     ctx.uid0.getText() );
 
+            case N_BRACE:
+                return getItemValue( ctx.uid0.getText() );
+
             case OUG_BRACE:
                 return getOrgUnitGroupCount( ctx );
 
