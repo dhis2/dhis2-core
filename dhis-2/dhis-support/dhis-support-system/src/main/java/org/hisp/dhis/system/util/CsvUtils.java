@@ -1,7 +1,5 @@
 package org.hisp.dhis.system.util;
 
-import java.io.IOException;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -40,6 +38,7 @@ import org.springframework.core.io.ClassPathResource;
 
 import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
+import java.io.IOException;
 
 public class CsvUtils
 {
