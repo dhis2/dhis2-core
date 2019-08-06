@@ -237,13 +237,12 @@ public class EventAnalyticsServiceTest
     @Test
     public void testGridAggregation()
     {
-        Grid aggregatedDataValueGrid;
         for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
         {
             String key = entry.getKey();
             EventQueryParams params = entry.getValue();
 
-            aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
+            Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
 
             AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
         }
