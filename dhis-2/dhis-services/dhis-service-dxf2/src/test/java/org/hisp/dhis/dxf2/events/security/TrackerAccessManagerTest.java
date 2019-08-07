@@ -1,38 +1,5 @@
 package org.hisp.dhis.dxf2.events.security;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.TrackerAccessManager;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserService;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -61,23 +28,58 @@ import org.springframework.beans.factory.annotation.Autowired;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.TrackerAccessManager;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.google.common.collect.Sets;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-public class TrackerAccessManagerTest
-    extends DhisSpringTest
+public class TrackerAccessManagerTest extends DhisSpringTest
 {
     @Autowired
     private TrackerAccessManager trackerAccessManager;
-    
+
     @Autowired
     private EnrollmentService enrollmentService;
 
     @Autowired
+    private TrackerOwnershipManager trackerOwnershipManager;
+
+    @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
-    
+
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -91,17 +93,27 @@ public class TrackerAccessManagerTest
     private UserService _userService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
     private OrganisationUnit organisationUnitA;
+
     private OrganisationUnit organisationUnitB;
+
     private Program programA;
+
     private DataElement dataElementA;
+
     private DataElement dataElementB;
+
     private ProgramStage programStageA;
+
     private ProgramStage programStageB;
+
     private TrackedEntityType trackedEntityType;
 
     @Override
@@ -171,48 +183,378 @@ public class TrackerAccessManagerTest
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
         femaleB.setTrackedEntityType( trackedEntityType );
-        
+
         manager.save( maleA );
         manager.save( maleB );
         manager.save( femaleA );
         manager.save( femaleB );
-        
-        enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+
+        enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid(), organisationUnitA ), ImportOptions.getDefaultImportOptions() );
     }
 
-
-    /**
-     * program = DATA READ/WRITE
-     * orgUnit = Not Accessible
-     * status = ERROR
-     */
     @Test
-    public void testUserWithDataReadWriteOrgUnit()
+    public void userWithTeiOuInCaptureScopeCanReadAndWriteTei()
     {
         programA.setPublicAccess( AccessStringHelper.FULL );
         manager.update( programA );
 
-        User user = createUser( "user1" ) .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        
-        trackedEntityType.setPublicAccess(AccessStringHelper.FULL ) ;
-        
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
         manager.update( trackedEntityType );
-       
-        TrackedEntityInstance tei= trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
         List<String> errors = trackerAccessManager.canRead( user, tei );
         assertTrue( errors.size() == 0 );
-        
+
         errors = trackerAccessManager.canWrite( user, tei );
         assertTrue( errors.size() == 0 );
 
     }
 
-    private Enrollment createEnrollment( String program, String person )
+    @Test
+    public void userWithTeiOuInSearchScopeCanReadTeiButCannotWriteTei()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        List<String> errors = trackerAccessManager.canRead( user, tei );
+        assertTrue( errors.size() == 0 );
+
+        errors = trackerAccessManager.canWrite( user, tei );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "User has no write access to organisation unit:" ) );
+
+    }
+
+    @Test
+    public void userCreatingEnrollmentHasNoOwnershipButHasCaptureAccessToEnrollmentOU()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canCreate( user, pi, false );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "OWNERSHIP_ACCESS_DENIED" ) );
+
+    }
+
+    @Test
+    public void userCreatingEnrollmentHasOwnershipButNoCaptureAccessToEnrollmentOU()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canCreate( user, pi, false );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "User has no create access to organisation unit:" ) );
+
+    }
+
+    @Test
+    public void userCreatingEnrollmentHasOwnershipAndCaptureAccessToEnrollmentOU()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canCreate( user, pi, false );
+        assertTrue( errors.size() == 0 );
+
+    }
+
+    @Test
+    public void userDeletingEnrollmentHasNoOwnershipButHasCaptureAccessToEnrollmentOU()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canDelete( user, pi, false );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "OWNERSHIP_ACCESS_DENIED" ) );
+
+    }
+
+    @Test
+    public void userDeletingEnrollmentHasOwnershipButNoCaptureAccessToEnrollmentOU()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canDelete( user, pi, false );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "User has no delete access to organisation unit:" ) );
+
+    }
+
+    @Test
+    public void userDeletingEnrollmentHasOwnershipAndCaptureAccessToEnrollmentOU()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canDelete( user, pi, false );
+        assertTrue( errors.size() == 0 );
+
+    }
+
+    @Test
+    public void userUpdatingEnrollmentInOpenProgramWithEnrollmentOuInSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        programA.setAccessLevel( AccessLevel.OPEN );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitB, organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canUpdate( user, pi, false );
+        assertTrue( errors.size() == 0 );
+
+    }
+
+    @Test
+    public void userUpdatingEnrollmentInOpenProgramWithOwnerOuOutsideSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        programA.setAccessLevel( AccessLevel.OPEN );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canUpdate( user, pi, false );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "OWNERSHIP_ACCESS_DENIED" ) );
+
+    }
+    
+    @Test
+    public void userReadingEnrollmentInOpenProgramWithEnrollmentOuInSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        programA.setAccessLevel( AccessLevel.OPEN );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitB, organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canRead( user, pi, false );
+        assertTrue( errors.size() == 0 );
+
+    }
+
+    @Test
+    public void userReadingEnrollmentInOpenProgramWithEnrollmentOuOutsideSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        programA.setAccessLevel( AccessLevel.OPEN );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canRead( user, pi, false );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "OWNERSHIP_ACCESS_DENIED" ) );
+
+    }
+
+    
+    
+    @Test
+    public void userUpdatingEnrollmentInClosedProgramHasNoOwnershipButEnrollmentOUisInSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" );
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canUpdate( user, pi, false );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "OWNERSHIP_ACCESS_DENIED" ) );
+
+    }
+
+    @Test
+    public void userUpdatingEnrollmentInClosedProgramHasOwnershipAndEnrollmentOUisOutsideSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canUpdate( user, pi, false );
+        assertTrue( errors.size() == 0 );
+
+    }
+
+    @Test
+    public void userUpdatingEnrollmentInClosedProgramHasOwnershipAndEnrollmentOUisInSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
+
+        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+
+        List<String> errors = trackerAccessManager.canUpdate( user, pi, false );
+        assertTrue( errors.size() == 0 );
+
+    }
+
+    private Enrollment createEnrollment( String program, String person, OrganisationUnit organisationUnit )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setOrgUnit( organisationUnitA.getUid() );
+        enrollment.setOrgUnit( organisationUnit.getUid() );
         enrollment.setProgram( program );
         enrollment.setTrackedEntityInstance( person );
         enrollment.setEnrollmentDate( new Date() );

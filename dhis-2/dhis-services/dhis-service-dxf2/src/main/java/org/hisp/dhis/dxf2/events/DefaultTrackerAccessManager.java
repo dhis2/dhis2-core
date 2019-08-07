@@ -306,15 +306,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( !program.isWithoutRegistration() )
         {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no update access to organisation unit: " + ou.getUid() );
-                }
-            }
-            
             if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
             {
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
@@ -530,14 +521,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( program.isWithoutRegistration() )
         {
-            OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-            if ( ou != null )
-            {
-                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no write access to organisation unit: " + ou.getUid() );
-                }
-            }
             if ( !aclService.canDataWrite( user, program ) )
             {
                 errors.add( "User has no data write access to program: " + program.getUid() );
