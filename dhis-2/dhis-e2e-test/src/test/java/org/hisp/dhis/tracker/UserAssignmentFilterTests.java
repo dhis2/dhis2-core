@@ -201,7 +201,7 @@ public class UserAssignmentFilterTests
         throws Exception
     {
 
-        Object body = new FileReaderUtils().read( new File( "src/test/resources/events/events.json" ) )
+        Object body = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "program", programId )
             .replacePropertyValuesWith( "programStage", programStageId )

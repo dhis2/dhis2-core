@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.addClosingParentheses;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
@@ -64,8 +64,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
@@ -78,7 +76,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
@@ -88,8 +85,6 @@ import com.google.common.collect.Lists;
 public class JdbcEventAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
-    private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
-
     public JdbcEventAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -189,7 +184,7 @@ public class JdbcEventAnalyticsTableManager
         final String start = DateUtils.getMediumDateString( partition.getStartDate() );
         final String end = DateUtils.getMediumDateString( partition.getEndDate() );
 
-        String sqlJoin = "from programstageinstance psi " +
+        String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
@@ -209,14 +204,11 @@ public class JdbcEventAnalyticsTableManager
             "and psi.executiondate is not null " +
             "and psi.deleted is false ";
 
-        populateTableInternal( partition, getDimensionColumns( program ), sqlJoin );
+        populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
-        final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
-        final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
-
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
         if ( program.hasCategoryCombo() )
@@ -232,25 +224,11 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        List<OrganisationUnitLevel> levels =
-            organisationUnitService.getFilledOrganisationUnitLevels();
-
-        List<OrganisationUnitGroupSet> orgUnitGroupSets =
-            idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
+        columns.addAll( addOrganisationUnitLevels() );
+        columns.addAll( addOrganisationUnitGroupSets() );
 
         List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
             categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
-
-        for ( OrganisationUnitLevel level : levels )
-        {
-            String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
-        }
-
-        for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
-        {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
-        }
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
@@ -271,7 +249,7 @@ public class JdbcEventAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
-                dataClause + ")" + addClosingParentheses(select)  + " as " + quote( dataElement.getUid() );
+                dataClause + ")" + getClosingParentheses( select )  + " as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
@@ -301,19 +279,7 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
-        {
-            ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
-            String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-            String select = getSelectClause( attribute.getValueType(), "value" );
-            boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
-
-            String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + addClosingParentheses( select )
-                + " as " + quote( attribute.getUid() );
-
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
-        }
+        columns.addAll( addTrackedEntityAttributes( program ) );
 
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributesWithLegendSet() )
         {

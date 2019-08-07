@@ -1,4 +1,4 @@
-package org.hisp.dhis;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,23 +28,16 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.ImportResource;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @author Lars Helge Overland
  */
-@Configuration
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/security.xml" } )
-@ComponentScan("org.hisp.dhis")
-public class UnitTestConfiguration
+public class ObjectDeletionRequestedEvent
+    extends ApplicationEvent
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
+    public ObjectDeletionRequestedEvent( Object source )
     {
-        return new H2DhisConfigurationProvider();
+        super( source );
     }
 }

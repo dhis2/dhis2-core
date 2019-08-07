@@ -485,11 +485,6 @@
       <!-- Spring -->
       <dependency>
         <groupId>org.springframework</groupId>
-        <artifactId>spring-aop</artifactId>
-        <version>${spring.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.springframework</groupId>
         <artifactId>spring-beans</artifactId>
         <version>${spring.version}</version>
       </dependency>
@@ -562,16 +557,6 @@
         <groupId>cglib</groupId>
         <artifactId>cglib</artifactId>
         <version>3.2.4</version>
-      </dependency>
-      <dependency>
-        <groupId>org.aspectj</groupId>
-        <artifactId>aspectjrt</artifactId>
-        <version>1.8.7</version>
-      </dependency>
-      <dependency>
-        <groupId>org.aspectj</groupId>
-        <artifactId>aspectjweaver</artifactId>
-        <version>1.8.7</version>
       </dependency>
       <dependency>
         <groupId>com.alibaba.spring</groupId>
@@ -1406,13 +1391,13 @@
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-spring-legacy</artifactId>
-        <version>1.1.4</version>
+        <version>1.2.0</version>
       </dependency>
 
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
-        <version>1.1.4</version>
+        <version>1.2.0</version>
       </dependency>
     </dependencies>
   </dependencyManagement>

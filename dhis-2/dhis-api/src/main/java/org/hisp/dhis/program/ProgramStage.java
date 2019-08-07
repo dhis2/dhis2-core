@@ -52,7 +52,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -64,7 +63,7 @@ public class ProgramStage
     extends BaseIdentifiableObject implements MetadataObject
 {
     private String description;
-    
+
     /**
      * The i18n variant of the description. Should not be persisted.
      */
@@ -146,11 +145,15 @@ public class ProgramStage
     // Logic
     // -------------------------------------------------------------------------
 
-    public List<DataElement> getAllDataElements()
+    /**
+     * Returns all data elements part of this program stage.
+     */
+    public Set<DataElement> getDataElements()
     {
         return programStageDataElements.stream()
             .filter( element -> element.getDataElement() != null )
-            .map( ProgramStageDataElement::getDataElement ).collect( Collectors.toList() );
+            .map( ProgramStageDataElement::getDataElement )
+            .collect( Collectors.toSet() );
     }
 
     public boolean addDataElement( DataElement dataElement, Integer sortOrder )

@@ -57,8 +57,8 @@ import org.hisp.dhis.validation.ValidationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.api.client.util.Lists;
-import com.google.api.client.util.Sets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -113,7 +113,7 @@ public class MonitoringJob
         MonitoringJobParameters monitoringJobParameters = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
         //TODO improve collection usage
-        
+
         try
         {
             List<Period> periods;

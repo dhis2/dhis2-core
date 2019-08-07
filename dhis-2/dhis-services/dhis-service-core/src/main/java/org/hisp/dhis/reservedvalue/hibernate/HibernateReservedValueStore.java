@@ -37,8 +37,7 @@ import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -58,13 +57,12 @@ public class HibernateReservedValueStore
     extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore
 {
-
     private final BatchHandlerFactory batchHandlerFactory;
 
     public HibernateReservedValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        BatchHandlerFactory batchHandlerFactory )
+        ApplicationEventPublisher publisher, BatchHandlerFactory batchHandlerFactory )
     {
-        super( sessionFactory, jdbcTemplate, ReservedValue.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, ReservedValue.class, false );
 
         checkNotNull( batchHandlerFactory );
 

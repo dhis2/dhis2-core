@@ -38,6 +38,7 @@ import org.hisp.dhis.programrule.ProgramRuleStore;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -54,10 +55,11 @@ public class HibernateProgramRuleStore
     implements ProgramRuleStore
 {
     public HibernateProgramRuleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ProgramRule.class, currentUserService, deletedObjectService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, deletedObjectService,
+            aclService, true );
     }
 
     @Override
@@ -68,7 +70,7 @@ public class HibernateProgramRuleStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
-    
+
     @Override
     public ProgramRule getByName( String name, Program program )
     {

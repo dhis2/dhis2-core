@@ -45,5 +45,4 @@ public class JsonParserUtils
 
         return jsonObject;
     }
-
 }

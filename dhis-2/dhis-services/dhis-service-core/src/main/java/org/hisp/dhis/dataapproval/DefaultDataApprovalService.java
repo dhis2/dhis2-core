@@ -123,7 +123,8 @@ public class DefaultDataApprovalService
      * Used only for testing, remove when test is refactored
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
         this.currentUserService = currentUserService;
     }
 
@@ -286,7 +287,7 @@ public class DefaultDataApprovalService
 
             dataApprovalStore.addDataApproval( da );
         }
-        
+
         log.info( "Approvals saved: " + checkedList.size() );
     }
 
@@ -337,7 +338,7 @@ public class DefaultDataApprovalService
 
             dataApprovalStore.deleteDataApproval( da );
         }
-        
+
         log.info( "Approvals deleted: " + dataApprovalList.size() );
     }
 
@@ -391,7 +392,7 @@ public class DefaultDataApprovalService
 
             dataApprovalStore.updateDataApproval( da );
         }
-        
+
         log.info( "Accepts saved: " + dataApprovalList.size() );
     }
 
@@ -444,7 +445,7 @@ public class DefaultDataApprovalService
 
             dataApprovalStore.updateDataApproval( da );
         }
-        
+
         log.info( "Accepts deleted: " + dataApprovalList.size() );
     }
 
@@ -512,8 +513,8 @@ public class DefaultDataApprovalService
         List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow,
             periodService.reloadPeriod( period ), Lists.newArrayList( organisationUnit ),
             organisationUnit.getHierarchyLevel(), null,
-            attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ), 
-                dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), workflow ), 
+            attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ),
+                dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), workflow ),
                 dataApprovalLevelService.getDataApprovalLevelMap());
 
         if ( statuses == null || statuses.isEmpty() )
@@ -564,7 +565,7 @@ public class DefaultDataApprovalService
 
         return statusList;
     }
-    
+
     @Override
     @Transactional
     public void deleteDataApprovals( OrganisationUnit organisationUnit )
@@ -607,7 +608,7 @@ public class DefaultDataApprovalService
                 return sortedLevels.get( i - 1 );
             }
         }
-        
+
         return level;
     }
 
@@ -660,7 +661,7 @@ public class DefaultDataApprovalService
         DataApprovalPermissionsEvaluator evaluator = makePermissionsEvaluator();
 
         ListMap<String, DataApproval> listMap = getIndexedListMap( dataApprovalList );
-        
+
         for ( Map.Entry<String, List<DataApproval>> entry : listMap.entrySet() )
         {
             List<DataApproval> dataApprovals = entry.getValue();

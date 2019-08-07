@@ -45,8 +45,8 @@ import java.lang.reflect.Method;
  * @author Lars Helge Overland
  */
 @RunWith( SpringRunner.class )
-@ContextConfiguration( classes = UnitTestConfiguration.class )
-@ActiveProfiles(profiles = {"test-h2"})
+@ContextConfiguration( classes = UnitTestConfig.class )
+@ActiveProfiles( profiles = {"test-h2"} )
 @Transactional
 public abstract class DhisSpringTest
     extends DhisConvenienceTest

@@ -38,7 +38,6 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -114,6 +113,7 @@ import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -246,7 +246,7 @@ public class DefaultDataValueSetService
         this.batchHandlerFactory = batchHandlerFactory;
     }
 
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // DataValueSet implementation
     // -------------------------------------------------------------------------
 
@@ -623,7 +623,7 @@ public class DefaultDataValueSetService
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            CsvReader csvReader = new CsvReader( in, Charset.forName( "UTF-8" ) );
+            CsvReader csvReader = CsvUtils.getReader( in );
 
             if ( importOptions == null || importOptions.isFirstRowIsHeader() )
             {

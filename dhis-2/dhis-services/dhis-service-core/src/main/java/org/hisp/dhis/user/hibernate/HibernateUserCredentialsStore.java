@@ -33,6 +33,7 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserCredentialsStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -44,9 +45,9 @@ public class HibernateUserCredentialsStore
     extends HibernateGenericStore<UserCredentials>
     implements UserCredentialsStore
 {
-    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate)
+    public HibernateUserCredentialsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
-        super( sessionFactory, jdbcTemplate, UserCredentials.class, true );
+        super( sessionFactory, jdbcTemplate, publisher, UserCredentials.class, true );
     }
 
     @Override
@@ -64,7 +65,8 @@ public class HibernateUserCredentialsStore
         query.setParameter( "openId", openId );
         return ( UserCredentials ) query.uniqueResult();
     }
-    
+
+    @Override
     public UserCredentials getUserCredentialsByLdapId( String ldapId )
     {
         Query query = getQuery( "from UserCredentials uc where uc.ldapId = :ldapId" );

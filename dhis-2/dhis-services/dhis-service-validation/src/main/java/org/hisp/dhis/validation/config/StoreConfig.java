@@ -36,6 +36,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,6 +54,9 @@ public class StoreConfig
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private ApplicationEventPublisher publisher;
+
+    @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
@@ -65,7 +69,7 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<ValidationNotificationTemplate> programNotificationInstanceStore()
     {
         return new HibernateIdentifiableObjectStore<ValidationNotificationTemplate>(
-            sessionFactory, jdbcTemplate, ValidationNotificationTemplate.class, currentUserService,
+            sessionFactory, jdbcTemplate, publisher, ValidationNotificationTemplate.class, currentUserService,
             deletedObjectService, aclService, true );
     }
 
@@ -73,7 +77,7 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<ValidationRuleGroup> validationRuleGroupStore()
     {
         return new HibernateIdentifiableObjectStore<ValidationRuleGroup>(
-            sessionFactory, jdbcTemplate, ValidationRuleGroup.class, currentUserService, deletedObjectService,
-            aclService, true );
+            sessionFactory, jdbcTemplate, publisher, ValidationRuleGroup.class, currentUserService,
+            deletedObjectService, aclService, true );
     }
 }

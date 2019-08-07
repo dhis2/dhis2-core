@@ -46,8 +46,8 @@ import static org.mockito.Mockito.when;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class EventAnalyticsTest {
-
+public abstract class EventAnalyticsTest
+{
     @Mock
     protected SqlRowSet rowSet;
 
@@ -56,10 +56,8 @@ public abstract class EventAnalyticsTest {
     protected DataElement dataElementA;
 
     @Before
-    public void setUpData() {
-
-        // data init
-
+    public void setUpData()
+    {
         programA = createProgram( 'A' );
 
         programStage = createProgramStage( 'B', programA );
@@ -67,7 +65,6 @@ public abstract class EventAnalyticsTest {
         dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         dataElementA.setUid( "fWIAEtYVEGk" );
     }
-
 
     protected EventQueryParams createRequestParamsWithFilter(ProgramStage withProgramStage, ValueType withQueryItemValueType )
     {
