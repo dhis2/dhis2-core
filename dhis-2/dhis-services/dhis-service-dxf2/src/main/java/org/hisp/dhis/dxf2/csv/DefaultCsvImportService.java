@@ -32,7 +32,6 @@ import static org.hisp.dhis.util.DateUtils.getMediumDate;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +66,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.Importance;
 import org.hisp.dhis.validation.ValidationRule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +105,8 @@ public class DefaultCsvImportService
     public Metadata fromCsv( InputStream input, CsvImportOptions options )
         throws IOException
     {
-        CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
+        CsvReader reader = CsvUtils.getReader( input );
+        reader.setSafetySwitch( false ); // Disabled due to large geometry values for org units
 
         if ( options.isFirstRowIsHeader() )
         {

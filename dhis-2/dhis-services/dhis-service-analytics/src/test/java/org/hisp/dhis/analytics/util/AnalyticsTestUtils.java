@@ -32,19 +32,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.core.io.ClassPathResource;
 
-import com.csvreader.CsvReader;
 import com.google.common.collect.Sets;
 
 /**
@@ -77,32 +70,6 @@ public class AnalyticsTestUtils
         ouB.getChildren().addAll( Sets.newHashSet( ouD, ouE ) );
         ouD.setParent( ouB );
         ouE.setParent( ouB );
-    }
-
-    /**
-     * Reads CSV input file.
-     *
-     * @param inputFile points to file in class path
-     * @return list of list of strings
-     */
-    public static List<String[]> readInputFile( String inputFile )
-        throws IOException
-    {
-        InputStream input = new ClassPathResource( inputFile ).getInputStream();
-        assertNotNull( "Reading '" + inputFile + "' failed", input );
-
-        CsvReader reader = new CsvReader( input, Charset.forName( "UTF-8" ) );
-
-        reader.readRecord(); // Ignore first row
-        ArrayList<String[]> lines = new ArrayList<>();
-
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-            lines.add( values );
-        }
-
-        return lines;
     }
 
     /**
