@@ -633,7 +633,7 @@ public class DefaultAnalyticsService
 
         List<DimensionalItemObject> dataElements = Lists.newArrayList( DimensionalObjectUtils.getDataElements( operands ) );
         List<DimensionalItemObject> categoryOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getCategoryOptionCombos( operands ) );
-        List<DimensionalItemObject> attributeOptionCobos = Lists.newArrayList( DimensionalObjectUtils.getAttributeOptionCombos( operands ) );
+        List<DimensionalItemObject> attributeOptionCombos = Lists.newArrayList( DimensionalObjectUtils.getAttributeOptionCombos( operands ) );
 
         //TODO Check if data was dim or filter
 
@@ -648,7 +648,7 @@ public class DefaultAnalyticsService
 
         if ( totalType.isAttributeOptionCombo() )
         {
-            builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, attributeOptionCobos ) );
+            builder.addDimension( new BaseDimensionalObject( ATTRIBUTEOPTIONCOMBO_DIM_ID, DimensionType.ATTRIBUTE_OPTION_COMBO, attributeOptionCombos ) );
         }
 
         DataQueryParams operandParams = builder.build();
