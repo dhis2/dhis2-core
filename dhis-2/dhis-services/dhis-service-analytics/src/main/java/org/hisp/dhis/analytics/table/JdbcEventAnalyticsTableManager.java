@@ -28,7 +28,6 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
@@ -43,7 +42,6 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
@@ -227,33 +225,26 @@ public class JdbcEventAnalyticsTableManager
             }
         }
 
-        // Wrapper object for Program, required to avoid errors with Hibernate and non thread-safe Session
-        DetachedProgram detachedProgram = new DetachedProgram(program);
+        columns.addAll( addOrganisationUnitLevels() );
+        columns.addAll( addOrganisationUnitGroupSets() );
 
-        List<CompletableFuture<List<AnalyticsTableColumn>>> allFutures = new ArrayList<>();
-        allFutures.add( supplyAsync( this::addOrganisationUnitLevels ) );
-        allFutures.add( supplyAsync( this::addOrganisationUnitGroupSets ) );
-        
-        allFutures.add( supplyAsync( () -> categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
-            .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) ).collect( Collectors.toList() ) ) );
+        columns.addAll( categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
+            .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) ).collect( Collectors.toList() ) );
+        columns.addAll( addPeriodColumns( "dps" ) );
 
-        allFutures.add( supplyAsync( () -> addPeriodColumns( "dps" ) ) );
+        columns.addAll( program.getDataElements().stream().map( de ->
+                getColumnFromDataElement( de, false ) ).flatMap( Collection::stream ).collect( Collectors.toList() ) );
 
-        allFutures.add( supplyAsync( () -> detachedProgram.allDataElements.stream().map( de ->
-                getColumnFromDataElement( de, false ) ).flatMap( Collection::stream ).collect( Collectors.toList() ) ) );
+        columns.addAll( program.getDataElementsWithLegendSet().stream().map(de ->
+                getColumnFromDataElement(de, true)).flatMap(Collection::stream).collect( Collectors.toList() ) );
 
-        allFutures.add( supplyAsync( () -> detachedProgram.allDataElementsWithLegendSet.stream().map(de ->
-                getColumnFromDataElement(de, true)).flatMap(Collection::stream).collect( Collectors.toList() ) ) );
-
-        allFutures.add( supplyAsync( () -> detachedProgram.trackedEntityAttributes.stream()
+        columns.addAll( program.getNonConfidentialTrackedEntityAttributes().stream()
                 .map( tea -> getColumnFromTrackedEntityAttribute( tea, numericClause, dateClause, false ) )
-                .flatMap( Collection::stream ).collect( Collectors.toList() ) ) );
+                .flatMap( Collection::stream ).collect( Collectors.toList() ) );
 
-        allFutures.add( supplyAsync( () -> detachedProgram.trackedEntityAttributesWithLegendSet.stream().map(tea ->
+        columns.addAll( program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream().map(tea ->
                         getColumnFromTrackedEntityAttribute( tea, numericClause, dateClause, true ) )
-                        .flatMap(Collection::stream).collect( Collectors.toList() ) ) );
-
-        columns.addAll( allFutures.stream().flatMap( cf -> cf.join().stream() ).collect( Collectors.toList() ) );
+                        .flatMap(Collection::stream).collect( Collectors.toList() ) );
 
         columns.addAll( getFixedColumns() );
 
@@ -262,7 +253,6 @@ public class JdbcEventAnalyticsTableManager
             columns.add( new AnalyticsTableColumn( quote( "tei" ), CHARACTER_11, "tei.uid" ) );
             columns.add( new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" ) );
         }
-
 
         return filterDimensionColumns( columns );
     }
@@ -402,28 +392,5 @@ public class JdbcEventAnalyticsTableManager
     private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created ) {
 
         return new AnalyticsTableColumn( name, CHARACTER_11, prefix + "." + name ).withCreated( created );
-    }
-
-    /**
-     * Wrapper object for {@see Program} that has the only responsibility to initialize
-     * the Program's "lazy" collections
-     */
-    class DetachedProgram
-    {
-        private Set<DataElement> allDataElements;
-
-        private Set<DataElement> allDataElementsWithLegendSet;
-
-        private List<TrackedEntityAttribute> trackedEntityAttributes;
-
-        private List<TrackedEntityAttribute> trackedEntityAttributesWithLegendSet;
-
-        DetachedProgram( Program program )
-        {
-            allDataElements = program.getDataElements();
-            allDataElementsWithLegendSet = program.getDataElementsWithLegendSet();
-            trackedEntityAttributes = program.getNonConfidentialTrackedEntityAttributes();
-            trackedEntityAttributesWithLegendSet = program.getNonConfidentialTrackedEntityAttributesWithLegendSet();
-        }
     }
 }
