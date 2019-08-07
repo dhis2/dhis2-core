@@ -33,8 +33,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -43,7 +42,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
-import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -71,30 +70,6 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
     private IdentifiableObjectManager idObjectManager;
 
     @Mock
-    private OrganisationUnitService organisationUnitService;
-
-    @Mock
-    private CategoryService categoryService;
-
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
-    @Mock
-    private DataApprovalLevelService dataApprovalLevelService;
-
-    @Mock
-    private ResourceTableService resourceTableService;
-
-    @Mock
-    private AnalyticsTableHookService tableHookService;
-
-    @Mock
-    private StatementBuilder statementBuilder;
-
-    @Mock
-    private PartitionManager partitionManager;
-
-    @Mock
     private DatabaseInfo databaseInfo;
 
     @Mock
@@ -108,12 +83,10 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
     @Before
     public void setUp()
     {
-        subject = new JdbcEnrollmentAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
-            systemSettingManager, dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder,
-            partitionManager, databaseInfo, jdbcTemplate );
-        when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
-            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        subject = new JdbcEnrollmentAnalyticsTableManager( idObjectManager, mock( OrganisationUnitService.class ),
+            mock( CategoryService.class ), mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ),
+            mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ),
+            new PostgreSQLStatementBuilder(), mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
     }
 
     @Test
