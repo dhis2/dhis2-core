@@ -116,7 +116,7 @@ public class AnalyticsTableAsserter
             }
             else
             {
-                matchers.get(name).accept(tableColumnMap.get( name ));
+                matchers.get( name ).accept( tableColumnMap.get( name ) );
             }
         }
     }
@@ -130,7 +130,7 @@ public class AnalyticsTableAsserter
         private List<AnalyticsTableColumn> _defaultColumns;
 
         private List<AnalyticsTableColumn> _columns = new ArrayList<>();
-        
+
         private Map<String, Consumer<AnalyticsTableColumn>> _matchers = new HashMap<>();
 
         private AnalyticsTableType _tableType;
@@ -161,8 +161,8 @@ public class AnalyticsTableAsserter
             return this;
         }
 
-        public Builder withTableName ( String tableName) {
-
+        public Builder withTableName( String tableName )
+        {
             _tableName = tableName;
             return this;
         }
@@ -183,7 +183,7 @@ public class AnalyticsTableAsserter
 
         public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias )
         {
-            AnalyticsTableColumn col = new AnalyticsTableColumn( name , dataType, alias);
+            AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
             this._columns.add( col );
 
             return this;
@@ -195,7 +195,7 @@ public class AnalyticsTableAsserter
 
             return this;
         }
-        
+
         public Builder addColumn( String name, Consumer<AnalyticsTableColumn> consumer )
         {
             this._matchers.put( name, consumer );

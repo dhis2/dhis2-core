@@ -301,10 +301,10 @@ public class JdbcEventAnalyticsTableManager
         } ).collect( Collectors.toList() );
     }
     
-    private List<AnalyticsTableColumn> getColumnFromDataElement(DataElement dataElement, boolean withLegendSet) {
-
+    private List<AnalyticsTableColumn> getColumnFromDataElement( DataElement dataElement, boolean withLegendSet )
+    {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
-        
+
         // Assemble a regex dataClause with using jsonb #>> operator
         String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
 
@@ -329,23 +329,24 @@ public class JdbcEventAnalyticsTableManager
         return withLegendSet ? getColumnFromDataElementWithLegendSet(dataElement, select, dataClause): columns;
     }
 
-    private String selectForInsert(DataElement dataElement, String fromType, String dataClause) {
-
+    private String selectForInsert( DataElement dataElement, String fromType, String dataClause )
+    {
         return String.format( "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid "
             + dataClause + ")"
             + getClosingParentheses( fromType ) + " as " + quote( dataElement.getUid() ), fromType);
     }
 
-    private String selectForInsert(TrackedEntityAttribute attribute, String fromType, String dataClause) {
-
+    private String selectForInsert( TrackedEntityAttribute attribute, String fromType, String dataClause )
+    {
         return String.format("(select %s"
-                + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
-                + "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( fromType )
-                + " as " + quote( attribute.getUid() ), fromType );
+            + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+            + "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( fromType )
+            + " as " + quote( attribute.getUid() ), fromType );
     }
 
-    private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(DataElement dataElement, String select, String dataClause) {
-
+    private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet( DataElement dataElement, String select,
+        String dataClause )
+    {
         return dataElement.getLegendSets().stream().map( ls -> {
             String column = quote( dataElement.getUid() + PartitionUtils.SEP + ls.getUid() );
 
@@ -357,7 +358,7 @@ public class JdbcEventAnalyticsTableManager
                     "and programstageinstanceid=psi.programstageinstanceid " +
                     dataClause + ") as " + column;
             return new AnalyticsTableColumn( column, CHARACTER_11, sql );
-        }).collect(Collectors.toList());
+        } ).collect( Collectors.toList() );
     }
     
     private String getDataClause( String uid, ValueType valueType )
@@ -365,7 +366,8 @@ public class JdbcEventAnalyticsTableManager
         if ( valueType.isNumeric() || valueType.isDate() )
         {
             String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : valueType.isDate() ? DATE_REGEXP : "";
-            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex + "'";
+            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex
+                + "'";
         }
 
         return "";
@@ -389,8 +391,8 @@ public class JdbcEventAnalyticsTableManager
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
 
-    private AnalyticsTableColumn toCharColumn(String name, String prefix, Date created ) {
-
+    private AnalyticsTableColumn toCharColumn( String name, String prefix, Date created )
+    {
         return new AnalyticsTableColumn( name, CHARACTER_11, prefix + "." + name ).withCreated( created );
     }
 }
