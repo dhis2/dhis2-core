@@ -28,11 +28,11 @@ package org.hisp.dhis.hibernate.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.Types;
-
 import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.spatial.dialect.postgis.PostgisPG95Dialect;
 import org.hibernate.type.StandardBasicTypes;
+
+import java.sql.Types;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,7 +46,6 @@ public class DhisPostgresDialect
         registerColumnType( Types.JAVA_OBJECT, "jsonb" );
         registerHibernateType( Types.OTHER, "pg-uuid" );
         registerFunction( "jsonb_extract_path", new StandardSQLFunction("jsonb_extract_path", StandardBasicTypes.STRING ));
-        registerFunction( "jsonb_object_keys", new StandardSQLFunction("jsonb_object_keys", StandardBasicTypes.STRING ));
-        registerFunction( "jsonb_to_record", new StandardSQLFunction("jsonb_to_record", StandardBasicTypes.STRING));
+        registerFunction( "jsonb_extract_path_text", new StandardSQLFunction("jsonb_extract_path_text", StandardBasicTypes.STRING ));
     }
 }

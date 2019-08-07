@@ -283,7 +283,7 @@ public class AttributeValueServiceTest
         ObjectMapper mapper = new ObjectMapper();
 
         ObjectNode node = mapper.createObjectNode();
-        node.put( "id",attribute1.getId() );
+        node.put( "id",attribute1.getUid() );
         node.put( "value", "updatedvalue1" );
 
         List<String> jsonValues  = new ArrayList<>();

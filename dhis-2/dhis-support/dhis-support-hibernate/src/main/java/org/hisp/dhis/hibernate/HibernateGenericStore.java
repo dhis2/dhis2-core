@@ -457,6 +457,35 @@ public class HibernateGenericStore<T>
     }
 
     @Override
+    public List<String> getAllValuesByAttributes( List<Attribute> attributes )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<String> query = builder.createQuery( String.class );
+        Root<T> root = query.from( getClazz() );
+
+        CriteriaBuilder.Coalesce<String> coalesce = builder.coalesce();
+        attributes.stream().forEach( attribute ->
+            coalesce.value(
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ) ,
+                    builder.literal( attribute.getUid() ) , builder.literal( "value" ) ) ) );
+
+        query.select( coalesce );
+
+        List<Predicate> predicates = attributes.stream()
+            .map( attribute ->
+                builder.isNotNull(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                        builder.literal( attribute.getUid() ) ) ) )
+            .collect( Collectors.toList() );
+
+        query.where(  builder.or( predicates.toArray( new Predicate[ predicates.size() ] ) ) ) ;
+
+        return getSession().createQuery( query ).list();
+
+    }
+
+    @Override
     public int getCount()
     {
         CriteriaBuilder builder = getCriteriaBuilder();

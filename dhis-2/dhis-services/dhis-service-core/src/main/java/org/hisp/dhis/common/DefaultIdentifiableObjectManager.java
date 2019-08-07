@@ -68,7 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -557,17 +556,21 @@ public class DefaultIdentifiableObjectManager
     @Transactional( readOnly = true)
     public <T extends IdentifiableObject> List<String> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
     {
-        List<T> objects = getAllByAttributes( klass, attributes );
-        Set<String> attributeIds = attributes.stream().map( attribute -> attribute.getUid() )
-            .collect( Collectors.toSet() );
+        Schema schema = schemaService.getDynamicSchema( klass );
 
-        List<String> result = new ArrayList<>();
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
 
-        objects.forEach( object ->
-            result.addAll( object.getAttributeValues().stream()
-                .filter( attributeValue -> attributeIds.contains( attributeValue.getAttribute().getUid() ) ).map( attributeValue -> attributeValue.getValue() ).collect( Collectors.toList() ) ));
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
 
-        return result;
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return  store.getAllValuesByAttributes( attributes );
     }
 
     @Override
