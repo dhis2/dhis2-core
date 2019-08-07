@@ -43,6 +43,7 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.persistence.NonUniqueResultException;
@@ -436,7 +437,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public  List<T> getAllByAttributes( List<Attribute> attributes )
+    public List<T> getAllByAttributes( List<Attribute> attributes )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -457,7 +458,7 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<String> getAllValuesByAttributes( List<Attribute> attributes )
+    public List<AttributeValue> getAllValuesByAttributes( List<Attribute> attributes )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -467,8 +468,8 @@ public class HibernateGenericStore<T>
         CriteriaBuilder.Coalesce<String> coalesce = builder.coalesce();
         attributes.stream().forEach( attribute ->
             coalesce.value(
-                builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ) ,
-                    builder.literal( attribute.getUid() ) , builder.literal( "value" ) ) ) );
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
+                    builder.literal( attribute.getUid() )  ) ) );
 
         query.select( coalesce );
 
@@ -481,7 +482,9 @@ public class HibernateGenericStore<T>
 
         query.where(  builder.or( predicates.toArray( new Predicate[ predicates.size() ] ) ) ) ;
 
-        return getSession().createQuery( query ).list();
+        List<String> result = getSession().createQuery( query ).list();
+
+        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
 
     }
 

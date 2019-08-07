@@ -33,7 +33,6 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInfo;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.Date;
@@ -103,7 +102,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes );
 
-    <T extends IdentifiableObject> List<String> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
+    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
@@ -156,8 +155,6 @@ public interface IdentifiableObjectManager
     void flush();
 
     void evict( Object object );
-
-    <T extends IdentifiableObject> List<T> getAttributeValueByAttribute( Class<T> klass, Attribute attribute );
 
     <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
 

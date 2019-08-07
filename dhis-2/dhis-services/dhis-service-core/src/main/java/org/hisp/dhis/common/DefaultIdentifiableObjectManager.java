@@ -554,7 +554,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true)
-    public <T extends IdentifiableObject> List<String> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
+    public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -1037,27 +1037,6 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getByDataDimensionNoAcl( true );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<T> getAttributeValueByAttribute( Class<T> klass, Attribute attribute )
-    {
-        Schema schema = schemaService.getDynamicSchema( klass );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
-
-        if ( store == null )
-        {
-            return null;
-        }
-
-        return store.getByAttribute( attribute );
     }
 
     @Override

@@ -89,7 +89,7 @@ public interface GenericStore<T>
 
     List<T> getAllByAttributes( List<Attribute> attributes );
 
-    List<String> getAllValuesByAttributes( List<Attribute> attributes );
+    List<AttributeValue> getAllValuesByAttributes( List<Attribute> attributes );
 
     <T extends IdentifiableObject> List<T> getByAttribute( Attribute attribute );
 

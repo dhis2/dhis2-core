@@ -70,12 +70,6 @@ public class AttributeValue
         this.attribute = attribute;
     }
 
-    public AttributeValue( String value, Attribute attribute, String valueType )
-    {
-        this.value = value;
-        this.attribute = attribute;
-    }
-
     public AttributeValue( Attribute attribute, String value )
     {
         this.value = value;

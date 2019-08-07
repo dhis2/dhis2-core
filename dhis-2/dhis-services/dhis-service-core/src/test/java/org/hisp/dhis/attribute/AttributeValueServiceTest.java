@@ -35,6 +35,7 @@ import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,7 +53,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -190,13 +190,16 @@ public class AttributeValueServiceTest
         avA = dataElementA.getAttributeValue( attribute1 );
         assertNotNull( avA );
 
-        List<DataElement> objects = dataElementStore.getByAttribute( attribute2 );
-        List<AttributeValue> attributeValues = objects.stream().map( o -> o.getAttributeValue( attribute2 ) )
-            .collect( Collectors.toList() );
+        List<AttributeValue> attributeValues = dataElementStore.getAllValuesByAttributes( Lists.newArrayList( attribute2 ) );
 
-        assertTrue( !attributeValues.isEmpty() );
+        assertNotNull( attributeValues );
         assertEquals( 1, attributeValues.size() );
         assertEquals( avB.getValue(), attributeValues.get( 0 ).getValue() );
+
+        List<IdentifiableObject> list = dataElementStore.getByAttributeAndValue( attribute1, "valueA" );
+        assertNotNull( list );
+        assertEquals( 1, list.size() );
+        assertEquals( dataElementA, list.get( 0 ) );
     }
 
     @Test
@@ -430,10 +433,10 @@ public class AttributeValueServiceTest
 
         assertEquals( 2, result.size() );
 
-        List<String> values = manager.getAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1, attribute2 ) );
+        List<AttributeValue> values = manager.getAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1, attribute2 ) );
 
         assertEquals( 2, values.size() );
-        assertTrue( values.contains( avA.getValue() ) );
-        assertTrue( values.contains( avB.getValue() ) );
+        assertTrue( values.stream().anyMatch( av -> av.getValue().equals( "valueA" ) ) );
+        assertTrue( values.stream().anyMatch( av -> av.getValue().equals( "valueB" ) ) );
     }
 }

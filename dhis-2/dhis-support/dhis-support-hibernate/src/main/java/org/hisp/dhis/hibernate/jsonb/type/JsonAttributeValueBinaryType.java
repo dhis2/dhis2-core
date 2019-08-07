@@ -28,14 +28,19 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.*;
-
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hibernate.HibernateException;
 import org.hisp.dhis.attribute.AttributeValue;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JsonAttributeValueBinaryType
     extends JsonBinaryType
@@ -95,6 +100,20 @@ public class JsonAttributeValueBinaryType
         {
             throw new RuntimeException( e );
         }
+    }
+
+    public static List<AttributeValue> convertListJsonToListObject( List<String> content )
+    {
+        return content.stream().map( json -> {
+            try
+            {
+                return MAPPER.readValue( json, AttributeValue.class );
+            }
+            catch ( IOException e )
+            {
+                throw new RuntimeException( e );
+            }
+        } ).collect( Collectors.toList() );
     }
 
     private static Set<AttributeValue> convertAttributeValueMapIntoSet( Map<String, AttributeValue> data )
