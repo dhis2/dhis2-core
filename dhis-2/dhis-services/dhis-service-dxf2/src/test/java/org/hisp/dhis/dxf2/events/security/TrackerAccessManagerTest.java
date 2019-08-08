@@ -30,9 +30,13 @@ package org.hisp.dhis.dxf2.events.security;
 
 import static org.junit.Assert.assertTrue;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AccessLevel;
@@ -44,6 +48,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -61,6 +67,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
 import com.google.common.collect.Sets;
 
 /**
@@ -189,7 +196,7 @@ public class TrackerAccessManagerTest extends DhisSpringTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid(), organisationUnitA ), ImportOptions.getDefaultImportOptions() );
+        enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
     }
 
     @Test
@@ -550,16 +557,42 @@ public class TrackerAccessManagerTest extends DhisSpringTest
 
     }
 
-    private Enrollment createEnrollment( String program, String person, OrganisationUnit organisationUnit )
+    private Enrollment createEnrollment( String program, String person )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( CodeGenerator.generateUid() );
-        enrollment.setOrgUnit( organisationUnit.getUid() );
+        enrollment.setOrgUnit( organisationUnitA.getUid() );
         enrollment.setProgram( program );
         enrollment.setTrackedEntityInstance( person );
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
 
+        
+        Event event1 = new Event();
+        event1.setEnrollment( enrollment.getEnrollment() );
+        event1.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
+
+        event1.setOrgUnit( organisationUnitA.getUid() );
+
+        event1.setProgram( programA.getUid() );
+        event1.setProgramStage( programStageA.getUid() );
+        event1.setStatus( EventStatus.COMPLETED );
+        event1.setTrackedEntityInstance( maleA.getUid() );
+        event1.setOrgUnit( organisationUnitA.getUid() );
+
+        Event event2 = new Event();
+        event2.setEnrollment( enrollment.getEnrollment() );
+        event2.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now().plusDays( 10 ) ) );
+
+        event2.setOrgUnit( organisationUnitA.getUid() );
+
+        event2.setProgram( programA.getUid() );
+        event2.setProgramStage( programStageB.getUid() );
+        event2.setStatus( EventStatus.SCHEDULE );
+        event2.setTrackedEntityInstance( maleA.getUid() );
+        event2.setOrgUnit( organisationUnitB.getUid() );
+
+        enrollment.setEvents( Arrays.asList( event1, event2 ) );
         return enrollment;
     }
 }
