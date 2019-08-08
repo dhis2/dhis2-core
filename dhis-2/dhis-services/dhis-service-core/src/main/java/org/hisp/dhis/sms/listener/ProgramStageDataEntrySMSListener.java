@@ -1,13 +1,5 @@
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -35,6 +27,14 @@ import java.util.stream.Collectors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.QueryFilter;

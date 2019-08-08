@@ -1,13 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.message.MessageSender;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramService;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +28,11 @@ import org.hisp.dhis.program.ProgramService;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.message.MessageSender;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;

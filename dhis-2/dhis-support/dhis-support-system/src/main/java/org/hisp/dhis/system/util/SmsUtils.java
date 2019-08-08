@@ -1,7 +1,5 @@
 package org.hisp.dhis.system.util;
 
-import java.text.SimpleDateFormat;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -29,6 +27,8 @@ import java.text.SimpleDateFormat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import java.text.SimpleDateFormat;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.Collection;

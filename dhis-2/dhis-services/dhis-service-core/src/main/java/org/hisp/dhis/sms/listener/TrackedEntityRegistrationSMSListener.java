@@ -1,7 +1,5 @@
 package org.hisp.dhis.sms.listener;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -29,6 +27,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
