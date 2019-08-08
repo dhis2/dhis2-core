@@ -457,8 +457,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
         if ( ou != null )
         {
-            if ( programStageInstance.isCreatableInSearchScope() ? organisationUnitService.isInUserSearchHierarchyCached( user, ou )
-                : organisationUnitService.isInUserHierarchyCached( user, ou ) )
+            if ( programStageInstance.isCreatableInSearchScope() ? !organisationUnitService.isInUserSearchHierarchyCached( user, ou )
+                : !organisationUnitService.isInUserHierarchyCached( user, ou ) )
             {
                 errors.add( "User has no create access to organisation unit: " + ou.getUid() );
             }
