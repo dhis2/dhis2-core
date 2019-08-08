@@ -44,7 +44,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 
 import com.google.common.collect.Lists;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
 import java.util.ArrayList;
 import java.util.List;

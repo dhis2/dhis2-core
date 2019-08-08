@@ -73,7 +73,9 @@ public interface GenericStore<T>
      */
     T get( long id );
 
-        /**
+    List<AttributeValue> getAttributeValueByAttribute( Attribute attribute );
+
+    /**
      * Gets the count of objects.
      *
      * @return the count of objects.
@@ -94,6 +96,8 @@ public interface GenericStore<T>
     <T extends IdentifiableObject> List<T> getByAttribute( Attribute attribute );
 
     <T extends IdentifiableObject> List<T> getByAttributeAndValue(Attribute attribute, String value );
+
+    List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value );
 
     List<T> getByAttributeValue( AttributeValue attributeValue );
 

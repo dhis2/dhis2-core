@@ -29,7 +29,6 @@ package org.hisp.dhis.config;
  */
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -56,13 +55,12 @@ public class EncryptionConfig
     private String password;
 
     @PostConstruct
-    public void init() {
+    public void init()
+    {
         password = (String) getConnectionProperty( "encryption.password", "J7GhAs287hsSQlKd9g5" );
     }
 
-
-    // Used only for SystemSettings (due to bug with JCE policy restrictions in
-    // Jasypt)
+    // Used only for SystemSettings (due to bug with JCE policy restrictions in Jasypt)
     @Bean( "tripleDesStringEncryptor" )
     public PooledPBEStringEncryptor tripleDesStringEncryptor()
     {

@@ -40,6 +40,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -66,9 +67,11 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
     private PeriodStore periodStore;
 
-    public HibernateDataValueAuditStore(SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, PeriodStore periodStore) {
-        super(sessionFactory, jdbcTemplate, DataValueAudit.class, false);
-        
+    public HibernateDataValueAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, PeriodStore periodStore )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, DataValueAudit.class, false );
+
         checkNotNull( periodStore );
 
         this.periodStore = periodStore;
@@ -89,7 +92,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     public void deleteDataValueAudits( OrganisationUnit organisationUnit )
     {
         String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
-        
+
         getSession().createQuery( hql ).setParameter( "unit", organisationUnit ).executeUpdate();
     }
 

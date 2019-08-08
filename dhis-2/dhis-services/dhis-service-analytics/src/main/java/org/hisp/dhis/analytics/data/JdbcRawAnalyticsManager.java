@@ -65,8 +65,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import com.google.api.client.util.Lists;
-
 /**
  * Class responsible for retrieving raw data from the
  * analytics tables.
@@ -104,8 +102,8 @@ public class JdbcRawAnalyticsManager
 
         if ( params.isIncludePeriodStartEndDates() )
         {
-            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, Lists.newArrayList() ) );
-            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, Lists.newArrayList() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, new ArrayList<>() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, new ArrayList<>() ) );
         }
 
         String sql = getSelectStatement( params, dimensions );

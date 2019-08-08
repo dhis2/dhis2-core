@@ -33,6 +33,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -47,10 +48,10 @@ public class HibernateNotificationLoggingStore
     implements NotificationLoggingStore
 {
     public HibernateNotificationLoggingStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ExternalNotificationLogEntry.class, currentUserService,
+        super( sessionFactory, jdbcTemplate, publisher, ExternalNotificationLogEntry.class, currentUserService,
             deletedObjectService, aclService, true );
     }
 

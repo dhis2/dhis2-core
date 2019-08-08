@@ -105,6 +105,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -359,19 +360,6 @@ public class TrackedEntityInstanceController
         }
 
         // ---------------------------------------------------------------------
-        // If file is of image type then dimension will determine which size the image need to be downloaded.
-        // ---------------------------------------------------------------------
-
-        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
-
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
-
-        if ( content == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
-        }
-
-        // ---------------------------------------------------------------------
         // Build response and return
         // ---------------------------------------------------------------------
 
@@ -379,9 +367,7 @@ public class TrackedEntityInstanceController
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-        URI uri = fileResourceService.getSignedGetFileResourceContentUri( value.getValue() );
-
-        try ( InputStream inputStream = (uri == null) ? content.openStream() : uri.toURL().openStream() )
+        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource  ) )
         {
             BufferedImage img = ImageIO.read( inputStream );
             height = height == null ? img.getHeight() : height;

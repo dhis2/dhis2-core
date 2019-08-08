@@ -173,7 +173,7 @@ import java.util.stream.Collectors;
 /**
  * @author Lars Helge Overland
  */
-@ActiveProfiles(profiles = {"test"})
+@ActiveProfiles( profiles = {"test"} )
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );

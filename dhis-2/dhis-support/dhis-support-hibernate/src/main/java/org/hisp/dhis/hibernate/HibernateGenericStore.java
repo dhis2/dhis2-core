@@ -29,6 +29,7 @@ package org.hisp.dhis.hibernate;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -43,7 +44,9 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.persistence.NonUniqueResultException;
@@ -71,17 +74,20 @@ public class HibernateGenericStore<T>
 
     protected SessionFactory sessionFactory;
     protected JdbcTemplate jdbcTemplate;
+    protected ApplicationEventPublisher publisher;
     protected Class<T> clazz;
     protected boolean cacheable;
 
-    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, Class<T> clazz, boolean cacheable )
+    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
     {
         checkNotNull( sessionFactory );
         checkNotNull( jdbcTemplate );
+        checkNotNull( publisher );
         checkNotNull( clazz );
 
         this.sessionFactory = sessionFactory;
         this.jdbcTemplate = jdbcTemplate;
+        this.publisher = publisher;
         this.clazz = clazz;
         this.cacheable = cacheable;
     }
@@ -408,6 +414,8 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+
         getSession().delete( object );
     }
 
@@ -485,7 +493,12 @@ public class HibernateGenericStore<T>
         List<String> result = getSession().createQuery( query ).list();
 
         return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+    }
 
+    @Override
+    public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
+    {
+        return getAllValuesByAttributes( Lists.newArrayList( attribute ) );
     }
 
     @Override
@@ -521,6 +534,25 @@ public class HibernateGenericStore<T>
         query.where( builder.equal(
                         builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
         return getSession().createQuery( query ).list();
+    }
+
+    @Override
+    public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<String> query = builder.createQuery( String.class );
+        Root<T> root = query.from( getClazz() );
+
+        query.select( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
+            builder.literal( attribute.getUid() ) ) );
+
+        query.where( builder.equal(
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+
+        List<String> result = getSession().createQuery( query ).list();
+
+        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
     }
 
     @Override

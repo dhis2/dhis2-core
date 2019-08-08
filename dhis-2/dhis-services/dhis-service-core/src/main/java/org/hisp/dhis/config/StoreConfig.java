@@ -59,6 +59,7 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -76,6 +77,9 @@ public class StoreConfig
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
+    private ApplicationEventPublisher publisher;
+
+    @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
@@ -88,21 +92,21 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<IndicatorType> indicatorTypeStore()
     {
         return new HibernateIdentifiableObjectStore<IndicatorType>( sessionFactory,
-            jdbcTemplate, IndicatorType.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, IndicatorType.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.indicator.IndicatorGroupStore" )
     public HibernateIdentifiableObjectStore<IndicatorGroup> indicatorGroupStore()
     {
         return new HibernateIdentifiableObjectStore<IndicatorGroup>( sessionFactory,
-            jdbcTemplate, IndicatorGroup.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, IndicatorGroup.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.indicator.IndicatorGroupSetStore" )
     public HibernateIdentifiableObjectStore<IndicatorGroupSet> indicatorGroupSetStore()
     {
         return new HibernateIdentifiableObjectStore<IndicatorGroupSet>(
-            sessionFactory, jdbcTemplate, IndicatorGroupSet.class, currentUserService, deletedObjectService,
+            sessionFactory, jdbcTemplate, publisher, IndicatorGroupSet.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 
@@ -110,13 +114,13 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<PredictorGroup> predictorGroupStore()
     {
         return new HibernateIdentifiableObjectStore<PredictorGroup>( sessionFactory,
-            jdbcTemplate, PredictorGroup.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, PredictorGroup.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.expression.ExpressionStore" )
     public HibernateGenericStore<Expression> expressionStore()
     {
-        return new HibernateGenericStore<Expression>( sessionFactory, jdbcTemplate,
+        return new HibernateGenericStore<Expression>( sessionFactory, jdbcTemplate, publisher,
             Expression.class, true );
     }
 
@@ -124,20 +128,20 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<UserGroup> userGroupStore()
     {
         return new HibernateIdentifiableObjectStore<UserGroup>( sessionFactory,
-            jdbcTemplate, UserGroup.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, UserGroup.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.user.UserGroupAccessStore" )
     public HibernateGenericStore<UserGroupAccess> userGroupAccessStore()
     {
-        return new HibernateGenericStore<UserGroupAccess>( sessionFactory, jdbcTemplate,
+        return new HibernateGenericStore<UserGroupAccess>( sessionFactory, jdbcTemplate, publisher,
             UserGroupAccess.class, true );
     }
 
     @Bean( "org.hisp.dhis.user.UserAccessStore" )
     public HibernateGenericStore<UserAccess> userAccessStore()
     {
-        return new HibernateGenericStore<UserAccess>( sessionFactory, jdbcTemplate,
+        return new HibernateGenericStore<UserAccess>( sessionFactory, jdbcTemplate, publisher,
             UserAccess.class, true );
     }
 
@@ -145,21 +149,21 @@ public class StoreConfig
     public HibernateGenericStore<org.hisp.dhis.configuration.Configuration> configurationStore()
     {
         return new HibernateGenericStore<org.hisp.dhis.configuration.Configuration>(
-            sessionFactory, jdbcTemplate, org.hisp.dhis.configuration.Configuration.class, true );
+            sessionFactory, jdbcTemplate, publisher, org.hisp.dhis.configuration.Configuration.class, true );
     }
 
     @Bean( "org.hisp.dhis.constant.ConstantStore" )
     public HibernateIdentifiableObjectStore<Constant> constantStore()
     {
         return new HibernateIdentifiableObjectStore<Constant>( sessionFactory,
-            jdbcTemplate, Constant.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, Constant.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.scheduling.JobConfigurationStore" )
     public HibernateIdentifiableObjectStore<JobConfiguration> jobConfigurationStore()
     {
         return new HibernateIdentifiableObjectStore<JobConfiguration>(
-            sessionFactory, jdbcTemplate, JobConfiguration.class, currentUserService, deletedObjectService,
+            sessionFactory, jdbcTemplate, publisher, JobConfiguration.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 
@@ -167,21 +171,21 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<OptionSet> optionSetStore()
     {
         return new HibernateIdentifiableObjectStore<OptionSet>( sessionFactory,
-            jdbcTemplate, OptionSet.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, OptionSet.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.legend.LegendSetStore" )
     public HibernateIdentifiableObjectStore<LegendSet> legendSetStore()
     {
         return new HibernateIdentifiableObjectStore<LegendSet>( sessionFactory,
-            jdbcTemplate, LegendSet.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, LegendSet.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.program.ProgramIndicatorGroupStore" )
     public HibernateIdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore()
     {
         return new HibernateIdentifiableObjectStore<ProgramIndicatorGroup>(
-            sessionFactory, jdbcTemplate, ProgramIndicatorGroup.class, currentUserService, deletedObjectService,
+            sessionFactory, jdbcTemplate, publisher, ProgramIndicatorGroup.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 
@@ -189,34 +193,34 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<Report> reportStore()
     {
         return new HibernateIdentifiableObjectStore<Report>( sessionFactory,
-            jdbcTemplate, Report.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, Report.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.chart.ChartStore" )
     public HibernateAnalyticalObjectStore<Chart> chartStore()
     {
         return new HibernateAnalyticalObjectStore<Chart>( sessionFactory,
-            jdbcTemplate, Chart.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, Chart.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.reporttable.ReportTableStore" )
     public HibernateAnalyticalObjectStore<ReportTable> reportTableStore()
     {
         return new HibernateAnalyticalObjectStore<ReportTable>( sessionFactory,
-            jdbcTemplate, ReportTable.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, ReportTable.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.dashboard.DashboardStore" )
     public HibernateIdentifiableObjectStore<Dashboard> dashboardStore()
     {
         return new HibernateIdentifiableObjectStore<Dashboard>( sessionFactory,
-            jdbcTemplate, Dashboard.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, Dashboard.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.program.ProgramExpressionStore" )
     public HibernateGenericStore<ProgramExpression> programExpressionStore()
     {
-        return new HibernateGenericStore<ProgramExpression>( sessionFactory, jdbcTemplate,
+        return new HibernateGenericStore<ProgramExpression>( sessionFactory, jdbcTemplate, publisher,
             ProgramExpression.class, true );
     }
 
@@ -224,28 +228,28 @@ public class StoreConfig
     public HibernateAnalyticalObjectStore<EventReport> eventReportStore()
     {
         return new HibernateAnalyticalObjectStore<EventReport>( sessionFactory,
-            jdbcTemplate, EventReport.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, EventReport.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.eventchart.EventChartStore" )
     public HibernateAnalyticalObjectStore<EventChart> eventChartStore()
     {
         return new HibernateAnalyticalObjectStore<EventChart>( sessionFactory,
-            jdbcTemplate, EventChart.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, EventChart.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.color.ColorSetStore" )
     public HibernateIdentifiableObjectStore<ColorSet> colorSetStore()
     {
         return new HibernateIdentifiableObjectStore<ColorSet>( sessionFactory,
-            jdbcTemplate, ColorSet.class, currentUserService, deletedObjectService, aclService, true );
+            jdbcTemplate, publisher, ColorSet.class, currentUserService, deletedObjectService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     public HibernateIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore()
     {
         return new HibernateIdentifiableObjectStore<ProgramNotificationTemplate>(
-            sessionFactory, jdbcTemplate, ProgramNotificationTemplate.class, currentUserService, deletedObjectService,
+            sessionFactory, jdbcTemplate, publisher, ProgramNotificationTemplate.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 
@@ -253,7 +257,7 @@ public class StoreConfig
     public HibernateIdentifiableObjectStore<ProgramNotificationInstance> programNotificationInstanceStore()
     {
         return new HibernateIdentifiableObjectStore<ProgramNotificationInstance>(
-            sessionFactory, jdbcTemplate, ProgramNotificationInstance.class, currentUserService, deletedObjectService,
+            sessionFactory, jdbcTemplate, publisher, ProgramNotificationInstance.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 }

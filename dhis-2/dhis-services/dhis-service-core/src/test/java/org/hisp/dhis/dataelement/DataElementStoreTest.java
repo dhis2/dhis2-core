@@ -35,6 +35,11 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -43,11 +48,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.Assert.*;
-
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: DataElementStoreTest.java 5742 2008-09-26 11:37:35Z larshelg $
  */
 public class DataElementStoreTest
     extends DhisSpringTest
@@ -57,7 +59,7 @@ public class DataElementStoreTest
 
     @Autowired
     private AttributeService attributeService;
-
+    
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 

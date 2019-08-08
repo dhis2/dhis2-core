@@ -68,13 +68,11 @@ public class WebMvcMetricsConfig
     }
 
     @Bean
+    @SuppressWarnings("deprecation")
     public WebMvcMetricsFilter webMetricsFilter( MeterRegistry registry, WebMvcTagsProvider tagsProvider,
         WebApplicationContext ctx )
     {
-        HandlerMappingIntrospector handlerMappingIntrospector = new HandlerMappingIntrospector();
-        handlerMappingIntrospector.setApplicationContext( ctx );
-        
-        return new WebMvcMetricsFilter( registry, tagsProvider, "dhis2", true, handlerMappingIntrospector );
+        return new WebMvcMetricsFilter( registry, tagsProvider, "http_server_requests", true, new HandlerMappingIntrospector(ctx) );
     }
 
     @Configuration

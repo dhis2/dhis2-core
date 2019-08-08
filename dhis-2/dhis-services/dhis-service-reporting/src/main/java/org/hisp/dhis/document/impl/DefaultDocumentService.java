@@ -28,13 +28,9 @@ package org.hisp.dhis.document.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.document.DocumentStore;
-import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
@@ -42,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.util.List;
 
 /**
@@ -54,20 +49,11 @@ import java.util.List;
 public class DefaultDocumentService
     implements DocumentService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     @Autowired
     private FileResourceService fileResourceService;
 
     @Autowired
-    private LocationManager locationManager;
-
-    @Autowired
     private DocumentStore documentStore;
-
-    private static final Log log = LogFactory.getLog( DefaultDocumentService.class );
 
     // -------------------------------------------------------------------------
     // DocumentService implementation
@@ -94,43 +80,6 @@ public class DefaultDocumentService
     }
 
     @Override
-    public void deleteDocument( Document document )
-    {
-
-        // Remove files is !external
-        if ( !document.isExternal() )
-        {
-            if ( document.getFileResource() != null )
-            {
-                deleteFileFromDocument( document );
-                log.info( "Document " + document.getUrl() + " successfully deleted" );
-            }
-            else
-            {
-                try
-                {
-                    File file = locationManager.getFileForReading( document.getUrl(), DocumentService.DIR );
-
-                    if ( file.delete() )
-                    {
-                        log.info( "Document " + document.getUrl() + " successfully deleted" );
-                    }
-                    else
-                    {
-                        log.warn( "Document " + document.getUrl() + " could not be deleted" );
-                    }
-                }
-                catch ( LocationManagerException ex )
-                {
-                    log.warn( "An error occured while deleting " + document.getUrl() );
-                }
-            }
-        }
-
-        documentStore.delete( document );
-    }
-
-    @Override
     public void deleteFileFromDocument( Document document )
     {
         FileResource fileResource = document.getFileResource();
@@ -150,12 +99,6 @@ public class DefaultDocumentService
     }
 
     @Override
-    public List<Document> getDocumentByName( String name )
-    {
-        return documentStore.getAllEqName( name );
-    }
-
-    @Override
     public int getDocumentCount()
     {
         return documentStore.getCount();
@@ -167,18 +110,6 @@ public class DefaultDocumentService
         return documentStore.getCountLikeName( name );
     }
 
-    @Override
-    public List<Document> getDocumentsBetween( int first, int max )
-    {
-        return documentStore.getAllOrderedName( first, max );
-    }
-
-    @Override
-    public List<Document> getDocumentsBetweenByName( String name, int first, int max )
-    {
-        return documentStore.getAllLikeName( name, first, max );
-    }
-    
     @Override
     public List<Document> getDocumentsByUid( List<String> uids )
     {

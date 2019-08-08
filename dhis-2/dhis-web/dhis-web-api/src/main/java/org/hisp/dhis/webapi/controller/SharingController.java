@@ -56,11 +56,13 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.sharing.Sharing;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.SharingUserGroupAccess;
 import org.hisp.dhis.webapi.webdomain.sharing.comparator.SharingUserGroupAccessNameComparator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Controller;
@@ -208,6 +210,7 @@ public class SharingController
         sharing.getObject().getUserGroupAccesses().sort( SharingUserGroupAccessNameComparator.INSTANCE );
 
         response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), sharing );
     }
 
@@ -391,6 +394,7 @@ public class SharingController
         output.put( "users", userAccesses );
 
         response.setContentType( MediaType.APPLICATION_JSON_UTF8_VALUE );
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         renderService.toJson( response.getOutputStream(), output );
     }
 

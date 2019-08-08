@@ -312,6 +312,9 @@ public class AttributeValueServiceTest
 
         List<DataElement> dataElements = dataElementStore.getByAttribute( attribute );
         assertEquals( 2, dataElements.size() );
+
+        List<AttributeValue> values = dataElementStore.getAttributeValueByAttribute( attribute );
+        assertEquals( 2, values.size() );
     }
 
     @Test
@@ -340,6 +343,13 @@ public class AttributeValueServiceTest
 
         dataElements = dataElementStore.getByAttributeAndValue( attribute, "ANOTHER VALUE" );
         assertEquals( 1, dataElements.size() );
+
+        List<AttributeValue> values = dataElementStore.getAttributeValueByAttributeAndValue( attribute, "SOME VALUE" );
+        assertEquals( 2, values.size() );
+
+        values = dataElementStore
+            .getAttributeValueByAttributeAndValue( attribute, "ANOTHER VALUE" );
+        assertEquals( 1, values.size() );
     }
 
     @Test

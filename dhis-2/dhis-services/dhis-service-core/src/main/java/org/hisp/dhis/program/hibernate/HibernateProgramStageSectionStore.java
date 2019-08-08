@@ -35,6 +35,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -47,9 +48,9 @@ public class HibernateProgramStageSectionStore
     implements ProgramStageSectionStore
 {
     public HibernateProgramStageSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ProgramStageSection.class, currentUserService, deletedObjectService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramStageSection.class, currentUserService, deletedObjectService, aclService, true );
     }
 }

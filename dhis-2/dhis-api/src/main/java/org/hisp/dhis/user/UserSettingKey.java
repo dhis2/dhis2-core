@@ -115,7 +115,7 @@ public enum UserSettingKey
         return Optional.empty();
     }
 
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<UserSettingKey> setting = getByName( name );

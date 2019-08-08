@@ -34,10 +34,9 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,7 +60,11 @@ public class AnalyticsTableAsserter
 
     private List<AnalyticsTableColumn> columns;
 
+    private Map<String, Consumer<AnalyticsTableColumn>> matchers;
+
     private AnalyticsTableType tableType;
+
+    private String name;
 
     private AnalyticsTableAsserter()
     {
@@ -72,6 +75,7 @@ public class AnalyticsTableAsserter
         // verify column size
         assertThat( table.getDimensionColumns(), hasSize( columnsSize ) );
         assertThat( table.getTableType(), is( tableType ) );
+        assertThat( table.getTableName(), is( name ) );
 
         // verify default columns
 
@@ -103,6 +107,18 @@ public class AnalyticsTableAsserter
                 new AnalyticsColumnAsserter.Builder( col ).build().verify( tableColumnMap.get( col.getName() ) );
             }
         }
+
+        for ( String name : matchers.keySet() )
+        {
+            if ( !tableColumnMap.containsKey( name ) )
+            {
+                fail( "Column [" + name + "] is missing" );
+            }
+            else
+            {
+                matchers.get( name ).accept( tableColumnMap.get( name ) );
+            }
+        }
     }
 
     public static class Builder
@@ -115,7 +131,11 @@ public class AnalyticsTableAsserter
 
         private List<AnalyticsTableColumn> _columns = new ArrayList<>();
 
+        private Map<String, Consumer<AnalyticsTableColumn>> _matchers = new HashMap<>();
+
         private AnalyticsTableType _tableType;
+
+        private String _tableName;
 
         public Builder( AnalyticsTable analyticsTable )
         {
@@ -141,6 +161,12 @@ public class AnalyticsTableAsserter
             return this;
         }
 
+        public Builder withTableName( String tableName )
+        {
+            _tableName = tableName;
+            return this;
+        }
+
         public Builder addColumn( String name, ColumnDataType dataType, String alias, Date created )
         {
             AnalyticsTableColumn col = new AnalyticsTableColumn( quote( name ), dataType, alias + quote( name ) );
@@ -152,7 +178,12 @@ public class AnalyticsTableAsserter
 
         public Builder addColumn( String name, ColumnDataType dataType, String alias )
         {
-            AnalyticsTableColumn col = new AnalyticsTableColumn( quote( name ), dataType, alias);
+            return addColumnUnquoted( quote( name ), dataType, alias );
+        }
+
+        public Builder addColumnUnquoted( String name, ColumnDataType dataType, String alias )
+        {
+            AnalyticsTableColumn col = new AnalyticsTableColumn( name, dataType, alias );
             this._columns.add( col );
 
             return this;
@@ -161,6 +192,13 @@ public class AnalyticsTableAsserter
         public Builder addColumns( List<AnalyticsTableColumn> columns )
         {
             this._columns.addAll( columns );
+
+            return this;
+        }
+
+        public Builder addColumn( String name, Consumer<AnalyticsTableColumn> consumer )
+        {
+            this._matchers.put( name, consumer );
 
             return this;
         }
@@ -180,7 +218,8 @@ public class AnalyticsTableAsserter
             asserter.defaultColumns = _defaultColumns;
             asserter.tableType = _tableType;
             asserter.columns = _columns;
-
+            asserter.matchers = _matchers;
+            asserter.name = _tableName;
             return asserter;
         }
     }

@@ -49,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -426,7 +427,7 @@ public class DefaultAttributeService
     private Map<String, String> jsonToMap( List<String> jsonAttributeValues )
         throws IOException
     {
-        Map<String, String> parsed = Maps.newHashMap();
+        Map<String, String> parsed = new HashMap<>();
 
         ObjectMapper mapper = new ObjectMapper();
 

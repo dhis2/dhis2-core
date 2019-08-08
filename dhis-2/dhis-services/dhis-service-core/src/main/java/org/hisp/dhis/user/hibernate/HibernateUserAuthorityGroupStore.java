@@ -37,6 +37,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserAuthorityGroupStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -49,9 +50,9 @@ public class HibernateUserAuthorityGroupStore
     implements UserAuthorityGroupStore
 {
     public HibernateUserAuthorityGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, UserAuthorityGroup.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 

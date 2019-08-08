@@ -36,6 +36,7 @@ import org.hisp.dhis.mapping.MapViewStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -50,12 +51,13 @@ public class HibernateMapViewStore
     extends HibernateAnalyticalObjectStore<MapView> implements MapViewStore
 {
     public HibernateMapViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, MapView.class, currentUserService, deletedObjectService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, MapView.class, currentUserService, deletedObjectService, aclService,
             true );
     }
 
+    @Override
     public List<MapView> getByOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet )
     {
         CriteriaBuilder builder = getCriteriaBuilder();

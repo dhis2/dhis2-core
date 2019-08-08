@@ -28,10 +28,10 @@
 
 package org.hisp.dhis.analytics.util;
 
-import org.junit.Test;
-
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+
+import org.junit.Test;
 
 /**
  * @author Luciano Fiandesio
@@ -39,11 +39,12 @@ import static org.junit.Assert.*;
 public class AnalyticsSqlUtilsTest
 {
     @Test
-    public void testAddClosingParentheses()
+    public void testGetClosingParentheses()
     {
-        assertThat( AnalyticsSqlUtils.addClosingParentheses( null ), is( "" ) );
-        assertThat( AnalyticsSqlUtils.addClosingParentheses( "" ), is( "" ) );
-        assertThat( AnalyticsSqlUtils.addClosingParentheses( "((" ), is( "))" ) );
-        assertThat( AnalyticsSqlUtils.addClosingParentheses( "ckwk3rkwptp2)2upywjnmne0o92ylzf4rw(5arbll1c0qrawpdh8n(89h)57r8j7er6qc1vnghnmsx4mssa77idrcrwcx0tuh359" ), is( ")" ) );
+        assertThat( AnalyticsSqlUtils.getClosingParentheses( null ), is( "" ) );
+        assertThat( AnalyticsSqlUtils.getClosingParentheses( "" ), is( "" ) );
+        assertThat( AnalyticsSqlUtils.getClosingParentheses( "from(select(select (*))" ), is( ")" ) );
+        assertThat( AnalyticsSqlUtils.getClosingParentheses( "((" ), is( "))" ) );
+        assertThat( AnalyticsSqlUtils.getClosingParentheses( "ckwk3rkwptp2)2upywjnmne0o92ylzf4rw(5arbll1c0qrawpdh8n(89h)57r8j7er6qc1vnghnmsx4mssa77idrcrwcx0tuh359" ), is( ")" ) );
     }
 }

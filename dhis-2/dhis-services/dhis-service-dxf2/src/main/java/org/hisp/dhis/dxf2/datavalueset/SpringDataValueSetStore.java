@@ -49,6 +49,7 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,8 +67,6 @@ public class SpringDataValueSetStore
     implements DataValueSetStore
 {
     private static final Log log = LogFactory.getLog( SpringDataValueSetStore.class );
-
-    private static final char CSV_DELIM = ',';
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -99,7 +98,7 @@ public class SpringDataValueSetStore
     @Override
     public void writeDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer )
     {
-        DataValueSet dataValueSet = new StreamingCsvDataValueSet( new CsvWriter( writer, CSV_DELIM ) );
+        DataValueSet dataValueSet = new StreamingCsvDataValueSet( CsvUtils.getWriter( writer ) );
 
         String sql = getDataValueSql( params );
 

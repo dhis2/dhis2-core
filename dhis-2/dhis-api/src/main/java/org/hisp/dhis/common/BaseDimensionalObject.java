@@ -63,6 +63,11 @@ public class BaseDimensionalObject
     protected DataDimensionType dataDimensionType;
 
     /**
+     * Indicates whether this object should be handled as a data dimension.
+     */
+    protected boolean dataDimension = true;
+
+    /**
      * The name of this dimension. For the dynamic dimensions this will be equal
      * to dimension identifier. For the period dimension, this will reflect the
      * period type. For the org unit dimension, this will reflect the level.
@@ -112,15 +117,6 @@ public class BaseDimensionalObject
      * dimension will be returned as is for all dimension items in the response.
      */
     private boolean fixed;
-
-    //--------------------------------------------------------------------------
-    // Persistent properties
-    //--------------------------------------------------------------------------
-
-    /**
-     * Indicates whether this object should be handled as a data dimension.
-     */
-    protected boolean dataDimension = true;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -320,6 +316,19 @@ public class BaseDimensionalObject
 
     @Override
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataDimension()
+    {
+        return dataDimension;
+    }
+
+    public void setDataDimension( boolean dataDimension )
+    {
+        this.dataDimension = dataDimension;
+    }
+
+    @Override
+    @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalItemObject.class )
     @JacksonXmlElementWrapper( localName = "items", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "item", namespace = DxfNamespaces.DXF_2_0 )
@@ -410,19 +419,6 @@ public class BaseDimensionalObject
     public void setFixed( boolean fixed )
     {
         this.fixed = fixed;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDataDimension()
-    {
-        return dataDimension;
-    }
-
-    public void setDataDimension( boolean dataDimension )
-    {
-        this.dataDimension = dataDimension;
     }
 
     @Override
