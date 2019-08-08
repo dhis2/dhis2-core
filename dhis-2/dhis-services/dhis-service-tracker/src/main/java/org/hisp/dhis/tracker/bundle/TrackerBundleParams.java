@@ -37,6 +37,7 @@ import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -88,9 +89,9 @@ public class TrackerBundleParams
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
-     * Skip validation of objects (not recommended).
+     * Validation mode to use, defaults to fully validated objects.
      */
-    private boolean skipValidation;
+    private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
      * Give full report, or only include errors.
@@ -214,14 +215,14 @@ public class TrackerBundleParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipValidation()
+    public ValidationMode getValidationMode()
     {
-        return skipValidation;
+        return validationMode;
     }
 
-    public TrackerBundleParams setSkipValidation( boolean skipValidation )
+    public TrackerBundleParams setValidationMode( ValidationMode validationMode )
     {
-        this.skipValidation = skipValidation;
+        this.validationMode = validationMode;
         return this;
     }
 
@@ -292,7 +293,7 @@ public class TrackerBundleParams
             .setImportStrategy( importStrategy )
             .setAtomicMode( atomicMode )
             .setFlushMode( flushMode )
-            .setSkipValidation( skipValidation )
+            .setValidationMode( validationMode )
             .setReportMode( reportMode )
             .setTrackedEntities( trackedEntities )
             .setEnrollments( enrollments )

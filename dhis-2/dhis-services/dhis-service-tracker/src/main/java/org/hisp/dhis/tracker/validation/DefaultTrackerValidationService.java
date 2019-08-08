@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
  */
 
 import org.hisp.dhis.logging.LoggingManager;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,13 +59,21 @@ public class DefaultTrackerValidationService implements TrackerValidationService
     {
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation() )
+        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && ValidationMode.SKIP == bundle.getValidationMode() )
         {
             log.warn( "Skipping validation for metadata import by user '" + bundle.getUsername() + "'. Not recommended." );
             return validationReport;
         }
 
-        validationHooks.forEach( hook -> validationReport.add( hook.validate( bundle ) ) );
+        for ( TrackerValidationHook hook : validationHooks )
+        {
+            validationReport.add( hook.validate( bundle ) );
+
+            if ( !validationReport.isEmpty() && ValidationMode.FAIL_FAST == bundle.getValidationMode() )
+            {
+                break;
+            }
+        }
 
         return validationReport;
     }

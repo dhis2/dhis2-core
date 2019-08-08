@@ -33,6 +33,7 @@ import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -80,9 +81,9 @@ public class TrackerBundle
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
-     * Skip validation of objects (not recommended).
+     * Validation mode to use, defaults to fully validated objects.
      */
-    private boolean skipValidation;
+    private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
      * Give full report, or only include errors.
@@ -186,14 +187,14 @@ public class TrackerBundle
         return this;
     }
 
-    public boolean isSkipValidation()
+    public ValidationMode getValidationMode()
     {
-        return skipValidation;
+        return validationMode;
     }
 
-    public TrackerBundle setSkipValidation( boolean skipValidation )
+    public TrackerBundle setValidationMode( ValidationMode validationMode )
     {
-        this.skipValidation = skipValidation;
+        this.validationMode = validationMode;
         return this;
     }
 
@@ -280,7 +281,7 @@ public class TrackerBundle
             ", importStrategy=" + importStrategy +
             ", atomicMode=" + atomicMode +
             ", flushMode=" + flushMode +
-            ", skipValidation=" + skipValidation +
+            ", validationMode=" + validationMode +
             ", reportMode=" + reportMode +
             ", preheat=" + preheat +
             ", trackedEntities=" + trackedEntities +

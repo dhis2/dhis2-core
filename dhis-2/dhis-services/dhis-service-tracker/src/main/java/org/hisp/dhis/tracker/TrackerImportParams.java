@@ -85,9 +85,9 @@ public class TrackerImportParams
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
-     * Skip validation of objects (not recommended).
+     * Validation mode to use, defaults to fully validated objects.
      */
-    private boolean skipValidation;
+    private ValidationMode validationMode = ValidationMode.FULL;
 
     /**
      * Name of file that was used for import (if available).
@@ -216,14 +216,14 @@ public class TrackerImportParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSkipValidation()
+    public ValidationMode getValidationMode()
     {
-        return skipValidation;
+        return validationMode;
     }
 
-    public TrackerImportParams setSkipValidation( boolean skipValidation )
+    public TrackerImportParams setValidationMode( ValidationMode validationMode )
     {
-        this.skipValidation = skipValidation;
+        this.validationMode = validationMode;
         return this;
     }
 
@@ -294,7 +294,7 @@ public class TrackerImportParams
             .setImportStrategy( importStrategy )
             .setAtomicMode( atomicMode )
             .setFlushMode( flushMode )
-            .setSkipValidation( skipValidation )
+            .setValidationMode( validationMode )
             .setReportMode( reportMode )
             .setTrackedEntities( trackedEntities )
             .setEnrollments( enrollments )
