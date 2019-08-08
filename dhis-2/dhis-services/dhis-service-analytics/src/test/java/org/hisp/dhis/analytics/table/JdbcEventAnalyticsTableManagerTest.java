@@ -75,6 +75,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Luciano Fiandesio
@@ -90,22 +91,7 @@ public class JdbcEventAnalyticsTableManagerTest
     @Mock
     private CategoryService categoryService;
 
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
-    @Mock
-    private DataApprovalLevelService dataApprovalLevelService;
-
-    @Mock
-    private ResourceTableService resourceTableService;
-
-    @Mock
-    private AnalyticsTableHookService tableHookService;
-
     private StatementBuilder statementBuilder;
-
-    @Mock
-    private PartitionManager partitionManager;
 
     @Mock
     private DatabaseInfo databaseInfo;
@@ -129,8 +115,9 @@ public class JdbcEventAnalyticsTableManagerTest
     public void setUp()
     {
         statementBuilder = new PostgreSQLStatementBuilder();
-        subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService, systemSettingManager,
-            dataApprovalLevelService, resourceTableService, tableHookService, statementBuilder, partitionManager, databaseInfo, jdbcTemplate );
+        subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
+            mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
+            mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
         when( jdbcTemplate.queryForList(
             "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
