@@ -122,6 +122,14 @@ public interface OrganisationUnitStore
      */
     List<OrganisationUnit> getWithinCoordinateArea( double[] box );
 
+    /**
+     * Returns the UID of all OrganisationUnits created before a given date.
+     *
+     * @param date the date.
+     * @return the UID of all OrganisationUnits created before a given date.
+     */
+    List<String> getUIDsCreatedBefore( Date date );
+    
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------

@@ -28,16 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -77,8 +67,18 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Transactional
 public abstract class NewSMSListener
@@ -272,9 +272,7 @@ public abstract class NewSMSListener
 
     private List<SMSMetadata.ID> getAllOrgUnitIds( Date lastSyncDate )
     {
-        List<OrganisationUnit> orgUnits = organisationUnitService.getAllOrganisationUnits();
-
-        return orgUnits.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
+        return organisationUnitService.getUIDsCreatedBefore( lastSyncDate ).stream().map( o -> new SMSMetadata.ID( o ) )
             .collect( Collectors.toList() );
     }
 

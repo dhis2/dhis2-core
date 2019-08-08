@@ -440,6 +440,8 @@ public interface OrganisationUnitService
 
     int getNumberOfOrganisationUnits();
 
+    List<String> getUIDsCreatedBefore( Date date );
+    
     /**
      * Return the number of organisation unit levels to cache offline, e.g. for
      * organisation unit tree. Looks for level to return in the following order:
