@@ -39,6 +39,8 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -73,7 +75,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.jfree.util.Log;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.gson.Gson;
@@ -84,6 +85,8 @@ public abstract class NewSMSListener
     extends
     BaseSMSListener
 {
+    private static final Log log = LogFactory.getLog( NewSMSListener.class );
+
     protected abstract SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
         throws SMSProcessingException;
 
@@ -168,14 +171,14 @@ public abstract class NewSMSListener
         }
         catch ( Exception e )
         {
-            Log.error( e.getMessage() );
+            log.error( e.getMessage() );
             sendSMSResponse( SMSResponse.READ_ERROR, sms, header.getSubmissionID() );
             return;
         }
 
         // TODO: Can be removed - debugging line to check SMS submissions
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        Log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
+        log.info( "New received SMS submission decoded as: " + gson.toJson( subm ) );
 
         SMSResponse resp = null;
         try
@@ -185,12 +188,12 @@ public abstract class NewSMSListener
         }
         catch ( SMSProcessingException e )
         {
-            Log.error( e.getMessage() );
+            log.error( e.getMessage() );
             sendSMSResponse( e.getResp(), sms, header.getSubmissionID() );
             return;
         }
 
-        Log.info( "SMS Response: " + resp.toString() );
+        log.info( "SMS Response: " + resp.toString() );
         sendSMSResponse( resp, sms, header.getSubmissionID() );
     }
 
@@ -216,7 +219,7 @@ public abstract class NewSMSListener
         catch ( Exception e )
         {
             e.printStackTrace();
-            Log.error( e.getMessage() );
+            log.error( e.getMessage() );
             return null;
         }
     }
@@ -339,13 +342,13 @@ public abstract class NewSMSListener
             // TODO: Is this the correct way of handling errors here?
             if ( de == null )
             {
-                Log.warn( "Given data element [" + deid + "] could not be found. Continuing with submission..." );
+                log.warn( "Given data element [" + deid + "] could not be found. Continuing with submission..." );
                 errorUIDs.add( deid );
                 continue;
             }
             else if ( val == null || StringUtils.isEmpty( val ) )
             {
-                Log.warn( "Value for atttribute [" + deid + "] is null or empty. Continuing with submission..." );
+                log.warn( "Value for atttribute [" + deid + "] is null or empty. Continuing with submission..." );
                 continue;
             }
 

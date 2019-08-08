@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -56,7 +59,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,6 +69,8 @@ public class DhisMessageAlertListener
     extends
     CommandSMSListener
 {
+    private static final Log log = LogFactory.getLog( DhisMessageAlertListener.class );
+
     private final SMSCommandService smsCommandService;
 
     private final MessageService messageService;
@@ -149,7 +153,7 @@ public class DhisMessageAlertListener
                 }
                 else
                 {
-                    Log.info( "No sms configuration found." );
+                    log.info( "No sms configuration found." );
                 }
 
                 update( sms, SmsMessageStatus.PROCESSED, true );

@@ -32,6 +32,8 @@ import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
@@ -58,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserService;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +70,8 @@ public class EnrollmentSMSListener
     extends
     NewSMSListener
 {
+    private static final Log log = LogFactory.getLog( EnrollmentSMSListener.class );
+
     private final TrackedEntityInstanceService teiService;
 
     private final ProgramInstanceService programInstanceService;
@@ -122,12 +125,12 @@ public class EnrollmentSMSListener
 
         if ( existsOnServer )
         {
-            Log.info( "Given TEI (" + teiUID + ") exists. Updating..." );
+            log.info( "Given TEI (" + teiUID + ") exists. Updating..." );
             entityInstance = teiService.getTrackedEntityInstance( teiUID.uid );
         }
         else
         {
-            Log.info( "Given TEI (" + teiUID + ") does not exist. Creating..." );
+            log.info( "Given TEI (" + teiUID + ") does not exist. Creating..." );
             entityInstance = new TrackedEntityInstance();
             entityInstance.setUid( teiUID.uid );
             entityInstance.setOrganisationUnit( orgUnit );
