@@ -206,7 +206,7 @@ public class DefaultSystemSettingManager
      */
     private Optional<Serializable> getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = transactionTemplate.execute(status -> systemSettingStore.getByName( name ));
+        SystemSetting setting = transactionTemplate.execute( status -> systemSettingStore.getByName( name ) );
 
         if ( setting != null && setting.hasValue() )
         {

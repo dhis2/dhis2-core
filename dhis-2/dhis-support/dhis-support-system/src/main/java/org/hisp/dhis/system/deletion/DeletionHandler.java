@@ -42,6 +42,8 @@ import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
@@ -86,6 +88,7 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramExpression;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramInstance;
@@ -116,6 +119,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationResult;
@@ -176,6 +180,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteDataApproval( DataApproval dataApproval )
+    {
+    }
+
+    public String allowDeleteDataApproval( DataApproval dataApproval )
+    {
+        return null;
+    }
+
     public void deleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
     {
     }
@@ -190,6 +203,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    {
+        return null;
+    }
+
+    public void deleteDataApprovalAudit( DataApprovalAudit audit )
+    {
+    }
+
+    public String allowDeleteDataApprovalAudit( DataApprovalAudit audit )
     {
         return null;
     }
@@ -496,6 +518,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteUserCredentials( UserCredentials credentials )
+    {
+    }
+
+    public String allowDeleteUserCredentials( UserCredentials credentials )
+    {
+        return null;
+    }
+
     public void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
     }
@@ -756,6 +787,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteProgramExpression( ProgramExpression programExpression )
+    {
+    }
+
+    public String allowDeleteProgramExpression( ProgramExpression programExpression )
+    {
+        return null;
+    }
+
     public void deleteConstant( Constant constant )
     {
     }
@@ -926,11 +966,11 @@ public abstract class DeletionHandler
     {
         return null;
     }
-    
+
     public void deleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
-    {        
+    {
     }
-    
+
     public String allowDeleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
     {
         return null;
@@ -939,7 +979,7 @@ public abstract class DeletionHandler
     public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup color )
     {
     }
-    
+
     public String allowDeleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup group )
     {
         return null;
@@ -948,7 +988,7 @@ public abstract class DeletionHandler
     public void deletePushAnalysis( PushAnalysis pushAnalysis )
     {
     }
-    
+
     public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
     {
         return null;

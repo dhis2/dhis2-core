@@ -1,4 +1,4 @@
-package org.hisp.dhis.reporting.config;
+package org.hisp.dhis;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,28 +28,23 @@ package org.hisp.dhis.reporting.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.ServiceProvider;
-import org.hisp.dhis.completeness.DataSetCompletenessService;
-import org.hisp.dhis.completeness.impl.CompulsoryDataSetCompletenessService;
-import org.hisp.dhis.completeness.impl.RegistrationDataSetCompletenessService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 
 /**
- * @author Luciano Fiandesio
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Configuration( "reportingServiceConfig" )
-public class ServiceConfig
+@Configuration
+@ImportResource( locations = { "classpath*:/META-INF/dhis/security.xml" } )
+@ComponentScan( "org.hisp.dhis" )
+public class UnitTestConfig
 {
-    @Bean( "dataCompletenessServiceProvider" )
-    public ServiceProvider<DataSetCompletenessService> dataCompletenessServiceProvider(
-        RegistrationDataSetCompletenessService registrationDataSetCompletenessService,
-        CompulsoryDataSetCompletenessService compulsoryDataSetCompletenessService )
+    @Bean( name = "dhisConfigurationProvider" )
+    public DhisConfigurationProvider dhisConfigurationProvider()
     {
-        ServiceProvider<DataSetCompletenessService> serviceProvider = new ServiceProvider<>();
-        serviceProvider.setServices( ImmutableMap.of( "registration", registrationDataSetCompletenessService,
-            "compulsory", compulsoryDataSetCompletenessService ) );
-        return serviceProvider;
+        return new H2DhisConfigurationProvider();
     }
 }

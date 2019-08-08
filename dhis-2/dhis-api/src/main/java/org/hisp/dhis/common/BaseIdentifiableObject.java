@@ -127,12 +127,12 @@ public class BaseIdentifiableObject
     protected User user;
 
     /**
-     * Access for userGroups
+     * Access for user groups.
      */
     protected Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
-     * Access for users
+     * Access for users.
      */
     protected Set<UserAccess> userAccesses = new HashSet<>();
 
@@ -145,14 +145,14 @@ public class BaseIdentifiableObject
      * Users who have marked this object as a favorite.
      */
     protected Set<String> favorites = new HashSet<>();
-    
+
     /**
      * The i18n variant of the name. Not persisted.
      */
     protected transient String displayName;
 
     /**
-     * Last user updated this object
+     * Last user updated this object.
      */
     private User lastUpdatedBy;
 
@@ -299,6 +299,7 @@ public class BaseIdentifiableObject
         this.created = created;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @JsonSerialize( using = CustomLastUpdatedUserSerializer.class )
@@ -506,29 +507,29 @@ public class BaseIdentifiableObject
     public boolean isFavorite()
     {
         User user = UserContext.getUser();
-        
+
         return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
     }
 
     @Override
     public boolean setAsFavorite( User user )
-    {        
+    {
         if ( this.favorites == null )
         {
             this.favorites = new HashSet<>();
         }
-        
+
         return this.favorites.add( user.getUid() );
     }
 
     @Override
     public boolean removeAsFavorite( User user )
-    {        
+    {
         if ( this.favorites == null )
         {
             this.favorites = new HashSet<>();
         }
-        
+
         return this.favorites.remove( user.getUid() );
     }
 

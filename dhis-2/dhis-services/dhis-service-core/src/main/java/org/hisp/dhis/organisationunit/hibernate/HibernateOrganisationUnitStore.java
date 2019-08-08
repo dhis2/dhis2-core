@@ -49,6 +49,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.objectmapper.OrganisationUnitRelationshipRowMapper;
 import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
@@ -79,10 +80,10 @@ public class HibernateOrganisationUnitStore
     private final DbmsManager dbmsManager;
 
     public HibernateOrganisationUnitStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
-        DbmsManager dbmsManager )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService, DbmsManager dbmsManager )
     {
-        super( sessionFactory, jdbcTemplate, OrganisationUnit.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnit.class, currentUserService, deletedObjectService,
             aclService, true );
 
         checkNotNull( dbmsManager );

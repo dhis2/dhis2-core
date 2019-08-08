@@ -60,11 +60,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @Configuration
 public class StartupConfig
 {
-
     @Bean( "org.hisp.dhis.period.PeriodTypePopulator" )
     public PeriodTypePopulator periodTypePopulator( PeriodStore periodStore )
     {
-
         PeriodTypePopulator populator = new PeriodTypePopulator( periodStore );
         populator.setName( "PeriodTypePopulator" );
         populator.setRunlevel( 2 );
@@ -74,7 +72,6 @@ public class StartupConfig
     @Bean
     public TwoFAPopulator twoFAPopulator( UserService userService, CurrentUserService currentUserService )
     {
-
         TwoFAPopulator populator = new TwoFAPopulator( userService, currentUserService );
         populator.setName( "PeriodTypePopulator" );
         populator.setRunlevel( 2 );

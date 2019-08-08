@@ -58,7 +58,7 @@ public class EventsImportTests
     public void eventsImportNewEventsFromFile( String fileName, String contentType )
         throws Exception
     {
-        Object file = new FileReaderUtils().read( new File( "src/test/resources/events/" + fileName ) )
+        Object file = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/" + fileName ) )
             .replacePropertyValuesWithIds( "event" )
             .get();
 
@@ -116,7 +116,7 @@ public class EventsImportTests
 
     private ApiResponse post( String fileName, boolean async )
     {
-        ApiResponse response = eventActions.postFile( new File( "src/test/resources/events/" + fileName ),
+        ApiResponse response = eventActions.postFile( new File( "src/test/resources/tracker/events/" + fileName ),
             "?dryRun=false&eventIdScheme=UID&orgUnitIdScheme=UID&async=" + String.valueOf( async ) );
 
         return response;

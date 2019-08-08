@@ -28,10 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.function.Consumer;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.message.MessageSender;
@@ -42,7 +38,11 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.smscompression.SMSResponse;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.function.Consumer;
+
 import com.google.common.collect.ImmutableMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Transactional
 public abstract class BaseSMSListener

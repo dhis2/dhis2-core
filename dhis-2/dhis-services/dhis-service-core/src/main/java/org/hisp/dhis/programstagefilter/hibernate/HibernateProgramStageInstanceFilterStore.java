@@ -35,6 +35,7 @@ import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -51,9 +52,9 @@ public class HibernateProgramStageInstanceFilterStore
 {
 
     public HibernateProgramStageInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ProgramStageInstanceFilter.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstanceFilter.class, currentUserService, deletedObjectService,
             aclService, false );
     }
 

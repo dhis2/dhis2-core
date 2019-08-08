@@ -1,5 +1,12 @@
 version: '3'
 services:
+  redis:
+    image: redis:5.0.5-alpine
+    volumes:
+    - ./config/redis/redis.conf:/usr/local/etc/redis.conf
+    ports:
+       - "6379"
+
   db:
     restart: always
     image: mdillon/postgis:10-alpine
@@ -11,8 +18,6 @@ services:
 
   e2e-test-web:
     image: "${IMAGE_NAME}"
-    logging:
-      driver: "json-file"
     build:
       dockerfile: Dockerfile
       context: ../..
@@ -20,5 +25,6 @@ services:
     - ./config/dhis2_home/dhis.conf:/DHIS2_home/dhis.conf
     depends_on:
     - db
+    - redis
     ports:
     - "8080"
