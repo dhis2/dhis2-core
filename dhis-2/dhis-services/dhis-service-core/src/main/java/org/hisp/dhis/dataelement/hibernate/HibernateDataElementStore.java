@@ -1,10 +1,5 @@
 package org.hisp.dhis.dataelement.hibernate;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaBuilder;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -46,6 +41,11 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.CriteriaBuilder;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Torgeir Lorange Ostby
