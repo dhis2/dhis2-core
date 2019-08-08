@@ -195,7 +195,7 @@ public class AggregateDatasetSMSListenerTest
         user.setPhoneNumber( ORIGINATOR );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         dataSet = createDataSet( 'D' );
-        organisationUnit.getDataSets().add( dataSet );
+        dataSet.getSources().add( organisationUnit );
         categoryOptionCombo = createCategoryOptionCombo( 'C' );
         dataElement = createDataElement( 'D' );
 
