@@ -280,9 +280,7 @@ public abstract class NewSMSListener
 
     private List<SMSMetadata.ID> getAllDataElements( Date lastSyncDate )
     {
-        List<DataElement> dataElements = dataElementService.getAllDataElements();
-
-        return dataElements.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
+        return dataElementService.getUIDsCreatedBefore( lastSyncDate ).stream().map( o -> new SMSMetadata.ID( o ) )
             .collect( Collectors.toList() );
     }
 
