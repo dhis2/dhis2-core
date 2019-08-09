@@ -117,6 +117,7 @@ import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
@@ -748,7 +749,19 @@ public class DefaultAnalyticsService
 
                     PeriodType queryPt = filterPeriodType != null ? filterPeriodType : getPeriodTypeFromIsoString( dataRow.get( periodIndex ) );
                     PeriodType dataSetPt = dsPtMap.get( dataRow.get( dataSetIndex ) );
-                    target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+
+                    // Use number of days for daily data sets as target, as query
+                    // periods might often span/contain different numbers of days
+
+                    if ( dataSetPt.equalsName( DailyPeriodType.NAME ) )
+                    {
+                        Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
+                        target = target * period.getDaysInPeriod() * timeUnits;
+                    }
+                    else
+                    {
+                        target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+                    }
 
                     // ---------------------------------------------------------
                     // Calculate reporting rate and replace data set with rate
@@ -1309,6 +1322,8 @@ public class DefaultAnalyticsService
     {
         List<Indicator> indicators = asTypedList( params.getIndicators() );
 
+        indicators.forEach( params::removeResolvedExpressionItem );
+
         Map<String, Double> valueMap = getAggregatedDataValueMap( params, indicators );
 
         return DataQueryParams.getPermutationDimensionalItemValueMap( valueMap );
@@ -1319,6 +1334,7 @@ public class DefaultAnalyticsService
      * query and list of indicators. The dimensional items part of the indicator
      * numerators and denominators are used as dimensional item for the aggregated
      * values being retrieved.
+     * In case of circular references between Indicators, an exception is thrown.
      *
      * @param params the {@link DataQueryParams}.
      * @param indicators the list of indicators.
@@ -1326,6 +1342,8 @@ public class DefaultAnalyticsService
      */
     private Map<String, Double> getAggregatedDataValueMap( DataQueryParams params, List<Indicator> indicators )
     {
+        indicators.forEach( params::addResolvedExpressionItem );
+
         List<DimensionalItemObject> items = Lists.newArrayList( expressionService.getIndicatorDimensionalItemObjects( indicators ) );
 
         if ( items.isEmpty() )
@@ -1342,6 +1360,7 @@ public class DefaultAnalyticsService
             .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
+            .withResolvedExpressionItems( items )
             .withSkipMeta( true ).build();
 
         Grid grid = getAggregatedDataValueGridInternal( dataSourceParams );

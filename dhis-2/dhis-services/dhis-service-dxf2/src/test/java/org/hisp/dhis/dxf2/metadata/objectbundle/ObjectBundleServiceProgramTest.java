@@ -43,8 +43,8 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.*;
 import org.hisp.dhis.validation.ValidationRule;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,10 +74,17 @@ public class ObjectBundleServiceProgramTest
     @Autowired
     private RenderService _renderService;
 
+    @Autowired
+    private UserService _userService;
+
+    @Autowired
+    private UserAccessService userAccessService;
+
     @Override
     protected void setUpTest() throws Exception
     {
         renderService = _renderService;
+        userService = _userService;
     }
 
     @Test
@@ -202,5 +209,119 @@ public class ObjectBundleServiceProgramTest
         assertEquals( 2, programStages.size() );
         assertEquals( 4, programStageDataElements.size() );
         assertEquals( 2, programTrackedEntityAttributes.size() );
+    }
+
+    @Test
+    public void testValidateTrackedEntityAttributeSecurityNotShared()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_tea_not_shared.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_tea_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        String[] testAuths = {
+            "F_DATAELEMENT_PUBLIC_ADD",
+            "F_PROGRAM_PUBLIC_ADD",
+            "F_ORGANISATIONUNIT_ADD",
+            "F_ORGANISATIONUNITLEVEL_UPDATE",
+            "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD",
+            "F_USER_ADD",
+            "F_PROGRAMSTAGE_ADD",
+            "F_TRACKED_ENTITY_ADD",
+            "F_TRACKED_ENTITY_UPDATE",
+            "F_USER_ADD_WITHIN_MANAGED_GROUP"
+        };
+
+        User testUser = createUser( "A", testAuths );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setUser( testUser );
+
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        validate = objectBundleValidationService.validate( bundle );
+        validate.getErrorReports().forEach( System.out::println );
+        assertFalse( validate.getErrorReports().isEmpty() );
+    }
+
+    @Test
+    public void testValidateTrackedEntityAttributeSecurityShared()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_tea_not_shared.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        validate.getErrorReports().forEach( System.out::println );
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        String[] testAuths = {
+            "F_DATAELEMENT_PUBLIC_ADD",
+            "F_PROGRAM_PUBLIC_ADD",
+            "F_ORGANISATIONUNIT_ADD",
+            "F_ORGANISATIONUNITLEVEL_UPDATE",
+            "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD",
+            "F_USER_ADD",
+            "F_PROGRAMSTAGE_ADD",
+            "F_TRACKED_ENTITY_ADD",
+            "F_TRACKED_ENTITY_UPDATE",
+            "F_USER_ADD_WITHIN_MANAGED_GROUP"
+        };
+
+        User testUser = createUser( "A", testAuths );
+
+        TrackedEntityAttribute tea1 = manager.get( TrackedEntityAttribute.class, "cpaMZredRXb" );
+        TrackedEntityAttribute tea2 = manager.get( TrackedEntityAttribute.class, "QhEcRpLZwMb" );
+
+        UserAccess userAccess1 = new UserAccess( testUser, "rw------" );
+        userAccessService.addUserAccess( userAccess1 );
+        tea1.getUserAccesses().add( userAccess1 );
+
+        UserAccess userAccess2 = new UserAccess( testUser, "rw------" );
+        userAccessService.addUserAccess( userAccess2 );
+        tea2.getUserAccesses().add( userAccess2 );
+
+        manager.update( tea1 );
+        manager.update( tea2 );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_tea_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+        params.setUser( testUser );
+
+        bundle = objectBundleService.create( params );
+        validate = objectBundleValidationService.validate( bundle );
+        validate.getErrorReports().forEach( System.out::println );
+        assertTrue( validate.getErrorReports().isEmpty() );
     }
 }

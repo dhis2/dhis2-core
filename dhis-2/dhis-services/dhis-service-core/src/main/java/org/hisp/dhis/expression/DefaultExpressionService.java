@@ -65,6 +65,7 @@ import org.hisp.dhis.parser.expression.Parser;
 import org.hisp.dhis.parser.expression.ParserException;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
+import org.hisp.dhis.system.jep.NoValueException;
 import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
@@ -435,7 +436,19 @@ public class DefaultExpressionService
             valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(),
             aggregateMap );
 
-        return expressionString != null ? calculateExpression( expressionString ) : null;
+        if ( expressionString == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return calculateExpression( expressionString );
+        }
+        catch ( NoValueException ex )
+        {
+            return null;
+        }
     }
 
     @Override
@@ -543,6 +556,17 @@ public class DefaultExpressionService
                 }
                 else if ( end > 0 )
                 {
+                    if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                    {
+                        nonAggregates.add( expression.substring( start, end ) ); // Arg 1: non-aggregate
+                        start = end + 1;
+                        end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                        if ( end < 0 )
+                        {
+                            log.warn( "Bad expression starting at " + start + " in " + expression );
+                            continue;
+                        }
+                    }
                     nonAggregates.add( expression.substring( scan, matcher.start() ) );
                     aggregates.add( expression.substring( start, end ) );
                     scan = end + 1;
@@ -986,6 +1010,18 @@ public class DefaultExpressionService
             }
             else
             {
+                if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                {
+                    sb.append( expression.substring( start, end + 1 ) ); // Arg 1: non-aggregate
+                    start = end + 1;
+                    end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                    if ( end < 0 )
+                    {
+                        scan = start + 1;
+                        tail = start;
+                        continue;
+                    }
+                }
                 String subExpression = expression.substring( start, end );
                 List<Double> samples = aggregateMap.get( subExpression );
 

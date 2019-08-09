@@ -93,9 +93,9 @@ public class EventSearchParams
     private OrganisationUnit orgUnit;
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
-    
+
     private AssignedUserSelectionMode assignedUserSelectionMode;
-    
+
     private Set<String> assignedUsers = new HashSet<>();
 
     private TrackedEntityInstance trackedEntityInstance;
@@ -109,6 +109,11 @@ public class EventSearchParams
     private Date lastUpdatedStartDate;
 
     private Date lastUpdatedEndDate;
+
+    /**
+     * The last updated duration filter.
+     */
+    private String lastUpdatedDuration;
 
     private Date dueDateStart;
 
@@ -135,6 +140,8 @@ public class EventSearchParams
     private boolean includeAllDataElements;
 
     private Set<String> events = new HashSet<>();
+
+    private Boolean skipEventId;
 
     /**
      * Filters for the response.
@@ -212,11 +219,43 @@ public class EventSearchParams
     }
 
     /**
+     * Indicates whether this parameters specifies a last updated start date.
+     */
+    public boolean hasLastUpdatedStartDate()
+    {
+        return lastUpdatedStartDate != null;
+    }
+
+    /**
+     * Indicates whether this parameters specifies a last updated end date.
+     */
+    public boolean hasLastUpdatedEndDate()
+    {
+        return lastUpdatedEndDate != null;
+    }
+
+    /**
+     * Indicates whether this parameters has a lastUpdatedDuration filter.
+     */
+    public boolean hasLastUpdatedDuration()
+    {
+        return lastUpdatedDuration != null;
+    }
+
+    /**
      * Indicates whether this search params contain any filters.
      */
     public boolean hasFilters()
     {
         return filters != null && !filters.isEmpty();
+    }
+
+    /**
+     * Null-safe check for skip event ID parameter.
+     */
+    public boolean isSkipEventId()
+    {
+        return skipEventId != null && skipEventId;
     }
 
     /**
@@ -254,9 +293,10 @@ public class EventSearchParams
         return program;
     }
 
-    public void setProgram( Program program )
+    public EventSearchParams setProgram( Program program )
     {
         this.program = program;
+        return this;
     }
 
     public ProgramStage getProgramStage()
@@ -264,9 +304,10 @@ public class EventSearchParams
         return programStage;
     }
 
-    public void setProgramStage( ProgramStage programStage )
+    public EventSearchParams setProgramStage( ProgramStage programStage )
     {
         this.programStage = programStage;
+        return this;
     }
 
     public ProgramStatus getProgramStatus()
@@ -274,9 +315,10 @@ public class EventSearchParams
         return programStatus;
     }
 
-    public void setProgramStatus( ProgramStatus programStatus )
+    public EventSearchParams setProgramStatus( ProgramStatus programStatus )
     {
         this.programStatus = programStatus;
+        return this;
     }
 
     public ProgramType getProgramType()
@@ -284,9 +326,10 @@ public class EventSearchParams
         return programType;
     }
 
-    public void setProgramType( ProgramType programType )
+    public EventSearchParams setProgramType( ProgramType programType )
     {
         this.programType = programType;
+        return this;
     }
 
     public Boolean getFollowUp()
@@ -294,9 +337,10 @@ public class EventSearchParams
         return followUp;
     }
 
-    public void setFollowUp( Boolean followUp )
+    public EventSearchParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
+        return this;
     }
 
     public OrganisationUnit getOrgUnit()
@@ -304,9 +348,10 @@ public class EventSearchParams
         return orgUnit;
     }
 
-    public void setOrgUnit( OrganisationUnit orgUnit )
+    public EventSearchParams setOrgUnit( OrganisationUnit orgUnit )
     {
         this.orgUnit = orgUnit;
+        return this;
     }
 
     public OrganisationUnitSelectionMode getOrgUnitSelectionMode()
@@ -314,19 +359,21 @@ public class EventSearchParams
         return orgUnitSelectionMode;
     }
 
-    public void setOrgUnitSelectionMode( OrganisationUnitSelectionMode orgUnitSelectionMode )
+    public EventSearchParams setOrgUnitSelectionMode( OrganisationUnitSelectionMode orgUnitSelectionMode )
     {
         this.orgUnitSelectionMode = orgUnitSelectionMode;
+        return this;
     }
-    
+
     public AssignedUserSelectionMode getAssignedUserSelectionMode()
     {
         return assignedUserSelectionMode;
     }
 
-    public void setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
+    public EventSearchParams setAssignedUserSelectionMode( AssignedUserSelectionMode assignedUserSelectionMode )
     {
         this.assignedUserSelectionMode = assignedUserSelectionMode;
+        return this;
     }
 
     public Set<String> getAssignedUsers()
@@ -334,9 +381,10 @@ public class EventSearchParams
         return assignedUsers;
     }
 
-    public void setAssignedUsers( Set<String> assignedUsers )
+    public EventSearchParams setAssignedUsers( Set<String> assignedUsers )
     {
         this.assignedUsers = assignedUsers;
+        return this;
     }
 
     public TrackedEntityInstance getTrackedEntityInstance()
@@ -344,9 +392,10 @@ public class EventSearchParams
         return trackedEntityInstance;
     }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public EventSearchParams setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
     {
         this.trackedEntityInstance = trackedEntityInstance;
+        return this;
     }
 
     public Date getStartDate()
@@ -354,9 +403,10 @@ public class EventSearchParams
         return startDate;
     }
 
-    public void setStartDate( Date startDate )
+    public EventSearchParams setStartDate( Date startDate )
     {
         this.startDate = startDate;
+        return this;
     }
 
     public Date getEndDate()
@@ -364,9 +414,10 @@ public class EventSearchParams
         return endDate;
     }
 
-    public void setEndDate( Date endDate )
+    public EventSearchParams setEndDate( Date endDate )
     {
         this.endDate = endDate;
+        return this;
     }
 
     public EventStatus getEventStatus()
@@ -374,9 +425,10 @@ public class EventSearchParams
         return eventStatus;
     }
 
-    public void setEventStatus( EventStatus eventStatus )
+    public EventSearchParams setEventStatus( EventStatus eventStatus )
     {
         this.eventStatus = eventStatus;
+        return this;
     }
 
     public Date getLastUpdatedStartDate()
@@ -384,9 +436,10 @@ public class EventSearchParams
         return lastUpdatedStartDate;
     }
 
-    public void setLastUpdatedStartDate( Date lastUpdatedStartDate )
+    public EventSearchParams setLastUpdatedStartDate( Date lastUpdatedStartDate )
     {
         this.lastUpdatedStartDate = lastUpdatedStartDate;
+        return this;
     }
 
     public Date getLastUpdatedEndDate()
@@ -394,9 +447,21 @@ public class EventSearchParams
         return lastUpdatedEndDate;
     }
 
-    public void setLastUpdatedEndDate( Date lastUpdatedEndDate )
+    public EventSearchParams setLastUpdatedEndDate( Date lastUpdatedEndDate )
     {
         this.lastUpdatedEndDate = lastUpdatedEndDate;
+        return this;
+    }
+
+    public String getLastUpdatedDuration()
+    {
+        return lastUpdatedDuration;
+    }
+
+    public EventSearchParams setLastUpdatedDuration( String lastUpdatedDuration )
+    {
+        this.lastUpdatedDuration = lastUpdatedDuration;
+        return this;
     }
 
     public Date getDueDateStart()
@@ -404,9 +469,10 @@ public class EventSearchParams
         return dueDateStart;
     }
 
-    public void setDueDateStart( Date dueDateStart )
+    public EventSearchParams setDueDateStart( Date dueDateStart )
     {
         this.dueDateStart = dueDateStart;
+        return this;
     }
 
     public Date getDueDateEnd()
@@ -414,9 +480,10 @@ public class EventSearchParams
         return dueDateEnd;
     }
 
-    public void setDueDateEnd( Date dueDateEnd )
+    public EventSearchParams setDueDateEnd( Date dueDateEnd )
     {
         this.dueDateEnd = dueDateEnd;
+        return this;
     }
 
     public IdSchemes getIdSchemes()
@@ -424,9 +491,10 @@ public class EventSearchParams
         return idSchemes;
     }
 
-    public void setIdSchemes( IdSchemes idSchemes )
+    public EventSearchParams setIdSchemes( IdSchemes idSchemes )
     {
         this.idSchemes = idSchemes;
+        return this;
     }
 
     public Integer getPage()
@@ -434,9 +502,10 @@ public class EventSearchParams
         return page;
     }
 
-    public void setPage( Integer page )
+    public EventSearchParams setPage( Integer page )
     {
         this.page = page;
+        return this;
     }
 
     public Integer getPageSize()
@@ -444,9 +513,10 @@ public class EventSearchParams
         return pageSize;
     }
 
-    public void setPageSize( Integer pageSize )
+    public EventSearchParams setPageSize( Integer pageSize )
     {
         this.pageSize = pageSize;
+        return this;
     }
 
     public boolean isTotalPages()
@@ -454,9 +524,10 @@ public class EventSearchParams
         return totalPages;
     }
 
-    public void setTotalPages( boolean totalPages )
+    public EventSearchParams setTotalPages( boolean totalPages )
     {
         this.totalPages = totalPages;
+        return this;
     }
 
     public boolean isSkipPaging()
@@ -464,9 +535,10 @@ public class EventSearchParams
         return skipPaging;
     }
 
-    public void setSkipPaging( boolean skipPaging )
+    public EventSearchParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+        return this;
     }
 
     public boolean isIncludeAttributes()
@@ -474,9 +546,10 @@ public class EventSearchParams
         return includeAttributes;
     }
 
-    public void setIncludeAttributes( boolean includeAttributes )
+    public EventSearchParams setIncludeAttributes( boolean includeAttributes )
     {
         this.includeAttributes = includeAttributes;
+        return this;
     }
 
     public boolean isIncludeAllDataElements()
@@ -484,9 +557,10 @@ public class EventSearchParams
         return includeAllDataElements;
     }
 
-    public void setIncludeAllDataElements( boolean includeAllDataElements )
+    public EventSearchParams setIncludeAllDataElements( boolean includeAllDataElements )
     {
         this.includeAllDataElements = includeAllDataElements;
+        return this;
     }
 
     public List<Order> getOrders()
@@ -494,9 +568,10 @@ public class EventSearchParams
         return this.orders;
     }
 
-    public void setOrders( List<Order> orders )
+    public EventSearchParams setOrders( List<Order> orders )
     {
         this.orders = orders;
+        return this;
     }
 
     public List<String> getGridOrders()
@@ -504,9 +579,10 @@ public class EventSearchParams
         return this.gridOrders;
     }
 
-    public void setGridOrders( List<String> gridOrders )
+    public EventSearchParams setGridOrders( List<String> gridOrders )
     {
         this.gridOrders = gridOrders;
+        return this;
     }
 
     public CategoryOptionCombo getCategoryOptionCombo()
@@ -514,14 +590,10 @@ public class EventSearchParams
         return categoryOptionCombo;
     }
 
-    public void setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    public EventSearchParams setCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
     {
         this.categoryOptionCombo = categoryOptionCombo;
-    }
-
-    public void setEvents( Set<String> events )
-    {
-        this.events = events;
+        return this;
     }
 
     public Set<String> getEvents()
@@ -529,19 +601,38 @@ public class EventSearchParams
         return events;
     }
 
+    public EventSearchParams setEvents( Set<String> events )
+    {
+        this.events = events;
+        return this;
+    }
+
+    public Boolean getSkipEventId()
+    {
+        return skipEventId;
+    }
+
+    public EventSearchParams setSkipEventId( Boolean skipEventId )
+    {
+        this.skipEventId = skipEventId;
+        return this;
+    }
+
     public List<QueryItem> getFilters()
     {
         return filters;
     }
 
-    public void setFilters( List<QueryItem> filters )
+    public EventSearchParams setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
+        return this;
     }
 
-    public void setIncludeDeleted( boolean includeDeleted )
+    public EventSearchParams setIncludeDeleted( boolean includeDeleted )
     {
         this.includeDeleted = includeDeleted;
+        return this;
     }
 
     public boolean isIncludeDeleted()
@@ -554,9 +645,10 @@ public class EventSearchParams
         return dataElements;
     }
 
-    public void setDataElements( Set<QueryItem> dataElements )
+    public EventSearchParams setDataElements( Set<QueryItem> dataElements )
     {
         this.dataElements = dataElements;
+        return this;
     }
 
     public Set<String> getAccessiblePrograms()
@@ -564,9 +656,10 @@ public class EventSearchParams
         return accessiblePrograms;
     }
 
-    public void setAccessiblePrograms( Set<String> accessiblePrograms )
+    public EventSearchParams setAccessiblePrograms( Set<String> accessiblePrograms )
     {
         this.accessiblePrograms = accessiblePrograms;
+        return this;
     }
 
     public Set<String> getAccessibleProgramStages()
@@ -574,9 +667,10 @@ public class EventSearchParams
         return accessibleProgramStages;
     }
 
-    public void setAccessibleProgramStages( Set<String> accessibleProgramStages )
+    public EventSearchParams setAccessibleProgramStages( Set<String> accessibleProgramStages )
     {
         this.accessibleProgramStages = accessibleProgramStages;
+        return this;
     }
 
     public boolean hasSecurityFilter()
@@ -589,9 +683,10 @@ public class EventSearchParams
         return synchronizationQuery;
     }
 
-    public void setSynchronizationQuery( boolean synchronizationQuery )
+    public EventSearchParams setSynchronizationQuery( boolean synchronizationQuery )
     {
         this.synchronizationQuery = synchronizationQuery;
+        return this;
     }
 
     public Date getSkipChangedBefore()
@@ -599,9 +694,10 @@ public class EventSearchParams
         return skipChangedBefore;
     }
 
-    public void setSkipChangedBefore( Date skipChangedBefore )
+    public EventSearchParams setSkipChangedBefore( Date skipChangedBefore )
     {
         this.skipChangedBefore = skipChangedBefore;
+        return this;
     }
 
     public void handleCurrentUserSelectionMode( User currentUser )
@@ -617,12 +713,12 @@ public class EventSearchParams
     {
         return this.assignedUsers != null && !this.assignedUsers.isEmpty();
     }
-    
+
     public boolean isIncludeOnlyUnassignedEvents()
     {
         return AssignedUserSelectionMode.NONE.equals( this.assignedUserSelectionMode );
     }
-    
+
     public boolean isIncludeOnlyAssignedEvents()
     {
         return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );

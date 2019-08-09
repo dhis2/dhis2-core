@@ -28,10 +28,12 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
-
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
+import java.util.NoSuchElementException;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -43,7 +45,7 @@ public interface FileResourceContentStore
      * @param key the key.
      * @return a ByteSource which provides a stream to the content or null if the content cannot be found or read.
      */
-    ByteSource getFileResourceContent( String key );
+    InputStream getFileResourceContent( String key );
 
     /**
      * Save the contents of the byte array to the file store.
@@ -83,4 +85,11 @@ public interface FileResourceContentStore
      * @return a URI containing the signed GET request or null if signed requests are not supported.
      */
     URI getSignedGetContentUri( String key );
+
+    /**
+     * Copies the content of a stream to the resource stored under key to the output stream.
+     * @param key the key used to store a resource
+     * @param output the output stream to copy the stream into
+     */
+    void copyContent( String key, OutputStream output ) throws IOException, NoSuchElementException;
 }

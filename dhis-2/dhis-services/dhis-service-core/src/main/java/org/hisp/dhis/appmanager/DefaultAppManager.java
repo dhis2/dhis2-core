@@ -41,6 +41,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
@@ -203,7 +204,7 @@ public class DefaultAppManager
     @Override
     public AppStatus installApp( File file, String fileName )
     {
-        App app = jCloudsAppStorageService.installApp( file, fileName );
+        App app = jCloudsAppStorageService.installApp( file, fileName, appCache );
 
         if ( app.getAppState().ok() )
         {
@@ -220,24 +221,39 @@ public class DefaultAppManager
     }
 
     @Override
-    public boolean deleteApp( App app, boolean deleteAppData )
+    @Async
+    public void deleteApp( App app, boolean deleteAppData )
     {
-        boolean deleted = false;
-
-        appCache.invalidate( app.getKey() );
-
         if ( app != null )
         {
-            deleted = getAppStorageServiceByApp( app ).deleteApp( app );
+            getAppStorageServiceByApp( app ).deleteApp( app );
         }
 
-        if ( deleted && deleteAppData )
+        if ( deleteAppData )
         {
             keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
             log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
         }
 
-        return deleted;
+        appCache.invalidate( app.getKey() );
+    }
+    
+    @Override
+    public boolean markAppToDelete( App app )
+    {
+        boolean markedAppToDelete = false;
+
+        Optional<App> appOpt = appCache.get( app.getKey() );
+
+        if ( appOpt.isPresent() )
+        {
+            markedAppToDelete = true;
+            App appFromCache = appOpt.get();
+            appFromCache.setAppState( AppStatus.DELETION_IN_PROGRESS );
+            appCache.put( app.getKey(), appFromCache );
+        }
+
+        return markedAppToDelete;
     }
 
     @Override

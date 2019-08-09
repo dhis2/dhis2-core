@@ -252,7 +252,8 @@ public class JdbcEventAnalyticsManager
      *
      * @param params the {@link EventQueryParams}.
      */
-    protected String getSelectClause(EventQueryParams params)
+    @Override
+    protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
             .add( "psi", "ps", "executiondate" );

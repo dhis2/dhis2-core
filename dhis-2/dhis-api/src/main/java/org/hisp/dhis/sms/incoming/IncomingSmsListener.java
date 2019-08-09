@@ -1,6 +1,5 @@
 package org.hisp.dhis.sms.incoming;
 
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
