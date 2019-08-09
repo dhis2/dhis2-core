@@ -129,7 +129,8 @@ public class DefaultTrackerImportService implements TrackerImportService
         TrackerImportParams params = new TrackerImportParams();
 
         params.setUser( getUser( params.getUser(), params.getUserId() ) );
-        params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
+        params.setValidationMode( getEnumWithDefault( ValidationMode.class, parameters, "validationMode",
+            ValidationMode.FULL ) );
         params.setImportMode( getEnumWithDefault( TrackerBundleMode.class, parameters, "importMode", TrackerBundleMode.COMMIT ) );
         params.setIdentifier( getEnumWithDefault( TrackerIdentifier.class, parameters, "identifier", TrackerIdentifier.UID ) );
         params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, "importStrategy",

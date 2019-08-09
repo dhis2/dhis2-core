@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.bundle;
  */
 
 import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -46,13 +47,13 @@ public class TrackerBundleTest
     {
         TrackerBundle trackerBundle = new TrackerBundle()
             .setAtomicMode( AtomicMode.ALL )
-            .setSkipValidation( true )
+            .setValidationMode( ValidationMode.SKIP )
             .addTrackedEntity( new TrackedEntity() )
             .addEnrollment( new Enrollment() )
             .addEvent( new Event() );
 
         assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
-        assertTrue( trackerBundle.isSkipValidation() );
+        assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );
         assertFalse( trackerBundle.getTrackedEntities().isEmpty() );
         assertFalse( trackerBundle.getEnrollments().isEmpty() );
         assertFalse( trackerBundle.getEvents().isEmpty() );
@@ -63,13 +64,13 @@ public class TrackerBundleTest
     {
         TrackerBundle trackerBundle = new TrackerBundle()
             .setAtomicMode( AtomicMode.ALL )
-            .setSkipValidation( true )
+            .setValidationMode( ValidationMode.SKIP )
             .addTrackedEntity( new TrackedEntity(), new TrackedEntity() )
             .addEnrollment( new Enrollment(), new Enrollment() )
             .addEvent( new Event(), new Event() );
 
         assertEquals( AtomicMode.ALL, trackerBundle.getAtomicMode() );
-        assertTrue( trackerBundle.isSkipValidation() );
+        assertSame( trackerBundle.getValidationMode(), ValidationMode.SKIP );
         assertEquals( 2, trackerBundle.getTrackedEntities().size() );
         assertEquals( 2, trackerBundle.getEnrollments().size() );
         assertEquals( 2, trackerBundle.getEvents().size() );
