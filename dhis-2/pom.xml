@@ -1399,7 +1399,39 @@
         <artifactId>micrometer-registry-prometheus</artifactId>
         <version>1.2.0</version>
       </dependency>
+
+      <!-- Java EE -->
+
+      <dependency>
+        <groupId>com.sun.activation</groupId>
+        <artifactId>javax.activation</artifactId>
+        <version>${javax.activation.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.xml.bind</groupId>
+        <artifactId>jaxb-api</artifactId>
+        <version>${jaxb.api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-core</artifactId>
+        <version>${jaxb.api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-impl</artifactId>
+        <version>${jaxb.api.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>javax.annotation</groupId>
+        <artifactId>javax.annotation-api</artifactId>
+      </dependency>
     </dependencies>
+
   </dependencyManagement>
 
   <properties>
@@ -1426,6 +1458,7 @@
     <jasperreports.version>6.3.1</jasperreports.version>
     <jacoco.version>0.8.2</jacoco.version>
     <artemis.version>2.6.3</artemis.version>
+    <jaxb.api.version>2.3.0</jaxb.api.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
   </properties>
