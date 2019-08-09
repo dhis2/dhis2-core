@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,8 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -52,15 +50,20 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Transactional
 public class EnrollmentSMSListener
     extends
     NewSMSListener
 {
+    private static final Log log = LogFactory.getLog( EnrollmentSMSListener.class );
+
     @Autowired
     private TrackedEntityInstanceService teiService;
 
@@ -114,12 +117,12 @@ public class EnrollmentSMSListener
 
         if ( existsOnServer )
         {
-            Log.info( "Given TEI (" + teiUID + ") exists. Updating..." );
+            log.info( "Given TEI (" + teiUID + ") exists. Updating..." );
             entityInstance = teiService.getTrackedEntityInstance( teiUID.uid );
         }
         else
         {
-            Log.info( "Given TEI (" + teiUID + ") does not exist. Creating..." );
+            log.info( "Given TEI (" + teiUID + ") does not exist. Creating..." );
             entityInstance = new TrackedEntityInstance();
             entityInstance.setUid( teiUID.uid );
             entityInstance.setOrganisationUnit( orgUnit );

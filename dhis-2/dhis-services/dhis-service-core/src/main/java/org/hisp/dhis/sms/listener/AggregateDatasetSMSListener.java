@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,9 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,13 +54,17 @@ import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.smscompression.models.UID;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 public class AggregateDatasetSMSListener
     extends
     NewSMSListener
 {
+    private static final Log log = LogFactory.getLog( AggregateDatasetSMSListener.class );
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -173,7 +175,7 @@ public class AggregateDatasetSMSListener
             DataElement de = dataElementService.getDataElement( deid.uid );
             if ( de == null )
             {
-                Log.warn( "Data element [" + deid + "] does not exist. Continuing with submission..." );
+                log.warn( "Data element [" + deid + "] does not exist. Continuing with submission..." );
                 errorElems.add( combid );
                 continue;
             }
@@ -181,7 +183,7 @@ public class AggregateDatasetSMSListener
             CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.uid );
             if ( coc == null )
             {
-                Log.warn( "Category Option Combo [" + cocid + "] does not exist. Continuing with submission..." );
+                log.warn( "Category Option Combo [" + cocid + "] does not exist. Continuing with submission..." );
                 errorElems.add( combid );
                 continue;
             }
@@ -189,7 +191,7 @@ public class AggregateDatasetSMSListener
             String val = smsdv.getValue();
             if ( val == null || StringUtils.isEmpty( val ) )
             {
-                Log.warn( "Value for [" + combid + "]  is null or empty. Continuing with submission..." );
+                log.warn( "Value for [" + combid + "]  is null or empty. Continuing with submission..." );
                 continue;
             }
 
@@ -216,7 +218,7 @@ public class AggregateDatasetSMSListener
                 boolean addedDataValue = dataValueService.addDataValue( dv );
                 if ( !addedDataValue )
                 {
-                    Log.warn( "Failed to submit data value [" + combid + "]. Continuing with submission..." );
+                    log.warn( "Failed to submit data value [" + combid + "]. Continuing with submission..." );
                     errorElems.add( combid );
                 }
             }
