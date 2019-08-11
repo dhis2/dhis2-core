@@ -60,7 +60,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
+
     private final TrackerOwnershipManager ownershipAccessManager;
+
     private final OrganisationUnitService organisationUnitService;
 
     public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager, OrganisationUnitService organisationUnitService )
@@ -255,7 +257,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         Program program = programInstance.getProgram();
-        
+
         OrganisationUnit ou = programInstance.getOrganisationUnit();
         if ( ou != null )
         {
@@ -285,7 +287,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         return errors;
     }
-    
+
     @Override
     public List<String> canUpdate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
     {
@@ -315,7 +317,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
-           
+
         }
         else
         {
@@ -331,7 +333,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         return errors;
     }
-    
+
     @Override
     public List<String> canDelete( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
     {
@@ -344,15 +346,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         Program program = programInstance.getProgram();
-        
-        OrganisationUnit ou = programInstance.getOrganisationUnit();
-        if ( ou != null )
-        {
-            if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-            {
-                errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
-            }
-        }
 
         if ( !aclService.canDataWrite( user, program ) )
         {
@@ -369,6 +362,18 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
+            }
+        }
+
+        else
+        {
+            OrganisationUnit ou = programInstance.getOrganisationUnit();
+            if ( ou != null )
+            {
+                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
+                {
+                    errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
+                }
             }
         }
 
@@ -453,7 +458,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         Program program = programStage.getProgram();
-        
+
         OrganisationUnit ou = programStageInstance.getOrganisationUnit();
         if ( ou != null )
         {
@@ -498,7 +503,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         return errors;
     }
-    
+
     @Override
     public List<String> canUpdate( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck )
     {
@@ -542,7 +547,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             {
                 errors.add( "User has no data read access to tracked entity type: " + program.getTrackedEntityType().getUid() );
             }
-           
+
             OrganisationUnit ou = programStageInstance.getOrganisationUnit();
             if ( ou != null )
             {
@@ -562,7 +567,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         return errors;
     }
-    
+
     @Override
     public List<String> canDelete( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck )
     {
@@ -582,18 +587,18 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         Program program = programStage.getProgram();
-        
-        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-        if ( ou != null )
-        {
-            if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
-            {
-                errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
-            }
-        }
 
         if ( program.isWithoutRegistration() )
         {
+            OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+            if ( ou != null )
+            {
+                if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
+                {
+                    errors.add( "User has no delete access to organisation unit: " + ou.getUid() );
+                }
+            }
+
             if ( !aclService.canDataWrite( user, program ) )
             {
                 errors.add( "User has no data write access to program: " + program.getUid() );
@@ -783,5 +788,5 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         return programStage == null || programStage.getProgram() == null;
     }
-    
+
 }
