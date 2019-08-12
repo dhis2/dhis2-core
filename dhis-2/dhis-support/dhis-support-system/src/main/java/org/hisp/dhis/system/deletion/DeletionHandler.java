@@ -109,6 +109,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -1070,4 +1071,14 @@ public abstract class DeletionHandler
     public void deleteMetadataVersion( MetadataVersion metadataVersion )
     {
     }
+
+    public String allowDeleteReservedValue( ReservedValue reservedValue )
+    {
+        return null;
+    }
+
+    public void deleteReservedValue( ReservedValue reservedValue )
+    {
+    }
 }
+
