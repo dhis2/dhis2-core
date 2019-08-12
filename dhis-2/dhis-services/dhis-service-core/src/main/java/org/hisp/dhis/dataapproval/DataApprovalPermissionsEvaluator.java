@@ -32,6 +32,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -72,7 +73,11 @@ class DataApprovalPermissionsEvaluator
     {
     }
 
-    private static Cache<DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE;
+    private static Cache<DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE = new SimpleCacheBuilder<DataApprovalLevel>()
+        .expireAfterAccess( 10, TimeUnit.MINUTES )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     /**
      * Clears the user approval level cache, for unit testing when the same user
@@ -99,16 +104,6 @@ class DataApprovalPermissionsEvaluator
     {
         DataApprovalPermissionsEvaluator ev = new DataApprovalPermissionsEvaluator();
         
-        if ( USER_APPROVAL_LEVEL_CACHE == null )
-        {
-            USER_APPROVAL_LEVEL_CACHE = cacheProvider.newCacheBuilder( DataApprovalLevel.class )
-                .expireAfterAccess( 10, TimeUnit.MINUTES )
-                .withInitialCapacity( 10000 )
-                .forceInMemory()
-                .withMaximumSize( 50000 )
-                .build();
-        }
-
         ev.organisationUnitService = organisationUnitService;
         ev.dataApprovalLevelService = dataApprovalLevelService;
 
