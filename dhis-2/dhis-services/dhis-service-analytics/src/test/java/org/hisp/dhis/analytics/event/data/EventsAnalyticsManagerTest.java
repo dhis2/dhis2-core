@@ -36,6 +36,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -70,14 +71,11 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
-    @Mock
-    private ProgramIndicatorService programIndicatorService;
-
     private JdbcEventAnalyticsManager subject;
 
     @Captor
     private ArgumentCaptor<String> sql;
-    
+
     private final String TABLE_NAME = "analytics_event";
     private final String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
@@ -86,7 +84,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
 
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService );
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, mock( ProgramIndicatorService.class ) );
 
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
     }
@@ -95,7 +93,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     public void verifyGetEventSqlWithProgramWithNoRegistration()
     {
         mockEmptyRowSet();
-        
+
         this.programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
 
         subject.getEvents( createRequestParams(), createGrid(), 100 );
@@ -107,7 +105,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         assertThat( sql.getValue(), is(expected) );
     }
-    
+
     @Test
     public void verifyGetEventSqlWithProgram()
     {
@@ -173,7 +171,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
         assertSql( expected, sql.getValue() );
     }
-    
+
 
     @Test
     public void verifyGetEventsWithProgramStageAndTextDataElement()
