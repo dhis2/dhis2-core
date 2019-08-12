@@ -80,6 +80,7 @@ public class DefaultAggregateAccessManager
     {
         CAN_DATA_WRITE_COC_CACHE = cacheProvider.newCacheBuilderForList( String.class )
             .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
             .build();

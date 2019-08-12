@@ -96,6 +96,7 @@ public class DefaultCurrentUserService
     {
         USERNAME_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
             .expireAfterAccess( 1, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
             .build();

@@ -50,6 +50,15 @@ public interface CacheBuilder<V>
      *         value.
      */
     public CacheBuilder<V> withMaximumSize( long maximumSize );
+    
+    /**
+     * Sets the minimum total size for the internal data structures.
+     *
+     * @param initialCapacity minimum total size for the internal data structures
+     * @return this {@code CacheBuilder} instance (for chaining)
+     * @throws IllegalArgumentException if {@code initialCapacity} is negative
+     */
+    public CacheBuilder<V> withInitialCapacity( int initialCapacity );
 
     /**
      * Set the cacheRegion for the cache instance to be built. If not specified
@@ -108,6 +117,8 @@ public interface CacheBuilder<V>
     public Cache<V> build();
 
     public long getMaximumSize();
+    
+    public int getInitialCapacity();
 
     public String getRegion();
 

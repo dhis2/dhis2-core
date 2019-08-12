@@ -46,6 +46,8 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     private static final Log log = LogFactory.getLog( SimpleCacheBuilder.class );
 
     private long maximumSize;
+    
+    private int initialCapacity;
 
     private String region;
 
@@ -69,9 +71,10 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         this.defaultValue = null;
         this.expiryEnabled = false;
         this.disabled = false;
+        this.initialCapacity = 16;
     }
-
-    public SimpleCacheBuilder<V> withMaximumSize( long maximumSize )
+    
+    public CacheBuilder<V> withMaximumSize( long maximumSize )
     {
         if ( maximumSize < 0 )
         {
@@ -80,8 +83,18 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         this.maximumSize = maximumSize;
         return this;
     }
+    
+    public CacheBuilder<V> withInitialCapacity( int initialCapacity )
+    {
+        if ( initialCapacity < 0 )
+        {
+            throw new IllegalArgumentException( "InitialCapacity cannot be negative" );
+        }
+        this.initialCapacity = initialCapacity;
+        return this;
+    }
 
-    public SimpleCacheBuilder<V> forRegion( String region )
+    public CacheBuilder<V> forRegion( String region )
     {
         if ( region == null )
         {
@@ -91,7 +104,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         return this;
     }
 
-    public SimpleCacheBuilder<V> expireAfterAccess( long duration, TimeUnit timeUnit )
+    public CacheBuilder<V> expireAfterAccess( long duration, TimeUnit timeUnit )
     {
         if ( timeUnit == null )
         {
@@ -103,7 +116,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         return this;
     }
 
-    public SimpleCacheBuilder<V> expireAfterWrite( long duration, TimeUnit timeUnit )
+    public CacheBuilder<V> expireAfterWrite( long duration, TimeUnit timeUnit )
     {
         if ( timeUnit == null )
         {
@@ -115,13 +128,13 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         return this;
     }
 
-    public SimpleCacheBuilder<V> withDefaultValue( V defaultValue )
+    public CacheBuilder<V> withDefaultValue( V defaultValue )
     {
         this.defaultValue = defaultValue;
         return this;
     }
 
-    public SimpleCacheBuilder<V> disabled()
+    public CacheBuilder<V> disabled()
     {
         this.disabled = true;
         return this;
@@ -152,6 +165,11 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
     public long getMaximumSize()
     {
         return maximumSize;
+    }
+    
+    public int getInitialCapacity()
+    {
+        return initialCapacity;
     }
 
     public String getRegion()

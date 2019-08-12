@@ -74,6 +74,7 @@ public class InputUtils
     {
         ATTR_OPTION_COMBO_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
             .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
             .build();

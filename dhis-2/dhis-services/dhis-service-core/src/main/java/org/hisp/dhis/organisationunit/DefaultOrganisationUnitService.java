@@ -132,6 +132,7 @@ public class DefaultOrganisationUnitService
     {
         IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
             .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }

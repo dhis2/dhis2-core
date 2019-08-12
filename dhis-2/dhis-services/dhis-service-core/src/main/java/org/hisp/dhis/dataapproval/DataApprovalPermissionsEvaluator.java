@@ -103,6 +103,7 @@ class DataApprovalPermissionsEvaluator
         {
             USER_APPROVAL_LEVEL_CACHE = cacheProvider.newCacheBuilder( DataApprovalLevel.class )
                 .expireAfterAccess( 10, TimeUnit.MINUTES )
+                .withInitialCapacity( 10000 )
                 .forceInMemory()
                 .withMaximumSize( 50000 )
                 .build();

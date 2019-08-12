@@ -134,6 +134,7 @@ public class DefaultIdentifiableObjectManager
     {
         DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
             .expireAfterAccess( 2, TimeUnit.HOURS )
+            .withInitialCapacity( 4 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
             .build();

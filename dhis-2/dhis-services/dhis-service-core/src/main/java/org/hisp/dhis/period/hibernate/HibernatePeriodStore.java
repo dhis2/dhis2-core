@@ -94,6 +94,7 @@ public class HibernatePeriodStore
     {
         PERIOD_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
             .expireAfterWrite( 24, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
             .build();
