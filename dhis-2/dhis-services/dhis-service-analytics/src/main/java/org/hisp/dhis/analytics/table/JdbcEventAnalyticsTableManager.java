@@ -142,7 +142,7 @@ public class JdbcEventAnalyticsTableManager
 
         for ( Program program : programs )
         {
-            List<Integer> dataYears = getDataYears( program, earliest );
+            List<Integer> dataYears = getDataYears( params, program );
 
             Collections.sort( dataYears );
 
@@ -323,19 +323,20 @@ public class JdbcEventAnalyticsTableManager
         return "";
     }
 
-    private List<Integer> getDataYears( Program program, Date earliest )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params, Program program )
     {
         String sql =
             "select distinct(extract(year from psi.executiondate)) " +
             "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-            "where pi.programid = " + program.getId() + " " +
+            "where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and pi.programid = " + program.getId() + " " +
             "and psi.executiondate is not null " +
             "and psi.deleted is false ";
 
-        if ( earliest != null )
+        if ( params.getFromDate() != null )
         {
-            sql += "and psi.executiondate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
+            sql += "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );
