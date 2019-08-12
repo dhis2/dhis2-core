@@ -1245,8 +1245,6 @@ public abstract class AbstractEventService
 
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setGeometry( event.getGeometry() );
-
 
         if ( importOptions.getUser() == null || !importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
         {
@@ -1314,6 +1312,7 @@ public abstract class AbstractEventService
                     "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
+        programStageInstance.setGeometry( event.getGeometry() );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
