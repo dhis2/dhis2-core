@@ -129,6 +129,9 @@ public class JdbcEventAnalyticsTableManagerTest
         when( jdbcTemplate.queryForList(
             "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
+        when( jdbcTemplate.queryForList(
+            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.deleted is false ",
+            Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
     }
 
     @Test
@@ -149,7 +152,6 @@ public class JdbcEventAnalyticsTableManagerTest
         CategoryCombo categoryCombo = createCategoryCombo( 'B', categoryA, categoryB );
 
         addCategoryCombo( program, categoryCombo );
-
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
 
@@ -251,8 +253,8 @@ public class JdbcEventAnalyticsTableManagerTest
 
         String aliasD1 = "(select eventdatavalues #>> '{%s, value}' " + FROM_CLAUSE + " ) as \"%s\"";
         String aliasTea1 = "(select %s from organisationunit ou where ou.uid = (select value from " +
-                "trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
-                "trackedentityattributeid=%d)) as \"%s\"";
+            "trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
+            "trackedentityattributeid=%d)) as \"%s\"";
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
