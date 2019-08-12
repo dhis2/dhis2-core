@@ -226,7 +226,7 @@ public abstract class AbstractJdbcTableManager
 
         log.info( String.format( "Swapping table, master table exists: %b, skip master table: %b", tableExists, skipMasterTable ) );
 
-        table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
+        table.getTablePartitions().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
 
         if ( !skipMasterTable )
         {
@@ -234,7 +234,7 @@ public abstract class AbstractJdbcTableManager
         }
         else
         {
-            table.getPartitionTables().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
+            table.getTablePartitions().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
             dropTempTable( table );
         }
     }
@@ -408,7 +408,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected void createTempTablePartitions( AnalyticsTable table )
     {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        for ( AnalyticsTablePartition partition : table.getTablePartitions() )
         {
             final String tableName = partition.getTempTableName();
             final List<String> checks = getPartitionChecks( partition );

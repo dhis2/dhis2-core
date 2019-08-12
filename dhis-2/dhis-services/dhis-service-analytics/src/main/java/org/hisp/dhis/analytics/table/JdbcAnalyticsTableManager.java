@@ -179,7 +179,7 @@ public class JdbcAnalyticsTableManager
             "from datavalue dv " +
             "where dv.lastupdated >= '" + getLongDateString( startDate ) + "' " +
             "and dv.lastupdated < '" + getLongDateString( endDate ) + "' " +
-            "limit 1";
+            "limit 1"; //TODO last update
 
         return !jdbcTemplate.queryForList( sql ).isEmpty();
     }

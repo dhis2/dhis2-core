@@ -218,7 +218,7 @@ public class PartitionUtils
         {
             if ( table.hasPartitionTables() )
             {
-                partitions.addAll( table.getPartitionTables() );
+                partitions.addAll( table.getTablePartitions() );
             }
             else
             {

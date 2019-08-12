@@ -244,6 +244,30 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
+    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    {
+        if ( !params.isLatestUpdate() )
+        {
+            return;
+        }
+
+        for ( AnalyticsTable table : tables )
+        {
+            String sql =
+                "delete from " + quote( table.getTableName() ) + " ax " +
+                "where ax.psi in (" +
+                    "select psi.programstageinstanceid " +
+                    "from programstageinstance psi " +
+                    "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
+                    "where pi.programid = " + table.getProgram().getId() + " " +
+                    "and psi.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
+                    "and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "')";
+
+            invokeTimeAndLog( sql, "Remove updated events" );
+        }
+    }
+
+    @Override
     public List<AnalyticsTableColumn> getFixedColumns()
     {
         return this.FIXED_COLS;
