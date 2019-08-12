@@ -39,6 +39,8 @@ import org.springframework.stereotype.Component;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Date;
+
 /**
  * @author Lars Helge Overland
  */
@@ -76,6 +78,7 @@ public class AnalyticsTableJob
             .withJobId( jobConfiguration )
             .withSkipTableTypes( parameters.getSkipTableTypes() )
             .withSkipResourceTables( parameters.isSkipResourceTables() )
+            .withStartTime( new Date() )
             .build();
 
         analyticsTableGenerator.generateTables( params );
