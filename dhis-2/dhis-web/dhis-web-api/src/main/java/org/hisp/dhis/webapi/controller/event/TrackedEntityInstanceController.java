@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.event;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteSource;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
@@ -88,7 +87,6 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -107,7 +105,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -217,7 +214,7 @@ public class TrackedEntityInstanceController
         }
 
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
-        
+
         Set<String> assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -359,19 +356,6 @@ public class TrackedEntityInstanceController
         }
 
         // ---------------------------------------------------------------------
-        // If file is of image type then dimension will determine which size the image need to be downloaded.
-        // ---------------------------------------------------------------------
-
-        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
-
-        ByteSource content = fileResourceService.getFileResourceContent( fileResource );
-
-        if ( content == null )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "The referenced file could not be found" ) );
-        }
-
-        // ---------------------------------------------------------------------
         // Build response and return
         // ---------------------------------------------------------------------
 
@@ -379,9 +363,7 @@ public class TrackedEntityInstanceController
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-        URI uri = fileResourceService.getSignedGetFileResourceContentUri( value.getValue() );
-
-        try ( InputStream inputStream = (uri == null) ? content.openStream() : uri.toURL().openStream() )
+        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource  ) )
         {
             BufferedImage img = ImageIO.read( inputStream );
             height = height == null ? img.getHeight() : height;

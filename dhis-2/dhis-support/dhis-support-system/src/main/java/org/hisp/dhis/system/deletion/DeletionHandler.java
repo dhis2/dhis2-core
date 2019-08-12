@@ -42,6 +42,8 @@ import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
+import org.hisp.dhis.dataapproval.DataApproval;
+import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
@@ -72,6 +74,7 @@ import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -86,6 +89,7 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramExpression;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorGroup;
 import org.hisp.dhis.program.ProgramInstance;
@@ -105,6 +109,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -114,14 +119,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+import org.hisp.dhis.version.Version;
 
 /**
  * A DeletionHandler should override methods for objects that, when deleted,
@@ -176,6 +184,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteDataApproval( DataApproval dataApproval )
+    {
+    }
+
+    public String allowDeleteDataApproval( DataApproval dataApproval )
+    {
+        return null;
+    }
+
     public void deleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
     {
     }
@@ -190,6 +207,15 @@ public abstract class DeletionHandler
     }
 
     public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    {
+        return null;
+    }
+
+    public void deleteDataApprovalAudit( DataApprovalAudit audit )
+    {
+    }
+
+    public String allowDeleteDataApprovalAudit( DataApprovalAudit audit )
     {
         return null;
     }
@@ -496,6 +522,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteUserCredentials( UserCredentials credentials )
+    {
+    }
+
+    public String allowDeleteUserCredentials( UserCredentials credentials )
+    {
+        return null;
+    }
+
     public void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
     }
@@ -756,6 +791,15 @@ public abstract class DeletionHandler
         return null;
     }
 
+    public void deleteProgramExpression( ProgramExpression programExpression )
+    {
+    }
+
+    public String allowDeleteProgramExpression( ProgramExpression programExpression )
+    {
+        return null;
+    }
+
     public void deleteConstant( Constant constant )
     {
     }
@@ -926,11 +970,11 @@ public abstract class DeletionHandler
     {
         return null;
     }
-    
+
     public void deleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
-    {        
+    {
     }
-    
+
     public String allowDeleteProgramTrackedEntityAttribute( ProgramTrackedEntityAttribute attribute )
     {
         return null;
@@ -939,7 +983,7 @@ public abstract class DeletionHandler
     public void deleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup color )
     {
     }
-    
+
     public String allowDeleteProgramTrackedEntityAttributeGroup( ProgramTrackedEntityAttributeGroup group )
     {
         return null;
@@ -948,7 +992,7 @@ public abstract class DeletionHandler
     public void deletePushAnalysis( PushAnalysis pushAnalysis )
     {
     }
-    
+
     public String allowDeletePushAnalysis( PushAnalysis pushAnalysis )
     {
         return null;
@@ -976,7 +1020,6 @@ public abstract class DeletionHandler
 
     public void deleteMessageConversation( MessageConversation messageConversation )
     {
-
     }
 
     public String allowDeleteMessageConversation( MessageConversation messageConversation )
@@ -1001,4 +1044,41 @@ public abstract class DeletionHandler
     public void deleteFileResource( FileResource fileResource )
     {
     }
+
+    public String allowDeleteTrackedEntityInstanceFilter( TrackedEntityInstanceFilter filter )
+    {
+        return null;
+    }
+
+    public void deleteTrackedEntityInstanceFilter( TrackedEntityInstanceFilter filter )
+    {
+    }
+
+    public String allowDeleteVersion( Version version )
+    {
+        return null;
+    }
+
+    public void deleteVersion( Version version )
+    {
+    }
+
+    public String allowDeleteMetadataVersion( MetadataVersion metadataVersion )
+    {
+        return null;
+    }
+
+    public void deleteMetadataVersion( MetadataVersion metadataVersion )
+    {
+    }
+
+    public String allowDeleteReservedValue( ReservedValue reservedValue )
+    {
+        return null;
+    }
+
+    public void deleteReservedValue( ReservedValue reservedValue )
+    {
+    }
 }
+

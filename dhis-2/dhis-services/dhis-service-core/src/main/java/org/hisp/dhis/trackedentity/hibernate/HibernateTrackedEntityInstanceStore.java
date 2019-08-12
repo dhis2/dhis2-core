@@ -52,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
@@ -95,10 +96,11 @@ public class HibernateTrackedEntityInstanceStore
     private final StatementBuilder statementBuilder;
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService,
         OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, TrackedEntityInstance.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, deletedObjectService,
             aclService, false );
 
         checkNotNull( statementBuilder );

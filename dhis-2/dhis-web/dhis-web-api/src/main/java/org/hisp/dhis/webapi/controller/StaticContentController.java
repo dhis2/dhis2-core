@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -44,10 +45,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.fileresource.FileResourceContentStore;
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.fileresource.FileResourceKeyUtil;
-import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
+import org.hisp.dhis.fileresource.*;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -56,6 +54,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.MimeType;
@@ -64,7 +63,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteSource;
 
 /**
  * Serves and uploads custom images for the logo on the front page (logo_front)
@@ -91,15 +89,17 @@ public class StaticContentController
 
     private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = FileResourceDomain.DOCUMENT;
 
-    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.<String, SettingKey> builder()
-        .put( LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER ).put( LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT )
-        .build();
+    private static final Map<String, SettingKey> KEY_WHITELIST_MAP = ImmutableMap.of(
+        LOGO_BANNER, SettingKey.USE_CUSTOM_LOGO_BANNER,
+        LOGO_FRONT, SettingKey.USE_CUSTOM_LOGO_FRONT );
 
     @Autowired
-    public StaticContentController( SystemSettingManager systemSettingManager, StyleManager styleManager,
-        JCloudsFileResourceContentStore contentStore )
+    public StaticContentController(
+        SystemSettingManager systemSettingManager,
+        StyleManager styleManager,
+        JCloudsFileResourceContentStore contentStore
+    )
     {
-
         checkNotNull( systemSettingManager );
         checkNotNull( styleManager );
         checkNotNull( contentStore );
@@ -115,8 +115,10 @@ public class StaticContentController
      * @param key key associated with the file.
      */
     @RequestMapping( value = "/{key}", method = RequestMethod.GET )
-    public void getStaticContent( @PathVariable( "key" ) String key, HttpServletRequest request,
-        HttpServletResponse response )
+    public void getStaticContent(
+        @PathVariable( "key" ) String key, HttpServletRequest request,
+        HttpServletResponse response
+    )
         throws WebMessageException
     {
         if ( !KEY_WHITELIST_MAP.containsKey( key ) )
@@ -139,27 +141,20 @@ public class StaticContentController
         }
         else // Serve custom
         {
-
-            ByteSource file = this.contentStore
-                .getFileResourceContent( FileResourceKeyUtil.makeKey( DEFAULT_RESOURCE_DOMAIN, Optional.of( key ) ) );
-
-            if ( file != null )
+            try
             {
-                response.setContentType( "image/png" );
-                try
-                {
-                    file.copyTo( response.getOutputStream() );
-                }
-                catch ( IOException e )
-                {
-                    throw new WebMessageException( WebMessageUtils.error( "Error occurred trying to serve file.",
-                        "An IOException was thrown, indicating a file I/O or networking error." ) );
-                }
+                response.setContentType( MediaType.IMAGE_PNG_VALUE );
+
+                contentStore.copyContent( FileResourceKeyUtil.makeKey( DEFAULT_RESOURCE_DOMAIN, Optional.of( key ) ),
+                    response.getOutputStream() );
             }
-            else
+            catch ( NoSuchElementException e )
             {
-                throw new WebMessageException( WebMessageUtils.notFound( "The requested file could not be found." ) );
-
+                throw new WebMessageException( WebMessageUtils.notFound( e.getMessage() ) );
+            }
+            catch ( IOException e )
+            {
+                throw new WebMessageException( WebMessageUtils.error( "Failed to retrieve image", e.getMessage() ) );
             }
         }
     }
@@ -167,7 +162,7 @@ public class StaticContentController
     /**
      * Uploads PNG images based on a key. Only accepts PNG and white listed keys.
      *
-     * @param key the key.
+     * @param key  the key.
      * @param file the image file.
      */
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
@@ -209,7 +204,7 @@ public class StaticContentController
             }
             else
             {
-                log.debug( String.format( "File [%s] uploaded. Storage key: [%s]", file.getName(), fileKey ) );
+                log.info( String.format( "File [%s] uploaded. Storage key: [%s]", file.getName(), fileKey ) );
             }
 
         }
@@ -221,11 +216,10 @@ public class StaticContentController
     }
 
     /**
-     * Returns the relative url of the default logo for a given key.
+     * Returns the relative URL of the default logo for a given key.
      *
-     * @param key the key associated with the logo or null if the key does not
-     *        exist.
-     * @return the relative url of the logo.
+     * @param key the key associated with the logo or null if the key does not exist.
+     * @return the relative URL of the logo.
      */
     private String getDefaultLogoUrl( HttpServletRequest request, String key )
     {

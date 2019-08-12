@@ -106,6 +106,7 @@ public class TrackedEntityDataElementDimension
             "\"id\":\"" + id + "\", " +
             "\"dataElement\":" + dataElement + ", " +
             "\"legendSet\":" + legendSet + ", " +
+            "\"programStage\":" + programStage + ", " +
             "\"filter\":\"" + filter + "\" " +
             "}";
     }

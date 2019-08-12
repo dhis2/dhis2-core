@@ -1,4 +1,4 @@
-package org.hisp.dhis.reporting.config;
+package org.hisp.dhis.cache;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,28 +28,8 @@ package org.hisp.dhis.reporting.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.common.ServiceProvider;
-import org.hisp.dhis.completeness.DataSetCompletenessService;
-import org.hisp.dhis.completeness.impl.CompulsoryDataSetCompletenessService;
-import org.hisp.dhis.completeness.impl.RegistrationDataSetCompletenessService;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-/**
- * @author Luciano Fiandesio
- */
-@Configuration( "reportingServiceConfig" )
-public class ServiceConfig
+public enum CacheType
 {
-    @Bean( "dataCompletenessServiceProvider" )
-    public ServiceProvider<DataSetCompletenessService> dataCompletenessServiceProvider(
-        RegistrationDataSetCompletenessService registrationDataSetCompletenessService,
-        CompulsoryDataSetCompletenessService compulsoryDataSetCompletenessService )
-    {
-        ServiceProvider<DataSetCompletenessService> serviceProvider = new ServiceProvider<>();
-        serviceProvider.setServices( ImmutableMap.of( "registration", registrationDataSetCompletenessService,
-            "compulsory", compulsoryDataSetCompletenessService ) );
-        return serviceProvider;
-    }
+    NONE, IN_MEMORY, REDIS;
+
 }

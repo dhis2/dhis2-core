@@ -1,5 +1,3 @@
-package org.hisp.dhis.orgunitdistribution;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,19 +26,46 @@ package org.hisp.dhis.orgunitdistribution;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.jfree.chart.JFreeChart;
+package org.hisp.dhis.monitoring.metrics;
+
+import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_UPTIME_ENABLED;
+
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.system.UptimeMetrics;
 
 /**
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
  */
-public interface OrgUnitDistributionService
+@Configuration
+@Conditional( UptimeMetricsConfig.UptimeMetricsConfigEnabledCondition.class )
+public class UptimeMetricsConfig
 {
-    String ID = OrgUnitDistributionService.class.getName();
-    
-    JFreeChart getOrganisationUnitDistributionChart( OrganisationUnitGroupSet groupSet, OrganisationUnit organisationUnit );
-    
-    Grid getOrganisationUnitDistribution( OrganisationUnitGroupSet groupSet, OrganisationUnit organisationUnit, boolean organisationUnitOnly );
+    @Bean
+    public UptimeMetrics uptimeMetrics()
+    {
+        return new UptimeMetrics();
+    }
+
+    @Autowired
+    public void bindToRegistry( MeterRegistry registry, UptimeMetrics uptimeMetrics )
+    {
+        uptimeMetrics.bindTo( registry );
+    }
+
+    static class UptimeMetricsConfigEnabledCondition
+        extends
+        MetricsEnabler
+    {
+        @Override
+        protected ConfigurationKey getConfigKey()
+        {
+            return MONITORING_UPTIME_ENABLED;
+        }
+    }
 }

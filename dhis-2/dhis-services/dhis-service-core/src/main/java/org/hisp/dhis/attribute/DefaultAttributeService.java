@@ -30,7 +30,6 @@ package org.hisp.dhis.attribute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.util.Maps;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
@@ -42,6 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -379,7 +379,7 @@ public class DefaultAttributeService
     private Map<Integer, String> jsonToMap( List<String> jsonAttributeValues )
         throws IOException
     {
-        Map<Integer, String> parsed = Maps.newHashMap();
+        Map<Integer, String> parsed = new HashMap<>();
 
         ObjectMapper mapper = new ObjectMapper();
 

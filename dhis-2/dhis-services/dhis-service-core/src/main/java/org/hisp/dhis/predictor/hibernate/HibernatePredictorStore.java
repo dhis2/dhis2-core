@@ -36,6 +36,7 @@ import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.predictor.PredictorStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -52,10 +53,10 @@ public class HibernatePredictorStore
     private final PeriodService periodService;
 
     public HibernatePredictorStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
         PeriodService periodService )
     {
-        super( sessionFactory, jdbcTemplate, Predictor.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, Predictor.class, currentUserService, deletedObjectService, aclService, false );
 
         checkNotNull( periodService );
 

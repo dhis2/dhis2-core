@@ -31,7 +31,6 @@ package org.hisp.dhis.dataintegrity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.program.ProgramIndicator;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +63,7 @@ public class FlattenedDataIntegrityReport
 
     @JsonProperty
     private SortedMap<String, Collection<String>> dataElementsInDataSetNotInForm;
-    
+
     @JsonProperty
     private List<String> invalidCategoryCombos;
 
@@ -160,7 +159,7 @@ public class FlattenedDataIntegrityReport
         dataElementsViolatingExclusiveGroupSets = transformSortedMap( report.getDataElementsViolatingExclusiveGroupSets() );
 
         dataElementsInDataSetNotInForm = transformSortedMap( report.getDataElementsInDataSetNotInForm() );
-        
+
         invalidCategoryCombos = transformCollection( report.getInvalidCategoryCombos() );
 
         dataSetsNotAssignedToOrganisationUnits = transformCollection( report.getDataSetsNotAssignedToOrganisationUnits() );

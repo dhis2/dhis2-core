@@ -72,11 +72,11 @@ public class ProgramStageInstanceDeletionHandler
     @Override
     public String allowDeleteProgramStage( ProgramStage programStage )
     {
-        String sql = "SELECT COUNT(*) FROM programstageinstance WHERE programstageid=" + programStage.getId();
+        String sql = "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = " + programStage.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-    
+
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
@@ -85,7 +85,7 @@ public class ProgramStageInstanceDeletionHandler
             programStageInstanceService.deleteProgramStageInstance( programStageInstance, false );
         }
     }
-    
+
     @Override
     public String allowDeleteProgram( Program program )
     {

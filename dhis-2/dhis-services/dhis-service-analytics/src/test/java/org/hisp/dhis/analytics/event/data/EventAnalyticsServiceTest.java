@@ -50,6 +50,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -196,16 +197,15 @@ public class EventAnalyticsServiceTest
         programInstanceService.enrollTrackedEntityInstance( femaleB, programA, null, null, ouA );
 
         // Read event data from CSV file
-        // --------------------------------------------------------------------
-        List<String[]> eventDataLines = AnalyticsTestUtils.readInputFile( "csv/eventData.csv" );
+
+        List<String[]> eventDataLines = CsvUtils.readCsvAsListFromClasspath( "csv/eventData.csv", true );
         parseEventData( eventDataLines );
 
         // Generate analytics tables
-        // --------------------------------------------------------------------
+
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
 
         // Set parameters
-        // --------------------------------------------------------------------
 
         // all events in program A - 2017
         EventQueryParams events_2017_params = new EventQueryParams.Builder()
@@ -237,13 +237,12 @@ public class EventAnalyticsServiceTest
     @Test
     public void testGridAggregation()
     {
-        Grid aggregatedDataValueGrid;
         for ( Map.Entry<String, EventQueryParams> entry : eventQueryParams.entrySet() )
         {
             String key = entry.getKey();
             EventQueryParams params = entry.getValue();
 
-            aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
+            Grid aggregatedDataValueGrid = eventAnalyticsService.getAggregatedEventData( params );
 
             AnalyticsTestUtils.assertResultGrid( aggregatedDataValueGrid, results.get( key ) );
         }

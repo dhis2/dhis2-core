@@ -44,6 +44,7 @@ import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -55,10 +56,10 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
     implements DashboardItemStore
 {
     public HibernateDashboardItemStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
         AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, DashboardItem.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, DashboardItem.class, currentUserService, deletedObjectService, aclService, false );
     }
 
     @Override

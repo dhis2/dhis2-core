@@ -36,13 +36,10 @@ import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
-import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -50,27 +47,21 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
@@ -80,8 +71,6 @@ import com.google.common.collect.Lists;
 public class JdbcEnrollmentAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
-    private static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
-
     public JdbcEnrollmentAnalyticsTableManager( IdentifiableObjectManager idObjectManager,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
         SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
@@ -101,8 +90,8 @@ public class JdbcEnrollmentAnalyticsTableManager
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP,
             "case pi.status when 'COMPLETED' then pi.enddate end" ),
         new AnalyticsTableColumn( quote( "enrollmentstatus" ), CHARACTER_50, "pi.status" ),
-        new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "ST_X(pi.geometry)" ),
-        new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "ST_Y(pi.geometry)" ),
+        new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END" ),
+        new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
         new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
@@ -142,7 +131,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         final Program program = partition.getMasterTable().getProgram();
 
-        String sqlJoin = "from programinstance pi " +
+        String fromClause = "from programinstance pi " +
             "inner join program pr on pi.programid=pr.programid " +
             "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " +
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
@@ -156,50 +145,18 @@ public class JdbcEnrollmentAnalyticsTableManager
             "and pi.incidentdate is not null " +
             "and pi.deleted is false ";
 
-        populateTableInternal( partition, getDimensionColumns( program ), sqlJoin );
+        populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
-        final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
-        final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
-
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        List<OrganisationUnitLevel> levels =
-            organisationUnitService.getFilledOrganisationUnitLevels();
-
-        List<OrganisationUnitGroupSet> orgUnitGroupSets =
-            idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
-
-        for ( OrganisationUnitLevel level : levels )
-        {
-            String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
-        }
-
-        for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
-        {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
-        }
-
+        columns.addAll( addOrganisationUnitLevels() );
+        columns.addAll( addOrganisationUnitGroupSets() );
         columns.addAll( addPeriodColumns( "dps" ) );
-
-        for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
-        {
-            ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
-            String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
-            String select = getSelectClause( attribute.getValueType(), "value" );
-            boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
-
-            String sql = "(select " + select + " from trackedentityattributevalue " +
-                "where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
-
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
-        }
-
-        columns.addAll(getFixedColumns());
+        columns.addAll( addTrackedEntityAttributes( program ) );
+        columns.addAll( getFixedColumns() );
 
         if ( program.isRegistration() )
         {

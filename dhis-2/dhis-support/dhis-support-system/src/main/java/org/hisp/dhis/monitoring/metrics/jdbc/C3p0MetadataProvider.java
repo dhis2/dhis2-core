@@ -28,19 +28,22 @@
 
 package org.hisp.dhis.monitoring.metrics.jdbc;
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import java.sql.SQLException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.sql.SQLException;
+import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 /**
  * @author Luciano Fiandesio
  */
 public class C3p0MetadataProvider
-    extends AbstractDataSourcePoolMetadata<ComboPooledDataSource>
+    extends
+    AbstractDataSourcePoolMetadata<ComboPooledDataSource>
 {
     private static final Log log = LogFactory.getLog( C3p0MetadataProvider.class );
+
     /**
      * Create an instance with the data source to use.
      *
@@ -87,5 +90,19 @@ public class C3p0MetadataProvider
     public Boolean getDefaultAutoCommit()
     {
         return getDataSource().isAutoCommitOnClose();
+    }
+
+    @Override
+    public Integer getIdle()
+    {
+        try
+        {
+            return getDataSource().getNumIdleConnections();
+        }
+        catch ( SQLException e )
+        {
+            log.error( "An error occurred while fetching number of idle connection from the DataSource", e );
+            return 0;
+        }
     }
 }
