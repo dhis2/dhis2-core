@@ -38,24 +38,24 @@ import java.util.List;
 public interface CacheProvider
 {
     /**
-     * Creates a new {@link CacheBuilder} that can be used to build a cache that
+     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
      * stores the valueType specified.
      * 
      * 
      * @param valueType The class type of values to be stored in cache.
      * @return A cache builder instance for the specified value type. Returns a
-     *         {@link CacheBuilder}
+     *         {@link ExtendedCacheBuilder}
      */
     public <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
     
     /**
-     * Creates a new {@link CacheBuilder} that can be used to build a cache that
+     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
      * stores a list of valueType specified.
      * 
      * 
      * @param valueType The class type of values to be stored as List<valueType> in cache.
      * @return A cache builder instance for the specified list of value type. Returns a
-     *         {@link CacheBuilder}
+     *         {@link ExtendedCacheBuilder}
      */
     public <V> CacheBuilder<List<V>> newCacheBuilderForList( Class<V> valueType );
 }

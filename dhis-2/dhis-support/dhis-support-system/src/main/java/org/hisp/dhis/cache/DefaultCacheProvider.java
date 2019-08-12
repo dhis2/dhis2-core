@@ -47,23 +47,14 @@ public class DefaultCacheProvider implements CacheProvider
 
     private RedisTemplate<String, ?> redisTemplate;
 
-    /**
-     * Creates a new {@link CacheBuilder} that can be used to build a cache that
-     * stores the valueType specified.
-     * 
-     * 
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link CacheBuilder}
-     */
-    public <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType )
+    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
     {
-        return new CacheBuilder<V>( redisTemplate, configurationProvider );
+        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
     }
     
-    public <V> CacheBuilder<List<V>> newCacheBuilderForList( Class<V> valueType )
+    public <V> ExtendedCacheBuilder<List<V>> newCacheBuilderForList( Class<V> valueType )
     {
-        return new CacheBuilder<List<V>>( redisTemplate, configurationProvider );
+        return new ExtendedCacheBuilder<List<V>>( redisTemplate, configurationProvider );
     }
 
     @Autowired
