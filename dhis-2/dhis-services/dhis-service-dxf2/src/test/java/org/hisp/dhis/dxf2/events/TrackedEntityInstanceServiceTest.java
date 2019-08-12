@@ -45,7 +45,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -82,7 +81,7 @@ public class TrackedEntityInstanceServiceTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
-    
+
     @Autowired
     private IdentifiableObjectManager manager;
 
@@ -95,9 +94,9 @@ public class TrackedEntityInstanceServiceTest
     private OrganisationUnit organisationUnitB;
 
     private Program programA;
-    
+
     private ProgramStage programStageA1;
-    
+
     private ProgramStage programStageA2;
 
     @Override
@@ -123,13 +122,13 @@ public class TrackedEntityInstanceServiceTest
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        
+
         programStageA1 = createProgramStage( '1', programA );
         programStageA2 = createProgramStage( '2', programA );
-        
-       
+
+
         programA.setProgramStages( Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
-        
+
         manager.save( organisationUnitA );
         manager.save( organisationUnitB );
         manager.save( maleA );
@@ -174,7 +173,7 @@ public class TrackedEntityInstanceServiceTest
 
         // assertEquals( "UPDATED_NAME", personService.getTrackedEntityInstance( maleA.getUid() ).getName() );
     }
-    
+
     @Test
     public void testUpdateTeiByCompletingExistingEnrollmentAndOpeningNewEnrollment()
     {
@@ -361,7 +360,7 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
     }
-    
+
 
     @Test
     @Ignore

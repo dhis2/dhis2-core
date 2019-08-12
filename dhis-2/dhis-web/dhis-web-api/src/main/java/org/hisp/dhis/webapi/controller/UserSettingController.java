@@ -42,7 +42,9 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -58,6 +60,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Lars Helge Overland
@@ -88,11 +92,12 @@ public class UserSettingController
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
         @RequestParam( value = "userId", required = false ) String userId,
-        @RequestParam( value = "key", required = false ) Set<String> keys
-    )
+        @RequestParam( value = "key", required = false ) Set<String> keys, HttpServletResponse response )
         throws WebMessageException
     {
         User user = getUser( userId, username );
+
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         if ( keys == null )
         {
@@ -115,8 +120,7 @@ public class UserSettingController
         @PathVariable( value = "key" ) String key,
         @RequestParam( required = false, defaultValue = "true" ) boolean useFallback,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId
-    )
+        @RequestParam( value = "userId", required = false ) String userId, HttpServletResponse response )
         throws WebMessageException
     {
         UserSettingKey userSettingKey = getUserSettingKey( key );
@@ -126,6 +130,7 @@ public class UserSettingController
             .getUserSettingsWithFallbackByUserAsMap( user, Sets.newHashSet( userSettingKey ), useFallback )
             .get( key );
 
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
         return String.valueOf( value );
     }
 
@@ -135,8 +140,7 @@ public class UserSettingController
         @RequestParam( value = "user", required = false ) String username,
         @RequestParam( value = "userId", required = false ) String userId,
         @RequestParam( required = false ) String value,
-        @RequestBody( required = false ) String valuePayload
-    )
+        @RequestBody( required = false ) String valuePayload )
         throws WebMessageException
     {
         UserSettingKey userSettingKey = getUserSettingKey( key );
@@ -158,8 +162,7 @@ public class UserSettingController
     public void deleteUserSettingByKey(
         @PathVariable( value = "key" ) String key,
         @RequestParam( value = "user", required = false ) String username,
-        @RequestParam( value = "userId", required = false ) String userId
-    )
+        @RequestParam( value = "userId", required = false ) String userId )
         throws WebMessageException
     {
         UserSettingKey userSettingKey = getUserSettingKey( key );

@@ -34,7 +34,6 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -51,7 +50,7 @@ public class CategoryServiceTest
 {
     private DataElement deA;
     private DataElement deB;
-    
+
     private CategoryOption categoryOptionA;
     private CategoryOption categoryOptionB;
     private CategoryOption categoryOptionC;
@@ -61,7 +60,7 @@ public class CategoryServiceTest
     private Category categoryC;
 
     private CategoryCombo ccA;
-    
+
     private List<CategoryOption> categoryOptions;
 
     @Autowired
@@ -69,7 +68,7 @@ public class CategoryServiceTest
 
     @Autowired
     private CategoryStore categoryStore;
-    
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -82,7 +81,7 @@ public class CategoryServiceTest
 
     @Override
     public void setUpTest()
-    {        
+    {
         categoryOptionA = createCategoryOption( 'A' );
         categoryOptionB = createCategoryOption( 'B' );
         categoryOptionC = createCategoryOption( 'C' );
@@ -249,23 +248,23 @@ public class CategoryServiceTest
 
         categoryService.addCategory( categoryA );
         categoryService.addCategory( categoryB );
-        
+
         ccA = createCategoryCombo( 'A', categoryA, categoryB );
-        
+
         categoryService.addCategoryCombo( ccA );
-        
+
         categoryService.generateOptionCombos( ccA );
-        
+
         List<CategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
 
         deA = createDataElement( 'A', ccA );
         deB = createDataElement( 'B', ccA );
-        
+
         idObjectManager.save( deA );
         idObjectManager.save( deB );
-        
+
         List<DataElementOperand> operands = categoryService.getOperands( Lists.newArrayList( deA, deB ) );
-        
+
         assertEquals( 4, operands.size() );
         assertTrue( operands.contains( new DataElementOperand( deA, optionCombos.get( 0 ) ) ) );
         assertTrue( operands.contains( new DataElementOperand( deA, optionCombos.get( 1 ) ) ) );
@@ -281,23 +280,23 @@ public class CategoryServiceTest
 
         categoryService.addCategory( categoryA );
         categoryService.addCategory( categoryB );
-        
+
         ccA = createCategoryCombo( 'A', categoryA, categoryB );
-        
+
         categoryService.addCategoryCombo( ccA );
-        
+
         categoryService.generateOptionCombos( ccA );
 
         List<CategoryOptionCombo> optionCombos = Lists.newArrayList( ccA.getOptionCombos() );
 
         deA = createDataElement( 'A', ccA );
         deB = createDataElement( 'B', ccA );
-        
+
         idObjectManager.save( deA );
         idObjectManager.save( deB );
-        
+
         List<DataElementOperand> operands = categoryService.getOperands( Lists.newArrayList( deA, deB ), true );
-        
+
         assertEquals( 6, operands.size() );
         assertTrue( operands.contains( new DataElementOperand( deA ) ) );
         assertTrue( operands.contains( new DataElementOperand( deA, optionCombos.get( 0 ) ) ) );

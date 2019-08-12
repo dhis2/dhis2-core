@@ -81,13 +81,15 @@ public abstract class AbstractJdbcTableManager
     protected static final Log log = LogFactory.getLog( JdbcAnalyticsTableManager.class );
 
     /**
-     * Matches:
+     * Matches the following patterns:
      *
-     * 1999-12-12
-     * 1999-12-12T
-     * 1999-12-12T10:10:10
-     * 1999-10-10 10:10:10
-     * 1999-10-10 10:10
+     * <ul>
+     * <li>1999-12-12</li>
+     * <li>1999-12-12T</li>
+     * <li>1999-12-12T10:10:10</li>
+     * <li>1999-10-10 10:10:10</li>
+     * <li>1999-10-10 10:10</li>
+     * </ul>
      */
     protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$";
 
@@ -561,44 +563,49 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Collects all the period types as a List of {@see AnalyticsTableColumn}
+     * Collects all the {@link PeriodType} as a list of {@link AnalyticsTableColumn}.
+     *
      * @param prefix the prefix to use for the column name
-     * @return a List of {@see AnalyticsTableColumn}
+     * @return a List of {@link AnalyticsTableColumn}
      */
     protected List<AnalyticsTableColumn> addPeriodColumns( String prefix )
     {
-        return PeriodType.getAvailablePeriodTypes().stream().map( pt -> {
-            String column = quote( pt.getName().toLowerCase() );
-            return new AnalyticsTableColumn( column, TEXT, prefix + "." + column );
-        } ).collect( Collectors.toList() );
+        return PeriodType.getAvailablePeriodTypes().stream()
+            .map( pt -> {
+                String column = quote( pt.getName().toLowerCase() );
+                return new AnalyticsTableColumn( column, TEXT, prefix + "." + column );
+            } )
+            .collect( Collectors.toList() );
     }
 
     /**
-     * Collects all the {@see OrganisationUnitLevel} as a List of
-     * {@see AnalyticsTableColumn}
+     * Collects all the {@link OrganisationUnitLevel} as a list of {@link AnalyticsTableColumn}.
      *
-     * @return a List of {@see AnalyticsTableColumn}
+     * @return a List of {@link AnalyticsTableColumn}
      */
     protected List<AnalyticsTableColumn> addOrganisationUnitLevels()
     {
-        return organisationUnitService.getFilledOrganisationUnitLevels().stream().map( lv -> {
-
-            String column = quote( PREFIX_ORGUNITLEVEL + lv.getLevel() );
-            return new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( lv.getCreated() );
-        } ).collect( Collectors.toList() );
+        return organisationUnitService.getFilledOrganisationUnitLevels().stream()
+            .map( lv -> {
+                String column = quote( PREFIX_ORGUNITLEVEL + lv.getLevel() );
+                return new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( lv.getCreated() );
+            } )
+            .collect( Collectors.toList() );
     }
 
     /**
-     * Collects all the {@see OrganisationUnitGroupSet} as a List of
-     * {@see AnalyticsTableColumn}
+     * Collects all the {@link OrganisationUnitGroupSet} as a list of {@link AnalyticsTableColumn}.
      *
-     * @return a List of {@see AnalyticsTableColumn}
+     * @return a List of {@link AnalyticsTableColumn}
      */
-    List<AnalyticsTableColumn> addOrganizationUnitGroupSets()
+    protected List<AnalyticsTableColumn> addOrganisationUnitGroupSets()
     {
         return idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ).stream()
-            .map( ougs -> new AnalyticsTableColumn( quote( ougs.getUid() ), CHARACTER_11, "ougs."
-                + quote( ougs.getUid() ) ).withCreated( ougs.getCreated() ) ).collect( Collectors.toList() );
+            .map( ougs -> {
+                String column = quote( ougs.getUid() );
+                return new AnalyticsTableColumn( column, CHARACTER_11, "ougs." + column ).withCreated( ougs.getCreated() );
+            } )
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------

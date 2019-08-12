@@ -32,6 +32,10 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -46,32 +50,41 @@ public class DefaultProgramInstanceAuditService
     // Dependencies
     // -------------------------------------------------------------------------
     
-    @Autowired 
-    private ProgramInstanceAuditStore programInstanceAuditStore;
-    
+    private final ProgramInstanceAuditStore programInstanceAuditStore;
+
+    public DefaultProgramInstanceAuditService( ProgramInstanceAuditStore programInstanceAuditStore )
+    {
+        checkNotNull( programInstanceAuditStore );
+        this.programInstanceAuditStore = programInstanceAuditStore;
+    }
+
     // -------------------------------------------------------------------------
     // ProgramInstanceAuditService implementation
     // -------------------------------------------------------------------------
     
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void addProgramInstanceAudit( ProgramInstanceAudit programInstanceAudit )
     {
         programInstanceAuditStore.addProgramInstanceAudit( programInstanceAudit );
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void deleteProgramInstanceAudit( ProgramInstance programInstance )
     {
         programInstanceAuditStore.deleteProgramInstanceAudit( programInstance );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProgramInstanceAudit> getProgramInstanceAudits( ProgramInstanceAuditQueryParams params )
     {
         return programInstanceAuditStore.getProgramInstanceAudits( params );
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getProgramInstanceAuditsCount( ProgramInstanceAuditQueryParams params )
     {
         return programInstanceAuditStore.getProgramInstanceAuditsCount( params );

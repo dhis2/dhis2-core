@@ -40,7 +40,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.query.Query;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
@@ -141,7 +140,7 @@ public class TrackedEntityInstanceStoreTest
     {
         teiStore.save( teiA );
         teiStore.save( teiB );
-        
+
         dbmsManager.flushSession();
 
         assertTrue( teiStore.exists( teiA.getUid() ) );

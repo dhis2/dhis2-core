@@ -114,39 +114,6 @@ public interface ReportService
     Report getReport( String uid );
 
     /**
-     * Returns the total number of reports.
-     *
-     * @return the total number of reports.
-     */
-    int getReportCount();
-
-    /**
-     * Returns the number of reports which names are like the given name.
-     * Returns the number of reports which names are like the given name.
-     */
-    int getReportCountByName( String name );
-
-    /**
-     * Retrieves the given number of maximum reports starting at the given start
-     * index. Reports are sorted on the name property.
-     *
-     * @param first the start index.
-     * @param max   the maximum number of reports.
-     * @return a list of reports.
-     */
-    List<Report> getReportsBetween( int first, int max );
-
-    /**
-     * Retrieves the given number of maximum reports starting at the given start
-     * index. Reports are sorted on the name property.
-     *
-     * @param first the start index.
-     * @param max   the maximum number of reports.
-     * @return a List of reports.
-     */
-    List<Report> getReportsBetweenByName( String name, int first, int max );
-
-    /**
      * Deletes a Report.
      *
      * @param report the Report to delete.
