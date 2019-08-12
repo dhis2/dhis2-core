@@ -58,13 +58,13 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.util.DateUtils;
 import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 
-import com.google.common.collect.Lists;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -480,9 +480,7 @@ public abstract class AbstractJdbcTableManager
         Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate();
         Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
-        Date lastAnyTableUpdate = Lists.newArrayList( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate ).stream()
-            .filter( Objects::nonNull )
-            .max( Date::compareTo ).get();
+        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate );
 
         Date startDate = ObjectUtils.firstNonNull( lastFullTableUpdate, defaultDate );
         Date endDate = params.getStartTime();

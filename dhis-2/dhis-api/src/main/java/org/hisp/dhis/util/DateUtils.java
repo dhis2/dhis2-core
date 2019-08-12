@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -61,6 +62,7 @@ import org.springframework.util.StringUtils;
 import org.joda.time.IllegalInstantException;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -68,8 +70,10 @@ import com.google.common.collect.ImmutableMap;
 public class DateUtils
 {
     private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
-
     private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+
+    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
+    private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
 
     private static final DateTimeParser[] SUPPORTED_DATE_FORMAT_PARSERS = {
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" ).getParser(),
@@ -97,7 +101,7 @@ public class DateUtils
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm" ).getParser()
     };
 
-    private static final DateTimeFormatter DATE_TIME_FORMAT = (new DateTimeFormatterBuilder())
+    private static final DateTimeFormatter DATE_TIME_FORMAT = ( new DateTimeFormatterBuilder() )
         .append( null, SUPPORTED_DATE_TIME_FORMAT_PARSERS ).toFormatter();
 
     public static final PeriodFormatter DAY_SECOND_FORMAT = new PeriodFormatterBuilder()
@@ -474,10 +478,6 @@ public class DateUtils
         return yearString + "-" + monthString + "-" + dayString;
     }
 
-    private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
-
-    private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
-
     /**
      * This method checks whether the String inDate is a valid date following
      * the format "yyyy-MM-dd".
@@ -726,11 +726,24 @@ public class DateUtils
     }
 
     /**
+     * Returns the latest, non-null date of the given dates.
+     *
+     * @param dates the dates.
+     * @return the latest, non-null date.
+     */
+    public static Date getLatest( Date... dates )
+    {
+        return Lists.newArrayList( dates ).stream()
+            .filter( Objects::nonNull )
+            .max( Date::compareTo ).get();
+    }
+
+    /**
      * Parses the given string into a Date object. In case the date parsed falls in a
      * daylight savings transition, the date is parsed via a local date and converted to the
      * first valid time after the DST gap. When the fallback is used, any timezone offset in the given
      * format would be ignored.
-     * 
+     *
      * @param dateString The string to parse
      * @param formatter The formatter to use for parsing
      * @return Parsed Date object. Null if the supplied dateString is empty.
