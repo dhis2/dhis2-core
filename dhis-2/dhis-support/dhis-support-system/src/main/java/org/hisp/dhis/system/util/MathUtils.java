@@ -52,6 +52,7 @@ public class MathUtils
      * Cache for JEP expression evaluation.
      */
     private static Cache<Double> EXPR_EVAL_CACHE = new SimpleCacheBuilder<Double>()
+        .forRegion( "exprEvalCache" )
         .expireAfterAccess( 1, TimeUnit.HOURS )
         .withInitialCapacity( 200 )
         .withMaximumSize( 5000 )

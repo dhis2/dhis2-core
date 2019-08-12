@@ -50,9 +50,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class Parser
 {
-    private static Cache<ParseTree> EXPRESSION_PARSE_TREES = new SimpleCacheBuilder<ParseTree>()
-        .expireAfterAccess( 10, TimeUnit.MINUTES ).withInitialCapacity( 10000 )
-        .withMaximumSize( 50000 ).build();
+    private static Cache<ParseTree> EXPRESSION_PARSE_TREES = new SimpleCacheBuilder<ParseTree>().forRegion( "expressionParseTrees" )
+        .expireAfterAccess( 10, TimeUnit.MINUTES )
+        .withInitialCapacity( 10000 )
+        .withMaximumSize( 50000 )
+        .build();
 
     // -------------------------------------------------------------------------
     // Logic

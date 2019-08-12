@@ -28,8 +28,6 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 /**
  * Provides cache builder to build instances.
  * 
@@ -48,14 +46,4 @@ public interface CacheProvider
      */
     public <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
     
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
-     * stores a list of valueType specified.
-     * 
-     * 
-     * @param valueType The class type of values to be stored as List<valueType> in cache.
-     * @return A cache builder instance for the specified list of value type. Returns a
-     *         {@link ExtendedCacheBuilder}
-     */
-    public <V> CacheBuilder<List<V>> newCacheBuilderForList( Class<V> valueType );
 }

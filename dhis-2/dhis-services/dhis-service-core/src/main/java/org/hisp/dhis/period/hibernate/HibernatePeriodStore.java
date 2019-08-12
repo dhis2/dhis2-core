@@ -93,6 +93,7 @@ public class HibernatePeriodStore
     public void init()
     {
         PERIOD_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "periodIdCache" )
             .expireAfterWrite( 24, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()

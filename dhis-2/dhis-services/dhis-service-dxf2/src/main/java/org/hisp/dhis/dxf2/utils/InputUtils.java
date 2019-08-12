@@ -73,6 +73,7 @@ public class InputUtils
     public void init()
     {
         ATTR_OPTION_COMBO_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "attrOptionComboIdCache" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()

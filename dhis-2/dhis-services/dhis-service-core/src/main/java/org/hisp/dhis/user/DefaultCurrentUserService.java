@@ -95,6 +95,7 @@ public class DefaultCurrentUserService
     public void init()
     {
         USERNAME_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "userIdCache" )
             .expireAfterAccess( 1, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()

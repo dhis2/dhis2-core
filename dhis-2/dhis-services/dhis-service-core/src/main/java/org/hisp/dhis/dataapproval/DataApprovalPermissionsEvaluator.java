@@ -31,7 +31,6 @@ package org.hisp.dhis.dataapproval;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SettingKey;
@@ -74,6 +73,7 @@ class DataApprovalPermissionsEvaluator
     }
 
     private static Cache<DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE = new SimpleCacheBuilder<DataApprovalLevel>()
+        .forRegion( "userApprovalLevelCache" )
         .expireAfterAccess( 10, TimeUnit.MINUTES )
         .withInitialCapacity( 10000 )
         .withMaximumSize( 50000 )
@@ -100,10 +100,10 @@ class DataApprovalPermissionsEvaluator
      */
     public static DataApprovalPermissionsEvaluator makePermissionsEvaluator( CurrentUserService currentUserService,
             OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
-            DataApprovalLevelService dataApprovalLevelService, CacheProvider cacheProvider )
+            DataApprovalLevelService dataApprovalLevelService )
     {
         DataApprovalPermissionsEvaluator ev = new DataApprovalPermissionsEvaluator();
-        
+
         ev.organisationUnitService = organisationUnitService;
         ev.dataApprovalLevelService = dataApprovalLevelService;
 

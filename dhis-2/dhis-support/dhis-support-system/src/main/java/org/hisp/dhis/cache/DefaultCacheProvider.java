@@ -51,11 +51,6 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
     }
-    
-    public <V> ExtendedCacheBuilder<List<V>> newCacheBuilderForList( Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<List<V>>( redisTemplate, configurationProvider );
-    }
 
     @Autowired
     public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )

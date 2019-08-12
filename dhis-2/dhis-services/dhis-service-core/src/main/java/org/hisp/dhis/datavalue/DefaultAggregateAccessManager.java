@@ -28,6 +28,16 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -35,19 +45,9 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -57,18 +57,16 @@ public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
     private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
+    
 
     private final AclService aclService;
-    
-    private final CacheProvider cacheProvider;
 
     @Autowired
     private Environment env;
 
-    public DefaultAggregateAccessManager( AclService aclService, CacheProvider cacheProvider )
+    public DefaultAggregateAccessManager( AclService aclService )
     {
         this.aclService = aclService;
-        this.cacheProvider = cacheProvider;
     }
 
     // ---------------------------------------------------------------------
@@ -78,7 +76,8 @@ public class DefaultAggregateAccessManager
     @PostConstruct
     public void init()
     {
-        CAN_DATA_WRITE_COC_CACHE = cacheProvider.newCacheBuilderForList( String.class )
+        CAN_DATA_WRITE_COC_CACHE = new SimpleCacheBuilder<List<String>>()
+            .forRegion( "canDataWriteCocCache" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()

@@ -66,6 +66,7 @@ public abstract class PeriodType
 {
     // Cache for period lookup, uses calendar.name() + periodType.getName() + date.getTime() as key
     private static Cache<Period> PERIOD_CACHE = new SimpleCacheBuilder<Period>()
+        .forRegion( "periodCache" )
         .expireAfterAccess( 1, TimeUnit.SECONDS )
         .withInitialCapacity( 10000 )
         .withMaximumSize( 30000 )

@@ -133,6 +133,7 @@ public class DefaultIdentifiableObjectManager
     public void init()
     {
         DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
+            .forRegion( "defaultObjectCache" )
             .expireAfterAccess( 2, TimeUnit.HOURS )
             .withInitialCapacity( 4 )
             .forceInMemory()
