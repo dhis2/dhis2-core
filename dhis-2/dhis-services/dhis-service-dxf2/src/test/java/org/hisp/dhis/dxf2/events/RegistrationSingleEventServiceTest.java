@@ -61,6 +61,7 @@ import java.util.Date;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -180,6 +181,43 @@ public class RegistrationSingleEventServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
 
+    @Test
+    public void testDeleteEventShouldReturnReference()
+    {
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        importSummary = eventService.addEvent( event, null, false );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        importSummary = eventService.deleteEvent( tei.getEnrollments().get( 0 ).getEvents().get( 0 ).getEvent() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertNotNull( importSummary.getReference() );
+        assertEquals( tei.getEnrollments().get( 0 ).getEvents().get( 0 ).getEvent(), importSummary.getReference() );
+
+    }
+
+    @Test
+    public void testDeleteEnrollmentShouldReturnReference()
+    {
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        importSummary = enrollmentService.deleteEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertNotNull( importSummary.getReference() );
+        assertEquals( tei.getEnrollments().get( 0 ).getEnrollment(), importSummary.getReference() );
+
+    }
+    
     @Test
     @Ignore
     public void testSavingMultipleEventsShouldOnlyUpdate()
