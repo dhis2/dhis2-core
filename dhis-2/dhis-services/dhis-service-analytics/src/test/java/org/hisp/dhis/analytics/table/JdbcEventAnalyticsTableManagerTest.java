@@ -280,19 +280,19 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
-        Program program = createProgram( 'A' );
+        Program programA = createProgram( 'A' );
 
         DataElement d5 = createDataElement('G', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
 
         ProgramStage ps1 = createProgramStage( 'A', Sets.newHashSet( d5 ) );
 
-        program.setProgramStages( Sets.newHashSet( ps1 ) );
+        programA.setProgramStages( Sets.newHashSet( ps1 ) );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( program ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
-        when( jdbcTemplate.queryForList( getYearsQuery( program, params ), Integer.class ) )
+        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
             .thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         subject.populateTable( params,
@@ -311,20 +311,20 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
-        Program p1 = createProgram( 'A' );
+        Program programA = createProgram( 'A' );
 
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
         tea.setId( 9999 );
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( p1, tea );
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, tea );
 
-        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
-        when( jdbcTemplate.queryForList( getYearsQuery( p1, params ), Integer.class ) )
+        when( jdbcTemplate.queryForList( getYearsQuery( programA, params ), Integer.class ) )
                 .thenReturn( Lists.newArrayList( 2018, 2019 ) );
 
         subject.populateTable( params,
@@ -344,6 +344,7 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         List<OrganisationUnitLevel> ouLevels = rnd.randomObjects( OrganisationUnitLevel.class, 2 );
         Program programA = rnd.randomObject( Program.class );
+        programA.setId( 0 );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
@@ -373,6 +374,7 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         List<OrganisationUnitGroupSet> ouGroupSet = rnd.randomObjects( OrganisationUnitGroupSet.class, 2 );
         Program programA = rnd.randomObject( Program.class );
+        programA.setId( 0 );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ) ).thenReturn( ouGroupSet );
@@ -402,6 +404,7 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         List<CategoryOptionGroupSet> cogs = rnd.randomObjects( CategoryOptionGroupSet.class, 2 );
         Program programA = rnd.randomObject( Program.class );
+        programA.setId( 0 );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl() ).thenReturn( cogs );
@@ -415,15 +418,15 @@ public class JdbcEventAnalyticsTableManagerTest
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get(0) )
-                .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() )
-                .withTableType( AnalyticsTableType.EVENT )
-                .withColumnSize( subject.getFixedColumns().size()
-                        + PeriodType.getAvailablePeriodTypes().size() + cogs.size() + (programA.isRegistration() ? 2 : 0) )
-                .addColumns( periodColumns )
-                .withDefaultColumns( subject.getFixedColumns() )
-                .addColumn( quote( cogs.get( 0  ).getUid() ), col -> match( cogs.get( 0 ), col))
-                .addColumn( quote( cogs.get( 1 ).getUid()), col -> match( cogs.get( 1 ), col))
-                .build().verify();
+            .withTableName( TABLE_PREFIX + programA.getUid().toLowerCase() )
+            .withTableType( AnalyticsTableType.EVENT )
+            .withColumnSize( subject.getFixedColumns().size()
+                    + PeriodType.getAvailablePeriodTypes().size() + cogs.size() + (programA.isRegistration() ? 2 : 0) )
+            .addColumns( periodColumns )
+            .withDefaultColumns( subject.getFixedColumns() )
+            .addColumn( quote( cogs.get( 0  ).getUid() ), col -> match( cogs.get( 0 ), col))
+            .addColumn( quote( cogs.get( 1 ).getUid()), col -> match( cogs.get( 1 ), col))
+            .build().verify();
     }
     private void match( OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col )
     {
@@ -468,30 +471,31 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
-        Program p1 = createProgram( 'A' );
+        Program programA = createProgram( 'A' );
 
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'a', ValueType.ORGANISATION_UNIT );
         tea.setId( 9999 );
 
-        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( p1, tea );
+        ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, tea );
 
-        p1.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
+        programA.setProgramAttributes( Lists.newArrayList( programTrackedEntityAttribute ) );
 
-        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( programA ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         subject.populateTable( params,
-                PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
+            PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
 
         verify( jdbcTemplate ).execute( sql.capture() );
 
         String ouQuery = "(select ou.name from organisationunit ou where ou.uid = " +
-                "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
-                "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
+            "(select value from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid and " +
+            "trackedentityattributeid=9999)) as \"" + tea.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( ouQuery ) );
     }
+
     private String toAlias( String template, String uid )
     {
         return String.format( template, uid, uid, uid );
