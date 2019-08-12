@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -60,8 +62,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.Sets;
 
 /**
@@ -73,9 +73,9 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private static Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
+    private static Cache<Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
     
-    private static Cache<String, Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
+    private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -94,10 +94,13 @@ public class DefaultOrganisationUnitService
     private final ConfigurationService configurationService;
 
     private final UserSettingService userSettingService;
+    
+    private final CacheProvider cacheProvider;
 
     public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
-        CurrentUserService currentUserService, ConfigurationService configurationService,  UserSettingService userSettingService )
+        CurrentUserService currentUserService, ConfigurationService configurationService,  UserSettingService userSettingService,
+        CacheProvider cacheProvider )
     {
         checkNotNull( env );
         checkNotNull( organisationUnitStore );
@@ -114,6 +117,7 @@ public class DefaultOrganisationUnitService
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
         this.userSettingService = userSettingService;
+        this.cacheProvider = cacheProvider;
     }
 
     /**
@@ -128,15 +132,19 @@ public class DefaultOrganisationUnitService
     @PostConstruct
     public void init()
     {
-        IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
+        IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserOuHierarchy" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
         
-        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = Caffeine.newBuilder()
+        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserSearchOuHierarchy" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -476,7 +484,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) );
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) ).get();
     }
 
     @Override
@@ -511,7 +519,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) );
+        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).get();
     }
 
     @Override
