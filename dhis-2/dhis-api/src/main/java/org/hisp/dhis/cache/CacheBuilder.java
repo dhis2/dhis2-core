@@ -114,20 +114,52 @@ public interface CacheBuilder<V>
      */
     public CacheBuilder<V> disabled();
     
+    /**
+     * Construct the cache instance based on the input parameters and return it.
+     * @return The cache instance created.
+     */
     public Cache<V> build();
 
+    /**
+     * Getter for maximumSize
+     * @return the maximumSize value set in the builder
+     */
     public long getMaximumSize();
     
+    /**
+     * Getter for initialCapacity
+     * @return the initialCapacity value set in the builder
+     */
     public int getInitialCapacity();
 
+    /**
+     * Getter for region
+     * @return the region set in the builder
+     */
     public String getRegion();
 
+    /**
+     * Getter for refreshExpiryOnAccess
+     * @return the refreshExpiryOnAccess flag set in the builder
+     */
     public boolean isRefreshExpiryOnAccess();
     
+    /**
+     * Getter for expiryEnabled
+     * @return the expiryEnabled flag set in the builder
+     */
     public boolean isExpiryEnabled();
     
+    /**
+     * Getter for expiryInSeconds
+     * @return the expiryInSeconds value set in the builder
+     */
     public long getExpiryInSeconds();
 
+    /**
+     * Getter for defaultvalue
+     * @return the defaultvalue value set in the builder
+     */
     public V getDefaultValue();
 
 }
