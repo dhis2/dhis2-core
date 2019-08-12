@@ -1250,7 +1250,6 @@ public abstract class AbstractEventService
 
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setGeometry( event.getGeometry() );
 
         validateExpiryDays( importOptions, event, program, programStageInstance );
 
@@ -1316,6 +1315,8 @@ public abstract class AbstractEventService
                     "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
+
+        programStageInstance.setGeometry( event.getGeometry() );
 
         if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
