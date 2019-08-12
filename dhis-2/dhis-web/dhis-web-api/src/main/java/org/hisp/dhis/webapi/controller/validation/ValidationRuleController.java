@@ -109,7 +109,7 @@ public class ValidationRuleController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getExpressionDescriptionRegEx( expression ) );
+            message.setDescription( expressionService.getValidationRuleExpressionDescription( expression ) );
         }
 
         webMessageService.sendJson( message, response );
