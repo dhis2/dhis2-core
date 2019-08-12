@@ -348,7 +348,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( ouLevels );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearsQuery( programA, params), Integer.class ) )
                 .thenReturn( Collections.singletonList( 2019 ) );
 
@@ -363,8 +363,8 @@ public class JdbcEventAnalyticsTableManagerTest
                         + PeriodType.getAvailablePeriodTypes().size() + ouLevels.size() + (programA.isRegistration() ? 2 : 0) )
                 .addColumns( periodColumns )
                 .withDefaultColumns( subject.getFixedColumns() )
-                .addColumn( quote( "uidlevel" + ouLevels.get(0).getLevel() ), col -> match(ouLevels.get(0), col))
-                .addColumn( quote( "uidlevel" + ouLevels.get(1).getLevel() ), col -> match(ouLevels.get(1), col))
+                .addColumn( quote( "uidlevel" + ouLevels.get(0).getLevel() ), col -> match( ouLevels.get( 0 ), col ) )
+                .addColumn( quote( "uidlevel" + ouLevels.get(1).getLevel() ), col -> match( ouLevels.get( 1 ), col ) )
                 .build().verify();
     }
 
@@ -406,7 +406,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl() ).thenReturn( cogs );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearsQuery( programA, params), Integer.class ) )
                 .thenReturn( Collections.singletonList( 2019 ) );
 
@@ -421,8 +421,8 @@ public class JdbcEventAnalyticsTableManagerTest
                         + PeriodType.getAvailablePeriodTypes().size() + cogs.size() + (programA.isRegistration() ? 2 : 0) )
                 .addColumns( periodColumns )
                 .withDefaultColumns( subject.getFixedColumns() )
-                .addColumn( quote( cogs.get(0).getUid() ), col -> match(cogs.get(0), col))
-                .addColumn( quote( cogs.get(1).getUid()), col -> match(cogs.get(1), col))
+                .addColumn( quote( cogs.get( 0  ).getUid() ), col -> match( cogs.get( 0 ), col))
+                .addColumn( quote( cogs.get( 1 ).getUid()), col -> match( cogs.get( 1 ), col))
                 .build().verify();
     }
     private void match( OrganisationUnitGroupSet ouGroupSet, AnalyticsTableColumn col )
