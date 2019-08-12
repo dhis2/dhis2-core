@@ -27,8 +27,6 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -36,7 +34,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Provides cache builder to build instances.
- * 
+ *
  * @author Ameen Mohamed
  *
  */
@@ -47,6 +45,7 @@ public class DefaultCacheProvider implements CacheProvider
 
     private RedisTemplate<String, ?> redisTemplate;
 
+    @Override
     public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
     {
         return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
