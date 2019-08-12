@@ -45,6 +45,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -65,10 +67,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.DateUtils;
+import org.joda.time.LocalDate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -131,10 +135,13 @@ public class JdbcEventAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        Date earliest = params.getFromDate();
+        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(), databaseInfo.isSpatialSupport() ) );
 
-        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
+        return params.isLatestUpdate() ? getLatestAnalyticsTables( params ) : getRegularAnalyticsTables( params );
+    }
 
+    private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params )
+    {
         List<AnalyticsTable> tables = new ArrayList<>();
 
         Calendar calendar = PeriodType.getCalendar();
@@ -157,6 +164,48 @@ public class JdbcEventAnalyticsTableManager
             if ( table.hasPartitionTables() )
             {
                 tables.add( table );
+            }
+        }
+
+        return tables;
+    }
+
+    /**
+     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The start date
+     * of the partition is the time of the last successful full analytics table update. The
+     * end date of the partition is the start time of this analytics table update process.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     */
+    private List<AnalyticsTable> getLatestAnalyticsTables( AnalyticsTableUpdateParams params )
+    {
+        Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate(); // TODO centralize
+        Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate );
+
+        Date startDate = ObjectUtils.firstNonNull( lastFullTableUpdate, defaultDate );
+        Date endDate = params.getStartTime();
+
+        List<AnalyticsTable> tables = new ArrayList<>();
+
+        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+
+        for ( Program program : programs )
+        {
+            boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate );
+
+            if ( hasUpdatedData )
+            {
+                AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ), Lists.newArrayList(), program );
+                table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
+                tables.add( table );
+
+                log.info( String.format( "Added latest event analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+            }
+            else
+            {
+                log.info( String.format( "No updated latest event data found with start: '%s' and end: '%s", getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
             }
         }
 
@@ -267,17 +316,17 @@ public class JdbcEventAnalyticsTableManager
         String select = getSelectClause( attribute.getValueType(), "value" );
         boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
-        if ( attribute.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() ) {
-            String geoSql = selectForInsert(attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause);
-            columns.add(new AnalyticsTableColumn(
-                 attribute.getUid()  + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ));
+        if ( attribute.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() )
+        {
+            String geoSql = selectForInsert( attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
+            columns.add( new AnalyticsTableColumn( attribute.getUid()  + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ) );
         }
 
-        columns.add(new AnalyticsTableColumn(
+        columns.add( new AnalyticsTableColumn(
             quote( attribute.getUid() ), dataType,
-            selectForInsert(attribute, select, dataClause) ).withSkipIndex( skipIndex ));
+            selectForInsert( attribute, select, dataClause) ).withSkipIndex( skipIndex ));
 
-        return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
+        return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause )
             : columns;
     }
 
