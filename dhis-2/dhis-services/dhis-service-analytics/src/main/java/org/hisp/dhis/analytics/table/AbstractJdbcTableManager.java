@@ -128,7 +128,6 @@ public abstract class AbstractJdbcTableManager
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
         JdbcTemplate jdbcTemplate )
     {
-
         checkNotNull( idObjectManager );
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
