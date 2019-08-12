@@ -40,6 +40,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Class representing parameters for the analytics table generation process.
  *
@@ -258,8 +260,15 @@ public class AnalyticsTableUpdateParams
             return this;
         }
 
+        public Builder withStartTime( Date startTime )
+        {
+            this.params.startTime = startTime;
+            return this;
+        }
+
         public AnalyticsTableUpdateParams build()
         {
+            checkNotNull( this.params.startTime );
             return this.params;
         }
     }

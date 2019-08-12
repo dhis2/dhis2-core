@@ -108,7 +108,7 @@ public class JdbcCompletenessTableManager
     {
         AnalyticsTable table = params.isLatestUpdate() ?
             getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() ) :
-            getAnalyticsTable( params, getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
+            getAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
@@ -279,17 +279,18 @@ public class JdbcCompletenessTableManager
         return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
     }
 
-    private List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
             "from completedatasetregistration cdr " +
             "inner join period pe on cdr.periodid=pe.periodid " +
-            "where pe.startdate is not null ";
+            "where pe.startdate is not null " +
+            "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' ";
 
-        if ( earliest != null )
+        if ( params.getFromDate() != null )
         {
-            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
+            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );

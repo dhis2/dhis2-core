@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -39,7 +38,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.api.client.util.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -54,10 +52,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.jclouds.ContextBuilder;
-import org.jclouds.blobstore.BlobStore;
-import org.jclouds.blobstore.BlobStoreContext;
-import org.jclouds.blobstore.domain.Blob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -69,8 +63,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.io.ByteSource;
-import sun.nio.ch.IOUtil;
 
 /**
  * Serves and uploads custom images for the logo on the front page (logo_front)
@@ -224,11 +216,10 @@ public class StaticContentController
     }
 
     /**
-     * Returns the relative url of the default logo for a given key.
+     * Returns the relative URL of the default logo for a given key.
      *
-     * @param key the key associated with the logo or null if the key does not
-     *            exist.
-     * @return the relative url of the logo.
+     * @param key the key associated with the logo or null if the key does not exist.
+     * @return the relative URL of the logo.
      */
     private String getDefaultLogoUrl( HttpServletRequest request, String key )
     {

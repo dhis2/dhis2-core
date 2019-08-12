@@ -34,14 +34,13 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
-import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.Before;
 import org.junit.Rule;
@@ -67,15 +66,6 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
     private StatementBuilder statementBuilder;
 
     @Mock
-    private ProgramIndicatorService programIndicatorService;
-
-    @Mock
-    private SystemSettingManager systemSettingManager;
-
-    @Mock
-    private QueryValidator queryValidator;
-
-    @Mock
     private SqlRowSet rowSet;
 
     @Captor
@@ -94,7 +84,7 @@ public class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest
 
         statementBuilder = new PostgreSQLStatementBuilder();
 
-        subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService );
+        subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, mock( ProgramIndicatorService.class ) );
     }
 
     @Test

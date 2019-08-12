@@ -111,7 +111,7 @@ public class JdbcValidationResultTableManager
     {
         AnalyticsTable table = params.isLatestUpdate() ?
             new AnalyticsTable() :
-            getAnalyticsTable( params, getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
+            getAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
@@ -195,17 +195,18 @@ public class JdbcValidationResultTableManager
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
-    private List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
             "from validationresult vrs " +
             "inner join period pe on vrs.periodid=pe.periodid " +
-            "where pe.startdate is not null ";
+            "where pe.startdate is not null " +
+            "and vrs.created <= '" + getLongDateString( params.getStartTime() ) + "' ";
 
-        if ( earliest != null )
+        if ( params.getFromDate() != null )
         {
-            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
+            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );
