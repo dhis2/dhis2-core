@@ -117,7 +117,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ),
-        // TODO lat and lng deprecated in 2.30, should be removed after 2.33
+        // TODO latitude and longitude deprecated in 2.30, should be removed after 2.33
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
@@ -140,6 +140,13 @@ public class JdbcEventAnalyticsTableManager
         return params.isLatestUpdate() ? getLatestAnalyticsTables( params ) : getRegularAnalyticsTables( params );
     }
 
+    /**
+     * Creates a list of {@link AnalyticsTable} for each program. The tables contain a partition
+     * for each year for which events exist.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     * @return a list of {@link AnalyticsTableUpdateParams}.
+     */
     private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params )
     {
         List<AnalyticsTable> tables = new ArrayList<>();
@@ -171,11 +178,12 @@ public class JdbcEventAnalyticsTableManager
     }
 
     /**
-     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The start date
-     * of the partition is the time of the last successful full analytics table update. The
-     * end date of the partition is the start time of this analytics table update process.
+     * Creates a list of {@link AnalyticsTable} with a partition each or the "latest" data. The
+     * start date of the partition is the time of the last successful full analytics table update.
+     * The end date of the partition is the start time of this analytics table update process.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
+     * @return a list of {@link AnalyticsTableUpdateParams}.
      */
     private List<AnalyticsTable> getLatestAnalyticsTables( AnalyticsTableUpdateParams params )
     {
@@ -193,7 +201,7 @@ public class JdbcEventAnalyticsTableManager
 
         for ( Program program : programs )
         {
-            boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate );
+            boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate, program );
 
             if ( hasUpdatedData )
             {
@@ -210,6 +218,29 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return tables;
+    }
+
+    /**
+     * Indicates whether event data stored between the given start and end date and for the
+     * given program exists.
+     *
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @param program the program.
+     * @return whether event data exists.
+     */
+    private boolean hasUpdatedLatestData( Date startDate, Date endDate, Program program )
+    {
+        String sql =
+            "select psi.programstageinstanceid " +
+            "from programstageinstance psi " +
+            "inner join programinstance pi on psi.programinstanceid=psi.programinstanceid " +
+            "where pi.programid = " + program.getId() + " " +
+            "and psi.lastupdated >= '" + getLongDateString( startDate ) + "' " +
+            "and psi.lastupdated < '" + getLongDateString( endDate ) + "' " +
+            "limit 1";
+
+        return !jdbcTemplate.queryForList( sql ).isEmpty();
     }
 
     @Override
