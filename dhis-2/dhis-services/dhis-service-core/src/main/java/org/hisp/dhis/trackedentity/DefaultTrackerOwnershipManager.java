@@ -32,11 +32,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.core.env.Environment;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,13 +73,16 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
 
     private final ProgramOwnershipHistoryService programOwnershipHistoryService;
-    
+
     private final OrganisationUnitService organisationUnitService;
+
+    private final Environment env;
 
     public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
         TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
         ProgramTempOwnershipAuditService programTempOwnershipAuditService,
-        ProgramOwnershipHistoryService programOwnershipHistoryService, OrganisationUnitService organisationUnitService )
+        ProgramOwnershipHistoryService programOwnershipHistoryService,
+        OrganisationUnitService organisationUnitService, Environment env )
     {
         checkNotNull( currentUserService );
         checkNotNull( trackedEntityProgramOwnerService );
@@ -91,6 +96,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.programTempOwnershipAuditService = programTempOwnershipAuditService;
         this.programOwnershipHistoryService = programOwnershipHistoryService;
         this.organisationUnitService = organisationUnitService;
+        this.env = env;
     }
 
     /**
@@ -116,6 +122,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     @PostConstruct
     public void init()
     {
+        //TODO proper solution for unit tests, where the cache must not survive between tests
+
         temporaryTrackerOwnershipCache = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "tempTrackerOwnership" )
             .withDefaultValue( false )
@@ -126,7 +134,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         ownerCache = cacheProvider.newCacheBuilder( OrganisationUnit.class )
             .forRegion( "OrganisationUnitOwner" )
             .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .withMaximumSize( 1000 )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000 )
             .build();
     }
 

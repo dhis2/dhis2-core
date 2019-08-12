@@ -74,6 +74,7 @@ import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
@@ -108,6 +109,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -117,6 +119,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -126,6 +129,7 @@ import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
+import org.hisp.dhis.version.Version;
 
 /**
  * A DeletionHandler should override methods for objects that, when deleted,
@@ -1016,7 +1020,6 @@ public abstract class DeletionHandler
 
     public void deleteMessageConversation( MessageConversation messageConversation )
     {
-
     }
 
     public String allowDeleteMessageConversation( MessageConversation messageConversation )
@@ -1041,4 +1044,41 @@ public abstract class DeletionHandler
     public void deleteFileResource( FileResource fileResource )
     {
     }
+
+    public String allowDeleteTrackedEntityInstanceFilter( TrackedEntityInstanceFilter filter )
+    {
+        return null;
+    }
+
+    public void deleteTrackedEntityInstanceFilter( TrackedEntityInstanceFilter filter )
+    {
+    }
+
+    public String allowDeleteVersion( Version version )
+    {
+        return null;
+    }
+
+    public void deleteVersion( Version version )
+    {
+    }
+
+    public String allowDeleteMetadataVersion( MetadataVersion metadataVersion )
+    {
+        return null;
+    }
+
+    public void deleteMetadataVersion( MetadataVersion metadataVersion )
+    {
+    }
+
+    public String allowDeleteReservedValue( ReservedValue reservedValue )
+    {
+        return null;
+    }
+
+    public void deleteReservedValue( ReservedValue reservedValue )
+    {
+    }
 }
+
