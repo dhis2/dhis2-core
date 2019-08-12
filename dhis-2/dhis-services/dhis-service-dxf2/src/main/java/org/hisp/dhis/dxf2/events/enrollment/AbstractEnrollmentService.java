@@ -832,6 +832,7 @@ public abstract class AbstractEnrollmentService
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
+            importSummary.setReference( uid );
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.setDescription( "Deletion of enrollment " + uid + " was successful" );
 
