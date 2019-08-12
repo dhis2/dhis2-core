@@ -65,9 +65,10 @@ public abstract class PeriodType
     implements Serializable
 {
     // Cache for period lookup, uses calendar.name() + periodType.getName() + date.getTime() as key
+
     private static Cache<Period> PERIOD_CACHE = new SimpleCacheBuilder<Period>()
         .forRegion( "periodCache" )
-        .expireAfterAccess( 1, TimeUnit.SECONDS )
+        .expireAfterAccess( 12, TimeUnit.HOURS )
         .withInitialCapacity( 10000 )
         .withMaximumSize( 30000 )
         .build();
