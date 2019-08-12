@@ -54,6 +54,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.reporttable.ReportTable;
+import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
 import org.hisp.dhis.validation.ValidationRule;
@@ -160,7 +161,8 @@ public class AnalyticsServiceTest
 
     @Override
     public void setUpTest()
-            throws IOException, InterruptedException {
+        throws IOException, InterruptedException
+    {
 
         // Set up meta data for data values
         // --------------------------------------------------------------------
@@ -269,15 +271,15 @@ public class AnalyticsServiceTest
         dataSetService.addDataSet( dataSetB );
 
         // Read data values from CSV files
-        // --------------------------------------------------------------------
-        List<String[]> dataValueLines = AnalyticsTestUtils.readInputFile( "csv/dataValues.csv" );
+
+        List<String[]> dataValueLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataValues.csv", true );
         parseDataValues( dataValueLines );
 
-        List<String[]> dataSetRegistrationLines = AnalyticsTestUtils.readInputFile( "csv/dataSetRegistrations.csv" );
+        List<String[]> dataSetRegistrationLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataSetRegistrations.csv", true );
         parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
-        // --------------------------------------------------------------------
+
         IndicatorType indicatorType_1 = createIndicatorType( 'A' );
         indicatorType_1.setFactor( 1 );
 

@@ -79,7 +79,7 @@ public abstract class AbstractEventJdbcTableManager
     }
 
     protected final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
-    private final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
+    protected final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
 
     @Override
     @Async
@@ -155,9 +155,9 @@ public abstract class AbstractEventJdbcTableManager
      *
      * @param partition the {@link AnalyticsTablePartition}.
      * @param columns the list of {@link AnalyticsTableColumn}.
-     * @param joinStatement the SQL join statement.
+     * @param fromClause the SQL from clause.
      */
-    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String joinStatement )
+    protected void populateTableInternal( AnalyticsTablePartition partition, List<AnalyticsTableColumn> columns, String fromClause )
     {
         final String tableName = partition.getTempTableName();
 
@@ -179,12 +179,12 @@ public abstract class AbstractEventJdbcTableManager
 
         sql = TextUtils.removeLastComma( sql ) + " ";
 
-        sql += joinStatement;
+        sql += fromClause;
 
         invokeTimeAndLog( sql, String.format( "Populate %s", tableName ) );
     }
 
-    protected List<AnalyticsTableColumn> addTrackedEntityAttributes( Program program )
+    List<AnalyticsTableColumn> addTrackedEntityAttributes(Program program)
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 

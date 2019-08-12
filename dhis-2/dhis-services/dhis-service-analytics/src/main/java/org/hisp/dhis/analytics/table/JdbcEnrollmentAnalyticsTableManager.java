@@ -131,7 +131,7 @@ public class JdbcEnrollmentAnalyticsTableManager
     {
         final Program program = partition.getMasterTable().getProgram();
 
-        String sqlJoin = "from programinstance pi " +
+        String fromClause = "from programinstance pi " +
             "inner join program pr on pi.programid=pr.programid " +
             "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " +
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
@@ -145,7 +145,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             "and pi.incidentdate is not null " +
             "and pi.deleted is false ";
 
-        populateTableInternal( partition, getDimensionColumns( program ), sqlJoin );
+        populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
@@ -155,9 +155,7 @@ public class JdbcEnrollmentAnalyticsTableManager
         columns.addAll( addOrganisationUnitLevels() );
         columns.addAll( addOrganisationUnitGroupSets() );
         columns.addAll( addPeriodColumns( "dps" ) );
-
         columns.addAll( addTrackedEntityAttributes( program ) );
-
         columns.addAll( getFixedColumns() );
 
         if ( program.isRegistration() )
