@@ -34,6 +34,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -57,10 +58,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -178,6 +181,45 @@ public class RegistrationSingleEventServiceTest
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+    }
+    
+    @Test
+    @Ignore
+    public void testDeleteEventShouldReturnReference()
+    {
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        enrollment.setEvents( Arrays.asList( event ) );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        tei.getEnrollments().add( enrollment );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( tei, programA.getUid(), ImportOptions.getDefaultImportOptions(), false );
+
+        tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        importSummary = eventService.deleteEvent( tei.getEnrollments().get( 0 ).getEvents().get( 0 ).getEvent() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertNotNull( importSummary.getReference() );
+        assertEquals( tei.getEnrollments().get( 0 ).getEvents().get( 0 ).getEvent(), importSummary.getReference() );
+
+    }
+
+    @Test
+    public void testDeleteEnrollmentShouldReturnReference()
+    {
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+        importSummary = enrollmentService.deleteEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertNotNull( importSummary.getReference() );
+        assertEquals( tei.getEnrollments().get( 0 ).getEnrollment(), importSummary.getReference() );
+
     }
 
     @Test
