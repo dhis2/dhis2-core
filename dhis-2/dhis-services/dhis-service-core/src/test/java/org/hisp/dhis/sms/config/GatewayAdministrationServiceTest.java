@@ -233,7 +233,7 @@ public class GatewayAdministrationServiceTest
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
 
-        String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
+        subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
         String clickatelId = subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid();
 
         assertEquals( bulkConfig, subject.getDefaultGateway() );
