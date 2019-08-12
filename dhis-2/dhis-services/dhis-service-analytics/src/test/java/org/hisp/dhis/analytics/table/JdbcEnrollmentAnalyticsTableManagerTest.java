@@ -35,6 +35,8 @@ import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
+import java.util.Date;
+
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -50,6 +52,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -80,6 +83,8 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
 
     private JdbcEnrollmentAnalyticsTableManager subject;
 
+    private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
+
     @Before
     public void setUp()
     {
@@ -105,7 +110,7 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );

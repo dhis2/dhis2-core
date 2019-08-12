@@ -339,6 +339,7 @@ public class JdbcEventAnalyticsTableManager
             sql += "and psi.executiondate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
+        System.out.println( "EVENT SQL: "+  sql );
         return jdbcTemplate.queryForList( sql, Integer.class );
     }
 }

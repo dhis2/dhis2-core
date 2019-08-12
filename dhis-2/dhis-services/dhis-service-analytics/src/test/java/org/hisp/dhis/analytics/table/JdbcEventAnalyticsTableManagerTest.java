@@ -54,6 +54,7 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,6 +64,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,7 +106,8 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private JdbcEventAnalyticsTableManager subject;
 
-    private final static String FROM_CLAUSE = "from programstageinstance where programstageinstanceid=psi.programstageinstanceid";
+    private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
+    private static final String FROM_CLAUSE = "from programstageinstance where programstageinstanceid=psi.programstageinstanceid";
 
     private List<AnalyticsTableColumn> periodColumns = PeriodType.getAvailablePeriodTypes().stream().map( pt -> {
         String column = quote( pt.getName().toLowerCase() );
@@ -119,7 +122,7 @@ public class JdbcEventAnalyticsTableManagerTest
             mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
         when( jdbcTemplate.queryForList(
-            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
+            "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
     }
 
@@ -144,14 +147,14 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 1 ) );
 
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) ).withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( 41 ).withDefaultColumns( subject.getFixedColumns() )
-            .addColumns(periodColumns)
+            .addColumns( periodColumns )
             .addColumn( categoryA.getUid(), CHARACTER_11, "acs.", categoryA.getCreated() )
             .addColumn( categoryB.getUid(), CHARACTER_11, "acs.", categoryB.getCreated() ).build()
             .verify();
@@ -168,7 +171,7 @@ public class JdbcEventAnalyticsTableManagerTest
         ouLevel.setCreated( getDate( 2018, 8, 5 ) );
         when( organisationUnitService.getFilledOrganisationUnitLevels() ).thenReturn( Lists.newArrayList( ouLevel ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -198,7 +201,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ) )
             .thenReturn( Lists.newArrayList( ouGroupSetA, ouGroupSetB ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -229,7 +232,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( categoryService.getAttributeCategoryOptionGroupSetsNoAcl( ) )
                 .thenReturn( Lists.newArrayList( categoryOptionGroupSetA, categoryOptionGroupSetB ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -238,7 +241,7 @@ public class JdbcEventAnalyticsTableManagerTest
         new AnalyticsTableAsserter.Builder( tables.get( 0 ) )
             .withTableType( AnalyticsTableType.EVENT )
             .withColumnSize( 41 )
-            .addColumns(periodColumns)
+            .addColumns( periodColumns )
             .withDefaultColumns( subject.getFixedColumns() )
             .addColumn( categoryOptionGroupSetA.getUid(), CHARACTER_11, "acs.", categoryOptionGroupSetA.getCreated() )
             .addColumn( categoryOptionGroupSetB.getUid(), CHARACTER_11, "acs.", categoryOptionGroupSetB.getCreated() )
@@ -274,7 +277,7 @@ public class JdbcEventAnalyticsTableManagerTest
         String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE + "  and eventdatavalues #>> '{%s,value}' ~* '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
         String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -310,7 +313,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         subject.populateTable( params,
             PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
@@ -339,7 +342,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Lists.newArrayList( p1 ) );
 
-        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).build();
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 ).withStartTime( START_TIME ).build();
 
         subject.populateTable( params,
                 PartitionUtils.getTablePartitions( subject.getAnalyticsTables( params ) ).get( 0 ) );
