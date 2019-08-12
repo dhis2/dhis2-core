@@ -126,7 +126,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         ownerCache = cacheProvider.newCacheBuilder( OrganisationUnit.class )
             .forRegion( "OrganisationUnitOwner" )
             .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .withMaximumSize( 100 )
+            .withMaximumSize( 1000 )
             .build();
     }
 
