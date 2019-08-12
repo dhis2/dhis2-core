@@ -73,6 +73,11 @@ public class LocalCache<V> implements Cache<V>
         {
             builder.maximumSize( cacheBuilder.getMaximumSize() );
         }
+        
+        if ( cacheBuilder.getInitialCapacity() > 0 )
+        {
+            builder.initialCapacity( cacheBuilder.getInitialCapacity() );
+        }
 
         this.caffeineCache = builder.build();
         this.defaultValue = cacheBuilder.getDefaultValue();
@@ -129,5 +134,11 @@ public class LocalCache<V> implements Cache<V>
     public void invalidateAll()
     {
         caffeineCache.invalidateAll();
+    }
+
+    @Override
+    public CacheType getCacheType()
+    {
+        return CacheType.IN_MEMORY;
     }
 }
