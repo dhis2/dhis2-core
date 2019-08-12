@@ -20,6 +20,8 @@
 
     <property name="description" type="text" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
       unique-key="key_sectionnamedataset" foreign-key="fk_section_datasetid" not-null="true" />
 
