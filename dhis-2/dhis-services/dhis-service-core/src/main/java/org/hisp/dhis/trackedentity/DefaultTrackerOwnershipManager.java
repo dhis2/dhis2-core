@@ -122,6 +122,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     @PostConstruct
     public void init()
     {
+        //TODO proper solution for unit tests, where the cache must not survive between tests
+
         temporaryTrackerOwnershipCache = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "tempTrackerOwnership" )
             .withDefaultValue( false )
