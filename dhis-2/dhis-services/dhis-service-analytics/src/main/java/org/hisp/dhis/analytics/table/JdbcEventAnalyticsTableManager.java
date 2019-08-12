@@ -324,7 +324,7 @@ public class JdbcEventAnalyticsTableManager
 
         columns.add( new AnalyticsTableColumn(
             quote( attribute.getUid() ), dataType,
-            selectForInsert( attribute, select, dataClause) ).withSkipIndex( skipIndex ) );
+            selectForInsert( attribute, select, dataClause ) ).withSkipIndex( skipIndex ) );
 
         return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause )
             : columns;
