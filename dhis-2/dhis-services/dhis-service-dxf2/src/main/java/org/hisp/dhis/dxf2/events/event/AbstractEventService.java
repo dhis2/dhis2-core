@@ -1356,8 +1356,10 @@ public abstract class AbstractEventService
             }
 
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
+            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" )
                 .incrementDeleted();
+            importSummary.setReference( uid );
+            return importSummary;
         }
 
         return new ImportSummary( ImportStatus.SUCCESS, "Event " + uid + " cannot be deleted as it is not present in the system" )
