@@ -34,7 +34,8 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import com.github.benmanes.caffeine.cache.Caffeine;
+
+import org.cache2k.Cache2kBuilder;
 
 /**
  * Local cache implementation of {@link Cache}. This implementation is backed by
@@ -44,8 +45,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
  */
 public class LocalCache<V> implements Cache<V>
 {
-    private com.github.benmanes.caffeine.cache.Cache<String, V> caffeineCache;
-
+    private org.cache2k.Cache<String, V> cache2kInstance;
+    
     private V defaultValue;
 
     /**
@@ -56,43 +57,44 @@ public class LocalCache<V> implements Cache<V>
      */
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
-        Caffeine<Object, Object> builder = Caffeine.newBuilder();
+        Cache2kBuilder<String, V> builder = new Cache2kBuilder<String, V>() {};
 
         if ( cacheBuilder.isExpiryEnabled() )
         {
+            builder.eternal( false );
             if ( cacheBuilder.isRefreshExpiryOnAccess() )
             {
-                builder.expireAfterAccess( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
+                // TODO https://github.com/cache2k/cache2k/issues/39 is still
+                // Open. Once the issue is resolved it can be updated here
+                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
             }
             else
             {
                 builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), TimeUnit.SECONDS );
             }
         }
+        else
+        {
+            builder.eternal( true );
+        }
         if ( cacheBuilder.getMaximumSize() > 0 )
         {
-            builder.maximumSize( cacheBuilder.getMaximumSize() );
+            builder.entryCapacity( cacheBuilder.getMaximumSize() );
         }
-        
-        if ( cacheBuilder.getInitialCapacity() > 0 )
-        {
-            builder.initialCapacity( cacheBuilder.getInitialCapacity() );
-        }
-
-        this.caffeineCache = builder.build();
+        this.cache2kInstance = builder.build();
         this.defaultValue = cacheBuilder.getDefaultValue();
     }
 
     @Override
     public Optional<V> getIfPresent( String key )
     {
-        return Optional.ofNullable( caffeineCache.getIfPresent( key ) );
+        return Optional.ofNullable( cache2kInstance.get( key ) );
     }
 
     @Override
     public Optional<V> get( String key )
     {
-        return Optional.ofNullable( Optional.ofNullable( caffeineCache.getIfPresent( key ) ).orElse( defaultValue ) );
+        return Optional.ofNullable( Optional.ofNullable( cache2kInstance.get( key ) ).orElse( defaultValue ) );
     }
 
     @Override
@@ -102,14 +104,24 @@ public class LocalCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
-        return Optional
-            .ofNullable( Optional.ofNullable( caffeineCache.get( key, mappingFunction ) ).orElse( defaultValue ) );
+
+        V value = cache2kInstance.get( key );
+        if ( value == null )
+        {
+            value = mappingFunction.apply( key );
+        }
+
+        if ( value != null )
+        {
+            cache2kInstance.put( key, value );
+        }
+        return Optional.ofNullable( Optional.ofNullable( value ).orElse( defaultValue ) );
     }
 
     @Override
     public Collection<V> getAll()
     {
-        return new ArrayList<V>( caffeineCache.asMap().values() );
+        return new ArrayList<V>( cache2kInstance.asMap().values() );
     }
 
     @Override
@@ -119,7 +131,7 @@ public class LocalCache<V> implements Cache<V>
         {
             throw new IllegalArgumentException( "Value cannot be null" );
         }
-        caffeineCache.put( key, value );
+        cache2kInstance.put( key, value );
     }
 
 
@@ -127,13 +139,13 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public void invalidate( String key )
     {
-        caffeineCache.invalidate( key );
+        cache2kInstance.remove( key );
     }
 
     @Override
     public void invalidateAll()
     {
-        caffeineCache.invalidateAll();
+        cache2kInstance.clear();
     }
 
     @Override
