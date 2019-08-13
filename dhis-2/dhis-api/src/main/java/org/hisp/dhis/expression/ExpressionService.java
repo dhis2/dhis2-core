@@ -233,16 +233,34 @@ public interface ExpressionService
     ExpressionValidationOutcome indicatorExpressionIsValid( String expression );
 
     /**
-     * Creates an expression string containing the names of the
+     * Creates an expression description containing the names of the
      * DimensionalItemObjects from an expression string.
      *
      * @param expression The expression string.
-     * @return An expression string containing DimensionalItemObjects names.
-     * @throws IllegalArgumentException if data element id or category option
-     *         combo id are not numeric or data element or category option combo
-     *         do not exist.
+     * @return An description containing DimensionalItemObjects names.
      */
     String getIndicatorExpressionDescription( String expression );
+
+    // -------------------------------------------------------------------------
+    // Validation Rule expression logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tests whether the validation rule expression is valid.
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
+
+    /**
+     * Creates an expression description containing the names of the
+     * DimensionalItemObjects from an expression string.
+     *
+     * @param expression The expression string.
+     * @return An description containing DimensionalItemObjects names.
+     */
+    String getValidationRuleExpressionDescription( String expression );
 
     // -------------------------------------------------------------------------
     // Expression logic
@@ -427,14 +445,6 @@ public interface ExpressionService
      * @return the ExpressionValidationOutcome of the validation.
      */
     ExpressionValidationOutcome predictorExpressionIsValid( String expression );
-
-    /**
-     * Tests whether the validation rule expression is valid.
-     *
-     * @param expression the expression formula.
-     * @return the ExpressionValidationOutcome of the validation.
-     */
-    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing DataElement names and the names
