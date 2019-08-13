@@ -59,7 +59,7 @@ public class BeanRandomizer
      *
      * @return an instance of the specified type
      */
-    public <T> T randomObject(final Class<T> type, final String... excludedFields )
+    public <T> T randomObject( final Class<T> type, final String... excludedFields )
     {
         return rand.nextObject( type, excludedFields );
     }
@@ -72,7 +72,7 @@ public class BeanRandomizer
      *
      * @return an instance of the specified type
      */
-    public <T> List<T> randomObjects(final Class<T> type, int amount, final String... excludedFields )
+    public <T> List<T> randomObjects( final Class<T> type, int amount, final String... excludedFields )
     {
         return rand.objects( type, amount, excludedFields ).collect( Collectors.toList() );
     }
