@@ -63,6 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 
 /**
  * @author Jim Grace
@@ -370,20 +371,27 @@ public class DefaultValidationService
         {
             PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
 
-            if ( periodX == null )
+            if ( periodX == null
+                || expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() ) != VALID
+                || expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() ) != VALID )
             {
-                continue; // Don't include rules for which there are no periods.
+                continue; // Don't include rule.
             }
 
-            periodX.getRuleXs().add( new ValidationRuleExtended( rule ) );
+            ValidationRuleExtended ruleX = new ValidationRuleExtended( rule );
 
-            Set<DimensionalItemId> ruleIds = Sets.union(
-                expressionService.getDimensionalItemIdsInExpression( rule.getLeftSide().getExpression() ),
-                expressionService.getDimensionalItemIdsInExpression( rule.getRightSide().getExpression() ) );
+            periodX.getRuleXs().add( ruleX );
 
-            periodItemIds.putValues( periodX, ruleIds );
+            periodX.setSlidingWindows( ruleX.getLeftSlidingWindow() );
+            periodX.setSlidingWindows( ruleX.getRightSlidingWindow() );
 
-            allItemIds.addAll( ruleIds );
+            Set<DimensionalItemId> itemIds = Sets.union(
+                expressionService.getExpressionDimensionalItemIds( rule.getLeftSide().getExpression() ),
+                expressionService.getExpressionDimensionalItemIds( rule.getRightSide().getExpression() ) );
+
+            periodItemIds.putValues( periodX, itemIds );
+
+            allItemIds.addAll( itemIds );
         }
 
         // 2. Get the dimensional objects from the IDs. (Get them all at once for best performance.)
@@ -409,6 +417,10 @@ public class DefaultValidationService
                     else if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() )
                     {
                         periodTypeX.addDataElementOperand( (DataElementOperand) item );
+                    }
+                    else if ( DimensionItemType.INDICATOR == item.getDimensionItemType() )
+                    {
+                        periodTypeX.addIndicator( item );
                     }
                     else if ( hasAttributeOptions( item ) )
                     {
