@@ -163,11 +163,9 @@ public class AnalyticsValidationServiceTest
     private ValidationRule validationRuleA;
     private ValidationRule validationRuleD;
     private ValidationRule validationRuleI;
-//    private ValidationRule validationRuleN;
     private ValidationRule validationRuleASliding;
     private ValidationRule validationRuleDSliding;
     private ValidationRule validationRuleISliding;
-//    private ValidationRule validationRuleNSliding;
 
     @Override
     public void setUpTest()
@@ -176,12 +174,10 @@ public class AnalyticsValidationServiceTest
         final String TRACKED_ENTITY_ATTRIBUTE_UID = "TEAttribute";
         final String PROGRAM_UID = "ProgramABCD";
         final String PROGRAM_INDICATOR_UID = "ProgramIndA";
-//        final String INDICATOR_UID = "Indicator0A";
 
         final String EXPRESSION_A = "A{" + PROGRAM_UID + SEPARATOR + TRACKED_ENTITY_ATTRIBUTE_UID + "}"; // A - ProgramTrackedEntityAttribute
         final String EXPRESSION_D = "D{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "}"; // D - ProgramDataElement
         final String EXPRESSION_I = "I{" + PROGRAM_INDICATOR_UID + "}"; // I - ProgramIndicator
-//        final String EXPRESSION_N = "N{" + INDICATOR_UID + "}"; // N - Indicator
 
         final String EX_INDICATOR = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "} + 4"; // Program Indicator expression
 
@@ -258,54 +254,37 @@ public class AnalyticsValidationServiceTest
         programStageInstanceService.addProgramStageInstance( stageInstanceA );
         programStageInstanceService.addProgramStageInstance( stageInstanceB );
 
-//        IndicatorType indicatorTypeA = createIndicatorType( 'A' );
-
-//        indicatorService.addIndicatorType( indicatorTypeA );
-
-//        Indicator indicatorA = createIndicator('A', indicatorTypeA );
-//        indicatorA.setUid( INDICATOR_UID );
-
-//        indicatorService.addIndicator( indicatorA );
-
         categoryManager.addAndPruneAllOptionCombos();
 
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );
         Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicator" );
-//        Expression expressionN = new Expression( EXPRESSION_N, "Indicator" );
 
         Expression expressionASliding = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute Sliding" );
         Expression expressionDSliding = new Expression( EXPRESSION_D, "ProgramDataElement Sliding" );
         Expression expressionISliding = new Expression( EXPRESSION_I, "ProgramIndicator Sliding" );
-//        Expression expressionNSliding = new Expression( EXPRESSION_N, "Indicator Sliding" );
 
         expressionASliding.setSlidingWindow( true );
         expressionDSliding.setSlidingWindow( true );
         expressionISliding.setSlidingWindow( true );
-//        expressionNSliding.setSlidingWindow( true );
 
         expressionService.addExpression( expressionA );
         expressionService.addExpression( expressionD );
         expressionService.addExpression( expressionI );
-//        expressionService.addExpression( expressionN );
 
         validationRuleA = createValidationRule( "A", not_equal_to, expressionA, expressionA, periodTypeMonthly ); // A - ProgramTrackedEntityAttribute
         validationRuleD = createValidationRule( "D", not_equal_to, expressionD, expressionD, periodTypeMonthly ); // D - ProgramDataElement
         validationRuleI = createValidationRule( "I", not_equal_to, expressionI, expressionI, periodTypeMonthly ); // I - ProgramIndicator
-//        validationRuleN = createValidationRule( "N", not_equal_to, expressionN, expressionN, periodTypeMonthly ); // N - Indicator
         validationRuleASliding = createValidationRule( "T", not_equal_to, expressionASliding, expressionASliding, periodTypeMonthly ); // A - ProgramTrackedEntityAttribute (Sliding)
         validationRuleDSliding = createValidationRule( "U", not_equal_to, expressionDSliding, expressionDSliding, periodTypeMonthly ); // D - ProgramDataElement (Sliding)
         validationRuleISliding = createValidationRule( "V", not_equal_to, expressionISliding, expressionISliding, periodTypeMonthly ); // I - ProgramIndicator (Sliding)
-//        validationRuleNSliding = createValidationRule( "W", not_equal_to, expressionNSliding, expressionNSliding, periodTypeMonthly ); // N - Indicator (Sliding)
 
         validationRuleService.saveValidationRule( validationRuleA );
         validationRuleService.saveValidationRule( validationRuleD );
         validationRuleService.saveValidationRule( validationRuleI );
-//        validationRuleService.saveValidationRule( validationRuleN );
         validationRuleService.saveValidationRule( validationRuleASliding );
         validationRuleService.saveValidationRule( validationRuleDSliding );
         validationRuleService.saveValidationRule( validationRuleISliding );
-//        validationRuleService.saveValidationRule( validationRuleNSliding );
 
         Map<Date, Grid> dateGridMap = new HashMap<>();
         dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8, 3 ) );
@@ -367,12 +346,6 @@ public class AnalyticsValidationServiceTest
         grid.addValue( orgUnitA.getUid() );
         grid.addValue( "HllvX50cXC0" );
         grid.addValue( new Double( piVal ) );
-
-//        grid.addRow();
-//        grid.addValue( "Indicator0A" );
-//        grid.addValue( orgUnitA.getUid() );
-//        grid.addValue( "HllvX50cXC0" );
-//        grid.addValue( new Double( indicatorVal ) );
 
         return grid;
     }
@@ -441,7 +414,7 @@ public class AnalyticsValidationServiceTest
             sb.append( formatResultsList( "Expected", referenceList ) )
                 .append( formatResultsList ( "But was", resultsList ) );
 
-            System.err.println( sb.toString() );
+            log.error( sb.toString() );
         }
 
         assertTrue( success );
@@ -477,16 +450,12 @@ public class AnalyticsValidationServiceTest
         reference.add( new ValidationResult( validationRuleD, periodApr, orgUnitA, defaultCombo, 5.0, 5.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleI, periodMar, orgUnitA, defaultCombo, 8.0, 8.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleI, periodApr, orgUnitA, defaultCombo, 9.0, 9.0, dayInPeriod ) );
-//        reference.add( new ValidationResult( validationRuleN, periodMar, orgUnitA, defaultCombo, 3.0, 3.0, dayInPeriod ) );
-//        reference.add( new ValidationResult( validationRuleN, periodApr, orgUnitA, defaultCombo, 2.0, 2.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleASliding, periodMar, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleASliding, periodApr, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleDSliding, periodMar, orgUnitA, defaultCombo, 4.0, 4.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleDSliding, periodApr, orgUnitA, defaultCombo, 5.0, 5.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleISliding, periodMar, orgUnitA, defaultCombo, 8.0, 8.0, dayInPeriod ) );
         reference.add( new ValidationResult( validationRuleISliding, periodApr, orgUnitA, defaultCombo, 9.0, 9.0, dayInPeriod ) );
-//        reference.add( new ValidationResult( validationRuleNSliding, periodMar, orgUnitA, defaultCombo, 3.0, 3.0, dayInPeriod ) );
-//        reference.add( new ValidationResult( validationRuleNSliding, periodApr, orgUnitA, defaultCombo, 2.0, 2.0, dayInPeriod ) );
 
         Date startDate = getDate( testYear, 3, 1 );
         Date endDate = getDate( testYear, 4, 30 );
