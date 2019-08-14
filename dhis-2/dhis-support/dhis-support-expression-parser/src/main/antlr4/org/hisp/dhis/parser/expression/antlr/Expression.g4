@@ -95,7 +95,7 @@ expr
     ;
 
 item
-    :   it='#{' uid0=UID '}'
+    :   it='#{' uid0=UID ('.*')? '}'
     |   it='#{' uid0=UID '.' uid1=UID '}'
     |   it='#{' uid0=UID '.' uid1=UID wild2='.*' '}'
     |   it='#{' uid0=UID '.*.' uid2=UID '}'

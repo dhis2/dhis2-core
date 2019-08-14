@@ -38,7 +38,6 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -143,7 +142,7 @@ public class JdbcAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
     }
@@ -199,11 +198,8 @@ public class JdbcAnalyticsTableManager
         final String intClause = zeroValueClause + numericClause;
 
         populateTable( params, partition, "cast(dv.value as " + dbl + ")", "null", ValueType.NUMERIC_TYPES, intClause );
-
         populateTable( params, partition, "1", "null", Sets.newHashSet( ValueType.BOOLEAN, ValueType.TRUE_ONLY ), "dv.value = 'true'" );
-
         populateTable( params, partition, "0", "null", Sets.newHashSet( ValueType.BOOLEAN ), "dv.value = 'false'" );
-
         populateTable( params, partition, "null", "dv.value", Sets.union( ValueType.TEXT_TYPES, ValueType.DATE_TYPES ), null );
     }
 
@@ -405,17 +401,18 @@ public class JdbcAnalyticsTableManager
             new AnalyticsTableColumn( quote( "textvalue" ), TEXT, "textvalue" ) );
     }
 
-    private List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
             "from datavalue dv " +
             "inner join period pe on dv.periodid=pe.periodid " +
-            "where pe.startdate is not null ";
+            "where pe.startdate is not null " +
+            "and dv.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' ";
 
-        if ( earliest != null )
+        if ( params.getFromDate() != null )
         {
-            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
+            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );

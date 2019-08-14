@@ -1220,7 +1220,7 @@ public class ExpressionServiceTest
     {
         assertEquals( VALID, expressionService.validationRuleExpressionIsValid( "#{dataElemenA.catOptCombB}*C{xxxxxxxxx05}" ) );
         assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.validationRuleExpressionIsValid( "STDDEV(#{dataElemenA.catOptCombB}*C{xxxxxxxxx05})" ) );
-        assertEquals( EXPRESSION_IS_NOT_WELL_FORMED, expressionService.validationRuleExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
+        assertEquals( VALID, expressionService.validationRuleExpressionIsValid( "greatest(#{dataElemenA.catOptCombB},C{xxxxxxxxx05})" ) );
     }
 
     @Test
