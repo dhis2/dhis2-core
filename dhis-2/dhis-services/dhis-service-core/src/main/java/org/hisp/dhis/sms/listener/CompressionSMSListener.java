@@ -81,11 +81,11 @@ import com.google.gson.GsonBuilder;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Transactional
-public abstract class NewSMSListener
+public abstract class CompressionSMSListener
     extends
     BaseSMSListener
 {
-    private static final Log log = LogFactory.getLog( NewSMSListener.class );
+    private static final Log log = LogFactory.getLog( CompressionSMSListener.class );
 
     protected abstract SMSResponse postProcess( IncomingSms sms, SMSSubmission submission )
         throws SMSProcessingException;
@@ -110,7 +110,7 @@ public abstract class NewSMSListener
 
     protected final IdentifiableObjectManager identifiableObjectManager;
 
-    public NewSMSListener( IncomingSmsService incomingSmsService, MessageSender smsSender, UserService userService,
+    public CompressionSMSListener( IncomingSmsService incomingSmsService, MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,

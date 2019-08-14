@@ -73,7 +73,7 @@ import java.util.List;
 @Transactional
 public class AggregateDatasetSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
     private static final Log log = LogFactory.getLog( AggregateDatasetSMSListener.class );
 

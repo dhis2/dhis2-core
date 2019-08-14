@@ -80,7 +80,7 @@ import static org.mockito.Mockito.when;
 
 public class TrackerEventSMSListenerTest
     extends
-    NewSMSListenerTest
+    CompressionSMSListenerTest
 {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();

@@ -66,7 +66,7 @@ import java.util.Date;
 @Transactional
 public class RelationshipSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
 
     private enum RelationshipDir

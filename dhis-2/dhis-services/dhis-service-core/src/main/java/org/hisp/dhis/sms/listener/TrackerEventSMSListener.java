@@ -62,7 +62,7 @@ import java.util.List;
 @Transactional
 public class TrackerEventSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
 
     private final ProgramStageService programStageService;

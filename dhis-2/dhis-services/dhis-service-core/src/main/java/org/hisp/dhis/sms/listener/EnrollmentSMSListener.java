@@ -69,7 +69,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class EnrollmentSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
     private static final Log log = LogFactory.getLog( EnrollmentSMSListener.class );
 

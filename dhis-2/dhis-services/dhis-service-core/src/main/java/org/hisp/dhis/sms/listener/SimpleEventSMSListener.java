@@ -66,7 +66,7 @@ import java.util.Set;
 @Transactional
 public class SimpleEventSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
     private final ProgramInstanceService programInstanceService;
 

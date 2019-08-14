@@ -54,7 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class DeleteEventSMSListener
     extends
-    NewSMSListener
+    CompressionSMSListener
 {
     public DeleteEventSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,

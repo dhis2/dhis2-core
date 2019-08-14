@@ -75,7 +75,7 @@ import static org.mockito.Mockito.when;
 
 public class AggregateDatasetSMSListenerTest
     extends
-    NewSMSListenerTest
+    CompressionSMSListenerTest
 {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
