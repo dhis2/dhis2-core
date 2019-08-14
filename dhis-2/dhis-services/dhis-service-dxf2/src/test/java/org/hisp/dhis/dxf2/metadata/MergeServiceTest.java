@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
@@ -39,12 +40,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserGroup;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Date;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -179,5 +185,14 @@ public class MergeServiceTest
         assertEquals( indicator.getUid(), clone.getUid() );
         assertEquals( indicator.getCode(), clone.getCode() );
         assertEquals( indicator.getIndicatorType(), clone.getIndicatorType() );
+    }
+
+    public void testMergeNotOwnerCollection()
+    {
+        User userA = createUser( 'A' );
+        User userB = createUser( 'B' );
+        UserAuthorityGroup role = createUserAuthorityGroup( 'A' );
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
+
     }
 }
