@@ -59,6 +59,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -139,12 +140,13 @@ public class DefaultAnalyticsTableService
 
         if ( tables.isEmpty() )
         {
-            clock.logTime( "Table updated aborted, no table or partitions found" );
+            clock.logTime( String.format( "Table update aborted, no table or partitions found: '%s'", tableType.getTableName() ) );
             notifier.notify( jobId, "Table updated aborted, no table or partitions found" );
             return;
         }
 
-        clock.logTime( "Table update start: " + tableType.getTableName() + ", earliest: " + params.getFromDate() + ", parameters: " + params.toString() );
+        clock.logTime( String.format( "Table update start: %s, earliest: %s, parameters: %s",
+            tableType.getTableName(), getLongDateString( params.getFromDate() ), params.toString() ) );
         notifier.notify( jobId, "Performing pre-create table work" );
 
         tableManager.preCreateTables( params );

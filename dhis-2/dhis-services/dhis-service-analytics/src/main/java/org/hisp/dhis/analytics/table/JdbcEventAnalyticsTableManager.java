@@ -113,7 +113,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" ).withIndexType( "gist" ),
-        // TODO lat and lng deprecated in 2.30, should be removed after 2.33
+        // TODO latitude and longitude deprecated in 2.30, should be removed after 2.33
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_Y(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
@@ -131,9 +131,7 @@ public class JdbcEventAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        Date earliest = params.getFromDate();
-
-        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", earliest, databaseInfo.isSpatialSupport() ) );
+        log.info( String.format( "Get tables using earliest: %s, spatial support: %b", params.getFromDate(), databaseInfo.isSpatialSupport() ) );
 
         List<AnalyticsTable> tables = new ArrayList<>();
 
@@ -267,18 +265,16 @@ public class JdbcEventAnalyticsTableManager
         String select = getSelectClause( attribute.getValueType(), "value" );
         boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
-        if ( attribute.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() ) {
-            String geoSql = selectForInsert(attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause);
-            columns.add(new AnalyticsTableColumn(
-                 attribute.getUid()  + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ));
+        if ( attribute.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() )
+        {
+            String geoSql = selectForInsert( attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
+            columns.add( new AnalyticsTableColumn( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ) );
         }
 
-        columns.add(new AnalyticsTableColumn(
-            quote( attribute.getUid() ), dataType,
-            selectForInsert(attribute, select, dataClause) ).withSkipIndex( skipIndex ));
+        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType,
+            selectForInsert( attribute, select, dataClause ) ).withSkipIndex( skipIndex ) );
 
-        return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet(attribute, numericClause)
-            : columns;
+        return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause ) : columns;
     }
 
     private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(
