@@ -29,26 +29,11 @@ package org.hisp.dhis.program.function;
  */
 
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-
 /**
  * @Author Zubair Asghar.
  */
 public class d2MaxValue extends ProgramMinMaxFunction
 {
-    @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        visitor.validateStageDataElement( ctx.getText(),
-            ctx.item( 0 ).uid0.getText(),
-            ctx.item( 0 ).uid1.getText() );
-
-        return DEFAULT_DOUBLE_VALUE;
-    }
-
     @Override
     public String getMinMaxFunction()
     {

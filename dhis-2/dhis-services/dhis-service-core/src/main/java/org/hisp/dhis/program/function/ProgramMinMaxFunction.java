@@ -36,11 +36,23 @@ import org.hisp.dhis.program.ProgramIndicator;
 
 import java.util.Date;
 
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+
 /**
  * @Author Zubair Asghar.
  */
 public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
 {
+    @Override
+    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        visitor.validateStageDataElement( ctx.getText(),
+            ctx.item( 0 ).uid0.getText(),
+            ctx.item( 0 ).uid1.getText() );
+
+        return DEFAULT_DOUBLE_VALUE;
+    }
+
     @Override
     public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
@@ -59,8 +71,8 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
 
         return  "(select " + getMinMaxFunction() + columnName + ") from " + eventTableName +
             " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
-            (pi.getEndEventBoundary() != null ? ("and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " ") : "") +
-            (pi.getStartEventBoundary() != null ? ("and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " ") : "") + "and ps = '" + programStage + "')";
+            ( pi.getEndEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) +
+            ( pi.getStartEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) + "and ps = '" + programStage + "')";
     }
 
     public abstract String getMinMaxFunction();
