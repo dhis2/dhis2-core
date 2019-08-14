@@ -1085,6 +1085,14 @@ public class DefaultIdentifiableObjectManager
             .build();
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        return store.getUidsCreatedBefore( date );
+    }
+    
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------

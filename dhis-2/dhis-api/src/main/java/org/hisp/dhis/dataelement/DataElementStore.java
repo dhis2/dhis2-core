@@ -32,7 +32,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.ValueType;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -109,12 +108,4 @@ public interface DataElementStore
      * @return all DataElements which have the given aggregation level assigned.
      */
     List<DataElement> getDataElementsByAggregationLevel( int aggregationLevel );
-    
-    /**
-     * Returns the UID of all DataElements created before a given date.
-     *
-     * @param date the date.
-     * @return the UID of all DataElements created before a given date.
-     */
-    List<String> getUIDsCreatedBefore( Date date );
 }

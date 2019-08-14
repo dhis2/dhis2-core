@@ -312,7 +312,9 @@ public abstract class NewSMSListener
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         // If we aren't given a UID for the event, it will be auto-generated
         if ( eventUid != null )
+        {
             programStageInstance.setUid( eventUid );
+        }
         programStageInstance.setOrganisationUnit( orgUnit );
         programStageInstance.setProgramStage( programStage );
         programStageInstance.setProgramInstance( programInstance );

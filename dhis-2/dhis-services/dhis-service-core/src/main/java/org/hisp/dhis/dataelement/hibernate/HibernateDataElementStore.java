@@ -29,7 +29,6 @@ package org.hisp.dhis.dataelement.hibernate;
  */
 
 import org.hibernate.SessionFactory;
-import org.hibernate.query.Query;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -39,13 +38,10 @@ import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -53,17 +49,14 @@ import java.util.List;
  */
 @Repository( "org.hisp.dhis.dataelement.DataElementStore" )
 public class HibernateDataElementStore
-    extends
-    HibernateIdentifiableObjectStore<DataElement>
-    implements
-    DataElementStore
+    extends HibernateIdentifiableObjectStore<DataElement>
+    implements DataElementStore
 {
     public HibernateDataElementStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        DeletedObjectService deletedObjectService, AclService aclService )
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataElement.class, currentUserService, deletedObjectService,
-            aclService, false );
+        super( sessionFactory, jdbcTemplate, DataElement.class, currentUserService, deletedObjectService, aclService, false );
     }
 
     // -------------------------------------------------------------------------
@@ -75,8 +68,7 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) ) );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) ) );
     }
 
     @Override
@@ -84,17 +76,15 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) ) );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) ) );
     }
-
+    
     @Override
     public List<DataElement> getDataElementByCategoryCombo( CategoryCombo categoryCombo )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) ) );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) ) );
     }
 
     @Override
@@ -102,10 +92,9 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters()
-                .addPredicate( root -> builder.equal( root.get( "zeroIsSignificant" ), zeroIsSignificant ) )
-                .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) ) );
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "zeroIsSignificant" ), zeroIsSignificant ) )
+            .addPredicate( root -> root.get( "valueType" ).in( ValueType.NUMERIC_TYPES ) ) );
     }
 
     @Override
@@ -138,14 +127,5 @@ public class HibernateDataElementStore
         String hql = "from DataElement de join de.aggregationLevels al where al = :aggregationLevel";
 
         return getQuery( hql ).setParameter( "aggregationLevel", aggregationLevel ).list();
-    }
-
-    @Override
-    public List<String> getUIDsCreatedBefore( Date date )
-    {
-        Query<String> query = getTypedQuery( "select uid from DataElement de where created < :date" );
-        query.setParameter( "date", date );
-
-        return query.getResultList();
     }
 }

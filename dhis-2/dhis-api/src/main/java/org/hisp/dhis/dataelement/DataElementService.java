@@ -34,7 +34,6 @@ import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -261,6 +260,4 @@ public interface DataElementService
     DataElementGroupSet getDataElementGroupSetByName( String name );
 
     List<DataElementGroupSet> getAllDataElementGroupSets();
-
-    List<String> getUIDsCreatedBefore( Date date );
 }

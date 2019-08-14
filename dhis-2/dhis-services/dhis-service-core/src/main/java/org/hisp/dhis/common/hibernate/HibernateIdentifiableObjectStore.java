@@ -844,6 +844,25 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         return list;
     }
+    
+    @Override
+    public List<String> getUidsCreatedBefore( Date date ) {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<String> query = builder.createQuery( String.class );
+
+        Root<T> root = query.from( getClazz() );
+
+        query.select( root.get( "uid" ) );
+        
+        query.where( builder.lessThan( root.get( "created" ), date ) );
+        
+        TypedQuery<String> typedQuery = getSession().createQuery( query );
+
+        typedQuery.setHint( JpaQueryUtils.HIBERNATE_CACHEABLE_HINT, true );
+
+        return typedQuery.getResultList();        
+    }
 
     //----------------------------------------------------------------------------------------------------------------
     // Data sharing

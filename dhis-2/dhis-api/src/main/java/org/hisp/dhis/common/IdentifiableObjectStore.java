@@ -300,6 +300,14 @@ public interface IdentifiableObjectStore<T>
      */
     int getCountGeCreated( Date created );
 
+    /**
+     * Returns the UID of all objects created before a given date.
+     *
+     * @param date the date.
+     * @return the UID of all objects created before a given date.
+     */
+    List<String> getUidsCreatedBefore( Date date );
+    
     List<T> getDataReadAll();
 
     List<T> getDataReadAll( User user );

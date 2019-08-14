@@ -37,7 +37,6 @@ import org.hisp.dhis.dataelement.DataElementOperandStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -50,10 +49,10 @@ public class HibernateDataElementOperandStore
     implements DataElementOperandStore
 {
     public HibernateDataElementOperandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        CurrentUserService currentUserService,
         DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataElementOperand.class, currentUserService, deletedObjectService, aclService, false );
+        super( sessionFactory, jdbcTemplate, DataElementOperand.class, currentUserService, deletedObjectService, aclService, false );
 
         transientIdentifiableProperties = true;
     }
