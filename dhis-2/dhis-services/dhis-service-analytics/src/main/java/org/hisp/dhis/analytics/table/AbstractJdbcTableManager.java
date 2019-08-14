@@ -475,7 +475,6 @@ public abstract class AbstractJdbcTableManager
      */
     protected AnalyticsTable getLatestAnalyticsTable( AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
         Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate();
         Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
@@ -484,6 +483,8 @@ public abstract class AbstractJdbcTableManager
         Date startDate = ObjectUtils.firstNonNull( lastFullTableUpdate, defaultDate );
         Date endDate = params.getStartTime();
         boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate );
+
+        AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
 
         if ( hasUpdatedData )
         {
