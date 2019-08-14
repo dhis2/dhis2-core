@@ -207,8 +207,7 @@ public abstract class AbstractJdbcTableManager
 
             final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns + ")";
 
-            log.debug( "Create index: \n" +
-                "import org.joda.time.LocalDate;" + indexName + " SQL: " + sql );
+            log.debug( "Create index: " + indexName + " SQL: " + sql );
 
             jdbcTemplate.execute( sql );
 
