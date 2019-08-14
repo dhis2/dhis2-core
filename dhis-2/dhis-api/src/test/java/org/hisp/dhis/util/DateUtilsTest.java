@@ -266,7 +266,7 @@ public class DateUtilsTest
     }
 
     @Test
-    public void getDate()
+    public void testGetDate()
     {
         LocalDateTime time = LocalDateTime.of( 2012, 1, 10, 10, 5 );
 
