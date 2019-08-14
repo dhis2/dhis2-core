@@ -28,24 +28,15 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 
 /**
  * @Author Zubair Asghar.
  */
-public class d2MaxValue extends AbstractExpressionFunction
+public class d2MaxValue extends ProgramMinMaxFunction
 {
     @Override
-    public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    public String getMinMaxFunction()
     {
-        return null;
-    }
-
-    @Override
-    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return null;
+        return " max(";
     }
 }
