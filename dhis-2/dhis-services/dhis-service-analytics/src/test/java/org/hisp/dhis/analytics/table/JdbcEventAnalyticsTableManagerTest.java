@@ -103,6 +103,9 @@ public class JdbcEventAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -122,6 +125,7 @@ public class JdbcEventAnalyticsTableManagerTest
     @Before
     public void setUp()
     {
+        System.out.println( "SYSTEMS " + systemSettingManager );
         statementBuilder = new PostgreSQLStatementBuilder();
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
             mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),

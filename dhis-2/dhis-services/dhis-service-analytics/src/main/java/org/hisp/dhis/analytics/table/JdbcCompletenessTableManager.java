@@ -108,7 +108,7 @@ public class JdbcCompletenessTableManager
     {
         AnalyticsTable table = params.isLatestUpdate() ?
             getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() ) :
-            getAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
+            getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }

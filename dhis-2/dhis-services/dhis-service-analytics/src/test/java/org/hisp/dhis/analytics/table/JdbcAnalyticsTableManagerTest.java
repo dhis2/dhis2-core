@@ -1,0 +1,142 @@
+package org.hisp.dhis.analytics.table;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+/*
+ * Copyright (c) 2004-2019, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.partition.PartitionManager;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataapproval.DataApprovalLevelService;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.hisp.dhis.system.database.DatabaseInfo;
+import org.joda.time.DateTime;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+/**
+* @author Lars Helge Overland
+*/
+public class JdbcAnalyticsTableManagerTest
+{
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    private JdbcAnalyticsTableManager subject;
+
+    @Before
+    public void setUp()
+    {
+        subject = new JdbcAnalyticsTableManager( mock( IdentifiableObjectManager.class ), mock( OrganisationUnitService.class ),
+            mock( CategoryService.class ), systemSettingManager, mock( DataApprovalLevelService.class ),
+            mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ), mock( StatementBuilder.class ),
+            mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate );
+    }
+
+    @Test
+    public void testGetLatestAnalyticsTable()
+    {
+        Date lastFullTableUpdate = new DateTime( 2019, 3, 1, 2, 0 ).toDate();
+        Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
+        Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime( startTime )
+            .build();
+
+        List<Map<String, Object>> queryResp = Lists.newArrayList();
+        queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
+
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( lastFullTableUpdate );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
+        when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
+
+        AnalyticsTable table = subject.getLatestAnalyticsTable( params, Lists.newArrayList(), Lists.newArrayList() );
+
+        assertNotNull( table );
+        assertNotNull( table.getTablePartitions() );
+        assertEquals( 1, table.getTablePartitions().size() );
+
+        AnalyticsTablePartition partition = table.getTablePartitions().get( 0 );
+
+        assertNotNull( partition );
+        assertTrue( partition.isLatestPartition() );
+        assertEquals( lastFullTableUpdate, partition.getStartDate() );
+        assertEquals( startTime, partition.getEndDate() );
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testGetLatestAnalyticsTableNoFullTableUpdate()
+    {
+        Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
+        Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime( startTime )
+            .build();
+
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( null );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
+
+        subject.getLatestAnalyticsTable( params, Lists.newArrayList(), Lists.newArrayList() );
+    }
+}

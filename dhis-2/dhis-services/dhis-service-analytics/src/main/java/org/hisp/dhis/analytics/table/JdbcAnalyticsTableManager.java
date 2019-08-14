@@ -146,7 +146,7 @@ public class JdbcAnalyticsTableManager
     {
         AnalyticsTable table = params.isLatestUpdate() ?
             getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() ) :
-            getAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
+            getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
     }
@@ -179,7 +179,7 @@ public class JdbcAnalyticsTableManager
             "from datavalue dv " +
             "where dv.lastupdated >= '" + getLongDateString( startDate ) + "' " +
             "and dv.lastupdated < '" + getLongDateString( endDate ) + "' " +
-            "limit 1"; //TODO last update
+            "limit 1";
 
         return !jdbcTemplate.queryForList( sql ).isEmpty();
     }

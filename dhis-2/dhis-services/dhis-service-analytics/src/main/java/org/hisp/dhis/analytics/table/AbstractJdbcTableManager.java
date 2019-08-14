@@ -448,7 +448,7 @@ public abstract class AbstractJdbcTableManager
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
      * @param valueColumns the list of value {@link AnalyticsTableColumn}.
      */
-    protected AnalyticsTable getAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
         Calendar calendar = PeriodType.getCalendar();
 
