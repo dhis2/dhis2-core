@@ -35,6 +35,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.util.DateUtils;
 
 import java.util.Date;
 import java.util.HashSet;
