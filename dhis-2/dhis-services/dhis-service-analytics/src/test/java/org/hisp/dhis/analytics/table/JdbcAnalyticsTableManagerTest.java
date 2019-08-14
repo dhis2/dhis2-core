@@ -46,6 +46,7 @@ import java.util.Map;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
@@ -81,7 +82,7 @@ public class JdbcAnalyticsTableManagerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private JdbcAnalyticsTableManager subject;
+    private AnalyticsTableManager subject;
 
     @Before
     public void setUp()
@@ -101,6 +102,7 @@ public class JdbcAnalyticsTableManagerTest
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .withStartTime( startTime )
+            .withLatestPartition()
             .build();
 
         List<Map<String, Object>> queryResp = Lists.newArrayList();
@@ -110,7 +112,11 @@ public class JdbcAnalyticsTableManagerTest
         when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
         when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
 
-        AnalyticsTable table = subject.getLatestAnalyticsTable( params, Lists.newArrayList(), Lists.newArrayList() );
+        List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
+
+        assertEquals( 1, tables.size() );
+
+        AnalyticsTable table = tables.get( 0 );
 
         assertNotNull( table );
         assertNotNull( table.getTablePartitions() );
@@ -137,6 +143,6 @@ public class JdbcAnalyticsTableManagerTest
         when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( null );
         when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
 
-        subject.getLatestAnalyticsTable( params, Lists.newArrayList(), Lists.newArrayList() );
+        subject.getAnalyticsTables( params );
     }
 }

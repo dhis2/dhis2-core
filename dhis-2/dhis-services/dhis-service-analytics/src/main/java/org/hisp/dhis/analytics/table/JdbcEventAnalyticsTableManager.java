@@ -184,7 +184,7 @@ public class JdbcEventAnalyticsTableManager
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return a list of {@link AnalyticsTableUpdateParams}.
      */
-    protected List<AnalyticsTable> getLatestAnalyticsTables( AnalyticsTableUpdateParams params )
+    private List<AnalyticsTable> getLatestAnalyticsTables( AnalyticsTableUpdateParams params )
     {
         Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );

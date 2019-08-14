@@ -164,6 +164,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .withStartTime( startTime )
+            .withLatestPartition()
             .build();
 
         List<Map<String, Object>> queryResp = Lists.newArrayList();
@@ -174,7 +175,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( programs );
 
-        List<AnalyticsTable> tables = subject.getLatestAnalyticsTables( params );
+        List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
         assertThat( tables, hasSize( 2 ) );
 
