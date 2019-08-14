@@ -404,8 +404,7 @@ public abstract class AbstractJdbcTableManager
     /**
      * Drops and creates the table partitions for the given analytics table.
      *
-     * @param table the {@link Analytic
-import org.joda.time.LocalDate;sTable}.
+     * @param table the {@link AnalyticsTable}.
      */
     protected void createTempTablePartitions( AnalyticsTable table )
     {
