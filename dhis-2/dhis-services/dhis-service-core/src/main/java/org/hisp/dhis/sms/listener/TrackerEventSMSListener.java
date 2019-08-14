@@ -28,10 +28,9 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -57,6 +56,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Component( "org.hisp.dhis.sms.listener.TrackerEventSMSListener" )
 @Transactional
 public class TrackerEventSMSListener
@@ -73,10 +74,12 @@ public class TrackerEventSMSListener
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
-        ProgramStageService programStageService, ProgramInstanceService programInstanceService )
+        ProgramStageService programStageService, ProgramInstanceService programInstanceService,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService );
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            identifiableObjectManager );
 
         this.programStageService = programStageService;
         this.programInstanceService = programInstanceService;

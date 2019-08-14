@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.event.EventStatus;
@@ -72,7 +73,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
@@ -108,10 +108,13 @@ public abstract class NewSMSListener
 
     protected final ProgramStageInstanceService programStageInstanceService;
 
+    protected final IdentifiableObjectManager identifiableObjectManager;
+
     public NewSMSListener( IncomingSmsService incomingSmsService, MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService )
+        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender );
 
@@ -131,6 +134,7 @@ public abstract class NewSMSListener
         this.categoryService = categoryService;
         this.dataElementService = dataElementService;
         this.programStageInstanceService = programStageInstanceService;
+        this.identifiableObjectManager = identifiableObjectManager;
     }
 
     @Override
@@ -227,80 +231,21 @@ public abstract class NewSMSListener
     private SMSMetadata getMetadata( Date lastSyncDate )
     {
         SMSMetadata meta = new SMSMetadata();
-        meta.dataElements = getAllDataElements( lastSyncDate );
-        meta.categoryOptionCombos = getAllCatOptionCombos( lastSyncDate );
-        meta.users = getAllUserIds( lastSyncDate );
-        meta.trackedEntityTypes = getAllTrackedEntityTypeIds( lastSyncDate );
-        meta.trackedEntityAttributes = getAllTrackedEntityAttributeIds( lastSyncDate );
-        meta.programs = getAllProgramIds( lastSyncDate );
-        meta.organisationUnits = getAllOrgUnitIds( lastSyncDate );
+        meta.dataElements = getTypeUidsBefore( DataElement.class, lastSyncDate );
+        meta.categoryOptionCombos = getTypeUidsBefore( CategoryOptionCombo.class, lastSyncDate );
+        meta.users = getTypeUidsBefore( User.class, lastSyncDate );
+        meta.trackedEntityTypes = getTypeUidsBefore( TrackedEntityType.class, lastSyncDate );
+        meta.trackedEntityAttributes = getTypeUidsBefore( TrackedEntityAttribute.class, lastSyncDate );
+        meta.programs = getTypeUidsBefore( Program.class, lastSyncDate );
+        meta.organisationUnits = getTypeUidsBefore( OrganisationUnit.class, lastSyncDate );
 
         return meta;
     }
 
-    private List<SMSMetadata.ID> getAllUserIds( Date lastSyncDate )
+    private List<SMSMetadata.ID> getTypeUidsBefore( Class<? extends IdentifiableObject> klass, Date lastSyncDate )
     {
-        List<User> users = userService.getAllUsers();
-
-        return users.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllTrackedEntityTypeIds( Date lastSyncDate )
-    {
-        List<TrackedEntityType> teTypes = trackedEntityTypeService.getAllTrackedEntityType();
-
-        return teTypes.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllTrackedEntityAttributeIds( Date lastSyncDate )
-    {
-        List<TrackedEntityAttribute> teiAttributes = trackedEntityAttributeService.getAllTrackedEntityAttributes();
-
-        return teiAttributes.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllProgramIds( Date lastSyncDate )
-    {
-        List<Program> programs = programService.getAllPrograms();
-
-        return programs.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllOrgUnitIds( Date lastSyncDate )
-    {
-        return organisationUnitService.getUIDsCreatedBefore( lastSyncDate ).stream().map( o -> new SMSMetadata.ID( o ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllDataElements( Date lastSyncDate )
-    {
-        return dataElementService.getUIDsCreatedBefore( lastSyncDate ).stream().map( o -> new SMSMetadata.ID( o ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<SMSMetadata.ID> getAllCatOptionCombos( Date lastSyncDate )
-    {
-        List<CategoryOptionCombo> catOptionCombos = categoryService.getAllCategoryOptionCombos();
-
-        return catOptionCombos.stream().map( o -> getIdFromMetadata( o, lastSyncDate ) ).filter( Objects::nonNull )
-            .collect( Collectors.toList() );
-    }
-
-    private SMSMetadata.ID getIdFromMetadata( IdentifiableObject obj, Date lastSyncDate )
-    {
-        if ( obj.getCreated().after( lastSyncDate ) )
-        {
-            return null;
-        }
-        else
-        {
-            SMSMetadata.ID id = new SMSMetadata.ID( obj.getUid() );
-            return id;
-        }
+        return identifiableObjectManager.getUidsCreatedBefore( klass, lastSyncDate ).stream()
+            .map( o -> new SMSMetadata.ID( o ) ).collect( Collectors.toList() );
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,

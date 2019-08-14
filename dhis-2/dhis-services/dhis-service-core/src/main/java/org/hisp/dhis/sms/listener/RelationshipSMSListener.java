@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.listener;
  */
 
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -87,10 +88,12 @@ public class RelationshipSMSListener
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
         RelationshipService relationshipService, RelationshipTypeService relationshipTypeService,
-        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService )
+        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
+        IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService );
+            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            identifiableObjectManager );
 
         this.relationshipService = relationshipService;
         this.relationshipTypeService = relationshipTypeService;
