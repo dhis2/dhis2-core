@@ -109,8 +109,7 @@ public class DefaultAnalyticsTableGenerator
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Analytics table update: %s", params ) );
-        log.info( String.format( "Last successful analytics table update: '%s'",
-            getLongDateString( lastSuccessfulUpdate ) ) );
+        log.info( String.format( "Last successful analytics table update: '%s'", getLongDateString( lastSuccessfulUpdate ) ) );
 
         try
         {
