@@ -123,7 +123,6 @@ public abstract class AbstractJdbcTableManager
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
         JdbcTemplate jdbcTemplate )
     {
-
         checkNotNull( idObjectManager );
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
@@ -415,7 +414,7 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Generates a list of {@link AnalyticsTable} based on a list of years with data.
+     * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
      *
      * @param dataYears the list of years with data.
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
