@@ -78,11 +78,6 @@ public class AnalyticsTableUpdateParams
         this.startTime = new Date();
     }
 
-    public static Builder newBuilder( AnalyticsTableUpdateParams analyticsTableUpdateParams )
-    {
-        return new AnalyticsTableUpdateParams.Builder( analyticsTableUpdateParams );
-    }
-
     // -------------------------------------------------------------------------
     // Get methods
     // -------------------------------------------------------------------------
@@ -180,9 +175,15 @@ public class AnalyticsTableUpdateParams
 
         return this;
     }
+
     public static Builder newBuilder()
     {
         return new AnalyticsTableUpdateParams.Builder();
+    }
+
+    public static Builder newBuilder( AnalyticsTableUpdateParams analyticsTableUpdateParams )
+    {
+        return new AnalyticsTableUpdateParams.Builder( analyticsTableUpdateParams );
     }
 
     /**
