@@ -150,6 +150,13 @@ public class AnalyticsTable
         return !tablePartitions.isEmpty();
     }
 
+    public AnalyticsTablePartition getLatestPartition()
+    {
+        return tablePartitions.stream()
+            .filter( AnalyticsTablePartition::isLatestPartition )
+            .findAny().orElse( null );
+    }
+
     // -------------------------------------------------------------------------
     // Getters
     // -------------------------------------------------------------------------
