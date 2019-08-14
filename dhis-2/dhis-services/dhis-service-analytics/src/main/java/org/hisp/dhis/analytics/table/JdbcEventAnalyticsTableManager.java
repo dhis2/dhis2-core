@@ -374,15 +374,14 @@ public class JdbcEventAnalyticsTableManager
         if ( attribute.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() )
         {
             String geoSql = selectForInsert( attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
-            columns.add( new AnalyticsTableColumn( attribute.getUid()  + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ) );
+
+            columns.add( new AnalyticsTableColumn( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ) );
         }
 
-        columns.add( new AnalyticsTableColumn(
-            quote( attribute.getUid() ), dataType,
+        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType,
             selectForInsert( attribute, select, dataClause ) ).withSkipIndex( skipIndex ) );
 
-        return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause )
-            : columns;
+        return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause ) : columns;
     }
 
     private List<AnalyticsTableColumn> getColumnFromTrackedEntityAttributeWithLegendSet(

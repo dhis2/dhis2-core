@@ -203,8 +203,8 @@ public abstract class AbstractEventJdbcTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                    "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( select ) +
-                    " as " + quote( attribute.getUid() );
+                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( select ) +
+                " as " + quote( attribute.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
         }
