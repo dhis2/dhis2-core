@@ -75,5 +75,9 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
             ( pi.getStartEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) + "and ps = '" + programStage + "')";
     }
 
+    /***
+     * Generate the function part of the SQL
+     * @return string sql min/max functions
+     */
     public abstract String getMinMaxFunction();
 }
