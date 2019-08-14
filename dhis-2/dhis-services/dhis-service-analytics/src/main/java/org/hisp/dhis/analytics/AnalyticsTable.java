@@ -105,8 +105,9 @@ public class AnalyticsTable
     {
         Assert.notNull( year, "Year must be specified" );
 
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
-        this.tablePartitions.add( partitionTable );
+        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
+        this.tablePartitions.add( tablePartition );
+
         return this;
     }
 
