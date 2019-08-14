@@ -59,6 +59,7 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -94,7 +95,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @Category( IntegrationTest.class )
-public class EventValidationServiceTest
+public class AnalyticsValidationServiceTest
     extends IntegrationTestBase
 {
     @Autowired
@@ -120,6 +121,9 @@ public class EventValidationServiceTest
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private IndicatorService indicatorService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -283,8 +287,8 @@ public class EventValidationServiceTest
         validationRuleService.saveValidationRule( validationRuleISliding );
 
         Map<Date, Grid> dateGridMap = new HashMap<>();
-        dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8 ) );
-        dateGridMap.put( periodApr.getStartDate(), newGrid( 5, 1, 9 ) );
+        dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8, 3 ) );
+        dateGridMap.put( periodApr.getStartDate(), newGrid( 5, 1, 9, 2 ) );
 
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setDateGridMap( dateGridMap );
@@ -314,9 +318,10 @@ public class EventValidationServiceTest
      * @param dataElementVal Program data element value
      * @param teAttributeVal Tracked entity attribute value
      * @param piVal Program Indicator value
+     * @param indicatorVal Indicator value
      * @return the Grid, as would be returned by analytics
      */
-    private Grid newGrid( double dataElementVal, double teAttributeVal, double piVal )
+    private Grid newGrid( double dataElementVal, double teAttributeVal, double piVal, double indicatorVal )
     {
         Grid grid = new ListGrid();
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
@@ -391,7 +396,9 @@ public class EventValidationServiceTest
         List<ValidationResult> referenceList = orderedList( reference );
         List<ValidationResult> resultsList = orderedList( results );
 
-        if ( !referenceList.equals( resultsList ) )
+        boolean success = referenceList.equals( resultsList );
+
+        if ( !success )
         {
             StringBuilder sb = new StringBuilder();
 
@@ -410,7 +417,7 @@ public class EventValidationServiceTest
             log.error( sb.toString() );
         }
 
-        assertTrue( referenceList.equals( resultsList ) );
+        assertTrue( success );
 
         for ( ValidationResult result : results )
         {
@@ -433,7 +440,7 @@ public class EventValidationServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testEventValidate()
+    public void testAnalyticsValidate()
     {
         Collection<ValidationResult> reference = new HashSet<>();
 
