@@ -469,8 +469,7 @@ public class JdbcEventAnalyticsTableManager
         if ( valueType.isNumeric() || valueType.isDate() )
         {
             String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : valueType.isDate() ? DATE_REGEXP : "";
-            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex
-                + "'";
+            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex + "'";
         }
 
         return "";
