@@ -138,6 +138,7 @@ public class JdbcAnalyticsTableManagerTest
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
             .withStartTime( startTime )
+            .withLatestPartition()
             .build();
 
         when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( null );
