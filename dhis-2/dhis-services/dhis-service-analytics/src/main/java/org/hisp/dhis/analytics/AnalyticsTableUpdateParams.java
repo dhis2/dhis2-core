@@ -78,6 +78,11 @@ public class AnalyticsTableUpdateParams
         this.startTime = new Date();
     }
 
+    public static Builder newBuilder( AnalyticsTableUpdateParams analyticsTableUpdateParams )
+    {
+        return new AnalyticsTableUpdateParams.Builder( analyticsTableUpdateParams );
+    }
+
     // -------------------------------------------------------------------------
     // Get methods
     // -------------------------------------------------------------------------
