@@ -64,7 +64,7 @@ public class AnalyticsTable
     private Program program;
 
     /**
-     * Analytics partition tables for this base analytics table.
+     * Analytics table partitions for this base analytics table.
      */
     private List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
 
@@ -107,6 +107,7 @@ public class AnalyticsTable
 
         AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
         this.tablePartitions.add( tablePartition );
+
         return this;
     }
 
