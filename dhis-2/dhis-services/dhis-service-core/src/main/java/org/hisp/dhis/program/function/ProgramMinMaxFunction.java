@@ -42,13 +42,7 @@ import java.util.Date;
 public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
 {
     @Override
-    public Object evaluate(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor)
-    {
-        return null;
-    }
-
-    @Override
-    public Object getSql(ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor)
+    public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
         ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
@@ -64,9 +58,9 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
         String columnName = "\"" + dataElement + "\"";
 
         return  "(select " + getMinMaxFunction() + columnName + ") from " + eventTableName +
-                " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
-                (pi.getEndEventBoundary() != null ? ("and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " ") : "") +
-                (pi.getStartEventBoundary() != null ? ("and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " ") : "") + "and ps = '" + programStage + "')";
+            " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
+            (pi.getEndEventBoundary() != null ? ("and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " ") : "") +
+            (pi.getStartEventBoundary() != null ? ("and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " ") : "") + "and ps = '" + programStage + "')";
     }
 
     public abstract String getMinMaxFunction();
