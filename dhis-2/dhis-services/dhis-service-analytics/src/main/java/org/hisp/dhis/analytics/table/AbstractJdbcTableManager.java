@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,11 +58,11 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.util.DateUtils;
-import org.joda.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.util.Assert;
 
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -208,7 +207,8 @@ public abstract class AbstractJdbcTableManager
 
             final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns + ")";
 
-            log.debug( "Create index: " + indexName + " SQL: " + sql );
+            log.debug( "Create index: \n" +
+                "import org.joda.time.LocalDate;" + indexName + " SQL: " + sql );
 
             jdbcTemplate.execute( sql );
 
@@ -404,7 +404,8 @@ public abstract class AbstractJdbcTableManager
     /**
      * Drops and creates the table partitions for the given analytics table.
      *
-     * @param table the {@link AnalyticsTable}.
+     * @param table the {@link Analytic
+import org.joda.time.LocalDate;sTable}.
      */
     protected void createTempTablePartitions( AnalyticsTable table )
     {
@@ -475,12 +476,13 @@ public abstract class AbstractJdbcTableManager
      */
     protected AnalyticsTable getLatestAnalyticsTable( AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate();
         Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
-        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate );
+        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate );
 
-        Date startDate = ObjectUtils.firstNonNull( lastFullTableUpdate, defaultDate );
+        Assert.notNull( lastFullTableUpdate, "A full analytics table update process must be run prior to a latest partition update process" );
+
+        Date startDate = lastFullTableUpdate;
         Date endDate = params.getStartTime();
         boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate );
 

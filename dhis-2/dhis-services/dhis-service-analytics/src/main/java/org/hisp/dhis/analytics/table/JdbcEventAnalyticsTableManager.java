@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableHookService;
@@ -72,10 +71,10 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.DateUtils;
-import org.joda.time.LocalDate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
 
@@ -187,12 +186,13 @@ public class JdbcEventAnalyticsTableManager
      */
     private List<AnalyticsTable> getLatestAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        Date defaultDate = new LocalDate().toDateTimeAtStartOfDay().toDate(); // TODO centralize
         Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
-        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate, defaultDate );
+        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate );
 
-        Date startDate = ObjectUtils.firstNonNull( lastFullTableUpdate, defaultDate );
+        Assert.notNull( lastFullTableUpdate, "A full analytics table update process must be run prior to a latest partition update process" );
+
+        Date startDate = lastFullTableUpdate;
         Date endDate = params.getStartTime();
 
         List<AnalyticsTable> tables = new ArrayList<>();
