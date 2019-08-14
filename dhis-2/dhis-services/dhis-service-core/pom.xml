@@ -188,12 +188,6 @@
       <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
     </dependency>
-      <dependency>
-          <groupId>mysql</groupId>
-          <artifactId>mysql-connector-java</artifactId>
-          <version>6.0.5</version>
-          <scope>compile</scope>
-      </dependency>
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
