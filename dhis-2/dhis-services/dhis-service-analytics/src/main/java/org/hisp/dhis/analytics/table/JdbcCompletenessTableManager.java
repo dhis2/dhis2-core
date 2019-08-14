@@ -35,7 +35,6 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -105,7 +104,7 @@ public class JdbcCompletenessTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( params.getFromDate() ), getDimensionColumns(), getValueColumns() );
+        AnalyticsTable table = getAnalyticsTable( getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
@@ -236,17 +235,18 @@ public class JdbcCompletenessTableManager
         return Lists.newArrayList( new AnalyticsTableColumn( quote( "value" ), DATE, "value" ) );
     }
 
-    private List<Integer> getDataYears( Date earliest )
+    private List<Integer> getDataYears( AnalyticsTableUpdateParams params )
     {
         String sql =
             "select distinct(extract(year from pe.startdate)) " +
             "from completedatasetregistration cdr " +
             "inner join period pe on cdr.periodid=pe.periodid " +
-            "where pe.startdate is not null ";
+            "where pe.startdate is not null " +
+            "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' ";
 
-        if ( earliest != null )
+        if ( params.getFromDate() != null )
         {
-            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( earliest ) + "'";
+            sql += "and pe.startdate >= '" + DateUtils.getMediumDateString( params.getFromDate() ) + "'";
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );

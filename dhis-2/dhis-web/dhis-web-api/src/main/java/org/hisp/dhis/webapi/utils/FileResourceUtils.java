@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
 import java.nio.file.Files;
 import java.util.Date;
 import java.util.Optional;
@@ -39,7 +38,6 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;

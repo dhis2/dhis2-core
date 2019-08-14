@@ -66,7 +66,6 @@ public class AbstractJdbcEventAnalyticsManagerTest
     extends
     EventAnalyticsTest
 {
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 

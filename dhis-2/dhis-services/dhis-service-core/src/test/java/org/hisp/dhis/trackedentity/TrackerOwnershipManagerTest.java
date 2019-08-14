@@ -107,42 +107,39 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
         userB.addOrganisationUnit( organisationUnitB );
         userService.addUser( userA );
         userService.addUser( userB );
-
-
     }
 
     @Test
     public void testAssignOwnership()
     {
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
-        assertFalse(trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ));
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userB, entityInstanceB1, programA ));
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceB1, programA ) );
         trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programA, organisationUnitB, false, true );
-        assertFalse(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userB,entityInstanceA1, programA));
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
     }
 
     @Test
     public void testGrantTemporaryOwnershipWithAudit()
     {
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
-        assertFalse(trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ));
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
         trackerOwnershipAccessManager.grantTemporaryOwnership( entityInstanceA1, programA, userB, "testing reason" );
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userA,entityInstanceA1, programA));
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ));
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
     }
 
     @Test
     public void testTransferOwnership()
     {
         trackerOwnershipAccessManager.assignOwnership( entityInstanceA1, programA, organisationUnitA, false, true );
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
-        assertFalse(trackerOwnershipAccessManager.hasAccess( userB,entityInstanceA1, programA ));
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
 
         trackerOwnershipAccessManager.transferOwnership( entityInstanceA1, programA, organisationUnitB, false, true );
-        assertFalse(trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ));
-        assertTrue(trackerOwnershipAccessManager.hasAccess( userB,entityInstanceA1, programA ));
-
+        assertFalse( trackerOwnershipAccessManager.hasAccess( userA, entityInstanceA1, programA ) );
+        assertTrue( trackerOwnershipAccessManager.hasAccess( userB, entityInstanceA1, programA ) );
     }
 }

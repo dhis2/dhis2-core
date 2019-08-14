@@ -1,4 +1,5 @@
 package org.hisp.dhis.cache;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -27,40 +28,81 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import java.util.Collection;
+import java.util.Optional;
+import java.util.function.Function;
+
+import com.google.common.collect.Sets;
 
 /**
- * Provides cache builder to build instances.
- *
+ * A No operation implementation of {@link Cache}. The implementation will not
+ * cache anything and can be used during system testing when caching has to be
+ * disabled.
+ * 
  * @author Ameen Mohamed
- *
  */
-@Component( "cacheProvider" )
-public class DefaultCacheProvider implements CacheProvider
+public class NoOpCache<V> implements Cache<V>
 {
-    private DhisConfigurationProvider configurationProvider;
+    private V defaultValue;
 
-    private RedisTemplate<String, ?> redisTemplate;
+    public NoOpCache( CacheBuilder<V> cacheBuilder )
+    {
+        this.defaultValue = cacheBuilder.getDefaultValue();
+    }
 
     @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
+    public Optional<V> getIfPresent( String key )
     {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
+        return Optional.empty();
     }
 
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
+    @Override
+    public Optional<V> get( String key )
     {
-        this.configurationProvider = configurationProvider;
+        return Optional.ofNullable( defaultValue );
     }
 
-    @Autowired( required = false )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
+    @Override
+    public Optional<V> get( String key, Function<String, V> mappingFunction )
     {
-        this.redisTemplate = redisTemplate;
+        if ( null == mappingFunction )
+        {
+            throw new IllegalArgumentException( "MappingFunction cannot be null" );
+        }
+        return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
     }
 
+    @Override
+    public Collection<V> getAll()
+    {
+        return Sets.newHashSet();
+    }
+
+    @Override
+    public void put( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( "Value cannot be null" );
+        }
+        // No operation
+    }
+
+    @Override
+    public void invalidate( String key )
+    {
+        // No operation
+    }
+
+    @Override
+    public void invalidateAll()
+    {
+        // No operation
+    }
+
+    @Override
+    public CacheType getCacheType()
+    {
+        return CacheType.NONE;
+    }
 }

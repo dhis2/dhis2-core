@@ -549,7 +549,8 @@ public abstract class AbstractEventService
         {
             if ( programStage.getFeatureType().equals( FeatureType.NONE ) || !programStage.getFeatureType().value().equals( event.getGeometry().getGeometryType() ) )
             {
-                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() );
+                return new ImportSummary( ImportStatus.ERROR, "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type (" + programStage.getFeatureType().value() + ") specified for the program stage: " + programStage.getUid() )
+                    .setReference( event.getEvent() ).incrementIgnored();
             }
 
             event.getGeometry().setSRID( GeoUtils.SRID );
@@ -564,11 +565,11 @@ public abstract class AbstractEventService
             }
             catch ( IOException e )
             {
-                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." );
+                return new ImportSummary( ImportStatus.ERROR, "Invalid longitude or latitude for property 'coordinates'." ).setReference( event.getEvent() ).incrementIgnored();
             }
         }
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
+        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
 
         if ( !errors.isEmpty() )
@@ -1155,7 +1156,7 @@ public abstract class AbstractEventService
                 .setReference( event.getEvent() ).incrementIgnored();
         }
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, false );
+        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -1250,7 +1251,6 @@ public abstract class AbstractEventService
 
         programStageInstance.setDueDate( dueDate );
         programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setGeometry( event.getGeometry() );
 
         validateExpiryDays( importOptions, event, program, programStageInstance );
 
@@ -1297,7 +1297,8 @@ public abstract class AbstractEventService
             {
                 return new ImportSummary( ImportStatus.ERROR, String.format(
                     "Geometry '%s' does not conform to the feature type '%s' specified for the program stage: '%s'",
-                    programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) );
+                    programStageInstance.getProgramStage().getUid(), event.getGeometry().getGeometryType(), programStageInstance.getProgramStage().getFeatureType().value() ) )
+                    .setReference( event.getEvent() ).incrementIgnored();
             }
 
             event.getGeometry().setSRID( GeoUtils.SRID );
@@ -1316,6 +1317,8 @@ public abstract class AbstractEventService
                     "Invalid longitude or latitude for property 'coordinates'." );
             }
         }
+
+        programStageInstance.setGeometry( event.getGeometry() );
 
         if ( programStageInstance.getProgramStage().isEnableUserAssignment() )
         {
@@ -1428,7 +1431,7 @@ public abstract class AbstractEventService
             return;
         }
 
-        List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance, false );
+        List<String> errors = trackerAccessManager.canUpdate( currentUserService.getCurrentUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -1489,7 +1492,7 @@ public abstract class AbstractEventService
         {
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
 
-            List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance, false );
+            List<String> errors = trackerAccessManager.canDelete( currentUserService.getCurrentUser(), programStageInstance, false );
 
             if ( !errors.isEmpty() )
             {
@@ -1503,7 +1506,9 @@ public abstract class AbstractEventService
                 entityInstanceService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
             }
 
-            return new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" ).incrementDeleted();
+            ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS, "Deletion of event " + uid + " was successful" ).incrementDeleted();
+            importSummary.setReference( uid );
+            return importSummary;
         }
         else
         {
