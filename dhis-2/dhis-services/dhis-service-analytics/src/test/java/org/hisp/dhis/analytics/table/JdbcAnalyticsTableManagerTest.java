@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.table;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -91,6 +92,42 @@ public class JdbcAnalyticsTableManagerTest
             mock( CategoryService.class ), systemSettingManager, mock( DataApprovalLevelService.class ),
             mock( ResourceTableService.class ), mock( AnalyticsTableHookService.class ), mock( StatementBuilder.class ),
             mock( PartitionManager.class ), mock( DatabaseInfo.class ), jdbcTemplate );
+    }
+
+    @Test
+    public void testGetRegularAnalyticsTable()
+    {
+        Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
+        List<Integer> dataYears = Lists.newArrayList( 2018, 2019 );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime( startTime )
+            .build();
+
+        when( jdbcTemplate.queryForList( Mockito.anyString(), ArgumentMatchers.<Class<Integer>>any() ) ).thenReturn( dataYears );
+
+        List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
+
+        assertEquals( 1, tables.size() );
+
+        AnalyticsTable table = tables.get( 0 );
+
+        assertNotNull( table );
+        assertNotNull( table.getTablePartitions() );
+        assertEquals( 2, table.getTablePartitions().size() );
+
+        AnalyticsTablePartition partitionA = table.getTablePartitions().get( 0 );
+        AnalyticsTablePartition partitionB = table.getTablePartitions().get( 1 );
+
+        assertNotNull( partitionA );
+        assertNotNull( partitionA.getStartDate() );
+        assertNotNull( partitionA.getEndDate() );
+        assertEquals( partitionA.getYear().intValue(), new DateTime( partitionA.getStartDate() ).getYear() );
+
+        assertNotNull( partitionB );
+        assertNotNull( partitionB.getStartDate() );
+        assertNotNull( partitionB.getEndDate() );
+        assertEquals( partitionB.getYear().intValue(), new DateTime( partitionB.getStartDate() ).getYear() );
     }
 
     @Test
