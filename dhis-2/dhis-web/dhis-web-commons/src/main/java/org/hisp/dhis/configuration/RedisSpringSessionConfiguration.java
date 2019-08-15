@@ -40,9 +40,8 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * Configuration registered if {@link RedisEnabledCondition} matches to true.
  * Redis backed Spring Session will be configured due to the
  * {@link EnableRedisHttpSession} annotation.
- * 
- * @author Ameen Mohamed
  *
+ * @author Ameen Mohamed
  */
 @Configuration
 @DependsOn( "dhisConfigurationProvider" )
@@ -51,7 +50,8 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 public class RedisSpringSessionConfiguration
 {
     @Bean
-    public static ConfigureRedisAction configureRedisAction() {
-            return ConfigureRedisAction.NO_OP;
+    public static ConfigureRedisAction configureRedisAction()
+    {
+        return ConfigureRedisAction.NO_OP;
     }
 }
