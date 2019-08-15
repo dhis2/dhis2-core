@@ -28,35 +28,61 @@ package org.hisp.dhis.servlet.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
+import java.io.IOException;
+import java.util.Optional;
 
+import javax.servlet.Filter;
 import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
-/**
- * Filter which enforces no cache for HTML pages like
- * index pages to prevent stale versions being rendered
- * in clients.
- *
- * @author Lars Helge Overland
- */
-public class HttpNoCacheFilter
-    extends HttpUrlPatternFilter
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.webapi.utils.ContextUtils;
+
+public class SecureSessionCookieFilter
+    implements Filter
 {
+    private static final Log log = LogFactory.getLog( SecureSessionCookieFilter.class );
+
     @Override
-    public final void doHttpFilter( HttpServletRequest request, HttpServletResponse response, FilterChain chain )
-        throws IOException, ServletException
+    public void init( FilterConfig filterConfig )
+        throws ServletException
     {
-        if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
+    }
+
+    @Override
+    public void doFilter( ServletRequest req, ServletResponse resp, FilterChain chain )
+        throws IOException,
+        ServletException
+    {
+        HttpServletRequest request = (HttpServletRequest) req;
+        HttpServletResponse response = (HttpServletResponse) resp;
+
+        Optional<Cookie> cookieOpt = ContextUtils.getSessionCookie( request );
+
+        boolean isHttps = ContextUtils.isHttps( request );
+
+        if ( cookieOpt.isPresent() && isHttps )
         {
-            ContextUtils.setNoStore( response );
+            Cookie cookie = cookieOpt.get();
+            cookie.setSecure( true );
+            cookie.setHttpOnly( true );
+            response.addCookie( cookie );
+
+            log.debug( "Session cookie found and HTTPS detected. Enabled secure and HTTP only cookie flags." );
         }
 
-        System.out.println( "FROM NO CACHE FILTER" );
         chain.doFilter( request, response );
+    }
+
+    @Override
+    public void destroy()
+    {
     }
 }

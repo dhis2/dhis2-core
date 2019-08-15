@@ -46,6 +46,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Nullable;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -55,6 +56,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -91,11 +93,15 @@ public class ContextUtils
     public static final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
     public static final String HEADER_CONTENT_TRANSFER_ENCODING = "Content-Transfer-Encoding";
     public static final String HEADER_VALUE_NO_STORE = "no-cache, no-store, max-age=0, must-revalidate";
+    public static final String HEADER_PROTO = "X-Forwarded-Proto";
 
     public static final String QUERY_PARAM_SEP = ";";
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
     public static final String HEADER_ETAG = "ETag";
     private static final String QUOTE = "\"";
+
+    private static final String SESSION_COOKIE_NAME = "JSESSIONID";
+    private static final String PROTOCOL_HTTPS = "https";
 
     /**
      * Regular expression that extracts the attachment file name from a content disposition header value.
@@ -277,6 +283,61 @@ public class ContextUtils
         return getContextPath( request ) + request.getServletPath();
     }
 
+    /**
+     * Returns the session cookie part of the given requests, or if none exists,
+     * returns an empty optional.
+     *
+     * @param request the {@link HttpServletRequest}.
+     * @return the session cookie.
+     */
+    public static Optional<Cookie> getSessionCookie( HttpServletRequest request )
+    {
+        if ( request.getCookies() != null )
+        {
+            for ( Cookie cookie : request.getCookies() )
+            {
+                if ( cookie != null && SESSION_COOKIE_NAME.equals( cookie.getName() ) )
+                {
+                    return Optional.of( cookie );
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    /**
+     * Determines whether the given request was made over HTTPS. Returns true if any of the
+     * criteria is true, otherwise false. This method looks at the following criteria:
+     *
+     * <ul>
+     * <li>The {@link SecureSessionCookieFilter#HEADER_PROTO} HTTP header (often set by a proxy).</li>
+     * <li>The {@link HttpServletRequest#getScheme()} method.</li>
+     * <li>The protocol part of the {@link HttpServletRequest#getRequestURL()}.</li>
+     * <ul>
+     *
+     * @param request the {@link HttpServletRequest}.
+     * @return true if HTTPS.
+     */
+    public static boolean isHttps( HttpServletRequest request )
+    {
+        if ( PROTOCOL_HTTPS.equalsIgnoreCase( request.getHeader( HEADER_PROTO ) ) )
+        {
+            return true;
+        }
+
+        if ( PROTOCOL_HTTPS.equalsIgnoreCase( request.getScheme() ) )
+        {
+            return true;
+        }
+
+        if ( request.getRequestURL() != null && request.getRequestURL().toString().startsWith( PROTOCOL_HTTPS ) )
+        {
+            return true;
+        }
+
+        return false;
+    }
     /**
      * Indicates whether the media type (content type) of the
      * given HTTP request is compatible with the given media type.

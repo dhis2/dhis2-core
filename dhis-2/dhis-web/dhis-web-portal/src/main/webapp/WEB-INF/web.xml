@@ -63,6 +63,10 @@
     <async-supported>true</async-supported>
   </filter>
   <filter>
+    <filter-name>secureSessionCookieFilter</filter-name>
+    <filter-class>org.hisp.dhis.servlet.filter.SecureSessionCookieFilter</filter-class>
+  </filter>
+  <filter>
     <filter-name>encoding-filter</filter-name>
     <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
     <async-supported>true</async-supported>
@@ -99,6 +103,8 @@
       <param-value>webMetricsFilter</param-value>
     </init-param>
   </filter>
+  
+  <!-- Filter mappings -->
 
   <filter-mapping>
     <filter-name>encoding-filter</filter-name>
@@ -145,6 +151,10 @@
     <url-pattern>*.action</url-pattern>
   </filter-mapping>
   <filter-mapping>
+    <filter-name>secureSessionCookieFilter</filter-name>
+    <url-pattern>*.action</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
     <filter-name>appCacheFilter</filter-name>
     <url-pattern>*.appcache</url-pattern>
   </filter-mapping>
@@ -154,6 +164,7 @@
   </filter-mapping>
 
   <!-- Listeners -->
+  
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
@@ -162,6 +173,7 @@
   </listener>
 
   <!-- Servlets -->
+  
   <servlet>
     <servlet-name>webapi</servlet-name>
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
@@ -193,6 +205,8 @@
     <load-on-startup>1</load-on-startup>
     <async-supported>true</async-supported>
   </servlet>
+  
+  <!-- Servlet mappings -->
 
   <servlet-mapping>
     <servlet-name>mobile</servlet-name>
