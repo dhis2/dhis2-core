@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.table;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
 import java.util.List;
@@ -99,6 +100,7 @@ public class DefaultAnalyticsTableGenerator
     public void generateTables( AnalyticsTableUpdateParams params )
     {
         final Clock clock = new Clock( log ).startClock();
+        final Date lastSuccessfulUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         final JobConfiguration jobId = params.getJobId();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
         final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
@@ -107,6 +109,7 @@ public class DefaultAnalyticsTableGenerator
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Analytics table update: %s", params ) );
+        log.info( String.format( "Last successful analytics table update: '%s'", getLongDateString( lastSuccessfulUpdate ) ) );
 
         try
         {

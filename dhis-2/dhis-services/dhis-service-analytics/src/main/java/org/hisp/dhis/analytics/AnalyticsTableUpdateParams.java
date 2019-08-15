@@ -34,6 +34,7 @@ import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.util.DateUtils;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -128,7 +129,7 @@ public class AnalyticsTableUpdateParams
             .add( "last years", lastYears )
             .add( "skip resource tables", skipResourceTables )
             .add( "skip table types", skipTableTypes )
-            .add( "start time", startTime )
+            .add( "start time", DateUtils.getLongDateString( startTime ) )
             .toString();
     }
 
@@ -175,9 +176,15 @@ public class AnalyticsTableUpdateParams
 
         return this;
     }
+
     public static Builder newBuilder()
     {
         return new AnalyticsTableUpdateParams.Builder();
+    }
+
+    public static Builder newBuilder( AnalyticsTableUpdateParams analyticsTableUpdateParams )
+    {
+        return new AnalyticsTableUpdateParams.Builder( analyticsTableUpdateParams );
     }
 
     /**

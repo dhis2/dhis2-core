@@ -123,7 +123,6 @@ public abstract class AbstractJdbcTableManager
         StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
         JdbcTemplate jdbcTemplate )
     {
-
         checkNotNull( idObjectManager );
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
@@ -210,7 +209,7 @@ public abstract class AbstractJdbcTableManager
 
         log.info( String.format( "Swapping table, master table exists: %b, skip master table: %b", tableExists, skipMasterTable ) );
 
-        table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
+        table.getTablePartitions().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
 
         if ( !skipMasterTable )
         {
@@ -218,7 +217,7 @@ public abstract class AbstractJdbcTableManager
         }
         else
         {
-            table.getPartitionTables().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
+            table.getTablePartitions().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
             dropTempTable( table );
         }
     }
@@ -382,7 +381,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected void createTempTablePartitions( AnalyticsTable table )
     {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        for ( AnalyticsTablePartition partition : table.getTablePartitions() )
         {
             final String tableName = partition.getTempTableName();
             final List<String> checks = getPartitionChecks( partition );
@@ -415,7 +414,7 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Generates a list of {@link AnalyticsTable} based on a list of years with data.
+     * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
      *
      * @param dataYears the list of years with data.
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
@@ -495,7 +494,7 @@ public abstract class AbstractJdbcTableManager
 
         jdbcTemplate.execute( sql );
 
-        log.info( String.format( "%s done in: %s", logMessage, timer.stop().toString() ) );
+        log.info( String.format( "%s in: %s", logMessage, timer.stop().toString() ) );
     }
 
     /**
