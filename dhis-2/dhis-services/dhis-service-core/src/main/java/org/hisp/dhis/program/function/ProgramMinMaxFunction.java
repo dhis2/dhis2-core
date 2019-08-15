@@ -30,13 +30,16 @@ package org.hisp.dhis.program.function;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
 
 import java.util.Date;
 
 import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.ParserUtils.castDate;
 
 /**
  * @Author Zubair Asghar.
@@ -46,6 +49,13 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        if ( ctx.compareDate( 0 ) != null )
+        {
+            validateProgramStage( ctx.compareDate( 0 ), visitor );
+
+            return DEFAULT_DOUBLE_VALUE;
+        }
+
         visitor.validateStageDataElement( ctx.getText(),
             ctx.item( 0 ).uid0.getText(),
             ctx.item( 0 ).uid1.getText() );
@@ -80,4 +90,25 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
      * @return string sql min/max functions
      */
     public abstract String getMinMaxFunction();
+
+    private void validateProgramStage( ExpressionParser.CompareDateContext ctx, CommonExpressionVisitor visitor )
+    {
+        if ( ctx.uid0 != null )
+        {
+            String ps = ctx.uid0.getText();
+
+            ProgramStage programStage = visitor.getProgramStageService().getProgramStage( ps );
+
+            if ( programStage == null )
+            {
+                throw new ParserExceptionWithoutContext( "Program stage " + ctx.uid0.getText() + " not found" );
+            }
+
+            visitor.getItemDescriptions().put( ps, programStage.getDisplayName() );
+
+            return;
+        }
+
+        castDate( visitor.visit( ctx.expr() ) );
+    }
 }
