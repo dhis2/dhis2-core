@@ -552,7 +552,7 @@ public class JdbcEventStore
     {
         String sql = "";
 
-        sql += getIdSqlBasedOnIdScheme(idSchemes.getOrgUnitIdScheme(),
+        sql += getIdSqlBasedOnIdScheme( idSchemes.getOrgUnitIdScheme(),
             ORG_UNIT_UID_SQL,
             ORG_UNIT_ATTRIBUTE_SQL,
             ORG_UNIT_CODE_SQL );
