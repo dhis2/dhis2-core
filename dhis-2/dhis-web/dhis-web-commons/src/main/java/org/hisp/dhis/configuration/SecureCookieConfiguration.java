@@ -53,7 +53,7 @@ public class SecureCookieConfiguration
     public void onStartup( ServletContext context )
         throws ServletException
     {
-        boolean httpsOnly = getConfig().isEnabled( ConfigurationKey.SERVER_HTTPS_ONLY );
+        boolean httpsOnly = getConfig().isEnabled( ConfigurationKey.SERVER_HTTPS );
 
         log.debug( String.format( "Configuring cookies, HTTPS only: %b", httpsOnly ) );
 
