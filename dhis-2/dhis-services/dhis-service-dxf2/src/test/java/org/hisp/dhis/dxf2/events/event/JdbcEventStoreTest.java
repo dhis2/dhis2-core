@@ -28,7 +28,6 @@
 
 package org.hisp.dhis.dxf2.events.event;
 
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -85,7 +84,6 @@ public class JdbcEventStoreTest
 
         mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();
-        eventSearchParams.setIdSchemes( new IdSchemes() );
 
         List<EventRow> rows = subject.getEventRows( eventSearchParams, new ArrayList<>() );
         assertThat( rows, hasSize( 1 ) );
