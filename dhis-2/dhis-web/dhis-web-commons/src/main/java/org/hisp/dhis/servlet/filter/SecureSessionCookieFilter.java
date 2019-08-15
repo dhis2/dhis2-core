@@ -45,6 +45,13 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 
+/**
+ * Filter which ensures that the {@code secure} flag and the {@code httpOnly} flag are set
+ * on the session cookie when the request is sent over HTTPS. The purpose of this is to
+ * disallow the client to access the cookie in scripts and to send the cookie back over HTTP.
+ *
+ * @author Lars Helge Overland
+ */
 public class SecureSessionCookieFilter
     implements Filter
 {
