@@ -56,7 +56,6 @@ public class HttpNoCacheFilter
             ContextUtils.setNoStore( response );
         }
 
-        System.out.println( "FROM NO CACHE FILTER" );
         chain.doFilter( request, response );
     }
 }
