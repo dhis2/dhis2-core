@@ -47,8 +47,8 @@ import java.io.IOException;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
-@RequestMapping( value = TrackerController.RESOURCE_PATH )
+// @Controller
+// @RequestMapping( value = TrackerController.RESOURCE_PATH )
 public class TrackerController
 {
     public static final String RESOURCE_PATH = "/tracker";
