@@ -51,13 +51,13 @@
     <async-supported>true</async-supported>
   </filter>
   <filter>
+    <filter-name>secureSessionCookieFilter</filter-name>
+    <filter-class>org.hisp.dhis.servlet.filter.SecureSessionCookieFilter</filter-class>
+  </filter>
+  <filter>
     <filter-name>Struts</filter-name>
     <filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
     <async-supported>true</async-supported>
-  </filter>
-  <filter>
-    <filter-name>secureSessionCookieFilter</filter-name>
-    <filter-class>org.hisp.dhis.servlet.filter.SecureSessionCookieFilter</filter-class>
   </filter>
   <filter>
     <filter-name>encodingFilter</filter-name>
