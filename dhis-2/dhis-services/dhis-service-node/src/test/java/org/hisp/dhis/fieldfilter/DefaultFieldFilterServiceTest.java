@@ -30,6 +30,7 @@ package org.hisp.dhis.fieldfilter;
 
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.node.Node;
@@ -79,6 +80,9 @@ public class DefaultFieldFilterServiceTest
     @Mock
     private CurrentUserService currentUserService;
 
+    @Mock
+    private AttributeService attributeService;
+
     private DefaultFieldFilterService service;
 
     @Rule
@@ -98,7 +102,7 @@ public class DefaultFieldFilterServiceTest
                 return Collections.emptyMap();
             }
         }, sessionFactory );
-        service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService, currentUserService, nodeTransformers );
+        service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService, currentUserService, attributeService, nodeTransformers );
         service.init();
     }
 

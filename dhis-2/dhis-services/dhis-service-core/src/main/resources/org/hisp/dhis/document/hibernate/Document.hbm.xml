@@ -30,11 +30,7 @@
     <property name="translations" type="jblTranslations"/>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="documentattributevalues" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="documentid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
+    <property name="attributeValues" type="jsbAttributeValues"/>
 
     <!-- Access properties -->
     <property name="externalAccess" />

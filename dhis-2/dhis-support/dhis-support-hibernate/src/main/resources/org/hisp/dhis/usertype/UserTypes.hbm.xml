@@ -65,4 +65,8 @@
     <param name="clazz">org.hisp.dhis.eventdatavalue.EventDataValue</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType" name="jsbAttributeValues">
+    <param name="clazz">org.hisp.dhis.attribute.AttributeValue</param>
+  </typedef>
+
 </hibernate-mapping>

@@ -69,9 +69,9 @@ public abstract class IntegrationTestBase
     public void before()
         throws Exception
     {
-         bindSession();
-         executeStartupRoutines();
-         setUpTest();
+        bindSession();
+        executeStartupRoutines();
+        setUpTest();
     }
 
     @After

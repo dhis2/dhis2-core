@@ -91,7 +91,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
+            Attribute attribute =  bundle.getPreheat().get( bundle.getPreheatIdentifier(), Attribute.class, attributeValue.getAttribute() );
 
             if ( attribute == null )
             {
@@ -100,7 +100,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             }
 
             attributeValue.setAttribute( attribute );
-            session.save( attributeValue );
         }
     }
 }

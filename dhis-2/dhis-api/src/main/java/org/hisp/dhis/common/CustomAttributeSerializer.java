@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,28 +28,38 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.springframework.core.Ordered;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.user.User;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AttributeValueSchemaDescriptor implements SchemaDescriptor
+import java.io.IOException;
+
+public class CustomAttributeSerializer
+    extends JsonSerializer<Attribute>
 {
-    public static final String SINGULAR = "attributeValue";
-
-    public static final String PLURAL = "attributeValues";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
     @Override
-    public Schema getSchema()
+    public void serialize( Attribute attribute, JsonGenerator jsonGenerator, SerializerProvider serializers )
+        throws IOException
     {
-        Schema schema = new Schema( AttributeValue.class, SINGULAR, PLURAL );
-        schema.setOrder( Ordered.HIGHEST_PRECEDENCE );
+        ToXmlGenerator xmlGenerator = null;
 
-        return schema;
+        if ( jsonGenerator instanceof ToXmlGenerator )
+        {
+            xmlGenerator = (ToXmlGenerator) jsonGenerator;
+        }
+
+        jsonGenerator.writeStartObject();
+
+        if ( xmlGenerator != null )
+        {
+            xmlGenerator.setNextIsAttribute( true );
+            xmlGenerator.setNextName( null );
+        }
+
+        jsonGenerator.writeStringField( "id", attribute.getUid() );
+        jsonGenerator.writeEndObject();
     }
 }
