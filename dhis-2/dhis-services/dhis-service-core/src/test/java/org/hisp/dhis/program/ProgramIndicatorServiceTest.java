@@ -500,4 +500,13 @@ public class ProgramIndicatorServiceTest
 
         assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, indicatorA, new Date(), new Date() ) );
     }
+
+    @Test
+    public void testComparisonOperator()
+    {
+        String expected = "coalesce(\"DataElmentA\"::numeric,0) = 'Ongoing'";
+        String expression = "#{ProgrmStagA.DataElmentA} == 'Ongoing'";
+        assertEquals( expected,
+            programIndicatorService.getAnalyticsSql( expression, indicatorA, new Date(), new Date() ) );
+    }
 }
