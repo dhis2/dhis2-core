@@ -48,6 +48,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -238,13 +239,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
                 String asClause = " as " + quote( in.getUid() );
 
-//                if ( queryItem.hasRelationshipType() )
-//                {
-//                    piSql += RelationshipTypeJoinGenerator.generate( queryItem.getRelationshipType() );
-//                }
-
-                columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
-                    AnalyticsType.ENROLLMENT, params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
+                if ( queryItem.hasRelationshipType() )
+                {
+                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                        queryItem.getRelationshipType(), getAnalyticsType(), params.getEarliestStartDate(),
+                        params.getLatestEndDate() ) + asClause );
+                }
+                else
+                {
+                    columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
+                        getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
+                }
+                
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -262,14 +268,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         return columns;
     }
-    
-    private String getProgramIndicatorAggregationSql( ProgramIndicator pi, String expression, EventQueryParams params )
-    {
-        return programIndicatorService.getAnalyticsSql( expression, pi, params.getEarliestStartDate(),
-            params.getLatestEndDate() );
 
-    }
-    
     public Grid getAggregatedEventData( EventQueryParams params, Grid grid, int maxLimit )
     {
         String countClause = getAggregateClause( params );
@@ -665,4 +664,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
      * @return SQL to add to the analytics query.
      */
     protected abstract String getWhereClause( EventQueryParams params );
+
+    protected abstract AnalyticsType getAnalyticsType();
 }

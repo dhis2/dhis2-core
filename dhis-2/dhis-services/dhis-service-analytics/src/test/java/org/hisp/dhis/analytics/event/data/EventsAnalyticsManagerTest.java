@@ -40,6 +40,7 @@ import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;

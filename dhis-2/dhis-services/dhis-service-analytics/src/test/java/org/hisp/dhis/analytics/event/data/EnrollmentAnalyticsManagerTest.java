@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
@@ -111,7 +112,7 @@ public class EnrollmentAnalyticsManagerTest
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable(programA.getUid())
                 + " as ax where enrollmentdate >= '2017-01-01' and enrollmentdate <= '2017-12-31' and (uidlevel0 = 'ouabcdefghA' ) limit 10001";
 
-        assertSql(expected, sql.getValue());
+        assertSql( sql.getValue(), expected );
 
     }
 
@@ -141,7 +142,7 @@ public class EnrollmentAnalyticsManagerTest
                 + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) " + "and ps = '"
                 + programStage.getUid() + "' limit 101";
 
-        assertSql(expected, sql.getValue());
+        assertSql( sql.getValue(), expected );
     }
 
     @Test
@@ -161,7 +162,7 @@ public class EnrollmentAnalyticsManagerTest
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and lower(" + subSelect + ") > '10' limit 10001";
 
-        assertSql(expected, sql.getValue());
+        assertSql( sql.getValue(), expected );
     }
 
     @Test
@@ -181,34 +182,35 @@ public class EnrollmentAnalyticsManagerTest
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
 
-        assertSql(expected, sql.getValue());
+        assertSql( sql.getValue(), expected );
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei() {
-        Date startDate = getDate(2015, 1, 1);
-        Date endDate = getDate(2017, 4, 8);
+    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei()
+    {
+        Date startDate = getDate( 2015, 1, 1 );
+        Date endDate = getDate( 2017, 4, 8 );
 
-        String piSubquery = "SELECT \"X8zyunlgUfM\" FROM analytics_enrollment_" + programA.getUid()
-                + " WHERE analytics_enrollment_" + programA.getUid() + ".pi = ax.pi ";
+        String piSubquery = "distinct psi";
 
-        ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
-                createRequestParams(programIndicatorA, relationshipTypeA)).withStartDate(startDate)
-                .withEndDate(endDate);
+            createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
+                .withEndDate( endDate );
 
-        when(programIndicatorService.getAnalyticsSql("", programIndicatorA, getDate(2000, 1, 1),
-                getDate(2017, 4, 8))).thenReturn(piSubquery);
+        when( programIndicatorService.getAnalyticsSql( "", programIndicatorA, getDate( 2000, 1, 1 ),
+            getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
 
-        subject.getEnrollments(params.build(), new ListGrid(), 100);
+        subject.getEnrollments( params.build(), new ListGrid(), 100 );
 
-        verify(jdbcTemplate).queryForRowSet(sql.capture());
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(" + piSubquery
-                + " AND  ax.tei in (select tei.uid from trackedentityinstance tei "
+        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
+                + programA.getUid().toLowerCase() + " as subax WHERE  "
+                + "ax.tei in (select tei.uid from trackedentityinstance tei "
                 + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
                 + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
                 + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
@@ -216,45 +218,46 @@ public class EnrollmentAnalyticsManagerTest
                 + "\"  " + "from analytics_enrollment_" + programA.getUid()
                 + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
-        assertSql(expected, sql.getValue());
+        assertSql( sql.getValue(), expected );
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint() {
-        Date startDate = getDate(2015, 1, 1);
-        Date endDate = getDate(2017, 4, 8);
+    public void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint()
+    {
+        Date startDate = getDate( 2015, 1, 1 );
+        Date endDate = getDate( 2017, 4, 8 );
 
-        String piSubquery = "SELECT \"X8zyunlgUfM\" FROM analytics_enrollment_" + programA.getUid()
-                + " WHERE analytics_enrollment_" + programA.getUid() + ".pi = ax.pi ";
+        String piSubquery = "distinct psi";
 
-        ProgramIndicator programIndicatorA = createProgramIndicator('A', programA, "", "");
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType(RelationshipEntity.TRACKED_ENTITY_INSTANCE,
-                RelationshipEntity.PROGRAM_INSTANCE);
+        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE,
+            RelationshipEntity.PROGRAM_INSTANCE );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
-                createRequestParams(programIndicatorA, relationshipTypeA)).withStartDate(startDate)
-                .withEndDate(endDate);
+            createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
+                .withEndDate( endDate );
 
-        when(programIndicatorService.getAnalyticsSql("", programIndicatorA, getDate(2000, 1, 1),
-                getDate(2017, 4, 8))).thenReturn(piSubquery);
+        when( programIndicatorService.getAnalyticsSql( "", programIndicatorA, getDate( 2000, 1, 1 ),
+            getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
 
-        subject.getEnrollments(params.build(), new ListGrid(), 100);
+        subject.getEnrollments( params.build(), new ListGrid(), 100 );
 
-        verify(jdbcTemplate).queryForRowSet(sql.capture());
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(" + piSubquery + " AND  ( ( ax.tei in "
-                + "(select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
-                + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
-                + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid WHERE rty.relationshiptypeid = "
-                + relationshipTypeA.getId() + ")) " + "OR ( ax.pi in (select pi.uid from programinstance pi "
-                + "LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid  "
-                + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
-                + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid WHERE rty.relationshiptypeid = "
-                + relationshipTypeA.getId() + ")) )) as \"" + programIndicatorA.getUid() + "\"  "
-                + "from analytics_enrollment_" + programA.getUid()
-                + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
-        assertSql(expected, sql.getValue());
+        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
+            + programA.getUid().toLowerCase() + " as subax WHERE  "
+            + "( ( ax.tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
+            + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId()
+            + ")) OR ( ax.pi in (select pi.uid from programinstance pi "
+            + "LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid  LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
+            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid WHERE rty.relationshiptypeid = "
+            + relationshipTypeA.getId() + ")) )) " + "as \"" + programIndicatorA.getUid() + "\"  "
+            + "from analytics_enrollment_" + programA.getUid()
+            + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
+
+        assertSql( sql.getValue(), expected );
     }
 
     @Override
@@ -284,41 +287,42 @@ public class EnrollmentAnalyticsManagerTest
 
     private void assertSql( String actual, String expected )
     {
-        assertThat( "select " + DEFAULT_COLUMNS + "," + actual, is( expected ) );
+        assertThat( actual, is("select " + DEFAULT_COLUMNS + "," + expected ) );
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2() {
-        Date startDate = getDate(2015, 1, 1);
-        Date endDate = getDate(2017, 4, 8);
-        Program programB = createProgram('B');
-        String piSubquery = "SELECT \"X8zyunlgUfM\" FROM analytics_enrollment_" + programB.getUid()
-                + " WHERE analytics_enrollment_" + programB.getUid() + ".pi = ax.pi ";
+    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2()
+    {
+        Date startDate = getDate( 2015, 1, 1 );
+        Date endDate = getDate( 2017, 4, 8 );
+        Program programB = createProgram( 'B' );
+        String piSubquery = "distinct psi";
 
-        ProgramIndicator programIndicatorA = createProgramIndicator('A', programB, "", "");
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programB, "", "" );
 
-        RelationshipType relationshipTypeA = createRelationshipType(RelationshipEntity.TRACKED_ENTITY_INSTANCE);
+        RelationshipType relationshipTypeA = createRelationshipType( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
-                createRequestParams(programIndicatorA, relationshipTypeA)).withStartDate(startDate)
-                .withEndDate(endDate);
+            createRequestParams( programIndicatorA, relationshipTypeA ) ).withStartDate( startDate )
+                .withEndDate( endDate );
 
-        when(programIndicatorService.getAnalyticsSql("", programIndicatorA, getDate(2000, 1, 1),
-                getDate(2017, 4, 8))).thenReturn(piSubquery);
+        when( programIndicatorService.getAnalyticsSql( "", programIndicatorA, getDate( 2000, 1, 1 ),
+            getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
 
-        subject.getEnrollments(params.build(), new ListGrid(), 100);
+        subject.getEnrollments( params.build(), new ListGrid(), 100 );
 
-        verify(jdbcTemplate).queryForRowSet(sql.capture());
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expected = "ax.\"monthly\",ax.\"ou\",(" + piSubquery
-                + " AND  ax.tei in (select tei.uid from trackedentityinstance tei "
-                + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
-                + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
-                + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-                + "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + ")) as \"" + programIndicatorA.getUid()
-                + "\"  " + "from analytics_enrollment_" + programA.getUid()
-                + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
-        System.out.println(sql.getValue());
-        assertSql(expected, sql.getValue());
+        String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
+            + programB.getUid().toLowerCase() + " as subax WHERE  "
+            + "ax.tei in (select tei.uid from trackedentityinstance tei "
+            + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
+            + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
+            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
+            + "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + ")) as \"" + programIndicatorA.getUid()
+            + "\"  " + "from analytics_enrollment_" + programA.getUid()
+            + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
+
+        assertSql( sql.getValue(), expected );
     }
 }

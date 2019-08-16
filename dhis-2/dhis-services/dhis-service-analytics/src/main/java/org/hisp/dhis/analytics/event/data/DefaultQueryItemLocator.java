@@ -55,6 +55,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
+ * {@inheritDoc}
  * @author Luciano Fiandesio
  */
 @Component
@@ -84,6 +85,10 @@ public class DefaultQueryItemLocator implements QueryItemLocator
         this.relationshipTypeService = relationshipTypeService;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public QueryItem getQueryItemFromDimension( String dimension, Program program, EventOutputType type ) {
 
         checkNotNull( program, "Program can not be null" );

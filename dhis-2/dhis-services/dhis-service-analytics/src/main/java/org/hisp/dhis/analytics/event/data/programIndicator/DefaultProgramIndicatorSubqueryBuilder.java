@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics.event.data.programIndicator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -38,21 +38,23 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
 
-/**
- * @author Luciano Fiandesio
- */
 @Component
-public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorSubqueryBuilder
+public class DefaultProgramIndicatorSubqueryBuilder
+    implements
+    ProgramIndicatorSubqueryBuilder
 {
     private final static String ANALYTICS_TABLE_NAME = "analytics";
 
+    private final static String SUBQUERY_TABLE_ALIAS = "subax";
+
     private final ProgramIndicatorService programIndicatorService;
 
-    public DefaultProgramIndicatorSubqueryBuilder(ProgramIndicatorService programIndicatorService )
+    public DefaultProgramIndicatorSubqueryBuilder( ProgramIndicatorService programIndicatorService )
     {
         checkNotNull( programIndicatorService );
 
@@ -60,21 +62,32 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     }
 
     /**
-     *
-     * @param pi
-     * @param outerSqlEntity
-     * @param earliestStartDate
-     * @param latestDate
-     * @return
+     * {@inheritDoc}
      */
     @Override
     public String getAggregateClauseForProgramIndicator( ProgramIndicator pi, AnalyticsType outerSqlEntity,
         Date earliestStartDate, Date latestDate )
     {
+        return _getAggregateClauseForProgramIndicator( pi, null, outerSqlEntity, earliestStartDate, latestDate );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator,
+        RelationshipType relationshipType, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
+    {
+        return _getAggregateClauseForProgramIndicator( programIndicator, relationshipType, outerSqlEntity, earliestStartDate, latestDate );
+    }
+
+    private String _getAggregateClauseForProgramIndicator( ProgramIndicator pi, RelationshipType relationshipType,
+        AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
+    {
         // Define aggregation function (avg, sum, ...) //
         String function = TextUtils.emptyIfEqual( pi.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue() );
-        
+
         // Get sql construct from Program indicator expression //
         String aggregateSql = getPrgIndSql( pi.getExpression(), pi, earliestStartDate, latestDate );
 
@@ -84,44 +97,62 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         aggregateSql += getFrom( pi );
 
         // Determine JOIN
-        aggregateSql += getWhere( outerSqlEntity, pi );
+        aggregateSql += getWhere( outerSqlEntity, pi, relationshipType );
 
         // Get WHERE condition from Program indicator filter
         if ( !Strings.isNullOrEmpty( pi.getFilter() ) )
         {
             aggregateSql += " AND " + getPrgIndSql( pi.getFilter(), pi, earliestStartDate, latestDate );
         }
+
         return "(SELECT " + function + " (" + aggregateSql + ")";
+
     }
 
     private String getFrom( ProgramIndicator pi )
     {
-        return " FROM " + ANALYTICS_TABLE_NAME + "_" + pi.getAnalyticsType().getValue() + "_" + pi.getProgram().getUid();
+        return " FROM " + ANALYTICS_TABLE_NAME + "_" + pi.getAnalyticsType().getValue() + "_"
+            + pi.getProgram().getUid().toLowerCase() + " as " + SUBQUERY_TABLE_ALIAS;
     }
 
     /**
+     * Determine the join after the WHERE condition
      *
-     * 1) outer = event | inner = enrollment    -> pi = ax.pi (enrollment is the enrollmennt linked to the inline event)
-     * 2) outer = enrollment | inner = event    -> pi = ax.pi
-     * 3) outer = event | inner = event         -> psi = ax.psi (inner operate on same event as outer)
-     * 4) outer = enrollemnt | inner = enrollment -> pi = ax.pi (enrollment operates on the same enrollment as outer)
+     * Rules:
      *
-     * @param outerSqlEntity
-     * @param pi
-     * @return
+     * 1) outer = event | inner = enrollment -> pi = ax.pi (enrollment is the
+     * enrollmennt linked to the inline event)
+     * 2) outer = enrollment | inner = event -> pi = ax.pi
+     * 3) outer = event | inner = event -> psi = ax.psi (inner operate
+     * on same event as outer)
+     * 4) outer = enrollemnt | inner = enrollment -> pi =
+     * ax.pi (enrollment operates on the same enrollment as outer)
+     * 5) if RelationshipType, call the RelationshipTypeJoinGenerator
+     *
+     * @param outerSqlEntity the outer sql type (enrollment or event)
+     * @param pi a Program Indicator object
+     * @param relationshipType a Relationship type (optional)
+     * @return a sqk WHERE condition
      */
-    private String getWhere( AnalyticsType outerSqlEntity, ProgramIndicator pi )
+    private String getWhere( AnalyticsType outerSqlEntity, ProgramIndicator pi, RelationshipType relationshipType )
     {
         String condition = "";
-        if ( isEnrollment( outerSqlEntity ) )
+        if ( relationshipType != null )
         {
-            condition = "pi = ax.pi";
+            condition = RelationshipTypeJoinGenerator.generate( relationshipType );
         }
         else
         {
-            if ( isEvent( pi.getAnalyticsType() ) )
+            if ( isEnrollment( outerSqlEntity ) )
             {
-                condition = "psi = ax.psi";
+                condition = "pi = ax.pi";
+            }
+            else
+            {
+                if ( isEvent( pi.getAnalyticsType() ) )
+                {
+                    condition = "psi = ax.psi";
+                }
             }
         }
 
@@ -137,9 +168,10 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     {
         return outerSqlEntity.equals( AnalyticsType.EVENT );
     }
-    
+
     private String getPrgIndSql( String expression, ProgramIndicator pi, Date earliestStartDate, Date latestDate )
     {
-        return this.programIndicatorService.getAnalyticsSql( expression, pi, earliestStartDate, latestDate );
+        return this.programIndicatorService.getAnalyticsSql( expression, pi, earliestStartDate, latestDate,
+            SUBQUERY_TABLE_ALIAS );
     }
 }

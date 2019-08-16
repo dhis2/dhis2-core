@@ -28,13 +28,17 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public enum RelationshipEntity
 {
-    TRACKED_ENTITY_INSTANCE( "tracked_entity" ),
-    PROGRAM_INSTANCE( "enrollment" ),
-    PROGRAM_STAGE_INSTANCE( "event" );
+    TRACKED_ENTITY_INSTANCE( "tracked_entity" ), PROGRAM_INSTANCE( "enrollment" ), PROGRAM_STAGE_INSTANCE( "event" );
 
     private String name;
+
+    private static final Map<String, RelationshipEntity> ENUM_MAP;
 
     RelationshipEntity( String name )
     {
@@ -44,5 +48,20 @@ public enum RelationshipEntity
     public String getName()
     {
         return name;
+    }
+
+    static
+    {
+        Map<String, RelationshipEntity> map = new ConcurrentHashMap<>();
+        for ( RelationshipEntity instance : RelationshipEntity.values() )
+        {
+            map.put( instance.getName(), instance );
+        }
+        ENUM_MAP = Collections.unmodifiableMap( map );
+    }
+
+    public static RelationshipEntity get( String name )
+    {
+        return ENUM_MAP.get( name );
     }
 }

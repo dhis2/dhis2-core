@@ -26,7 +26,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics.event.data.programIndicator;
 
 import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -34,18 +34,22 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 
 /**
+ * Generates a SQL JOIN to join an enrollment or event with a related entity, based on the specified
+ * relationship type
+ *
+ *
  * @author Luciano Fiandesio
  */
 public class RelationshipTypeJoinGenerator
 {
-    private final static String RELATIONSHIP_JOIN = " "
+    protected final static String RELATIONSHIP_JOIN = " "
         + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid"
         + " LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid"
         + " WHERE rty.relationshiptypeid = ${relationshipid})";
 
     public static String generate( RelationshipType relationshipType )
     {
-        String sql = " AND ";
+        String sql = "";
 
         if ( relationshipLinksSameEntities( relationshipType ) )
         {

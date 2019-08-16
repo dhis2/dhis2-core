@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
  */
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.parser.expression.ParserUtils.*;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
@@ -289,8 +290,21 @@ public class  DefaultProgramIndicatorService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate )
+    {
+        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, null );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
+        String tableAlias )
+    {
+        return _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias );
+    }
+    
+    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         if ( expression == null )
         {
@@ -307,7 +321,8 @@ public class  DefaultProgramIndicatorService
         visitor.setReportingEndDate( endDate );
         visitor.setDataElementAndAttributeIdentifiers( uids );
 
-        return castString( Parser.visit( expression, visitor ) );
+        String sql =  castString( Parser.visit( expression, visitor ) );
+        return (tableAlias != null ? sql.replaceAll( ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\." ) : sql);
     }
 
     @Override

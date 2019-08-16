@@ -33,6 +33,7 @@ import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertFalse;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -44,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -52,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -508,5 +511,30 @@ public class ProgramIndicatorServiceTest
         String expression = "#{ProgrmStagA.DataElmentA} == 'Ongoing'";
         assertEquals( expected,
             programIndicatorService.getAnalyticsSql( expression, indicatorA, new Date(), new Date() ) );
+    }
+
+    @Test
+    public void testNestedSubqueryWithTableAlias()
+    {
+        Date dateFrom = getDate( 2019, 1, 1 );
+        Date dateTo = getDate( 2019, 12, 31 );
+
+        Date boundaryDate = indicatorF.getAnalyticsPeriodBoundaries().iterator().next().getBoundaryDate( dateFrom, dateTo );
+
+        // Generated subquery, since indicatorF is type Enrollment
+        String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentA\" is not null and executiondate < cast( '"
+                + dateToString( boundaryDate ) + "' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) - " +
+                "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and executiondate < cast( '"
+                + dateToString( boundaryDate ) + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
+
+        String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
+
+        assertEquals( expected,
+            programIndicatorService.getAnalyticsSql( expression, indicatorF, dateFrom, dateTo, "axx1" ) );
+    }
+
+    private String dateToString( Date date )
+    {
+        return new SimpleDateFormat( Period.DEFAULT_DATE_FORMAT ).format( date );
     }
 }
