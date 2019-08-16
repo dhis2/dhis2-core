@@ -70,9 +70,16 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
         ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
 
-        if ( AnalyticsType.EVENT == pi.getAnalyticsType() &&  ctx.compareDate( 0 ) != null )
+        if ( AnalyticsType.EVENT == pi.getAnalyticsType() )
         {
-            return "executiondate";
+            if ( ctx.compareDate(0 ) != null )
+            {
+                return "executiondate";
+            }
+            else
+            {
+                return ctx.item( 0 ).uid1.getText();
+            }
         }
 
         Date startDate = visitor.getReportingStartDate();
