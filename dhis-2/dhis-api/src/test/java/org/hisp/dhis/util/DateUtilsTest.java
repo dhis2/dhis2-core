@@ -266,13 +266,23 @@ public class DateUtilsTest
     }
 
     @Test
-    public void getDate()
+    public void testGetDate()
     {
         LocalDateTime time = LocalDateTime.of( 2012, 1, 10, 10, 5 );
 
         Date date = DateUtils.getDate( time );
 
         assertEquals( time.toInstant( ZoneOffset.UTC ).toEpochMilli(), date.getTime() );
+    }
+
+    @Test
+    public void testGetLatestDate()
+    {
+        Date jan3 = new DateTime( 2019, 1, 3, 0, 0 ).toDate();
+        Date mar21 = new DateTime( 2019, 3, 21, 0, 0 ).toDate();
+        Date aug17 = new DateTime( 2019, 8, 17, 0, 0 ).toDate();
+
+        assertEquals( aug17, DateUtils.getLatest( mar21, null, aug17, null, jan3, null ) );
     }
 
     @Test

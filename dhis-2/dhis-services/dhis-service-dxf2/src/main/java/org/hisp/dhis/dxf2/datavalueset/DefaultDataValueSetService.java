@@ -125,6 +125,7 @@ import org.hisp.staxwax.factory.XMLFactory;
 
 import com.csvreader.CsvReader;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -387,6 +388,7 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void writeDataValueSetXml( DataExportParams params, OutputStream out )
     {
         decideAccess( params );
@@ -396,6 +398,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetJson( DataExportParams params, OutputStream out )
     {
         decideAccess( params );
@@ -405,12 +408,14 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
     {
         dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes );
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
         int page )
     {
@@ -418,6 +423,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetCsv( DataExportParams params, Writer writer )
     {
         decideAccess( params );
@@ -554,36 +560,42 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSet( InputStream in )
     {
         return saveDataValueSet( in, ImportOptions.getDefaultImportOptions(), null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetJson( InputStream in )
     {
         return saveDataValueSetJson( in, ImportOptions.getDefaultImportOptions(), null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions )
     {
         return saveDataValueSet( in, importOptions, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions )
     {
         return saveDataValueSetJson( in, importOptions, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions )
     {
         return saveDataValueSetCsv( in, importOptions, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
@@ -601,6 +613,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
@@ -618,6 +631,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
@@ -642,6 +656,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try

@@ -1,8 +1,0 @@
-{ "periodTypes": [
-#foreach( $periodType in $periodTypes )
-  {
-    "id": $!{periodType.id},
-    "name": "$!{periodType.name}"
-  },    
-#end
-] }

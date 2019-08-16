@@ -41,7 +41,6 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  */
 public class RedisDisabledCondition extends PropertiesAwareConfigurationCondition
 {
-
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {

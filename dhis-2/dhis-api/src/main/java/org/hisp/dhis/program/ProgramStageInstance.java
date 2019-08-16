@@ -332,8 +332,14 @@ public class ProgramStageInstance
     {
         this.assignedUser = assignedUser;
     }
+    
+    public boolean isCreatableInSearchScope()
+    {
+        return this.getStatus() == EventStatus.SCHEDULE && this.getEventDataValues().isEmpty() && this.getExecutionDate() == null;
+    }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "ProgramStageInstance{" +
             "id=" + id +
@@ -342,11 +348,11 @@ public class ProgramStageInstance
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             ", displayName='" + displayName + '\'' +
-            ", programInstance=" + programInstance.getUid() +
-            ", programStage=" + programStage.getUid() +
+            ", programInstance=" + (programInstance != null ? programInstance.getUid() : null) +
+            ", programStage=" + (programStage != null ? programStage.getUid() : null) +
             ", deleted=" + deleted +
             ", storedBy='" + storedBy + '\'' +
-            ", organisationUnit=" + organisationUnit.getUid() +
+            ", organisationUnit=" + (organisationUnit != null ? organisationUnit.getUid() : null) +
             ", status=" + status +
             ", lastSynchronized=" + lastSynchronized +
             '}';

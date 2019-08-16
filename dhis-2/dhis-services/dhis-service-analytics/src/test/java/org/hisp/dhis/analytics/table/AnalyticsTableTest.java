@@ -75,8 +75,8 @@ public class AnalyticsTableTest
         tableA.addPartitionTable( 2014, periodA.getStartDate(), periodA.getEndDate() );
         tableA.addPartitionTable( 2015, periodB.getStartDate(), periodB.getEndDate() );
 
-        AnalyticsTablePartition partitionA = tableA.getPartitionTables().get( 0 );
-        AnalyticsTablePartition partitionB = tableA.getPartitionTables().get( 1 );
+        AnalyticsTablePartition partitionA = tableA.getTablePartitions().get( 0 );
+        AnalyticsTablePartition partitionB = tableA.getTablePartitions().get( 1 );
 
         assertNotNull( partitionA );
         assertNotNull( partitionB );

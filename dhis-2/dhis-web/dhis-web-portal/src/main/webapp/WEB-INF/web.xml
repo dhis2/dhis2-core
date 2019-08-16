@@ -93,9 +93,7 @@
   </filter-mapping>
   <filter>
     <filter-name>webMetricsFilter</filter-name>
-    <filter-class>
-      org.springframework.web.filter.DelegatingFilterProxy
-    </filter-class>
+    <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     <init-param>
       <param-name>targetBeanName</param-name>
       <param-value>webMetricsFilter</param-value>
@@ -125,18 +123,6 @@
   <filter-mapping>
     <filter-name>httpNoCacheFilter</filter-name>
     <url-pattern>/*</url-pattern>
-  </filter-mapping>
-  <filter-mapping>
-    <filter-name>shallowEtagHeaderFilter</filter-name>
-    <url-pattern>/ohie/*</url-pattern>
-  </filter-mapping>
-  <filter-mapping>
-    <filter-name>hiddenHttpMethodFilter</filter-name>
-    <url-pattern>/ohie/*</url-pattern>
-  </filter-mapping>
-  <filter-mapping>
-    <filter-name>OpenSessionInViewFilter</filter-name>
-    <url-pattern>/ohie/*</url-pattern>
   </filter-mapping>
   <filter-mapping>
     <filter-name>hiddenHttpMethodFilter</filter-name>
@@ -198,17 +184,6 @@
   </servlet>
 
   <servlet>
-    <servlet-name>ohieServlet</servlet-name>
-    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-    <init-param>
-      <param-name>contextConfigLocation</param-name>
-      <param-value>classpath*:/META-INF/dhis/webapi-ohie.xml</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
-    <async-supported>true</async-supported>
-  </servlet>
-
-  <servlet>
     <servlet-name>uaaServlet</servlet-name>
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
     <init-param>
@@ -234,14 +209,6 @@
   <servlet-mapping>
     <servlet-name>webapi</servlet-name>
     <url-pattern>/api/*</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>ohieServlet</servlet-name>
-    <url-pattern>/ohie</url-pattern>
-  </servlet-mapping>
-  <servlet-mapping>
-    <servlet-name>ohieServlet</servlet-name>
-    <url-pattern>/ohie/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
     <servlet-name>uaaServlet</servlet-name>

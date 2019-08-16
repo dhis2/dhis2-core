@@ -31,6 +31,8 @@ package org.hisp.dhis.period.hibernate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -40,8 +42,6 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -69,17 +69,20 @@ public class HibernatePeriodStore
 {
     private Environment env;
 
-    private static Cache<String, Long> PERIOD_ID_CACHE;
+    private static Cache<Long> PERIOD_ID_CACHE;
+    
+    private CacheProvider cacheProvider;
 
     public HibernatePeriodStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
-        Environment env )
+        Environment env, CacheProvider cacheProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, Period.class, currentUserService, deletedObjectService, aclService, true );
 
         transientIdentifiableProperties = true;
 
         this.env = env;
+        this.cacheProvider = cacheProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -89,10 +92,13 @@ public class HibernatePeriodStore
     @PostConstruct
     public void init()
     {
-        PERIOD_ID_CACHE =  Caffeine.newBuilder()
-                .expireAfterWrite( 24, TimeUnit.HOURS )
-                .initialCapacity( 200 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 10000 ).build();
+        PERIOD_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "periodIdCache" )
+            .expireAfterWrite( 24, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     @Override
@@ -200,7 +206,8 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
+        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
+            .orElse( null );
 
         Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
 

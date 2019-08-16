@@ -115,6 +115,10 @@ public class ExpressionService2Test
     private DataElement deE;
     private DataElementOperand opA;
     private DataElementOperand opB;
+    private DataElementOperand opC;
+    private DataElementOperand opD;
+    private DataElementOperand opE;
+    private DataElementOperand opF;
 
     private ProgramTrackedEntityAttributeDimensionItem pteaA;
     private ProgramDataElementDimensionItem pdeA;
@@ -203,6 +207,10 @@ public class ExpressionService2Test
 
         opA = new DataElementOperand( deA, coc );
         opB = new DataElementOperand( deB, coc );
+        opC = new DataElementOperand( deC, coc );
+        opD = new DataElementOperand( deD, coc );
+        opE = new DataElementOperand( deB, cocA);
+        opF = new DataElementOperand( deA, cocA, cocB);
 
         period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
 
@@ -506,24 +514,19 @@ public class ExpressionService2Test
     {
         when( dimensionService.getDataDimensionalItemObject( opA.getUid() ) ).thenReturn( opA );
         when( dimensionService.getDataDimensionalItemObject( opB.getUid() ) ).thenReturn( opB );
-        when( dimensionService.getDataDimensionalItemObject( deA.getUid() + SEPARATOR + coc.getUid() ) )
-                .thenReturn( deA );
-        when( dimensionService.getDataDimensionalItemObject( deA.getUid() + SEPARATOR + SYMBOL_WILDCARD ) )
-                .thenReturn( deA );
-        when( dimensionService.getDataDimensionalItemObject( deB.getUid() + SEPARATOR + coc.getUid() ) )
-                .thenReturn( deB );
-        when( dimensionService.getDataDimensionalItemObject( deC.getUid() + SEPARATOR + coc.getUid() ) )
-                .thenReturn( deC );
-        when( dimensionService.getDataDimensionalItemObject( deD.getUid() + SEPARATOR + coc.getUid() ) )
-                .thenReturn( deC );
-        when( dimensionService.getDataDimensionalItemObject( deE.getUid() ) ).thenReturn( deE );
-        when( idObjectManager.getNoAcl( Constant.class, constantA.getUid() ) ).thenReturn( constantA );
-        when( idObjectManager.getNoAcl( OrganisationUnitGroup.class, groupA.getUid() ) ).thenReturn( groupA );
-
-        when( dimensionService.getDataDimensionalItemObject( reportingRate.getUid() + ".REPORTING_RATE" ) )
-                .thenReturn( reportingRate );
-        when( dimensionService.getDataDimensionalItemObject( deA.getUid() + SEPARATOR + cocA.getUid() + SEPARATOR + cocB.getUid() ) ).thenReturn( deA );
-        when( dimensionService.getDataDimensionalItemObject( deB.getUid() + SEPARATOR + cocA.getUid() ) ).thenReturn( deB );
+        when( dimensionService.getDataDimensionalItemObject( opC.getUid() ) ).thenReturn( opC );
+        when( dimensionService.getDataDimensionalItemObject( opD.getUid() ) ).thenReturn( opD );
+        when( dimensionService.getDataDimensionalItemObject( getId( deA ) ) ).thenReturn( deA );
+        when( dimensionService.getDataDimensionalItemObject( getId( deE ) ) ).thenReturn( deE );
+        when( dimensionService.getDataDimensionalItemObject( getId( opA ) ) ).thenReturn( opA );
+        when( dimensionService.getDataDimensionalItemObject( getId( opB ) ) ).thenReturn( opB );
+        when( dimensionService.getDataDimensionalItemObject( getId( opC ) ) ).thenReturn( opC );
+        when( dimensionService.getDataDimensionalItemObject( getId( opD ) ) ).thenReturn( opD );
+        when( dimensionService.getDataDimensionalItemObject( getId( opE ) ) ).thenReturn( opE );
+        when( dimensionService.getDataDimensionalItemObject( getId( opF ) ) ).thenReturn( opF );
+        when( dimensionService.getDataDimensionalItemObject( getId( reportingRate ) ) ).thenReturn( reportingRate );
+        when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
+        when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
 
         assertTrue( target.validationRuleExpressionIsValid( expressionA ).isValid() );
         assertTrue( target.validationRuleExpressionIsValid( expressionB ).isValid() );
@@ -542,7 +545,7 @@ public class ExpressionService2Test
 
         String expression = "#{nonExisting" + SEPARATOR + coc.getUid() + "} + 12";
 
-        assertEquals( ExpressionValidationOutcome.DIMENSIONAL_ITEM_OBJECT_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "#{" + deA.getUid() + SEPARATOR + "999} + 12";
 
@@ -563,11 +566,11 @@ public class ExpressionService2Test
 
         expression = "12 + C{nonExisting}";
 
-        assertEquals( ExpressionValidationOutcome.CONSTANT_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
 
         expression = "12 + OUG{nonExisting}";
 
-        assertEquals( ExpressionValidationOutcome.ORG_UNIT_GROUP_DOES_NOT_EXIST, target.validationRuleExpressionIsValid( expression ) );
+        assertEquals( ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED, target.validationRuleExpressionIsValid( expression ) );
     }
 
     @Test

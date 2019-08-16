@@ -49,7 +49,7 @@ public class ServiceConfig
     @Bean
     public LocationManager locationManager()
     {
-        return new DefaultLocationManager( null, "DHIS2_HOME", "dhis2.home" );
+        return DefaultLocationManager.getDefault();
     }
 
     @Bean( "maxAttempts" )

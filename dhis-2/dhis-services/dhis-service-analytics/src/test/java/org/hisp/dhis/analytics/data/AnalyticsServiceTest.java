@@ -163,9 +163,8 @@ public class AnalyticsServiceTest
     public void setUpTest()
         throws IOException, InterruptedException
     {
-
         // Set up meta data for data values
-        // --------------------------------------------------------------------
+
         ReportingRate reportingRateA;
         ReportingRate reportingRateB;
 
@@ -410,13 +409,14 @@ public class AnalyticsServiceTest
         validationResultStore.save( validationResultBBB );
         validationResultStore.save( validationResultBBA );
 
-        Thread.sleep( 1000 ); //to ensure that hibernate has flushed validation results before generating tables.
+        Thread.sleep( 1000 ); //to ensure that Hibernate has flushed validation results before generating tables.
+
         // Generate analytics tables
-        // --------------------------------------------------------------------
+
         analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
 
         // Set parameters
-        // --------------------------------------------------------------------
+
         List<Indicator> param_indicators = new ArrayList<>();
         List<ReportingRate> param_reportingRates = new ArrayList<>();
 
