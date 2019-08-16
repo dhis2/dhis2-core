@@ -37,6 +37,6 @@ public class d2MaxValue extends ProgramMinMaxFunction
     @Override
     public String getAggregationOperator()
     {
-        return " max(";
+        return "max";
     }
 }

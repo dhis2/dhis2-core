@@ -94,7 +94,7 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
             columnName = "\"" + dataElement + "\"";
         }
 
-        return  "(select " + getAggregationOperator() + columnName + ") from " + eventTableName +
+        return  "(select " + getAggregationOperator() + "(" + columnName + ") from " + eventTableName +
             " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
             ( pi.getEndEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) +
             ( pi.getStartEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) + "and ps = '" + programStage + "')";
