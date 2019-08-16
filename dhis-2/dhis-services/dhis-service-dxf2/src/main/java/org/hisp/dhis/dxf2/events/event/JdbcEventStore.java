@@ -548,7 +548,7 @@ public class JdbcEventStore
         }
     }
 
-    private String getEventSelectIdentificatorsByIdScheme( IdSchemes idSchemes )
+    private String getEventSelectIdentifiersByIdScheme( IdSchemes idSchemes )
     {
         String sql = "";
 
@@ -662,15 +662,15 @@ public class JdbcEventStore
         }
         else
         {
-            String deIdentificator = dataElementsUidToIdentifier.get( deUid );
+            String deIdentifier = dataElementsUidToIdentifier.get( deUid );
 
-            if ( deIdentificator == null )
+            if ( deIdentifier == null )
             {
                 throw new IllegalStateException(
                     "DataElement: " + deUid + " does not have a value assigned for idScheme " + idScheme.name() );
             }
 
-            dataValue.setDataElement( deIdentificator );
+            dataValue.setDataElement( deIdentifier );
         }
 
         return dataValue;
@@ -768,7 +768,7 @@ public class JdbcEventStore
 
         SqlHelper hlp = new SqlHelper();
 
-        String sql = "select " + getEventSelectIdentificatorsByIdScheme( params.getIdSchemes() ) + " psi.uid as psi_uid, "
+        String sql = "select " + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) + " psi.uid as psi_uid, "
             + " psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
             + "psi.created as psi_created, psi.lastupdated as psi_lastupdated, psi.completeddate as psi_completeddate, psi.deleted as psi_deleted, "
