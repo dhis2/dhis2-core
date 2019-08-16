@@ -35,7 +35,7 @@ package org.hisp.dhis.program.function;
 public class d2MinValue extends ProgramMinMaxFunction
 {
     @Override
-    public String getMinMaxFunction()
+    public String getAggregationOperator()
     {
         return " min(";
     }

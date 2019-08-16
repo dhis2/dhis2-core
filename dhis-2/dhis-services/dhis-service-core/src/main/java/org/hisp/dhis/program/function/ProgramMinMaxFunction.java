@@ -33,6 +33,7 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 import org.hisp.dhis.parser.expression.function.AbstractExpressionFunction;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 
@@ -69,6 +70,11 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
         ProgramIndicator pi = visitor.getProgramIndicator();
         StatementBuilder sb = visitor.getStatementBuilder();
 
+        if ( AnalyticsType.EVENT == pi.getAnalyticsType() &&  ctx.compareDate( 0 ) != null )
+        {
+            return "executiondate";
+        }
+
         Date startDate = visitor.getReportingStartDate();
         Date endDate = visitor.getReportingEndDate();
 
@@ -76,22 +82,19 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
         String programStage = "";
         String columnName = "";
 
-
-        // When latest or oldest event is needed i.e d2:maxValue(PS_EVENTDATE:<psUid0>)
-        if ( ctx.compareDate( 0 ) != null )
+        if ( ctx.compareDate( 0 ) != null ) // When latest or oldest event is needed i.e d2:maxValue(PS_EVENTDATE:<psUid0>)
         {
             columnName = "\"executiondate\"";
             programStage = ctx.compareDate( 0 ).uid0.getText();
         }
-        else
+        else  // When min/max value of data element is needed i.e d2:maxValue(#{uid0.uid1})
         {
-            // When min/max value of data element is needed i.e d2:maxValue(#{uid0.uid1})
             programStage = ctx.item( 0 ).uid0.getText();
             String dataElement = ctx.item( 0 ).uid1.getText();
             columnName = "\"" + dataElement + "\"";
         }
 
-        return  "(select " + getMinMaxFunction() + columnName + ") from " + eventTableName +
+        return  "(select " + getAggregationOperator() + columnName + ") from " + eventTableName +
             " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
             ( pi.getEndEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) +
             ( pi.getStartEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) + "and ps = '" + programStage + "')";
@@ -101,7 +104,7 @@ public abstract class ProgramMinMaxFunction extends AbstractExpressionFunction
      * Generate the function part of the SQL
      * @return string sql min/max functions
      */
-    public abstract String getMinMaxFunction();
+    public abstract String getAggregationOperator();
 
     private void validateProgramStage( ExpressionParser.CompareDateContext ctx, CommonExpressionVisitor visitor )
     {
