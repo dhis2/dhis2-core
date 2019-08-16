@@ -643,8 +643,6 @@ public abstract class DhisConvenienceTest
     public static AttributeValue createAttributeValue( Attribute attribute, String value )
     {
         AttributeValue attributeValue = new AttributeValue( value, attribute );
-        attributeValue.setAutoFields();
-
         return attributeValue;
     }
 

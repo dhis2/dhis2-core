@@ -46,11 +46,7 @@
     </list>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="trackedentitytypeattributevalues" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="trackedentitytypeid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
+    <property name="attributeValues" type="jsbAttributeValues"/>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_trackedentitytype_userid" />

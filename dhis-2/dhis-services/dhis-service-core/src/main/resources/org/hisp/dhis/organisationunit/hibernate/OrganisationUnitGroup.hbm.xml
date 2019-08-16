@@ -58,12 +58,7 @@
     </set>
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="orgunitgroupattributevalues" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="orgunitgroupid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
-
+    <property name="attributeValues" type="jsbAttributeValues"/>
   </class>
 
 </hibernate-mapping>

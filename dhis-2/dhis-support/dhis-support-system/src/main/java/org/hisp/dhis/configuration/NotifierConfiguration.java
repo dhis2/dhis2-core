@@ -69,5 +69,4 @@ public class NotifierConfiguration
     {
         return new InMemoryNotifier();
     }
-
 }

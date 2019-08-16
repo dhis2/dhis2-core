@@ -350,15 +350,16 @@ jQuery.each(attributes, function(i, item) {
 <select multiple="multiple" id="jsonAttributeValues" name="jsonAttributeValues" style="display: none;"></select>
 
 <div id="dynamicAttributesContainer" style="margin-bottom: 10px;">
+
 <table>
 	#foreach( $attribute in $args.attributes )
 		#set( $text = $attribute.displayName )
-		#set( $id = $attribute.id )
+		#set( $id = $attribute.uid )
 		#set( $mandatory = $attribute.mandatory )
     #set( $valueType = $attribute.valueType )
 
-		#if( $!args.attributeValues.get( $attribute.id ) )
-			#set( $value = $!args.attributeValues.get( $attribute.id ) )
+		#if( $!args.attributeValues.get( $id ) )
+			#set( $value = $!args.attributeValues.get( $id ) )
 		#else
 			#set( $value = "" )
 		#end

@@ -28,6 +28,7 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -309,5 +310,26 @@ public class DefaultDataElementService
     public List<DataElementGroupSet> getAllDataElementGroupSets()
     {
         return dataElementGroupSetStore.getAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataElement> getByAttributeAndValue( Attribute attribute, String value )
+    {
+        return dataElementStore.getByAttributeAndValue( attribute, value );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataElement> getByAttribute( Attribute attribute )
+    {
+        return dataElementStore.getByAttribute( attribute );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DataElement getByUniqueAttributeValue( Attribute attribute, String value )
+    {
+        return dataElementStore.getByUniqueAttributeValue( attribute, value );
     }
 }

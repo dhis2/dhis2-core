@@ -26,11 +26,7 @@
         foreign-key="fk_categoryoptioncombo_categoryoptionid" />
     </set>
 
-    <set name="attributeValues" table="categoryoptioncomboattributevalues" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="categoryoptioncomboid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
+    <property name="attributeValues" type="jsbAttributeValues"/>
 
     <property name="ignoreApproval" column="ignoreapproval" />
 

@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.bundle;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,28 +28,32 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
 import org.springframework.core.Ordered;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AttributeValueSchemaDescriptor implements SchemaDescriptor
+public interface TrackerBundleHook extends Ordered
 {
-    public static final String SINGULAR = "attributeValue";
+    default void preCommit( TrackerBundle bundle )
+    {
+    }
 
-    public static final String PLURAL = "attributeValues";
+    default void postCommit( TrackerBundle bundle )
+    {
+    }
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    default void preCreate( Class<?> klass, Object object, TrackerBundle bundle )
+    {
+    }
+
+    default void postCreate( Class<?> klass, Object object, TrackerBundle bundle )
+    {
+    }
 
     @Override
-    public Schema getSchema()
+    default int getOrder()
     {
-        Schema schema = new Schema( AttributeValue.class, SINGULAR, PLURAL );
-        schema.setOrder( Ordered.HIGHEST_PRECEDENCE );
-
-        return schema;
+        return Ordered.LOWEST_PRECEDENCE;
     }
 }

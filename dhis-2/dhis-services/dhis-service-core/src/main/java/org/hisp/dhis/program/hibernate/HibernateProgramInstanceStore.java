@@ -43,6 +43,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -125,7 +126,7 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() +  "pi.lastUpdated >= '" +
+            hql += hlp.whereAnd() + "pi.lastUpdated >= '" +
                 getLongGmtDateString( nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
         else if ( params.hasLastUpdated() )
@@ -223,7 +224,7 @@ public class HibernateProgramInstanceStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
-            .addPredicate( root -> builder.equal( root.get( "program" ), program) )
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
     }
 
@@ -271,6 +272,18 @@ public class HibernateProgramInstanceStore
             .setParameter( "notificationTemplate", template )
             .setParameter( "activeEnrollmentStatus", ProgramStatus.ACTIVE )
             .setParameter( "targetDate", targetDate ).list();
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<ProgramInstance> getByType( ProgramType type )
+    {
+        String hql = "from ProgramInstance pi where pi.program.programType = :type";
+
+        Query query = getQuery( hql );
+        query.setParameter( "type", type );
+
+        return query.list();
     }
 
     private String toDateProperty( NotificationTrigger trigger )

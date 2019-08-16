@@ -30,15 +30,23 @@ package org.hisp.dhis.attribute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.util.Maps;
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.MissingMandatoryAttributeValueException;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,11 +54,12 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -63,26 +72,43 @@ public class DefaultAttributeService
         ( attributeValue ) ->
             attributeValue.getValue() == null && attributeValue.getAttribute().getValueType() == ValueType.TRUE_ONLY;
 
+    private Cache<Attribute> attributeCache;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private final AttributeStore attributeStore;
 
-    private final AttributeValueStore attributeValueStore;
-
     private final IdentifiableObjectManager manager;
 
-    public DefaultAttributeService( AttributeStore attributeStore, AttributeValueStore attributeValueStore,
-        IdentifiableObjectManager manager )
+    private final CacheProvider cacheProvider;
+
+    private SessionFactory sessionFactory;
+
+    private final Environment env;
+
+    public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
+        CacheProvider cacheProvider, SessionFactory sessionFactory, Environment env )
     {
         checkNotNull( attributeStore );
-        checkNotNull( attributeValueStore );
         checkNotNull( manager );
+        checkNotNull( cacheProvider );
 
         this.attributeStore = attributeStore;
-        this.attributeValueStore = attributeValueStore;
         this.manager = manager;
+        this.cacheProvider = cacheProvider;
+        this.sessionFactory = sessionFactory;
+        this.env = env;
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        attributeCache = cacheProvider.newCacheBuilder( Attribute.class )
+            .forRegion( "metadataAttributes" )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -100,6 +126,7 @@ public class DefaultAttributeService
     @Transactional
     public void updateAttribute( Attribute attribute )
     {
+        attributeCache.invalidate( attribute.getUid() );
         attributeStore.update( attribute );
     }
 
@@ -107,6 +134,7 @@ public class DefaultAttributeService
     @Transactional
     public void deleteAttribute( Attribute attribute )
     {
+        attributeCache.invalidate( attribute.getUid() );
         attributeStore.delete( attribute );
     }
 
@@ -121,7 +149,8 @@ public class DefaultAttributeService
     @Transactional(readOnly = true)
     public Attribute getAttribute( String uid )
     {
-        return attributeStore.getByUid( uid );
+        Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
+        return attribute.isPresent() ? attribute.get() : null;
     }
 
     @Override
@@ -174,64 +203,71 @@ public class DefaultAttributeService
     @Transactional
     public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
-        if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
-            !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
+        if ( object == null || attributeValue == null || attributeValue.getAttribute() == null )
         {
             return;
         }
 
-        if ( attributeValue.getAttribute().isUnique() )
-        {
-            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attributeValue.getAttribute(), attributeValue.getValue() );
+        Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
 
-            if ( !values.isEmpty() )
+        if ( Objects.isNull( attribute ) || !attribute.getSupportedClasses().contains( object.getClass() ) )
+        {
+            return;
+        }
+        if ( attribute.isUnique() )
+        {
+
+            if (  !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
             {
                 throw new NonUniqueAttributeValueException( attributeValue );
             }
         }
 
-        attributeValue.setAutoFields();
-        attributeValueStore.save( attributeValue );
         object.getAttributeValues().add( attributeValue );
+        sessionFactory.getCurrentSession().save( object );
     }
 
     @Override
     @Transactional
     public <T extends IdentifiableObject> void updateAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
     {
-        if ( object == null || attributeValue == null || attributeValue.getAttribute() == null ||
-            !attributeValue.getAttribute().getSupportedClasses().contains( object.getClass() ) )
+        Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
+
+        if ( object == null || attributeValue == null || Objects.isNull( attribute )
+            || !attribute.getSupportedClasses().contains( object.getClass() ) )
         {
             return;
         }
 
-        if ( attributeValue.getAttribute().isUnique() )
+        if ( attribute.isUnique() )
         {
-            List<AttributeValue> values = manager.getAttributeValueByAttributeAndValue( object.getClass(), attributeValue.getAttribute(), attributeValue.getValue() );
-
-            if ( values.size() > 1 || (values.size() == 1 && !object.getAttributeValues().contains( values.get( 0 ) )) )
+            if ( !manager.isAttributeValueUnique( object.getClass(), object, attributeValue ) )
             {
                 throw new NonUniqueAttributeValueException( attributeValue );
             }
         }
 
-        attributeValue.setAutoFields();
-        attributeValueStore.update( attributeValue );
-        object.getAttributeValues().add( attributeValue );
+        object.setAttributeValues( object.getAttributeValues().stream()
+                .filter( av -> !av.getAttribute().equals( attribute.getUid() ) ).collect(Collectors.toSet() ) );
+        sessionFactory.getCurrentSession().update( object );
     }
 
     @Override
     @Transactional
-    public void deleteAttributeValue( AttributeValue attributeValue )
+    public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
-        attributeValueStore.delete( attributeValue );
+        object.getAttributeValues()
+                .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
+        manager.update( object );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public AttributeValue getAttributeValue( long id )
+    @Transactional
+    public <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues )
     {
-        return attributeValueStore.get( id );
+        object.getAttributeValues().removeAll( attributeValues );
+
+        manager.update( object );
     }
 
     @Override
@@ -266,13 +302,15 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = iterator.next();
 
+            Attribute attribute = getAttribute( attributeValue.getAttribute().getUid() );
+
             if ( attributeValueMap.containsKey( attributeValue.getAttribute().getUid() ) )
             {
                 AttributeValue av = attributeValueMap.get( attributeValue.getAttribute().getUid() );
 
-                if ( attributeValue.isUnique() )
+                if ( attribute.isUnique() )
                 {
-                    if ( manager.isAttributeValueUnique( object.getClass(), object, attributeValue.getAttribute(), av.getValue() ) )
+                    if ( manager.isAttributeValueUnique( object.getClass(), object, attribute, av.getValue() ) )
                     {
                         attributeValue.setValue( av.getValue() );
                     }
@@ -287,7 +325,7 @@ public class DefaultAttributeService
                 }
 
                 attributeValueMap.remove( attributeValue.getAttribute().getUid() );
-                mandatoryAttributes.remove( attributeValue.getAttribute() );
+                mandatoryAttributes.remove( attributeValue.getAttribute().getUid() );
             }
             else
             {
@@ -299,19 +337,29 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = attributeValueMap.get( uid );
             addAttributeValue( object, attributeValue );
-            mandatoryAttributes.remove( attributeValue.getAttribute() );
+            mandatoryAttributes.remove( attributeValue.getAttribute().getUid() );
         }
+
+        deleteAttributeValues( object, toBeDeleted );
 
         for ( AttributeValue attributeValue : toBeDeleted )
         {
             mandatoryAttributes.remove( attributeValue.getAttribute() );
-            deleteAttributeValue( attributeValue );
         }
+
 
         if ( !mandatoryAttributes.isEmpty() )
         {
             throw new MissingMandatoryAttributeValueException( mandatoryAttributes );
         }
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> void generateAttributes( List<T> entityList )
+    {
+        entityList.forEach( entity -> entity.getAttributeValues()
+            .forEach( attributeValue -> attributeValue.setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
     }
 
     //--------------------------------------------------------------------------------------------------
@@ -323,11 +371,11 @@ public class DefaultAttributeService
     {
         Set<AttributeValue> attributeValues = new HashSet<>();
 
-        Map<Integer, String> attributeValueMap = jsonToMap( jsonAttributeValues );
+        Map<String, String> attributeValueMap = jsonToMap( jsonAttributeValues );
 
-        for ( Map.Entry<Integer, String> entry : attributeValueMap.entrySet() )
+        for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
         {
-            int id = entry.getKey();
+            String id = entry.getKey();
             String value = entry.getValue();
 
             Attribute attribute = getAttribute( id );
@@ -376,10 +424,10 @@ public class DefaultAttributeService
      * Parses raw JSON into a map of ID -> Value.
      * Allows null and empty values (must be handled later).
      */
-    private Map<Integer, String> jsonToMap( List<String> jsonAttributeValues )
+    private Map<String, String> jsonToMap( List<String> jsonAttributeValues )
         throws IOException
     {
-        Map<Integer, String> parsed = new HashMap<>();
+        Map<String, String> parsed = new HashMap<>();
 
         ObjectMapper mapper = new ObjectMapper();
 
@@ -395,7 +443,7 @@ public class DefaultAttributeService
                 continue;
             }
 
-            parsed.put( nId.asInt(), nValue.asText() );
+            parsed.put( nId.asText(), nValue.asText() );
         }
 
         return parsed;

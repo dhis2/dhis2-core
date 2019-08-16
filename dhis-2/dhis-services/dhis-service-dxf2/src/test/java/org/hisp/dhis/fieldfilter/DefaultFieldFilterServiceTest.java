@@ -30,6 +30,7 @@ package org.hisp.dhis.fieldfilter;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.schema.Property;
@@ -71,6 +72,9 @@ public class DefaultFieldFilterServiceTest
     @Mock
     CurrentUserService currentUserService;
 
+    @Mock
+    private AttributeService attributeService;
+
     private DefaultFieldFilterService service;
 
     @Rule
@@ -79,7 +83,7 @@ public class DefaultFieldFilterServiceTest
     @Before
     public void setUp() throws Exception
     {
-        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService, new HashSet<>() );
+        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService, attributeService, new HashSet<>() );
     }
 
     @Test
