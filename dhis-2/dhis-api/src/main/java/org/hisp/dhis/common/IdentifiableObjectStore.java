@@ -222,12 +222,28 @@ public interface IdentifiableObjectStore<T>
     List<T> getByUid( Collection<String> uids );
 
     /**
+     * Retrieves a list of objects referenced by the given collection of uids.
+     *
+     * @param uids a collection of uids.
+     * @return a list of objects.
+     */
+    List<T> getByUid( Collection<String> uids, User user );
+
+    /**
      * Retrieves a list of objects referenced by the given collection of codes.
      *
      * @param codes a collection of codes.
      * @return a list of objects.
      */
     List<T> getByCode( Collection<String> codes );
+
+    /**
+     * Retrieves a list of objects referenced by the given collection of codes.
+     *
+     * @param codes a collection of codes.
+     * @return a list of objects.
+     */
+    List<T> getByCode( Collection<String> codes, User user );
 
     /**
      * Retrieves a list of objects referenced by the given collection of names.
