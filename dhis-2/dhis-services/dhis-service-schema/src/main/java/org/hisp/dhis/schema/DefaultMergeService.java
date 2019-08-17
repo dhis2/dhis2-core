@@ -75,16 +75,10 @@ public class DefaultMergeService implements MergeService
                 continue;
             }
 
-            if ( property.isCollection()  )
+            if ( property.isCollection() )
             {
-                if ( !property.isOwner() )
-                {
-                    continue;
-                }
-
                 Collection<T> sourceObject = ReflectionUtils.invokeMethod( source, property.getGetterMethod() );
                 Collection<T> targetObject = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-
 
                 if ( sourceObject == null )
                 {
