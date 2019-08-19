@@ -1,4 +1,4 @@
-package org.hisp.dhis.external.config;
+package org.hisp.dhis.configuration;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,46 +28,51 @@ package org.hisp.dhis.external.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
-import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.hisp.dhis.external.location.LocationManager;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.*;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.location.DefaultLocationManager;
+import org.springframework.web.WebApplicationInitializer;
 
 /**
- * @author Luciano Fiandesio
+ * Configures cookies to be secure if the {@link ConfigurationKey#SERVER_HTTPS_ONLY} is enabled.
+ *
+ * @author Lars Helge Overland
  */
-@Configuration( "externalServiceConfig" )
-@EnableAsync
-@EnableScheduling
-public class ServiceConfig
+public class SecureCookieConfiguration
+    implements WebApplicationInitializer
 {
-    @Bean
-    public LocationManager locationManager()
+    private static final Log log = LogFactory.getLog( SecureCookieConfiguration.class );
+
+    @Override
+    public void onStartup( ServletContext context )
+        throws ServletException
     {
-        return DefaultLocationManager.getDefault();
+        boolean httpsOnly = getConfig().isEnabled( ConfigurationKey.SERVER_HTTPS );
+
+        log.debug( String.format( "Configuring cookies, HTTPS only: %b", httpsOnly ) );
+
+        if ( httpsOnly )
+        {
+            context.getSessionCookieConfig().setSecure( true );
+            context.getSessionCookieConfig().setHttpOnly( true );
+
+            log.info( "HTTPS only is enabled, cookies configured as secure" );
+        }
     }
 
-    @Bean( "maxAttempts" )
-    public ConfigurationPropertyFactoryBean maxAttempts()
+    private DhisConfigurationProvider getConfig()
     {
-        return new ConfigurationPropertyFactoryBean( META_DATA_SYNC_RETRY );
-    }
+        DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
+        locationManager.init();
+        DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
+        configProvider.init();
 
-    @Bean( "initialInterval" )
-    public ConfigurationPropertyFactoryBean initialInterval()
-    {
-        return new ConfigurationPropertyFactoryBean( META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC );
+        return configProvider;
     }
-
-    @Bean( "sessionTimeout" )
-    public ConfigurationPropertyFactoryBean sessionTimeout()
-    {
-        return new ConfigurationPropertyFactoryBean( SYSTEM_SESSION_TIMEOUT );
-    }
-
 }
