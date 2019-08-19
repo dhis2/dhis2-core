@@ -54,25 +54,28 @@ public class DefaultLocationManager
 
     private String externalDir = null;
 
-    public void setExternalDir( String externalDir )
-    {
-        this.externalDir = externalDir;
-    }
-
     private String environmentVariable;
 
     public void setEnvironmentVariable( String environmentVariable )
     {
         this.environmentVariable = environmentVariable;
     }
-    
+
     private String systemProperty;
 
     public void setSystemProperty( String systemProperty )
     {
         this.systemProperty = systemProperty;
     }
-    
+
+    public static DefaultLocationManager getDefault()
+    {
+        DefaultLocationManager manager = new DefaultLocationManager();
+        manager.setEnvironmentVariable( "DHIS2_HOME" );
+        manager.setSystemProperty( "dhis2.home" );
+        return manager;
+    }
+
     // -------------------------------------------------------------------------
     // Init
     // -------------------------------------------------------------------------
@@ -80,11 +83,11 @@ public class DefaultLocationManager
     public void init()
     {
         String path = System.getProperty( systemProperty );
-        
+
         if ( path != null )
         {
             log.info( "System property " + systemProperty + " points to " + path );
-            
+
             if ( directoryIsValid( new File( path ) ) )
             {
                 externalDir = path;
@@ -93,13 +96,13 @@ public class DefaultLocationManager
         else
         {
             log.info( "System property " + systemProperty + " not set" );
-            
+
             path = System.getenv( environmentVariable );
-            
+
             if ( path != null )
             {
                 log.info( "Environment variable " + environmentVariable + " points to " + path );
-                
+
                 if ( directoryIsValid( new File( path ) ) )
                 {
                     externalDir = path;
@@ -108,13 +111,13 @@ public class DefaultLocationManager
             else
             {
                 log.info( "Environment variable " + environmentVariable + " not set" );
-                
+
                 path = DEFAULT_DHIS2_HOME;
-                
+
                 if ( directoryIsValid( new File( path ) ) )
                 {
                     externalDir = path;
-                    log.info( "Home directory set to " + DEFAULT_DHIS2_HOME );                
+                    log.info( "Home directory set to " + DEFAULT_DHIS2_HOME );
                 }
             }
         }
@@ -140,11 +143,11 @@ public class DefaultLocationManager
         throws LocationManagerException
     {
         File file = getFileForReading( fileName, directories );
-        
+
         try
         {
             InputStream in = new BufferedInputStream( new FileInputStream( file ) );
-            
+
             return in;
         }
         catch ( FileNotFoundException ex )
@@ -169,14 +172,14 @@ public class DefaultLocationManager
         throws LocationManagerException
     {
         File directory = buildDirectory( directories );
-        
+
         File file = new File( directory, fileName );
-        
+
         if ( !canReadFile( file ) )
         {
             throw new LocationManagerException( "File " + file.getAbsolutePath() + " cannot be read" );
         }
-        
+
         return file;
     }
 
@@ -190,17 +193,17 @@ public class DefaultLocationManager
     {
         return getOutputStream( fileName, new String[0] );
     }
-    
+
     @Override
     public OutputStream getOutputStream( String fileName, String... directories )
         throws LocationManagerException
     {
         File file = getFileForWriting( fileName, directories );
-        
+
         try
         {
             OutputStream out = new BufferedOutputStream( new FileOutputStream( file ) );
-            
+
             return out;
         }
         catch ( FileNotFoundException ex )
@@ -208,7 +211,7 @@ public class DefaultLocationManager
             throw new LocationManagerException( "Could not find file", ex );
         }
     }
-    
+
     // -------------------------------------------------------------------------
     // File for writing
     // -------------------------------------------------------------------------
@@ -219,23 +222,23 @@ public class DefaultLocationManager
     {
         return getFileForWriting( fileName, new String[0] );
     }
-    
+
     @Override
     public File getFileForWriting( String fileName, String... directories )
         throws LocationManagerException
     {
         File directory = buildDirectory( directories );
-        
+
         if ( !directoryIsValid( directory ) )
         {
             throw new LocationManagerException( "Directory " + directory.getAbsolutePath() + " cannot be created" );
         }
-        
+
         File file = new File( directory, fileName );
-        
+
         return file;
     }
-    
+
     @Override
     public File buildDirectory( String... directories )
         throws LocationManagerException
@@ -244,14 +247,14 @@ public class DefaultLocationManager
         {
             throw new LocationManagerException( "External directory not set" );
         }
-        
+
         StringBuffer directoryPath = new StringBuffer( externalDir + separator );
-                
+
         for ( String dir : directories )
         {
             directoryPath.append( dir + separator );
         }
-        
+
         return new File( directoryPath.toString() );
     }
 
@@ -267,7 +270,7 @@ public class DefaultLocationManager
         {
             throw new LocationManagerException( "External directory not set" );
         }
-        
+
         return new File( externalDir );
     }
 
@@ -279,7 +282,7 @@ public class DefaultLocationManager
         {
             throw new LocationManagerException( "External directory not set" );
         }
-        
+
         return externalDir;
     }
 
@@ -288,17 +291,17 @@ public class DefaultLocationManager
     {
         return externalDir != null;
     }
-    
+
     @Override
     public String getEnvironmentVariable()
     {
         return environmentVariable;
     }
-    
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-    
+
     /**
      * Tests whether the file exists and can be read by the application.
      */
@@ -307,56 +310,56 @@ public class DefaultLocationManager
         if ( !file.exists() )
         {
             log.info( "File " + file.getAbsolutePath() + " does not exist" );
-            
+
             return false;
         }
-        
+
         if ( !file.canRead() )
         {
             log.info( "File " + file.getAbsolutePath() + " cannot be read" );
-            
+
             return false;
         }
-        
+
         return true;
     }
-    
+
     /**
-     * Tests whether the directory is writable by the application if the directory 
+     * Tests whether the directory is writable by the application if the directory
      * exists. Tries to create the directory including necessary parent directories
      * if the directory does not exists, and tests whether the directory construction
      * was successful and not prevented by a SecurityManager in any way.
      */
-    private boolean directoryIsValid( File directory ) 
+    private boolean directoryIsValid( File directory )
     {
         if ( directory.exists() )
         {
-            if( !directory.canWrite() ) 
+            if( !directory.canWrite() )
             {
-                log.info( "Directory " + directory.getAbsolutePath() + " is not writeable" );                
-                
+                log.info( "Directory " + directory.getAbsolutePath() + " is not writeable" );
+
                 return false;
             }
         }
-        else 
+        else
         {
-            try 
+            try
             {
                 if ( !directory.mkdirs() )
                 {
                     log.info( "Directory " + directory.getAbsolutePath() + " cannot be created" );
-                    
+
                     return false;
                 }
-            } 
-            catch ( SecurityException ex ) 
+            }
+            catch ( SecurityException ex )
             {
                 log.info( "Directory " + directory.getAbsolutePath() + " cannot be accessed" );
-                
-                return false;                
+
+                return false;
             }
         }
-        
+
         return true;
     }
 }
