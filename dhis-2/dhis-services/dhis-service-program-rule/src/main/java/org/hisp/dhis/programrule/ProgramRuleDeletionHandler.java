@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,10 +30,14 @@ package org.hisp.dhis.programrule;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author markusbekken
  */
+@Component( "org.hisp.dhis.programrule.ProgramRuleDeletionHandler" )
 public class ProgramRuleDeletionHandler
     extends DeletionHandler 
 {
@@ -41,10 +45,12 @@ public class ProgramRuleDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramRuleService programRuleService;
+    private final ProgramRuleService programRuleService;
 
-    public void setProgramRuleService( ProgramRuleService programRuleService )
+    public ProgramRuleDeletionHandler( ProgramRuleService programRuleService )
     {
+        checkNotNull( programRuleService );
+
         this.programRuleService = programRuleService;
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 
 import java.util.Collection;
 import java.util.Date;
@@ -84,6 +85,9 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value );
 
+    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value,
+        UserInfo currentUserInfo );
+
     <T extends IdentifiableObject> T search( Class<T> clazz, String query );
 
     <T extends IdentifiableObject> List<T> filter( Class<T> clazz, String query );
@@ -97,6 +101,8 @@ public interface IdentifiableObjectManager
     <T extends IdentifiableObject> List<T> getAllSorted( Class<T> clazz );
 
     <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes );
+
+    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
 
@@ -150,9 +156,7 @@ public interface IdentifiableObjectManager
 
     void evict( Object object );
 
-    <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute );
-
-    <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
+    <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
 
     <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object, AttributeValue attributeValue );
 
@@ -163,6 +167,8 @@ public interface IdentifiableObjectManager
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
 
     <T extends IdentifiableObject> List<T> get( Class<T> clazz, Collection<String> uids );
+
+    <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids );
 
     boolean isDefault( IdentifiableObject object );
 

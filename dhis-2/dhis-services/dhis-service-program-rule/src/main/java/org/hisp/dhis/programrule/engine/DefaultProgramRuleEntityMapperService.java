@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,17 +54,19 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 19.10.17.
  */
-
 @Transactional( readOnly = true )
+@Service( "org.hisp.dhis.programrule.engine.ProgramRuleEntityMapperService" )
 public class DefaultProgramRuleEntityMapperService
     implements ProgramRuleEntityMapperService
 {
@@ -119,15 +121,16 @@ public class DefaultProgramRuleEntityMapperService
     // -------------------------------------------------------------------------
 
     private final ProgramRuleService programRuleService;
-
     private final ProgramRuleVariableService programRuleVariableService;
-
     private final DataElementService dataElementService;
 
-    @Autowired
-    public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
-        DataElementService dataElementService )
+    public DefaultProgramRuleEntityMapperService( ProgramRuleService programRuleService,
+        ProgramRuleVariableService programRuleVariableService, DataElementService dataElementService )
     {
+        checkNotNull( programRuleService );
+        checkNotNull( programRuleVariableService );
+        checkNotNull( dataElementService );
+
         this.programRuleService = programRuleService;
         this.programRuleVariableService = programRuleVariableService;
         this.dataElementService = dataElementService;

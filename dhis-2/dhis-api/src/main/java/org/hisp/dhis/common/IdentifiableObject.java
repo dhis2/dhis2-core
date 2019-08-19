@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
@@ -66,6 +67,8 @@ public interface IdentifiableObject
     User getLastUpdatedBy();
 
     Set<AttributeValue> getAttributeValues();
+
+    void setAttributeValues( Set<AttributeValue> attributeValues );
 
     Set<Translation> getTranslations();
     

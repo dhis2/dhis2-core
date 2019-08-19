@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.dataset.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -38,7 +39,10 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.sql.ResultSet;
@@ -46,9 +50,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Repository( "org.hisp.dhis.dataset.LockExceptionStore" )
 public class HibernateLockExceptionStore
     extends HibernateGenericStore<LockException>
     implements LockExceptionStore
@@ -59,15 +66,17 @@ public class HibernateLockExceptionStore
 
     private DataSetStore dataSetStore;
 
-    public void setDataSetStore( DataSetStore dataSetStore )
-    {
-        this.dataSetStore = dataSetStore;
-    }
-
     private PeriodService periodService;
 
-    public void setPeriodService( PeriodService periodService )
+    public HibernateLockExceptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, DataSetStore dataSetStore, PeriodService periodService )
     {
+        super( sessionFactory, jdbcTemplate, publisher, LockException.class, false );
+
+        checkNotNull( dataSetStore );
+        checkNotNull( periodService );
+
+        this.dataSetStore = dataSetStore;
         this.periodService = periodService;
     }
 
@@ -175,12 +184,12 @@ public class HibernateLockExceptionStore
             .addPredicate( root -> builder.equal( root.get( "organisationUnit" ), organisationUnit ) )
             .addPredicate( root -> builder.equal( root.get( "dataSet" ), dataSet ) ) );
     }
-    
+
     @Override
     public boolean anyExists()
     {
         String hql = "from LockException";
-        
+
         return getQuery( hql )
             .setMaxResults( 1 )
             .list().size() > 0;

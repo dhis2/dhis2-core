@@ -1,7 +1,7 @@
 package org.hisp.dhis.condition;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,26 @@ package org.hisp.dhis.condition;
  */
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * Condition that matches to true if redis.enabled property is set to true in
- * dhis.conf
+ * dhis.conf.
  *
  * @author Ameen Mohamed
  *
  */
-public class RedisEnabledCondition implements ConfigurationCondition
+public class RedisEnabledCondition extends PropertiesAwareConfigurationCondition
 {
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        DhisConfigurationProvider dhisConfigurationProvider = (DhisConfigurationProvider) context.getBeanFactory()
-            .getBean( "dhisConfigurationProvider" );
-        return dhisConfigurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+        if ( !isTestRun( context ) )
+        {
+            return getConfiguration().getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+        }
+        return false;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.document;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,13 +66,6 @@ public interface DocumentService
     Document getDocument( String uid );
 
     /**
-     * Deletes a Document.
-     *
-     * @param document the Document to delete.
-     */
-    void deleteDocument( Document document );
-
-    /**
      * Used when removing a file reference from a Document.
      * @param document
      */
@@ -85,22 +78,10 @@ public interface DocumentService
      */
     List<Document> getAllDocuments();
 
-    /**
-     * Retrieves the Document with the given name.
-     *
-     * @param name the name of the Document.
-     * @return the Document.
-     */
-    List<Document> getDocumentByName( String name );
-
-    List<Document> getDocumentsBetween( int first, int max );
-
-    List<Document> getDocumentsBetweenByName( String name, int first, int max );
-
     int getDocumentCount();
 
     int getDocumentCountByName( String name );
-    
+
     List<Document> getDocumentsByUid( List<String> uids );
 
     long getCountDocumentByUser( User user );

@@ -51,6 +51,10 @@
     <!-- Web -->
 
     <dependency>
+      <groupId>com.alibaba.spring</groupId>
+      <artifactId>spring-webmvc-velocity</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.apache.struts</groupId>
       <artifactId>struts2-core</artifactId>
     </dependency>
@@ -74,17 +78,17 @@
       <groupId>org.springframework.mobile</groupId>
       <artifactId>spring-mobile-device</artifactId>
     </dependency>
-    
-      <!--Spring Session and Redis -->
 
-	<dependency>
-	  <groupId>org.springframework.session</groupId>
-	  <artifactId>spring-session-data-redis</artifactId>
-	</dependency>
-	<dependency>
-	  <groupId>biz.paluch.redis</groupId>
-	  <artifactId>lettuce</artifactId>
-	</dependency>
+    <!--Spring Session and Redis -->
+
+    <dependency>
+      <groupId>org.springframework.session</groupId>
+      <artifactId>spring-session-data-redis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>biz.paluch.redis</groupId>
+      <artifactId>lettuce</artifactId>
+    </dependency>
 
     <!-- Other -->
 

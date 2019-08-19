@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ public interface TrackedEntityInstanceStore
 
     List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params );
+    int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params );
 
     /**
      * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into account.

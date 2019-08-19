@@ -1,3 +1,5 @@
+package org.hisp.dhis.organisationunit;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -25,8 +27,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.POINT;
 import static org.junit.Assert.fail;
@@ -63,7 +63,7 @@ public class OrganisationUnitStoreIntegrationTest extends IntegrationTestBase
     @Override
     public boolean emptyDatabaseAfterTest()
     {
-        return false;
+        return true;
     }
 
     @Test

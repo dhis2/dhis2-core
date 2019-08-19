@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,8 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -52,9 +53,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dataset.DataSetService" )
 public class DefaultDataSetService
     implements DataSetService
 {
@@ -62,29 +66,27 @@ public class DefaultDataSetService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataSetStore dataSetStore;
+    private final DataSetStore dataSetStore;
 
-    public void setDataSetStore( DataSetStore dataSetStore )
-    {
-        this.dataSetStore = dataSetStore;
-    }
+    private final LockExceptionStore lockExceptionStore;
 
-    private LockExceptionStore lockExceptionStore;
+    private final DataApprovalService dataApprovalService;
 
-    public void setLockExceptionStore( LockExceptionStore lockExceptionStore )
-    {
-        this.lockExceptionStore = lockExceptionStore;
-    }
-
-    private DataApprovalService dataApprovalService;
-
-    public void setDataApprovalService( DataApprovalService dataApprovalService )
-    {
-        this.dataApprovalService = dataApprovalService;
-    }
-
-    @Autowired
     private CurrentUserService currentUserService;
+
+    public DefaultDataSetService(DataSetStore dataSetStore, LockExceptionStore lockExceptionStore,
+                                 @Lazy DataApprovalService dataApprovalService, CurrentUserService currentUserService )
+    {
+        checkNotNull( dataSetStore );
+        checkNotNull( lockExceptionStore );
+        checkNotNull( dataApprovalService );
+        checkNotNull( currentUserService );
+
+        this.dataSetStore = dataSetStore;
+        this.lockExceptionStore = lockExceptionStore;
+        this.dataApprovalService = dataApprovalService;
+        this.currentUserService = currentUserService;
+    }
 
     // -------------------------------------------------------------------------
     // DataSet

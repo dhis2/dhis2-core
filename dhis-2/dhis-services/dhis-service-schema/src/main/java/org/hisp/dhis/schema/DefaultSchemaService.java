@@ -1,7 +1,7 @@
 package org.hisp.dhis.schema;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,11 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.stream.Collectors.toSet;
-
-import java.util.*;
-
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
@@ -44,18 +45,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.OrderComparator;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com> descriptors
  */
+@Service( "org.hisp.dhis.schema.SchemaService" )
 public class DefaultSchemaService
     implements SchemaService
 {
@@ -63,7 +68,6 @@ public class DefaultSchemaService
         add( new MetadataVersionSchemaDescriptor() ).
         add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
-        add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).
         add( new CategoryOptionComboSchemaDescriptor() ).
         add( new CategoryOptionGroupSchemaDescriptor() ).
@@ -132,6 +136,7 @@ public class DefaultSchemaService
         add( new SectionSchemaDescriptor() ).
         add( new SqlViewSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
+        add( new TrackedEntityAttributeValueSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
         add( new TrackedEntityInstanceFilterSchemaDescriptor() ).
         add( new TrackedEntityTypeSchemaDescriptor() ).
@@ -186,9 +191,8 @@ public class DefaultSchemaService
     public DefaultSchemaService( PropertyIntrospectorService propertyIntrospectorService,
         SessionFactory sessionFactory )
     {
-
-        Preconditions.checkNotNull( propertyIntrospectorService );
-        Preconditions.checkNotNull( sessionFactory );
+        checkNotNull( propertyIntrospectorService );
+        checkNotNull( sessionFactory );
 
         this.propertyIntrospectorService = propertyIntrospectorService;
         this.sessionFactory = sessionFactory;

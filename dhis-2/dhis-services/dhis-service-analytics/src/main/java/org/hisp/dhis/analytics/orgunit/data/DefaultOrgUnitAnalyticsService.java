@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.orgunit.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.orgunit.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
@@ -59,20 +60,18 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService" )
 public class DefaultOrgUnitAnalyticsService
     implements OrgUnitAnalyticsService
 {
     private static final Log log = LogFactory.getLog( DefaultOrgUnitAnalyticsService.class );
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private OrgUnitAnalyticsManager analyticsManager;
+    private final OrgUnitAnalyticsManager analyticsManager;
 
-    private OrgUnitQueryPlanner queryPlanner;
+    private final OrgUnitQueryPlanner queryPlanner;
 
-    //TODO Add outputIdScheme support
-
-    @Autowired
     public DefaultOrgUnitAnalyticsService( IdentifiableObjectManager idObjectManager,
         OrgUnitAnalyticsManager analyticsManager, OrgUnitQueryPlanner queryPlanner )
     {
@@ -174,11 +173,11 @@ public class DefaultOrgUnitAnalyticsService
         Map<String, Object> metadata = new HashMap<>();
         Map<String, Object> items = new HashMap<>();
 
-        params.getOrgUnits().stream()
+        params.getOrgUnits()
             .forEach( ou -> items.put( ou.getUid(), new MetadataItem( ou.getDisplayName() ) ) );
         params.getOrgUnitGroupSets().stream()
-            .map( ougs -> ougs.getOrganisationUnitGroups() )
-            .flatMap( oug -> oug.stream() )
+            .map(OrganisationUnitGroupSet::getOrganisationUnitGroups)
+            .flatMap(Collection::stream)
             .forEach( oug -> items.put( oug.getUid(), new MetadataItem( oug.getDisplayName() ) ) );
 
         metadata.put( "items", items );

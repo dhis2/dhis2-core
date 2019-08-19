@@ -13,7 +13,7 @@ You can download pre-built WAR files from the [continuous integration server](ht
 
 You can explore various demos of DHIS 2 in the [play environment](https://play.dhis2.org/).
 
-For support and disussions visit the [community forum](https://community.dhis2.org/).
+For support and discussions visit the [community forum](https://community.dhis2.org/).
 
 For general info please visit the [project web page](https://www.dhis2.org/).
 
@@ -29,4 +29,4 @@ To build it you must first install the root POM file, navigate to the dhis-web d
 
 Check [contributing](https://github.com/dhis2/dhis2-core/blob/master/CONTRIBUTING.md) for the procedure to make it run locally.
 
-[![Build Status](https://travis-ci.org/dhis2/dhis2-core.svg?branch=master)](https://travis-ci.org/dhis2/dhis2-core)
+[![Build Status](https://travis-ci.com/dhis2/dhis2-core.svg?branch=master)](https://travis-ci.org/dhis2/dhis2-core)

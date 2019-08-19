@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.data;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_END_DATE_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.PERIOD_START_DATE_ID;
@@ -40,8 +41,6 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.annotation.Resource;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
@@ -60,11 +59,11 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import com.google.api.client.util.Lists;
 
 /**
  * Class responsible for retrieving raw data from the
@@ -72,6 +71,7 @@ import com.google.api.client.util.Lists;
  *
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.analytics.RawAnalyticsManager" )
 public class JdbcRawAnalyticsManager
     implements RawAnalyticsManager
 {
@@ -79,8 +79,13 @@ public class JdbcRawAnalyticsManager
 
     private static final String DIM_NAME_OU = "ou.path";
 
-    @Resource( name = "readOnlyJdbcTemplate" )
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public JdbcRawAnalyticsManager( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( jdbcTemplate );
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // RawAnalyticsManager implementation
@@ -97,8 +102,8 @@ public class JdbcRawAnalyticsManager
 
         if ( params.isIncludePeriodStartEndDates() )
         {
-            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, Lists.newArrayList() ) );
-            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, Lists.newArrayList() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, new ArrayList<>() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, new ArrayList<>() ) );
         }
 
         String sql = getSelectStatement( params, dimensions );

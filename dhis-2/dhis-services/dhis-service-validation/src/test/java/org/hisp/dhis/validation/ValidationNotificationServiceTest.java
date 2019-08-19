@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,10 +48,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.ValidationNotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.DefaultPeriodService;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.QuarterlyPeriodType;
+import org.hisp.dhis.period.*;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.notification.DefaultValidationNotificationService;
@@ -59,7 +56,6 @@ import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -71,7 +67,6 @@ import com.google.common.collect.Sets;
  * The actual rendering of the messages is not tested here, only the logic
  * responsible for generating and sending the messages/summaries for each recipient.
  * <p>
- * See {@link org.hisp.dhis.notification.BaseNotificationMessageRendererTest}.
  *
  * @author Halvdan Hoem Grelland
  */
@@ -93,10 +88,15 @@ public class ValidationNotificationServiceTest
     @Mock
     private MessageService messageService;
 
+    @Mock
+    private ValidationResultService validationResultService;
+
+    @Mock
+    private PeriodStore periodStore;
+
     private DefaultPeriodService periodService;
 
-    @InjectMocks
-    private DefaultValidationNotificationService service;
+    private DefaultValidationNotificationService subject;
 
     private List<MockMessage> sentMessages;
 
@@ -131,17 +131,20 @@ public class ValidationNotificationServiceTest
     @Before
     public void initTest()
     {
-        this.periodService = new DefaultPeriodService();
+
+        subject = new DefaultValidationNotificationService(renderer, messageService, validationResultService);
+
+        this.periodService = new DefaultPeriodService(periodStore);
 
         sentMessages = new ArrayList<>();
 
         when(
-                messageService.sendValidationMessage( anySet( ), anyString(), anyString(), any( MessageConversationPriority.class ) )
+            messageService.sendValidationMessage( anySet( ), anyString(), anyString(), any( MessageConversationPriority.class ) )
         ).then( invocation ->
-                {
-                    sentMessages.add( new MockMessage( invocation.getArguments() ) );
-                    return 42l;
-                }
+            {
+                sentMessages.add( new MockMessage( invocation.getArguments() ) );
+                return 42L;
+            }
         );
 
         // Stub renderer
@@ -160,7 +163,7 @@ public class ValidationNotificationServiceTest
     public void testNoValidationResultsCausesNoNotificationsSent() {
         Set<ValidationResult> emptyResultsSet = Collections.emptySet();
 
-        service.sendNotifications( emptyResultsSet );
+        subject.sendNotifications( emptyResultsSet );
 
         assertTrue( "No messages should have been sent but was " + sentMessages.size(), sentMessages.isEmpty() );
     }
@@ -170,7 +173,7 @@ public class ValidationNotificationServiceTest
         setUpEntitiesA();
         ValidationResult validationResult = createValidationResultA();
 
-        service.sendNotifications( Sets.newHashSet( validationResult ) );
+        subject.sendNotifications( Sets.newHashSet( validationResult ) );
 
         assertEquals( "A single message should have been sent", 1, sentMessages.size() );
     }
@@ -183,7 +186,7 @@ public class ValidationNotificationServiceTest
 
         ValidationResult validationResult = createValidationResultA();
 
-        service.sendNotifications( Sets.newHashSet( validationResult ) );
+        subject.sendNotifications( Sets.newHashSet( validationResult ) );
 
         assertEquals( 1, sentMessages.size() );
         assertEquals( 2, sentMessages.get( 0 ).recipients.size() );
@@ -198,7 +201,7 @@ public class ValidationNotificationServiceTest
             .map( i -> createValidationResultA() )
             .collect( Collectors.toSet() );
 
-        service.sendNotifications( results );
+        subject.sendNotifications( results );
 
         assertEquals( "The validation results should form a single summarized message", 1, sentMessages.size() );
 
@@ -251,7 +254,7 @@ public class ValidationNotificationServiceTest
 
         final ValidationResult validationResult = createValidationResult( lvlOneLeft, rule );
 
-        service.sendNotifications( Sets.newHashSet( validationResult ) );
+        subject.sendNotifications( Sets.newHashSet( validationResult ) );
 
         assertEquals( 1, sentMessages.size() );
 
@@ -327,7 +330,7 @@ public class ValidationNotificationServiceTest
 
         // One
 
-        service.sendNotifications( Sets.newHashSet( resultFromMiddleLeft ) );
+        subject.sendNotifications( Sets.newHashSet( resultFromMiddleLeft ) );
 
         assertEquals( 1, sentMessages.size() );
 
@@ -343,7 +346,7 @@ public class ValidationNotificationServiceTest
         // Add the second group (with user F) to the recipients
         template.getRecipientUserGroups().add( ugB );
 
-        service.sendNotifications( Sets.newHashSet( resultFromMiddleLeft ) );
+        subject.sendNotifications( Sets.newHashSet( resultFromMiddleLeft ) );
 
         assertEquals( 1, sentMessages.size() );
         rcpt = sentMessages.iterator().next().recipients;
@@ -360,7 +363,7 @@ public class ValidationNotificationServiceTest
 
         final ValidationResult resultFromBottomLeft = createValidationResult( lvlTwoLeftLeft, rule );
 
-        service.sendNotifications( Sets.newHashSet( resultFromBottomLeft ) );
+        subject.sendNotifications( Sets.newHashSet( resultFromBottomLeft ) );
 
         assertEquals( 1, sentMessages.size() );
 

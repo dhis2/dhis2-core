@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -233,7 +233,7 @@ public class GatewayAdministrationServiceTest
         subject.addGateway( bulkConfig );
         subject.addGateway( clickatellConfig );
 
-        String bulkId = subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
+        subject.getGatewayConfigurationMap().get( BULKSMS ).getUid();
         String clickatelId = subject.getGatewayConfigurationMap().get( CLICKATELL ).getUid();
 
         assertEquals( bulkConfig, subject.getDefaultGateway() );

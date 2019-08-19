@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,9 +64,9 @@ public class AnalyticsTable
     private Program program;
 
     /**
-     * Analytics partition tables for this base analytics table.
+     * Analytics table partitions for this base analytics table.
      */
-    private List<AnalyticsTablePartition> partitionTables = new UniqueArrayList<>();
+    private List<AnalyticsTablePartition> tablePartitions = new UniqueArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -105,8 +105,9 @@ public class AnalyticsTable
     {
         Assert.notNull( year, "Year must be specified" );
 
-        AnalyticsTablePartition partitionTable = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
-        this.partitionTables.add( partitionTable );
+        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
+        this.tablePartitions.add( tablePartition );
+
         return this;
     }
 
@@ -146,7 +147,7 @@ public class AnalyticsTable
 
     public boolean hasPartitionTables()
     {
-        return !partitionTables.isEmpty();
+        return !tablePartitions.isEmpty();
     }
 
     // -------------------------------------------------------------------------
@@ -173,9 +174,9 @@ public class AnalyticsTable
         return program;
     }
 
-    public List<AnalyticsTablePartition> getPartitionTables()
+    public List<AnalyticsTablePartition> getTablePartitions()
     {
-        return partitionTables;
+        return tablePartitions;
     }
 
     // -------------------------------------------------------------------------
@@ -242,6 +243,6 @@ public class AnalyticsTable
     @Override
     public String toString()
     {
-        return "[Table name: " + getTableName() + ", partitions: " + partitionTables + "]";
+        return "[Table name: " + getTableName() + ", partitions: " + tablePartitions + "]";
     }
 }

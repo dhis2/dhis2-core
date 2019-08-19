@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
+import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -38,6 +37,8 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -46,12 +47,14 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -66,8 +69,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
-
 /**
  * Note that it is required for nameable object stores to have concrete implementation
  * classes, not rely on the HibernateIdentifiableObjectStore class, in order to
@@ -75,6 +76,7 @@ import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
  *
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.common.IdentifiableObjectManager" )
 public class DefaultIdentifiableObjectManager
     implements IdentifiableObjectManager
 {
@@ -83,39 +85,61 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private static Cache<Class<? extends IdentifiableObject>, IdentifiableObject> DEFAULT_OBJECT_CACHE;
+    private static Cache<IdentifiableObject> DEFAULT_OBJECT_CACHE;
 
-    @Autowired
-    private Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
+    private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
-    @Autowired
-    private Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores;
+    private final Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    protected SchemaService schemaService;
+    protected final SchemaService schemaService;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
-    @PostConstruct
-    public void init()
-    {
-        DEFAULT_OBJECT_CACHE = Caffeine.newBuilder()
-            .expireAfterAccess( 2, TimeUnit.HOURS )
-            .initialCapacity( 4 )
-            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
-            .build();
-    }
+    private final CacheProvider cacheProvider;
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
+
+
+    public DefaultIdentifiableObjectManager(
+        Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
+        Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
+        SessionFactory sessionFactory, CurrentUserService currentUserService, SchemaService schemaService,
+        Environment env, CacheProvider cacheProvider )
+    {
+        checkNotNull( identifiableObjectStores );
+        checkNotNull( dimensionalObjectStores );
+        checkNotNull( sessionFactory );
+        checkNotNull( currentUserService );
+        checkNotNull( schemaService );
+        checkNotNull( env );
+        checkNotNull( cacheProvider );
+
+        this.identifiableObjectStores = identifiableObjectStores;
+        this.dimensionalObjectStores = dimensionalObjectStores;
+        this.sessionFactory = sessionFactory;
+        this.currentUserService = currentUserService;
+        this.schemaService = schemaService;
+        this.env = env;
+        this.cacheProvider = cacheProvider;
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
+            .forRegion( "defaultObjectCache" )
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .withInitialCapacity( 4 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
+            .build();
+    }
 
     //--------------------------------------------------------------------------
     // IdentifiableObjectManager implementation
@@ -340,6 +364,21 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
+    public <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
+
+        if ( store == null )
+        {
+            return null;
+        }
+
+        return (List<T>) store.getByUidNoAcl( uids );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> T getByCode( Class<T> clazz, String code )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
@@ -369,8 +408,16 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value )
+    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
+        String value )
+    {
+       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
+        String value, UserInfo currentUserInfo )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -379,7 +426,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value );
+        return (T) store.getByUniqueAttributeValue( attribute, value, currentUserInfo );
     }
 
     @Override
@@ -509,6 +556,27 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getAllByAttributes( attributes );
+    }
+
+    @Override
+    @Transactional( readOnly = true)
+    public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return  store.getAllValuesByAttributes( attributes );
     }
 
     @Override
@@ -979,28 +1047,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute )
-    {
-        Schema schema = schemaService.getDynamicSchema( klass );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
-
-        if ( store == null )
-        {
-            return null;
-        }
-
-        return store.getAttributeValueByAttribute( attribute );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
+    public <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -1016,7 +1063,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return store.getAttributeValueByAttributeAndValue( attribute, value );
+        return store.getByAttributeAndValue( attribute, value );
     }
 
     @Override
@@ -1039,10 +1086,10 @@ public class DefaultIdentifiableObjectManager
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         return new ImmutableMap.Builder<Class<? extends IdentifiableObject>, IdentifiableObject>()
-            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class, key -> getByName( Category.class, "default" ) ) )
-            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class, key -> getByName( CategoryCombo.class, "default" ) ) )
-            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class, key -> getByName( CategoryOption.class, "default" ) ) )
-            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class, key -> getByName( CategoryOptionCombo.class, "default" ) ) )
+            .put( Category.class, DEFAULT_OBJECT_CACHE.get( Category.class.getName(), key -> getByName( Category.class, "default" ) ).orElse( null ) )
+            .put( CategoryCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(), key -> getByName( CategoryCombo.class, "default" ) ).orElse( null ) )
+            .put( CategoryOption.class, DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(), key -> getByName( CategoryOption.class, "default" ) ).orElse( null ) )
+            .put( CategoryOptionCombo.class, DEFAULT_OBJECT_CACHE.get( CategoryOptionCombo.class.getName(), key -> getByName( CategoryOptionCombo.class, "default" ) ).orElse( null ) )
             .build();
     }
 

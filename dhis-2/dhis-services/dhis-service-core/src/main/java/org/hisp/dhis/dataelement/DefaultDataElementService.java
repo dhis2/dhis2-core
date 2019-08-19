@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,20 +28,25 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.period.PeriodType;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Kristian Nordal
  */
+@Service( "org.hisp.dhis.dataelement.DataElementService" )
 public class DefaultDataElementService
     implements DataElementService
 {
@@ -51,22 +56,20 @@ public class DefaultDataElementService
 
     private DataElementStore dataElementStore;
 
-    public void setDataElementStore( DataElementStore dataElementStore )
-    {
-        this.dataElementStore = dataElementStore;
-    }
-
     private IdentifiableObjectStore<DataElementGroup> dataElementGroupStore;
-
-    public void setDataElementGroupStore( IdentifiableObjectStore<DataElementGroup> dataElementGroupStore )
-    {
-        this.dataElementGroupStore = dataElementGroupStore;
-    }
 
     private GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore;
 
-    public void setDataElementGroupSetStore( GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
+    public DefaultDataElementService( DataElementStore dataElementStore,
+        IdentifiableObjectStore<DataElementGroup> dataElementGroupStore,
+        GenericDimensionalObjectStore<DataElementGroupSet> dataElementGroupSetStore )
     {
+        checkNotNull( dataElementStore  );
+        checkNotNull( dataElementGroupStore  );
+        checkNotNull( dataElementGroupSetStore  );
+
+        this.dataElementStore = dataElementStore;
+        this.dataElementGroupStore = dataElementGroupStore;
         this.dataElementGroupSetStore = dataElementGroupSetStore;
     }
 
@@ -307,5 +310,26 @@ public class DefaultDataElementService
     public List<DataElementGroupSet> getAllDataElementGroupSets()
     {
         return dataElementGroupSetStore.getAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataElement> getByAttributeAndValue( Attribute attribute, String value )
+    {
+        return dataElementStore.getByAttributeAndValue( attribute, value );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DataElement> getByAttribute( Attribute attribute )
+    {
+        return dataElementStore.getByAttribute( attribute );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public DataElement getByUniqueAttributeValue( Attribute attribute, String value )
+    {
+        return dataElementStore.getByUniqueAttributeValue( attribute, value );
     }
 }

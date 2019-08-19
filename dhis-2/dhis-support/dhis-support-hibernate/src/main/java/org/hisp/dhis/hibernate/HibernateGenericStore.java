@@ -1,7 +1,7 @@
 package org.hisp.dhis.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,21 +28,8 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.persistence.NonUniqueResultException;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
+import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
@@ -57,8 +44,22 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.springframework.beans.factory.annotation.Required;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.hibernate.jsonb.type.JsonAttributeValueBinaryType;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import javax.persistence.NonUniqueResultException;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Order;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -68,22 +69,28 @@ public class HibernateGenericStore<T>
 {
     private static final Log log = LogFactory.getLog( HibernateGenericStore.class );
 
+    public static final String FUNCTION_JSONB_EXTRACT_PATH = "jsonb_extract_path";
+    public static final String FUNCTION_JSONB_EXTRACT_PATH_TEXT = "jsonb_extract_path_text";
+
     protected SessionFactory sessionFactory;
-
-    @Required
-    public void setSessionFactory( SessionFactory sessionFactory )
-    {
-        this.sessionFactory = sessionFactory;
-    }
-
     protected JdbcTemplate jdbcTemplate;
-
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
-    {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
+    protected ApplicationEventPublisher publisher;
     protected Class<T> clazz;
+    protected boolean cacheable;
+
+    public HibernateGenericStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher, Class<T> clazz, boolean cacheable )
+    {
+        checkNotNull( sessionFactory );
+        checkNotNull( jdbcTemplate );
+        checkNotNull( publisher );
+        checkNotNull( clazz );
+
+        this.sessionFactory = sessionFactory;
+        this.jdbcTemplate = jdbcTemplate;
+        this.publisher = publisher;
+        this.clazz = clazz;
+        this.cacheable = cacheable;
+    }
 
     /**
      * Could be overridden programmatically.
@@ -93,17 +100,6 @@ public class HibernateGenericStore<T>
     {
         return clazz;
     }
-
-    /**
-     * Could be injected through container.
-     */
-    @Required
-    public void setClazz( Class<T> clazz )
-    {
-        this.clazz = clazz;
-    }
-
-    protected boolean cacheable = false;
 
     /**
      * Could be overridden programmatically.
@@ -211,7 +207,7 @@ public class HibernateGenericStore<T>
      * @param criteriaQuery
      * @return executable TypedQuery
      */
-    public final TypedQuery<T> getExecutableTypedQuery( CriteriaQuery<T> criteriaQuery )
+    private TypedQuery<T> getExecutableTypedQuery(CriteriaQuery<T> criteriaQuery)
     {
         return getSession()
             .createQuery( criteriaQuery )
@@ -231,7 +227,7 @@ public class HibernateGenericStore<T>
     /**
      * Get single result from executable typedQuery
      *
-     * @param Executable TypedQuery
+     * @param typedQuery TypedQuery
      * @return single object
      */
     protected <V> V getSingleResult( TypedQuery<V> typedQuery )
@@ -361,7 +357,6 @@ public class HibernateGenericStore<T>
     /**
      * Retrieves an object based on the given Jpa Predicates.
      *
-     * @param parameters
      * @return an object of the implementation Class type.
      */
     protected T getSingleResult( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
@@ -419,6 +414,8 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
+
         getSession().delete( object );
     }
 
@@ -444,7 +441,7 @@ public class HibernateGenericStore<T>
     @Override
     public List<T> getAll()
     {
-        return getList( getCriteriaBuilder(), new JpaQueryParameters<T>() );
+        return getList( getCriteriaBuilder(), new JpaQueryParameters<>() );
     }
 
     @Override
@@ -452,10 +449,56 @@ public class HibernateGenericStore<T>
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<T> parameters = new JpaQueryParameters<T>()
-            .addPredicate( root -> root.join( "attributeValues", JoinType.INNER ).get( "attribute" ).in( attributes ) );
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root ).distinct( true );
 
-        return getList( builder, parameters );
+        List<Predicate> predicates = attributes.stream()
+            .map( attribute ->
+                builder.isNotNull(
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                    builder.literal( attribute.getUid() ) ) ) )
+            .collect( Collectors.toList() );
+
+        query.where(  builder.or( predicates.toArray(new Predicate[predicates.size()]) ) ) ;
+
+        return getSession().createQuery( query ).list();
+    }
+
+    @Override
+    public List<AttributeValue> getAllValuesByAttributes( List<Attribute> attributes )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<String> query = builder.createQuery( String.class );
+        Root<T> root = query.from( getClazz() );
+
+        CriteriaBuilder.Coalesce<String> coalesce = builder.coalesce();
+        attributes.stream().forEach( attribute ->
+            coalesce.value(
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
+                    builder.literal( attribute.getUid() )  ) ) );
+
+        query.select( coalesce );
+
+        List<Predicate> predicates = attributes.stream()
+            .map( attribute ->
+                builder.isNotNull(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                        builder.literal( attribute.getUid() ) ) ) )
+            .collect( Collectors.toList() );
+
+        query.where(  builder.or( predicates.toArray( new Predicate[ predicates.size() ] ) ) ) ;
+
+        List<String> result = getSession().createQuery( query ).list();
+
+        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+    }
+
+    @Override
+    public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
+    {
+        return getAllValuesByAttributes( Lists.newArrayList( attribute ) );
     }
 
     @Override
@@ -467,16 +510,29 @@ public class HibernateGenericStore<T>
     }
 
     @Override
-    public List<AttributeValue> getAttributeValueByAttribute( Attribute attribute )
+    public List<T> getByAttribute( Attribute attribute )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
 
         Root<T> root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
-        query.select( root.get( "attributeValues" ) );
-        query.where( builder.equal( joinAttributeValue.get( "attribute" ), attribute ) );
 
+        query.select(root );
+        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ) ).isNotNull()  );
+
+        return getSession().createQuery( query ).list();
+    }
+
+    @Override
+    public List<T> getByAttributeAndValue( Attribute attribute, String value )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root );
+        query.where( builder.equal(
+                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
         return getSession().createQuery( query ).list();
     }
 
@@ -484,31 +540,46 @@ public class HibernateGenericStore<T>
     public List<AttributeValue> getAttributeValueByAttributeAndValue( Attribute attribute, String value )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<AttributeValue> query = builder.createQuery( AttributeValue.class );
 
+        CriteriaQuery<String> query = builder.createQuery( String.class );
         Root<T> root = query.from( getClazz() );
-        Join joinAttributeValue = root.join( ("attributeValues"), JoinType.INNER );
-        query.select( root.get( "attributeValues" ) );
-        query.where(
-            builder.and(
-                builder.equal( joinAttributeValue.get( "attribute" ), attribute ),
-                builder.equal( joinAttributeValue.get( "value" ), value ) ) );
 
+        query.select( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
+            builder.literal( attribute.getUid() ) ) );
+
+        query.where( builder.equal(
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+
+        List<String> result = getSession().createQuery( query ).list();
+
+        return JsonAttributeValueBinaryType.convertListJsonToListObject( result );
+    }
+
+    @Override
+    public List<T> getByAttributeValue( AttributeValue attributeValue )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        CriteriaQuery<T> query = builder.createQuery( getClazz() );
+        Root<T> root = query.from( getClazz() );
+        query.select( root );
+        query.where( builder.equal(
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attributeValue.getAttribute().getUid() ),  builder.literal( "value" ) ) , attributeValue.getValue() ) );
         return getSession().createQuery( query ).list();
     }
 
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, AttributeValue attributeValue )
     {
-        List<AttributeValue> values = getAttributeValueByAttribute( attributeValue.getAttribute() );
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ));
+        List<T> objects = getByAttributeValue( attributeValue );
+        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ) );
     }
 
     @Override
     public <P extends IdentifiableObject> boolean isAttributeValueUnique( P object, Attribute attribute, String value )
     {
-        List<AttributeValue> values = getAttributeValueByAttributeAndValue( attribute, value );
-        return values.isEmpty() || (object != null && values.size() == 1 && object.getAttributeValues().contains( values.get( 0 ) ));
+        List<T> objects = getByAttributeAndValue( attribute, value );
+        return objects.isEmpty() || (object != null && objects.size() == 1 && object.equals( objects.get( 0 ) ) );
     }
 
     /**

@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,24 +30,38 @@ package org.hisp.dhis.analytics.hibernate;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.analytics.AnalyticsTableHookStore;
 import org.hisp.dhis.analytics.AnalyticsTablePhase;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.resourcetable.ResourceTableType;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.analytics.AnalyticsTableHookStore" )
 public class HibernateAnalyticsTableHookStore
     extends HibernateIdentifiableObjectStore<AnalyticsTableHook>
     implements AnalyticsTableHookStore
 {
     private static final Log log = LogFactory.getLog( HibernateAnalyticsTableHookStore.class );
-    
+
+    public HibernateAnalyticsTableHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, AnalyticsTableHook.class, currentUserService, deletedObjectService, aclService, false );
+    }
+
     @Override
     public List<AnalyticsTableHook> getByPhase( AnalyticsTablePhase phase )
     {
@@ -81,7 +95,7 @@ public class HibernateAnalyticsTableHookStore
         for ( AnalyticsTableHook hook : hooks )
         {
             log.info( String.format( "Executing analytics table hook: '%s', '%s'", hook.getUid(), hook.getName() ) );
-            
+
             jdbcTemplate.execute( hook.getSql() );
         }
     }

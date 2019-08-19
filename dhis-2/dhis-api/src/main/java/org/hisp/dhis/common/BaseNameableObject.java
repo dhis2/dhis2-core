@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,6 +105,7 @@ public class BaseNameableObject
      * @param displayProperty the display property.
      * @return the display property.
      */
+    @Override
     @JsonIgnore
     public String getDisplayProperty( DisplayProperty displayProperty )
     {

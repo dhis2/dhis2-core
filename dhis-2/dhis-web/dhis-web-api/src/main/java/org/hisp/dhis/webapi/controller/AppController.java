@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -249,10 +249,13 @@ public class AppController
             throw new WebMessageException( WebMessageUtils.notFound( "App does not exist: " + app ) );
         }
 
-        if ( !appManager.deleteApp( appToDelete, deleteAppData ) )
+        if ( appToDelete.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "There was an error deleting app: " + app ) );
-        }
+            throw new WebMessageException( WebMessageUtils.conflict( "App is already being deleted: " + app ) );
+        } 
+
+        appManager.markAppToDelete( appToDelete ); 
+        appManager.deleteApp( appToDelete, deleteAppData );
     }
 
     @SuppressWarnings( "unchecked" )

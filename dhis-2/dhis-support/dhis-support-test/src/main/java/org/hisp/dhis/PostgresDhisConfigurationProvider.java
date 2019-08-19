@@ -1,3 +1,5 @@
+package org.hisp.dhis;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -26,14 +28,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis;
-
 /**
  * @author Luciano Fiandesio
  */
 public class PostgresDhisConfigurationProvider
-    extends
-        H2DhisConfigurationProvider
+    extends H2DhisConfigurationProvider
 {
-
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -54,9 +55,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Jim Grace
  */
+@Service( "org.hisp.dhis.dataapproval.DataApprovalLevelService" )
 public class DefaultDataApprovalLevelService
     implements DataApprovalLevelService
 {
@@ -66,41 +70,38 @@ public class DefaultDataApprovalLevelService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataApprovalLevelStore dataApprovalLevelStore;
+    private final DataApprovalLevelStore dataApprovalLevelStore;
 
-    public void setDataApprovalLevelStore( DataApprovalLevelStore dataApprovalLevelStore )
-    {
-        this.dataApprovalLevelStore = dataApprovalLevelStore;
-    }
+    private final OrganisationUnitService organisationUnitService;
 
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
-        this.organisationUnitService = organisationUnitService;
-    }
-
-    private CategoryService categoryService;
-
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
+    private final CategoryService categoryService;
 
     private CurrentUserService currentUserService;
 
+    private final AclService aclService;
+
+    public DefaultDataApprovalLevelService( DataApprovalLevelStore dataApprovalLevelStore,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        CurrentUserService currentUserService, AclService aclService )
+    {
+        checkNotNull( dataApprovalLevelStore );
+        checkNotNull( organisationUnitService );
+        checkNotNull( categoryService );
+        checkNotNull( currentUserService );
+        checkNotNull( aclService );
+
+        this.dataApprovalLevelStore = dataApprovalLevelStore;
+        this.organisationUnitService = organisationUnitService;
+        this.categoryService = categoryService;
+        this.currentUserService = currentUserService;
+        this.aclService = aclService;
+    }
+
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
-
-    private AclService aclService;
-
-    public void setAclService( AclService aclService )
-    {
-        this.aclService = aclService;
-    }
-
     // -------------------------------------------------------------------------
     // DataApprovalLevel
     // -------------------------------------------------------------------------

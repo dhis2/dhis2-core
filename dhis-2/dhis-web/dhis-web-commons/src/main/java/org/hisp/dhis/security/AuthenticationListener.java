@@ -1,7 +1,7 @@
 package org.hisp.dhis.security;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.security.authentication.event.AuthenticationSuccessEvent;
+import org.springframework.security.authentication.event.InteractiveAuthenticationSuccessEvent;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -76,8 +78,8 @@ public class AuthenticationListener
         securityService.registerFailedLogin( auth.getName() );
     }
 
-    @EventListener
-    public void handleAuthenticationSuccess( AuthenticationSuccessEvent event )
+    @EventListener({ InteractiveAuthenticationSuccessEvent.class, AuthenticationSuccessEvent.class })
+    public void handleAuthenticationSuccess( AbstractAuthenticationEvent event )
     {
         Authentication auth = event.getAuthentication();
 

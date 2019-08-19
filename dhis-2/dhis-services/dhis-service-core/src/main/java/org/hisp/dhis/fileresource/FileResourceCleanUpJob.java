@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,23 +33,16 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Deletes any orphaned FileResources. Queries for non-assigned or failed-upload
@@ -57,6 +50,7 @@ import java.util.stream.Collectors;
  *
  * @author Halvdan Hoem Grelland
  */
+@Component
 public class FileResourceCleanUpJob
     extends AbstractJob
 {
@@ -66,13 +60,7 @@ public class FileResourceCleanUpJob
     private FileResourceService fileResourceService;
 
     @Autowired
-    private DataValueAuditService dataValueAuditService;
-
-    @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private DataElementService dataElementService;
 
     @Autowired
     private FileResourceContentStore fileResourceContentStore;

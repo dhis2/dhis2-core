@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.pdfform;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -80,10 +80,14 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.RadioCheckField;
 import com.lowagie.text.pdf.TextField;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 /**
  * @author James Chang
  */
+@Service( "pdfDataEntryFormService" )
+@Scope("prototype")
 public class DefaultPdfDataEntryFormService
     implements PdfDataEntryFormService
 {
@@ -366,7 +370,7 @@ public class DefaultPdfDataEntryFormService
         else
         {
             // Default one
-            insertTable_ProgramStageSections( mainTable, rectangle, writer, programStage.getAllDataElements() );
+            insertTable_ProgramStageSections( mainTable, rectangle, writer, programStage.getDataElements() );
         }
     }
 

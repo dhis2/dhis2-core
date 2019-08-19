@@ -1,7 +1,7 @@
 package org.hisp.dhis.organisationunit;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,20 @@ package org.hisp.dhis.organisationunit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+
+import java.awt.geom.Point2D;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -45,83 +56,95 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.PostConstruct;
-import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
-import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+import com.google.common.collect.Sets;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
 public class DefaultOrganisationUnitService
     implements OrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private static Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
+    private static Cache<Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
+    
+    private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private Environment env;
+    private final Environment env;
 
-    public void setEnv( Environment env )
-    {
-        this.env = env;
-    }
+    private final OrganisationUnitStore organisationUnitStore;
 
-    private OrganisationUnitStore organisationUnitStore;
+    private final DataSetService dataSetService;
 
-    public void setOrganisationUnitStore( OrganisationUnitStore organisationUnitStore )
-    {
-        this.organisationUnitStore = organisationUnitStore;
-    }
-
-    private DataSetService dataSetService;
-
-    public void setDataSetService( DataSetService dataSetService )
-    {
-        this.dataSetService = dataSetService;
-    }
-
-    private OrganisationUnitLevelStore organisationUnitLevelStore;
-
-    public void setOrganisationUnitLevelStore( OrganisationUnitLevelStore organisationUnitLevelStore )
-    {
-        this.organisationUnitLevelStore = organisationUnitLevelStore;
-    }
+    private final OrganisationUnitLevelStore organisationUnitLevelStore;
 
     private CurrentUserService currentUserService;
 
+    private final ConfigurationService configurationService;
+
+    private final UserSettingService userSettingService;
+    
+    private final CacheProvider cacheProvider;
+
+    public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
+        DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
+        CurrentUserService currentUserService, ConfigurationService configurationService,  UserSettingService userSettingService,
+        CacheProvider cacheProvider )
+    {
+        checkNotNull( env );
+        checkNotNull( organisationUnitStore );
+        checkNotNull( dataSetService );
+        checkNotNull( organisationUnitLevelStore );
+        checkNotNull( currentUserService );
+        checkNotNull( configurationService );
+        checkNotNull( userSettingService );
+
+        this.env = env;
+        this.organisationUnitStore = organisationUnitStore;
+        this.dataSetService = dataSetService;
+        this.organisationUnitLevelStore = organisationUnitLevelStore;
+        this.currentUserService = currentUserService;
+        this.configurationService = configurationService;
+        this.userSettingService = userSettingService;
+        this.cacheProvider = cacheProvider;
+    }
+
+    /**
+     * Used only by test harness. Remove after test refactoring
+     */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
 
-    private ConfigurationService configurationService;
-
-    public void setConfigurationService( ConfigurationService configurationService )
-    {
-        this.configurationService = configurationService;
-    }
-
     @PostConstruct
     public void init()
     {
-        IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
+        IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserOuHierarchy" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+        
+        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserSearchOuHierarchy" )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -328,11 +351,14 @@ public class DefaultOrganisationUnitService
         int rootLevel = organisationUnit.getLevel();
 
         Integer levels = maxLevels != null ? (rootLevel + maxLevels - 1) : null;
+        SortProperty orderBy = SortProperty.fromValue(
+            userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
         params.setParents( Sets.newHashSet( organisationUnit ) );
         params.setMaxLevels( levels );
         params.setFetchChildren( true );
+        params.setOrderBy( orderBy );
 
         return organisationUnitStore.getOrganisationUnits( params );
     }
@@ -449,9 +475,16 @@ public class DefaultOrganisationUnitService
     @Transactional(readOnly = true)
     public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
     {
-        String cacheKey = joinHyphen( currentUserService.getCurrentUsername(), organisationUnit.getUid() );
+        return isInUserHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( organisationUnit ) );
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) ).get();
     }
 
     @Override
@@ -464,6 +497,41 @@ public class DefaultOrganisationUnitService
         }
 
         return organisationUnit.isDescendant( user.getOrganisationUnits() );
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchy( OrganisationUnit organisationUnit )
+    {
+        return isInUserSearchHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchyCached( OrganisationUnit organisationUnit )
+    {
+        return isInUserSearchHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).get();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit )
+    {
+        if ( user == null || user.getTeiSearchOrganisationUnitsWithFallback() == null || user.getTeiSearchOrganisationUnitsWithFallback().isEmpty() )
+        {
+            return false;
+        }
+
+        return organisationUnit.isDescendant( user.getTeiSearchOrganisationUnitsWithFallback() );
     }
 
     @Override

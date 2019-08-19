@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,9 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
@@ -260,4 +262,13 @@ public interface DataElementService
     DataElementGroupSet getDataElementGroupSetByName( String name );
 
     List<DataElementGroupSet> getAllDataElementGroupSets();
+
+    List<DataElement> getByAttributeAndValue( Attribute attribute, String value );
+
+    List<DataElement> getByAttribute( Attribute attribute );
+
+    DataElement getByUniqueAttributeValue( Attribute attribute, String value );
+
+
+
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dbms;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,9 +79,6 @@ public class HibernateDbmsManager
     @Override
     public void emptyDatabase()
     {
-        emptyTable( "translation" );
-        emptyTable( "importobject" );
-        emptyTable( "importdatavalue" );
         emptyTable( "constant" );
         emptyTable( "sqlview" );
 
@@ -90,7 +87,6 @@ public class HibernateDbmsManager
         emptyTable( "smscommands" );
         emptyTable( "incomingsms" );
 
-        emptyTable( "datavalue_audit" );
         emptyTable( "datavalueaudit" );
         emptyTable( "datavalue" );
         emptyTable( "completedatasetregistration" );
@@ -110,9 +106,7 @@ public class HibernateDbmsManager
         emptyTable( "dashboard" );
 
         emptyTable( "interpretation_comments" );
-        emptyTable( "interpretationcommenttranslations" );
         emptyTable( "interpretationcomment" );
-        emptyTable( "interpretationtranslations" );
         emptyTable( "interpretationusergroupaccesses" );
         emptyTable( "interpretation" );
 
@@ -132,7 +126,6 @@ public class HibernateDbmsManager
         emptyTable( "reporttable_periods" );
         emptyTable( "reporttable_rows" );
         emptyTable( "reporttableusergroupaccesses" );
-        emptyTable( "reporttabletranslations" );
         emptyTable( "reporttable" );
 
         emptyTable( "chart_categorydimensions" );
@@ -146,7 +139,6 @@ public class HibernateDbmsManager
         emptyTable( "chart_orgunitlevels" );
         emptyTable( "chart_periods" );
         emptyTable( "chartusergroupaccesses" );
-        emptyTable( "charttranslations" );
         emptyTable( "chart" );
 
         emptyTable( "eventreport_attributedimensions" );
@@ -161,7 +153,6 @@ public class HibernateDbmsManager
         emptyTable( "eventreport_programindicatordimensions" );
         emptyTable( "eventreport_rows" );
         emptyTable( "eventreportusergroupaccesses" );
-        emptyTable( "eventreporttranslations" );
         emptyTable( "eventreport" );
 
         emptyTable( "eventchart_attributedimensions" );
@@ -176,7 +167,6 @@ public class HibernateDbmsManager
         emptyTable( "eventchart_programindicatordimensions" );
         emptyTable( "eventchart_rows" );
         emptyTable( "eventchartusergroupaccesses" );
-        emptyTable( "eventcharttranslations" );
         emptyTable( "eventchart" );
 
         emptyTable( "dataelementgroupsetdimension_items" );
@@ -191,7 +181,6 @@ public class HibernateDbmsManager
         emptyTable( "users_catdimensionconstraints" );
         emptyTable( "users_cogsdimensionconstraints" );
         emptyTable( "userrolemembers" );
-        emptyTable( "userroledataset" );
         emptyTable( "userroleauthorities" );
         emptyTable( "userdatavieworgunits" );
         emptyTable( "usermembership" );
@@ -205,7 +194,6 @@ public class HibernateDbmsManager
         emptyTable( "orgunitgroup" );
         emptyTable( "orgunitgroupusergroupaccesses" );
 
-        emptyTable( "validationrulegroupusergroupstoalert" );
         emptyTable( "validationrulegroupmembers" );
         emptyTable( "validationrulegroup" );
         emptyTable( "validationrulegroupusergroupaccesses" );
@@ -227,6 +215,7 @@ public class HibernateDbmsManager
         emptyTable( "datasetindicators" );
         emptyTable( "datasetoperands" );
         emptyTable( "datasetusergroupaccesses" );
+        emptyTable( "datasetuseraccesses" );
         emptyTable( "dataset" );
 
         emptyTable( "dataapprovalaudit" );
@@ -247,12 +236,13 @@ public class HibernateDbmsManager
         emptyTable( "programruleaction" );
         emptyTable( "programrule" );
 
+        emptyRelationships();
+
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
         emptyTable( "programstageinstance" );
         emptyTable( "programinstance" );
         emptyTable( "programnotificationtemplate" );
-        emptyTable( "programstage_dataelements" );
         emptyTable( "programstagedataelement" );
         emptyTable( "programstage" );
         emptyTable( "program_organisationunits" );
@@ -269,13 +259,8 @@ public class HibernateDbmsManager
         emptyTable( "trackedentityattribute" );
         emptyTable( "trackedentityinstance" );
         emptyTable( "trackedentitytype" );
-        emptyTable( "trackedentity" );
 
         emptyTable( "minmaxdataelement" );
-        emptyTable( "expressiondataelement" );
-        emptyTable( "expressionsampleelement" );
-        emptyTable( "expressionoptioncombo" );
-        emptyTable( "calculateddataelement" );
 
         emptyTable( "dataelementgroupsetmembers" );
         emptyTable( "dataelementgroupsetusergroupaccesses" );
@@ -302,7 +287,6 @@ public class HibernateDbmsManager
 
         emptyTable( "version" );
         emptyTable( "deletedobject" );
-        emptyTable( "mocksource" );
         emptyTable( "period" );
 
         emptyTable( "indicatorgroupsetmembers" );
@@ -324,6 +308,7 @@ public class HibernateDbmsManager
         emptyTable( "categoryoptiongroupusergroupaccesses" );
         emptyTable( "categoryoptiongroup" );
 
+        emptyTable( "dataelementcategoryoptionuseraccesses" );
         emptyTable( "dataelementcategoryoptionusergroupaccesses" );
 
         emptyTable( "expression" );
@@ -460,11 +445,23 @@ public class HibernateDbmsManager
     {
         try
         {
-            jdbcTemplate.execute( "drop table " + table );
+            jdbcTemplate.execute( "drop table  if exists " + table );
         }
         catch ( BadSqlGrammarException ex )
         {
             log.debug( "Table " + table + " does not exist" );
+        }
+    }
+
+    private void emptyRelationships()
+    {
+        try
+        {
+            jdbcTemplate.update( "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem" );
+        }
+        catch ( BadSqlGrammarException ex )
+        {
+            log.debug( "Could not empty relationship tables" );
         }
     }
 }

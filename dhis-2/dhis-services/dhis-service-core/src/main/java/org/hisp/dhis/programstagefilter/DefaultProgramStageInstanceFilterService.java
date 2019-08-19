@@ -37,13 +37,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-@Transactional
+@Service( "org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService" )
+@Transactional(readOnly = true)
 public class DefaultProgramStageInstanceFilterService implements ProgramStageInstanceFilterService
 {
 
@@ -68,7 +70,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
     // -------------------------------------------------------------------------
     // ProgramStageInstanceFilterService implementation
     // -------------------------------------------------------------------------
-   
+
     @Override
     public List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter )
     {

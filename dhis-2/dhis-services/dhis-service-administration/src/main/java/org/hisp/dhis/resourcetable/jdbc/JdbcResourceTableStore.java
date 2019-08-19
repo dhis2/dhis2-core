@@ -1,7 +1,7 @@
 package org.hisp.dhis.resourcetable.jdbc;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,12 +41,15 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableStore;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.resourcetable.ResourceTableStore" )
 public class JdbcResourceTableStore
     implements ResourceTableStore
 {
@@ -56,19 +59,25 @@ public class JdbcResourceTableStore
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private AnalyticsTableHookService analyticsTableHookService;
+    private final AnalyticsTableHookService analyticsTableHookService;
 
-    @Autowired
-    private DbmsManager dbmsManager;
+    private final DbmsManager dbmsManager;
 
-    @Autowired
-    private StatementBuilder statementBuilder;
+    private final StatementBuilder statementBuilder;
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public JdbcResourceTableStore( AnalyticsTableHookService analyticsTableHookService, DbmsManager dbmsManager,
+        StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( analyticsTableHookService );
+        checkNotNull( dbmsManager );
+        checkNotNull( statementBuilder );
+        checkNotNull( jdbcTemplate );
+
+        this.analyticsTableHookService = analyticsTableHookService;
+        this.dbmsManager = dbmsManager;
+        this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
     }
 

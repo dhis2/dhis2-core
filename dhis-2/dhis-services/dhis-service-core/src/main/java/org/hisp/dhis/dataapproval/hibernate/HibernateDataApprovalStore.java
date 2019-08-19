@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataapproval.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.dataapproval.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataapproval.DataApprovalState.ACCEPTED_HERE;
 import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_ABOVE;
 import static org.hisp.dhis.dataapproval.DataApprovalState.APPROVED_HERE;
@@ -51,6 +52,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -60,7 +62,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
-import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
@@ -75,13 +76,16 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Jim Grace
  */
+@Repository( "org.hisp.dhis.dataapproval.DataApprovalStore" )
 public class HibernateDataApprovalStore
     extends HibernateGenericStore<DataApproval>
     implements DataApprovalStore
@@ -95,11 +99,59 @@ public class HibernateDataApprovalStore
 
     private Cache<Boolean> IS_APPROVED_CACHE;
 
-    @Autowired
-    private CacheProvider cacheProvider;
+    // -------------------------------------------------------------------------
+    // Dependencies
+    // -------------------------------------------------------------------------
 
-    @Autowired
-    private Environment env;
+    private final CacheProvider cacheProvider;
+
+    private final PeriodService periodService;
+
+    private CurrentUserService currentUserService;
+
+    private final CategoryService categoryService;
+
+    private final SystemSettingManager systemSettingManager;
+
+    private final StatementBuilder statementBuilder;
+
+    private final Environment env;
+
+    public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CacheProvider cacheProvider, PeriodService periodService,
+        CurrentUserService currentUserService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager,
+        StatementBuilder statementBuilder, Environment env )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, DataApproval.class, false );
+
+        checkNotNull( cacheProvider );
+        checkNotNull( periodService );
+        checkNotNull( currentUserService );
+        checkNotNull( categoryService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( statementBuilder );
+        checkNotNull( env );
+
+        this.cacheProvider = cacheProvider;
+        this.periodService = periodService;
+        this.currentUserService = currentUserService;
+        this.categoryService = categoryService;
+        this.systemSettingManager = systemSettingManager;
+        this.statementBuilder = statementBuilder;
+        this.env = env;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     *
+     * @param currentUserService
+     */
+    @Deprecated
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     @PostConstruct
     public void init()
@@ -109,48 +161,6 @@ public class HibernateDataApprovalStore
             .expireAfterAccess( 12, TimeUnit.HOURS )
             .withMaximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 20000 ).build();
     }
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    private CategoryService categoryService;
-
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
-    }
-
-    private DataApprovalLevelService dataApprovalLevelService;
-
-    public void setDataApprovalLevelService( DataApprovalLevelService dataApprovalLevelService )
-    {
-        this.dataApprovalLevelService = dataApprovalLevelService;
-    }
-
-    private SystemSettingManager systemSettingManager;
-
-    public void setSystemSettingManager( SystemSettingManager systemSettingManager )
-    {
-        this.systemSettingManager = systemSettingManager;
-    }
-
-    @Autowired
-    private StatementBuilder statementBuilder;
 
     // -------------------------------------------------------------------------
     // DataApproval
@@ -263,7 +273,8 @@ public class HibernateDataApprovalStore
     public List<DataApprovalStatus> getDataApprovalStatuses( DataApprovalWorkflow workflow,
         Period period, Collection<OrganisationUnit> orgUnits, int orgUnitLevel,
         CategoryCombo attributeCombo,
-        Set<CategoryOptionCombo> attributeOptionCombos )
+        Set<CategoryOptionCombo> attributeOptionCombos, List<DataApprovalLevel> userApprovalLevels,
+                                                             Map<Integer, DataApprovalLevel> levelMap )
     {
         // ---------------------------------------------------------------------
         // Get validation criteria
@@ -272,8 +283,6 @@ public class HibernateDataApprovalStore
         final User user = currentUserService.getCurrentUser();
 
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
-
-        List<DataApprovalLevel> userApprovalLevels = dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( user, workflow );
 
         Set<OrganisationUnit> userOrgUnits = user.getDataViewOrganisationUnitsWithFallback();
 
@@ -524,8 +533,6 @@ public class HibernateDataApprovalStore
         // ---------------------------------------------------------------------
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        Map<Integer, DataApprovalLevel> levelMap = dataApprovalLevelService.getDataApprovalLevelMap();
 
         List<DataApprovalStatus> statusList = new ArrayList<>();
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.acl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,13 @@ import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
 
 /**
@@ -53,12 +55,15 @@ import static org.springframework.util.CollectionUtils.containsAny;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service( "org.hisp.dhis.security.acl.AclService" )
 public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
     public DefaultAclService( SchemaService schemaService )
     {
+        checkNotNull( schemaService );
+
         this.schemaService = schemaService;
     }
 
@@ -287,7 +292,7 @@ public class DefaultAclService implements AclService
                 return true;
             }
         }
-        else if ( schema.isImplicitPrivateAuthority() && checkUser( user, object ) )
+        else if ( schema.isImplicitPrivateAuthority() && ( checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ) ) )
         {
             return true;
         }
@@ -553,7 +558,7 @@ public class DefaultAclService implements AclService
         List<ErrorReport> errorReports = new ArrayList<>();
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) )
+        if ( !schema.isImplicitPrivateAuthority() || checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ) )
         {
             return errorReports;
         }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,12 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Criterion;
+import org.hibernate.SessionFactory;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Property;
@@ -62,14 +63,14 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -89,40 +90,46 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 {
     private static final Log log = LogFactory.getLog( HibernateIdentifiableObjectStore.class );
 
-    @Autowired
     protected CurrentUserService currentUserService;
 
+    private DeletedObjectService deletedObjectService;
+
+    protected AclService aclService;
+
+    protected boolean transientIdentifiableProperties = false;
+
+    public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, Class<T> clazz, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, clazz, cacheable );
+
+        checkNotNull( currentUserService );
+        checkNotNull( deletedObjectService );
+        checkNotNull( aclService );
+
+        this.currentUserService = currentUserService;
+        this.deletedObjectService = deletedObjectService;
+        this.aclService = aclService;
+        this.cacheable = cacheable;
+    }
+
     /**
-     * Allows injection (e.g. by a unit test)
+     * Only used by tests, remove after fixing the tests
      */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
 
-    @Autowired
-    protected DeletedObjectService deletedObjectService;
-
-    @Autowired
-    protected AclService aclService;
-
-    private boolean transientIdentifiableProperties = false;
-
     /**
      * Indicates whether the object represented by the implementation does not
      * have persisted identifiable object properties.
      */
-    public boolean isTransientIdentifiableProperties()
+    private boolean isTransientIdentifiableProperties()
     {
         return transientIdentifiableProperties;
-    }
-
-    /**
-     * Can be overridden programmatically or injected through container.
-     */
-    public void setTransientIdentifiableProperties( boolean transientIdentifiableProperties )
-    {
-        this.transientIdentifiableProperties = transientIdentifiableProperties;
     }
 
     // -------------------------------------------------------------------------
@@ -264,7 +271,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         getSession().save( object );
 
-        if ( MetadataObject.class.isInstance( object ) )
+        if (object instanceof MetadataObject )
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
@@ -308,7 +315,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             getSession().update( object );
         }
 
-        if ( MetadataObject.class.isInstance( object ) )
+        if ( object instanceof MetadataObject )
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
@@ -317,7 +324,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void delete( T object )
     {
-        delete( object, currentUserService.getCurrentUser() );
+        this.delete( object, currentUserService.getCurrentUser() );
     }
 
     @Override
@@ -335,7 +342,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( object != null )
         {
-            getSession().delete( object );
+            super.delete( object );
         }
     }
 
@@ -468,11 +475,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> {
-                Join<Object, Object> joinAttrValue = root.join( "attributeValues", JoinType.INNER );
-                Join<Object, Object> joinAttribute = joinAttrValue.join( "attribute", JoinType.INNER );
-                return builder.and( builder.equal( joinAttrValue.get( "value" ), value ), builder.equal( joinAttribute.get( "id" ), attribute.getId() ) );
-            } );
+            .addPredicate( root ->
+                  builder.equal(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+
+        return getSingleResult( builder, param );
+    }
+
+    @Override
+    public T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo )
+    {
+        if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
+        {
+            return null;
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, userInfo ) )
+            .addPredicate( root ->
+                builder.equal(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
 
         return getSingleResult( builder, param );
     }
@@ -776,6 +800,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public List<T> getByUid( Collection<String> uids, User user )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, user ) )
+            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
     public List<T> getByCode( Collection<String> codes )
     {
         if ( codes == null || codes.isEmpty() )
@@ -787,6 +828,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "code" ).in( codes ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
+    public List<T> getByCode( Collection<String> codes, User user )
+    {
+        if ( codes == null || codes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, user ) )
             .addPredicate( root -> root.get( "code" ).in( codes ) );
 
         return getList( builder, jpaQueryParameters );
@@ -919,7 +977,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    protected DetachedCriteria getDataSharingDetachedCriteria( UserInfo user, String access )
+    private DetachedCriteria getDataSharingDetachedCriteria(UserInfo user, String access)
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -973,7 +1031,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * @param access the access string.
      * @return a DetachedCriteria.
      */
-    protected DetachedCriteria getSharingDetachedCriteria( UserInfo user, String access )
+    private DetachedCriteria getSharingDetachedCriteria(UserInfo user, String access)
     {
         DetachedCriteria criteria = DetachedCriteria.forClass( getClazz(), "c" );
 
@@ -1214,60 +1272,40 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // ----------------------------------------------------------------------
 
     /**
-     * Creates a sharing Criteria for the implementation Class type restricted by the
-     * given Criterions.
-     *
-     * @param expressions the Criterions for the Criteria.
-     * @return a Criteria instance.
-     */
-    protected final Criteria getSharingDetachedCriteria( Criterion... expressions )
-    {
-        Criteria criteria = getSharingCriteria();
-
-        for ( Criterion expression : expressions )
-        {
-            criteria.add( expression );
-        }
-
-        criteria.setCacheable( cacheable );
-        return criteria;
-    }
-
-    /**
      * Checks whether the given user has public access to the given identifiable object.
      *
      * @param user               the user.
      * @param identifiableObject the identifiable object.
      * @return true or false.
      */
-    protected boolean checkPublicAccess( User user, IdentifiableObject identifiableObject )
+    private boolean checkPublicAccess(User user, IdentifiableObject identifiableObject)
     {
         return aclService.canMakePublic( user, identifiableObject.getClass() ) ||
             (aclService.canMakePrivate( user, identifiableObject.getClass() ) &&
                 !AccessStringHelper.canReadOrWrite( identifiableObject.getPublicAccess() ));
     }
 
-    protected boolean forceAcl()
+    private boolean forceAcl()
     {
         return Dashboard.class.isAssignableFrom( clazz );
     }
 
-    protected boolean sharingEnabled( User user )
+    private boolean sharingEnabled(User user)
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(user == null || user.isSuper()));
     }
 
-    protected boolean sharingEnabled( UserInfo userInfo )
+    private boolean sharingEnabled(UserInfo userInfo)
     {
         return forceAcl() || (aclService.isShareable( clazz ) && !(userInfo == null || userInfo.isSuper()));
     }
 
-    protected boolean dataSharingEnabled( UserInfo userInfo )
+    private boolean dataSharingEnabled(UserInfo userInfo)
     {
         return aclService.isDataShareable( clazz ) && !userInfo.isSuper();
     }
 
-    protected boolean isReadAllowed( T object, User user )
+    private boolean isReadAllowed(T object, User user)
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1282,7 +1320,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    protected boolean isUpdateAllowed( T object, User user )
+    private boolean isUpdateAllowed(T object, User user)
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {
@@ -1297,7 +1335,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return true;
     }
 
-    protected boolean isDeleteAllowed( T object, User user )
+    private boolean isDeleteAllowed(T object, User user)
     {
         if ( IdentifiableObject.class.isInstance( object ) )
         {

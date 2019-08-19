@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -149,6 +149,7 @@ public class DataElementOperandController
         Query query = queryService.getQueryFromUrl( DataElementOperand.class, filters, orders, options.getRootJunction() );
         query.setDefaultOrder();
         query.setObjects( dataElementOperands );
+
 
         dataElementOperands = (List<DataElementOperand>) queryService.query( query );
         Pager pager = metadata.getPager();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,7 +109,7 @@ public class ValidationRuleController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getExpressionDescriptionRegEx( expression ) );
+            message.setDescription( expressionService.getValidationRuleExpressionDescription( expression ) );
         }
 
         webMessageService.sendJson( message, response );

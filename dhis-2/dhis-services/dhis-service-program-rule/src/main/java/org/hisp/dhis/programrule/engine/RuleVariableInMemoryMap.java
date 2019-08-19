@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@ package org.hisp.dhis.programrule.engine;
  */
 
 
+import org.springframework.stereotype.Component;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,6 +38,7 @@ import java.util.Map;
  * @Author Zubair Asghar.
  */
 
+@Component( "org.hisp.dhis.programrule.engine.RuleVariableInMemoryMap" )
 public class RuleVariableInMemoryMap
 {
     private Map<String, Map<String, String>> variables = new HashMap<>();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.feedback;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -135,6 +135,17 @@ public class ImportReport
     public List<TypeReport> getTypeReports()
     {
         return new ArrayList<>( typeReportMap.values() );
+    }
+    
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "typeReports", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "typeReport", namespace = DxfNamespaces.DXF_2_0 )
+    public void setTypeReports( List<TypeReport> typeReports )
+    {
+        if ( typeReports != null )
+        {
+            typeReports.forEach( tr -> typeReportMap.put( tr.getKlass(), tr ) );
+        }
     }
 
     public Map<Class<?>, TypeReport> getTypeReportMap()

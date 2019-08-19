@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,38 +40,37 @@ import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 
 /**
  * @author Chau Thu Tran
  */
+@Service( "sendScheduledMessageJob" )
 public class SendScheduledMessageJob
     extends AbstractJob
 {
-    private OutboundSmsService outboundSmsService;
+    private final OutboundSmsService outboundSmsService;
+    
+    private final MessageSender smsSender;
 
-    public void setOutboundSmsService( OutboundSmsService outboundSmsService )
+    private final Notifier notifier;
+    
+    public SendScheduledMessageJob( OutboundSmsService outboundSmsService,
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender, Notifier notifier )
     {
+        checkNotNull( outboundSmsService );
+        checkNotNull( smsSender );
+        checkNotNull( notifier );
+
         this.outboundSmsService = outboundSmsService;
-    }
-
-    private MessageSender smsSender;
-
-    public void setSmsSender( MessageSender smsSender )
-    {
         this.smsSender = smsSender;
-    }
-
-    private Notifier notifier;
-
-    @Autowired
-    public void setNotifier( Notifier notifier )
-    {
         this.notifier = notifier;
     }
 

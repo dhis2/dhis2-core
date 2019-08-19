@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,16 +31,25 @@ package org.hisp.dhis.sms.config;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Manages the {@link SmsConfiguration} for the instance.
  */
+@Component( "org.hisp.dhis.sms.config.SmsConfigurationManager" )
 public class DefaultSmsConfigurationManager
     implements SmsConfigurationManager
 {
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
+
+    public DefaultSmsConfigurationManager( SystemSettingManager systemSettingManager )
+    {
+        checkNotNull( systemSettingManager );
+
+        this.systemSettingManager = systemSettingManager;
+    }
 
     @Override
     public SmsConfiguration getSmsConfiguration()

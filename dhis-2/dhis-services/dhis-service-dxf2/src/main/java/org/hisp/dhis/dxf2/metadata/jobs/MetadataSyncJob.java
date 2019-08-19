@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,8 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
@@ -64,6 +64,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  *
  * @author anilkumk
  */
+@Component
 public class MetadataSyncJob
     extends AbstractJob
 {
@@ -79,25 +80,24 @@ public class MetadataSyncJob
 
     private static final Log log = LogFactory.getLog( MetadataSyncJob.class );
 
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    private RetryTemplate retryTemplate;
+    private final RetryTemplate retryTemplate;
 
-    private SynchronizationManager synchronizationManager;
+    private final SynchronizationManager synchronizationManager;
 
-    private MetadataSyncPreProcessor metadataSyncPreProcessor;
+    private final MetadataSyncPreProcessor metadataSyncPreProcessor;
 
-    private MetadataSyncPostProcessor metadataSyncPostProcessor;
+    private final MetadataSyncPostProcessor metadataSyncPostProcessor;
 
-    private MetadataSyncService metadataSyncService;
+    private final MetadataSyncService metadataSyncService;
 
-    private MetadataRetryContext metadataRetryContext;
+    private final MetadataRetryContext metadataRetryContext;
 
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
 
-    @Autowired
     public MetadataSyncJob( SystemSettingManager systemSettingManager, RetryTemplate retryTemplate,
         SynchronizationManager synchronizationManager, MetadataSyncPreProcessor metadataSyncPreProcessor,
         MetadataSyncPostProcessor metadataSyncPostProcessor, MetadataSyncService metadataSyncService,

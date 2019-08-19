@@ -32,11 +32,13 @@ import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.program.ProgramStage;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Component
 @Transactional
 public class ProgramStageObjectBundleHook
     extends AbstractObjectBundleHook

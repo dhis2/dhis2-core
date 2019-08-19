@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.synch;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,7 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RequestCallback;
@@ -71,6 +72,7 @@ import java.util.Date;
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.dxf2.synch.SynchronizationManager" )
 public class DefaultSynchronizationManager
     implements SynchronizationManager
 {
@@ -106,7 +108,7 @@ public class DefaultSynchronizationManager
     private CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
 
     // -------------------------------------------------------------------------
-    // SynchronizatonManager implementation
+    // SynchronizationManager implementation
     // -------------------------------------------------------------------------
 
     @Override

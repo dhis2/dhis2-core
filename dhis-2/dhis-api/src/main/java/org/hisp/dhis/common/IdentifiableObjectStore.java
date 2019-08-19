@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserInfo;
 
 import java.util.Collection;
 import java.util.Date;
@@ -114,6 +115,8 @@ public interface IdentifiableObjectStore<T>
      * @return the attribute value.
      */
     T getByUniqueAttributeValue( Attribute attribute, String value );
+
+    T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo );
 
     /**
      * Retrieves a List of all objects (sorted on name).
@@ -222,12 +225,28 @@ public interface IdentifiableObjectStore<T>
     List<T> getByUid( Collection<String> uids );
 
     /**
+     * Retrieves a list of objects referenced by the given collection of uids.
+     *
+     * @param uids a collection of uids.
+     * @return a list of objects.
+     */
+    List<T> getByUid( Collection<String> uids, User user );
+
+    /**
      * Retrieves a list of objects referenced by the given collection of codes.
      *
      * @param codes a collection of codes.
      * @return a list of objects.
      */
     List<T> getByCode( Collection<String> codes );
+
+    /**
+     * Retrieves a list of objects referenced by the given collection of codes.
+     *
+     * @param codes a collection of codes.
+     * @return a list of objects.
+     */
+    List<T> getByCode( Collection<String> codes, User user );
 
     /**
      * Retrieves a list of objects referenced by the given collection of names.

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.utils;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,16 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
@@ -51,9 +52,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Lars Helge Overland
  */
+@Component
 public class InputUtils
 {
-    private static Cache<String, Long> ATTR_OPTION_COMBO_ID_CACHE;
+    private static Cache<Long> ATTR_OPTION_COMBO_ID_CACHE;
 
     @Autowired
     private CategoryService categoryService;
@@ -63,14 +65,20 @@ public class InputUtils
 
     @Autowired
     private Environment env;
+    
+    @Autowired
+    private CacheProvider cacheProvider;
 
     @PostConstruct
     public void init()
     {
-        ATTR_OPTION_COMBO_ID_CACHE = Caffeine.newBuilder()
+        ATTR_OPTION_COMBO_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "attrOptionComboIdCache" )
             .expireAfterWrite( 3, TimeUnit.HOURS )
-            .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 10000 ).build();
+            .withInitialCapacity( 1000 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     /**
@@ -89,7 +97,7 @@ public class InputUtils
     {
         String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
 
-        Long id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey );
+        Long id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey ).orElse( null );
 
         if ( id != null )
         {

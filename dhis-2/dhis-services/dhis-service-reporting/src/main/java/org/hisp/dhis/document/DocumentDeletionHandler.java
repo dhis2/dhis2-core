@@ -1,7 +1,7 @@
 package org.hisp.dhis.document;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,24 +32,29 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Component( "org.hisp.dhis.document.DocumentDeletionHandler" )
 public class DocumentDeletionHandler extends DeletionHandler
 {
-    @Autowired
     private DocumentService documentService;
 
     private JdbcTemplate jdbcTemplate;
 
-    public void setJdbcTemplate( JdbcTemplate jdbcTemplate )
+    public DocumentDeletionHandler( DocumentService documentService, JdbcTemplate jdbcTemplate )
     {
+        checkNotNull( documentService );
+        checkNotNull( jdbcTemplate );
+
+        this.documentService = documentService;
         this.jdbcTemplate = jdbcTemplate;
     }
-
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation

@@ -1,7 +1,7 @@
 package org.hisp.dhis.i18n.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,17 +28,31 @@ package org.hisp.dhis.i18n.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.i18n.I18nLocaleStore;
 import org.hisp.dhis.i18n.locale.I18nLocale;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Locale;
 
+@Repository( "org.hisp.dhis.i18n.I18nLocaleStore" )
 public class HibernateI18nLocaleStore
     extends HibernateIdentifiableObjectStore<I18nLocale>
     implements I18nLocaleStore
 {
+    public HibernateI18nLocaleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, I18nLocale.class, currentUserService, deletedObjectService, aclService, false );
+    }
+
     @Override
     public I18nLocale getI18nLocaleByLocale( Locale locale )
     {

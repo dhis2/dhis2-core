@@ -1,7 +1,7 @@
 package org.hisp.dhis.node;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -155,4 +155,9 @@ public interface Node extends Ordered
      * @return List of child nodes associated with this node
      */
     List<Node> getChildren();
+
+    /**
+     * @return the unordered children that are associated with this node.
+     */
+    List<Node> getUnorderedChildren();
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,5 +35,17 @@ public enum Compression
 {
     NONE,
     GZIP,
-    ZIP
+    ZIP;
+
+    public static Compression fromValue( String compression )
+    {
+        for ( Compression comp : Compression.values() )
+        {
+            if ( comp.name().equalsIgnoreCase( compression ) )
+            {
+                return comp;
+            }
+        }
+        return null;
+    }
 }

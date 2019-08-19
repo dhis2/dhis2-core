@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -266,7 +266,7 @@ public class Program
     public Set<DataElement> getDataElements()
     {
         return programStages.stream()
-            .flatMap( ps -> ps.getAllDataElements().stream() )
+            .flatMap( ps -> ps.getDataElements().stream() )
             .collect( Collectors.toSet() );
     }
 
@@ -381,6 +381,26 @@ public class Program
     public int increaseVersion()
     {
         return ++version;
+    }
+
+    public boolean isOpen()
+    {
+        return this.accessLevel == AccessLevel.OPEN;
+    }
+
+    public boolean isAudited()
+    {
+        return this.accessLevel == AccessLevel.AUDITED;
+    }
+
+    public boolean isProtected()
+    {
+        return this.accessLevel == AccessLevel.PROTECTED;
+    }
+
+    public boolean isClosed()
+    {
+        return this.accessLevel == AccessLevel.CLOSED;
     }
 
     // -------------------------------------------------------------------------
@@ -829,25 +849,5 @@ public class Program
     public void setAccessLevel( AccessLevel accessLevel )
     {
         this.accessLevel = accessLevel;
-    }
-
-    public boolean isOpen()
-    {
-        return this.accessLevel == AccessLevel.OPEN;
-    }
-
-    public boolean isAudited()
-    {
-        return this.accessLevel == AccessLevel.AUDITED;
-    }
-
-    public boolean isProtected()
-    {
-        return this.accessLevel == AccessLevel.PROTECTED;
-    }
-
-    public boolean isClosed()
-    {
-        return this.accessLevel == AccessLevel.CLOSED;
     }
 }

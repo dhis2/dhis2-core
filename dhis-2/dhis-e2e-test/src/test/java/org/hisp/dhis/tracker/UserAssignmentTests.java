@@ -157,7 +157,7 @@ public class UserAssignmentTests
     private ApiResponse createEvents( String programId, String programStageId, String assignedUserId )
         throws Exception
     {
-        Object file = new FileReaderUtils().read( new File( "src/test/resources/events/events.json" ) )
+        Object file = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "program", programId )
             .replacePropertyValuesWith( "programStage", programStageId )

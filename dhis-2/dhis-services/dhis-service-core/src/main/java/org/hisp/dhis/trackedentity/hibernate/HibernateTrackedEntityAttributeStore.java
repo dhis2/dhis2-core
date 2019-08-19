@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Iterator;
@@ -49,14 +56,19 @@ import java.util.stream.Collectors;
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Repository( "org.hisp.dhis.trackedentity.TrackedEntityAttributeStore" )
 public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
     implements TrackedEntityAttributeStore
 {
     private final StatementBuilder statementBuilder;
 
-    public HibernateTrackedEntityAttributeStore( StatementBuilder statementBuilder )
+    public HibernateTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, StatementBuilder statementBuilder )
     {
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, deletedObjectService,
+            aclService, true );
         this.statementBuilder = statementBuilder;
     }
 

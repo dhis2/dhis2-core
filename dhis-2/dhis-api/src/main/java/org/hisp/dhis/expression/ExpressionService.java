@@ -1,7 +1,7 @@
 package org.hisp.dhis.expression;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@ import static java.util.regex.Pattern.CASE_INSENSITIVE;
  * <li>Program data elements on the form D{programuid.dataelementuid}</li>
  * <li>Program tracked entity attribute on the form A{programuid.attributeuid}</li>
  * <li>Program indicators on the form I{programindicatoruid}</li>
+ * <li>Indicators on the form N{indicatoruid}</li>
  * <li>Constants on the form C{constantuid}</li>
  * <li>Organisation unit group member counts on the form OUG{orgunitgroupuid}</li>
  * <li>Days in aggregation period as the symbol [days]</li>
@@ -76,7 +77,7 @@ public interface ExpressionService
     String SYMBOL_DAYS = "[days]";
     String SYMBOL_WILDCARD = "*";
 
-    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I|R)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{5,40}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
+    String VARIABLE_EXPRESSION = "(?<key>#|D|A|I|R|N)\\{(?<id>(?<id1>[a-zA-Z]\\w{10})(\\.(?<id2>[a-zA-Z]\\w{5,40}|\\*))?(\\.(?<id3>[a-zA-Z]\\w{10}|\\*))?)\\}";
     String OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})(\\.(?<coc>[a-zA-Z]\\w{10}|\\*))?(\\.(?<aoc>[a-zA-Z]\\w{10}|\\*))?\\}";
     String DATA_ELEMENT_TOTAL_EXPRESSION = "#\\{(?<id>[a-zA-Z]\\w{10})\\}";
     String CATEGORY_OPTION_COMBO_OPERAND_EXPRESSION = "#\\{(?<de>[a-zA-Z]\\w{10})\\.(?<coc>[a-zA-Z]\\w{10})\\}";
@@ -232,16 +233,34 @@ public interface ExpressionService
     ExpressionValidationOutcome indicatorExpressionIsValid( String expression );
 
     /**
-     * Creates an expression string containing the names of the
+     * Creates an expression description containing the names of the
      * DimensionalItemObjects from an expression string.
      *
      * @param expression The expression string.
-     * @return An expression string containing DimensionalItemObjects names.
-     * @throws IllegalArgumentException if data element id or category option
-     *         combo id are not numeric or data element or category option combo
-     *         do not exist.
+     * @return An description containing DimensionalItemObjects names.
      */
     String getIndicatorExpressionDescription( String expression );
+
+    // -------------------------------------------------------------------------
+    // Validation Rule expression logic
+    // -------------------------------------------------------------------------
+
+    /**
+     * Tests whether the validation rule expression is valid.
+     *
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
+
+    /**
+     * Creates an expression description containing the names of the
+     * DimensionalItemObjects from an expression string.
+     *
+     * @param expression The expression string.
+     * @return An description containing DimensionalItemObjects names.
+     */
+    String getValidationRuleExpressionDescription( String expression );
 
     // -------------------------------------------------------------------------
     // Expression logic
@@ -426,14 +445,6 @@ public interface ExpressionService
      * @return the ExpressionValidationOutcome of the validation.
      */
     ExpressionValidationOutcome predictorExpressionIsValid( String expression );
-
-    /**
-     * Tests whether the validation rule expression is valid.
-     *
-     * @param expression the expression formula.
-     * @return the ExpressionValidationOutcome of the validation.
-     */
-    ExpressionValidationOutcome validationRuleExpressionIsValid( String expression );
 
     /**
      * Creates an expression string containing DataElement names and the names

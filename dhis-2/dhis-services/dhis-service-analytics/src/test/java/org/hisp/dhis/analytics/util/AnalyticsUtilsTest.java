@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.util;
 import com.google.common.collect.Lists;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.*;
@@ -379,6 +380,14 @@ public class AnalyticsUtilsTest
     }
 
     @Test
+    public void testGetColumnType()
+    {
+        assertEquals( ColumnDataType.BIGINT, AnalyticsUtils.getColumnType( ValueType.INTEGER, true ) );
+        assertEquals( ColumnDataType.GEOMETRY_POINT, AnalyticsUtils.getColumnType( ValueType.COORDINATE, true ) );
+        assertEquals( ColumnDataType.TEXT, AnalyticsUtils.getColumnType( ValueType.COORDINATE, false ) );
+    }
+
+    @Test
     public void testGetDataValueSetFromGrid()
     {
         Grid grid = new ListGrid();
@@ -532,7 +541,7 @@ public class AnalyticsUtilsTest
     }
 
     @Test
-    public void testCalculateYearlyWeightedAverage() 
+    public void testCalculateYearlyWeightedAverage()
     {
         double avg = AnalyticsUtils.calculateYearlyWeightedAverage( 10D, 20D, 9D );
         assertEquals( 17.5, avg, 0 );
@@ -542,7 +551,7 @@ public class AnalyticsUtilsTest
     }
 
     @Test
-    public void testGetBaseMonth() 
+    public void testGetBaseMonth()
     {
         assertEquals( 3, AnalyticsUtils.getBaseMonth( new FinancialAprilPeriodType() ), 0 );
         assertEquals( 6, AnalyticsUtils.getBaseMonth( new FinancialJulyPeriodType() ), 0 );

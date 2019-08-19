@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,13 +39,13 @@ import java.util.Set;
  */
 public class AttributeUtils
 {
-    public static Map<Long, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
+    public static Map<String, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
     {
-        Map<Long, String> attributeValuesMap = new HashMap<>();
+        Map<String, String> attributeValuesMap = new HashMap<>();
 
         for ( AttributeValue attributeValue : attributeValues )
         {
-            attributeValuesMap.put( attributeValue.getAttribute().getId(), attributeValue.getValue() );
+            attributeValuesMap.put( attributeValue.getAttribute().getUid(), attributeValue.getValue() );
         }
 
         return attributeValuesMap;

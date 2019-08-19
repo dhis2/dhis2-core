@@ -1,7 +1,7 @@
 package org.hisp.dhis.interpretation.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,13 +60,16 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.jsoup.Jsoup;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.interpretation.InterpretationService" )
 @Transactional
 public class DefaultInterpretationService
     implements InterpretationService
@@ -75,63 +78,65 @@ public class DefaultInterpretationService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    private InterpretationStore interpretationStore;
-
-    public void setInterpretationStore( InterpretationStore interpretationStore )
-    {
-        this.interpretationStore = interpretationStore;
-    }
+    private final InterpretationStore interpretationStore;
 
     private CurrentUserService currentUserService;
+    
+    private UserService userService;
+    
+    private final PeriodService periodService;
 
+    private final MessageService messageService;
+
+    private final AclService aclService;
+    
+    private final I18nManager i18nManager;
+    
+    private final DhisConfigurationProvider configurationProvider;
+
+    public DefaultInterpretationService( SchemaService schemaService, InterpretationStore interpretationStore,
+        CurrentUserService currentUserService, UserService userService, PeriodService periodService,
+        MessageService messageService, AclService aclService, I18nManager i18nManager,
+        DhisConfigurationProvider configurationProvider )
+    {
+        checkNotNull( schemaService );
+        checkNotNull( interpretationStore );
+        checkNotNull( currentUserService );
+        checkNotNull( userService );
+        checkNotNull( periodService );
+        checkNotNull( messageService );
+        checkNotNull( aclService );
+        checkNotNull( i18nManager );
+        checkNotNull( configurationProvider );
+        this.schemaService = schemaService;
+        this.interpretationStore = interpretationStore;
+        this.currentUserService = currentUserService;
+        this.userService = userService;
+        this.periodService = periodService;
+        this.messageService = messageService;
+        this.aclService = aclService;
+        this.i18nManager = i18nManager;
+        this.configurationProvider = configurationProvider;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
 
-    private UserService userService;
-
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setUserService( UserService userService )
     {
         this.userService = userService;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
-    }
-
-    private MessageService messageService;
-
-    public void setMessageService( MessageService messageService )
-    {
-        this.messageService = messageService;
-    }
-
-    private AclService aclService;
-
-    public void setAclService( AclService aclService )
-    {
-        this.aclService = aclService;
-    }
-
-    private I18nManager i18nManager;
-
-    public void setI18nManager( I18nManager i18nManager )
-    {
-        this.i18nManager = i18nManager;
-    }
-
-    private DhisConfigurationProvider configurationProvider;
-
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
     }
 
     // -------------------------------------------------------------------------
@@ -420,7 +425,7 @@ public class DefaultInterpretationService
     {
         User user = currentUserService.getCurrentUser();
 
-        long count = 0;
+        long count;
 
         if ( user != null && user.getLastCheckedInterpretations() != null )
         {

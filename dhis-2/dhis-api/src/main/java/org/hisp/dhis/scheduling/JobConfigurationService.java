@@ -1,7 +1,7 @@
 package org.hisp.dhis.scheduling;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -105,4 +105,10 @@ public interface JobConfigurationService
      * @return map with parameters classes
      */
     Map<String, Map<String, Property>> getJobParametersSchema();
+
+    /**
+     * Update the state of the jobConfiguration.
+     * @param jobConfiguration
+     */
+    void refreshScheduling( JobConfiguration jobConfiguration );
 }

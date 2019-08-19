@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -316,6 +316,17 @@ public abstract class BaseAnalyticalObject
         categoryOptionGroupSetDimensions.add( dimension );
     }
 
+    /**
+     * Adds a {@link TrackedEntityDataElementDimension}.
+     *
+     * @param dimension the dimension to add.
+     */
+    @Override
+    public void addTrackedEntityDataElementDimension( TrackedEntityDataElementDimension dimension )
+    {
+        dataElementDimensions.add( dimension );
+    }
+
     @Override
     public void clearTransientState()
     {
@@ -493,7 +504,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), tead.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() );
             }
 
             // Tracked entity data element
@@ -504,7 +515,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
@@ -515,7 +526,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), teid.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
             }
         }
 
@@ -649,7 +660,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), tead.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null, tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() );
             }
 
             // Tracked entity data element
@@ -660,7 +671,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null, tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
             }
 
             // Tracked entity program indicator
@@ -671,7 +682,7 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), teid.getFilter() );
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null, teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
             }
         }
 

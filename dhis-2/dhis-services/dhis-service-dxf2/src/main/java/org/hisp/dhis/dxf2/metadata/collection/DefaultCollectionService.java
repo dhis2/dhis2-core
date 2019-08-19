@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.collection;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.reflect.InvocationTargetException;
@@ -48,30 +48,46 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Service ( "org.hisp.dhis.dxf2.metadata.collection.CollectionService" )
 @Transactional
 public class DefaultCollectionService
     implements CollectionService
 {
-    @Autowired
     private IdentifiableObjectManager manager;
 
-    @Autowired
     private DbmsManager dbmsManager;
 
-    @Autowired
     private HibernateCacheManager cacheManager;
 
-    @Autowired
     private AclService aclService;
 
-    @Autowired
     private SchemaService schemaService;
 
-    @Autowired
     private CurrentUserService currentUserService;
+
+    public DefaultCollectionService( IdentifiableObjectManager manager, DbmsManager dbmsManager,
+        HibernateCacheManager cacheManager, AclService aclService, SchemaService schemaService,
+        CurrentUserService currentUserService )
+    {
+        checkNotNull( manager );
+        checkNotNull( dbmsManager );
+        checkNotNull( cacheManager );
+        checkNotNull( aclService );
+        checkNotNull( schemaService );
+        checkNotNull( currentUserService );
+
+        this.manager = manager;
+        this.dbmsManager = dbmsManager;
+        this.cacheManager = cacheManager;
+        this.aclService = aclService;
+        this.schemaService = schemaService;
+        this.currentUserService = currentUserService;
+    }
 
     @Override
     @SuppressWarnings( "unchecked" )

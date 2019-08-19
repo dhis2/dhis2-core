@@ -1,7 +1,7 @@
 package org.hisp.dhis.configuration;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,9 +40,8 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * Configuration registered if {@link RedisEnabledCondition} matches to true.
  * Redis backed Spring Session will be configured due to the
  * {@link EnableRedisHttpSession} annotation.
- * 
- * @author Ameen Mohamed
  *
+ * @author Ameen Mohamed
  */
 @Configuration
 @DependsOn( "dhisConfigurationProvider" )
@@ -51,7 +50,8 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
 public class RedisSpringSessionConfiguration
 {
     @Bean
-    public static ConfigureRedisAction configureRedisAction() {
-            return ConfigureRedisAction.NO_OP;
+    public static ConfigureRedisAction configureRedisAction()
+    {
+        return ConfigureRedisAction.NO_OP;
     }
 }

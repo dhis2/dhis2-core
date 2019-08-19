@@ -1,7 +1,7 @@
 package org.hisp.dhis.user;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,22 +28,25 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Service for retrieving information about the currently
@@ -54,6 +57,7 @@ import java.util.stream.Collectors;
  *
  * @author Torgeir Lorange Ostby
  */
+@Service( "org.hisp.dhis.user.CurrentUserService" )
 public class DefaultCurrentUserService
     extends AbstractSpringSecurityCurrentUserService
 {
@@ -61,17 +65,27 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase.
      * Take care not to cache user info which might change during runtime.
      */
-    private static Cache<String, Long> USERNAME_ID_CACHE;
+    private static Cache<Long> USERNAME_ID_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private CurrentUserStore currentUserStore;
+    private final CurrentUserStore currentUserStore;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
+    
+    private final CacheProvider cacheProvider;
+
+    public DefaultCurrentUserService( CurrentUserStore currentUserStore, Environment env, CacheProvider cacheProvider )
+    {
+        checkNotNull( currentUserStore );
+        checkNotNull( env );
+
+        this.currentUserStore = currentUserStore;
+        this.env = env;
+        this.cacheProvider = cacheProvider;
+    }
 
     // -------------------------------------------------------------------------
     // CurrentUserService implementation
@@ -80,10 +94,12 @@ public class DefaultCurrentUserService
     @PostConstruct
     public void init()
     {
-        USERNAME_ID_CACHE = Caffeine.newBuilder()
+        USERNAME_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "userIdCache" )
             .expireAfterAccess( 1, TimeUnit.HOURS )
-            .initialCapacity( 200 )
-            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 4000 )
+            .withInitialCapacity( 200 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
             .build();
     }
 
@@ -98,7 +114,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( username, un -> getUserId( un ) );
+        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
 
         if ( userId == null )
         {
@@ -119,7 +135,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) );
+        Long userId = USERNAME_ID_CACHE.get( userDetails.getUsername(), un -> getUserId( un ) ).orElse( null );
 
         if ( userId == null )
         {

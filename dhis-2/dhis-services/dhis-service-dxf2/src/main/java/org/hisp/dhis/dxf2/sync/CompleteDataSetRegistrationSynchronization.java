@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,17 @@ import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Date;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author David Katuscak
  */
+@Component
 public class CompleteDataSetRegistrationSynchronization
 {
     private static final Log log = LogFactory.getLog( CompleteDataSetRegistrationSynchronization.class );
@@ -52,10 +55,13 @@ public class CompleteDataSetRegistrationSynchronization
 
     private final RestTemplate restTemplate;
 
-    @Autowired
     public CompleteDataSetRegistrationSynchronization( SynchronizationManager synchronizationManager,
         SystemSettingManager systemSettingManager, RestTemplate restTemplate )
     {
+        checkNotNull( synchronizationManager );
+        checkNotNull( systemSettingManager );
+        checkNotNull( restTemplate );
+
         this.synchronizationManager = synchronizationManager;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;

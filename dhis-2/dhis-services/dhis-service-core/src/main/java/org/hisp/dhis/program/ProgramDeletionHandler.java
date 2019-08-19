@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,16 +37,18 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserAuthorityGroup;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Chau Thu Tran
  */
+@Component( "org.hisp.dhis.program.ProgramDeletionHandler" )
 public class ProgramDeletionHandler
     extends DeletionHandler
 {
@@ -54,14 +56,23 @@ public class ProgramDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public ProgramDeletionHandler( ProgramService programService, IdentifiableObjectManager idObjectManager,
+        CategoryService categoryService )
+    {
+        checkNotNull( programService );
+        checkNotNull( idObjectManager );
+        checkNotNull( categoryService );
+
+        this.programService = programService;
+        this.idObjectManager = idObjectManager;
+        this.categoryService = categoryService;
+    }
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation

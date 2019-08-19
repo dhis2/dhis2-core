@@ -1,7 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.annotation.Resource;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -66,10 +64,11 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Created by zubair@dhis2.org on 11.08.17.
@@ -96,26 +95,41 @@ public abstract class BaseSMSListener implements IncomingSmsListener
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramInstanceService programInstanceService;
+    protected final ProgramInstanceService programInstanceService;
 
-    @Autowired
-    private CategoryService dataElementCategoryService;
+    protected final CategoryService dataElementCategoryService;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    protected final ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
-    private UserService userService;
+    protected final UserService userService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    protected final CurrentUserService currentUserService;
 
-    @Autowired
-    private IncomingSmsService incomingSmsService;
+    protected final IncomingSmsService incomingSmsService;
 
-    @Resource( name = "smsMessageSender" )
-    private MessageSender smsSender;
+    protected final MessageSender smsSender;
+
+    public BaseSMSListener( ProgramInstanceService programInstanceService, CategoryService dataElementCategoryService,
+        ProgramStageInstanceService programStageInstanceService, UserService userService,
+        CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
+        MessageSender smsSender )
+    {
+        checkNotNull( programInstanceService );
+        checkNotNull( dataElementCategoryService );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( userService );
+        checkNotNull( currentUserService );
+        checkNotNull( incomingSmsService );
+        checkNotNull( smsSender );
+
+        this.programInstanceService = programInstanceService;
+        this.dataElementCategoryService = dataElementCategoryService;
+        this.programStageInstanceService = programStageInstanceService;
+        this.userService = userService;
+        this.currentUserService = currentUserService;
+        this.incomingSmsService = incomingSmsService;
+        this.smsSender = smsSender;
+    }
 
     @Override
     public boolean accept( IncomingSms sms )

@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,14 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
  */
+@Component( "org.hisp.dhis.period.PeriodTypePopulator" )
 public class PeriodTypePopulator
     extends TransactionContextStartupRoutine
 {
@@ -47,10 +51,12 @@ public class PeriodTypePopulator
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private PeriodStore periodStore;
+    private final PeriodStore periodStore;
 
-    public void setPeriodStore( PeriodStore periodStore )
+    public PeriodTypePopulator( PeriodStore periodStore )
     {
+        checkNotNull( periodStore );
+
         this.periodStore = periodStore;
     }
 

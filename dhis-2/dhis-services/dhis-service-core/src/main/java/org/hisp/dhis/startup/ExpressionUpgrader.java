@@ -1,7 +1,7 @@
 package org.hisp.dhis.startup;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,12 +43,12 @@ import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataentryform.DataEntryFormService.*;
 
 /**
@@ -68,23 +68,37 @@ public class ExpressionUpgrader
 
     private static final Log log = LogFactory.getLog( ExpressionUpgrader.class );
 
-    @Autowired
-    private DataEntryFormService dataEntryFormService;
+    private final DataEntryFormService dataEntryFormService;
 
-    @Autowired
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private IndicatorService indicatorService;
+    private final IndicatorService indicatorService;
 
-    @Autowired
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    @Autowired
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
+
+    public ExpressionUpgrader( DataEntryFormService dataEntryFormService, DataElementService dataElementService,
+        CategoryService categoryService, IndicatorService indicatorService, ConstantService constantService,
+        ExpressionService expressionService )
+    {
+
+        checkNotNull( dataEntryFormService );
+        checkNotNull( dataElementService );
+        checkNotNull( categoryService );
+        checkNotNull( indicatorService );
+        checkNotNull( constantService );
+        checkNotNull( expressionService );
+
+        this.dataEntryFormService = dataEntryFormService;
+        this.dataElementService = dataElementService;
+        this.categoryService = categoryService;
+        this.indicatorService = indicatorService;
+        this.constantService = constantService;
+        this.expressionService = expressionService;
+    }
 
     @Override
     public void executeInTransaction()

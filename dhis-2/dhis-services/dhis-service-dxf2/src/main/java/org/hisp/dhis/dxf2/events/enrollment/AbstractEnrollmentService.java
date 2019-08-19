@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.enrollment;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -81,6 +81,7 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -435,7 +436,7 @@ public abstract class AbstractEnrollmentService
 
         OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(), enrollment.getOrgUnit() );
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
+        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
             new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ), false );
 
         if ( !errors.isEmpty() )
@@ -503,6 +504,44 @@ public abstract class AbstractEnrollmentService
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.setDescription( "DisplayIncidentDate is true but IncidentDate is null " );
             importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( programInstance.getIncidentDate() != null && !DateUtils.dateIsValid( DateUtils.getMediumDateString( programInstance.getIncidentDate() ) ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enollment incident date:  " + programInstance.getIncidentDate() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( programInstance.getEnrollmentDate() != null && !DateUtils.dateIsValid( DateUtils.getMediumDateString( programInstance.getEnrollmentDate() ) ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enollment date:  " + programInstance.getEnrollmentDate() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( enrollment.getCreatedAtClient() != null && !DateUtils.dateIsValid( enrollment.getCreatedAtClient() ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enrollment created at client date: " + enrollment.getCreatedAtClient() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
+        }
+
+        if ( enrollment.getLastUpdatedAtClient() != null && !DateUtils.dateIsValid( enrollment.getLastUpdatedAtClient() ) )
+        {
+            importSummary.setStatus( ImportStatus.ERROR );
+            importSummary.setDescription( "Invalid enrollment last updated at client date: " + enrollment.getCreatedAtClient() );
+            importSummary.incrementIgnored();
+
+            return importSummary;
         }
 
         return importSummary;
@@ -624,7 +663,7 @@ public abstract class AbstractEnrollmentService
         }
 
         ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programInstance, false );
+        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programInstance, false );
 
         if ( programInstance == null )
         {
@@ -701,6 +740,13 @@ public abstract class AbstractEnrollmentService
             }
         }
 
+        ImportSummary importSummary = validateProgramInstance( program, programInstance, enrollment );
+
+        if ( importSummary.getStatus() != ImportStatus.SUCCESS )
+        {
+            return importSummary;
+        }
+
         updateAttributeValues( enrollment, importOptions );
         updateDateFields( enrollment, programInstance );
 
@@ -709,7 +755,7 @@ public abstract class AbstractEnrollmentService
 
         saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() != null ? importOptions.getUser().getUsername() : "[Unknown]" );
 
-        ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
+        importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
 
         importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
@@ -786,6 +832,7 @@ public abstract class AbstractEnrollmentService
             programInstanceService.deleteProgramInstance( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
+            importSummary.setReference( uid );
             importSummary.setStatus( ImportStatus.SUCCESS );
             importSummary.setDescription( "Deletion of enrollment " + uid + " was successful" );
 
@@ -877,9 +924,9 @@ public abstract class AbstractEnrollmentService
         }
 
         ImportSummaries importSummaries = new ImportSummaries();
-        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions, false ) );
-        importSummaries.addImportSummaries( eventService.updateEvents( update, importOptions, false, false ) );
         importSummaries.addImportSummaries( eventService.deleteEvents( delete, false ) );
+        importSummaries.addImportSummaries( eventService.updateEvents( update, importOptions, false, false ) );
+        importSummaries.addImportSummaries( eventService.addEvents( create, importOptions, false ) );
 
         return importSummaries;
     }
@@ -936,6 +983,11 @@ public abstract class AbstractEnrollmentService
             {
                 programInstance.setGeometry( null );
             }
+        }
+
+        if ( programInstance.getGeometry() != null )
+        {
+            programInstance.getGeometry().setSRID( GeoUtils.SRID );
         }
     }
 
@@ -1217,7 +1269,7 @@ public abstract class AbstractEnrollmentService
             importConflicts.add( new ImportConflict( pi.getUid(), "Enrollment " + pi.getUid() + " cannot be deleted as it has associated events and user does not have authority: " + Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) );
         }
 
-        List<String> errors = trackerAccessManager.canWrite( user, pi, false );
+        List<String> errors = trackerAccessManager.canDelete( user, pi, false );
 
         if ( !errors.isEmpty() )
         {

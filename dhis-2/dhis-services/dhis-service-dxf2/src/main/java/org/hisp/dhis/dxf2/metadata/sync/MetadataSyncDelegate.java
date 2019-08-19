@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -49,6 +51,8 @@ import java.nio.charset.StandardCharsets;
  *
  * @author aamerm
  */
+@Component( "org.hisp.dhis.dxf2.metadata.sync.MetadataSyncDelegate" )
+@Scope( "prototype" )
 public class MetadataSyncDelegate
 {
     private static final Log log = LogFactory.getLog( MetadataSyncDelegate.class );

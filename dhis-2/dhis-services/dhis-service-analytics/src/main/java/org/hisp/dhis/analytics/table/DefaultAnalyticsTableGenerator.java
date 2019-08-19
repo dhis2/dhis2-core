@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,10 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
 import java.util.List;
@@ -52,30 +54,43 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.analytics.AnalyticsTableGenerator" )
 public class DefaultAnalyticsTableGenerator
     implements AnalyticsTableGenerator
 {
     private static final Log log = LogFactory.getLog( DefaultAnalyticsTableGenerator.class );
 
-    @Autowired
     private List<AnalyticsTableService> analyticsTableServices;
 
-    @Autowired
     private ResourceTableService resourceTableService;
 
-    @Autowired
     private MessageService messageService;
 
-    @Autowired
     private SystemSettingManager systemSettingManager;
 
-    @Autowired
     private Notifier notifier;
+
+    public DefaultAnalyticsTableGenerator( List<AnalyticsTableService> analyticsTableServices,
+        ResourceTableService resourceTableService, MessageService messageService,
+        SystemSettingManager systemSettingManager, Notifier notifier )
+    {
+        checkNotNull( analyticsTableServices );
+        checkNotNull( resourceTableService );
+        checkNotNull( messageService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( notifier );
+
+        this.analyticsTableServices = analyticsTableServices;
+        this.resourceTableService = resourceTableService;
+        this.messageService = messageService;
+        this.systemSettingManager = systemSettingManager;
+        this.notifier = notifier;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -85,6 +100,7 @@ public class DefaultAnalyticsTableGenerator
     public void generateTables( AnalyticsTableUpdateParams params )
     {
         final Clock clock = new Clock( log ).startClock();
+        final Date lastSuccessfulUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         final JobConfiguration jobId = params.getJobId();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
         final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
@@ -93,6 +109,7 @@ public class DefaultAnalyticsTableGenerator
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Analytics table update: %s", params ) );
+        log.info( String.format( "Last successful analytics table update: '%s'", getLongDateString( lastSuccessfulUpdate ) ) );
 
         try
         {

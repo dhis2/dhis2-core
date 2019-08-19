@@ -1,6 +1,6 @@
 package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,14 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author David Katuscak
  */
+@Component( "programDataSyncJob" )
 public class TrackerProgramsDataSynchronizationJob extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( TrackerProgramsDataSynchronizationJob.class );
@@ -56,6 +60,10 @@ public class TrackerProgramsDataSynchronizationJob extends AbstractJob
     public TrackerProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
         TrackerSynchronization trackerSync, SynchronizationManager synchronizationManager )
     {
+        checkNotNull( notifier );
+        checkNotNull( messageService );
+        checkNotNull( trackerSync );
+
         this.notifier = notifier;
         this.messageService = messageService;
         this.trackerSync = trackerSync;

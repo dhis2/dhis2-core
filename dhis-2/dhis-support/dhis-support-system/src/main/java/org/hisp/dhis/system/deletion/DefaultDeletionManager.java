@@ -1,7 +1,7 @@
 package org.hisp.dhis.system.deletion;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,9 +33,11 @@ import javassist.util.proxy.ProxyObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.stereotype.Component;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -43,9 +45,10 @@ import java.util.List;
 /**
  * TODO: Add support for failed allow tests on "transitive" deletion handlers which
  * are called as part of delete methods.
- * 
+ *
  * @author Lars Helge Overland
  */
+@Component( "deletionManager" )
 public class DefaultDeletionManager
     implements DeletionManager
 {
@@ -55,7 +58,7 @@ public class DefaultDeletionManager
     private static final String ALLOW_METHOD_PREFIX = "allowDelete";
 
     /**
-     * Deletion handlers registered in context are subscribed to deletion 
+     * Deletion handlers registered in context are subscribed to deletion
      * notifications through auto-wiring.
      */
     @Autowired(required = false)
@@ -65,18 +68,20 @@ public class DefaultDeletionManager
     // DeletionManager implementation
     // -------------------------------------------------------------------------
 
-    @Override
     @Transactional
-    public void execute( Object object )
+    @EventListener
+    public void objectDeletionListener( ObjectDeletionRequestedEvent event )
     {
         if ( deletionHandlers == null || deletionHandlers.isEmpty() )
         {
             log.info( "No deletion handlers registered, aborting deletion handling" );
             return;
         }
-        
+
         log.debug( "Deletion handlers detected: " + deletionHandlers.size() );
-        
+
+        Object object = event.getSource();
+
         Class<?> clazz = getClazz( object );
 
         String className = clazz.getSimpleName();
@@ -109,7 +114,7 @@ public class DefaultDeletionManager
                         handler.getClassName() + ( hint.isEmpty() ? hint : ( " (" + hint + ")" ) );
 
                     log.info( "Delete was not allowed by " + currentHandler + ": " + message );
-                    
+
                     throw new DeleteNotAllowedException( DeleteNotAllowedException.ERROR_ASSOCIATED_BY_OTHER_OBJECTS, message );
                 }
             }

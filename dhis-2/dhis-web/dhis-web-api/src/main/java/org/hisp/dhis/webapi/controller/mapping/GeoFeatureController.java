@@ -1,7 +1,7 @@
 package org.hisp.dhis.webapi.controller.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,13 +53,12 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.GeoFeature;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.CacheControl;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -94,24 +93,31 @@ public class GeoFeatureController
         put( FeatureType.MULTI_POLYGON, GeoFeature.TYPE_POLYGON ).
         put( FeatureType.POLYGON, GeoFeature.TYPE_POLYGON ).build();
 
-    @Autowired
-    private DataQueryService dataQueryService;
+    private final DataQueryService dataQueryService;
 
-    @Autowired
-    private OrganisationUnitGroupService organisationUnitGroupService;
+    private final OrganisationUnitGroupService organisationUnitGroupService;
 
-    @Autowired
-    private RenderService renderService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final RenderService renderService;
+
+    public GeoFeatureController( DataQueryService dataQueryService,
+        OrganisationUnitGroupService organisationUnitGroupService, CurrentUserService currentUserService,
+                                 RenderService renderService)
+    {
+        this.dataQueryService = dataQueryService;
+        this.organisationUnitGroupService = organisationUnitGroupService;
+        this.currentUserService = currentUserService;
+        this.renderService = renderService;
+    }
 
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
-    public void getGeoFeaturesJson(
+    @ResponseBody
+    public ResponseEntity<List<GeoFeature>> getGeoFeaturesJson(
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) String oug,
         @RequestParam( required = false ) DisplayProperty displayProperty,
@@ -120,21 +126,16 @@ public class GeoFeatureController
         @RequestParam( defaultValue = "false", value = "includeGroupSets" ) boolean rpIncludeGroupSets,
         @RequestParam Map<String, String> parameters,
         DhisApiVersion apiVersion,
-        HttpServletRequest request, HttpServletResponse response ) throws IOException
+        HttpServletRequest request, HttpServletResponse response )
     {
         WebOptions options = new WebOptions( parameters );
         boolean includeGroupSets = "detailed".equals( options.getViewClass() ) || rpIncludeGroupSets;
 
-        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request, response, includeGroupSets, apiVersion );
+        List<GeoFeature> features = getGeoFeatures( ou, oug, displayProperty, relativePeriodDate, userOrgUnit, request,
+            response, includeGroupSets, apiVersion );
 
-        if ( features == null )
-        {
-            return;
-        }
-
-        ContextUtils.setCacheControl( response, GEOFEATURE_CACHE );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        renderService.toJson( response.getOutputStream(), features );
+        return ResponseEntity.ok().header( HttpHeaders.CACHE_CONTROL, GEOFEATURE_CACHE.getHeaderValue() )
+            .body( features );
     }
 
     @RequestMapping( method = RequestMethod.GET, produces = { "application/javascript" } )
@@ -277,7 +278,7 @@ public class GeoFeatureController
             features.add( feature );
         }
 
-        features.sort( Comparator.comparing( o -> (o.getTy()) ) );
+        features.sort( Comparator.comparing( GeoFeature::getTy ) );
 
         return features;
     }

@@ -1,11 +1,7 @@
 package org.hisp.dhis.sqlview;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +28,9 @@ import java.util.Set;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -45,12 +44,16 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Dang Duy Hieu
  */
 @Transactional
+@Service( "org.hisp.dhis.sqlview.SqlViewService" )
 public class DefaultSqlViewService
     implements SqlViewService
 {
@@ -60,24 +63,21 @@ public class DefaultSqlViewService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SqlViewStore sqlViewStore;
+    private final SqlViewStore sqlViewStore;
 
-    public void setSqlViewStore( SqlViewStore sqlViewStore )
+    private final StatementBuilder statementBuilder;
+
+    private final DhisConfigurationProvider config;
+
+    public DefaultSqlViewService( SqlViewStore sqlViewStore, StatementBuilder statementBuilder,
+        DhisConfigurationProvider config )
     {
+        checkNotNull( sqlViewStore );
+        checkNotNull( statementBuilder );
+        checkNotNull( config );
+
         this.sqlViewStore = sqlViewStore;
-    }
-
-    private StatementBuilder statementBuilder;
-
-    public void setStatementBuilder( StatementBuilder statementBuilder )
-    {
         this.statementBuilder = statementBuilder;
-    }
-
-    private DhisConfigurationProvider config;
-
-    public void setConfig( DhisConfigurationProvider config )
-    {
         this.config = config;
     }
 
@@ -178,8 +178,8 @@ public class DefaultSqlViewService
         log.info( String.format( "Retriving data for SQL view: '%s'", sqlView.getUid() ) );
 
         String sql = sqlView.isQuery() ?
-            getSqlForQuery( grid, sqlView, criteria, variables, filters, fields ) :
-            getSqlForView( grid, sqlView, criteria, filters, fields );
+            getSqlForQuery( sqlView, criteria, variables, filters, fields ) :
+            getSqlForView( sqlView, criteria, filters, fields );
 
         sqlViewStore.populateSqlViewGrid( grid, sql );
 
@@ -217,7 +217,7 @@ public class DefaultSqlViewService
         return query;
     }
 
-    private String getSqlForQuery( Grid grid, SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields )
+    private String getSqlForQuery(SqlView sqlView, Map<String, String> criteria, Map<String, String> variables, List<String> filters, List<String> fields )
     {
         boolean hasCriteria = criteria != null && !criteria.isEmpty();
 
@@ -249,7 +249,7 @@ public class DefaultSqlViewService
         return sql;
     }
 
-    private String getSqlForView( Grid grid, SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields )
+    private String getSqlForView( SqlView sqlView, Map<String, String> criteria, List<String> filters, List<String> fields )
     {
         String sql = "select " + QueryUtils.parseSelectFields( fields ) + " from " + statementBuilder.columnQuote( sqlView.getViewName() ) + " ";
 

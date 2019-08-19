@@ -28,16 +28,35 @@ package org.hisp.dhis.programstagefilter.hibernate;
  */
 import java.util.List;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
 import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-public class HibernateProgramStageInstanceFilterStore extends HibernateIdentifiableObjectStore<ProgramStageInstanceFilter> implements ProgramStageInstanceFilterStore
+@Repository( "org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore" )
+public class HibernateProgramStageInstanceFilterStore
+    extends
+    HibernateIdentifiableObjectStore<ProgramStageInstanceFilter>
+    implements
+    ProgramStageInstanceFilterStore
 {
+
+    public HibernateProgramStageInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstanceFilter.class, currentUserService, deletedObjectService,
+            aclService, false );
+    }
 
     @Override
     public List<ProgramStageInstanceFilter> getByProgram( String program )

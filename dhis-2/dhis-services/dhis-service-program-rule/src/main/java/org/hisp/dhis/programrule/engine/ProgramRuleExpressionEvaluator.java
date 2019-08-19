@@ -1,7 +1,7 @@
 package org.hisp.dhis.programrule.engine;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,14 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.rules.RuleExpressionEvaluator;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
  */
+@Component( "org.hisp.dhis.programrule.engine.ProgramRuleExpressionEvaluator" )
 public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
 {
     private static final Log log = LogFactory.getLog( ProgramRuleExpressionEvaluator.class );
@@ -56,7 +58,7 @@ public class ProgramRuleExpressionEvaluator implements RuleExpressionEvaluator
     @Override
     public String evaluate( @Nonnull String expression )
     {
-        String result = "";
+        String result;
 
         try
         {

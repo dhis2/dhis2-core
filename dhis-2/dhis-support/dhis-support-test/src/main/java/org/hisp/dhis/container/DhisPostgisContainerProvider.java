@@ -34,12 +34,13 @@ import org.testcontainers.containers.PostgisContainerProvider;
 /**
  * Custom PostgisContainerProvider to create
  * {@link DhisPostgreSQLContainer}
- * 
+ *
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
 @SuppressWarnings( "rawtypes" )
-public class DhisPostgisContainerProvider extends PostgisContainerProvider
+public class DhisPostgisContainerProvider
+    extends PostgisContainerProvider
 {
     private static final String DEFAULT_TAG = "10";
     private static final String DEFAULT_IMAGE = "mdillon/postgis";

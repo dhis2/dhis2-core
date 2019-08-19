@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,8 @@ import java.lang.reflect.Method;
  * @author Lars Helge Overland
  */
 @RunWith( SpringRunner.class )
-@ContextConfiguration( classes = UnitTestConfiguration.class )
-@ActiveProfiles(profiles = {"test-h2"})
+@ContextConfiguration( classes = UnitTestConfig.class )
+@ActiveProfiles( profiles = {"test-h2"} )
 @Transactional
 public abstract class DhisSpringTest
     extends DhisConvenienceTest

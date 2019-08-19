@@ -1,7 +1,7 @@
 package org.hisp.dhis.validation;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,64 +56,101 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.notification.ValidationNotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ExpressionValidationOutcome.VALID;
 
 /**
  * @author Jim Grace
  * @author Stian Sandvold
  */
+@Service( "org.hisp.dhis.validation.ValidationService" )
 @Transactional
 public class DefaultValidationService
     implements ValidationService
 {
     private static final Log log = LogFactory.getLog( DefaultValidationService.class );
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private ExpressionService expressionService;
+    private final ExpressionService expressionService;
 
-    @Autowired
-    private DimensionService dimensionService;
+    private final DimensionService dimensionService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    @Autowired
-    private ValidationNotificationService notificationService;
+    private final ValidationNotificationService notificationService;
 
-    @Autowired
-    private ValidationRuleService validationRuleService;
+    private final ValidationRuleService validationRuleService;
 
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final ApplicationContext applicationContext;
 
-    @Autowired
-    private ValidationResultService validationResultService;
+    private final ValidationResultService validationResultService;
 
     private AnalyticsService analyticsService;
+    
+    private CurrentUserService currentUserService;
 
+    public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
+        ExpressionService expressionService, DimensionService dimensionService, DataValueService dataValueService,
+        CategoryService categoryService, ConstantService constantService,
+        ValidationNotificationService notificationService, ValidationRuleService validationRuleService,
+        ApplicationContext applicationContext, ValidationResultService validationResultService,
+        AnalyticsService analyticsService, CurrentUserService currentUserService )
+    {
+        checkNotNull( periodService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( expressionService );
+        checkNotNull( dimensionService );
+        checkNotNull( dataValueService );
+        checkNotNull( categoryService );
+        checkNotNull( constantService );
+        checkNotNull( notificationService );
+        checkNotNull( validationRuleService );
+        checkNotNull( applicationContext );
+        checkNotNull( validationResultService );
+        checkNotNull( analyticsService );
+        checkNotNull( currentUserService );
+
+        this.periodService = periodService;
+        this.organisationUnitService = organisationUnitService;
+        this.expressionService = expressionService;
+        this.dimensionService = dimensionService;
+        this.dataValueService = dataValueService;
+        this.categoryService = categoryService;
+        this.constantService = constantService;
+        this.notificationService = notificationService;
+        this.validationRuleService = validationRuleService;
+        this.applicationContext = applicationContext;
+        this.validationResultService = validationResultService;
+        this.analyticsService = analyticsService;
+        this.currentUserService = currentUserService;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
     }
 
-    private CurrentUserService currentUserService;
-
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
@@ -334,25 +371,32 @@ public class DefaultValidationService
         {
             PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
 
-            if ( periodX == null )
+            if ( periodX == null
+                || expressionService.validationRuleExpressionIsValid( rule.getLeftSide().getExpression() ) != VALID
+                || expressionService.validationRuleExpressionIsValid( rule.getRightSide().getExpression() ) != VALID )
             {
-                continue; // Don't include rules for which there are no periods.
+                continue; // Don't include rule.
             }
 
-            periodX.getRuleXs().add( new ValidationRuleExtended( rule ) );
+            ValidationRuleExtended ruleX = new ValidationRuleExtended( rule );
 
-            Set<DimensionalItemId> ruleIds = Sets.union(
-                expressionService.getDimensionalItemIdsInExpression( rule.getLeftSide().getExpression() ),
-                expressionService.getDimensionalItemIdsInExpression( rule.getRightSide().getExpression() ) );
+            periodX.getRuleXs().add( ruleX );
 
-            periodItemIds.putValues( periodX, ruleIds );
+            periodX.setSlidingWindows( ruleX.getLeftSlidingWindow() );
+            periodX.setSlidingWindows( ruleX.getRightSlidingWindow() );
 
-            allItemIds.addAll( ruleIds );
+            Set<DimensionalItemId> itemIds = Sets.union(
+                expressionService.getExpressionDimensionalItemIds( rule.getLeftSide().getExpression() ),
+                expressionService.getExpressionDimensionalItemIds( rule.getRightSide().getExpression() ) );
+
+            periodItemIds.putValues( periodX, itemIds );
+
+            allItemIds.addAll( itemIds );
         }
 
         // 2. Get the dimensional objects from the IDs. (Get them all at once for best performance.)
 
-        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService.getDataDimensionalItemObjectMap( allItemIds );
+        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService.getNoAclDataDimensionalItemObjectMap( allItemIds );
 
         // 3. Save the dimensional objects in the extended period types.
 
@@ -373,6 +417,10 @@ public class DefaultValidationService
                     else if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() )
                     {
                         periodTypeX.addDataElementOperand( (DataElementOperand) item );
+                    }
+                    else if ( DimensionItemType.INDICATOR == item.getDimensionItemType() )
+                    {
+                        periodTypeX.addIndicator( item );
                     }
                     else if ( hasAttributeOptions( item ) )
                     {

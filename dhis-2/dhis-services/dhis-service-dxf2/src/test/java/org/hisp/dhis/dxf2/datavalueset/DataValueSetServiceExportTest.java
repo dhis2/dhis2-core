@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,9 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -59,6 +62,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
@@ -70,8 +74,9 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Lars Helge Overland
  */
+@Category( IntegrationTest.class )
 public class DataValueSetServiceExportTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private CategoryService categoryService;
@@ -126,6 +131,12 @@ public class DataValueSetServiceExportTest
     private OrganisationUnit ouB;
 
     private User user;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     public void setUpTest()
@@ -207,8 +218,6 @@ public class DataValueSetServiceExportTest
 
         // Flush session to make data values visible to JDBC query
 
-        dbmsManager.flushSession();
-
         // Service mocks
 
         user = createUser( 'A' );
@@ -230,7 +239,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportBasic()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -285,7 +293,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportOrgUnitChildren()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -313,7 +320,6 @@ public class DataValueSetServiceExportTest
 
     @Test
     public void testExportOutputSingleDataValueSetIdSchemeCode()
-        throws Exception
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -410,8 +416,6 @@ public class DataValueSetServiceExportTest
         dataValueService.addDataValue( dvA );
         dataValueService.addDataValue( dvB );
 
-        dbmsManager.flushSession();
-
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -424,8 +428,6 @@ public class DataValueSetServiceExportTest
 
         dataValueService.deleteDataValue( dvA );
         dataValueService.deleteDataValue( dvB );
-
-        dbmsManager.flushSession();
 
         out = new ByteArrayOutputStream();
 

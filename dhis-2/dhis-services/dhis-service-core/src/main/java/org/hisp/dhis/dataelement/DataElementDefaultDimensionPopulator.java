@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@ import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 
 import java.util.Collection;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * When storing DataValues without associated dimensions there is a need to
  * refer to a default dimension. This populator persists a
@@ -58,17 +60,16 @@ public class DataElementDefaultDimensionPopulator
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
+    
+    private final CategoryService categoryService;
 
-    public void setDataElementService( DataElementService dataElementService )
+    public DataElementDefaultDimensionPopulator( DataElementService dataElementService,
+        CategoryService categoryService )
     {
+        checkNotNull( dataElementService );
+        checkNotNull( categoryService );
         this.dataElementService = dataElementService;
-    }
-
-    private CategoryService categoryService;
-
-    public void setCategoryService( CategoryService categoryService )
-    {
         this.categoryService = categoryService;
     }
 

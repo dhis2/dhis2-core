@@ -1,7 +1,7 @@
 package org.hisp.dhis.security.ldap.authentication;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,28 +29,28 @@ package org.hisp.dhis.security.ldap.authentication;
  */
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
+@Component( "ldapAuthenticationProvider" )
 public class CustomLdapAuthenticationProvider
     extends LdapAuthenticationProvider
 {
-    @Autowired
-    private DhisConfigurationProvider configurationProvider;
+    private final DhisConfigurationProvider configurationProvider;
 
-    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator )
+    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator, LdapAuthoritiesPopulator authoritiesPopulator, DhisConfigurationProvider configurationProvider )
     {
         super( authenticator, authoritiesPopulator );
-    }
 
-    public CustomLdapAuthenticationProvider( LdapAuthenticator authenticator )
-    {
-       super( authenticator );
+        checkNotNull( configurationProvider );
+        this.configurationProvider = configurationProvider;
     }
 
     @Override

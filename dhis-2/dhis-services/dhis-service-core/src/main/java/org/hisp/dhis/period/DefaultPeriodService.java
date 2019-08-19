@@ -1,7 +1,7 @@
 package org.hisp.dhis.period;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 
 import java.util.ArrayList;
@@ -42,12 +43,14 @@ import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Kristian Nordal
  * @version $Id: DefaultPeriodService.java 5983 2008-10-17 17:42:44Z larshelg $
  */
+@Service( "org.hisp.dhis.period.PeriodService" )
 public class DefaultPeriodService
     implements PeriodService
 {
@@ -57,8 +60,10 @@ public class DefaultPeriodService
 
     private PeriodStore periodStore;
 
-    public void setPeriodStore( PeriodStore periodStore )
+    public DefaultPeriodService( PeriodStore periodStore )
     {
+        checkNotNull( periodStore );
+
         this.periodStore = periodStore;
     }
 

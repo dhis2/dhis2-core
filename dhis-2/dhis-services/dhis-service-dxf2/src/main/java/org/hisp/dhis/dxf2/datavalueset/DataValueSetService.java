@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -116,6 +116,8 @@ public interface DataValueSetService
     ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions );
 
     ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions );
+
+    ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions );
 
     ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 

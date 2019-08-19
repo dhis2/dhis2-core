@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataelement;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -64,9 +65,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Abyot Asalefew
  */
+@Service( "org.hisp.dhis.category.CategoryService" )
 public class DefaultCategoryService
     implements CategoryService
 {
@@ -76,66 +80,48 @@ public class DefaultCategoryService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private CategoryStore categoryStore;
+    private final CategoryStore categoryStore;
 
-    public void setCategoryStore( CategoryStore categoryStore )
+    private final CategoryOptionStore categoryOptionStore;
+
+    private final CategoryComboStore categoryComboStore;
+
+    private final CategoryOptionComboStore categoryOptionComboStore;
+
+    private final CategoryOptionGroupStore categoryOptionGroupStore;
+
+    private final CategoryOptionGroupSetStore categoryOptionGroupSetStore;
+
+    private final IdentifiableObjectManager idObjectManager;
+
+    private final CurrentUserService currentUserService;
+
+    private final AclService aclService;
+
+    public DefaultCategoryService( CategoryStore categoryStore, CategoryOptionStore categoryOptionStore,
+        CategoryComboStore categoryComboStore, CategoryOptionComboStore categoryOptionComboStore,
+        CategoryOptionGroupStore categoryOptionGroupStore, CategoryOptionGroupSetStore categoryOptionGroupSetStore,
+        IdentifiableObjectManager idObjectManager, CurrentUserService currentUserService, AclService aclService )
     {
+
+        checkNotNull( categoryStore );
+        checkNotNull( categoryOptionStore );
+        checkNotNull( categoryComboStore );
+        checkNotNull( categoryOptionComboStore );
+        checkNotNull( categoryOptionGroupStore );
+        checkNotNull( categoryOptionGroupSetStore );
+        checkNotNull( idObjectManager );
+        checkNotNull( currentUserService );
+        checkNotNull( aclService );
+
         this.categoryStore = categoryStore;
-    }
-
-    private CategoryOptionStore categoryOptionStore;
-
-    public void setCategoryOptionStore( CategoryOptionStore categoryOptionStore )
-    {
         this.categoryOptionStore = categoryOptionStore;
-    }
-
-    private CategoryComboStore categoryComboStore;
-
-    public void setCategoryComboStore( CategoryComboStore categoryComboStore )
-    {
         this.categoryComboStore = categoryComboStore;
-    }
-
-    private CategoryOptionComboStore categoryOptionComboStore;
-
-    public void setCategoryOptionComboStore( CategoryOptionComboStore categoryOptionComboStore )
-    {
         this.categoryOptionComboStore = categoryOptionComboStore;
-    }
-
-    private CategoryOptionGroupStore categoryOptionGroupStore;
-
-    public void setCategoryOptionGroupStore( CategoryOptionGroupStore categoryOptionGroupStore )
-    {
         this.categoryOptionGroupStore = categoryOptionGroupStore;
-    }
-
-    private CategoryOptionGroupSetStore categoryOptionGroupSetStore;
-
-    public void setCategoryOptionGroupSetStore( CategoryOptionGroupSetStore categoryOptionGroupSetStore )
-    {
         this.categoryOptionGroupSetStore = categoryOptionGroupSetStore;
-    }
-
-    private IdentifiableObjectManager idObjectManager;
-
-    public void setIdObjectManager( IdentifiableObjectManager idObjectManager )
-    {
         this.idObjectManager = idObjectManager;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private AclService aclService;
-
-    public void setAclService( AclService aclService )
-    {
         this.aclService = aclService;
     }
 

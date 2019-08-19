@@ -42,6 +42,10 @@
       <artifactId>dhis-service-analytics</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-tracker</artifactId>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
@@ -98,7 +102,11 @@
       <artifactId>hamcrest-library</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.fileresource;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,13 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.io.ByteSource;
-
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -43,7 +46,7 @@ public interface FileResourceContentStore
      * @param key the key.
      * @return a ByteSource which provides a stream to the content or null if the content cannot be found or read.
      */
-    ByteSource getFileResourceContent( String key );
+    InputStream getFileResourceContent( String key );
 
     /**
      * Save the contents of the byte array to the file store.
@@ -65,6 +68,14 @@ public interface FileResourceContentStore
     String saveFileResourceContent( FileResource fileResource, File file);
 
     /**
+     * Save the content of image files.
+     * @param fileResource  the FileResource object.
+     * @param imageFile will map image dimension to its associated file.
+     * @return the key on success or null if saving failed.
+     */
+    String saveFileResourceContent( FileResource fileResource, Map<ImageFileDimension, File> imageFile );
+
+    /**
      * Delete the content bytes of a file resource.
      * @param key the key.
      */
@@ -83,4 +94,11 @@ public interface FileResourceContentStore
      * @return a URI containing the signed GET request or null if signed requests are not supported.
      */
     URI getSignedGetContentUri( String key );
+
+    /**
+     * Copies the content of a stream to the resource stored under key to the output stream.
+     * @param key the key used to store a resource
+     * @param output the output stream to copy the stream into
+     */
+    void copyContent( String key, OutputStream output ) throws IOException, NoSuchElementException;
 }

@@ -1,7 +1,7 @@
 package org.hisp.dhis.mapping;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,14 @@ import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Component( "org.hisp.dhis.mapping.MapViewDeletionHandler" )
 public class MapViewDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<MapView>
 {
@@ -45,10 +49,11 @@ public class MapViewDeletionHandler
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private MappingService mappingService;
+    private final MappingService mappingService;
 
-    public void setMappingService( MappingService mappingService )
+    public MapViewDeletionHandler( MappingService mappingService )
     {
+        checkNotNull( mappingService );
         this.mappingService = mappingService;
     }
 

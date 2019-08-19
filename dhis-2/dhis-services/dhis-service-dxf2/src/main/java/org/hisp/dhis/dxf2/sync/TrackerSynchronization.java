@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.sync;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
@@ -49,9 +50,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author David Katuscak
  */
+@Component
 public class TrackerSynchronization
 {
     private static final Log log = LogFactory.getLog( TrackerSynchronization.class );
@@ -63,6 +67,11 @@ public class TrackerSynchronization
 
     public TrackerSynchronization( TrackedEntityInstanceService teiService, SystemSettingManager systemSettingManager, RestTemplate restTemplate, RenderService renderService )
     {
+        checkNotNull( teiService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( restTemplate );
+        checkNotNull( renderService );
+
         this.teiService = teiService;
         this.systemSettingManager = systemSettingManager;
         this.restTemplate = restTemplate;

@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,14 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 public class EmbeddedObjectObjectBundleHook
     extends AbstractObjectBundleHook
 {

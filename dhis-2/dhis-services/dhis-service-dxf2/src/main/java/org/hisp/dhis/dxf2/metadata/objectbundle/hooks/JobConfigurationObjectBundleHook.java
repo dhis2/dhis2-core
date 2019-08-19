@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +49,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.scheduling.DefaultSchedulingManager.CONTINOUS_CRON;
 import static org.hisp.dhis.scheduling.DefaultSchedulingManager.HOUR_CRON;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
@@ -56,18 +57,23 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 /**
  * @author Henning Håkonsen
  */
+@Component
 public class JobConfigurationObjectBundleHook
     extends AbstractObjectBundleHook
 {
     private static final Log log = LogFactory.getLog( JobConfigurationObjectBundleHook.class );
 
-    @Autowired
-    private JobConfigurationService jobConfigurationService;
+    private final JobConfigurationService jobConfigurationService;
 
-    private SchedulingManager schedulingManager;
+    private final SchedulingManager schedulingManager;
 
-    public void setSchedulingManager( SchedulingManager schedulingManager )
+    public JobConfigurationObjectBundleHook( JobConfigurationService jobConfigurationService,
+        SchedulingManager schedulingManager )
     {
+        checkNotNull( jobConfigurationService );
+        checkNotNull( schedulingManager );
+
+        this.jobConfigurationService = jobConfigurationService;
         this.schedulingManager = schedulingManager;
     }
 

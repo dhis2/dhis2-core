@@ -1,7 +1,7 @@
 package org.hisp.dhis.appmanager;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -125,11 +125,8 @@ public interface AppManager
      *
      * @param app           the app to delete.
      * @param deleteAppData decide if associated data in dataStore should be deleted or not.
-     * @return true if the delete was successful, false if there is no app with
-     * the given name or if the app could not be removed from the file
-     * system.
      */
-    boolean deleteApp( App app, boolean deleteAppData );
+    void deleteApp( App app, boolean deleteAppData );
 
     /**
      * Reload list of apps.
@@ -183,4 +180,11 @@ public interface AppManager
      */
     Resource getAppResource( App app, String pageName )
         throws IOException;
+    
+    /**
+     * Sets the app status to DELETION_IN_PROGRESS. 
+     * @param app The app that has to be marked as deleted.
+     * @return true if the status was changed in this method.
+     */
+    boolean markAppToDelete( App app );
 }

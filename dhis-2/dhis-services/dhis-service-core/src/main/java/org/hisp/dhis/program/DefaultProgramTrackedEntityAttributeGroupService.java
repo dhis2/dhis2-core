@@ -1,7 +1,7 @@
 package org.hisp.dhis.program;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@ package org.hisp.dhis.program;
  */
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -36,6 +38,7 @@ import java.util.List;
 /**
  * @author Viet Nguyen
  */
+@Service( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupService" )
 public class DefaultProgramTrackedEntityAttributeGroupService
     implements ProgramTrackedEntityAttributeGroupService
 {
@@ -43,10 +46,9 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
+    private final IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
 
-    public void setAttributeGroupStore( IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
-    {
+    public DefaultProgramTrackedEntityAttributeGroupService(@Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" ) IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore) {
         this.attributeGroupStore = attributeGroupStore;
     }
 

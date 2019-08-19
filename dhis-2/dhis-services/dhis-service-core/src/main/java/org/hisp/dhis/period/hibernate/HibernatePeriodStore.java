@@ -1,7 +1,7 @@
 package org.hisp.dhis.period.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,19 +29,25 @@ package org.hisp.dhis.period.hibernate;
  */
 
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.RelativePeriods;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -52,19 +58,33 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Implements the PeriodStore interface.
- * 
+ *
  * @author Torgeir Lorange Ostby
  * @version $Id: HibernatePeriodStore.java 5983 2008-10-17 17:42:44Z larshelg $
  */
+@Repository( "org.hisp.dhis.period.PeriodStore" )
 public class HibernatePeriodStore
     extends HibernateIdentifiableObjectStore<Period>
     implements PeriodStore
 {
-    @Autowired
     private Environment env;
 
-    private static Cache<String, Long> PERIOD_ID_CACHE;
+    private static Cache<Long> PERIOD_ID_CACHE;
     
+    private CacheProvider cacheProvider;
+
+    public HibernatePeriodStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+        Environment env, CacheProvider cacheProvider )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, Period.class, currentUserService, deletedObjectService, aclService, true );
+
+        transientIdentifiableProperties = true;
+
+        this.env = env;
+        this.cacheProvider = cacheProvider;
+    }
+
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
@@ -72,11 +92,13 @@ public class HibernatePeriodStore
     @PostConstruct
     public void init()
     {
-
-        PERIOD_ID_CACHE =  Caffeine.newBuilder()
-                .expireAfterWrite( 24, TimeUnit.HOURS )
-                .initialCapacity( 200 )
-                .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles()) ? 0 : 10000 ).build();
+        PERIOD_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
+            .forRegion( "periodIdCache" )
+            .expireAfterWrite( 24, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
+            .build();
     }
 
     @Override
@@ -125,10 +147,10 @@ public class HibernatePeriodStore
     public List<Period> getPeriodsBetweenOrSpanningDates( Date startDate, Date endDate )
     {
         String hql = "from Period p where ( p.startDate >= :startDate and p.endDate <= :endDate ) or ( p.startDate <= :startDate and p.endDate >= :endDate )";
-        
+
         return getQuery( hql ).setParameter( "startDate", startDate ).setParameter( "endDate", endDate ).list();
     }
-    
+
     @Override
     public List<Period> getIntersectingPeriodsByPeriodType( PeriodType periodType, Date startDate, Date endDate )
     {
@@ -184,8 +206,9 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) );
-        
+        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
+            .orElse( null );
+
         Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
 
         return storedPeriod != null ? storedPeriod.copyTransientProperties( period ) : null;
@@ -194,10 +217,10 @@ public class HibernatePeriodStore
     private Long getPeriodId( Date startDate, Date endDate, PeriodType periodType )
     {
         Period period = getPeriod( startDate, endDate, periodType );
-        
+
         return period != null ? period.getId() : null;
     }
-    
+
     @Override
     public Period reloadForceAddPeriod( Period period )
     {

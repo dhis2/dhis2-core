@@ -1,7 +1,7 @@
 package org.hisp.dhis.common;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -100,6 +101,8 @@ public class BaseIdentifiableObject
      */
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
+    protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
+
     /**
      * Set of available object translation, normally filtered by locale.
      */
@@ -127,12 +130,12 @@ public class BaseIdentifiableObject
     protected User user;
 
     /**
-     * Access for userGroups
+     * Access for user groups.
      */
     protected Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
-     * Access for users
+     * Access for users.
      */
     protected Set<UserAccess> userAccesses = new HashSet<>();
 
@@ -145,14 +148,14 @@ public class BaseIdentifiableObject
      * Users who have marked this object as a favorite.
      */
     protected Set<String> favorites = new HashSet<>();
-    
+
     /**
      * The i18n variant of the name. Not persisted.
      */
     protected transient String displayName;
 
     /**
-     * Last user updated this object
+     * Last user updated this object.
      */
     private User lastUpdatedBy;
 
@@ -299,6 +302,7 @@ public class BaseIdentifiableObject
         this.created = created;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @JsonSerialize( using = CustomLastUpdatedUserSerializer.class )
@@ -339,7 +343,20 @@ public class BaseIdentifiableObject
 
     public void setAttributeValues( Set<AttributeValue> attributeValues )
     {
+        cacheAttributeValues.clear();
         this.attributeValues = attributeValues;
+    }
+
+    public AttributeValue getAttributeValue( Attribute attribute )
+    {
+        loadAttributeValuesCacheIfEmpty();
+        return cacheAttributeValues.get( attribute.getUid() );
+    }
+
+    public AttributeValue getAttributeValue( String attributeUid )
+    {
+        loadAttributeValuesCacheIfEmpty();
+        return cacheAttributeValues.get( attributeUid );
     }
 
     @Override
@@ -401,6 +418,14 @@ public class BaseIdentifiableObject
                     translationCache.put( key, translation.getValue() );
                 }
             }
+        }
+    }
+
+    private void loadAttributeValuesCacheIfEmpty()
+    {
+        if ( cacheAttributeValues.isEmpty() && attributeValues != null )
+        {
+            attributeValues.forEach( av -> cacheAttributeValues.put( av.getAttribute().getUid(), av ) );
         }
     }
 
@@ -506,29 +531,29 @@ public class BaseIdentifiableObject
     public boolean isFavorite()
     {
         User user = UserContext.getUser();
-        
+
         return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
     }
 
     @Override
     public boolean setAsFavorite( User user )
-    {        
+    {
         if ( this.favorites == null )
         {
             this.favorites = new HashSet<>();
         }
-        
+
         return this.favorites.add( user.getUid() );
     }
 
     @Override
     public boolean removeAsFavorite( User user )
-    {        
+    {
         if ( this.favorites == null )
         {
             this.favorites = new HashSet<>();
         }
-        
+
         return this.favorites.remove( user.getUid() );
     }
 

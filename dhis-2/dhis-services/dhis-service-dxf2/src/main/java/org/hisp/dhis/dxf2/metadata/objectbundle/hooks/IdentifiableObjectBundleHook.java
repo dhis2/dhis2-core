@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.Iterator;
@@ -43,6 +44,7 @@ import java.util.Iterator;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Component
 @Order( 0 )
 public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 {
@@ -89,7 +91,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
                 continue;
             }
 
-            Attribute attribute = bundle.getPreheat().get( bundle.getPreheatIdentifier(), attributeValue.getAttribute() );
+            Attribute attribute =  bundle.getPreheat().get( bundle.getPreheatIdentifier(), Attribute.class, attributeValue.getAttribute() );
 
             if ( attribute == null )
             {
@@ -98,7 +100,6 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
             }
 
             attributeValue.setAttribute( attribute );
-            session.save( attributeValue );
         }
     }
 }

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.program.ProgramStage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -19,7 +20,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,6 +63,11 @@ public class BaseDimensionalObject
     protected DataDimensionType dataDimensionType;
 
     /**
+     * Indicates whether this object should be handled as a data dimension.
+     */
+    protected boolean dataDimension = true;
+
+    /**
      * The name of this dimension. For the dynamic dimensions this will be equal
      * to dimension identifier. For the period dimension, this will reflect the
      * period type. For the org unit dimension, this will reflect the level.
@@ -82,6 +88,11 @@ public class BaseDimensionalObject
      * The legend set for this dimension.
      */
     protected LegendSet legendSet;
+
+    /**
+     * The program stage for this dimension.
+     */
+    private ProgramStage programStage;
 
     /**
      * The aggregation type for this dimension.
@@ -106,15 +117,6 @@ public class BaseDimensionalObject
      * dimension will be returned as is for all dimension items in the response.
      */
     private boolean fixed;
-
-    //--------------------------------------------------------------------------
-    // Persistent properties
-    //--------------------------------------------------------------------------
-
-    /**
-     * Indicates whether this object should be handled as a data dimension.
-     */
-    protected boolean dataDimension = true;
 
     //--------------------------------------------------------------------------
     // Constructors
@@ -151,7 +153,7 @@ public class BaseDimensionalObject
         this.displayName = displayName;
     }
 
-    public BaseDimensionalObject(String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, DimensionalKeywords dimensionalKeywords, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
@@ -165,13 +167,14 @@ public class BaseDimensionalObject
         this.allItems = allItems;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, LegendSet legendSet, String filter )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String displayName, LegendSet legendSet, ProgramStage programStage, String filter )
     {
         this.uid = dimension;
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName;
         this.displayName = displayName;
         this.legendSet = legendSet;
+        this.programStage = programStage;
         this.filter = filter;
     }
 
@@ -205,6 +208,12 @@ public class BaseDimensionalObject
     public boolean hasLegendSet()
     {
         return getLegendSet() != null;
+    }
+
+    @Override
+    public boolean hasProgramStage()
+    {
+        return getProgramStage() != null;
     }
 
     @Override
@@ -307,6 +316,19 @@ public class BaseDimensionalObject
 
     @Override
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isDataDimension()
+    {
+        return dataDimension;
+    }
+
+    public void setDataDimension( boolean dataDimension )
+    {
+        this.dataDimension = dataDimension;
+    }
+
+    @Override
+    @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalItemObject.class )
     @JacksonXmlElementWrapper( localName = "items", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "item", namespace = DxfNamespaces.DXF_2_0 )
@@ -349,6 +371,20 @@ public class BaseDimensionalObject
 
     @Override
     @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
+    }
+
+    @Override
+    @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public AggregationType getAggregationType()
     {
@@ -383,19 +419,6 @@ public class BaseDimensionalObject
     public void setFixed( boolean fixed )
     {
         this.fixed = fixed;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDataDimension()
-    {
-        return dataDimension;
-    }
-
-    public void setDataDimension( boolean dataDimension )
-    {
-        this.dataDimension = dataDimension;
     }
 
     @Override

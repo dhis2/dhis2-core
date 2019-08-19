@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.version;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@ import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.ByteArrayOutputStream;
@@ -64,7 +65,7 @@ import java.util.List;
  *
  * @author aamerm
  */
-@Transactional
+@Service( "org.hisp.dhis.metadata.version.MetadataVersionService" )
 public class
 DefaultMetadataVersionService
     implements MetadataVersionService
@@ -100,6 +101,7 @@ DefaultMetadataVersionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long addVersion( MetadataVersion version )
     {
         versionStore.save( version );
@@ -108,12 +110,14 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional
     public void updateVersion( MetadataVersion version )
     {
         versionStore.update( version );
     }
 
     @Override
+    @Transactional
     public void updateVersionName( long id, String name )
     {
         MetadataVersion version = getVersionById( id );
@@ -126,30 +130,35 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional
     public void deleteVersion( MetadataVersion version )
     {
         versionStore.delete( version );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataVersion getVersionById( long id )
     {
         return versionStore.getVersionByKey( id );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataVersion getVersionByName( String versionName )
     {
         return versionStore.getVersionByName( versionName );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<MetadataVersion> getAllVersions()
     {
         return versionStore.getAll();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataVersion getCurrentVersion()
     {
         try
@@ -164,6 +173,7 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public MetadataVersion getInitialVersion()
     {
         try
@@ -178,12 +188,14 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<MetadataVersion> getAllVersionsInBetween( Date startDate, Date endDate )
     {
         return versionStore.getAllVersionsInBetween( startDate, endDate );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Date getCreatedDate( String versionName )
     {
         MetadataVersion version = getVersionByName( versionName );
@@ -197,6 +209,7 @@ DefaultMetadataVersionService
      * 3. Creating the actual MetadataVersion entry.
      */
     @Override
+    @Transactional
     public synchronized boolean saveVersion( VersionType versionType )
     {
         MetadataVersion currentVersion = getCurrentVersion();
@@ -253,6 +266,7 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getVersionData( String versionName )
     {
         KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, versionName );
@@ -273,6 +287,7 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional
     public void createMetadataVersionInDataStore( String versionName, String versionSnapshot )
     {
         if ( StringUtils.isEmpty( versionSnapshot ) )
@@ -301,6 +316,7 @@ DefaultMetadataVersionService
     }
 
     @Override
+    @Transactional
     public void deleteMetadataVersionInDataStore( String nameSpaceKey )
     {
         KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( MetadataVersionService.METADATASTORE, nameSpaceKey );
@@ -320,7 +336,7 @@ DefaultMetadataVersionService
     @Override
     public boolean isMetadataPassingIntegrity( MetadataVersion version, String versionSnapshot )
     {
-        String metadataVersionHashCode = null;
+        String metadataVersionHashCode;
 
         if ( version == null || versionSnapshot == null )
         {
@@ -348,7 +364,7 @@ DefaultMetadataVersionService
      */
     private ByteArrayOutputStream getMetadataExport( Date minDate )
     {
-        ByteArrayOutputStream os = null;
+        ByteArrayOutputStream os;
 
         try
         {

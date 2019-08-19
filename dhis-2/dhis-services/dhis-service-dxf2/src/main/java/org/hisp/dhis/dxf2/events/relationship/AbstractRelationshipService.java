@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.events.relationship;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -133,6 +132,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByTrackedEntityInstance( tei, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
@@ -143,6 +143,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByProgramInstance( pi, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 
@@ -154,6 +155,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService.getRelationshipsByProgramStageInstance( psi, skipAccessValidation ).stream()
+            .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
 

@@ -1,7 +1,7 @@
 package org.hisp.dhis.util;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@ package org.hisp.dhis.util;
 
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
+import static org.hisp.dhis.util.DateUtils.parseDate;
+import static org.hisp.dhis.util.DateUtils.getMediumDate;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -40,6 +42,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.Calendar;
+import java.util.TimeZone;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
 import org.hisp.dhis.util.DateUtils;
@@ -262,12 +266,69 @@ public class DateUtilsTest
     }
 
     @Test
-    public void getDate()
+    public void testGetDate()
     {
         LocalDateTime time = LocalDateTime.of( 2012, 1, 10, 10, 5 );
 
         Date date = DateUtils.getDate( time );
 
         assertEquals( time.toInstant( ZoneOffset.UTC ).toEpochMilli(), date.getTime() );
+    }
+
+    @Test
+    public void testGetLatestDate()
+    {
+        Date jan3 = new DateTime( 2019, 1, 3, 0, 0 ).toDate();
+        Date mar21 = new DateTime( 2019, 3, 21, 0, 0 ).toDate();
+        Date aug17 = new DateTime( 2019, 8, 17, 0, 0 ).toDate();
+
+        assertEquals( aug17, DateUtils.getLatest( mar21, null, aug17, null, jan3, null ) );
+    }
+
+    @Test
+    public void testParseIntoDSTGap()
+    {
+        Calendar cal = Calendar.getInstance();
+
+        int year = 1985;
+        int month = 4;
+        int day = 14;
+
+        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day;
+
+        assertTrue( dateTimeIsValid( dateString + "T00:00" ) );
+
+        Date dateParsed = parseDate( dateString );
+        cal.setTime( dateParsed );
+
+        assertEquals( year, cal.get( Calendar.YEAR ) );
+        assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
+        assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
+
+        Date mediumDateParsed = getMediumDate( dateString );
+        assertEquals( dateParsed, mediumDateParsed );
+    }
+
+    @Test
+    public void testParseZuluDateOffset()
+    {
+        TimeZone timeZone = TimeZone.getTimeZone( "UTC" );
+        Calendar cal = Calendar.getInstance( timeZone );
+
+        int year = 1995;
+        int month = 5;
+        int day = 24;
+
+        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day + "T00:00Z";
+
+        assertTrue( dateTimeIsValid( dateString  ) );
+
+        Date dateParsed = parseDate( dateString );
+        cal.setTime( dateParsed );
+
+        assertEquals( year, cal.get( Calendar.YEAR ) );
+        assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
+        assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
+        assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
     }
 }

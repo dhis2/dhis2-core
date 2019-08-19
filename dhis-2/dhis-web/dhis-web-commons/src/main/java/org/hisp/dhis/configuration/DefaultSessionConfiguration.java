@@ -1,6 +1,6 @@
 package org.hisp.dhis.configuration;
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  * container will expect a filter bean with that name. Therefore we define a
  * dummy {@link Filter} named springSessionRepositoryFilter. Here we define a
  * {@link CharacterEncodingFilter} without setting any encoding so that requests
- * will simply pass through the filter
- * 
+ * will simply pass through the filter.
+ *
  * @author Ameen Mohamed
  *
  */
@@ -56,7 +56,7 @@ public class DefaultSessionConfiguration
     /**
      * Defines a {@link CharacterEncodingFilter} named
      * springSessionRepositoryFilter
-     * 
+     *
      * @return a {@link CharacterEncodingFilter} without specifying encoding.
      */
     @Bean

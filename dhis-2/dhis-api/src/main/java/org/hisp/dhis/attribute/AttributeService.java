@@ -1,7 +1,7 @@
 package org.hisp.dhis.attribute;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -132,19 +132,22 @@ public interface AttributeService
     /**
      * Deletes an attribute value.
      *
+     * @param object the object which the attributeValue belongs to.
      * @param attributeValue the attribute value.
      */
-    void deleteAttributeValue( AttributeValue attributeValue );
+    <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue );
 
     /**
-     * Gets the attribute value with the given id.
+     * Deletes a Set of attribute values.
      *
-     * @param id the id.
-     * @return the attribute value with the given id.
+     * @param object the object which the attributeValue belongs to.
+     * @param attributeValues the Set of attribute values.
      */
-    AttributeValue getAttributeValue( long id );
+    <T extends IdentifiableObject> void deleteAttributeValues( T object, Set<AttributeValue> attributeValues );
 
     <T extends IdentifiableObject> void updateAttributeValues( T object, List<String> jsonAttributeValues ) throws Exception;
 
     <T extends IdentifiableObject> void updateAttributeValues( T object, Set<AttributeValue> attributeValues ) throws Exception;
+
+    <T extends IdentifiableObject> void generateAttributes( List<T> entityList );
 }

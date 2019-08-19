@@ -1,7 +1,7 @@
 package org.hisp.dhis.configuration;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,29 +29,39 @@ package org.hisp.dhis.configuration;
  */
 
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Iterator;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.configuration.ConfigurationService" )
 public class DefaultConfigurationService
     implements ConfigurationService
 {
     private GenericStore<Configuration> configurationStore;
 
-    public void setConfigurationStore( GenericStore<Configuration> configurationStore )
+    public DefaultConfigurationService(
+        @Qualifier( "org.hisp.dhis.configuration.ConfigurationStore" ) GenericStore<Configuration> configurationStore )
     {
+        checkNotNull( configurationStore );
+
         this.configurationStore = configurationStore;
     }
 
     // -------------------------------------------------------------------------
     // ConfigurationService implementation
     // -------------------------------------------------------------------------
-    
+
     @Override
     @Transactional
     public void setConfiguration( Configuration configuration )
@@ -65,13 +75,13 @@ public class DefaultConfigurationService
             configurationStore.save( configuration );
         }
     }
-    
+
     @Override
     @Transactional(readOnly = true)
     public Configuration getConfiguration()
     {
         Iterator<Configuration> iterator = configurationStore.getAll().iterator();
-        
+
         return iterator.hasNext() ? iterator.next() : new Configuration();
     }
 
@@ -79,7 +89,19 @@ public class DefaultConfigurationService
     @Transactional(readOnly = true)
     public boolean isCorsWhitelisted( String origin )
     {
-        return getConfiguration().getCorsWhitelist().contains( origin );
+        Set<String> corsWhitelist = getConfiguration().getCorsWhitelist();
+
+        for ( String cors : corsWhitelist )
+        {
+            String regex = TextUtils.createRegexFromGlob( cors );
+
+            if ( origin.matches( regex ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

@@ -1,7 +1,7 @@
 package org.hisp.dhis.chart.impl;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,6 +75,8 @@ import org.jfree.data.general.DefaultValueDataset;
 import org.jfree.data.general.ValueDataset;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.util.TableOrder;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.*;
@@ -82,12 +84,14 @@ import java.util.*;
 import java.util.List;
 import java.util.Map.Entry;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.collection.ListUtils.getArray;
 
 /**
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.chart.ChartService" )
 public class DefaultChartService
     extends GenericAnalyticalObjectService<Chart>
     implements ChartService
@@ -111,59 +115,44 @@ public class DefaultChartService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private AnalyticalObjectStore<Chart> chartStore;
+    private final AnalyticalObjectStore<Chart> chartStore;
 
-    public void setChartStore( AnalyticalObjectStore<Chart> chartStore )
+    private final PeriodService periodService;
+
+    private final DataValueService dataValueService;
+
+    private final MinMaxDataElementService minMaxDataElementService;
+
+    private final CurrentUserService currentUserService;
+
+    private final OrganisationUnitService organisationUnitService;
+
+    private final AnalyticsService analyticsService;
+
+    private final EventAnalyticsService eventAnalyticsService;
+
+    public DefaultChartService( @Qualifier( "org.hisp.dhis.chart.ChartStore" ) AnalyticalObjectStore<Chart> chartStore,
+        PeriodService periodService, DataValueService dataValueService,
+        MinMaxDataElementService minMaxDataElementService, CurrentUserService currentUserService,
+        OrganisationUnitService organisationUnitService, AnalyticsService analyticsService,
+        EventAnalyticsService eventAnalyticsService )
     {
+        checkNotNull( chartStore );
+        checkNotNull( periodService );
+        checkNotNull( dataValueService );
+        checkNotNull( minMaxDataElementService );
+        checkNotNull( currentUserService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( analyticsService );
+        checkNotNull( eventAnalyticsService );
+
         this.chartStore = chartStore;
-    }
-
-    private PeriodService periodService;
-
-    public void setPeriodService( PeriodService periodService )
-    {
         this.periodService = periodService;
-    }
-
-    private DataValueService dataValueService;
-
-    public void setDataValueService( DataValueService dataValueService )
-    {
         this.dataValueService = dataValueService;
-    }
-
-    private MinMaxDataElementService minMaxDataElementService;
-
-    public void setMinMaxDataElementService( MinMaxDataElementService minMaxDataElementService )
-    {
         this.minMaxDataElementService = minMaxDataElementService;
-    }
-
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
         this.currentUserService = currentUserService;
-    }
-
-    private OrganisationUnitService organisationUnitService;
-
-    public void setOrganisationUnitService( OrganisationUnitService organisationUnitService )
-    {
         this.organisationUnitService = organisationUnitService;
-    }
-
-    private AnalyticsService analyticsService;
-
-    public void setAnalyticsService( AnalyticsService analyticsService )
-    {
         this.analyticsService = analyticsService;
-    }
-
-    private EventAnalyticsService eventAnalyticsService;
-
-    public void setEventAnalyticsService( EventAnalyticsService eventAnalyticsService )
-    {
         this.eventAnalyticsService = eventAnalyticsService;
     }
 
@@ -325,7 +314,7 @@ public class DefaultChartService
 
         UnivariateInterpolator interpolator = new SplineInterpolator();
 
-        Integer periodCount = 0;
+        int periodCount = 0;
         List<Double> x = new ArrayList<>();
         List<Double> y = new ArrayList<>();
 
@@ -351,7 +340,7 @@ public class DefaultChartService
             {
                 value = Double.parseDouble( dataValue.getValue() );
 
-                x.add( periodCount.doubleValue() );
+                x.add((double) periodCount);
                 y.add( value );
             }
 
@@ -405,9 +394,7 @@ public class DefaultChartService
         plot.setDataset( 1, metaDataSet );
         plot.setRenderer( 1, getLineRenderer() );
 
-        JFreeChart jFreeChart = getBasicJFreeChart( plot );
-
-        return jFreeChart;
+        return getBasicJFreeChart( plot );
     }
 
     // -------------------------------------------------------------------------
@@ -538,7 +525,7 @@ public class DefaultChartService
         // Plot
         // ---------------------------------------------------------------------
 
-        CategoryPlot plot = null;
+        CategoryPlot plot;
 
         if ( chart.isType( ChartType.LINE ) )
         {
@@ -888,9 +875,9 @@ public class DefaultChartService
 
             Object value = valueMap.get( key );
 
-            if ( value != null && value instanceof Number )
+            if (value instanceof Number)
             {
-                list.add( new NumericSortWrapper<NameableObject>( category, (Double ) value, sortOrder ) );
+                list.add(new NumericSortWrapper<>(category, (Double) value, sortOrder) );
             }
         }
 

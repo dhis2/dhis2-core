@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
@@ -37,7 +38,6 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -113,6 +113,7 @@ import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
+import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -121,15 +122,17 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.csvreader.CsvReader;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
  *
  * @author Lars Helge Overland
  */
+@Service( "org.hisp.dhis.dxf2.datavalueset.DataValueSetService" )
 public class DefaultDataValueSetService
     implements DataValueSetService
 {
@@ -138,73 +141,110 @@ public class DefaultDataValueSetService
     private static final String ERROR_OBJECT_NEEDED_TO_COMPLETE = "Must be provided to complete data set";
     private static final int CACHE_MISS_THRESHOLD = 250;
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
+    private final IdentifiableObjectManager identifiableObjectManager;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private DataApprovalService approvalService;
+    private final DataApprovalService approvalService;
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+    private  BatchHandlerFactory batchHandlerFactory;
 
-    @Autowired
-    private CompleteDataSetRegistrationService registrationService;
+    private final CompleteDataSetRegistrationService registrationService;
 
-    @Autowired
     private CurrentUserService currentUserService;
 
-    @Autowired
-    private DataValueSetStore dataValueSetStore;
+    private final DataValueSetStore dataValueSetStore;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private LockExceptionStore lockExceptionStore;
+    private final LockExceptionStore lockExceptionStore;
 
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    @Autowired
-    protected InputUtils inputUtils;
+    private final InputUtils inputUtils;
 
-    @Autowired
-    private CalendarService calendarService;
+    private final CalendarService calendarService;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
     private FileResourceService fileResourceService;
 
-    @Autowired
     private AclService aclService;
 
-    @Autowired
     private AggregateAccessManager accessManager;
 
-    // Set methods for test purposes
-
-    public void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory )
+    public DefaultDataValueSetService( IdentifiableObjectManager identifiableObjectManager,
+        CategoryService categoryService, OrganisationUnitService organisationUnitService, PeriodService periodService,
+        DataApprovalService approvalService, BatchHandlerFactory batchHandlerFactory,
+        CompleteDataSetRegistrationService registrationService, CurrentUserService currentUserService,
+        DataValueSetStore dataValueSetStore, SystemSettingManager systemSettingManager,
+        LockExceptionStore lockExceptionStore, I18nManager i18nManager, Notifier notifier, InputUtils inputUtils,
+        CalendarService calendarService, DataValueService dataValueService, FileResourceService fileResourceService,
+        AclService aclService, AggregateAccessManager accessManager )
     {
+        checkNotNull( identifiableObjectManager );
+        checkNotNull( categoryService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( periodService );
+        checkNotNull( approvalService );
+        checkNotNull( batchHandlerFactory );
+        checkNotNull( registrationService );
+        checkNotNull( currentUserService );
+        checkNotNull( dataValueSetStore );
+        checkNotNull( systemSettingManager );
+        checkNotNull( lockExceptionStore );
+        checkNotNull( i18nManager );
+        checkNotNull( notifier );
+        checkNotNull( inputUtils );
+        checkNotNull( calendarService );
+        checkNotNull( dataValueService );
+        checkNotNull( fileResourceService );
+        checkNotNull( aclService );
+        checkNotNull( accessManager );
+
+        this.identifiableObjectManager = identifiableObjectManager;
+        this.categoryService = categoryService;
+        this.organisationUnitService = organisationUnitService;
+        this.periodService = periodService;
+        this.approvalService = approvalService;
         this.batchHandlerFactory = batchHandlerFactory;
+        this.registrationService = registrationService;
+        this.currentUserService = currentUserService;
+        this.dataValueSetStore = dataValueSetStore;
+        this.systemSettingManager = systemSettingManager;
+        this.lockExceptionStore = lockExceptionStore;
+        this.i18nManager = i18nManager;
+        this.notifier = notifier;
+        this.inputUtils = inputUtils;
+        this.calendarService = calendarService;
+        this.dataValueService = dataValueService;
+        this.fileResourceService = fileResourceService;
+        this.aclService = aclService;
+        this.accessManager = accessManager;
     }
 
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
+    }
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory )
+    {
+        this.batchHandlerFactory = batchHandlerFactory;
     }
 
     // -------------------------------------------------------------------------
@@ -348,6 +388,7 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public void writeDataValueSetXml( DataExportParams params, OutputStream out )
     {
         decideAccess( params );
@@ -357,6 +398,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetJson( DataExportParams params, OutputStream out )
     {
         decideAccess( params );
@@ -366,12 +408,14 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes )
     {
         dataValueSetStore.writeDataValueSetJson( lastUpdated, outputStream, idSchemes );
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
         int page )
     {
@@ -379,6 +423,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public void writeDataValueSetCsv( DataExportParams params, Writer writer )
     {
         decideAccess( params );
@@ -515,36 +560,42 @@ public class DefaultDataValueSetService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSet( InputStream in )
     {
         return saveDataValueSet( in, ImportOptions.getDefaultImportOptions(), null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetJson( InputStream in )
     {
         return saveDataValueSetJson( in, ImportOptions.getDefaultImportOptions(), null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions )
     {
         return saveDataValueSet( in, importOptions, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions )
     {
         return saveDataValueSetJson( in, importOptions, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions )
     {
         return saveDataValueSetCsv( in, importOptions, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
@@ -562,6 +613,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
@@ -579,12 +631,13 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
-            CsvReader csvReader = new CsvReader( in, Charset.forName( "UTF-8" ) );
+            CsvReader csvReader = CsvUtils.getReader( in );
 
             if ( importOptions == null || importOptions.isFirstRowIsHeader() )
             {
@@ -603,6 +656,7 @@ public class DefaultDataValueSetService
     }
 
     @Override
+    @Transactional
     public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id )
     {
         try
@@ -616,6 +670,12 @@ public class DefaultDataValueSetService
             notifier.clear( id ).notify( id, ERROR, "Process failed: " + ex.getMessage(), true );
             return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
         }
+    }
+
+    @Override
+    public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions )
+    {
+       return saveDataValueSetPdf( in, importOptions, null );
     }
 
     /**
@@ -635,10 +695,6 @@ public class DefaultDataValueSetService
      * If id scheme is specific in the data value set, any id schemes in the import
      * options will be ignored.
      *
-     * @param importOptions
-     * @param id
-     * @param dataValueSet
-     * @return
      */
     private ImportSummary saveDataValueSet( ImportOptions importOptions, JobConfiguration id, DataValueSet dataValueSet )
     {
@@ -775,7 +831,8 @@ public class DefaultDataValueSetService
         }
         else if ( dataValueSet.getAttributeCategoryOptions() != null )
         {
-            outerAttrOptionCombo = inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(), new HashSet<String>( dataValueSet.getAttributeCategoryOptions() ), idScheme );
+            outerAttrOptionCombo = inputUtils.getAttributeOptionCombo( dataSet.getCategoryCombo(),
+                new HashSet<>( dataValueSet.getAttributeCategoryOptions() ), idScheme );
         }
 
         // ---------------------------------------------------------------------
@@ -1021,7 +1078,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictPeriods && !dataElementPeriodTypesMap.get( dataElement.getUid(),
-                () -> dataElement.getPeriodTypes() ).contains( period.getPeriodType() ) )
+                    dataElement::getPeriodTypes).contains( period.getPeriodType() ) )
             {
                 summary.getConflicts().add( new ImportConflict( dataValue.getPeriod(),
                     "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
@@ -1036,7 +1093,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictCategoryOptionCombos && !dataElementCategoryOptionComboMap.get( dataElement.getUid(),
-                () -> dataElement.getCategoryOptionCombos() ).contains( categoryOptionCombo ) )
+                    dataElement::getCategoryOptionCombos).contains( categoryOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( categoryOptionCombo.getUid(),
                     "Category option combo: " + categoryOptionCombo.getUid() + " must be part of category combo of data element: " + dataElement.getUid() ) );
@@ -1044,7 +1101,7 @@ public class DefaultDataValueSetService
             }
 
             if ( strictAttrOptionCombos && !dataElementAttrOptionComboMap.get( dataElement.getUid(),
-                () -> dataElement.getDataSetCategoryOptionCombos() ).contains( attrOptionCombo ) )
+                    dataElement::getDataSetCategoryOptionCombos).contains( attrOptionCombo ) )
             {
                 summary.getConflicts().add( new ImportConflict( attrOptionCombo.getUid(),
                     "Attribute option combo: " + attrOptionCombo.getUid() + " must be part of category combo of data sets of data element: " + dataElement.getUid() ) );
@@ -1078,7 +1135,7 @@ public class DefaultDataValueSetService
 
             final CategoryOptionCombo aoc = attrOptionCombo;
 
-            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), () -> aoc.getDateRange() );
+            DateRange aocDateRange = attrOptionComboDateRangeMap.get( attrOptionCombo.getUid(), aoc::getDateRange);
 
             if ( ( aocDateRange.getStartDate() != null && aocDateRange.getStartDate().compareTo( period.getStartDate() ) > 0 )
                 || ( aocDateRange.getEndDate() != null && aocDateRange.getEndDate().compareTo( period.getEndDate() ) < 0 ) )
@@ -1100,7 +1157,7 @@ public class DefaultDataValueSetService
             }
 
             final DataSet approvalDataSet = dataSet != null ? dataSet : dataElementDataSetMap.get( dataElement.getUid(),
-                () -> dataElement.getApprovalDataSet() );
+                    dataElement::getApprovalDataSet);
 
             if ( approvalDataSet != null && !forceDataInput ) // Data element is assigned to at least one data set
             {
@@ -1112,7 +1169,7 @@ public class DefaultDataValueSetService
                     continue;
                 }
 
-                Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), () -> dataElement.getLatestOpenFuturePeriod() );
+                Period latestFuturePeriod = dataElementLatestFuturePeriodMap.get( dataElement.getUid(), dataElement::getLatestOpenFuturePeriod);
 
                 if ( period.isAfter( latestFuturePeriod ) && isIso8601 )
                 {
@@ -1131,7 +1188,9 @@ public class DefaultDataValueSetService
                     {
                         DataApproval lowestApproval = DataApproval.getLowestApproval( new DataApproval( null, workflow, period, orgUnit, aoc ) );
 
-                        return lowestApproval != null && lowestApprovalLevelMap.get( lowestApproval.getDataApprovalLevel().getUid() + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
+                        return lowestApproval != null && lowestApprovalLevelMap.get(
+                            lowestApproval.getDataApprovalLevel().getUid()
+                                + lowestApproval.getOrganisationUnit().getUid() + workflowPeriodAoc,
                             () -> approvalService.getDataApproval( lowestApproval ) != null );
                     } ) )
                     {

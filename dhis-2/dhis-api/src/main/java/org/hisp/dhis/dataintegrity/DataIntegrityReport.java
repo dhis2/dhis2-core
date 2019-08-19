@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataintegrity;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,6 +104,8 @@ public class DataIntegrityReport
     private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions = new HashMap<>();
 
     private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
+
+    private List<ProgramIndicator> getProgramIndicatorWithNoExpression = new ArrayList<>();
 
     private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition = new HashMap<>();
 
@@ -354,6 +356,16 @@ public class DataIntegrityReport
     public void setInvalidProgramIndicatorFilters( Map<ProgramIndicator, String> invalidProgramIndicatorFilters )
     {
         this.invalidProgramIndicatorFilters = invalidProgramIndicatorFilters;
+    }
+
+    public List<ProgramIndicator> getGetProgramIndicatorWithNoExpression()
+    {
+        return getProgramIndicatorWithNoExpression;
+    }
+
+    public void setGetProgramIndicatorWithNoExpression( List<ProgramIndicator> getProgramIndicatorWithNoExpression )
+    {
+        this.getProgramIndicatorWithNoExpression = getProgramIndicatorWithNoExpression;
     }
 
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()

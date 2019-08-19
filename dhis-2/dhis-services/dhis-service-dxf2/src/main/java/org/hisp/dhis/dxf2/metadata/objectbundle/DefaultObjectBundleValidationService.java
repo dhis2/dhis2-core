@@ -1,7 +1,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -76,7 +78,7 @@ import java.util.stream.Collectors;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
+@Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" )
 @Transactional
 public class DefaultObjectBundleValidationService implements ObjectBundleValidationService
 {
@@ -93,6 +95,12 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private IdentifiableObjectManager objectManager;
+
+    @Autowired
+    private AttributeService attributeService;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();

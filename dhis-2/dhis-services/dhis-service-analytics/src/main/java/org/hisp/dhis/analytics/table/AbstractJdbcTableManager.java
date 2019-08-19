@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,37 +28,28 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.analytics.AnalyticsIndex;
-import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
-import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
-import org.hisp.dhis.analytics.AnalyticsTableManager;
-import org.hisp.dhis.analytics.AnalyticsTablePartition;
-import org.hisp.dhis.analytics.AnalyticsTablePhase;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.*;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -70,6 +61,12 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+
 /**
  * @author Lars Helge Overland
  */
@@ -78,43 +75,77 @@ public abstract class AbstractJdbcTableManager
 {
     protected static final Log log = LogFactory.getLog( JdbcAnalyticsTableManager.class );
 
-    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?(\\d{2}:\\d{2}:\\d{2})?$";
+    /**
+     * Matches the following patterns:
+     *
+     * <ul>
+     * <li>1999-12-12</li>
+     * <li>1999-12-12T</li>
+     * <li>1999-12-12T10:10:10</li>
+     * <li>1999-10-10 10:10:10</li>
+     * <li>1999-10-10 10:10</li>
+     * </ul>
+     */
+    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$";
+
+    protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
     public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
     public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
-    @Autowired
     protected IdentifiableObjectManager idObjectManager;
 
-    @Autowired
     protected OrganisationUnitService organisationUnitService;
 
-    @Autowired
     protected CategoryService categoryService;
 
-    @Autowired
     protected SystemSettingManager systemSettingManager;
 
-    @Autowired
     protected DataApprovalLevelService dataApprovalLevelService;
 
-    @Autowired
     protected ResourceTableService resourceTableService;
 
-    @Autowired
     private AnalyticsTableHookService tableHookService;
 
-    @Autowired
     protected StatementBuilder statementBuilder;
 
-    @Autowired
     protected PartitionManager partitionManager;
 
-    @Autowired
     protected DatabaseInfo databaseInfo;
 
-    @Autowired
     protected JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,
+        OrganisationUnitService organisationUnitService, CategoryService categoryService,
+        SystemSettingManager systemSettingManager, DataApprovalLevelService dataApprovalLevelService,
+        ResourceTableService resourceTableService, AnalyticsTableHookService tableHookService,
+        StatementBuilder statementBuilder, PartitionManager partitionManager, DatabaseInfo databaseInfo,
+        JdbcTemplate jdbcTemplate )
+    {
+        checkNotNull( idObjectManager );
+        checkNotNull( organisationUnitService );
+        checkNotNull( categoryService );
+        checkNotNull( systemSettingManager );
+        checkNotNull( dataApprovalLevelService );
+        checkNotNull( resourceTableService );
+        checkNotNull( tableHookService );
+        checkNotNull( statementBuilder );
+        checkNotNull( partitionManager );
+        checkNotNull( databaseInfo );
+
+        this.idObjectManager = idObjectManager;
+        this.organisationUnitService = organisationUnitService;
+        this.categoryService = categoryService;
+        this.systemSettingManager = systemSettingManager;
+        this.dataApprovalLevelService = dataApprovalLevelService;
+        this.resourceTableService = resourceTableService;
+        this.tableHookService = tableHookService;
+        this.statementBuilder = statementBuilder;
+        this.partitionManager = partitionManager;
+        this.databaseInfo = databaseInfo;
+        this.jdbcTemplate = jdbcTemplate;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -178,7 +209,7 @@ public abstract class AbstractJdbcTableManager
 
         log.info( String.format( "Swapping table, master table exists: %b, skip master table: %b", tableExists, skipMasterTable ) );
 
-        table.getPartitionTables().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
+        table.getTablePartitions().stream().forEach( p -> swapTable( p.getTempTableName(), p.getTableName() ) );
 
         if ( !skipMasterTable )
         {
@@ -186,7 +217,7 @@ public abstract class AbstractJdbcTableManager
         }
         else
         {
-            table.getPartitionTables().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
+            table.getTablePartitions().stream().forEach( p -> swapInheritance( p.getTableName(),table.getTempTableName(), table.getTableName() ) );
             dropTempTable( table );
         }
     }
@@ -350,7 +381,7 @@ public abstract class AbstractJdbcTableManager
      */
     protected void createTempTablePartitions( AnalyticsTable table )
     {
-        for ( AnalyticsTablePartition partition : table.getPartitionTables() )
+        for ( AnalyticsTablePartition partition : table.getTablePartitions() )
         {
             final String tableName = partition.getTempTableName();
             final List<String> checks = getPartitionChecks( partition );
@@ -383,7 +414,7 @@ public abstract class AbstractJdbcTableManager
     }
 
     /**
-     * Generates a list of {@link AnalyticsTable} based on a list of years with data.
+     * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
      *
      * @param dataYears the list of years with data.
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
@@ -463,7 +494,53 @@ public abstract class AbstractJdbcTableManager
 
         jdbcTemplate.execute( sql );
 
-        log.info( String.format( "%s done in: %s", logMessage, timer.stop().toString() ) );
+        log.info( String.format( "%s in: %s", logMessage, timer.stop().toString() ) );
+    }
+
+    /**
+     * Collects all the {@link PeriodType} as a list of {@link AnalyticsTableColumn}.
+     *
+     * @param prefix the prefix to use for the column name
+     * @return a List of {@link AnalyticsTableColumn}
+     */
+    List<AnalyticsTableColumn> addPeriodColumns(String prefix)
+    {
+        return PeriodType.getAvailablePeriodTypes().stream()
+            .map( pt -> {
+                String column = quote( pt.getName().toLowerCase() );
+                return new AnalyticsTableColumn( column, TEXT, prefix + "." + column );
+            } )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Collects all the {@link OrganisationUnitLevel} as a list of {@link AnalyticsTableColumn}.
+     *
+     * @return a List of {@link AnalyticsTableColumn}
+     */
+    List<AnalyticsTableColumn> addOrganisationUnitLevels()
+    {
+        return organisationUnitService.getFilledOrganisationUnitLevels().stream()
+            .map( lv -> {
+                String column = quote( PREFIX_ORGUNITLEVEL + lv.getLevel() );
+                return new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( lv.getCreated() );
+            } )
+            .collect( Collectors.toList() );
+    }
+
+    /**
+     * Collects all the {@link OrganisationUnitGroupSet} as a list of {@link AnalyticsTableColumn}.
+     *
+     * @return a List of {@link AnalyticsTableColumn}
+     */
+    protected List<AnalyticsTableColumn> addOrganisationUnitGroupSets()
+    {
+        return idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ).stream()
+            .map( ougs -> {
+                String column = quote( ougs.getUid() );
+                return new AnalyticsTableColumn( column, CHARACTER_11, "ougs." + column ).withCreated( ougs.getCreated() );
+            } )
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------

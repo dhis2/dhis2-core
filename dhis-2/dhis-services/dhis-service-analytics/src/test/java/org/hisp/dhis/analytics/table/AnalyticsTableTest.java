@@ -1,7 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,8 +75,8 @@ public class AnalyticsTableTest
         tableA.addPartitionTable( 2014, periodA.getStartDate(), periodA.getEndDate() );
         tableA.addPartitionTable( 2015, periodB.getStartDate(), periodB.getEndDate() );
 
-        AnalyticsTablePartition partitionA = tableA.getPartitionTables().get( 0 );
-        AnalyticsTablePartition partitionB = tableA.getPartitionTables().get( 1 );
+        AnalyticsTablePartition partitionA = tableA.getTablePartitions().get( 0 );
+        AnalyticsTablePartition partitionB = tableA.getTablePartitions().get( 1 );
 
         assertNotNull( partitionA );
         assertNotNull( partitionB );

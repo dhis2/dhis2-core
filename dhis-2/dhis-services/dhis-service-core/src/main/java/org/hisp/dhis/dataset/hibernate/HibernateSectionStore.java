@@ -1,7 +1,7 @@
 package org.hisp.dhis.dataset.hibernate;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,17 @@ package org.hisp.dhis.dataset.hibernate;
  */
 
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.SectionStore;
+import org.hisp.dhis.deletedobject.DeletedObjectService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -40,9 +47,16 @@ import javax.persistence.criteria.CriteriaBuilder;
  * @author Tri
  * @version $Id$
  */
+@Repository( "org.hisp.dhis.dataset.hibernate.HibernateSectionStore" )
 public class HibernateSectionStore
     extends HibernateIdentifiableObjectStore<Section> implements SectionStore
 {
+    public HibernateSectionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, Section.class, currentUserService, deletedObjectService, aclService, true );
+    }
+
     @Override
     public Section getSectionByName( String name, DataSet dataSet )
     {

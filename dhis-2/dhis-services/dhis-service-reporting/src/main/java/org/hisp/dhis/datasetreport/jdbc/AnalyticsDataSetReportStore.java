@@ -1,7 +1,7 @@
 package org.hisp.dhis.datasetreport.jdbc;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,24 +46,33 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.Map.Entry;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
+@Repository( "org.hisp.dhis.datasetreport.DataSetReportStore" )
 public class AnalyticsDataSetReportStore
     implements DataSetReportStore
 {
     private static final Log log = LogFactory.getLog( AnalyticsDataSetReportStore.class );
 
-    @Autowired
-    private DataQueryService dataQueryService;
+    private final DataQueryService dataQueryService;
 
-    @Autowired
-    private AnalyticsService analyticsService;
+    private final AnalyticsService analyticsService;
+
+    public AnalyticsDataSetReportStore( DataQueryService dataQueryService, AnalyticsService analyticsService )
+    {
+        checkNotNull( dataQueryService );
+        checkNotNull( analyticsService );
+        this.dataQueryService = dataQueryService;
+        this.analyticsService = analyticsService;
+    }
 
     // -------------------------------------------------------------------------
     // DataSetReportStore implementation

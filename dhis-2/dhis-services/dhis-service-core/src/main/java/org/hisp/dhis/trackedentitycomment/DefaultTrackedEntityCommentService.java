@@ -1,7 +1,7 @@
 package org.hisp.dhis.trackedentitycomment;
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,13 @@ package org.hisp.dhis.trackedentitycomment;
  */
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
+@Service( "org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService" )
 public class DefaultTrackedEntityCommentService
     implements TrackedEntityCommentService
 {
@@ -40,10 +43,12 @@ public class DefaultTrackedEntityCommentService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private TrackedEntityCommentStore commentStore;
+    private final TrackedEntityCommentStore commentStore;
 
-    public void setCommentStore( TrackedEntityCommentStore commentStore )
+    public DefaultTrackedEntityCommentService( TrackedEntityCommentStore commentStore )
     {
+        checkNotNull( commentStore );
+
         this.commentStore = commentStore;
     }
 
