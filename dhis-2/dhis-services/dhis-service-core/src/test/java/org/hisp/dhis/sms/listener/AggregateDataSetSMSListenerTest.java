@@ -73,7 +73,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class AggregateDatasetSMSListenerTest
+public class AggregateDataSetSMSListenerTest
     extends
     CompressionSMSListenerTest
 {
@@ -126,7 +126,7 @@ public class AggregateDatasetSMSListenerTest
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
 
-    private AggregateDatasetSMSListener subject;
+    private AggregateDataSetSMSListener subject;
 
     // Needed for all
 
@@ -154,7 +154,7 @@ public class AggregateDatasetSMSListenerTest
     public void initTest()
         throws SMSCompressionException
     {
-        subject = new AggregateDatasetSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
+        subject = new AggregateDataSetSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
             programStageInstanceService, dataSetService, dataValueService, registrationService,
             identifiableObjectManager );

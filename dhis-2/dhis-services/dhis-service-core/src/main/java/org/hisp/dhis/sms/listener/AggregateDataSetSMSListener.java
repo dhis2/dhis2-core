@@ -71,11 +71,11 @@ import java.util.List;
 
 @Component( "org.hisp.dhis.sms.listener.AggregateDatasetSMSListener" )
 @Transactional
-public class AggregateDatasetSMSListener
+public class AggregateDataSetSMSListener
     extends
     CompressionSMSListener
 {
-    private static final Log log = LogFactory.getLog( AggregateDatasetSMSListener.class );
+    private static final Log log = LogFactory.getLog( AggregateDataSetSMSListener.class );
 
     private final DataSetService dataSetService;
 
@@ -83,7 +83,7 @@ public class AggregateDatasetSMSListener
 
     private final CompleteDataSetRegistrationService registrationService;
 
-    public AggregateDatasetSMSListener( IncomingSmsService incomingSmsService,
+    public AggregateDataSetSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
@@ -186,7 +186,7 @@ public class AggregateDatasetSMSListener
             DataElement de = dataElementService.getDataElement( deid.uid );
             if ( de == null )
             {
-                log.warn( "Data element [" + deid + "] does not exist. Continuing with submission..." );
+                log.warn( String.format( "Data element [%s] does not exist. Continuing with submission...", deid ) );
                 errorElems.add( combid );
                 continue;
             }
@@ -194,7 +194,8 @@ public class AggregateDatasetSMSListener
             CategoryOptionCombo coc = categoryService.getCategoryOptionCombo( cocid.uid );
             if ( coc == null )
             {
-                log.warn( "Category Option Combo [" + cocid + "] does not exist. Continuing with submission..." );
+                log.warn( String.format( "Category Option Combo [%s] does not exist. Continuing with submission...",
+                    cocid ) );
                 errorElems.add( combid );
                 continue;
             }
@@ -202,7 +203,7 @@ public class AggregateDatasetSMSListener
             String val = smsdv.getValue();
             if ( val == null || StringUtils.isEmpty( val ) )
             {
-                log.warn( "Value for [" + combid + "]  is null or empty. Continuing with submission..." );
+                log.warn( String.format( "Value for [%s]  is null or empty. Continuing with submission...", combid ) );
                 continue;
             }
 
@@ -229,7 +230,8 @@ public class AggregateDatasetSMSListener
                 boolean addedDataValue = dataValueService.addDataValue( dv );
                 if ( !addedDataValue )
                 {
-                    log.warn( "Failed to submit data value [" + combid + "]. Continuing with submission..." );
+                    log.warn(
+                        String.format( "Failed to submit data value [%s]. Continuing with submission...", combid ) );
                     errorElems.add( combid );
                 }
             }

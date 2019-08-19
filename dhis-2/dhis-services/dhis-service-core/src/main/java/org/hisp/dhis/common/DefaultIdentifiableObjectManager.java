@@ -1090,6 +1090,10 @@ public class DefaultIdentifiableObjectManager
     public List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
         return store.getUidsCreatedBefore( date );
     }
     

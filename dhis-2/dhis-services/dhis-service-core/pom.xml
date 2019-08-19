@@ -61,10 +61,10 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-hibernate</artifactId>
     </dependency>
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-support-expression-parser</artifactId>
-      </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-expression-parser</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
@@ -172,9 +172,9 @@
       <artifactId>velocity</artifactId>
     </dependency>
     <dependency>
-   	  <groupId>com.github.eHealthAfrica</groupId>
-   	  <artifactId>dhis2-sms-compression</artifactId>
-   	  <version>0.1.7</version>
+      <groupId>com.github.eHealthAfrica</groupId>
+      <artifactId>dhis2-sms-compression</artifactId>
+      <version>0.1.7</version>
     </dependency>
 
     <!-- Security -->
