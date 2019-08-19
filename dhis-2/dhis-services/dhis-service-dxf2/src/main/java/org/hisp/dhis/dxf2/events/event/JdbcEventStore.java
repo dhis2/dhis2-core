@@ -160,12 +160,9 @@ public class JdbcEventStore
             {
                 event = new Event();
 
-                if ( !params.isSkipEventId() )
-                {
-                    event.setUid( rowSet.getString( "psi_uid" ) );
-                    event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
-                        idSchemes.getProgramStageInstanceIdScheme() ) );
-                }
+                event.setUid( rowSet.getString( "psi_uid" ) );
+                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
+                    idSchemes.getProgramStageInstanceIdScheme() ) );
 
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
@@ -270,9 +267,20 @@ public class JdbcEventStore
             }
         }
 
+        if ( params.isSkipEventId() )
+        {
+            events.forEach( ev ->
+            {
+                ev.setUid( null );
+                ev.setEvent( null );
+            } );
+        }
+
         if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
         {
-            return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null && splitToArray( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() ).collect( Collectors.toList() );
+            events = events.stream()
+                .filter( ev -> ev.getAttributeCategoryOptions() != null && splitToArray( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() )
+                .collect( Collectors.toList() );
         }
 
         return events;
