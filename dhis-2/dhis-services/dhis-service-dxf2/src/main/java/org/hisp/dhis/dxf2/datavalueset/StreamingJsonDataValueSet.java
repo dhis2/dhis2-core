@@ -28,11 +28,12 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalue.StreamingJsonDataValue;
-import org.hisp.dhis.render.DefaultRenderService;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -50,7 +51,12 @@ public class StreamingJsonDataValueSet extends DataValueSet
     {
         try
         {
-            generator = DefaultRenderService.getJsonMapper().getFactory().createGenerator( out );
+            JsonFactory factory = new ObjectMapper().getFactory();
+            // Disables flushing every time that an object property is written to the stream
+            factory.disable( JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM );
+            // Do not attempt to balance unclosed tags - small optimization
+            factory.disable( JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT );
+            generator = factory.createGenerator( out );
             generator.writeStartObject();
         }
         catch ( IOException ignored )
