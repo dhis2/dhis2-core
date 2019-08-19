@@ -92,7 +92,8 @@ public enum ConfigurationKey
     RABBITMQ_CONNECTION_TIMEOUT( "rabbitmq.connection-timeout", "60000", false ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB", false ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "0", false ),
-    ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0", false );
+    ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0", false ),
+    SERVER_HTTPS( "server.https", "off", false );
 
     private final String key;
 
