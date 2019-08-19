@@ -68,6 +68,14 @@ public class DefaultLocationManager
         this.systemProperty = systemProperty;
     }
 
+    public static DefaultLocationManager getDefault()
+    {
+        DefaultLocationManager manager = new DefaultLocationManager();
+        manager.setEnvironmentVariable( "DHIS2_HOME" );
+        manager.setSystemProperty( "dhis2.home" );
+        return manager;
+    }
+
     // -------------------------------------------------------------------------
     // Init
     // -------------------------------------------------------------------------
@@ -113,14 +121,6 @@ public class DefaultLocationManager
                 }
             }
         }
-    }
-
-    public static DefaultLocationManager getDefault()
-    {
-        DefaultLocationManager manager = new DefaultLocationManager();
-        manager.setEnvironmentVariable( "DHIS2_HOME" );
-        manager.setSystemProperty( "dhis2.home" );
-        return manager;
     }
 
     // -------------------------------------------------------------------------
