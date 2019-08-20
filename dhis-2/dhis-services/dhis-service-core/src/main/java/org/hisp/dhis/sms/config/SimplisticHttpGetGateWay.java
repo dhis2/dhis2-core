@@ -33,13 +33,16 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StrSubstitutor;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -106,12 +109,7 @@ public class SimplisticHttpGetGateWay
         {
             URI url = uriBuilder.build().encode().toUri();
 
-            String data = encodedUrlParameters( genericConfig, text, recipients );
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.put( "Content-type", Collections.singletonList( genericConfig.getContentType().getValue() ) );
-
-            HttpEntity<String> requestEntity = new HttpEntity<>( data, httpHeaders );
+            HttpEntity<String> requestEntity = getRequestEntity( genericConfig, text, recipients );
 
             responseEntity = restTemplate.exchange( url, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
@@ -135,13 +133,49 @@ public class SimplisticHttpGetGateWay
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private String encodedUrlParameters( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        Map<String, String> requestParams = getUrlParameters( config.getParameters() );
+        List<GenericGatewayParameter> parameters = config.getParameters();
 
-        return requestParams.entrySet().stream()
-            .map( v -> v.getKey() + "=" + encodeUrl( v.getValue() ) )
-            .collect( Collectors.joining( "&" ) );
+        Map<String, String> valueStore = new HashMap<>();
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
+
+        for ( GenericGatewayParameter parameter : parameters )
+        {
+            if ( parameter.isHeader() )
+            {
+                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValueForKey() ) );
+                continue;
+            }
+
+            if ( parameter.isText() )
+            {
+                valueStore.put( parameter.getKey(), text );
+                continue;
+            }
+
+            if ( parameter.isRecipient() )
+            {
+                valueStore.put( parameter.getKey(), StringUtils.join( recipients, "," ) );
+                continue;
+            }
+
+            if ( parameter.isEncode() )
+            {
+                valueStore.put( parameter.getKey(), encodeUrl( parameter.getValueForKey() ) );
+                continue;
+            }
+
+            valueStore.put( parameter.getKey(), parameter.getValueForKey() );
+        }
+
+        final StrSubstitutor substitutor = new StrSubstitutor( valueStore ); // Matches on ${...}
+
+        String data = substitutor.replace( config.getConfigurationTemplate() );
+
+        return new HttpEntity<>( data, httpHeaders );
     }
 
     private String encodeUrl( String value )
@@ -159,12 +193,6 @@ public class SimplisticHttpGetGateWay
         return v;
     }
 
-    private Map<String, String> getUrlParameters( List<GenericGatewayParameter> parameters )
-    {
-        return parameters.stream().filter( p -> !p.isHeader() )
-            .collect( Collectors.toMap( GenericGatewayParameter::getKey, GenericGatewayParameter::getValueForKey ) ) ;
-    }
-
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
     {
         OutboundMessageResponse status = new OutboundMessageResponse();
@@ -177,6 +205,7 @@ public class SimplisticHttpGetGateWay
             return status;
         }
 
+        log.info( responseEntity.getBody() );
         return wrapHttpStatus( responseEntity.getStatusCode() );
     }
 }
