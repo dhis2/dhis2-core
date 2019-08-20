@@ -40,25 +40,33 @@ public class GenericGatewayParameter
 {
     private static final long serialVersionUID = -863990758156009672L;
 
-    private boolean header;
-
-    private boolean encode;
-
     private String key;
 
     private String value;
 
+    private boolean header;
+
+    private boolean encode;
+
     private boolean confidential;
+
+    private boolean isText;
+
+    private boolean isRecipient;
 
     public GenericGatewayParameter()
     {
     }
 
-    public GenericGatewayParameter( String key, String value, boolean confidential )
+    public GenericGatewayParameter( boolean header, boolean encode, String key, String value, boolean confidential, boolean isText, boolean isRecipient )
     {
+        this.header = header;
+        this.encode = encode;
         this.key = key;
         this.value = value;
         this.confidential = confidential;
+        this.isText = isText;
+        this.isRecipient = isRecipient;
     }
 
     @JsonProperty( value = "key" )
@@ -119,5 +127,28 @@ public class GenericGatewayParameter
     public void setEncode( boolean encode )
     {
         this.encode = encode;
+    }
+
+    @JsonProperty
+    public boolean isText()
+    {
+        return isText;
+    }
+
+
+    public void setText( boolean text )
+    {
+        isText = text;
+    }
+
+    @JsonProperty
+    public boolean isRecipient()
+    {
+        return isRecipient;
+    }
+
+    public void setRecipient( boolean recipient )
+    {
+        isRecipient = recipient;
     }
 }
