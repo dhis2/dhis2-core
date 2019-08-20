@@ -596,6 +596,8 @@ public class DataSetServiceTest
         dataSetB.addOrganisationUnit( unitA );
         dataSetB.addOrganisationUnit( unitB );
 
+        dataSetC.addOrganisationUnit( unitA );
+
         dataSetService.addDataSet( dataSetA );
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
@@ -610,6 +612,7 @@ public class DataSetServiceTest
         assertEquals( dataSetB.getIntersectingOptionCombos( unitA ).size(), 3 );
         assertEquals( dataSetB.getIntersectingOptionCombos( unitB ).size(), 3 );
 
-        assertEquals( dataSetC.getIntersectingOptionCombos( unitC ).size(), 1 );
+        assertEquals( dataSetC.getIntersectingOptionCombos( unitA ).size(), 1 );
+        assertEquals( dataSetC.getIntersectingOptionCombos( unitB ).size(), 0 );
     }
 }
