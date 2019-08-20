@@ -68,7 +68,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
     public String getAggregateClauseForProgramIndicator( ProgramIndicator pi, AnalyticsType outerSqlEntity,
         Date earliestStartDate, Date latestDate )
     {
-        return _getAggregateClauseForProgramIndicator( pi, null, outerSqlEntity, earliestStartDate, latestDate );
+        return getAggregateClauseForPIandRelationshipType( pi, null, outerSqlEntity, earliestStartDate, latestDate );
     }
 
     /**
@@ -78,31 +78,43 @@ public class DefaultProgramIndicatorSubqueryBuilder
     public String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator,
         RelationshipType relationshipType, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
     {
-        return _getAggregateClauseForProgramIndicator( programIndicator, relationshipType, outerSqlEntity, earliestStartDate, latestDate );
+        return getAggregateClauseForPIandRelationshipType( programIndicator, relationshipType, outerSqlEntity, earliestStartDate, latestDate );
     }
 
-    private String _getAggregateClauseForProgramIndicator( ProgramIndicator pi, RelationshipType relationshipType,
+    /**
+     * Generate a subquery based on the result of a Program Indicator and an (optional) Relationship Type
+     *
+     * @param programIndicator a {@see ProgramIndicator} object
+     * @param relationshipType an optional {@see RelationshipType} object
+     * @param outerSqlEntity a {@see AnalyticsType} object, representing the outer sql context
+     * @param earliestStartDate reporting start date
+     * @param latestDate reporting end date
+     *
+     * @return a String containing a Program Indicator sub-query
+     */
+    private String getAggregateClauseForPIandRelationshipType( ProgramIndicator programIndicator, RelationshipType relationshipType,
         AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
     {
         // Define aggregation function (avg, sum, ...) //
-        String function = TextUtils.emptyIfEqual( pi.getAggregationTypeFallback().getValue(),
+        String function = TextUtils.emptyIfEqual( programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue() );
 
         // Get sql construct from Program indicator expression //
-        String aggregateSql = getPrgIndSql( pi.getExpression(), pi, earliestStartDate, latestDate );
+        String aggregateSql = getPrgIndSql( programIndicator.getExpression(), programIndicator, earliestStartDate, latestDate );
 
+        // closes the function parenthesis ( avg( ... ) )
         aggregateSql += ")";
 
         // Determine Table name from FROM clause
-        aggregateSql += getFrom( pi );
+        aggregateSql += getFrom( programIndicator );
 
         // Determine JOIN
-        aggregateSql += getWhere( outerSqlEntity, pi, relationshipType );
+        aggregateSql += getWhere( outerSqlEntity, programIndicator, relationshipType );
 
         // Get WHERE condition from Program indicator filter
-        if ( !Strings.isNullOrEmpty( pi.getFilter() ) )
+        if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
-            aggregateSql += " AND " + getPrgIndSql( pi.getFilter(), pi, earliestStartDate, latestDate );
+            aggregateSql += " AND " + getPrgIndSql( programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate );
         }
 
         return "(SELECT " + function + " (" + aggregateSql + ")";

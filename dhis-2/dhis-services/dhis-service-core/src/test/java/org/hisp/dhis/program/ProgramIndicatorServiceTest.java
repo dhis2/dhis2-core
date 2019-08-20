@@ -519,13 +519,12 @@ public class ProgramIndicatorServiceTest
         Date dateFrom = getDate( 2019, 1, 1 );
         Date dateTo = getDate( 2019, 12, 31 );
 
-        Date boundaryDate = indicatorF.getAnalyticsPeriodBoundaries().iterator().next().getBoundaryDate( dateFrom, dateTo );
-
         // Generated subquery, since indicatorF is type Enrollment
+
         String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentA\" is not null and executiondate < cast( '"
-                + dateToString( boundaryDate ) + "' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) - " +
+                + "2020-01-11" + "' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) - " +
                 "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and executiondate < cast( '"
-                + dateToString( boundaryDate ) + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
+                + "2020-01-11" + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
 
         String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
 
