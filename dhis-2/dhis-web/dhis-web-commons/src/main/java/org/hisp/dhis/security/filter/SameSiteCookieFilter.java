@@ -35,11 +35,9 @@ public class SameSiteCookieFilter
 
         chain.doFilter( request, response );
 
-        log.info( String.format( "BEFORE Invoking SameSiteCookieFilter 2 for request URL: '%s' %s", request.getRequestURL(), response.getHeaders( HttpHeaders.SET_COOKIE ) ) );
-
         Collection<String> headerValues = response.getHeaders( HttpHeaders.SET_COOKIE );
 
-        log.info( String.format( "AFTER Invoking SameSiteCookieFilter 2 for request URL: '%s' %s", request.getRequestURL(), headerValues ) );
+        log.info( String.format( "Invoking SameSiteCookieFilter for request URL: '%s'", request.getRequestURL() ) );
 
         if ( !headerValues.isEmpty() )
         {
@@ -52,7 +50,6 @@ public class SameSiteCookieFilter
                     String sameSiteValue = String.format( "%s; %s", value, VALUE_SAME_SITE );
 
                     response.setHeader( HttpHeaders.SET_COOKIE, sameSiteValue );
-                    //response.addHeader( HttpHeaders.SET_COOKIE, sameSiteValue );
 
                     log.info( String.format( "Modified cookie value '%s' to '%s", value, sameSiteValue ) );
                 }
