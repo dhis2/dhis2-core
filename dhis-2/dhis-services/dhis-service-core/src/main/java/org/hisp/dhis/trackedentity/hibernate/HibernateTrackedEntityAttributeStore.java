@@ -43,6 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -63,10 +64,10 @@ public class HibernateTrackedEntityAttributeStore
     private final StatementBuilder statementBuilder;
 
     public HibernateTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
-        StatementBuilder statementBuilder )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, TrackedEntityAttribute.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAttribute.class, currentUserService, deletedObjectService,
             aclService, true );
         this.statementBuilder = statementBuilder;
     }

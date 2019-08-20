@@ -51,6 +51,7 @@ public enum ErrorCode
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
     E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
+    E3012( "User `{0}` does not have read access for object {1}." ),
 
     /* Metadata Validation Errors */
     E4000( "Missing required property `{0}`." ),
@@ -66,29 +67,28 @@ public enum ErrorCode
     E4010( "Attribute `{0}` is not supported for type `{1}`." ),
     E4011( "Attribute `{0}` is required, but no value was found." ),
     E4012( "Attribute `{0}` contains elements of different period type than the data set it was added to" ),
-    E4013( "Invalid Closing date `{0}`, must be after Opening date `{1}`"),
-    E4014( "Invalid UID `{0}` for property `{1}`"),
-    E4015( "Property `{0}` refers to an object that does not exist, could not find `{1}`"),
-    E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`"),
-    E4017( "RenderingType `{0}` is not supported for ValueType `{1}`"),
-    E4018( "Property `{0}` must be set when property `{1}` is `{2}`"),
-
+    E4013( "Invalid Closing date `{0}`, must be after Opening date `{1}`" ),
+    E4014( "Invalid UID `{0}` for property `{1}`" ),
+    E4015( "Property `{0}` refers to an object that does not exist, could not find `{1}`" ),
+    E4016( "Object referenced by the `{0}` property is already associated with another object, value: `{1}`" ),
+    E4017( "RenderingType `{0}` is not supported for ValueType `{1}`" ),
+    E4018( "Property `{0}` must be set when property `{1}` is `{2}`" ),
 
     /* TextPattern Errors */
-    E4019( "Failed to parse pattern `{0}`. {1}"),
-    E4020( "The value `{0}` does not conform to the attribute pattern `{1}`"),
+    E4019( "Failed to parse pattern `{0}`. {1}" ),
+    E4020( "The value `{0}` does not conform to the attribute pattern `{1}`" ),
 
     /* TextPattern for ID generation errors */
     E4021( "ID-pattern is required to have 1 generated segment (RANDOM or SEQUENTIAL)." ),
     E4022( "Pattern `{0}` does not conform to the value type `{1}`." ),
 
     /* Tracker Relationship */
-    E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. "),
-    E4024( "Property `{0}` must be set when property `{1}` is `{2}`. "),
-    E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together."),
-    E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`."),
+    E4023( "Property `{0}` can not be set when property `{1}` is `{2}`. " ),
+    E4024( "Property `{0}` must be set when property `{1}` is `{2}`. " ),
+    E4025( "Properties `{0}` and `{1}` are mutually exclusive and cannot be used together." ),
+    E4026( "One of the properties `{0}` and `{1}` is required when property `{2}` is `{3}`." ),
 
-    E4027( "Value `{0}` is not a valid for property `{1}`"),
+    E4027( "Value `{0}` is not a valid for property `{1}`" ),
 
     /* Program Errors */
     E6000( "Program `{0}` has more than one Program Instances"),
@@ -113,7 +113,6 @@ public enum ErrorCode
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." );
 
-
     private String message;
 
     ErrorCode( String message )
@@ -125,5 +124,4 @@ public enum ErrorCode
     {
         return message;
     }
-
 }

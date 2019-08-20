@@ -36,6 +36,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -50,9 +51,9 @@ public class HibernateOptionStore
     implements OptionStore
 {
     public HibernateOptionStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, Option.class, currentUserService, deletedObjectService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, Option.class, currentUserService, deletedObjectService, aclService, true );
     }
     // -------------------------------------------------------------------------
     // Implementation methods
@@ -61,20 +62,20 @@ public class HibernateOptionStore
     @Override
     public List<Option> getOptions( long optionSetId, String key, Integer max )
     {
-        String hql = 
+        String hql =
             "select option from OptionSet as optionset " +
             "join optionset.options as option where optionset.id = :optionSetId ";
-        
+
         if ( key != null )
         {
             hql += "and lower(option.name) like lower('%" + key + "%') ";
         }
 
         hql += "order by index(option)";
-        
+
         Query<Option> query = getQuery( hql );
         query.setParameter( "optionSetId", optionSetId );
-        
+
         if ( max != null )
         {
             query.setMaxResults( max );

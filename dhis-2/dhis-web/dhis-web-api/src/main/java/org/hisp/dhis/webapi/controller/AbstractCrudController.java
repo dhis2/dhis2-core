@@ -32,6 +32,7 @@ import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -122,6 +123,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -188,6 +190,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Autowired
     protected PatchService patchService;
 
+    @Autowired
+    protected AttributeService attributeService;
+
     //--------------------------------------------------------------------------
     // GET
     //--------------------------------------------------------------------------
@@ -227,6 +232,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         postProcessEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false, currentUser );
+
+        handleAttributeValues( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -497,6 +504,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         entities = (List<T>) queryService.query( query );
 
         handleLinksAndAccess( entities, fields, true, user );
+
+        handleAttributeValues( entities, fields );
 
         for ( T entity : entities )
         {
@@ -1222,6 +1231,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( generateLinks )
         {
             linkService.generateLinks( entityList, deep );
+        }
+    }
+
+    protected void handleAttributeValues( List<T> entityList, List<String> fields )
+    {
+        List<String> hasAttributeValues = fields.stream().filter( field -> field.contains( "attributeValues" ) )
+            .collect( Collectors.toList() );
+
+        if ( !hasAttributeValues.isEmpty() )
+        {
+            attributeService.generateAttributes( entityList );
         }
     }
 

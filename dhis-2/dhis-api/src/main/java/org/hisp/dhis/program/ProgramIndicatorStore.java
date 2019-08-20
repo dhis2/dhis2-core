@@ -31,10 +31,13 @@ package org.hisp.dhis.program;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
+import java.util.List;
+
 /**
  * @author Chau Thu Tran
  */
 public interface ProgramIndicatorStore
     extends IdentifiableObjectStore<ProgramIndicator>
 {
+    List<ProgramIndicator> getProgramIndicatorsWithNoExpression();
 }

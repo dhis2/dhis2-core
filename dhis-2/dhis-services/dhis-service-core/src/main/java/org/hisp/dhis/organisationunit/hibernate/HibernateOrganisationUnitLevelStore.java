@@ -35,6 +35,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -49,9 +50,9 @@ public class HibernateOrganisationUnitLevelStore
     implements OrganisationUnitLevelStore
 {
     public HibernateOrganisationUnitLevelStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, OrganisationUnitLevel.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitLevel.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 

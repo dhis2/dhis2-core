@@ -55,26 +55,27 @@ public class HibernateMetricsConfig
 {
     private static final String ENTITY_MANAGER_FACTORY_SUFFIX = "entityManagerFactory";
 
-    private final MeterRegistry registry;
-
-    public HibernateMetricsConfig( MeterRegistry registry )
-    {
-        this.registry = registry;
-    }
-
     @Autowired
-    public void bindEntityManagerFactoriesToRegistry( Map<String, EntityManagerFactory> entityManagerFactories )
+    public void bindEntityManagerFactoriesToRegistry( Map<String, EntityManagerFactory> entityManagerFactories,
+        MeterRegistry registry )
     {
-        entityManagerFactories.forEach( this::bindEntityManagerFactoryToRegistry );
+        entityManagerFactories
+            .forEach( ( name, factory ) -> bindEntityManagerFactoryToRegistry( name, factory, registry ) );
     }
 
-    private void bindEntityManagerFactoryToRegistry( String beanName, EntityManagerFactory entityManagerFactory )
+    private void bindEntityManagerFactoryToRegistry( String beanName, EntityManagerFactory entityManagerFactory,
+        MeterRegistry registry )
     {
         String entityManagerFactoryName = getEntityManagerFactoryName( beanName );
-
-        SessionFactory sessionFactory = entityManagerFactory.unwrap( SessionFactory.class );
-        new HibernateMetrics( sessionFactory, entityManagerFactoryName, Collections.emptyList() )
-            .bindTo( this.registry );
+        try
+        {
+            new HibernateMetrics( entityManagerFactory.unwrap( SessionFactory.class ), entityManagerFactoryName,
+                Collections.emptyList() ).bindTo( registry );
+        }
+        catch ( PersistenceException ex )
+        {
+            // Continue
+        }
     }
 
     /**
@@ -95,7 +96,8 @@ public class HibernateMetricsConfig
     }
 
     static class HibernateMetricsEnabledCondition
-        extends MetricsEnabler
+        extends
+        MetricsEnabler
     {
         @Override
         protected ConfigurationKey getConfigKey()

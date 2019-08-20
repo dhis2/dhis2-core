@@ -105,7 +105,7 @@ public class ProgramStageNotificationMessageRenderer
         }
 
         Map<String, DataElement> dataElementsMap = new HashMap<>();
-        entity.getProgramStage().getAllDataElements().forEach( de -> dataElementsMap.put( de.getUid(), de ) );
+        entity.getProgramStage().getDataElements().forEach( de -> dataElementsMap.put( de.getUid(), de ) );
 
         return entity.getEventDataValues().stream()
             .filter( dv -> elementKeys.contains( dv.getDataElement() ) )

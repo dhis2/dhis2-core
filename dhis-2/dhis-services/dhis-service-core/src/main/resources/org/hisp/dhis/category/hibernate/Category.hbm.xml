@@ -40,11 +40,7 @@
     <property name="dataDimension" column="datadimension" not-null="true" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="categoryattributevalues" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="categoryid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
+    <property name="attributeValues" type="jsbAttributeValues"/>
 
     <!-- Access properties -->
     <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_dataelementcategory_userid" />

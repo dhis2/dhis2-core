@@ -56,7 +56,7 @@ public class ProgramSection
 
     private Program program;
 
-    private List<TrackedEntityAttribute> attributes = new ArrayList<TrackedEntityAttribute>();
+    private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<TrackedEntityAttribute>();
 
     private Integer sortOrder;
 
@@ -77,15 +77,15 @@ public class ProgramSection
     {
     }
 
-    public ProgramSection( String name, List<TrackedEntityAttribute> attributes )
+    public ProgramSection( String name, List<TrackedEntityAttribute> trackedEntityAttributes )
     {
         this.name = name;
-        this.attributes = attributes;
+        this.trackedEntityAttributes = trackedEntityAttributes;
     }
 
-    public ProgramSection( String name, List<TrackedEntityAttribute> attributes, Integer sortOrder )
+    public ProgramSection( String name, List<TrackedEntityAttribute> trackedEntityAttributes, Integer sortOrder )
     {
-        this( name, attributes );
+        this( name, trackedEntityAttributes );
         this.sortOrder = sortOrder;
     }
 
@@ -120,16 +120,16 @@ public class ProgramSection
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programTrackedEntityAttribute", namespace = DxfNamespaces.DXF_2_0 )
-    public List<TrackedEntityAttribute> getAttributes()
+    @JacksonXmlElementWrapper( localName = "trackedEntityAttributes", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "trackedEntityAttributes", namespace = DxfNamespaces.DXF_2_0 )
+    public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
-        return attributes;
+        return trackedEntityAttributes;
     }
 
-    public void setAttributes( List<TrackedEntityAttribute> attributes )
+    public void setTrackedEntityAttributes( List<TrackedEntityAttribute> trackedEntityAttributes )
     {
-        this.attributes = attributes;
+        this.trackedEntityAttributes = trackedEntityAttributes;
     }
 
     @JsonProperty

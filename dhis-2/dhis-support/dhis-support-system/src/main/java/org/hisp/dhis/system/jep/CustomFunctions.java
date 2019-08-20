@@ -49,12 +49,15 @@ public class CustomFunctions
 {
     public static final Map<String, PostfixMathCommandI> AGGREGATE_FUNCTIONS =
         ImmutableMap.<String, PostfixMathCommandI>builder().
-            put( "AVG", new ArithmeticMean() ).put( "STDDEV", new StandardDeviation() ).
+            put( "AVG", new ArithmeticMean() ).put( "STDDEV", new StandardDeviationPopulation() ).
+            put( "STDDEVPOP", new StandardDeviationPopulation() ).put( "STDDEVSAMP", new StandardDeviationSample() ).
+            put( "PERCENTILECONT", new PercentileContinuous() ).
             put( "MEDIAN", new MedianValue() ).put( "MAX", new MaxValue() ).
             put( "MIN", new MinValue() ).put( "COUNT", new Count() ).
             put( "SUM", new VectorSum() ).build();
 
-    public static final Pattern AGGREGATE_PATTERN_PREFIX = Pattern.compile( "(AVG|STDDEV|MEDIAN|MAX|MIN|COUNT|SUM)\\s*\\(", CASE_INSENSITIVE );
+    public static final Pattern AGGREGATE_PATTERN_PREFIX = Pattern.compile(
+        "(AVG|STDDEV|STDDEVPOP|STDDEVSAMP|PERCENTILECONT|MEDIAN|MAX|MIN|COUNT|SUM)\\s*\\(", CASE_INSENSITIVE );
 
     public static final Map<String, PostfixMathCommandI> SCALAR_FUNCTIONS =
         ImmutableMap.<String, PostfixMathCommandI>builder().
@@ -66,7 +69,7 @@ public class CustomFunctions
         ImmutableMap.<String, PostfixMathCommandI>builder().putAll( AGGREGATE_FUNCTIONS ).putAll( SCALAR_FUNCTIONS ).build();
 
     public static void addFunctions( JEP parser )
-    {        
+    {
         for ( Entry<String, PostfixMathCommandI> e : ALL_FUNCTIONS.entrySet() )
         {
             String fname = e.getKey();
@@ -87,7 +90,7 @@ public class CustomFunctions
         if ( param instanceof List )
         {
             List<?> vals = (List<?>) param;
-            
+
             for ( Object val : vals )
             {
                 if ( !(val instanceof Double) )
@@ -95,12 +98,23 @@ public class CustomFunctions
                     throw new ParseException( "Non numeric vector" );
                 }
             }
-            
+
             return (List<Double>) param;
         }
         else
         {
             throw new ParseException( "Invalid vector argument" );
         }
+    }
+
+    public static Double checkDouble( Object param )
+        throws ParseException
+    {
+        if ( !(param instanceof Double) )
+        {
+            throw new ParseException( "Non numeric vector" );
+        }
+
+        return (Double) param;
     }
 }

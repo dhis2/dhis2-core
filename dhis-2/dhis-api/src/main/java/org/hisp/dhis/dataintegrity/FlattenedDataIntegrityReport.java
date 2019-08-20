@@ -63,7 +63,7 @@ public class FlattenedDataIntegrityReport
 
     @JsonProperty
     private SortedMap<String, Collection<String>> dataElementsInDataSetNotInForm;
-    
+
     @JsonProperty
     private List<String> invalidCategoryCombos;
 
@@ -116,6 +116,9 @@ public class FlattenedDataIntegrityReport
     private Map<String, String> invalidProgramIndicatorExpressions;
 
     @JsonProperty
+    private List<String> programIndicatorsWithNoExpression;
+
+    @JsonProperty
     private Map<String, String> invalidProgramIndicatorFilters;
 
     @JsonProperty
@@ -156,7 +159,7 @@ public class FlattenedDataIntegrityReport
         dataElementsViolatingExclusiveGroupSets = transformSortedMap( report.getDataElementsViolatingExclusiveGroupSets() );
 
         dataElementsInDataSetNotInForm = transformSortedMap( report.getDataElementsInDataSetNotInForm() );
-        
+
         invalidCategoryCombos = transformCollection( report.getInvalidCategoryCombos() );
 
         dataSetsNotAssignedToOrganisationUnits = transformCollection( report.getDataSetsNotAssignedToOrganisationUnits() );
@@ -188,6 +191,8 @@ public class FlattenedDataIntegrityReport
         invalidValidationRuleLeftSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleLeftSideExpressions() );
 
         invalidValidationRuleRightSideExpressions = transformMapOfStrings( report.getInvalidValidationRuleRightSideExpressions() );
+
+        programIndicatorsWithNoExpression = transformCollection( report.getGetProgramIndicatorWithNoExpression() );
 
         invalidProgramIndicatorExpressions = transformMapOfStrings( report.getInvalidProgramIndicatorExpressions() );
 

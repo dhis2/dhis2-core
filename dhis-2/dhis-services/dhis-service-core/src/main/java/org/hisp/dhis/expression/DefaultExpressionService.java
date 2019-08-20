@@ -68,6 +68,7 @@ import org.hisp.dhis.parser.expression.*;
 import org.hisp.dhis.parser.expression.item.ItemConstant;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.jep.CustomFunctions;
+import org.hisp.dhis.system.jep.NoValueException;
 import org.hisp.dhis.system.util.ExpressionUtils;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
@@ -108,16 +109,20 @@ public class DefaultExpressionService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final static ImmutableMap<Integer, ExprItem> EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
+    private final static ImmutableMap<Integer, ExprItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
         .put( HASH_BRACE, new DimItemDataElementAndOperand() )
         .put( A_BRACE, new DimItemProgramAttribute() )
         .put( C_BRACE, new ItemConstant() )
         .put( D_BRACE, new DimItemProgramDataElement() )
         .put( I_BRACE, new DimItemProgramIndicator() )
-        .put( N_BRACE, new DimItemIndicator() )
         .put( OUG_BRACE, new ItemOrgUnitGroup() )
         .put( R_BRACE, new DimItemReportingRate() )
         .put( DAYS, new ItemDays() )
+        .build();
+
+    private final static ImmutableMap<Integer, ExprItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap.<Integer, ExprItem>builder()
+        .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
+        .put( N_BRACE, new DimItemIndicator() )
         .build();
 
     public DefaultExpressionService(
@@ -263,40 +268,30 @@ public class DefaultExpressionService
     @Override
     public ExpressionValidationOutcome indicatorExpressionIsValid( String expression )
     {
-        try
-        {
-            getIndicatorExpressionDescription( expression );
-
-            return ExpressionValidationOutcome.VALID;
-        }
-        catch ( IllegalStateException e )
-        {
-            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
-        }
+        return expressionIsValid( INDICATOR_EXPRESSION_ITEMS, expression );
     }
 
     @Override
     public String getIndicatorExpressionDescription( String expression )
     {
-        if ( expression == null )
-        {
-            return "";
-        }
+        return getExpressionDescription( INDICATOR_EXPRESSION_ITEMS, expression );
+    }
 
-        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS );
+    // -------------------------------------------------------------------------
+    // Validation Rule expression logic
+    // -------------------------------------------------------------------------
 
-        visit( expression, visitor, false );
+    @Override
+    @Transactional
+    public ExpressionValidationOutcome validationRuleExpressionIsValid( String expression )
+    {
+        return expressionIsValid( VALIDATION_RULE_EXPRESSION_ITEMS, expression );
+    }
 
-        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
-
-        String description = expression;
-
-        for ( Map.Entry<String, String> entry : itemDescriptions.entrySet() )
-        {
-            description = description.replace( entry.getKey(), entry.getValue() );
-        }
-
-        return description;
+    @Override
+    public String getValidationRuleExpressionDescription( String expression )
+    {
+        return getExpressionDescription( VALIDATION_RULE_EXPRESSION_ITEMS, expression );
     }
 
     // -------------------------------------------------------------------------
@@ -319,7 +314,8 @@ public class DefaultExpressionService
             return new HashSet<>();
         }
 
-        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_IDS );
+        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION_ITEMS,
+            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_IDS );
 
         visit( expression, visitor, true );
 
@@ -334,7 +330,8 @@ public class DefaultExpressionService
             return new HashSet<>();
         }
 
-        CommonExpressionVisitor visitor = newVisitor( FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS );
+        CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION_ITEMS,
+            FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_ORG_UNIT_GROUPS );
 
         visit( expression, visitor, true );
 
@@ -356,7 +353,7 @@ public class DefaultExpressionService
             return null;
         }
 
-        CommonExpressionVisitor expressionExprVisitor = newVisitor(
+        CommonExpressionVisitor expressionExprVisitor = newVisitor( INDICATOR_EXPRESSION_ITEMS,
             FUNCTION_EVALUATE, ITEM_EVALUATE );
 
         Map<String, Double> keyValueMap = valueMap.entrySet().stream().collect(
@@ -405,13 +402,67 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     /**
+     * Tests whether the expression is valid
+     *
+     * @param exprItemMap the valid items in this expression.
+     * @param expression the expression formula.
+     * @return the ExpressionValidationOutcome of the validation.
+     */
+    private ExpressionValidationOutcome expressionIsValid( Map<Integer, ExprItem> exprItemMap, String expression )
+    {
+        try
+        {
+            getExpressionDescription( exprItemMap, expression );
+
+            return ExpressionValidationOutcome.VALID;
+        }
+        catch ( IllegalStateException e )
+        {
+            return ExpressionValidationOutcome.EXPRESSION_IS_NOT_WELL_FORMED;
+        }
+    }
+
+    /**
+     * Creates an expression description containing the names of the
+     * DimensionalItemObjects from an expression string.
+     *
+     * @param exprItemMap the valid items in this expression.
+     * @param expression The expression string.
+     * @return An expression string containing DimensionalItemObjects names.
+     */
+
+    private String getExpressionDescription( Map<Integer, ExprItem> exprItemMap, String expression )
+    {
+        if ( expression == null )
+        {
+            return "";
+        }
+
+        CommonExpressionVisitor visitor = newVisitor( exprItemMap, FUNCTION_EVALUATE_ALL_PATHS, ITEM_GET_DESCRIPTIONS );
+
+        visit( expression, visitor, false );
+
+        Map<String, String> itemDescriptions = visitor.getItemDescriptions();
+
+        String description = expression;
+
+        for ( Map.Entry<String, String> entry : itemDescriptions.entrySet() )
+        {
+            description = description.replace( entry.getKey(), entry.getValue() );
+        }
+
+        return description;
+    }
+
+    /**
      * Creates a new ExpressionItemsVisitor object.
      */
-    private CommonExpressionVisitor newVisitor( ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
+    private CommonExpressionVisitor newVisitor( Map<Integer, ExprItem> exprItemMap,
+        ExprFunctionMethod functionMethod, ExprItemMethod itemMethod )
     {
         return CommonExpressionVisitor.newBuilder()
             .withFunctionMap( COMMON_EXPRESSION_FUNCTIONS )
-            .withItemMap( EXPRESSION_ITEMS )
+            .withItemMap( exprItemMap )
             .withFunctionMethod( functionMethod )
             .withItemMethod( itemMethod )
             .withConstantService( constantService )
@@ -464,7 +515,19 @@ public class DefaultExpressionService
             valueMap, constantMap, orgUnitCountMap, days, expression.getMissingValueStrategy(),
             aggregateMap );
 
-        return expressionString != null ? calculateExpression( expressionString ) : null;
+        if ( expressionString == null )
+        {
+            return null;
+        }
+
+        try
+        {
+            return calculateExpression( expressionString );
+        }
+        catch ( NoValueException ex )
+        {
+            return null;
+        }
     }
 
     @Override
@@ -572,6 +635,17 @@ public class DefaultExpressionService
                 }
                 else if ( end > 0 )
                 {
+                    if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                    {
+                        nonAggregates.add( expression.substring( start, end ) ); // Arg 1: non-aggregate
+                        start = end + 1;
+                        end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                        if ( end < 0 )
+                        {
+                            log.warn( "Bad expression starting at " + start + " in " + expression );
+                            continue;
+                        }
+                    }
                     nonAggregates.add( expression.substring( scan, matcher.start() ) );
                     aggregates.add( expression.substring( start, end ) );
                     scan = end + 1;
@@ -664,13 +738,6 @@ public class DefaultExpressionService
     public ExpressionValidationOutcome predictorExpressionIsValid( String expression )
     {
         return expressionIsValid( expression, true );
-    }
-
-    @Override
-    @Transactional
-    public ExpressionValidationOutcome validationRuleExpressionIsValid( String expression )
-    {
-        return expressionIsValid( expression, false );
     }
 
     private ExpressionValidationOutcome expressionIsValid( String expression, boolean customFunctions )
@@ -1015,6 +1082,18 @@ public class DefaultExpressionService
             }
             else
             {
+                if ( expression.charAt( end ) == ',' ) // Second arg is aggregate (e.g., percentile)
+                {
+                    sb.append( expression.substring( start, end + 1 ) ); // Arg 1: non-aggregate
+                    start = end + 1;
+                    end = Expression.matchExpression( expression, start ); // Arg 2: aggregate
+                    if ( end < 0 )
+                    {
+                        scan = start + 1;
+                        tail = start;
+                        continue;
+                    }
+                }
                 String subExpression = expression.substring( start, end );
                 List<Double> samples = aggregateMap.get( subExpression );
 

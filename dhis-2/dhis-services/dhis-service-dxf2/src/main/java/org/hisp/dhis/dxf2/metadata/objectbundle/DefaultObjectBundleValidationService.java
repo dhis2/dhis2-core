@@ -30,9 +30,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -93,6 +95,12 @@ public class DefaultObjectBundleValidationService implements ObjectBundleValidat
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private IdentifiableObjectManager objectManager;
+
+    @Autowired
+    private AttributeService attributeService;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();

@@ -61,6 +61,17 @@ public interface DataSourcePoolMetadata {
     Integer getActive();
 
     /**
+     * Return the number of established but idle connections. Can also return {@code null}
+     * if that information is not available.
+     * @return the number of established but idle connections or {@code null}
+     * @since 2.2.0
+     * @see #getActive()
+     */
+    default Integer getIdle() {
+        return null;
+    }
+
+    /**
      * Return the maximum number of active connections that can be allocated at the same
      * time or {@code -1} if there is no limit. Can also return {@code null} if that
      * information is not available.

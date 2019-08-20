@@ -36,6 +36,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValue;
 import org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueStore;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -51,11 +52,11 @@ public class HibernateUserKeyJsonValueStore
     extends HibernateIdentifiableObjectStore<UserKeyJsonValue>
     implements UserKeyJsonValueStore
 {
-
     public HibernateUserKeyJsonValueStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, UserKeyJsonValue.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, UserKeyJsonValue.class, currentUserService, deletedObjectService,
             aclService, true );
     }
 

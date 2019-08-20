@@ -28,11 +28,11 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.stream.Collectors.toSet;
-
-import java.util.*;
-
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
@@ -48,11 +48,14 @@ import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com> descriptors
@@ -65,7 +68,6 @@ public class DefaultSchemaService
         add( new MetadataVersionSchemaDescriptor() ).
         add( new AnalyticsTableHookSchemaDescriptor() ).
         add( new AttributeSchemaDescriptor() ).
-        add( new AttributeValueSchemaDescriptor() ).
         add( new CategoryComboSchemaDescriptor() ).
         add( new CategoryOptionComboSchemaDescriptor() ).
         add( new CategoryOptionGroupSchemaDescriptor() ).
@@ -134,6 +136,7 @@ public class DefaultSchemaService
         add( new SectionSchemaDescriptor() ).
         add( new SqlViewSchemaDescriptor() ).
         add( new TrackedEntityAttributeSchemaDescriptor() ).
+        add( new TrackedEntityAttributeValueSchemaDescriptor() ).
         add( new TrackedEntityInstanceSchemaDescriptor() ).
         add( new TrackedEntityInstanceFilterSchemaDescriptor() ).
         add( new TrackedEntityTypeSchemaDescriptor() ).

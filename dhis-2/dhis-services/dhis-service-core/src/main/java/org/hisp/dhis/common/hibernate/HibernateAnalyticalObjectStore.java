@@ -44,6 +44,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
@@ -54,11 +55,11 @@ import java.util.List;
 public class HibernateAnalyticalObjectStore<T extends BaseAnalyticalObject>
     extends HibernateIdentifiableObjectStore<T> implements AnalyticalObjectStore<T>
 {
-    public HibernateAnalyticalObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, Class<T> clazz,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
+    public HibernateAnalyticalObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher,
+        Class<T> clazz, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService,
         boolean cacheable )
     {
-        super( sessionFactory, jdbcTemplate, clazz, currentUserService, deletedObjectService, aclService, cacheable );
+        super( sessionFactory, jdbcTemplate, publisher, clazz, currentUserService, deletedObjectService, aclService, cacheable );
     }
 
     //TODO program indicator, tracked entity attribute

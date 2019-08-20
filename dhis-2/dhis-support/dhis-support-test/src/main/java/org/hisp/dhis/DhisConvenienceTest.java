@@ -132,6 +132,7 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -172,7 +173,7 @@ import java.util.stream.Collectors;
 /**
  * @author Lars Helge Overland
  */
-@ActiveProfiles(profiles = {"test"})
+@ActiveProfiles( profiles = {"test"} )
 public abstract class DhisConvenienceTest
 {
     protected static final Log log = LogFactory.getLog( DhisConvenienceTest.class );
@@ -231,7 +232,7 @@ public abstract class DhisConvenienceTest
      */
     public static Date getDate( int year, int month, int day )
     {
-        DateTime dateTime = new DateTime( year, month, day, 0, 0 );
+        LocalDateTime dateTime = new LocalDateTime( year, month, day, 0, 0 );
         return dateTime.toDate();
     }
 
@@ -642,8 +643,6 @@ public abstract class DhisConvenienceTest
     public static AttributeValue createAttributeValue( Attribute attribute, String value )
     {
         AttributeValue attributeValue = new AttributeValue( value, attribute );
-        attributeValue.setAutoFields();
-
         return attributeValue;
     }
 

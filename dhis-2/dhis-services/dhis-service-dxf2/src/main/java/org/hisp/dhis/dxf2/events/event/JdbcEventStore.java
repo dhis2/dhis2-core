@@ -37,6 +37,7 @@ import com.vividsolutions.jts.io.WKTReader;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.QueryFilter;
@@ -45,6 +46,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -70,6 +72,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -83,8 +86,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -149,10 +151,10 @@ public class JdbcEventStore
         if ( !isSuperUser )
         {
             params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                    .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
 
             params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                    .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
 
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
@@ -184,10 +186,13 @@ public class JdbcEventStore
                 event = new Event();
                 eventUidToEventMap.put( psiUid, event );
 
-                event.setUid( psiUid );
+                if ( !params.isSkipEventId() )
+                {
+                    event.setUid( psiUid );
+                    event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
+                        idSchemes.getProgramStageInstanceIdScheme() ) );
+                }
 
-                event.setEvent( IdSchemes.getValue( rowSet.getString( "psi_uid" ), rowSet.getString( "psi_code" ),
-                    idSchemes.getProgramStageInstanceIdScheme() ) );
                 event.setTrackedEntityInstance( rowSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( rowSet.getString( "psi_status" ) ) );
 
@@ -260,21 +265,24 @@ public class JdbcEventStore
                 if ( !attributeCategoryCombination.contains( currentAttributeCategoryCombination ) )
                 {
                     event.setAttributeCategoryOptions(
-                            attributeCategoryCombination + ";" + currentAttributeCategoryCombination );
+                        attributeCategoryCombination + ";" + currentAttributeCategoryCombination );
                 }
             }
 
             if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
             {
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
+                Map<String, String> dataElementsUidToCode =
+                    getDataElementsUidToCode( eventDataValues, idSchemes.getDataElementIdScheme() );
 
                 for( EventDataValue dv : eventDataValues )
                 {
-                    DataValue dataValue = convertEventDataValueIntoDtoDataValue( dv );
+                    DataValue dataValue = convertEventDataValueIntoDtoDataValue( dv, dataElementsUidToCode,
+                        idSchemes.getDataElementIdScheme() );
 
                     if ( params.isSynchronizationQuery() )
                     {
-                        if (psdesWithSkipSyncTrue.containsKey( rowSet.getString( "ps_uid" ) ) &&
+                        if ( psdesWithSkipSyncTrue.containsKey( rowSet.getString( "ps_uid" ) ) &&
                                 psdesWithSkipSyncTrue.get( rowSet.getString( "ps_uid" ) ).contains( dv.getDataElement() ) )
                         {
                             dataValue.setSkipSynchronization( true );
@@ -351,10 +359,10 @@ public class JdbcEventStore
         if ( !isSuperUser )
         {
             params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                    .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
 
             params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                    .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
         }
 
         List<EventRow> eventRows = new ArrayList<>();
@@ -439,10 +447,13 @@ public class JdbcEventStore
             {
                 List<DataValue> dataValues = new ArrayList<>();
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
+                Map<String, String> dataElementsUidToCode =
+                    getDataElementsUidToCode( eventDataValues, idSchemes.getDataElementIdScheme() );
 
                 for( EventDataValue dv : eventDataValues )
                 {
-                    dataValues.add( convertEventDataValueIntoDtoDataValue( dv ) );
+                    dataValues.add( convertEventDataValueIntoDtoDataValue( dv, dataElementsUidToCode,
+                        idSchemes.getDataElementIdScheme() ) );
                 }
                 processedDataValues.put(rowSet.getString( "psi_uid"), dataValues);
             }
@@ -461,6 +472,29 @@ public class JdbcEventStore
         }
         eventRows.forEach(e -> e.setDataValues( processedDataValues.get( e.getUid())));
         return eventRows;
+    }
+
+    private Map<String, String> getDataElementsUidToCode( Set<EventDataValue> eventDataValues, IdScheme idScheme )
+    {
+        //Get mapping only when needed
+        if ( idScheme != IdScheme.ID && idScheme != IdScheme.UID )
+        {
+            Map<String, String> dataElementsUidToCode = new HashMap<>();
+
+            List<String> dataElementUids = eventDataValues.stream()
+                .map( EventDataValue::getDataElement )
+                .collect( Collectors.toList() );
+
+            List<DataElement> dataElements = manager.getByUid( DataElement.class, dataElementUids );
+
+            dataElements.forEach( de -> {
+                dataElementsUidToCode.put( de.getUid(), de.getCode() );
+            } );
+
+            return dataElementsUidToCode;
+        }
+
+        return Collections.emptyMap();
     }
 
     @Override
@@ -501,15 +535,18 @@ public class JdbcEventStore
         return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
-    private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
+    private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue,
+        Map<String, String> dataElementsUidToCode, IdScheme idScheme )
     {
         DataValue dataValue = new DataValue();
         dataValue.setCreated( DateUtils.getIso8601NoTz( eventDataValue.getCreated() ) );
         dataValue.setLastUpdated( DateUtils.getIso8601NoTz( eventDataValue.getLastUpdated() ) );
         dataValue.setValue( eventDataValue.getValue() );
         dataValue.setProvidedElsewhere( eventDataValue.getProvidedElsewhere() );
-        dataValue.setDataElement( eventDataValue.getDataElement() );
         dataValue.setStoredBy( eventDataValue.getStoredBy() );
+
+        String deUid = eventDataValue.getDataElement();
+        dataValue.setDataElement( IdSchemes.getValue( deUid, dataElementsUidToCode.get( deUid ), idScheme ) );
 
         return dataValue;
     }
@@ -662,7 +699,7 @@ public class JdbcEventStore
                 if ( item.hasOptionSet() && item.hasFilter() )
                 {
                     sql += "inner join optionvalue as " + optCol + " on lower(" + optCol + ".code) = " +
-                            "lower(" + dataValueValueSql + ") and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
+                        "lower(" + dataValueValueSql + ") and " + optCol + ".optionsetid = " + item.getOptionSet().getId() + " ";
                 }
 
                 joinedColumns.add( col );
@@ -684,19 +721,19 @@ public class JdbcEventStore
                         }
 
                         eventDataValuesWhereSql += " " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                                 filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                     else if ( QueryOperator.IN.getValue().equalsIgnoreCase( filter.getSqlOperator() ) )
                     {
                         sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                                 filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                     else
                     {
                         sql += "and lower(" + optCol + ".name)" + " " + filter.getSqlOperator() + " "
-                                + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
+                            + StringUtils.lowerCase( StringUtils.isNumeric( encodedFilter ) ? encodedFilter :
                                 filter.getSqlFilter( encodedFilter ) ) + " ";
                     }
                 }
@@ -738,17 +775,7 @@ public class JdbcEventStore
             sql += hlp.whereAnd() + " pi.followup is " + (params.getFollowUp() ? "true" : "false") + " ";
         }
 
-        if ( params.getLastUpdatedStartDate() != null )
-        {
-            sql += hlp.whereAnd() + " psi.lastupdated >= '"
-                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
-        }
-
-        if ( params.getLastUpdatedEndDate() != null )
-        {
-            Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
-            sql += hlp.whereAnd() + " psi.lastupdated < '" + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
-        }
+        sql += addLastUpdatedFilters( params, hlp, true );
 
         //Comparing milliseconds instead of always creating new Date( 0 );
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
@@ -770,16 +797,16 @@ public class JdbcEventStore
         if ( params.getStartDate() != null )
         {
             sql += hlp.whereAnd() + " (psi.executiondate >= '" + getMediumDateString( params.getStartDate() ) + "' "
-                    + "or (psi.executiondate is null and psi.duedate >= '" + getMediumDateString( params.getStartDate() )
-                    + "')) ";
+                + "or (psi.executiondate is null and psi.duedate >= '" + getMediumDateString( params.getStartDate() )
+                + "')) ";
         }
 
         if ( params.getEndDate() != null )
         {
             Date dateAfterEndDate = getDateAfterAddition( params.getEndDate(), 1 );
             sql += hlp.whereAnd() + " (psi.executiondate < '" + getMediumDateString( dateAfterEndDate ) + "' "
-                    + "or (psi.executiondate is null and psi.duedate < '" + getMediumDateString( dateAfterEndDate )
-                    + "')) ";
+                + "or (psi.executiondate is null and psi.duedate < '" + getMediumDateString( dateAfterEndDate )
+                + "')) ";
         }
 
         if ( params.getProgramType() != null )
@@ -792,12 +819,12 @@ public class JdbcEventStore
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
                 sql += hlp.whereAnd() + " psi.status = '" + EventStatus.ACTIVE.name()
-                        + "' and psi.executiondate is not null ";
+                    + "' and psi.executiondate is not null ";
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
                 sql += hlp.whereAnd() + " date(now()) > date(psi.duedate) and psi.status = '"
-                        + EventStatus.SCHEDULE.name() + "' ";
+                    + EventStatus.SCHEDULE.name() + "' ";
             }
             else
             {
@@ -948,17 +975,7 @@ public class JdbcEventStore
                 + "')) ";
         }
 
-        if ( params.getLastUpdatedStartDate() != null )
-        {
-            sql += hlp.whereAnd() + " psi.lastupdated >= '"
-                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
-        }
-
-        if ( params.getLastUpdatedEndDate() != null )
-        {
-            sql += hlp.whereAnd() + " psi.lastupdated <= '"
-                    + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
-        }
+        sql += addLastUpdatedFilters( params, hlp, false );
 
         if ( params.isSynchronizationQuery() )
         {
@@ -995,12 +1012,12 @@ public class JdbcEventStore
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
                 sql += hlp.whereAnd() + " psi.status = '" + EventStatus.ACTIVE.name()
-                        + "' and psi.executiondate is not null ";
+                    + "' and psi.executiondate is not null ";
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
                 sql += hlp.whereAnd() + " date(now()) > date(psi.duedate) and psi.status = '"
-                        + EventStatus.SCHEDULE.name() + "' ";
+                    + EventStatus.SCHEDULE.name() + "' ";
             }
             else
             {
@@ -1031,6 +1048,42 @@ public class JdbcEventStore
         return sql;
     }
 
+    private String addLastUpdatedFilters( EventSearchParams params, SqlHelper hlp, boolean useDateAfterEndDate )
+    {
+        String sql = "";
+
+        if ( params.hasLastUpdatedDuration() )
+        {
+            sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                + getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "' ";
+        }
+        else
+        {
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                sql += hlp.whereAnd() + " psi.lastupdated >= '"
+                    + DateUtils.getLongDateString( params.getLastUpdatedStartDate() ) + "' ";
+            }
+
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                if ( useDateAfterEndDate )
+                {
+                    Date dateAfterEndDate = getDateAfterAddition( params.getLastUpdatedEndDate(), 1 );
+                    sql += hlp.whereAnd() + " psi.lastupdated < '"
+                        + DateUtils.getLongDateString( dateAfterEndDate ) + "' ";
+                }
+                else
+                {
+                    sql += hlp.whereAnd() + " psi.lastupdated <= '"
+                        + DateUtils.getLongDateString( params.getLastUpdatedEndDate() ) + "' ";
+                }
+            }
+        }
+
+        return sql;
+    }
+
     private String getCategoryOptionSharingForUser( User user )
     {
         List<Long> userGroupIds = getIdentifiers( user.getGroups() );
@@ -1046,8 +1099,8 @@ public class JdbcEventStore
             + "left join dataelementcategoryoptionusergroupaccesses couga on deco.categoryoptionid = couga.categoryoptionid "
             + "left join dataelementcategoryoptionuseraccesses coua on deco.categoryoptionid = coua.categoryoptionid "
             + "left join usergroupaccess uga on couga.usergroupaccessid = uga.usergroupaccessid "
-            + "left join useraccess ua on coua.useraccessid = ua.useraccessid " + " where ua.userid="
-            + user.getId();
+            + "left join useraccess ua on coua.useraccessid = ua.useraccessid "
+            + "where ua.userid = " + user.getId();
 
         if ( userGroupIds != null && !userGroupIds.isEmpty() )
         {

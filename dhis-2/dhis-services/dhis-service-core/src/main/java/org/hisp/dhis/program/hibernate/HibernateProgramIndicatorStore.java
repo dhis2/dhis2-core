@@ -35,8 +35,12 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -47,9 +51,18 @@ public class HibernateProgramIndicatorStore
     implements ProgramIndicatorStore
 {
     public HibernateProgramIndicatorStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, ProgramIndicator.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, ProgramIndicator.class, currentUserService, deletedObjectService,
             aclService, true );
+    }
+
+    @Override
+    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.isNull( root.get( "expression" ) ) ) );
     }
 }

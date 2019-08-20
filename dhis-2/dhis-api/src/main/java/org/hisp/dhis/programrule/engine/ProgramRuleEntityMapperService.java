@@ -82,7 +82,7 @@ public interface ProgramRuleEntityMapperService
      */
     List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables );
 
-    /*
+    /**
      * @param programStageInstances list of events
      * @param psiToEvaluate event to filter out from the resulting list.
      *
@@ -90,19 +90,19 @@ public interface ProgramRuleEntityMapperService
      */
     List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances, ProgramStageInstance psiToEvaluate );
 
-    /*
+    /**
      * @param programStageInstances list of events
      * @return A list of mapped events for the list of DHIS events.
      */
     List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances );
 
-    /*
+    /**
      * @param psiToEvaluate event to converted.
      * @return A mapped event for corresponding DHIS event.
      */
     RuleEvent toMappedRuleEvent( ProgramStageInstance psiToEvaluate );
 
-    /*
+    /**
      * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
      */
     RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance );

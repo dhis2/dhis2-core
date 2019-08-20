@@ -68,11 +68,7 @@ import java.util.zip.ZipOutputStream;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.*;
 
 /**
  * @author Lars Helge Overland
@@ -312,6 +308,25 @@ public class DataValueSetController
         else
         {
             ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
+            summary.setImportOptions( importOptions );
+
+            response.setContentType( CONTENT_TYPE_JSON );
+            renderService.toJson( response.getOutputStream(), summary );
+        }
+    }
+
+    @RequestMapping( method = RequestMethod.POST, consumes = CONTENT_TYPE_PDF )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
+    public void postPdfDataValueSet( ImportOptions importOptions,
+        HttpServletRequest request, HttpServletResponse response ) throws IOException
+    {
+        if ( importOptions.isAsync() )
+        {
+            startAsyncImport( importOptions, ImportDataValueTask.FORMAT_PDF, request, response );
+        }
+        else
+        {
+            ImportSummary summary = dataValueSetService.saveDataValueSetPdf( request.getInputStream(), importOptions );
             summary.setImportOptions( importOptions );
 
             response.setContentType( CONTENT_TYPE_JSON );

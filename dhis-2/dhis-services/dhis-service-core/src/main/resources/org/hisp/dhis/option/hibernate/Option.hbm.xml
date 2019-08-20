@@ -37,11 +37,7 @@
     <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid" />
 
     <!-- Dynamic attribute values -->
-    <set name="attributeValues" table="optionattributevalues" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="optionvalueid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
+    <property name="attributeValues" type="jsbAttributeValues"/>
 
   </class>
 

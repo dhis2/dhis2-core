@@ -29,6 +29,7 @@ package org.hisp.dhis.user.hibernate;
  */
 
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.QueryHints;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.user.CurrentUserStore;
 import org.hisp.dhis.user.User;
@@ -36,6 +37,7 @@ import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.Query;
+import javax.persistence.QueryHint;
 
 /**
  * @author Lars Helge Overland
@@ -64,7 +66,7 @@ public class HibernateCurrentUserStore
 
         Query query = sessionFactory.getCurrentSession().createQuery( hql );
         query.setParameter( "username", username );
-        query.setHint( JpaQueryUtils.HIBERNATE_CACHEABLE_HINT, true );
+        query.setHint( QueryHints.CACHEABLE, true );
 
         return ( UserCredentials ) query.getResultList().stream().findFirst().orElse( null );
     }

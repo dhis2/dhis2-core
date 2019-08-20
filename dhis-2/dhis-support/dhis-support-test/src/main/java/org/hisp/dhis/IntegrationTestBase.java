@@ -55,7 +55,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 @RunWith( SpringJUnit4ClassRunner.class )
 @ContextConfiguration( classes = { IntegrationTestConfig.class } )
 @Category( IntegrationTest.class )
-@ActiveProfiles(profiles = {"test-postgres"})
+@ActiveProfiles( profiles = {"test-postgres"} )
 public abstract class IntegrationTestBase
     extends DhisConvenienceTest
     implements ApplicationContextAware
@@ -69,9 +69,9 @@ public abstract class IntegrationTestBase
     public void before()
         throws Exception
     {
-         bindSession();
-         executeStartupRoutines();
-         setUpTest();
+        bindSession();
+        executeStartupRoutines();
+        setUpTest();
     }
 
     @After

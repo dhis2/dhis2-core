@@ -150,6 +150,7 @@ public class DataElementOperandController
         query.setDefaultOrder();
         query.setObjects( dataElementOperands );
 
+
         dataElementOperands = (List<DataElementOperand>) queryService.query( query );
         Pager pager = metadata.getPager();
 

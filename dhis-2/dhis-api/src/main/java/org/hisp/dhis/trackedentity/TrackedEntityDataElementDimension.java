@@ -36,6 +36,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Lars Helge Overland
@@ -56,6 +57,11 @@ public class TrackedEntityDataElementDimension
     private LegendSet legendSet;
 
     /**
+     * Program stage.
+     */
+    private ProgramStage programStage;
+
+    /**
      * Operator and filter on this format:
      * <operator>:<filter>;<operator>:<filter>
      * Operator and filter pairs can be repeated any number of times.
@@ -70,10 +76,11 @@ public class TrackedEntityDataElementDimension
     {
     }
 
-    public TrackedEntityDataElementDimension( DataElement dataElement, LegendSet legendSet, String filter )
+    public TrackedEntityDataElementDimension( DataElement dataElement, LegendSet legendSet, ProgramStage programStage, String filter )
     {
         this.dataElement = dataElement;
         this.legendSet = legendSet;
+        this.programStage = programStage;
         this.filter = filter;
     }
 
@@ -99,6 +106,7 @@ public class TrackedEntityDataElementDimension
             "\"id\":\"" + id + "\", " +
             "\"dataElement\":" + dataElement + ", " +
             "\"legendSet\":" + legendSet + ", " +
+            "\"programStage\":" + programStage + ", " +
             "\"filter\":\"" + filter + "\" " +
             "}";
     }
@@ -109,6 +117,7 @@ public class TrackedEntityDataElementDimension
         int result = id;
         result = 31 * result + (dataElement != null ? dataElement.hashCode() : 0);
         result = 31 * result + (legendSet != null ? legendSet.hashCode() : 0);
+        result = 31 * result + (programStage != null ? programStage.hashCode() : 0);
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
 
         return result;
@@ -140,6 +149,11 @@ public class TrackedEntityDataElementDimension
         }
 
         if ( legendSet != null ? !legendSet.equals( other.legendSet ) : other.legendSet != null )
+        {
+            return false;
+        }
+
+        if ( programStage != null ? !programStage.equals( other.programStage ) : other.programStage != null )
         {
             return false;
         }
@@ -190,6 +204,19 @@ public class TrackedEntityDataElementDimension
     public void setLegendSet( LegendSet legendSet )
     {
         this.legendSet = legendSet;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramStage getProgramStage()
+    {
+        return programStage;
+    }
+
+    public void setProgramStage( ProgramStage programStage )
+    {
+        this.programStage = programStage;
     }
 
     @JsonProperty

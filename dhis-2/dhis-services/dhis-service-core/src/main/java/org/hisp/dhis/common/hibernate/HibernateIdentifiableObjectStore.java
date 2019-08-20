@@ -28,6 +28,7 @@ package org.hisp.dhis.common.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,6 +63,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserInfo;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
@@ -69,7 +71,6 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
@@ -80,8 +81,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author bobj
@@ -98,11 +97,12 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     protected AclService aclService;
 
     protected boolean transientIdentifiableProperties = false;
-    
-    public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, Class<T> clazz,
-        CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
+
+    public HibernateIdentifiableObjectStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, Class<T> clazz, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService, boolean cacheable )
     {
-        super( sessionFactory, jdbcTemplate, clazz, cacheable );
+        super( sessionFactory, jdbcTemplate, publisher, clazz, cacheable );
 
         checkNotNull( currentUserService );
         checkNotNull( deletedObjectService );
@@ -118,7 +118,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Only used by tests, remove after fixing the tests
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
         this.currentUserService = currentUserService;
     }
 
@@ -270,7 +271,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         getSession().save( object );
 
-        if (object instanceof MetadataObject)
+        if (object instanceof MetadataObject )
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
@@ -314,7 +315,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             getSession().update( object );
         }
 
-        if (object instanceof MetadataObject)
+        if ( object instanceof MetadataObject )
         {
             deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
         }
@@ -323,7 +324,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public void delete( T object )
     {
-        delete( object, currentUserService.getCurrentUser() );
+        this.delete( object, currentUserService.getCurrentUser() );
     }
 
     @Override
@@ -341,7 +342,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( object != null )
         {
-            getSession().delete( object );
+            super.delete( object );
         }
     }
 
@@ -474,11 +475,28 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> {
-                Join<Object, Object> joinAttrValue = root.join( "attributeValues", JoinType.INNER );
-                Join<Object, Object> joinAttribute = joinAttrValue.join( "attribute", JoinType.INNER );
-                return builder.and( builder.equal( joinAttrValue.get( "value" ), value ), builder.equal( joinAttribute.get( "id" ), attribute.getId() ) );
-            } );
+            .addPredicate( root ->
+                  builder.equal(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+
+        return getSingleResult( builder, param );
+    }
+
+    @Override
+    public T getByUniqueAttributeValue( Attribute attribute, String value, UserInfo userInfo )
+    {
+        if ( attribute == null || StringUtils.isEmpty( value ) || !attribute.isUnique() )
+        {
+            return null;
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> param = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, userInfo ) )
+            .addPredicate( root ->
+                builder.equal(
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
 
         return getSingleResult( builder, param );
     }
@@ -782,6 +800,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
+    public List<T> getByUid( Collection<String> uids, User user )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, user ) )
+            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
     public List<T> getByCode( Collection<String> codes )
     {
         if ( codes == null || codes.isEmpty() )
@@ -793,6 +828,23 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
+            .addPredicate( root -> root.get( "code" ).in( codes ) );
+
+        return getList( builder, jpaQueryParameters );
+    }
+
+    @Override
+    public List<T> getByCode( Collection<String> codes, User user )
+    {
+        if ( codes == null || codes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+            .addPredicates( getSharingPredicates( builder, user ) )
             .addPredicate( root -> root.get( "code" ).in( codes ) );
 
         return getList( builder, jpaQueryParameters );

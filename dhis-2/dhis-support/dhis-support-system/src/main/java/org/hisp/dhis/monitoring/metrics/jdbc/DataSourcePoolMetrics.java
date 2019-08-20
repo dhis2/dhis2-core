@@ -30,45 +30,103 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.MeterBinder;
-import io.micrometer.core.lang.Nullable;
+import org.springframework.util.Assert;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
 import javax.sql.DataSource;
 import java.util.Collection;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * @author Jon Schneider
  */
 public class DataSourcePoolMetrics
-    implements MeterBinder
+    implements
+    MeterBinder
 {
     private final DataSource dataSource;
 
-    private final String name;
+    private final CachingDataSourcePoolMetadataProvider metadataProvider;
 
     private final Iterable<Tag> tags;
 
-    private final DataSourcePoolMetadata poolMetadata;
-
-    public DataSourcePoolMetrics( DataSource dataSource,
-        @Nullable Collection<DataSourcePoolMetadataProvider> metadataProviders, String name, Iterable<Tag> tags )
+    public DataSourcePoolMetrics( DataSource dataSource, Collection<DataSourcePoolMetadataProvider> metadataProviders,
+        String dataSourceName, Iterable<Tag> tags )
     {
-        this.name = name;
-        this.tags = tags;
+        this( dataSource, new CompositeDataSourcePoolMetadataProvider( metadataProviders ), dataSourceName, tags );
+    }
+
+    public DataSourcePoolMetrics( DataSource dataSource, DataSourcePoolMetadataProvider metadataProvider, String name,
+        Iterable<Tag> tags )
+    {
+        Assert.notNull( dataSource, "DataSource must not be null" );
+        Assert.notNull( metadataProvider, "MetadataProvider must not be null" );
         this.dataSource = dataSource;
-        DataSourcePoolMetadataProvider provider = new DataSourcePoolMetadataProviders( metadataProviders );
-        this.poolMetadata = provider.getDataSourcePoolMetadata( dataSource );
+        this.metadataProvider = new CachingDataSourcePoolMetadataProvider( metadataProvider );
+        this.tags = Tags.concat( tags, "name", name );
     }
 
     @Override
     public void bindTo( MeterRegistry registry )
     {
-        if ( poolMetadata != null )
+        if ( this.metadataProvider.getDataSourcePoolMetadata( this.dataSource ) != null )
         {
-            registry.gauge( name + ".connections.active", tags, dataSource,
-                dataSource -> poolMetadata.getActive() != null ? poolMetadata.getActive() : 0 );
-            registry.gauge( name + ".connections.max", tags, dataSource, dataSource -> poolMetadata.getMax() );
-            registry.gauge( name + ".connections.min", tags, dataSource, dataSource -> poolMetadata.getMin() );
+            bindPoolMetadata( registry, "active", DataSourcePoolMetadata::getActive );
+            bindPoolMetadata( registry, "idle", DataSourcePoolMetadata::getIdle );
+            bindPoolMetadata( registry, "max", DataSourcePoolMetadata::getMax );
+            bindPoolMetadata( registry, "min", DataSourcePoolMetadata::getMin );
         }
+    }
+
+    private <N extends Number> void bindPoolMetadata( MeterRegistry registry, String metricName,
+        Function<DataSourcePoolMetadata, N> function )
+    {
+        bindDataSource( registry, metricName, this.metadataProvider.getValueFunction( function ) );
+    }
+
+    private <N extends Number> void bindDataSource( MeterRegistry registry, String metricName,
+        Function<DataSource, N> function )
+    {
+        if ( function.apply( this.dataSource ) != null )
+        {
+            registry.gauge( "jdbc.connections." + metricName, this.tags, this.dataSource,
+                ( m ) -> function.apply( m ).doubleValue() );
+        }
+    }
+
+    private static class CachingDataSourcePoolMetadataProvider
+        implements
+        DataSourcePoolMetadataProvider
+    {
+
+        private static final Map<DataSource, DataSourcePoolMetadata> cache = new ConcurrentReferenceHashMap<>();
+
+        private final DataSourcePoolMetadataProvider metadataProvider;
+
+        CachingDataSourcePoolMetadataProvider( DataSourcePoolMetadataProvider metadataProvider )
+        {
+            this.metadataProvider = metadataProvider;
+        }
+
+        <N extends Number> Function<DataSource, N> getValueFunction( Function<DataSourcePoolMetadata, N> function )
+        {
+            return ( dataSource ) -> function.apply( getDataSourcePoolMetadata( dataSource ) );
+        }
+
+        @Override
+        public DataSourcePoolMetadata getDataSourcePoolMetadata( DataSource dataSource )
+        {
+            DataSourcePoolMetadata metadata = cache.get( dataSource );
+            if ( metadata == null )
+            {
+                metadata = this.metadataProvider.getDataSourcePoolMetadata( dataSource );
+                cache.put( dataSource, metadata );
+            }
+            return metadata;
+        }
+
     }
 }
