@@ -59,6 +59,8 @@
 
   <bean id="corsFilter" class="org.hisp.dhis.security.filter.CorsFilter" />
 
+  <bean id="sameSiteCookieFilter" class="org.hisp.dhis.security.filter.SameSiteCookieFilter" />
+
   <bean id="appCacheFilter" class="org.hisp.dhis.servlet.filter.AppCacheFilter" />
 
   <sec:http access-decision-manager-ref="accessDecisionManager"
@@ -170,6 +172,7 @@
     <sec:custom-filter ref="automaticAccessFilter" before="LOGOUT_FILTER" />
     <sec:custom-filter ref="corsFilter" before="BASIC_AUTH_FILTER" />
     <sec:custom-filter ref="customAuthenticationFilter" before="FORM_LOGIN_FILTER" />
+    <sec:custom-filter ref="sameSiteCookieFilter" before="FIRST" />
   </sec:http>
 
   <bean id="analyticPluginResources" class="org.springframework.security.web.util.matcher.RegexRequestMatcher">
