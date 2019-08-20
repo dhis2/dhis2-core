@@ -96,7 +96,7 @@ public class DataSetOrganisationUnitCategoryResourceTable
         {
             for ( OrganisationUnit orgUnit : dataSet.getSources() )
             {
-                for ( CategoryOptionCombo optionCombo : dataSet.getIntersectingOptionCombos( orgUnit ) )
+                for ( CategoryOptionCombo optionCombo : dataSet.getIntersectingCategoryOptionCombos( orgUnit ) )
                 {
                     if ( optionCombo.isDefault() )
                     {

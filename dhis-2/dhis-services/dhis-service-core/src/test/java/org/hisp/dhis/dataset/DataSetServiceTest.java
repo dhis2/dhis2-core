@@ -602,17 +602,17 @@ public class DataSetServiceTest
         dataSetService.addDataSet( dataSetB );
         dataSetService.addDataSet( dataSetC );
 
-        assertEquals( dataSetA.getAvailableCategoryOptions().size(), 4 );
-        assertEquals( dataSetB.getAvailableCategoryOptions().size(), 4 );
-        assertEquals( dataSetC.getAvailableCategoryOptions().size(), 1 );
+        assertEquals( dataSetA.getAssignedCategoryOptions().size(), 4 );
+        assertEquals( dataSetB.getAssignedCategoryOptions().size(), 4 );
+        assertEquals( dataSetC.getAssignedCategoryOptions().size(), 1 );
 
-        assertEquals( dataSetA.getIntersectingOptionCombos( unitA ).size(), 6 );
-        assertEquals( dataSetA.getIntersectingOptionCombos( unitB ).size(), 3 );
+        assertEquals( dataSetA.getIntersectingCategoryOptionCombos( unitA ).size(), 6 );
+        assertEquals( dataSetA.getIntersectingCategoryOptionCombos( unitB ).size(), 3 );
 
-        assertEquals( dataSetB.getIntersectingOptionCombos( unitA ).size(), 3 );
-        assertEquals( dataSetB.getIntersectingOptionCombos( unitB ).size(), 3 );
+        assertEquals( dataSetB.getIntersectingCategoryOptionCombos( unitA ).size(), 3 );
+        assertEquals( dataSetB.getIntersectingCategoryOptionCombos( unitB ).size(), 3 );
 
-        assertEquals( dataSetC.getIntersectingOptionCombos( unitA ).size(), 1 );
-        assertEquals( dataSetC.getIntersectingOptionCombos( unitB ).size(), 0 );
+        assertEquals( dataSetC.getIntersectingCategoryOptionCombos( unitA ).size(), 1 );
+        assertEquals( dataSetC.getIntersectingCategoryOptionCombos( unitB ).size(), 0 );
     }
 }

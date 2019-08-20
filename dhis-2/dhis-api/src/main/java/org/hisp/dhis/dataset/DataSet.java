@@ -556,7 +556,7 @@ public class DataSet
      * Returns a set of category options which are linked to this data set
      * and also available for all organisation units.
      */
-    public Set<CategoryOption> getAvailableCategoryOptions()
+    public Set<CategoryOption> getAssignedCategoryOptions()
     {
         Set<CategoryOption> availableOptions = new HashSet<>();
 
@@ -580,7 +580,7 @@ public class DataSet
      * Returns a set of category option combos which are linked to this data
      * set through its category combination and organisation unit category option combos.
      */
-    public Set<CategoryOptionCombo> getIntersectingOptionCombos( OrganisationUnit organisationUnit )
+    public Set<CategoryOptionCombo> getIntersectingCategoryOptionCombos( OrganisationUnit organisationUnit )
     {
         Set<CategoryOptionCombo> optionCombos = new HashSet<>();
 
@@ -595,7 +595,7 @@ public class DataSet
         }
         else
         {
-            Set<CategoryOption> orgUnitOptions = new HashSet<>( getAvailableCategoryOptions() );
+            Set<CategoryOption> orgUnitOptions = new HashSet<>( getAssignedCategoryOptions() );
 
             if ( organisationUnit.hasCategoryOptions() )
             {
