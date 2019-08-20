@@ -552,6 +552,70 @@ public class DataSet
             .orElse( true );
     }
 
+    /**
+     * Returns a set of category options which are linked to this data set
+     * and also available for all organisation units.
+     */
+    public Set<CategoryOption> getAvailableCategoryOptions()
+    {
+        Set<CategoryOption> availableOptions = new HashSet<>();
+
+        for ( CategoryOptionCombo optionCombo : getCategoryCombo().getOptionCombos() )
+        {
+            Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
+
+            for ( CategoryOption categoryOption : optionComboOptions )
+            {
+                if ( categoryOption.getOrganisationUnits().isEmpty() )
+                {
+                    availableOptions.add( categoryOption );
+                }
+            }
+        }
+
+        return availableOptions;
+    }
+
+    /**
+     * Returns a set of category option combos which are linked to this data
+     * set through its category combination and organisation unit category option combos.
+     */
+    public Set<CategoryOptionCombo> getIntersectingOptionCombos( OrganisationUnit organisationUnit )
+    {
+        Set<CategoryOptionCombo> optionCombos = new HashSet<>();
+
+        if ( organisationUnit == null || getSources().isEmpty() || !getSources().contains( organisationUnit ) )
+        {
+            return optionCombos;
+        }
+
+        if ( getCategoryCombo().isDefault() )
+        {
+            optionCombos.addAll( getCategoryCombo().getOptionCombos() );
+        }
+        else
+        {
+            Set<CategoryOption> orgUnitOptions = new HashSet<>( getAvailableCategoryOptions() );
+
+            if ( organisationUnit.hasCategoryOptions() )
+            {
+                orgUnitOptions.addAll( organisationUnit.getCategoryOptions() );
+            }
+
+            for ( CategoryOptionCombo optionCombo : getCategoryCombo().getOptionCombos() )
+            {
+                Set<CategoryOption> optionComboOptions = optionCombo.getCategoryOptions();
+
+                if ( orgUnitOptions.containsAll( optionComboOptions ) )
+                {
+                    optionCombos.add( optionCombo );
+                }
+            }
+        }
+
+        return optionCombos;
+    }
+
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
