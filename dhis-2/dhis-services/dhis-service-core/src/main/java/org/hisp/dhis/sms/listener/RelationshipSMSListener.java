@@ -68,7 +68,6 @@ public class RelationshipSMSListener
     extends
     CompressionSMSListener
 {
-
     private enum RelationshipDir
     {
         FROM, TO;
@@ -112,6 +111,7 @@ public class RelationshipSMSListener
         UID typeid = subm.getRelationshipType();
 
         RelationshipType relType = relationshipTypeService.getRelationshipType( typeid.uid );
+
         if ( relType == null )
         {
             throw new SMSProcessingException( SMSResponse.INVALID_RELTYPE.set( typeid ) );
@@ -121,15 +121,19 @@ public class RelationshipSMSListener
         RelationshipItem toItem = createRelationshipItem( relType, RelationshipDir.TO, toid );
 
         Relationship rel = new Relationship();
-        // If we aren't given a UID for the relationship, it will be
-        // auto-generated
+
+        // If we aren't given a UID for the relationship, it will be auto-generated
         if ( subm.getRelationship() != null )
+        {
             rel.setUid( subm.getRelationship().uid );
+        }
+
         rel.setRelationshipType( relType );
         rel.setFrom( fromItem );
         rel.setTo( toItem );
         rel.setCreated( new Date() );
         rel.setLastUpdated( new Date() );
+
         // TODO: Are there values we need to account for in relationships?
 
         relationshipService.addRelationship( rel );
