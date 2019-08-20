@@ -44,6 +44,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -61,6 +62,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -71,6 +73,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -120,6 +124,19 @@ public class JdbcEventStore
         .put( "deleted", "psi_deleted" ).build();
 
     // -------------------------------------------------------------------------
+    // Caching
+    // -------------------------------------------------------------------------
+    private final static int DATA_ELEMENT_TO_CODE_CACHE_THRESHOLD = 200;
+    private final static int DATA_ELEMENT_TO_ATTRIBUTE_CACHE_THRESHOLD = 500;
+    private final static Duration CACHE_DATA_DURATION = Duration.ofMinutes( 15 );
+
+    private Instant dataElementToCodeCacheLastCleared;
+    private Instant dataElementToAttributeCacheLastCleared;
+
+    private CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
+    private CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
+
+    // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
@@ -135,6 +152,8 @@ public class JdbcEventStore
 
     private final IdentifiableObjectManager manager;
 
+    private final IdentifiableObjectCallable<DataElement> dataElementCallable;
+
     public JdbcEventStore( StatementBuilder statementBuilder, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager )
     {
@@ -147,6 +166,7 @@ public class JdbcEventStore
         this.jdbcTemplate = jdbcTemplate;
         this.currentUserService = currentUserService;
         this.manager = identifiableObjectManager;
+        this.dataElementCallable = new IdentifiableObjectCallable<>( manager, DataElement.class, IdScheme.UID, null );
     }
 
     // -------------------------------------------------------------------------
@@ -318,6 +338,8 @@ public class JdbcEventStore
             }
         }
 
+        clearCaches();
+
         if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
         {
             return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null && splitToArray( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev.getOptionSize() ).collect( Collectors.toList() );
@@ -354,6 +376,7 @@ public class JdbcEventStore
             list.add( map );
         }
 
+        clearCaches();
         return list;
     }
 
@@ -476,6 +499,7 @@ public class JdbcEventStore
             }
         }
         eventRows.forEach(e -> e.setDataValues( processedDataValues.get( e.getUid())));
+        clearCaches();
         return eventRows;
     }
 
@@ -500,11 +524,11 @@ public class JdbcEventStore
             .map( EventDataValue::getDataElement )
             .collect( Collectors.toList() );
 
-        List<DataElement> dataElements = manager.getByUid( DataElement.class, dataElementUids );
-
-        dataElements.forEach( de -> {
-            dataElementsUidToCode.put( de.getUid(), de.getCode() );
-        } );
+        for ( String uid : dataElementUids )
+        {
+            DataElement de = dataElementToCodeCache.get( uid, dataElementCallable.setId( uid ) );
+            dataElementsUidToCode.put( uid, de.getCode() );
+        }
 
         return dataElementsUidToCode;
     }
@@ -512,22 +536,38 @@ public class JdbcEventStore
     private Map<String, String> getDataElementsUidToAttribute( Set<EventDataValue> eventDataValues )
     {
         Map<String, String> dataElementsUidToAttribute = new HashMap<>();
+        Set<String> uidsToFetch = new HashSet<>();
 
-        String dataElementsUids = eventDataValues.stream()
+        List<String> dataElementsUids = eventDataValues.stream()
             .map( EventDataValue::getDataElement )
-            .collect( Collectors.joining( "', '", "'", "'" ) );
+            .collect( Collectors.toList());
 
-        String sql = "SELECT de.uid, av.value " +
-            "FROM dataelement de JOIN dataelementattributevalues deav ON de.dataelementid = deav.dataelementid " +
-            "JOIN attributevalue av ON av.attributevalueid = deav.attributevalueid " +
-            "WHERE de.uid IN (" + dataElementsUids + ")";
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        while ( rowSet.next() )
+        for ( String uid : dataElementsUids )
         {
-            dataElementsUidToAttribute.put( rowSet.getString( "uid" ), rowSet.getString( "value" ) );
+            if ( dataElementToAttributeCache.get( uid ) == null )
+            {
+                uidsToFetch.add( uid );
+            }
         }
+
+        if ( uidsToFetch.size() > 0 )
+        {
+            String dataElementsUidsSqlString = uidsToFetch.stream().collect( Collectors.joining( "', '", "'", "'" ) );
+
+            String sql = "SELECT de.uid, av.value " +
+                "FROM dataelement de JOIN dataelementattributevalues deav ON de.dataelementid = deav.dataelementid " +
+                "JOIN attributevalue av ON av.attributevalueid = deav.attributevalueid " + "WHERE de.uid IN (" +
+                dataElementsUidsSqlString + ")";
+
+            SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+            while ( rowSet.next() )
+            {
+                dataElementToAttributeCache.put( rowSet.getString( "uid" ), rowSet.getString( "value" ) );
+            }
+        }
+
+        dataElementsUids.forEach( uid -> dataElementsUidToAttribute.put( uid, dataElementToAttributeCache.get( uid ) ) );
 
         return dataElementsUidToAttribute;
     }
@@ -591,7 +631,7 @@ public class JdbcEventStore
                 + "left join attributevalue pav on pavs.attributevalueid = pav.attributevalueid ";
         }
 
-        if ( idSchemes.getProgramStageInstanceIdScheme().isAttribute() )
+        if ( idSchemes.getProgramStageIdScheme().isAttribute() )
         {
             sql += "left join programstageattributevalues psavs on ps.programstageid = psavs.programstageid "
                 + "left join attributevalue psav on psavs.attributevalueid = psav.attributevalueid ";
@@ -641,6 +681,7 @@ public class JdbcEventStore
 
         log.debug( "Event query count SQL: " + sql );
 
+        clearCaches();
         return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
@@ -1392,6 +1433,23 @@ public class JdbcEventStore
         {
             log.error( "Parsing EventDataValues json string failed. String value: " + jsonString );
             throw new IllegalArgumentException( e );
+        }
+    }
+
+    private void clearCaches()
+    {
+        if ( dataElementToCodeCache.size() > DATA_ELEMENT_TO_CODE_CACHE_THRESHOLD ||
+            dataElementToCodeCacheLastCleared.plus( CACHE_DATA_DURATION ).isBefore( Instant.now() ) )
+        {
+            dataElementToCodeCache.clear();
+            dataElementToCodeCacheLastCleared = Instant.now();
+        }
+
+        if ( dataElementToAttributeCache.size() > DATA_ELEMENT_TO_ATTRIBUTE_CACHE_THRESHOLD ||
+            dataElementToAttributeCacheLastCleared.plus( CACHE_DATA_DURATION ).isBefore( Instant.now() ) )
+        {
+            dataElementToAttributeCache.clear();
+            dataElementToAttributeCacheLastCleared = Instant.now();
         }
     }
 }
