@@ -414,6 +414,7 @@ public class DefaultIdentifiableObjectManager
        return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     @Transactional( readOnly = true )
     public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
@@ -1098,13 +1099,15 @@ public class DefaultIdentifiableObjectManager
     public List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
         if ( store == null )
         {
             return new ArrayList<>();
         }
+
         return store.getUidsCreatedBefore( date );
     }
-    
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
@@ -1114,16 +1117,20 @@ public class DefaultIdentifiableObjectManager
     public boolean isDefault( IdentifiableObject object )
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
+
         if ( object == null )
         {
             return false;
         }
+
         Class<?> realClass = getRealClass( object.getClass() );
         if ( !defaults.containsKey( realClass ) )
         {
             return false;
         }
+
         IdentifiableObject defaultObject = defaults.get( realClass );
+
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
 
