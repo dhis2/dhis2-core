@@ -76,6 +76,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -130,8 +131,8 @@ public class JdbcEventStore
     private final static int DATA_ELEMENT_TO_ATTRIBUTE_CACHE_THRESHOLD = 500;
     private final static Duration CACHE_DATA_DURATION = Duration.ofMinutes( 15 );
 
-    private Instant dataElementToCodeCacheLastCleared;
-    private Instant dataElementToAttributeCacheLastCleared;
+    private Instant dataElementToCodeCacheLastCleared = Instant.now();
+    private Instant dataElementToAttributeCacheLastCleared = Instant.now();
 
     private CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
     private CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
@@ -505,7 +506,11 @@ public class JdbcEventStore
 
     private Map<String, String> getDataElementsUidToIdentifier( Set<EventDataValue> eventDataValues, IdScheme idScheme )
     {
-        if ( idScheme.isAttribute() )
+        if ( idScheme == IdScheme.ID || idScheme == IdScheme.UID )
+        {
+            return Collections.emptyMap();
+        }
+        else if ( idScheme.isAttribute() )
         {
             return getDataElementsUidToAttribute( eventDataValues );
         }
@@ -527,6 +532,11 @@ public class JdbcEventStore
         for ( String uid : dataElementUids )
         {
             DataElement de = dataElementToCodeCache.get( uid, dataElementCallable.setId( uid ) );
+
+            if ( de == null )
+            {
+                throw new IllegalStateException( "No Data element for UID: " + uid + " was found." );
+            }
             dataElementsUidToCode.put( uid, de.getCode() );
         }
 
