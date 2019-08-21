@@ -50,23 +50,17 @@ public class GenericGatewayParameter
 
     private boolean confidential;
 
-    private boolean isText;
-
-    private boolean isRecipient;
-
     public GenericGatewayParameter()
     {
     }
 
-    public GenericGatewayParameter( boolean header, boolean encode, String key, String value, boolean confidential, boolean isText, boolean isRecipient )
+    public GenericGatewayParameter( boolean header, boolean encode, String key, String value, boolean confidential )
     {
         this.header = header;
         this.encode = encode;
         this.key = key;
         this.value = value;
         this.confidential = confidential;
-        this.isText = isText;
-        this.isRecipient = isRecipient;
     }
 
     @JsonProperty( value = "key" )
@@ -127,28 +121,5 @@ public class GenericGatewayParameter
     public void setEncode( boolean encode )
     {
         this.encode = encode;
-    }
-
-    @JsonProperty
-    public boolean isText()
-    {
-        return isText;
-    }
-
-
-    public void setText( boolean text )
-    {
-        isText = text;
-    }
-
-    @JsonProperty
-    public boolean isRecipient()
-    {
-        return isRecipient;
-    }
-
-    public void setRecipient( boolean recipient )
-    {
-        isRecipient = recipient;
     }
 }

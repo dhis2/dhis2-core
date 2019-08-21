@@ -58,6 +58,8 @@ public abstract class SmsGateway
     protected static final String PROTOCOL_VERSION = "X-Version";
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
     protected static final String BASIC = " Basic ";
+    protected static final String KEY_TEXT = "text";
+    protected static final String KEY_RECIPIENT = "recipients";
 
     public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
         HttpStatus.ACCEPTED, HttpStatus.CREATED );

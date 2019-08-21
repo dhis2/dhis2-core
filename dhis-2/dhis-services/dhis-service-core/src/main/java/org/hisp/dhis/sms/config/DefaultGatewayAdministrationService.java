@@ -365,7 +365,14 @@ public class DefaultGatewayAdministrationService
 
     private SmsConfiguration getSmsConfiguration()
     {
-        return smsConfigurationManager.getSmsConfiguration();
+        SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
+
+        if ( smsConfiguration != null )
+        {
+            return smsConfiguration;
+        }
+
+        return new SmsConfiguration();
     }
 
     private void initializeSmsConfig()

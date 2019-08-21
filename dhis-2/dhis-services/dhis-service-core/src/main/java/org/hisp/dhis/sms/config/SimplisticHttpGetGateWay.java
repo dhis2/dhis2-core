@@ -150,18 +150,6 @@ public class SimplisticHttpGetGateWay
                 continue;
             }
 
-            if ( parameter.isText() )
-            {
-                valueStore.put( parameter.getKey(), text );
-                continue;
-            }
-
-            if ( parameter.isRecipient() )
-            {
-                valueStore.put( parameter.getKey(), StringUtils.join( recipients, "," ) );
-                continue;
-            }
-
             if ( parameter.isEncode() )
             {
                 valueStore.put( parameter.getKey(), encodeUrl( parameter.getValueForKey() ) );
@@ -170,6 +158,9 @@ public class SimplisticHttpGetGateWay
 
             valueStore.put( parameter.getKey(), parameter.getValueForKey() );
         }
+
+        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         final StrSubstitutor substitutor = new StrSubstitutor( valueStore ); // Matches on ${...}
 
