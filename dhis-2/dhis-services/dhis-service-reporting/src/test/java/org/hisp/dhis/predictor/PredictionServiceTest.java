@@ -161,6 +161,8 @@ public class PredictionServiceTest
     public void setUpTest()
         throws Exception
     {
+        PeriodType.invalidatePeriodCache();
+
         orgUnitLevel1 = new OrganisationUnitLevel( 1, "Level1" );
 
         organisationUnitService.addOrganisationUnitLevel( orgUnitLevel1 );
@@ -659,8 +661,6 @@ public class PredictionServiceTest
 
         dataValueBatchHandler.flush();
 
-        try { Thread.sleep( 1000 ); } catch ( Exception e ) {} //TODO: Why is this needed here (and not everywhere)?
-
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictWithCurrentPeriodData",
             expressionE, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
 
@@ -688,8 +688,6 @@ public class PredictionServiceTest
         useDataValue( dataElementB, makeMonth( 2001, 10 ), sourceA, 4 );
 
         dataValueBatchHandler.flush();
-
-        try { Thread.sleep( 1000 ); } catch ( Exception e ) {} //TODO: Why is this needed here (and not everywhere)?
 
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictWithOnlyCurrentPeriodData",
             expressionF, null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
