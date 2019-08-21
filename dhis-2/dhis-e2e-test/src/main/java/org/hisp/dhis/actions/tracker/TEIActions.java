@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,27 +26,17 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
+package org.hisp.dhis.actions.tracker;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.hisp.dhis.actions.RestApiActions;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class JsonParserUtils
+public class TEIActions extends RestApiActions
 {
-    private static JsonParser parser = new JsonParser();
-
-    public static JsonObject toJsonObject( Object object )
+    public TEIActions( )
     {
-        if (object instanceof String) {
-            return parser.parse( (String) object ).getAsJsonObject();
-        }
-
-        JsonObject jsonObject = parser.parse( new Gson().toJson( object ) ).getAsJsonObject();
-
-        return jsonObject;
+        super( "/trackedEntityInstances" );
     }
 }
