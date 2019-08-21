@@ -193,7 +193,10 @@ public class HibernateTrackedEntityInstanceStore
 
             }
            
-            hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
+            if ( params.getOrganisationUnitResolution() == OrganisationUnitResolutionMode.OWNERSHIP )
+            {
+                hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
+            }
             
             hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
 
