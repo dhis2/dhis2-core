@@ -30,7 +30,6 @@ package org.hisp.dhis.attribute;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.api.client.util.Maps;
 import static com.google.common.base.Preconditions.checkNotNull;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -325,7 +324,7 @@ public class DefaultAttributeService
                 }
 
                 attributeValueMap.remove( attributeValue.getAttribute().getUid() );
-                mandatoryAttributes.remove( attributeValue.getAttribute().getUid() );
+                mandatoryAttributes.remove( attributeValue.getAttribute() );
             }
             else
             {
@@ -337,7 +336,7 @@ public class DefaultAttributeService
         {
             AttributeValue attributeValue = attributeValueMap.get( uid );
             addAttributeValue( object, attributeValue );
-            mandatoryAttributes.remove( attributeValue.getAttribute().getUid() );
+            mandatoryAttributes.remove( attributeValue.getAttribute() );
         }
 
         deleteAttributeValues( object, toBeDeleted );

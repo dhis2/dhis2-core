@@ -28,6 +28,13 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,20 +54,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
 @Component( "org.hisp.dhis.sms.listener.SingleEventListener" )
 @Transactional
 public class SingleEventListener
-    extends BaseSMSListener
+    extends
+    CommandSMSListener
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -109,7 +110,8 @@ public class SingleEventListener
     // Supportive Methods
     // -------------------------------------------------------------------------
 
-    private void registerEvent( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms, Set<OrganisationUnit> ous )
+    private void registerEvent( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms,
+        Set<OrganisationUnit> ous )
     {
         List<ProgramInstance> programInstances = new ArrayList<>(
             programInstanceService.getProgramInstances( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );

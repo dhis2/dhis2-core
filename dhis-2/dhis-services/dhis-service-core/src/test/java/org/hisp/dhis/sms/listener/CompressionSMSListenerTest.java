@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.sms.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,35 +28,42 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.Base64;
+import java.util.Date;
+
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.smscompression.SMSCompressionException;
+import org.hisp.dhis.smscompression.SMSSubmissionWriter;
+import org.hisp.dhis.smscompression.models.SMSMetadata;
+import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.user.User;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class UserSchemaDescriptor implements SchemaDescriptor
+public class CompressionSMSListenerTest
+    extends
+    DhisConvenienceTest
 {
-    public static final String SINGULAR = "user";
+    protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
-    public static final String PLURAL = "users";
+    protected static final String ORIGINATOR = "47400000";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    protected static final String ATTRIBUTE_VALUE = "TEST";
 
-    @Override
-    public Schema getSchema()
+    protected IncomingSms createSMSFromSubmission( SMSSubmission subm )
+        throws SMSCompressionException
     {
-        Schema schema = new Schema( User.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 101 );
+        User user = createUser( 'U' );
+        SMSMetadata meta = new SMSMetadata();
+        meta.lastSyncDate = new Date();
+        SMSSubmissionWriter writer = new SMSSubmissionWriter( meta );
+        String smsText = Base64.getEncoder().encodeToString( writer.compress( subm ) );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_USER_ADD", "F_USER_ADD_WITHIN_MANAGED_GROUP" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_USER_DELETE", "F_USER_DELETE_WITHIN_MANAGED_GROUP" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.READ, Lists.newArrayList( "F_USER_VIEW" ) ) );
+        IncomingSms incomingSms = new IncomingSms();
+        incomingSms.setText( smsText );
+        incomingSms.setOriginator( ORIGINATOR );
+        incomingSms.setUser( user );
 
-        return schema;
+        return incomingSms;
     }
+
 }

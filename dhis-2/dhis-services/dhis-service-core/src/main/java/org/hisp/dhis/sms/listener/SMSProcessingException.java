@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.sms.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,35 +28,46 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.smscompression.SMSResponse;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class UserSchemaDescriptor implements SchemaDescriptor
+public class SMSProcessingException
+    extends
+    RuntimeException
 {
-    public static final String SINGULAR = "user";
 
-    public static final String PLURAL = "users";
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 353425388316643481L;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    private SMSResponse resp;
+
+    private Throwable err;
+
+    public SMSProcessingException( SMSResponse resp )
+    {
+        this.resp = resp;
+    }
+
+    public SMSProcessingException( SMSResponse resp, Throwable err )
+    {
+        this.resp = resp;
+        this.err = err;
+    }
 
     @Override
-    public Schema getSchema()
+    public String getMessage()
     {
-        Schema schema = new Schema( User.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 101 );
+        return resp.getDescription();
+    }
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_USER_ADD", "F_USER_ADD_WITHIN_MANAGED_GROUP" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_USER_DELETE", "F_USER_DELETE_WITHIN_MANAGED_GROUP" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.READ, Lists.newArrayList( "F_USER_VIEW" ) ) );
+    public SMSResponse getResp()
+    {
+        return resp;
+    }
 
-        return schema;
+    public Throwable getErr()
+    {
+        return err;
     }
 }

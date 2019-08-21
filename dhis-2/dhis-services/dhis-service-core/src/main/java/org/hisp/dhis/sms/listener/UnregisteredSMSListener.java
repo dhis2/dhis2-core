@@ -28,6 +28,10 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Map;
+
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -42,19 +46,20 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
-import org.hisp.dhis.user.*;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 @Component( "org.hisp.dhis.sms.listener.UnregisteredSMSListener" )
 @Transactional
 public class UnregisteredSMSListener
-    extends BaseSMSListener
+    extends
+    CommandSMSListener
 {
 
     private static final String USER_NAME = "anonymous";
@@ -68,7 +73,7 @@ public class UnregisteredSMSListener
     private final UserService userService;
 
     private final MessageService messageService;
-    
+
     public UnregisteredSMSListener( ProgramInstanceService programInstanceService,
         CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
@@ -86,7 +91,7 @@ public class UnregisteredSMSListener
         this.userService = userService1;
         this.messageService = messageService;
     }
-    
+
     // -------------------------------------------------------------------------
     // IncomingSmsListener implementation
     // -------------------------------------------------------------------------
@@ -94,8 +99,7 @@ public class UnregisteredSMSListener
     @Override
     protected SMSCommand getSMSCommand( IncomingSms sms )
     {
-        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ),
-            ParserType.UNREGISTERED_PARSER );
+        return smsCommandService.getSMSCommand( SmsUtils.getCommandString( sms ), ParserType.UNREGISTERED_PARSER );
     }
 
     @Override
@@ -129,11 +133,8 @@ public class UnregisteredSMSListener
                 anonymousUser = userService.getUserCredentialsByUsername( userName );
             }
 
-
-            messageService.sendMessage(
-                new MessageConversationParams.Builder( userGroup.getMembers(), anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM )
-                .build()
-            );
+            messageService.sendMessage( new MessageConversationParams.Builder( userGroup.getMembers(),
+                anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM ).build() );
 
             sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
 

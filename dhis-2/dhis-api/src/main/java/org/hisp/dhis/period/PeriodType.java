@@ -84,6 +84,17 @@ public abstract class PeriodType
     }
 
     /**
+     * Invalidates the period cache.
+     * <p/>
+     * Used in testing when there are multiple database loads
+     * and the same periods may be assigned different database ids.
+     */
+    public static void invalidatePeriodCache()
+    {
+        PERIOD_CACHE.invalidateAll();
+    }
+
+    /**
      * Determines if a de-serialized file is compatible with this class.
      */
     private static final long serialVersionUID = 2402122626196305083L;
