@@ -29,7 +29,6 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,15 +43,11 @@ public interface GatewayAdministrationService
 
     boolean removeGatewayByUid( String uid );
 
-    boolean removeGatewayByName( String gatewayName );
-    
     Map<String, SmsGatewayConfig> getGatewayConfigurationMap();
 
     SmsGatewayConfig getDefaultGateway();
 
     boolean hasDefaultGateway();
-
-    List<SmsGatewayConfig> listGateways();
 
     SmsGatewayConfig getByUid(String uid );
 
