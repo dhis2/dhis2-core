@@ -172,6 +172,8 @@ public interface IdentifiableObjectManager
 
     boolean isDefault( IdentifiableObject object );
 
+    List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date );
+    
     // -------------------------------------------------------------------------
     // NO ACL
     // -------------------------------------------------------------------------

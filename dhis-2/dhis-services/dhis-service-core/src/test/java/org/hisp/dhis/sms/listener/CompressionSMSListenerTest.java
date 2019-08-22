@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.listener;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,27 +28,42 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
+import java.util.Base64;
+import java.util.Date;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.smscompression.SMSCompressionException;
+import org.hisp.dhis.smscompression.SMSSubmissionWriter;
+import org.hisp.dhis.smscompression.models.SMSMetadata;
+import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.user.User;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class JsonParserUtils
+public class CompressionSMSListenerTest
+    extends
+    DhisConvenienceTest
 {
-    private static JsonParser parser = new JsonParser();
+    protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
-    public static JsonObject toJsonObject( Object object )
+    protected static final String ORIGINATOR = "47400000";
+
+    protected static final String ATTRIBUTE_VALUE = "TEST";
+
+    protected IncomingSms createSMSFromSubmission( SMSSubmission subm )
+        throws SMSCompressionException
     {
-        if (object instanceof String) {
-            return parser.parse( (String) object ).getAsJsonObject();
-        }
+        User user = createUser( 'U' );
+        SMSMetadata meta = new SMSMetadata();
+        meta.lastSyncDate = new Date();
+        SMSSubmissionWriter writer = new SMSSubmissionWriter( meta );
+        String smsText = Base64.getEncoder().encodeToString( writer.compress( subm ) );
 
-        JsonObject jsonObject = parser.parse( new Gson().toJson( object ) ).getAsJsonObject();
+        IncomingSms incomingSms = new IncomingSms();
+        incomingSms.setText( smsText );
+        incomingSms.setOriginator( ORIGINATOR );
+        incomingSms.setUser( user );
 
-        return jsonObject;
+        return incomingSms;
     }
+
 }

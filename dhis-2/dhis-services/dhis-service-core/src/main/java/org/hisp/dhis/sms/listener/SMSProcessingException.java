@@ -1,5 +1,7 @@
+package org.hisp.dhis.sms.listener;
+
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,27 +28,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.helpers;
+import org.hisp.dhis.smscompression.SMSResponse;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-public class JsonParserUtils
+public class SMSProcessingException
+    extends
+    RuntimeException
 {
-    private static JsonParser parser = new JsonParser();
 
-    public static JsonObject toJsonObject( Object object )
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 353425388316643481L;
+
+    private SMSResponse resp;
+
+    private Throwable err;
+
+    public SMSProcessingException( SMSResponse resp )
     {
-        if (object instanceof String) {
-            return parser.parse( (String) object ).getAsJsonObject();
-        }
+        this.resp = resp;
+    }
 
-        JsonObject jsonObject = parser.parse( new Gson().toJson( object ) ).getAsJsonObject();
+    public SMSProcessingException( SMSResponse resp, Throwable err )
+    {
+        this.resp = resp;
+        this.err = err;
+    }
 
-        return jsonObject;
+    @Override
+    public String getMessage()
+    {
+        return resp.getDescription();
+    }
+
+    public SMSResponse getResp()
+    {
+        return resp;
+    }
+
+    public Throwable getErr()
+    {
+        return err;
     }
 }
