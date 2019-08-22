@@ -209,11 +209,13 @@ public class JdbcEventAnalyticsTableManager
                 table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
                 tables.add( table );
 
-                log.info( String.format( "Added latest event analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+                log.info( String.format( "Added latest event analytics partition for program: '%s' with start: '%s' and end: '%s'",
+                    program.getUid(), getLongDateString( startDate ), getLongDateString( endDate ) ) );
             }
             else
             {
-                log.info( String.format( "No updated latest event data found with start: '%s' and end: '%s", getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
+                log.info( String.format( "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
+                    program.getUid(), getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
             }
         }
 
@@ -263,7 +265,7 @@ public class JdbcEventAnalyticsTableManager
                     "and psi.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
                     "and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "')";
 
-            invokeTimeAndLog( sql, "Remove updated events" );
+            invokeTimeAndLog( sql, String.format( "Remove updated events for table: '%s'", table ) );
         }
     }
 
