@@ -256,7 +256,7 @@ public class JdbcEventAnalyticsTableManager
             String sql =
                 "delete from " + quote( table.getTableName() ) + " ax " +
                 "where ax.psi in (" +
-                    "select psi.programstageinstanceid " +
+                    "select psi.uid " +
                     "from programstageinstance psi " +
                     "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
                     "where pi.programid = " + table.getProgram().getId() + " " +
