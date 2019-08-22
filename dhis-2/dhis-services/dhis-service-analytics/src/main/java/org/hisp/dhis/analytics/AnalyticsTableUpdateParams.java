@@ -38,6 +38,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -134,7 +135,7 @@ public class AnalyticsTableUpdateParams
      */
     public boolean isLatestUpdate()
     {
-        return lastYears == AnalyticsTablePartition.LATEST_PARTITION;
+        return Objects.deepEquals( lastYears, AnalyticsTablePartition.LATEST_PARTITION );
     }
 
     // -------------------------------------------------------------------------
