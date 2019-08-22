@@ -139,8 +139,6 @@ public class DefaultAnalyticsTableService
 
         final List<AnalyticsTable> tables = tableManager.getAnalyticsTables( params );
 
-        System.out.println( "Tables " + tables );
-
         if ( tables.isEmpty() )
         {
             clock.logTime( String.format( "Table update aborted, no table or partitions found: '%s'", tableType.getTableName() ) );
