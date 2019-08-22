@@ -107,7 +107,19 @@ public class JdbcEnrollmentAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
+        return params.isLatestUpdate() ? new ArrayList<>() : getRegularAnalyticsTables( params );
+    }
+
+    /**
+     * Creates a list of {@link AnalyticsTable} for each program.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     * @return a list of {@link AnalyticsTableUpdateParams}.
+     */
+    private List<AnalyticsTable> getRegularAnalyticsTables( AnalyticsTableUpdateParams params )
+    {
         List<AnalyticsTable> tables = new UniqueArrayList<>();
+
         List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
         for ( Program program : programs )
