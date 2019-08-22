@@ -121,7 +121,7 @@ public class DefaultAnalyticsTableGenerator
         {
             notifier.clear( jobId ).notify( jobId, "Analytics table update process started" );
 
-            if ( !params.isSkipResourceTables() )
+            if ( !params.isSkipResourceTables() && !params.isLatestUpdate() )
             {
                 notifier.notify( jobId, "Updating resource tables" );
                 generateResourceTables();
