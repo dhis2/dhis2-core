@@ -207,11 +207,11 @@ public class JdbcAnalyticsTableManager
             "where ax.id in (" +
                 "select (de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id " +
                 "from datavalue dv " +
-                "inner join dataelement de on dv.dataelementid = de.dataelementid " +
-                "inner join _periodstructure ps on dv.periodid = ps.periodid " +
-                "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
-                "inner join categoryoptioncombo co on dv.categoryoptioncomboid = dv.categoryoptioncomboid " +
-                "inner join categoryoptioncombo ao on dv.attributeoptioncomboid = ao.categoryoptioncomboid " +
+                "inner join dataelement de on dv.dataelementid=de.dataelementid " +
+                "inner join _periodstructure ps on dv.periodid=ps.periodid " +
+                "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
+                "inner join categoryoptioncombo co on dv.categoryoptioncomboid=dv.categoryoptioncomboid " +
+                "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
                 "where dv.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
                 "and dv.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
                 "and dv.created < '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "')";
