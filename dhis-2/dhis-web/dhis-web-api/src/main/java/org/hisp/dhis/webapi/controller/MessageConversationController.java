@@ -117,9 +117,15 @@ public class MessageConversationController
     private FileResourceService fileResourceService;
 
     @Override
-    protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
+    protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options, Map<String, String> parameters )
         throws Exception
     {
+        if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
+        {
+            entity.setMessages( entity.getMessages().stream().filter( message -> !message.isInternal() ).collect(
+                Collectors.toList() ) );
+        }
+
         Boolean markRead = Boolean.parseBoolean( parameters.get( "markRead" ) );
 
         if ( markRead )
@@ -149,18 +155,6 @@ public class MessageConversationController
         }
 
         return super.getObject( uid, rpParameters, request, response );
-    }
-
-    @Override
-    protected void postProcessEntity( org.hisp.dhis.message.MessageConversation entity )
-        throws Exception
-    {
-        if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
-        {
-            entity.setMessages( entity.getMessages().stream().filter( message -> !message.isInternal() ).collect(
-                Collectors.toList() ) );
-        }
-        super.postProcessEntity( entity );
     }
 
     @Override
@@ -1001,7 +995,15 @@ public class MessageConversationController
         return responseNode;
     }
 
-    /* Returns the specified message after making sure the user has access to it */
+    /**
+    /* Returns the specified message after making sure the user has access to it.
+     *
+     * @param mcUid the message conversation UID.
+     * @param msgUid the message UID.
+     * @param user the user.
+     * @return a {@link Message}.
+     * @throws WebMessageException
+     */
     private Message getMessage( String mcUid, String msgUid, User user )
         throws WebMessageException
     {
