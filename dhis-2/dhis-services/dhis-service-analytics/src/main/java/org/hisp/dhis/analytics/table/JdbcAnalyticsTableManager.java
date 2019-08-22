@@ -224,8 +224,9 @@ public class JdbcAnalyticsTableManager
     {
         return partition.isLatestPartition() ?
             newArrayList() :
-            newArrayList( "year = " + partition.getYear() + "",
-            "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
+            newArrayList(
+                "year = " + partition.getYear() + "",
+                "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
 
     @Override

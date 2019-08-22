@@ -278,10 +278,12 @@ public class JdbcEventAnalyticsTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList(
-            "yearly = '" + partition.getYear() + "'",
-            "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
-            "executiondate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
+        return partition.isLatestPartition() ?
+            Lists.newArrayList() :
+            Lists.newArrayList(
+                "yearly = '" + partition.getYear() + "'",
+                "executiondate >= '" + DateUtils.getMediumDateString( partition.getStartDate() ) + "'",
+                "executiondate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
 
     @Override
@@ -293,7 +295,6 @@ public class JdbcEventAnalyticsTableManager
         final String partitionClause = partition.isLatestPartition() ?
             "and psi.lastupdated >= '" + start + "' " :
             "and psi.executiondate >= '" + start + "' and psi.executiondate < '" + end + "' ";
-
 
         String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
