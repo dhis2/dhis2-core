@@ -38,7 +38,7 @@ public enum AnalyticsTableType
     COMPLETENESS_TARGET( "analytics_completenesstarget", false, false ),
     ORG_UNIT_TARGET( "analytics_orgunittarget", false, false ),
     EVENT( "analytics_event", false, true ),
-    ENROLLMENT( "analytics_enrollment", false, true ),
+    ENROLLMENT( "analytics_enrollment", false, false ),
     VALIDATION_RESULT( "analytics_validationresult", true, false );
 
     private String tableName;
