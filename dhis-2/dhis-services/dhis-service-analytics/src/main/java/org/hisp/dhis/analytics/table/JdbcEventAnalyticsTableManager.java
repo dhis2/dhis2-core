@@ -265,7 +265,7 @@ public class JdbcEventAnalyticsTableManager
                     "and psi.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
                     "and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "')";
 
-            invokeTimeAndLog( sql, String.format( "Remove updated events for table: '%s'", table ) );
+            invokeTimeAndLog( sql, String.format( "Remove updated events for table: '%s'", table.getTableName() ) );
         }
     }
 
