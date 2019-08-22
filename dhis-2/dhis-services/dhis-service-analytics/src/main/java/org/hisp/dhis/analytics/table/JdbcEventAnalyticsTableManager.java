@@ -288,8 +288,12 @@ public class JdbcEventAnalyticsTableManager
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();
-        final String start = DateUtils.getMediumDateString( partition.getStartDate() );
-        final String end = DateUtils.getMediumDateString( partition.getEndDate() );
+        final String start = DateUtils.getLongDateString( partition.getStartDate() );
+        final String end = DateUtils.getLongDateString( partition.getEndDate() );
+        final String partitionClause = partition.isLatestPartition() ?
+            "and psi.lastupdated >= '" + start + "' " :
+            "and psi.executiondate >= '" + start + "' and psi.executiondate < '" + end + "' ";
+
 
         String fromClause = "from programstageinstance psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
@@ -303,9 +307,8 @@ public class JdbcEventAnalyticsTableManager
             "and (cast(date_trunc('month', psi.executiondate) as date)=ougs.startdate or ougs.startdate is null) " +
             "inner join _categorystructure acs on psi.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "left join _dateperiodstructure dps on cast(psi.executiondate as date)=dps.dateperiod " +
-            "where psi.executiondate >= '" + start + "' " +
-            "and psi.executiondate < '" + end + "' " +
-            "and psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
+            "where psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
+            partitionClause +
             "and pr.programid=" + program.getId() + " " +
             "and psi.organisationunitid is not null " +
             "and psi.executiondate is not null " +
