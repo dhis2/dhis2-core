@@ -770,8 +770,12 @@ public abstract class AbstractTrackedEntityInstanceService
             else if ( relationship.getRelationship() == null )
             {
                 org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
-                relationshipItem.setTrackedEntityInstance( dtoEntityInstance );
-                relationship.setFrom( relationshipItem );
+
+                if ( relationship.getFrom() == null )
+                {
+                    relationshipItem.setTrackedEntityInstance( dtoEntityInstance );
+                    relationship.setFrom( relationshipItem );
+                }
 
                 create.add( relationship );
             }
