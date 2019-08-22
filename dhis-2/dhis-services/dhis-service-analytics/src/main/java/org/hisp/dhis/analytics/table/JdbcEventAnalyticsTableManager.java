@@ -236,7 +236,7 @@ public class JdbcEventAnalyticsTableManager
         String sql =
             "select psi.programstageinstanceid " +
             "from programstageinstance psi " +
-            "inner join programinstance pi on psi.programinstanceid=psi.programinstanceid " +
+            "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "where pi.programid = " + program.getId() + " " +
             "and psi.lastupdated >= '" + getLongDateString( startDate ) + "' " +
             "and psi.lastupdated < '" + getLongDateString( endDate ) + "' " +

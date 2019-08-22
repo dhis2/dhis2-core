@@ -126,7 +126,8 @@ public class DefaultAnalyticsTableService
 
         Clock clock = new Clock( log )
             .startClock()
-            .logTime( String.format( "Starting update: %s, processes: %d", tableType.getTableName(), processNo ) );
+            .logTime( String.format( "Starting update of type: %s, table name: '%s', processes: %d",
+                getAnalyticsTableType(), tableType.getTableName(), processNo ) );
 
         String validState = tableManager.validState();
 
