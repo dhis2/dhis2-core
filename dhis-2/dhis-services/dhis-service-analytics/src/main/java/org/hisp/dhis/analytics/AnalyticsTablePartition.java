@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import java.util.Date;
+import java.util.Objects;
 
 import org.hisp.dhis.analytics.table.PartitionUtils;
 
@@ -116,7 +117,7 @@ public class AnalyticsTablePartition
 
     public boolean isLatestPartition()
     {
-        return year == LATEST_PARTITION;
+        return Objects.equals( year, LATEST_PARTITION );
     }
 
     public AnalyticsTable getMasterTable()
