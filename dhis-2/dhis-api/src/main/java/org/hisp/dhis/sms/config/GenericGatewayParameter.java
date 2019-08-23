@@ -50,19 +50,6 @@ public class GenericGatewayParameter
 
     private boolean confidential;
 
-    public GenericGatewayParameter()
-    {
-    }
-
-    public GenericGatewayParameter( boolean header, boolean encode, String key, String value, boolean confidential )
-    {
-        this.header = header;
-        this.encode = encode;
-        this.key = key;
-        this.value = value;
-        this.confidential = confidential;
-    }
-
     @JsonProperty( value = "key" )
     public String getKey()
     {
