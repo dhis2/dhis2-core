@@ -308,7 +308,7 @@ public abstract class AbstractEventService
 
             if ( importOptions.getImportStrategy().isCreate() )
             {
-                create.addAll( events );
+                create.addAll( _events );
             }
             else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
             {
@@ -319,11 +319,11 @@ public abstract class AbstractEventService
             }
             else if ( importOptions.getImportStrategy().isUpdate() )
             {
-                update.addAll( events );
+                update.addAll( _events );
             }
             else if ( importOptions.getImportStrategy().isDelete() )
             {
-                delete.addAll( events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
+                delete.addAll( _events.stream().map( Event::getEvent ).collect( Collectors.toList() ) );
             }
             else if ( importOptions.getImportStrategy().isSync() )
             {
