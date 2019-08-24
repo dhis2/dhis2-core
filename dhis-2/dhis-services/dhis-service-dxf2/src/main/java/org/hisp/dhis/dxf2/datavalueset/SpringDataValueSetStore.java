@@ -56,7 +56,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.csvreader.CsvWriter;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -220,12 +219,12 @@ public class SpringDataValueSetStore
         //----------------------------------------------------------------------
 
         String deSql = idScheme.getDataElementIdScheme().isAttribute() ?
-                "de.attributevalues #>> '{\"" + idScheme.getDataElementIdScheme().getAttribute() + "\", \"value\" }'  as deid" :
-                "de." + deScheme + " as deid";
+            "de.attributevalues #>> '{\"" + idScheme.getDataElementIdScheme().getAttribute() + "\", \"value\" }'  as deid" :
+            "de." + deScheme + " as deid";
 
         String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ?
             "ou.attributevalues #>> '{\"" + idScheme.getOrgUnitIdScheme().getAttribute() + "\", \"value\" }'  as ouid" :
-        "ou." + ouScheme + " as ouid";
+            "ou." + ouScheme + " as ouid";
 
         String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
             "coc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "\", \"value\" }'  as cocid" :
