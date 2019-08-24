@@ -34,11 +34,11 @@ import java.util.List;
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,16 +62,16 @@ public class ProgramStageObjectBundleHook
 
         List<ErrorReport> errors = new ArrayList<>();
 
-        ProgramStageDataElement nextScheduleDate = programStage.getNextScheduleDate();
-
-        if ( nextScheduleDate != null )
+        if ( programStage.getNextScheduleDate() != null
+            && programStage.getDataElements().contains( programStage.getNextScheduleDate() ) )
         {
-            if ( nextScheduleDate.getDataElement() == null ||
-                !nextScheduleDate.getDataElement().getValueType().equals( ValueType.DATE ) ||
-                programStage.getProgramStageDataElements().isEmpty() ||
-                !programStage.getProgramStageDataElements().contains( nextScheduleDate ) )
+            DataElement nextScheduleDate = bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class,
+                programStage.getNextScheduleDate().getUid() );
+
+            if ( nextScheduleDate == null || !nextScheduleDate.getValueType().equals( ValueType.DATE ) )
             {
-                errors.add( new ErrorReport( ProgramStage.class, ErrorCode.E6001 , programStage.getUid(), nextScheduleDate.getUid() ) );
+                errors.add( new ErrorReport( ProgramStage.class, ErrorCode.E6001, programStage.getUid(),
+                    programStage.getNextScheduleDate().getUid() ) );
             }
         }
 
@@ -100,10 +100,10 @@ public class ProgramStageObjectBundleHook
             return;
         }
 
-        programStage.getProgramStageSections().stream()
-            .forEach( pss -> {
-                if ( pss.getProgramStage() == null ) pss.setProgramStage( programStage );
-            });
+        programStage.getProgramStageSections().stream().forEach( pss -> {
+            if ( pss.getProgramStage() == null )
+                pss.setProgramStage( programStage );
+        } );
 
         session.update( programStage );
     }
