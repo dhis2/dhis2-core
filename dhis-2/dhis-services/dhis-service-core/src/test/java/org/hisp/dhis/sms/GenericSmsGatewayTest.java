@@ -74,7 +74,8 @@ public class GenericSmsGatewayTest
 {
     private static final String GATEWAY_URL = "http://gateway.com/messages";
     private static final String UID = "UID-123";
-    private static final String CONFIG_TEMPLATE = "{\"to\": \"${recipients}\",\"body\": \"${text}\"}";
+    private static final String CONFIG_TEMPLATE_JSON = "{\"to\": \"${recipients}\",\"body\": \"${text}\"}";
+    private static final String CONFIG_TEMPLATE_URL_ENCODED = "to=${recipients}&message=${text}&user=${user}&pass=${password}";
 
     private static final String TEXT = "HI DHIS2";
     private static final String SUBJECT = "Greeting";
@@ -99,7 +100,15 @@ public class GenericSmsGatewayTest
 
     private GenericHttpGatewayConfig gatewayConfig;
 
+    private GenericGatewayParameter username;
+
+    private GenericGatewayParameter password;
+
+    private StrSubstitutor strSubstitutor;
+
     private String body;
+
+    private Map<String, String> valueStore = new HashMap<>();
 
     @Before
     public void setUp()
@@ -109,39 +118,39 @@ public class GenericSmsGatewayTest
         gatewayConfig = new GenericHttpGatewayConfig();
         gatewayConfig.setUseGet( false );
         gatewayConfig.setName( "generic" );
-        gatewayConfig.setContentType( ContentType.APPLICATION_JSON );
         gatewayConfig.setUrlTemplate( GATEWAY_URL );
         gatewayConfig.setDefault( true );
         gatewayConfig.setUid( UID );
-        gatewayConfig.setConfigurationTemplate( CONFIG_TEMPLATE );
 
-        GenericGatewayParameter username = new GenericGatewayParameter();
-        username.setKey( "username" );
+        username = new GenericGatewayParameter();
+        username.setKey( "user" );
         username.setValue( "user_uio" );
         username.setEncode( false );
         username.setHeader( true );
         username.setConfidential( true );
 
-        GenericGatewayParameter password = new GenericGatewayParameter();
+        password = new GenericGatewayParameter();
         password.setKey( "password" );
         password.setValue( "abc123" );
         password.setEncode( false );
         password.setHeader( true );
         password.setConfidential( true );
 
-        Map<String, String> valueStore = new HashMap<>();
         valueStore.put( SmsGateway.KEY_TEXT, TEXT );
         valueStore.put( SmsGateway.KEY_RECIPIENT, StringUtils.join( RECIPIENTS, "," ) );
-
-        StrSubstitutor strSubstitutor = new StrSubstitutor( valueStore );
-        body = strSubstitutor.replace( CONFIG_TEMPLATE );
-
-        gatewayConfig.setParameters( Arrays.asList( username, password ) );
     }
 
     @Test
-    public void testSendSms()
+    public void testSendSms_Json()
     {
+        strSubstitutor = new StrSubstitutor( valueStore );
+        body = strSubstitutor.replace( CONFIG_TEMPLATE_JSON );
+
+        gatewayConfig.getParameters().clear();
+        gatewayConfig.setParameters( Arrays.asList( username, password ) );
+        gatewayConfig.setContentType( ContentType.APPLICATION_JSON );
+        gatewayConfig.setConfigurationTemplate( CONFIG_TEMPLATE_JSON );
+
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
@@ -174,5 +183,43 @@ public class GenericSmsGatewayTest
                 assertEquals( parameter.getValueForKey(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
             }
         }
+    }
+
+    @Test
+    public void testSendSms_Url()
+    {
+        username.setHeader( false );
+        password.setHeader( false );
+
+        valueStore.put( username.getKey(), username.getValueForKey() );
+        valueStore.put( password.getKey(), password.getValueForKey() );
+
+        strSubstitutor = new StrSubstitutor( valueStore );
+
+        gatewayConfig.getParameters().clear();
+        gatewayConfig.setParameters( Arrays.asList( username, password ) );
+        gatewayConfig.setContentType( ContentType.FORM_URL_ENCODED );
+        gatewayConfig.setConfigurationTemplate( CONFIG_TEMPLATE_URL_ENCODED );
+
+        body = strSubstitutor.replace( CONFIG_TEMPLATE_URL_ENCODED );
+
+        ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
+
+        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
+            .thenReturn( responseEntity );
+
+        assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
+
+        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture() , httpEntityArgumentCaptor.capture(), eq( String.class ) );
+
+        assertNotNull( httpEntityArgumentCaptor.getValue() );
+        assertNotNull( httpMethodArgumentCaptor.getValue() );
+
+        HttpMethod httpMethod = httpMethodArgumentCaptor.getValue();
+        assertEquals( HttpMethod.POST, httpMethod );
+
+        HttpEntity<String> requestEntity = httpEntityArgumentCaptor.getValue();
+
+        assertEquals( body, requestEntity.getBody() );
     }
 }
