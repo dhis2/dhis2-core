@@ -157,7 +157,7 @@ public class JdbcAnalyticsManager
                     .withDataPeriodsForAggregationPeriods( dataPeriodAggregationPeriodMap )
                     .build();
 
-                params = queryPlanner.assignPartitionsFromQueryPeriods( params );
+                params = queryPlanner.assignPartitionsFromQueryPeriods( params, tableType );
             }
 
             String sql = getSelectClause( params );

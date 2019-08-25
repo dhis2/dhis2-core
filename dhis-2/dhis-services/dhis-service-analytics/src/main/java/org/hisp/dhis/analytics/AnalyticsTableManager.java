@@ -80,6 +80,14 @@ public interface AnalyticsTableManager
     void preCreateTables( AnalyticsTableUpdateParams params );
 
     /**
+     * Removes updated and deleted data from tables for "latest" partition update.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param tables the list of {@link AnalyticsTable}.
+     */
+    void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables );
+
+    /**
      * Attempts to drop and then create analytics table.
      *
      * @param table the analytics table.
