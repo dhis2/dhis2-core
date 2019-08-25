@@ -45,6 +45,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
 
@@ -229,6 +230,21 @@ public class PartitionUtils
         }
 
         return partitions;
+    }
+
+    /**
+     * Returns the latest table partition based on the given list. Expects a single
+     * analytics table in the given list.
+     *
+     * @param tables list of {@link AnalyticsTable}.
+     * @return the  {@link AnalyticsTablePartition}.
+     * @throws IllegalArgumentException if the given list does not contain exactly one item.
+     */
+    public static AnalyticsTablePartition getLatestTablePartition( List<AnalyticsTable> tables )
+    {
+        Assert.isTrue( tables.size() == 1, "Expecting a single analytics table in list" );
+
+        return tables.get( 0 ).getLatestPartition();
     }
 
     /**
