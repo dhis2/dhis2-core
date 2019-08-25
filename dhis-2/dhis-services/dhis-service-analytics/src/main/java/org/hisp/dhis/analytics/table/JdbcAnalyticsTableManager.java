@@ -212,7 +212,7 @@ public class JdbcAnalyticsTableManager
                 "inner join dataelement de on dv.dataelementid=de.dataelementid " +
                 "inner join _periodstructure ps on dv.periodid=ps.periodid " +
                 "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
-                "inner join categoryoptioncombo co on dv.categoryoptioncomboid=dv.categoryoptioncomboid " +
+                "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
                 "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
                 "where dv.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
                 "and dv.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
