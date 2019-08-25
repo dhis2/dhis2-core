@@ -135,7 +135,7 @@ public class AnalyticsTableUpdateParams
      */
     public boolean isLatestUpdate()
     {
-        return Objects.deepEquals( lastYears, AnalyticsTablePartition.LATEST_PARTITION );
+        return Objects.equals( lastYears, AnalyticsTablePartition.LATEST_PARTITION );
     }
 
     // -------------------------------------------------------------------------
