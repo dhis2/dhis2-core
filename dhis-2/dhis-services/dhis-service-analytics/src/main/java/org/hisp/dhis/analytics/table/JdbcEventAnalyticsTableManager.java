@@ -268,7 +268,8 @@ public class JdbcEventAnalyticsTableManager
         if ( attribute.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() )
         {
             String geoSql = selectForInsert( attribute, "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
-            columns.add( new AnalyticsTableColumn( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX , GEOMETRY, geoSql ).withSkipIndex( skipIndex ) );
+            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ), ColumnDataType.GEOMETRY, geoSql )
+                .withSkipIndex( skipIndex ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType,
@@ -308,13 +309,12 @@ public class JdbcEventAnalyticsTableManager
 
         String select = getSelectClause( dataElement.getValueType(), columnName );
 
-        String sql = selectForInsert(dataElement, select, dataClause);
+        String sql = selectForInsert( dataElement, select, dataClause );
 
         if ( dataElement.getValueType().isOrganisationUnit() && databaseInfo.isSpatialSupport() )
         {
-            String geoSql = selectForInsert(dataElement, "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause);
-            // add a second column to track the OU location if available
-            columns.add( new AnalyticsTableColumn(  dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX , ColumnDataType.GEOMETRY_POINT, geoSql )
+            String geoSql = selectForInsert( dataElement, "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
+            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ), ColumnDataType.GEOMETRY, geoSql )
                 .withSkipIndex( true ) );
         }
 
@@ -327,17 +327,16 @@ public class JdbcEventAnalyticsTableManager
 
     private String selectForInsert( DataElement dataElement, String fromType, String dataClause )
     {
-        return String.format( "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid "
-            + dataClause + ")"
-            + getClosingParentheses( fromType ) + " as " + quote( dataElement.getUid() ), fromType);
+        return String.format( "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
+            dataClause + ")" + getClosingParentheses( fromType ) + " as " + quote( dataElement.getUid() ), fromType );
     }
 
     private String selectForInsert( TrackedEntityAttribute attribute, String fromType, String dataClause )
     {
-        return String.format("(select %s"
-            + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
-            + "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( fromType )
-            + " as " + quote( attribute.getUid() ), fromType );
+        return String.format( "(select %s" +
+            " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
+            "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( fromType ) +
+            " as " + quote( attribute.getUid() ), fromType );
     }
 
     private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet( DataElement dataElement, String select,
@@ -362,8 +361,8 @@ public class JdbcEventAnalyticsTableManager
         if ( valueType.isNumeric() || valueType.isDate() )
         {
             String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : valueType.isDate() ? DATE_REGEXP : "";
-            return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex
-                + "'";
+            return " and eventdatavalues #>> '{" + uid + ",value}' " +
+                statementBuilder.getRegexpMatch() + " '" + regex + "'";
         }
 
         return "";
