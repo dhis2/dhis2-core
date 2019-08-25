@@ -38,6 +38,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -51,6 +52,7 @@ import org.hisp.dhis.analytics.AnalyticsTableHookService;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
+import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -142,7 +144,9 @@ public class JdbcAnalyticsTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( params ), getDimensionColumns(), getValueColumns() );
+        AnalyticsTable table = params.isLatestUpdate() ?
+            getLatestAnalyticsTable( params, getDimensionColumns(), getValueColumns() ) :
+            getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? newArrayList( table ) : newArrayList();
     }
@@ -168,6 +172,19 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
+    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
+    {
+        String sql =
+            "select dv.dataelementid " +
+            "from datavalue dv " +
+            "where dv.lastupdated >= '" + getLongDateString( startDate ) + "' " +
+            "and dv.lastupdated < '" + getLongDateString( endDate ) + "' " +
+            "limit 1";
+
+        return !jdbcTemplate.queryForList( sql ).isEmpty();
+    }
+
+    @Override
     public void preCreateTables( AnalyticsTableUpdateParams params )
     {
         if ( isApprovalEnabled( null ) )
@@ -178,11 +195,39 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
+    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    {
+        if ( !params.isLatestUpdate() )
+        {
+            return;
+        }
+
+        AnalyticsTablePartition partition = PartitionUtils.getLatestTablePartition( tables );
+
+        String sql =
+            "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
+            "where ax.id in (" +
+                "select (de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id " +
+                "from datavalue dv " +
+                "inner join dataelement de on dv.dataelementid=de.dataelementid " +
+                "inner join _periodstructure ps on dv.periodid=ps.periodid " +
+                "inner join organisationunit ou on dv.sourceid=ou.organisationunitid " +
+                "inner join categoryoptioncombo co on dv.categoryoptioncomboid=co.categoryoptioncomboid " +
+                "inner join categoryoptioncombo ao on dv.attributeoptioncomboid=ao.categoryoptioncomboid " +
+                "where dv.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
+                "and dv.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
+
+        invokeTimeAndLog( sql, "Remove updated data values" );
+    }
+
+    @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return newArrayList(
-            "year = " + partition.getYear() + "",
-            "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
+        return partition.isLatestPartition() ?
+            newArrayList() :
+            newArrayList(
+                "year = " + partition.getYear() + "",
+                "pestartdate < '" + DateUtils.getMediumDateString( partition.getEndDate() ) + "'" );
     }
 
     @Override
@@ -218,6 +263,9 @@ public class JdbcAnalyticsTableManager
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
         final boolean respectStartEndDates = (Boolean) systemSettingManager.getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
         final String approvalClause = getApprovalJoinClause( partition.getYear() );
+        final String partitionClause = partition.isLatestPartition() ?
+            "and dv.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " :
+            "and ps.year = " + partition.getYear() + " ";
 
         String sql = "insert into " + partition.getTempTableName() + " (";
 
@@ -263,8 +311,8 @@ public class JdbcAnalyticsTableManager
             approvalClause +
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
-            "and ps.year = " + partition.getYear() + " " +
-            "and dv.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
+            partitionClause +
+            "and dv.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and dv.value is not null " +
             "and dv.deleted is false ";
 
@@ -322,6 +370,9 @@ public class JdbcAnalyticsTableManager
     private List<AnalyticsTableColumn> getDimensionColumns( Integer year )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+        String idColAlias = "(de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id ";
+        columns.add( new AnalyticsTableColumn( quote( "id" ), ColumnDataType.TEXT, idColAlias ) );
 
         List<DataElementGroupSet> dataElementGroupSets =
             idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class );
@@ -408,7 +459,7 @@ public class JdbcAnalyticsTableManager
             "from datavalue dv " +
             "inner join period pe on dv.periodid=pe.periodid " +
             "where pe.startdate is not null " +
-            "and dv.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' ";
+            "and dv.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' ";
 
         if ( params.getFromDate() != null )
         {

@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
+import com.google.common.collect.ImmutableMap;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -52,6 +54,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -62,6 +65,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -69,9 +73,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Date;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.analytics.ColumnDataType.*;
@@ -96,6 +103,9 @@ public class JdbcEventAnalyticsTableManagerTest
     private CategoryService categoryService;
 
     private StatementBuilder statementBuilder;
+
+    @Mock
+    private SystemSettingManager systemSettingManager;
 
     @Mock
     private DatabaseInfo databaseInfo;
@@ -124,8 +134,9 @@ public class JdbcEventAnalyticsTableManagerTest
     {
         statementBuilder = new PostgreSQLStatementBuilder();
         subject = new JdbcEventAnalyticsTableManager( idObjectManager, organisationUnitService, categoryService,
-            mock( SystemSettingManager.class ), mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
+            systemSettingManager, mock( DataApprovalLevelService.class ), mock( ResourceTableService.class ),
             mock( AnalyticsTableHookService.class ), statementBuilder, mock( PartitionManager.class ), databaseInfo, jdbcTemplate );
+
         when( jdbcTemplate.queryForList(
             "select distinct(extract(year from psi.executiondate)) from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and psi.executiondate is not null and psi.deleted is false and psi.executiondate >= '2018-01-01'",
             Integer.class ) ).thenReturn( Lists.newArrayList( 2018, 2019 ) );
@@ -138,6 +149,54 @@ public class JdbcEventAnalyticsTableManagerTest
     public void verifyTableType()
     {
         assertThat( subject.getAnalyticsTableType(), is( AnalyticsTableType.EVENT ) );
+    }
+
+    @Test
+    public void verifyGetLatestAnalyticsTables()
+    {
+        Program prA = createProgram( 'A' );
+        Program prB = createProgram( 'B' );
+        List<Program> programs = Lists.newArrayList( prA, prB );
+
+        Date lastFullTableUpdate = new DateTime( 2019, 3, 1, 2, 0 ).toDate();
+        Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
+        Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
+            .withStartTime( startTime )
+            .withLatestPartition()
+            .build();
+
+        List<Map<String, Object>> queryResp = Lists.newArrayList();
+        queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
+
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) ).thenReturn( lastFullTableUpdate );
+        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) ).thenReturn( lastLatestPartitionUpdate );
+        when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( programs );
+
+        List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
+
+        assertThat( tables, hasSize( 2 ) );
+
+        AnalyticsTable tableA = tables.get( 0 );
+        AnalyticsTable tableB = tables.get( 0 );
+
+        assertThat( tableA, notNullValue() );
+        assertThat( tableB, notNullValue() );
+
+        AnalyticsTablePartition partitionA = tableA.getLatestPartition();
+        AnalyticsTablePartition partitionB = tableA.getLatestPartition();
+
+        assertThat( partitionA, notNullValue() );
+        assertThat( partitionA.isLatestPartition(), equalTo( true ) );
+        assertThat( partitionA.getStartDate(), equalTo( lastFullTableUpdate ) );
+        assertThat( partitionA.getEndDate(), equalTo( startTime ) );
+
+        assertThat( partitionB, notNullValue() );
+        assertThat( partitionB.isLatestPartition(), equalTo( true ) );
+        assertThat( partitionB.getStartDate(), equalTo( lastFullTableUpdate ) );
+        assertThat( partitionB.getEndDate(), equalTo( startTime ) );
     }
 
     @Test
