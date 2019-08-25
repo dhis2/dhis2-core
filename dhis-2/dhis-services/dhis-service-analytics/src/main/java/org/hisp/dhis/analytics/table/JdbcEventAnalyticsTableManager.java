@@ -255,6 +255,8 @@ public class JdbcEventAnalyticsTableManager
 
         for ( AnalyticsTable table : tables )
         {
+            AnalyticsTablePartition partition = table.getLatestPartition();
+
             String sql =
                 "delete from " + quote( table.getTableName() ) + " ax " +
                 "where ax.psi in (" +
@@ -262,8 +264,8 @@ public class JdbcEventAnalyticsTableManager
                     "from programstageinstance psi " +
                     "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
                     "where pi.programid = " + table.getProgram().getId() + " " +
-                    "and psi.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
-                    "and psi.lastupdated < '" + getLongDateString( params.getStartTime() ) + "')";
+                    "and psi.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
+                    "and psi.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
 
             invokeTimeAndLog( sql, String.format( "Remove updated events for table: '%s'", table.getTableName() ) );
         }

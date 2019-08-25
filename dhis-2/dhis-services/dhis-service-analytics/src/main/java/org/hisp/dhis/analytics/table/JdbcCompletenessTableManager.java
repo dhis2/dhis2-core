@@ -153,6 +153,8 @@ public class JdbcCompletenessTableManager
             return;
         }
 
+        AnalyticsTablePartition partition = PartitionUtils.getLatestTablePartition( tables );
+
         String sql =
             "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
             "where ax.id in (" +
@@ -162,9 +164,8 @@ public class JdbcCompletenessTableManager
                 "inner join _periodstructure ps on cdr.periodid=ps.periodid " +
                 "inner join organisationunit ou on cdr.sourceid=ou.organisationunitid " +
                 "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid " +
-                "where cdr.lastupdated >= '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "' " +
-                "and cdr.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
-                "and cdr.date < '" + getLongDateString( params.getLastSuccessfulUpdate() ) + "')";
+                "where cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
+                "and cdr.lastupdated < '" + getLongDateString( partition.getEndDate() ) + "')";
 
         invokeTimeAndLog( sql, "Remove updated data values" );
     }
