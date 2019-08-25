@@ -29,6 +29,9 @@ package org.hisp.dhis.dataset;
  */
 
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
@@ -544,5 +547,72 @@ public class DataSetServiceTest
         Access access = aclService.getAccess( dataSet, user );
         assertTrue( access.getData().isRead() );
         assertTrue( access.getData().isWrite() );
+    }
+
+    @Test
+    public void testDataSetAvailableCategoryOptions()
+    {
+        CategoryOption categoryOptionA = createCategoryOption( 'A' );
+        CategoryOption categoryOptionB = createCategoryOption( 'B' );
+        CategoryOption categoryOptionC = createCategoryOption( 'C' );
+        CategoryOption categoryOptionD = createCategoryOption( 'D' );
+        CategoryOption categoryOptionE = createCategoryOption( 'E' );
+        CategoryOption categoryOptionF = createCategoryOption( 'F' );
+
+        categoryOptionE.addOrganisationUnit( unitA );
+        organisationUnitService.updateOrganisationUnit( unitA );
+
+        categoryService.addCategoryOption( categoryOptionA );
+        categoryService.addCategoryOption( categoryOptionB );
+        categoryService.addCategoryOption( categoryOptionC );
+        categoryService.addCategoryOption( categoryOptionD );
+        categoryService.addCategoryOption( categoryOptionE );
+        categoryService.addCategoryOption( categoryOptionF );
+
+        Category categoryA = createCategory( 'A', categoryOptionA, categoryOptionB, categoryOptionC );
+        Category categoryB = createCategory( 'B', categoryOptionD, categoryOptionE );
+        Category categoryC = createCategory( 'C', categoryOptionF );
+
+        categoryService.addCategory( categoryA );
+        categoryService.addCategory( categoryB );
+        categoryService.addCategory( categoryC );
+
+        CategoryCombo ccA = createCategoryCombo( 'A', categoryA, categoryB );
+        CategoryCombo ccB = createCategoryCombo( 'B', categoryA, categoryC );
+
+        ccA.generateOptionCombos();
+        ccB.generateOptionCombos();
+
+        categoryService.addCategoryCombo( ccA );
+        categoryService.addCategoryCombo( ccB );
+
+        DataSet dataSetA = createDataSet( 'A', periodType, ccA );
+        DataSet dataSetB = createDataSet( 'B', periodType, ccB );
+        DataSet dataSetC = createDataSet( 'C', periodType );
+
+        dataSetA.addOrganisationUnit( unitA );
+        dataSetA.addOrganisationUnit( unitB );
+
+        dataSetB.addOrganisationUnit( unitA );
+        dataSetB.addOrganisationUnit( unitB );
+
+        dataSetC.addOrganisationUnit( unitA );
+
+        dataSetService.addDataSet( dataSetA );
+        dataSetService.addDataSet( dataSetB );
+        dataSetService.addDataSet( dataSetC );
+
+        assertEquals( dataSetA.getAssignedCategoryOptions().size(), 4 );
+        assertEquals( dataSetB.getAssignedCategoryOptions().size(), 4 );
+        assertEquals( dataSetC.getAssignedCategoryOptions().size(), 1 );
+
+        assertEquals( dataSetA.getIntersectingCategoryOptionCombos( unitA ).size(), 6 );
+        assertEquals( dataSetA.getIntersectingCategoryOptionCombos( unitB ).size(), 3 );
+
+        assertEquals( dataSetB.getIntersectingCategoryOptionCombos( unitA ).size(), 3 );
+        assertEquals( dataSetB.getIntersectingCategoryOptionCombos( unitB ).size(), 3 );
+
+        assertEquals( dataSetC.getIntersectingCategoryOptionCombos( unitA ).size(), 1 );
+        assertEquals( dataSetC.getIntersectingCategoryOptionCombos( unitB ).size(), 0 );
     }
 }
