@@ -459,7 +459,7 @@ public class JdbcAnalyticsTableManager
             "from datavalue dv " +
             "inner join period pe on dv.periodid=pe.periodid " +
             "where pe.startdate is not null " +
-            "and dv.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' ";
+            "and dv.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' ";
 
         if ( params.getFromDate() != null )
         {

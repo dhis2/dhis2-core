@@ -187,7 +187,7 @@ public class JdbcValidationResultTableManager
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
-            "and vrs.created <= '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and vrs.created is not null";
 
         final String sql = insert + select;
@@ -202,7 +202,7 @@ public class JdbcValidationResultTableManager
             "from validationresult vrs " +
             "inner join period pe on vrs.periodid=pe.periodid " +
             "where pe.startdate is not null " +
-            "and vrs.created <= '" + getLongDateString( params.getStartTime() ) + "' ";
+            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' ";
 
         if ( params.getFromDate() != null )
         {

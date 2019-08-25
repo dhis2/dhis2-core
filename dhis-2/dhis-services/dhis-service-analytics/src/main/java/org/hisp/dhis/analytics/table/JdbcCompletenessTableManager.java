@@ -1,5 +1,7 @@
 package org.hisp.dhis.analytics.table;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -173,14 +175,18 @@ public class JdbcCompletenessTableManager
     @Override
     protected List<String> getPartitionChecks( AnalyticsTablePartition partition )
     {
-        return Lists.newArrayList(
-            "year = " + partition.getYear() + "" );
+        return partition.isLatestPartition() ?
+            newArrayList() :
+            Lists.newArrayList( "year = " + partition.getYear() + "" );
     }
 
     @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String tableName = partition.getTempTableName();
+        final String partitionClause = partition.isLatestPartition() ?
+            "and cdr.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " :
+            "and ps.year = " + partition.getYear() + " ";
 
         String insert = "insert into " + partition.getTempTableName() + " (";
 
@@ -217,9 +223,9 @@ public class JdbcCompletenessTableManager
             "left join _orgunitstructure ous on cdr.sourceid=ous.organisationunitid " +
             "inner join _categorystructure acs on cdr.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "inner join categoryoptioncombo ao on cdr.attributeoptioncomboid=ao.categoryoptioncomboid " +
-            "where ps.year = " + partition.getYear() + " " +
-            "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' " +
-            "and cdr.date is not null " +
+            "where cdr.date is not null " +
+            partitionClause +
+            "and cdr.lastupdated < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and cdr.completed = true";
 
         final String sql = insert + select;
@@ -289,7 +295,7 @@ public class JdbcCompletenessTableManager
             "from completedatasetregistration cdr " +
             "inner join period pe on cdr.periodid=pe.periodid " +
             "where pe.startdate is not null " +
-            "and cdr.date <= '" + getLongDateString( params.getStartTime() ) + "' ";
+            "and cdr.date < '" + getLongDateString( params.getStartTime() ) + "' ";
 
         if ( params.getFromDate() != null )
         {
