@@ -64,7 +64,7 @@ public class AnalyticsTableUpdateParams
     /**
      * Analytics table types to skip.
      */
-    private Set<AnalyticsTableType> skipTableTypes;
+    private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
     /**
      * Job ID.
