@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -38,7 +39,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -55,14 +55,19 @@ public class InputUtils
 {
     private static Cache<String, Long> ATTR_OPTION_COMBO_ID_CACHE;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
     private Environment env;
+
+    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager, Environment env,
+        CacheProvider cacheProvider )
+    {
+        this.categoryService = categoryService;
+        this.idObjectManager = idObjectManager;
+        this.env = env;
+    }
 
     @PostConstruct
     public void init()
@@ -128,7 +133,7 @@ public class InputUtils
             throw new IllegalQueryException( "Illegal category combo identifier: " + cc );
         }
 
-        if ( categoryCombo == null && opts == null )
+        if ( categoryCombo == null )
         {
             if ( skipFallback )
             {
