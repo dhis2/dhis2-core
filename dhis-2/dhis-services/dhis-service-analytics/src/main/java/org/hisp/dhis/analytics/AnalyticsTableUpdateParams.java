@@ -30,14 +30,15 @@ package org.hisp.dhis.analytics;
 
 import com.google.common.base.MoreObjects;
 
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.util.DateUtils;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -50,7 +51,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class AnalyticsTableUpdateParams
 {
     /**
-     * Number of last years for which to update tables.
+     * Number of last years for which to update tables. A zero value indicates
+     * the "latest" data stored since last full analytics table generation.
      */
     private Integer lastYears;
 
@@ -62,7 +64,7 @@ public class AnalyticsTableUpdateParams
     /**
      * Analytics table types to skip.
      */
-    private Set<AnalyticsTableType> skipTableTypes;
+    private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
 
     /**
      * Job ID.
@@ -73,6 +75,11 @@ public class AnalyticsTableUpdateParams
      * Start time for update process.
      */
     private Date startTime;
+
+    /**
+     * Time of last successful analytics table update.
+     */
+    private Date lastSuccessfulUpdate;
 
     private AnalyticsTableUpdateParams()
     {
@@ -108,14 +115,27 @@ public class AnalyticsTableUpdateParams
         return startTime;
     }
 
+    public Date getLastSuccessfulUpdate()
+    {
+        return lastSuccessfulUpdate;
+    }
+
     /**
      * Indicates whether this is a partial update of analytics tables, i.e.
      * if only certain partitions are to be updated and not all partitions
-     * and the main analytics tables.
+     * including the main analytics tables.
      */
     public boolean isPartialUpdate()
     {
-        return lastYears != null;
+        return lastYears != null || isLatestUpdate();
+    }
+
+    /**
+     * Indicates whether this is an update of the "latest" partition.
+     */
+    public boolean isLatestUpdate()
+    {
+        return Objects.equals( lastYears, AnalyticsTablePartition.LATEST_PARTITION );
     }
 
     // -------------------------------------------------------------------------
@@ -173,6 +193,7 @@ public class AnalyticsTableUpdateParams
         params.skipTableTypes = new HashSet<>( this.skipTableTypes );
         params.jobId = this.jobId;
         params.startTime = this.startTime;
+        params.lastSuccessfulUpdate = this.lastSuccessfulUpdate;
 
         return this;
     }
@@ -210,6 +231,12 @@ public class AnalyticsTableUpdateParams
             return this;
         }
 
+        public Builder withLatestPartition()
+        {
+            this.params.lastYears = AnalyticsTablePartition.LATEST_PARTITION;
+            return this;
+        }
+
         public Builder withSkipResourceTables( boolean skipResourceTables )
         {
             this.params.skipResourceTables = skipResourceTables;
@@ -225,6 +252,12 @@ public class AnalyticsTableUpdateParams
         public Builder withJobId( JobConfiguration jobId )
         {
             this.params.jobId = jobId;
+            return this;
+        }
+
+        public Builder withLastSuccessfulUpdate( Date lastSuccessfulUpdate )
+        {
+            this.params.lastSuccessfulUpdate = lastSuccessfulUpdate;
             return this;
         }
 

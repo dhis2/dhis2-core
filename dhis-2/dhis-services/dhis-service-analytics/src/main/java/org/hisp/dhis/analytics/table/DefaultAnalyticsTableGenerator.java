@@ -96,6 +96,8 @@ public class DefaultAnalyticsTableGenerator
     // Implementation
     // -------------------------------------------------------------------------
 
+    //TODO introduce last successful timestamps per table type
+
     @Override
     public void generateTables( AnalyticsTableUpdateParams params )
     {
@@ -107,6 +109,10 @@ public class DefaultAnalyticsTableGenerator
             .map( AnalyticsTableService::getAnalyticsTableType )
             .collect( Collectors.toSet() );
 
+        params = AnalyticsTableUpdateParams.newBuilder( params )
+            .withLastSuccessfulUpdate( lastSuccessfulUpdate )
+            .build();
+
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Analytics table update: %s", params ) );
         log.info( String.format( "Last successful analytics table update: '%s'", getLongDateString( lastSuccessfulUpdate ) ) );
@@ -115,7 +121,7 @@ public class DefaultAnalyticsTableGenerator
         {
             notifier.clear( jobId ).notify( jobId, "Analytics table update process started" );
 
-            if ( !params.isSkipResourceTables() )
+            if ( !params.isSkipResourceTables() && !params.isLatestUpdate() )
             {
                 notifier.notify( jobId, "Updating resource tables" );
                 generateResourceTables();
@@ -148,8 +154,16 @@ public class DefaultAnalyticsTableGenerator
             throw ex;
         }
 
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, params.getStartTime() );
-        systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+        if ( params.isLatestUpdate() )
+        {
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE, params.getStartTime() );
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+        }
+        else
+        {
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, params.getStartTime() );
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+        }
     }
 
     @Override

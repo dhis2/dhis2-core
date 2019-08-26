@@ -126,7 +126,8 @@ public class DefaultAnalyticsTableService
 
         Clock clock = new Clock( log )
             .startClock()
-            .logTime( String.format( "Starting update: %s, processes: %d", tableType.getTableName(), processNo ) );
+            .logTime( String.format( "Starting update of type: %s, table name: '%s', processes: %d",
+                getAnalyticsTableType(), tableType.getTableName(), processNo ) );
 
         String validState = tableManager.validState();
 
@@ -195,6 +196,11 @@ public class DefaultAnalyticsTableService
         analyzeTables( tables );
 
         clock.logTime( "Analyzed tables" );
+        notifier.notify( jobId, "Removing updated and deleted data" );
+
+        tableManager.removeUpdatedData( params, tables );
+
+        clock.logTime( "Removed updated and deleted data" );
         notifier.notify( jobId, "Swapping analytics tables" );
 
         swapTables( params, tables );
