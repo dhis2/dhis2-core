@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
@@ -62,6 +64,8 @@ public class DefaultAggregateAccessManager
 
     public DefaultAggregateAccessManager( AclService aclService )
     {
+        checkNotNull( aclService );
+
         this.aclService = aclService;
     }
 
