@@ -28,9 +28,10 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toMap;
 
 public enum RelationshipEntity
 {
@@ -38,30 +39,20 @@ public enum RelationshipEntity
 
     private String name;
 
-    private static final Map<String, RelationshipEntity> ENUM_MAP;
-
     RelationshipEntity( String name )
     {
         this.name = name;
     }
+
+    private static final Map<String, RelationshipEntity> LOOKUP = Stream.of(values()).collect(toMap(RelationshipEntity::getName, x -> x));
 
     public String getName()
     {
         return name;
     }
 
-    static
-    {
-        Map<String, RelationshipEntity> map = new ConcurrentHashMap<>();
-        for ( RelationshipEntity instance : RelationshipEntity.values() )
-        {
-            map.put( instance.getName(), instance );
-        }
-        ENUM_MAP = Collections.unmodifiableMap( map );
-    }
-
     public static RelationshipEntity get( String name )
     {
-        return ENUM_MAP.get( name );
+        return LOOKUP.get( name );
     }
 }

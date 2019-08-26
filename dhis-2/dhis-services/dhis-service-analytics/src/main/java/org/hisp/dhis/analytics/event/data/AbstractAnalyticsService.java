@@ -58,7 +58,8 @@ import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraph
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractAnalyticsService {
+public abstract class AbstractAnalyticsService
+{
 
     final AnalyticsSecurityManager securityManager;
 
