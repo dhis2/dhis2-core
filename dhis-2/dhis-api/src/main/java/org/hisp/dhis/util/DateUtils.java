@@ -726,7 +726,8 @@ public class DateUtils
     }
 
     /**
-     * Returns the latest, non-null date of the given dates.
+     * Returns the latest, non-null date of the given dates. If all dates
+     * are null, then null is returned.
      *
      * @param dates the dates.
      * @return the latest, non-null date.
@@ -735,7 +736,7 @@ public class DateUtils
     {
         return Lists.newArrayList( dates ).stream()
             .filter( Objects::nonNull )
-            .max( Date::compareTo ).get();
+            .max( Date::compareTo ).orElse( null );
     }
 
     /**

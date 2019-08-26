@@ -278,7 +278,7 @@ public class AnalyticsUtils
         }
         else if ( valueType.isGeo() && spatialSupport )
         {
-            return ColumnDataType.GEOMETRY_POINT;
+            return ColumnDataType.GEOMETRY_POINT; //TODO consider GEOMETRY
         }
         else
         {

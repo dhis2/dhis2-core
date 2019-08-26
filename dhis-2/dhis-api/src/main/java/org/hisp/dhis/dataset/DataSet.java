@@ -311,7 +311,7 @@ public class DataSet
     {
         return sources.contains( unit );
     }
-    
+
     public boolean addDataInputPeriod( DataInputPeriod dataInputPeriod )
     {
         return dataInputPeriods.add( dataInputPeriod );

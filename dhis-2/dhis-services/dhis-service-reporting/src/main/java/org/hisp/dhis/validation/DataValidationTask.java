@@ -55,6 +55,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.PersistenceException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -670,7 +671,16 @@ public class DataValidationTask
     {
         MapMapMap<Long, String, DimensionalItemObject, Double> map = new MapMapMap<>();
 
-        Grid grid = analyticsService.getAggregatedDataValues( params );
+        Grid grid;
+
+        try
+        {
+            grid = analyticsService.getAggregatedDataValues( params );
+        }
+        catch ( PersistenceException ex )
+        {
+            return map;
+        }
 
         int dxInx = grid.getIndexOfHeader( DimensionalObject.DATA_X_DIM_ID );
         int ouInx = grid.getIndexOfHeader( DimensionalObject.ORGUNIT_DIM_ID );
