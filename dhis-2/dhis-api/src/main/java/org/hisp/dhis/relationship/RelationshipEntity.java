@@ -44,7 +44,8 @@ public enum RelationshipEntity
         this.name = name;
     }
 
-    private static final Map<String, RelationshipEntity> LOOKUP = Stream.of(values()).collect(toMap(RelationshipEntity::getName, x -> x));
+    private static final Map<String, RelationshipEntity> LOOKUP = Stream.of( values() )
+        .collect( toMap( RelationshipEntity::getName, x -> x ) );
 
     public String getName()
     {
