@@ -1,7 +1,7 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,32 +28,15 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 /**
- * Function which evaluates numerical values to one if zero or positive, zero
- * if negative or null.
- *
- * @author Lars Helge Overland
+ * @Author Zubair Asghar.
  */
-public class OneIfZeroOrPositiveSqlFunction
-    implements SqlFunction
+public class d2MinValue extends ProgramMinMaxFunction
 {
-    public static final String KEY = "oizp";
-
     @Override
-    public String evaluate( String... args )
+    public String getAggregationOperator()
     {
-        if ( args == null || args.length != 1 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 1 argument: value" );
-        }
-
-        String value = args[0];
-
-        return "coalesce(case when " + value + " >= 0 then 1 else 0 end, 0)";
-    }
-    
-    public String getSampleValue()
-    {
-        return "1";
+        return "min";
     }
 }

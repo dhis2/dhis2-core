@@ -67,7 +67,9 @@ expr
     |   fun='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
     |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
     |   fun='d2:hasValue(' item ')'
+    |   fun='d2:maxValue(' ( item | compareDate ) ')'
     |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
+    |   fun='d2:minValue(' ( item | compareDate ) ')'
     |   fun='d2:monthsBetween(' compareDate ',' compareDate ')'
     |   fun='d2:oizp(' expr ')'
     |   fun='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
@@ -224,7 +226,9 @@ D2_COUNT_IF_CONDITION   : 'd2:countIfCondition(';
 D2_COUNT_IF_VALUE       : 'd2:countIfValue(';
 D2_DAYS_BETWEEN         : 'd2:daysBetween(';
 D2_HAS_VALUE            : 'd2:hasValue(';
+D2_MAX_VALUE            : 'd2:maxValue(';
 D2_MINUTES_BETWEEN      : 'd2:minutesBetween(';
+D2_MIN_VALUE            : 'd2:minValue(';
 D2_MONTHS_BETWEEN       : 'd2:monthsBetween(';
 D2_OIZP                 : 'd2:oizp(';
 D2_RELATIONSHIP_COUNT   : 'd2:relationshipCount(';
