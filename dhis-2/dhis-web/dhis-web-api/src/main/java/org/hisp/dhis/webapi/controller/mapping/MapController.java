@@ -53,6 +53,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -199,7 +200,8 @@ public class MapController
     //--------------------------------------------------------------------------
 
     @Override
-    public void postProcessEntity( Map map ) throws Exception
+    public void postProcessResponseEntity( Map map, WebOptions options, java.util.Map<String, String> parameters )
+        throws Exception
     {
         I18nFormat format = i18nManager.getI18nFormat();
 

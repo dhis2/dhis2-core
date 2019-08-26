@@ -56,7 +56,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
-import com.csvreader.CsvWriter;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -220,39 +219,19 @@ public class SpringDataValueSetStore
         //----------------------------------------------------------------------
 
         String deSql = idScheme.getDataElementIdScheme().isAttribute() ?
-            "coalesce((" +
-            "select av.value as deid from attributevalue av " +
-            "inner join dataelementattributevalues deav on av.attributevalueid=deav.attributevalueid " +
-            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getDataElementIdScheme().getAttribute() + "' " +
-            "where dv.dataelementid=deav.dataelementid " +
-            "limit 1), de.uid) as deid" :
+            "de.attributevalues #>> '{\"" + idScheme.getDataElementIdScheme().getAttribute() + "\", \"value\" }'  as deid" :
             "de." + deScheme + " as deid";
 
         String ouSql = idScheme.getOrgUnitIdScheme().isAttribute() ?
-            "coalesce((" +
-            "select av.value as ouid from attributevalue av " +
-            "inner join organisationunitattributevalues ouav on av.attributevalueid=ouav.attributevalueid " +
-            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getOrgUnitIdScheme().getAttribute() + "' " +
-            "where dv.sourceid=ouav.organisationunitid " +
-            "limit 1), ou.uid) as ouid" :
+            "ou.attributevalues #>> '{\"" + idScheme.getOrgUnitIdScheme().getAttribute() + "\", \"value\" }'  as ouid" :
             "ou." + ouScheme + " as ouid";
 
         String cocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
-            "coalesce((" +
-            "select av.value as cocid from attributevalue av " +
-            "inner join categoryoptioncomboattributevalues cocav on av.attributevalueid=cocav.attributevalueid " +
-            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "' " +
-            "where dv.categoryoptioncomboid=cocav.categoryoptioncomboid " +
-            "limit 1), coc.uid) as cocid" :
+            "coc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "\", \"value\" }'  as cocid" :
             "coc." + cocScheme + " as cocid";
 
         String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute() ?
-            "coalesce((" +
-            "select av.value as aocid from attributevalue av " +
-            "inner join categoryoptioncomboattributevalues cocav on av.attributevalueid=cocav.attributevalueid " +
-            "inner join attribute at on av.attributeid=at.attributeid and at.uid='" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "' " +
-            "where dv.attributeoptioncomboid=cocav.categoryoptioncomboid " +
-            "limit 1), aoc.uid) as aocid" :
+            "aoc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute() + "\", \"value\" }'  as aocid" :
             "aoc." + cocScheme + " as aocid";
 
         //----------------------------------------------------------------------

@@ -1,8 +1,7 @@
 package org.hisp.dhis.sms.listener;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
- * All rights reserved.
+ * Copyright (c) 2004-2019, University of Oslo All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -11,23 +10,26 @@ package org.hisp.dhis.sms.listener;
  *
  * Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
+ * and/or other materials provided with the distribution. Neither the name of
+ * the HISP project nor the names of its contributors may be used to endorse or
+ * promote products derived from this software without specific prior written
+ * permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageSender;
@@ -47,19 +49,27 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.jfree.util.Log;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.*;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.sms.listener.DhisMessageAlertListener" )
 @Transactional
 public class DhisMessageAlertListener
-    extends BaseSMSListener
+    extends
+    CommandSMSListener
 {
+    private static final Log log = LogFactory.getLog( DhisMessageAlertListener.class );
+
     private final SMSCommandService smsCommandService;
 
     private final MessageService messageService;
@@ -123,7 +133,8 @@ public class DhisMessageAlertListener
                 User sender = users.iterator().next();
 
                 Set<User> receivers = new HashSet<>( userGroup.getMembers() );
-                messageService.sendMessage( new MessageConversationParams.Builder( receivers, sender, smsCommand.getName(), message, MessageType.SYSTEM ).build() );
+                messageService.sendMessage( new MessageConversationParams.Builder( receivers, sender,
+                    smsCommand.getName(), message, MessageType.SYSTEM ).build() );
 
                 Set<User> feedbackList = new HashSet<>();
                 feedbackList.add( sender );
@@ -141,15 +152,15 @@ public class DhisMessageAlertListener
                 }
                 else
                 {
-                    Log.info( "No sms configuration found." );
+                    log.info( "No sms configuration found." );
                 }
 
-                update( sms,  SmsMessageStatus.PROCESSED, true );
+                update( sms, SmsMessageStatus.PROCESSED, true );
             }
             else if ( users == null || users.size() == 0 )
             {
                 throw new SMSParserException(
-                        "No user associated with this phone number. Please contact your supervisor." );
+                    "No user associated with this phone number. Please contact your supervisor." );
             }
         }
     }

@@ -28,6 +28,7 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -46,10 +47,12 @@ import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserInfo;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,9 +68,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ReflectionUtils.getRealClass;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -98,7 +98,7 @@ public class DefaultIdentifiableObjectManager
     protected final SchemaService schemaService;
 
     private final Environment env;
-    
+
     private final CacheProvider cacheProvider;
 
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
@@ -408,8 +408,17 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value )
+    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
+        String value )
+    {
+       return getByUniqueAttributeValue( clazz, attribute, value, currentUserService.getCurrentUserInfo() );
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    @Transactional( readOnly = true )
+    public <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute,
+        String value, UserInfo currentUserInfo )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( clazz );
 
@@ -418,7 +427,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return (T) store.getByUniqueAttributeValue( attribute, value );
+        return (T) store.getByUniqueAttributeValue( attribute, value, currentUserInfo );
     }
 
     @Override
@@ -548,6 +557,27 @@ public class DefaultIdentifiableObjectManager
         }
 
         return (List<T>) store.getAllByAttributes( attributes );
+    }
+
+    @Override
+    @Transactional( readOnly = true)
+    public <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes )
+    {
+        Schema schema = schemaService.getDynamicSchema( klass );
+
+        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) || attributes.isEmpty() )
+        {
+            return new ArrayList<>();
+        }
+
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return  store.getAllValuesByAttributes( attributes );
     }
 
     @Override
@@ -1018,28 +1048,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttribute( Class<T> klass, Attribute attribute )
-    {
-        Schema schema = schemaService.getDynamicSchema( klass );
-
-        if ( schema == null || !schema.havePersistedProperty( "attributeValues" ) )
-        {
-            return new ArrayList<>();
-        }
-
-        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
-
-        if ( store == null )
-        {
-            return null;
-        }
-
-        return store.getAttributeValueByAttribute( attribute );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public <T extends IdentifiableObject> List<AttributeValue> getAttributeValueByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
+    public <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -1055,7 +1064,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return store.getAttributeValueByAttributeAndValue( attribute, value );
+        return store.getByAttributeAndValue( attribute, value );
     }
 
     @Override
@@ -1085,6 +1094,20 @@ public class DefaultIdentifiableObjectManager
             .build();
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date )
+    {
+        IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore( klass );
+
+        if ( store == null )
+        {
+            return new ArrayList<>();
+        }
+
+        return store.getUidsCreatedBefore( date );
+    }
+
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
@@ -1094,16 +1117,20 @@ public class DefaultIdentifiableObjectManager
     public boolean isDefault( IdentifiableObject object )
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults = getDefaults();
+
         if ( object == null )
         {
             return false;
         }
+
         Class<?> realClass = getRealClass( object.getClass() );
         if ( !defaults.containsKey( realClass ) )
         {
             return false;
         }
+
         IdentifiableObject defaultObject = defaults.get( realClass );
+
         return defaultObject != null && defaultObject.getUid().equals( object.getUid() );
     }
 

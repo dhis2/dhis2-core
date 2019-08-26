@@ -22,6 +22,13 @@
     </plugins>
   </build>
 
+  <repositories>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
+    </repository>
+  </repositories>
+
   <dependencies>
 
     <!-- DHIS -->
@@ -54,10 +61,10 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-hibernate</artifactId>
     </dependency>
-      <dependency>
-        <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-support-expression-parser</artifactId>
-      </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-expression-parser</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
@@ -163,6 +170,11 @@
     <dependency>
       <groupId>org.apache.velocity</groupId>
       <artifactId>velocity</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.github.eHealthAfrica</groupId>
+      <artifactId>dhis2-sms-compression</artifactId>
+      <version>0.1.7</version>
     </dependency>
 
     <!-- Security -->

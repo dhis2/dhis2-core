@@ -32,6 +32,7 @@ import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -122,6 +123,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -188,6 +190,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Autowired
     protected PatchService patchService;
 
+    @Autowired
+    protected AttributeService attributeService;
+
     //--------------------------------------------------------------------------
     // GET
     //--------------------------------------------------------------------------
@@ -223,10 +228,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             entities = PagerUtils.pageCollection( entities, pager );
         }
 
-        postProcessEntities( entities );
-        postProcessEntities( entities, options, rpParameters );
+        postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false, currentUser );
+
+        handleAttributeValues( entities, fields );
 
         linkService.generatePagerLinks( pager, getEntityClass() );
 
@@ -498,10 +504,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         handleLinksAndAccess( entities, fields, true, user );
 
+        handleAttributeValues( entities, fields );
+
         for ( T entity : entities )
         {
-            postProcessEntity( entity );
-            postProcessEntity( entity, options, parameters );
+            postProcessResponseEntity( entity, options, parameters );
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
@@ -1056,15 +1063,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Override to process entities after it has been retrieved from
      * storage and before it is returned to the view. Entities is null-safe.
      */
-    protected void postProcessEntities( List<T> entityList, WebOptions options, Map<String, String> parameters )
-    {
-    }
-
-    /**
-     * Override to process entities after it has been retrieved from
-     * storage and before it is returned to the view. Entities is null-safe.
-     */
-    protected void postProcessEntities( List<T> entityList )
+    protected void postProcessResponseEntities( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
     }
 
@@ -1072,15 +1071,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Override to process a single entity after it has been retrieved from
      * storage and before it is returned to the view. Entity is null-safe.
      */
-    protected void postProcessEntity( T entity ) throws Exception
-    {
-    }
-
-    /**
-     * Override to process a single entity after it has been retrieved from
-     * storage and before it is returned to the view. Entity is null-safe.
-     */
-    protected void postProcessEntity( T entity, WebOptions options, Map<String, String> parameters ) throws Exception
+    protected void postProcessResponseEntity( T entity, WebOptions options, Map<String, String> parameters ) throws Exception
     {
     }
 
@@ -1222,6 +1213,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         if ( generateLinks )
         {
             linkService.generateLinks( entityList, deep );
+        }
+    }
+
+    protected void handleAttributeValues( List<T> entityList, List<String> fields )
+    {
+        List<String> hasAttributeValues = fields.stream().filter( field -> field.contains( "attributeValues" ) )
+            .collect( Collectors.toList() );
+
+        if ( !hasAttributeValues.isEmpty() )
+        {
+            attributeService.generateAttributes( entityList );
         }
     }
 

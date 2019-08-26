@@ -42,6 +42,7 @@ import org.hisp.dhis.reporttable.ReportTableService;
 import org.hisp.dhis.schema.descriptors.ReportTableSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -55,6 +56,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
@@ -217,7 +219,8 @@ public class ReportTableController
     //--------------------------------------------------------------------------
 
     @Override
-    protected void postProcessEntity( ReportTable reportTable ) throws Exception
+    protected void postProcessResponseEntity( ReportTable reportTable, WebOptions options, Map<String, String> parameters )
+        throws Exception
     {
         reportTable.populateAnalyticalProperties();
 

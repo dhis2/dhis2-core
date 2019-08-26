@@ -43,6 +43,7 @@ import org.hisp.dhis.schema.descriptors.EventChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -57,6 +58,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
@@ -137,7 +139,7 @@ public class EventChartController
     //--------------------------------------------------------------------------
 
     @Override
-    protected void postProcessEntity( EventChart eventChart )
+    protected void postProcessResponseEntity( EventChart eventChart, WebOptions options, Map<String, String> parameters )
         throws Exception
     {
         eventChart.populateAnalyticalProperties();

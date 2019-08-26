@@ -125,16 +125,19 @@ public class HibernateConfig
     }
 
     @Bean
-    public DataSourceManager dataSourceManager() throws PropertyVetoException {
+    public DataSourceManager dataSourceManager() throws PropertyVetoException
+    {
         DefaultDataSourceManager defaultDataSourceManager = new DefaultDataSourceManager();
-        defaultDataSourceManager.setConfig(dhisConfigurationProvider);
-        defaultDataSourceManager.setMainDataSource(dataSource());
+        defaultDataSourceManager.setConfig( dhisConfigurationProvider );
+        defaultDataSourceManager.setMainDataSource( dataSource() );
 
         return defaultDataSourceManager;
     }
 
     @Bean
-    public DataSource readOnlyDataSource() throws PropertyVetoException { // FIXME Luciano why do we need this? Can't we use @Transactional readonly?
+    public DataSource readOnlyDataSource() throws PropertyVetoException
+    {
+        // FIXME Luciano why do we need this? Can't we use @Transactional readonly?
 
         return dataSourceManager().getReadOnlyDataSource();
     }
@@ -188,7 +191,7 @@ public class HibernateConfig
 
     @Bean( "readOnlyJdbcTemplate" )
     public JdbcTemplate readOnlyJdbcTemplate()
-            throws PropertyVetoException
+        throws PropertyVetoException
     {
         JdbcTemplate jdbcTemplate = new JdbcTemplate( readOnlyDataSource() );
         jdbcTemplate.setFetchSize( 1000 );

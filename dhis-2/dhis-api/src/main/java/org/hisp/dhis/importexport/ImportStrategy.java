@@ -68,5 +68,4 @@ public enum ImportStrategy
     {
         return this == SYNC;
     }
-
 }

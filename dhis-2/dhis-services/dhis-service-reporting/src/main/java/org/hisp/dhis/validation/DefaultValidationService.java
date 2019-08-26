@@ -482,7 +482,7 @@ public class DefaultValidationService
 
         if ( periodTypeX == null )
         {
-            periodTypeX = new PeriodTypeExtended( periodType );
+            periodTypeX = new PeriodTypeExtended(  periodService.reloadPeriodType( periodType ) );
             periodTypeXMap.put( periodType, periodTypeX );
         }
 

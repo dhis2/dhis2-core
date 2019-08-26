@@ -56,11 +56,7 @@
 
     <!-- Dynamic attribute values -->
 
-    <set name="attributeValues" table="sectionattributevalues" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="sectionid" />
-      <many-to-many class="org.hisp.dhis.attribute.AttributeValue" column="attributevalueid" unique="true" />
-    </set>
+    <property name="attributeValues" type="jsbAttributeValues"/>
 
   </class>
 

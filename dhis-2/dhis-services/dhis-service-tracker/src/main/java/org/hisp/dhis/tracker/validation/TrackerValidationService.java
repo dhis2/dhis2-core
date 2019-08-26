@@ -1,4 +1,4 @@
-package org.hisp.dhis.attribute.comparator;
+package org.hisp.dhis.tracker.validation;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,35 +28,18 @@ package org.hisp.dhis.attribute.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.attribute.AttributeValue;
-
-import java.util.Comparator;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AttributeValueSortOrderComparator
-    implements Comparator<AttributeValue>
+public interface TrackerValidationService
 {
-    public static final Comparator<AttributeValue> INSTANCE = new AttributeValueSortOrderComparator();
-
-    @Override
-    public int compare( AttributeValue o1, AttributeValue o2 )
-    {
-        if ( o1 == null || o2 == null || o1.getAttribute() == null || o2.getAttribute() == null )
-        {
-            return 0;
-        }
-
-        if ( o1.getAttribute().getSortOrder() == null || o2.getAttribute().getSortOrder() == 0 )
-        {
-            return o1.getAttribute().getName().compareTo( o2.getAttribute().getName() );
-        }
-        if ( o2.getAttribute().getSortOrder() == null || o2.getAttribute().getSortOrder() == 0 )
-        {
-            return o1.getAttribute().getName().compareTo( o2.getAttribute().getName() );
-        }
-
-        return o1.getAttribute().getSortOrder() - o2.getAttribute().getSortOrder();
-    }
+    /**
+     * Validate tracker bundle
+     *
+     * @param bundle Bundle to validate
+     */
+    TrackerValidationReport validate( TrackerBundle bundle );
 }

@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -99,6 +100,8 @@ public class BaseIdentifiableObject
      * Set of the dynamic attributes values that belong to this data element.
      */
     protected Set<AttributeValue> attributeValues = new HashSet<>();
+
+    protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
     /**
      * Set of available object translation, normally filtered by locale.
@@ -340,7 +343,20 @@ public class BaseIdentifiableObject
 
     public void setAttributeValues( Set<AttributeValue> attributeValues )
     {
+        cacheAttributeValues.clear();
         this.attributeValues = attributeValues;
+    }
+
+    public AttributeValue getAttributeValue( Attribute attribute )
+    {
+        loadAttributeValuesCacheIfEmpty();
+        return cacheAttributeValues.get( attribute.getUid() );
+    }
+
+    public AttributeValue getAttributeValue( String attributeUid )
+    {
+        loadAttributeValuesCacheIfEmpty();
+        return cacheAttributeValues.get( attributeUid );
     }
 
     @Override
@@ -402,6 +418,14 @@ public class BaseIdentifiableObject
                     translationCache.put( key, translation.getValue() );
                 }
             }
+        }
+    }
+
+    private void loadAttributeValuesCacheIfEmpty()
+    {
+        if ( cacheAttributeValues.isEmpty() && attributeValues != null )
+        {
+            attributeValues.forEach( av -> cacheAttributeValues.put( av.getAttribute().getUid(), av ) );
         }
     }
 

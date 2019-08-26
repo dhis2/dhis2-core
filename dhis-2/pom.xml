@@ -432,6 +432,11 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-service-tracker</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-jdbc</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -479,7 +484,7 @@
       <dependency>
         <groupId>org.hisp.dhis.rules</groupId>
         <artifactId>rule-engine</artifactId>
-        <version>1.0.3.1-SNAPSHOT</version>
+        <version>1.0.4.1-SNAPSHOT</version>
       </dependency>
 
       <!-- Spring -->
