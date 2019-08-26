@@ -738,6 +738,12 @@ public class DateUtils
             .max( Date::compareTo ).get();
     }
 
+    /**
+     * Returns only the date part after removing timestamp
+     *
+     * @param date the date to convert.
+     * @return a date
+     */
     public static Date removeTimeStamp( Date date )
     {
         return date == null ? null : getMediumDate( getMediumDateString( date ) ) ;
