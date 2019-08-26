@@ -738,6 +738,11 @@ public class DateUtils
             .max( Date::compareTo ).get();
     }
 
+    public static Date removeTimeStamp( Date date )
+    {
+        return date == null ? null : getMediumDate( getMediumDateString( date ) ) ;
+    }
+
     /**
      * Parses the given string into a Date object. In case the date parsed falls in a
      * daylight savings transition, the date is parsed via a local date and converted to the
