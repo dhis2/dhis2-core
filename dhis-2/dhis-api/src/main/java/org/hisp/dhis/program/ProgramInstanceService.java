@@ -83,7 +83,7 @@ public interface ProgramInstanceService
      * @return the ProgramInstance with the given id
      */
     ProgramInstance getProgramInstance( long id );
-    
+
     /**
      * Returns the {@link ProgramInstance} with the given UID.
      *
@@ -107,6 +107,14 @@ public interface ProgramInstanceService
      * @return true/false depending on result
      */
     boolean programInstanceExistsIncludingDeleted( String uid );
+
+    /**
+     * Returns UIDs of deleted ProgramInstances from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of PSIs that are deleted
+     */
+    List<String> getDeletedProgramInstances( List<String> uids );
 
     /**
      * Returns a ProgramInstanceQueryParams based on the given input.

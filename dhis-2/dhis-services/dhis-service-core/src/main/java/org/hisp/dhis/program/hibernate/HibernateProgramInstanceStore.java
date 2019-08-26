@@ -56,6 +56,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -231,15 +232,28 @@ public class HibernateProgramInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=? and deleted is false", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(0) from programinstance where uid=? and deleted is false", Integer.class, uid );
         return result != null && result > 0;
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=?", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(0) from programinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @Override
+    public List<String> getDeleted( List<String> uids )
+    {
+        if ( !uids.isEmpty() )
+        {
+            String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids) and pi.deleted = true";
+
+            return getSession().createQuery( hql, String.class ).setParameter( "uids", uids ).list();
+        }
+
+        return Collections.emptyList();
     }
 
 

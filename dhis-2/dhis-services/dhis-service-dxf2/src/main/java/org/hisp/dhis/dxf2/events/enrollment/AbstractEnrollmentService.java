@@ -380,6 +380,22 @@ public abstract class AbstractEnrollmentService
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
+        List<String> deletedEnrollments = programInstanceService.getDeletedProgramInstances( enrollments.stream()
+            .map( Enrollment::getEnrollment )
+            .collect( Collectors.toList() ) );
+
+        if ( !deletedEnrollments.isEmpty() )
+        {
+            for ( String deletedEnrollmentUid : deletedEnrollments )
+            {
+                ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+                    "Enrollment " + deletedEnrollmentUid + " already exists or was deleted earlier" ).setReference( deletedEnrollmentUid ).incrementIgnored();
+                importSummaries.addImportSummary( is );
+            }
+
+            return importSummaries;
+        }
+
         for ( List<Enrollment> _enrollments : partitions )
         {
             reloadUser( importOptions );
@@ -402,6 +418,12 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
     {
+        if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
+        {
+            return new ImportSummary( ImportStatus.ERROR,
+                "Enrollment " + enrollment.getEnrollment() + " already exists or was deleted earlier" ).setReference( enrollment.getEnrollment() ).incrementIgnored();
+        }
+
         return addEnrollment( enrollment, importOptions, null );
     }
 
@@ -413,12 +435,6 @@ public abstract class AbstractEnrollmentService
         String storedBy = !StringUtils.isEmpty( enrollment.getStoredBy() ) && enrollment.getStoredBy().length() < 31 ?
             enrollment.getStoredBy() :
             (importOptions.getUser() == null || StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
-
-        if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Enrollment " + enrollment.getEnrollment() + " already exists or was deleted earlier" ).setReference( enrollment.getEnrollment() ).incrementIgnored();
-        }
 
         if ( daoTrackedEntityInstance == null )
         {
