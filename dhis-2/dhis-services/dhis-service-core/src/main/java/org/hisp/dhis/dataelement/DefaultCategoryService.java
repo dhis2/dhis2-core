@@ -490,6 +490,12 @@ public class DefaultCategoryService
     }
 
     @Override
+    public CategoryOptionCombo getCategoryOptionCombo( IdentifiableProperty property, String id )
+    {
+        return idObjectManager.getObject( CategoryOptionCombo.class, property, id );
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<CategoryOptionCombo> getAllCategoryOptionCombos()
     {

@@ -45,9 +45,10 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -58,15 +59,17 @@ public class DefaultAggregateAccessManager
 {
     private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
     
-
     private final AclService aclService;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
-    public DefaultAggregateAccessManager( AclService aclService )
+    public DefaultAggregateAccessManager( AclService aclService, Environment env )
     {
+        checkNotNull( aclService );
+        checkNotNull( env );
+
         this.aclService = aclService;
+        this.env = env;
     }
 
     // ---------------------------------------------------------------------
