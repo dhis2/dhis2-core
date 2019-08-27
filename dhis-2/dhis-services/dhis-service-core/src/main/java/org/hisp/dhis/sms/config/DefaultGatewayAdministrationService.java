@@ -78,14 +78,6 @@ public class DefaultGatewayAdministrationService
     }
 
     @Override
-    public List<SmsGatewayConfig> listGateways()
-    {
-        SmsConfiguration smsConfig = getSmsConfiguration();
-
-        return smsConfig != null ? smsConfig.getGateways() : Collections.emptyList();
-    }
-
-    @Override
     public void setDefaultGateway( String uid )
     {
         setDefaultGateway( getByUid( uid ) );
@@ -219,14 +211,12 @@ public class DefaultGatewayAdministrationService
     @Override
     public boolean removeGatewayByUid( String uid )
     {
-        List<SmsGatewayConfig> list = listGateways();
+        SmsConfiguration smsConfiguration = getSmsConfiguration();
 
-        for ( SmsGatewayConfig gateway : list )
+        for ( SmsGatewayConfig gateway : smsConfiguration.getGateways() )
         {
             if ( gateway.getUid().equals( uid ) )
             {
-                SmsConfiguration smsConfiguration = getSmsConfiguration();
-
                 smsConfiguration.getGateways().remove( gateway );
 
                 if( gateway.isDefault() )
@@ -250,7 +240,7 @@ public class DefaultGatewayAdministrationService
     @Override
     public SmsGatewayConfig getByUid( String uid )
     {
-        List<SmsGatewayConfig> list = listGateways();
+        List<SmsGatewayConfig> list = getSmsConfiguration().getGateways();
 
         if ( !list.isEmpty() )
         {
@@ -267,15 +257,9 @@ public class DefaultGatewayAdministrationService
     }
 
     @Override
-    public boolean removeGatewayByName( String gatewayName )
-    {
-        return removeGatewayByUid( getUidByGatewayName( gatewayName ) );
-    }
-
-    @Override
     public SmsGatewayConfig getDefaultGateway()
     {
-        List<SmsGatewayConfig> list = listGateways();
+        List<SmsGatewayConfig> list = getSmsConfiguration().getGateways();
 
         if (  !list.isEmpty() )
         {
@@ -350,7 +334,7 @@ public class DefaultGatewayAdministrationService
 
     private String getUidByGatewayName( String gatewayName )
     {
-        List<SmsGatewayConfig> list = listGateways();
+        List<SmsGatewayConfig> list = getSmsConfiguration().getGateways();
 
         for ( SmsGatewayConfig gw : list )
         {
@@ -365,7 +349,14 @@ public class DefaultGatewayAdministrationService
 
     private SmsConfiguration getSmsConfiguration()
     {
-        return smsConfigurationManager.getSmsConfiguration();
+        SmsConfiguration smsConfiguration = smsConfigurationManager.getSmsConfiguration();
+
+        if ( smsConfiguration != null )
+        {
+            return smsConfiguration;
+        }
+
+        return new SmsConfiguration();
     }
 
     private void initializeSmsConfig()

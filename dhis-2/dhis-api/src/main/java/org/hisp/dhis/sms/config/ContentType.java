@@ -1,8 +1,7 @@
-
 package org.hisp.dhis.sms.config;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,35 +28,40 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
+import java.util.Optional;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
- *
+ * @Author Zubair Asghar.
  */
-public interface GatewayAdministrationService
+public enum ContentType
 {
-    void setDefaultGateway( String uid );
+    APPLICATION_JSON( "application/json" ),
+    APPLICATION_XML( "application/xml" ),
+    TEXT_PLAIN( "text/plain" ),
+    FORM_URL_ENCODED( "application/x-www-form-urlencoded" );
 
-    void setDefaultGateway( SmsGatewayConfig config );
+    private String value;
 
-    boolean removeGatewayByUid( String uid );
+    ContentType( String value )
+    {
+        this.value = value;
+    }
 
-    Map<String, SmsGatewayConfig> getGatewayConfigurationMap();
+    public String getValue()
+    {
+        return value;
+    }
 
-    SmsGatewayConfig getDefaultGateway();
+    public static Optional<ContentType> from( String value )
+    {
+        for ( ContentType type: ContentType.values() )
+        {
+            if ( type.getValue().equals( value ) )
+            {
+                return Optional.of( type );
+            }
+        }
 
-    boolean hasDefaultGateway();
-
-    SmsGatewayConfig getByUid(String uid );
-
-    boolean addOrUpdateGateway( SmsGatewayConfig config, Class<?> klass );
-
-    boolean addGateway( SmsGatewayConfig config );
-
-    void updateGateway( SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig );
-
-    boolean loadGatewayConfigurationMap( SmsConfiguration smsConfiguration );
-
-    Class<? extends SmsGatewayConfig> getGatewayType( SmsGatewayConfig config );
+        return Optional.empty();
+    }
 }

@@ -102,7 +102,7 @@ public class DefaultProgramRuleEngineService
         {
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
+                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, pi );
             } );
@@ -132,7 +132,7 @@ public class DefaultProgramRuleEngineService
         {
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
             {
-                log.info( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
+                log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, psi );
             } );

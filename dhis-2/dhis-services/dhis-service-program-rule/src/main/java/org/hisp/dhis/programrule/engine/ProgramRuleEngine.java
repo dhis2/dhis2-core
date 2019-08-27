@@ -143,7 +143,6 @@ public class ProgramRuleEngine
         catch ( Exception e )
         {
             log.error( DebugUtils.getStackTrace( e ) );
-            log.error( DebugUtils.getStackTrace( e.getCause() ) );
         }
 
         return ruleEffects;
@@ -187,7 +186,6 @@ public class ProgramRuleEngine
         catch ( Exception e )
         {
             log.error( DebugUtils.getStackTrace( e ) );
-            log.error( DebugUtils.getStackTrace( e.getCause() ) );
         }
 
         return ruleEffects;

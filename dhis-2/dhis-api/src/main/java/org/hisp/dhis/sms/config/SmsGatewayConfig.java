@@ -59,7 +59,7 @@ public abstract class SmsGatewayConfig
 
     private String urlTemplate;
 
-    @JsonProperty( value = "urlTemplate" )
+    @JsonProperty
     public String getUrlTemplate()
     {
         return urlTemplate;
@@ -70,7 +70,7 @@ public abstract class SmsGatewayConfig
         this.urlTemplate = urlTemplate;
     }
 
-    @JsonProperty( value = "name" )
+    @JsonProperty
     public String getName()
     {
         return name;
@@ -92,7 +92,7 @@ public abstract class SmsGatewayConfig
         this.isDefault = isDefault;
     }
 
-    @JsonProperty( value = "uid" )
+    @JsonProperty
     public String getUid()
     {
         return uid;
@@ -154,11 +154,11 @@ public abstract class SmsGatewayConfig
     public String toString()
     {
         return "SmsGatewayConfig{" +
-                "uid='" + uid + '\'' +
-                ", name='" + name + '\'' +
-                ", username='" + username + '\'' +
-                ", isDefault=" + isDefault +
-                ", urlTemplate='" + urlTemplate + '\'' +
-                '}';
+            "uid='" + uid + '\'' +
+            ", name='" + name + '\'' +
+            ", username='" + username + '\'' +
+            ", isDefault=" + isDefault +
+            ", urlTemplate='" + urlTemplate + '\'' +
+            '}';
     }
 }
