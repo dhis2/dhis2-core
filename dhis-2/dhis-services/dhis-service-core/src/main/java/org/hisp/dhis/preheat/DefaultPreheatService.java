@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionItem;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -1003,6 +1004,18 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || isEmbeddedObject( klass ));
+    }
+
+    private boolean isEmbeddedObject( Class<?> klass )
+    {
+        if ( AnalyticalObject.class.isAssignableFrom( klass ) || MetadataObject.class.isAssignableFrom( klass ) )
+        {
+            return false;
+        }
+        else
+        {
+            return  EmbeddedObject.class.isAssignableFrom( klass ) ;
+        }
     }
 }
