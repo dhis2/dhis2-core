@@ -54,6 +54,11 @@ public class UserParameterValidationRule
         String password = credentialsInfo.getPassword();
         String username = credentialsInfo.getUsername();
 
+        if ( StringUtils.isBlank( email ) || StringUtils.isBlank( password ) || StringUtils.isBlank( username ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
         // Password should not contain part of either username or email
         if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
             StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
