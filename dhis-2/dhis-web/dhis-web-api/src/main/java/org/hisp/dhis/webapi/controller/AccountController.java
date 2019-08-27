@@ -180,7 +180,7 @@ public class AccountController
 
         User user = credentials.getUser();
 
-        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, user.getEmail() != null ? user.getEmail() : "", false );
+        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password, user == null ? null : user.getEmail(), false );
 
         PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
 
