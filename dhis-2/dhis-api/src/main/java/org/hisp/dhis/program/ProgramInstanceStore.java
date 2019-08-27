@@ -111,7 +111,7 @@ public interface ProgramInstanceStore
      * @param uids PSI UIDs to check
      * @return Set containing UIDs of PSIs that are deleted
      */
-    List<String> getDeleted( List<String> uids );
+    List<String> getIncludingDeleted( List<String> uids );
 
     /**
      * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.

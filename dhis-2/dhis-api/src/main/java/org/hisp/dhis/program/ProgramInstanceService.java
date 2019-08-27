@@ -114,7 +114,7 @@ public interface ProgramInstanceService
      * @param uids PSI UIDs to check
      * @return Set containing UIDs of PSIs that are deleted
      */
-    List<String> getDeletedProgramInstances( List<String> uids );
+    List<String> getProgramInstancesIncludingDeleted( List<String> uids );
 
     /**
      * Returns a ProgramInstanceQueryParams based on the given input.

@@ -244,11 +244,11 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<String> getDeleted( List<String> uids )
+    public List<String> getIncludingDeleted( List<String> uids )
     {
         if ( !uids.isEmpty() )
         {
-            String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids) and pi.deleted = true";
+            String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
 
             return getSession().createQuery( hql, String.class ).setParameter( "uids", uids ).list();
         }

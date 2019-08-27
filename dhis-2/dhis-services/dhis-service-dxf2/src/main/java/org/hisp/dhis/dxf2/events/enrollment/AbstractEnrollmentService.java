@@ -380,19 +380,9 @@ public abstract class AbstractEnrollmentService
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
-        List<String> deletedEnrollments = programInstanceService.getDeletedProgramInstances( enrollments.stream()
-            .map( Enrollment::getEnrollment )
-            .collect( Collectors.toList() ) );
-
-        if ( !deletedEnrollments.isEmpty() )
+        checkForExistingEnrollmentsIncludingDeleted( enrollments, importSummaries );
+        if ( importSummaries.getIgnored() > 0 )
         {
-            for ( String deletedEnrollmentUid : deletedEnrollments )
-            {
-                ImportSummary is = new ImportSummary( ImportStatus.ERROR,
-                    "Enrollment " + deletedEnrollmentUid + " already exists or was deleted earlier" ).setReference( deletedEnrollmentUid ).incrementIgnored();
-                importSummaries.addImportSummary( is );
-            }
-
             return importSummaries;
         }
 
@@ -413,6 +403,23 @@ public abstract class AbstractEnrollmentService
         }
 
         return importSummaries;
+    }
+
+    private void checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )
+    {
+        List<String> foundEnrollments = programInstanceService.getProgramInstancesIncludingDeleted( enrollments.stream()
+            .map( Enrollment::getEnrollment )
+            .collect( Collectors.toList() ) );
+
+        if ( !foundEnrollments.isEmpty() )
+        {
+            for ( String foundEnrollmentUid : foundEnrollments )
+            {
+                ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+                    "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier" ).setReference( foundEnrollmentUid ).incrementIgnored();
+                importSummaries.addImportSummary( is );
+            }
+        }
     }
 
     @Override
