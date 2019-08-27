@@ -567,9 +567,6 @@ public class DefaultProgramInstanceService
         // -----------------------------------------------------------------
 
         programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstance.setEndDate( new Date() );
-        programInstance.setCompletedBy( currentUserService.getCurrentUsername() );
-
         updateProgramInstance( programInstance );
 
         // ---------------------------------------------------------------------
@@ -588,12 +585,6 @@ public class DefaultProgramInstanceService
         // ---------------------------------------------------------------------
         // Set status of the program-instance
         // ---------------------------------------------------------------------
-
-        Calendar today = Calendar.getInstance();
-        PeriodType.clearTimeOfDay( today );
-        Date currentDate = today.getTime();
-
-        programInstance.setEndDate( currentDate );
         programInstance.setStatus( ProgramStatus.CANCELLED );
         updateProgramInstance( programInstance );
 
@@ -609,7 +600,7 @@ public class DefaultProgramInstanceService
                 // Set status as skipped for overdue events, or delete
                 // -------------------------------------------------------------
 
-                if ( programStageInstance.getDueDate().before( currentDate ) )
+                if ( programStageInstance.getDueDate().before( programInstance.getEndDate() ) )
                 {
                     programStageInstance.setStatus( EventStatus.SKIPPED );
                     programStageInstanceStore.update( programStageInstance );
@@ -642,6 +633,7 @@ public class DefaultProgramInstanceService
         // -----------------------------------------------------------------
 
         programInstance.setStatus( ProgramStatus.ACTIVE );
+        programInstance.setEndDate( null );
 
         updateProgramInstance( programInstance );
     }
