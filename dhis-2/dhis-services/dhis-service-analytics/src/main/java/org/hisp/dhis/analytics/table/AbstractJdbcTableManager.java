@@ -34,6 +34,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -56,11 +57,14 @@ import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.util.Assert;
 
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
@@ -162,6 +166,18 @@ public abstract class AbstractJdbcTableManager
      */
     @Override
     public void preCreateTables( AnalyticsTableUpdateParams params )
+    {
+    }
+
+    /**
+     * Removes data which was updated or deleted between the last successful analytics table update
+     * and the start of this analytics table update process, excluding data which was created during
+     * that time span.
+     *
+     * Override in order to remove updated and deleted data for "latest" partition update.
+     */
+    @Override
+    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
     {
     }
 
@@ -296,6 +312,16 @@ public abstract class AbstractJdbcTableManager
      */
     protected abstract void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition );
 
+    /**
+     * Indicates whether data was created or updated for the given time range since
+     * last successful "latest" table partition update.
+     *
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @return true if updated data exists.
+     */
+    protected abstract boolean hasUpdatedLatestData( Date startDate, Date endDate );
+
     // -------------------------------------------------------------------------
     // Protected supportive methods
     // -------------------------------------------------------------------------
@@ -416,11 +442,12 @@ public abstract class AbstractJdbcTableManager
     /**
      * Creates a {@link AnalyticsTable} with partitions based on a list of years with data.
      *
+     * @param params the {@link AnalyticsTableUpdateParams}.
      * @param dataYears the list of years with data.
      * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
      * @param valueColumns the list of value {@link AnalyticsTableColumn}.
      */
-    protected AnalyticsTable getAnalyticsTable( List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    protected AnalyticsTable getRegularAnalyticsTable( AnalyticsTableUpdateParams params, List<Integer> dataYears, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
         Calendar calendar = PeriodType.getCalendar();
 
@@ -431,6 +458,42 @@ public abstract class AbstractJdbcTableManager
         for ( Integer year : dataYears )
         {
             table.addPartitionTable( year, PartitionUtils.getStartDate( calendar, year ), PartitionUtils.getEndDate( calendar, year ) );
+        }
+
+        return table;
+    }
+
+    /**
+     * Creates a {@link AnalyticsTable} with a partition for the "latest" data. The start date
+     * of the partition is the time of the last successful full analytics table update. The
+     * end date of the partition is the start time of this analytics table update process.
+     *
+     * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param dimensionColumns the list of dimension {@link AnalyticsTableColumn}.
+     * @param valueColumns the list of value {@link AnalyticsTableColumn}.
+     */
+    protected AnalyticsTable getLatestAnalyticsTable( AnalyticsTableUpdateParams params, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    {
+        Date lastFullTableUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        Date lastLatestPartitionUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate );
+
+        Assert.notNull( lastFullTableUpdate, "A full analytics table update process must be run prior to a latest partition update process" );
+
+        Date startDate = lastFullTableUpdate;
+        Date endDate = params.getStartTime();
+        boolean hasUpdatedData = hasUpdatedLatestData( lastAnyTableUpdate, endDate );
+
+        AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), dimensionColumns, valueColumns );
+
+        if ( hasUpdatedData )
+        {
+            table.addPartitionTable( AnalyticsTablePartition.LATEST_PARTITION, startDate, endDate );
+            log.info( String.format( "Added latest analytics partition with start: '%s' and end: '%s'", getLongDateString( startDate ), getLongDateString( endDate ) ) );
+        }
+        else
+        {
+            log.info( String.format( "No updated latest data found with start: '%s' and end: '%s", getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
         }
 
         return table;

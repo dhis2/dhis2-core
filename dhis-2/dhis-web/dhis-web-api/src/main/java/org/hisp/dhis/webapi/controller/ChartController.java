@@ -49,6 +49,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.descriptors.ChartSchemaDescriptor;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
+import java.util.Map;
 import java.util.Set;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
@@ -231,7 +233,7 @@ public class ChartController
     //--------------------------------------------------------------------------
 
     @Override
-    public void postProcessEntity( Chart chart ) throws Exception
+    public void postProcessResponseEntity( Chart chart, WebOptions options, Map<String, String> parameters ) throws Exception
     {
         chart.populateAnalyticalProperties();
 

@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics.table;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -147,6 +148,12 @@ public abstract class AbstractEventJdbcTableManager
         }
 
         return null;
+    }
+
+    @Override
+    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
+    {
+        return false;
     }
 
     /**

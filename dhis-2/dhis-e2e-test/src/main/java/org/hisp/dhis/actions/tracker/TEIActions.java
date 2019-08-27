@@ -1,5 +1,3 @@
-package org.hisp.dhis.commons.sqlfunc;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,32 +26,17 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.actions.tracker;
+
+import org.hisp.dhis.actions.RestApiActions;
+
 /**
- * Function which evaluates numerical values to zero if negative or null, unchanged
- * if zero or positive.
- *
- * @author Lars Helge Overland
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ZeroIfNegativeSqlFunction
-    implements SqlFunction
+public class TEIActions extends RestApiActions
 {
-    public static final String KEY = "zing";
-
-    @Override
-    public String evaluate( String... args )
+    public TEIActions( )
     {
-        if ( args == null || args.length != 1 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 1 argument: value" );
-        }
-
-        String value = args[0];
-
-        return "coalesce(case when " + value + " < 0 then 0 else " + value + " end, 0)";
-    }
-    
-    public String getSampleValue()
-    {
-        return "1";
+        super( "/trackedEntityInstances" );
     }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.sms.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,31 +28,42 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Function which evaluates whether a given expression is not null in the database
- *
- * @author Markus Bekken
- */
-public class HasValueSqlFunction
-    implements SqlFunction
+import java.util.Base64;
+import java.util.Date;
+
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.sms.incoming.IncomingSms;
+import org.hisp.dhis.smscompression.SMSCompressionException;
+import org.hisp.dhis.smscompression.SMSSubmissionWriter;
+import org.hisp.dhis.smscompression.models.SMSMetadata;
+import org.hisp.dhis.smscompression.models.SMSSubmission;
+import org.hisp.dhis.user.User;
+
+public class CompressionSMSListenerTest
+    extends
+    DhisConvenienceTest
 {
-    public static final String KEY = "hasValue";
+    protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";
 
-    @Override
-    public String evaluate( String... args )
+    protected static final String ORIGINATOR = "47400000";
+
+    protected static final String ATTRIBUTE_VALUE = "TEST";
+
+    protected IncomingSms createSMSFromSubmission( SMSSubmission subm )
+        throws SMSCompressionException
     {
-        if ( args == null || args.length != 1 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 1 argument." );
-        }
+        User user = createUser( 'U' );
+        SMSMetadata meta = new SMSMetadata();
+        meta.lastSyncDate = new Date();
+        SMSSubmissionWriter writer = new SMSSubmissionWriter( meta );
+        String smsText = Base64.getEncoder().encodeToString( writer.compress( subm ) );
 
-        String expression = args[0];
+        IncomingSms incomingSms = new IncomingSms();
+        incomingSms.setText( smsText );
+        incomingSms.setOriginator( ORIGINATOR );
+        incomingSms.setUser( user );
 
-        return "((" + expression + ") is not null)";
+        return incomingSms;
     }
-    
-    public String getSampleValue()
-    {
-        return "true";
-    }
+
 }

@@ -30,7 +30,6 @@ package org.hisp.dhis.security;
 
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: ActionAccessResolver.java 3131 2007-03-21 20:01:13Z torgeilo $
  */
 public interface ActionAccessResolver
 {

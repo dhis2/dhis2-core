@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,39 +28,17 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.util.TextUtils;
-
 /**
- * Function which returns the number of zero or positive values among the given
- * arguments, or null if there are zero occurrences.
- *
- * @author Lars Helge Overland
+ * Defines which orgunit field is used when querying teis
+ * 
+ * <ul>
+ * <li>REGISTRATION: prgunits resolved on registration org units.</li>
+ * <li>OWNERSHIP: orgunits resolved on ownership org units.</li>
+ * </ul>
+ * 
+ * @author Ameen Mohamed
  */
-public class ZeroPositiveValueCountFunction
-    implements SqlFunction
+public enum OrganisationUnitResolutionMode
 {
-    public static final String KEY = "zpvc";
-
-    @Override
-    public String evaluate( String... args )
-    {
-        if ( args == null || args.length == 0 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected at least one argument" );
-        }
-
-        String sql = "nullif(cast((";
-
-        for ( String value : args )
-        {
-            sql += "case when " + value + " >= 0 then 1 else 0 end + ";
-        }
-
-        return TextUtils.removeLast( sql, "+" ).trim() + ") as double precision),0)";
-    }
-    
-    public String getSampleValue()
-    {
-        return "-1";
-    }
+    REGISTRATION, OWNERSHIP
 }

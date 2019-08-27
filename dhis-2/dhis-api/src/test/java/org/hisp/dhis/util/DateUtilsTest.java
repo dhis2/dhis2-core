@@ -283,6 +283,7 @@ public class DateUtilsTest
         Date aug17 = new DateTime( 2019, 8, 17, 0, 0 ).toDate();
 
         assertEquals( aug17, DateUtils.getLatest( mar21, null, aug17, null, jan3, null ) );
+        assertEquals( null, DateUtils.getLatest( null, null ) );
     }
 
     @Test

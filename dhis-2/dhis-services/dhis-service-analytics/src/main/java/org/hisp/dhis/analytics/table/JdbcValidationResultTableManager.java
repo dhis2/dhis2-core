@@ -39,6 +39,7 @@ import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -108,7 +109,9 @@ public class JdbcValidationResultTableManager
     @Override
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        AnalyticsTable table = getAnalyticsTable( getDataYears( params ), getDimensionColumns(), getValueColumns() );
+        AnalyticsTable table = params.isLatestUpdate() ?
+            new AnalyticsTable() :
+            getRegularAnalyticsTable( params, getDataYears( params ), getDimensionColumns(), getValueColumns() );
 
         return table.hasPartitionTables() ? Lists.newArrayList( table ) : Lists.newArrayList();
     }
@@ -130,6 +133,12 @@ public class JdbcValidationResultTableManager
         }
 
         return null;
+    }
+
+    @Override
+    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
+    {
+        return false;
     }
 
     @Override
@@ -178,7 +187,7 @@ public class JdbcValidationResultTableManager
             "left join _orgunitstructure ous on vrs.organisationunitid=ous.organisationunitid " +
             "inner join _categorystructure acs on vrs.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "where ps.year = " + partition.getYear() + " " +
-            "and vrs.created <= '" + getLongDateString( params.getStartTime() ) + "' " +
+            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' " +
             "and vrs.created is not null";
 
         final String sql = insert + select;
@@ -193,7 +202,7 @@ public class JdbcValidationResultTableManager
             "from validationresult vrs " +
             "inner join period pe on vrs.periodid=pe.periodid " +
             "where pe.startdate is not null " +
-            "and vrs.created <= '" + getLongDateString( params.getStartTime() ) + "' ";
+            "and vrs.created < '" + getLongDateString( params.getStartTime() ) + "' ";
 
         if ( params.getFromDate() != null )
         {

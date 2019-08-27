@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.sms.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,32 +28,46 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/**
- * Function which evaluates numerical values to one if zero or positive, zero
- * if negative or null.
- *
- * @author Lars Helge Overland
- */
-public class OneIfZeroOrPositiveSqlFunction
-    implements SqlFunction
+import org.hisp.dhis.smscompression.SMSResponse;
+
+public class SMSProcessingException
+    extends
+    RuntimeException
 {
-    public static final String KEY = "oizp";
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 353425388316643481L;
+
+    private SMSResponse resp;
+
+    private Throwable err;
+
+    public SMSProcessingException( SMSResponse resp )
+    {
+        this.resp = resp;
+    }
+
+    public SMSProcessingException( SMSResponse resp, Throwable err )
+    {
+        this.resp = resp;
+        this.err = err;
+    }
 
     @Override
-    public String evaluate( String... args )
+    public String getMessage()
     {
-        if ( args == null || args.length != 1 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 1 argument: value" );
-        }
-
-        String value = args[0];
-
-        return "coalesce(case when " + value + " >= 0 then 1 else 0 end, 0)";
+        return resp.getDescription();
     }
-    
-    public String getSampleValue()
+
+    public SMSResponse getResp()
     {
-        return "1";
+        return resp;
+    }
+
+    public Throwable getErr()
+    {
+        return err;
     }
 }

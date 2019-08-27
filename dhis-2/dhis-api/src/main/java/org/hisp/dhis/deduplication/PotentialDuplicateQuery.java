@@ -27,6 +27,7 @@ package org.hisp.dhis.deduplication;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+import java.util.List;
 
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.BooleanUtils;
@@ -48,7 +49,7 @@ public class PotentialDuplicateQuery
 
     private int total;
 
-    private String tei;
+    private List<String> teis;
 
     public PotentialDuplicateQuery()
     {
@@ -109,14 +110,14 @@ public class PotentialDuplicateQuery
         return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
     }
 
-    public String getTei()
+    public List<String> getTeis()
     {
-        return tei;
+        return teis;
     }
 
-    public void setTei( String tei )
+    public void setTeis( List<String> teis )
     {
-        this.tei = tei;
+        this.teis = teis;
     }
 
     @Override

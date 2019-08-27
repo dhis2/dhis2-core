@@ -28,6 +28,8 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,19 +67,18 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 @Component( "org.hisp.dhis.sms.listener.J2MEDataValueSMSListener" )
 @Transactional
 public class J2MEDataValueSMSListener
-    extends BaseSMSListener
+    extends
+    CommandSMSListener
 {
 
     // -------------------------------------------------------------------------
@@ -91,7 +92,7 @@ public class J2MEDataValueSMSListener
     private final SMSCommandService smsCommandService;
 
     private final CompleteDataSetRegistrationService registrationService;
-    
+
     public J2MEDataValueSMSListener( ProgramInstanceService programInstanceService,
         CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
@@ -192,11 +193,11 @@ public class J2MEDataValueSMSListener
     {
     }
 
-    private Map<String, String> parse(String sms, SMSCommand smsCommand )
+    private Map<String, String> parse( String sms, SMSCommand smsCommand )
     {
         String[] keyValuePairs;
 
-        if (sms.contains("#"))
+        if ( sms.contains( "#" ) )
         {
             keyValuePairs = sms.split( "#" );
         }
@@ -230,8 +231,7 @@ public class J2MEDataValueSMSListener
             storedBy = "[unknown] from [" + sender + "]";
         }
 
-        CategoryOptionCombo optionCombo = dataElementCategoryService
-            .getCategoryOptionCombo( code.getOptionId() );
+        CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
 
         DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgUnit, optionCombo );
 
@@ -285,15 +285,15 @@ public class J2MEDataValueSMSListener
     private void registerCompleteDataSet( DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         String storedBy )
     {
-        CategoryOptionCombo optionCombo = dataElementCategoryService
-            .getDefaultCategoryOptionCombo(); // TODO
+        CategoryOptionCombo optionCombo = dataElementCategoryService.getDefaultCategoryOptionCombo(); // TODO
 
         if ( registrationService.getCompleteDataSetRegistration( dataSet, period, organisationUnit,
             optionCombo ) == null )
         {
             Date now = new Date();
 
-            CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period, organisationUnit, optionCombo, now, storedBy, now, storedBy, true);
+            CompleteDataSetRegistration registration = new CompleteDataSetRegistration( dataSet, period,
+                organisationUnit, optionCombo, now, storedBy, now, storedBy, true );
             registration.setPeriodName( registration.getPeriod().toString() );
 
             registrationService.saveCompleteDataSetRegistration( registration );
@@ -309,8 +309,7 @@ public class J2MEDataValueSMSListener
 
         for ( SMSCode code : command.getCodes() )
         {
-            CategoryOptionCombo optionCombo = dataElementCategoryService
-                .getCategoryOptionCombo( code.getOptionId() );
+            CategoryOptionCombo optionCombo = dataElementCategoryService.getCategoryOptionCombo( code.getOptionId() );
 
             DataValue dv = dataValueService.getDataValue( code.getDataElement(), period, orgunit, optionCombo );
 
@@ -377,7 +376,7 @@ public class J2MEDataValueSMSListener
             }
 
             int month = Integer.parseInt( periodName.substring( 0, dashIndex ) );
-            int year = Integer.parseInt( periodName.substring( dashIndex + 1) );
+            int year = Integer.parseInt( periodName.substring( dashIndex + 1 ) );
 
             Calendar cal = Calendar.getInstance();
             cal.set( Calendar.YEAR, year );
@@ -400,19 +399,20 @@ public class J2MEDataValueSMSListener
 
             int month = 0;
 
-            switch (periodName.substring(0, periodName.indexOf(" "))) {
-                case "Jan":
-                    month = 1;
-                    break;
-                case "Apr":
-                    month = 4;
-                    break;
-                case "Jul":
-                    month = 6;
-                    break;
-                case "Oct":
-                    month = 10;
-                    break;
+            switch ( periodName.substring( 0, periodName.indexOf( " " ) ) )
+            {
+            case "Jan":
+                month = 1;
+                break;
+            case "Apr":
+                month = 4;
+                break;
+            case "Jul":
+                month = 6;
+                break;
+            case "Oct":
+                month = 10;
+                break;
             }
 
             int year = Integer.parseInt( periodName.substring( periodName.lastIndexOf( " " ) + 1 ) );

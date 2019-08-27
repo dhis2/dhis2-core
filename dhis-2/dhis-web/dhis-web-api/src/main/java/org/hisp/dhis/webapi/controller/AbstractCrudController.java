@@ -228,8 +228,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             entities = PagerUtils.pageCollection( entities, pager );
         }
 
-        postProcessEntities( entities );
-        postProcessEntities( entities, options, rpParameters );
+        postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false, currentUser );
 
@@ -509,8 +508,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         for ( T entity : entities )
         {
-            postProcessEntity( entity );
-            postProcessEntity( entity, options, parameters );
+            postProcessResponseEntity( entity, options, parameters );
         }
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
@@ -1065,15 +1063,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Override to process entities after it has been retrieved from
      * storage and before it is returned to the view. Entities is null-safe.
      */
-    protected void postProcessEntities( List<T> entityList, WebOptions options, Map<String, String> parameters )
-    {
-    }
-
-    /**
-     * Override to process entities after it has been retrieved from
-     * storage and before it is returned to the view. Entities is null-safe.
-     */
-    protected void postProcessEntities( List<T> entityList )
+    protected void postProcessResponseEntities( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
     }
 
@@ -1081,15 +1071,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
      * Override to process a single entity after it has been retrieved from
      * storage and before it is returned to the view. Entity is null-safe.
      */
-    protected void postProcessEntity( T entity ) throws Exception
-    {
-    }
-
-    /**
-     * Override to process a single entity after it has been retrieved from
-     * storage and before it is returned to the view. Entity is null-safe.
-     */
-    protected void postProcessEntity( T entity, WebOptions options, Map<String, String> parameters ) throws Exception
+    protected void postProcessResponseEntity( T entity, WebOptions options, Map<String, String> parameters ) throws Exception
     {
     }
 
