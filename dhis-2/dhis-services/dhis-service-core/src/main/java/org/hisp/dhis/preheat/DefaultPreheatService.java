@@ -35,14 +35,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -1003,6 +996,13 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ));
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || isEmbeddedObject( klass ));
+    }
+
+    private boolean isEmbeddedObject( Class<?> klass )
+    {
+        if ( AnalyticalObject.class.isAssignableFrom( klass ) || MetadataObject.class.isAssignableFrom( klass ) )
+            return false;
+        else return  EmbeddedObject.class.isAssignableFrom( klass ) ;
     }
 }

@@ -52,7 +52,7 @@ import java.util.List;
 @Component
 @Order( 10 )
 public class AnalyticalObjectObjectBundleHook
-    extends AbstractObjectBundleHook
+        extends AbstractObjectBundleHook
 {
     @Override
     public void preCreate( IdentifiableObject object, ObjectBundle bundle )
@@ -108,23 +108,23 @@ public class AnalyticalObjectObjectBundleHook
             if ( dataDimensionItem.getReportingRate() != null )
             {
                 dataDimensionItem.getReportingRate().setDataSet( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                    dataDimensionItem.getReportingRate().getDataSet() ) );
+                        dataDimensionItem.getReportingRate().getDataSet() ) );
             }
 
             if ( dataDimensionItem.getProgramDataElement() != null )
             {
                 dataDimensionItem.getProgramDataElement().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                    dataDimensionItem.getProgramDataElement().getProgram() ) );
+                        dataDimensionItem.getProgramDataElement().getProgram() ) );
                 dataDimensionItem.getProgramDataElement().setDataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                    dataDimensionItem.getProgramDataElement().getDataElement() ) );
+                        dataDimensionItem.getProgramDataElement().getDataElement() ) );
             }
 
             if ( dataDimensionItem.getProgramAttribute() != null )
             {
                 dataDimensionItem.getProgramAttribute().setProgram( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                    dataDimensionItem.getProgramAttribute().getProgram() ) );
+                        dataDimensionItem.getProgramAttribute().getProgram() ) );
                 dataDimensionItem.getProgramAttribute().setAttribute( bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                    dataDimensionItem.getProgramAttribute().getAttribute() ) );
+                        dataDimensionItem.getProgramAttribute().getAttribute() ) );
             }
 
             preheatService.connectReferences( dataDimensionItem, bundle.getPreheat(), bundle.getPreheatIdentifier() );
