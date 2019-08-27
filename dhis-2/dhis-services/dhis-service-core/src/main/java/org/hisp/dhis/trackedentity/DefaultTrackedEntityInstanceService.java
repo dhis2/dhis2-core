@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitResolutionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryFilter;
@@ -670,7 +669,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional(readOnly = true)
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
-        Set<String> ou, OrganisationUnitSelectionMode ouMode, OrganisationUnitResolutionMode ouResolution, String program, ProgramStatus programStatus,
+        Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
         Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,
@@ -750,11 +749,6 @@ public class DefaultTrackedEntityInstanceService
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
         }
 
-        if ( ouResolution == OrganisationUnitResolutionMode.OWNERSHIP && program == null )
-        {
-            throw new IllegalQueryException( "Program should be specified to use OWNERSHIP orgUnit resolution mode" );
-        }
-
         if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
             && !assignedUserSelectionMode.equals( AssignedUserSelectionMode.PROVIDED ) )
         {
@@ -774,7 +768,6 @@ public class DefaultTrackedEntityInstanceService
             .setProgramIncidentEndDate( programIncidentEndDate )
             .setTrackedEntityType( te )
             .setOrganisationUnitMode( ouMode )
-            .setOrganisationUnitResolution( ouResolution )
             .setEventStatus( eventStatus )
             .setEventStartDate( eventStartDate )
             .setEventEndDate( eventEndDate )
