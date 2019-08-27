@@ -57,6 +57,7 @@
 package org.hisp.dhis.metadataimport;
 
 import com.google.gson.JsonObject;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
@@ -64,21 +65,22 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.SchemasActions;
 import org.hisp.dhis.actions.system.SystemActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -215,9 +217,27 @@ public class MetadataImportTest
         assertEquals( total, objectReports.size(), "Not all imported entities had object reports" );
     }
 
-    @Test
-    public void shouldImportMetadataAsync()
+    private Stream<Arguments> getPayloads()
         throws Exception
+    {
+
+        ArrayList<Arguments> arguments = new ArrayList<>();
+        JsonObject metadata = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
+
+        JsonObject invalidMetadata = metadata.deepCopy();
+        invalidMetadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
+            .addProperty( "shortName", RandomStringUtils.random( 51 ) );
+
+        arguments.add( Arguments.of( "Valid metadata", metadata ) );
+        arguments.add( Arguments.of( "Invalid metadata", invalidMetadata ) );
+
+        return arguments.stream();
+    }
+
+    @ParameterizedTest( name = "{0}" )
+    @MethodSource( "getPayloads" )
+    public void shouldImportMetadataAsync( String identifier, JsonObject object )
     {
         // arrange
         String params = "?async=false" +
@@ -226,19 +246,16 @@ public class MetadataImportTest
             "&atomicMode=NONE";
 
         // import metadata so that we have references and can clean up
-        JsonObject object = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
-        // act
         ApiResponse response = metadataActions.post( params, object );
 
-        // send async request
         params = params.replace( "async=false", "async=true" );
 
+        // act
         response = metadataActions.post( params, object );
-
         response.validate()
             .statusCode( 200 )
+            .body( not( equalTo( "null" ) ) )
             .body( "response.name", equalTo( "metadataImport" ) )
             .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
 
@@ -255,9 +272,10 @@ public class MetadataImportTest
         response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
 
         response.validate().statusCode( 200 )
+            .body( not( equalTo( "null" ) ) )
             .body( "status", equalTo( "OK" ) )
             .body( "typeReports", notNullValue() )
-            .body( "typeReports.stats.total", everyItem( greaterThan( 0 ) ))
+            .body( "typeReports.stats.total", everyItem( greaterThan( 0 ) ) )
             .body( "typeReports.objectReports", hasSize( greaterThan( 0 ) ) );
     }
 
