@@ -37,7 +37,6 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.OrganisationUnitResolutionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
@@ -176,7 +175,6 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) OrganisationUnitResolutionMode ouResolution,
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Boolean followUp,
@@ -226,7 +224,7 @@ public class TrackedEntityInstanceController
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
         TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits,
-            ouMode, ouResolution, program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
+            ouMode, program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
             trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
             page, pageSize, totalPages, skipPaging, includeDeleted, includeAllAttributes, getOrderParams( order ) );
@@ -391,7 +389,6 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) OrganisationUnitResolutionMode ouResolution,
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Boolean followUp,
@@ -427,7 +424,7 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, ouResolution,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
             trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
@@ -444,7 +441,6 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) OrganisationUnitResolutionMode ouResolution,
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Boolean followUp,
@@ -479,7 +475,7 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, ouResolution,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
             trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
@@ -497,7 +493,6 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) OrganisationUnitResolutionMode ouResolution,
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Boolean followUp,
@@ -532,7 +527,7 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, ouResolution,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
             trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
@@ -550,7 +545,6 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) OrganisationUnitResolutionMode ouResolution,
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Boolean followUp,
@@ -585,7 +579,7 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, ouResolution,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode,
             program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
             trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, skipMeta,
@@ -603,7 +597,6 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam( required = false ) String ou,
         @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) OrganisationUnitResolutionMode ouResolution,
         @RequestParam( required = false ) String program,
         @RequestParam( required = false ) ProgramStatus programStatus,
         @RequestParam( required = false ) Boolean followUp,
@@ -638,7 +631,7 @@ public class TrackedEntityInstanceController
         Set<String> assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
 
         TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits,
-            ouMode, ouResolution, program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
+            ouMode, program, programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
             programEnrollmentStartDate, programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate,
             trackedEntityType, eventStatus, eventStartDate, eventEndDate, assignedUserMode, assignedUsers, true,
             TrackedEntityInstanceQueryParams.DEFAULT_PAGE, Pager.DEFAULT_PAGE_SIZE, true, true,
