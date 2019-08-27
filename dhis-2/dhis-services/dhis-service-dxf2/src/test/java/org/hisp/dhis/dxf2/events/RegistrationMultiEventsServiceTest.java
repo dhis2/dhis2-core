@@ -38,6 +38,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -56,6 +57,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
+import org.joda.time.DateTime;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -285,6 +287,66 @@ public class RegistrationMultiEventsServiceTest
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
 
+        assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
+    }
+
+    @Test
+    public void testSaveEventToCompletedEnrollment()
+    {
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+
+        EventSearchParams params = new EventSearchParams();
+        params.setProgram( programA );
+        params.setOrgUnit( organisationUnitA );
+        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.SELECTED );
+
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        enrollment.setEnrollmentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
+        enrollment.setIncidentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
+
+        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
+
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA.getUid() );
+        event.setEnrollment( enrollment.getEnrollment() );
+
+        importSummary = eventService.addEvent( event, null, false );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        enrollment.setStatus( EnrollmentStatus.COMPLETED );
+        enrollment.setCompletedDate( new DateTime( 2019, 8, 20, 0, 0, 0, 0 ).toDate() );
+        
+        enrollmentService.updateEnrollment( enrollment, null );
+        importSummary = enrollmentService.updateEnrollment( enrollment, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
+        enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );
+        assertEquals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
+
+        event = createEvent( programA.getUid(), programStageB.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
+        event.setEnrollment( enrollment.getEnrollment() );
+
+        importSummary = eventService.addEvent( event, null, false );
+
+        assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
+        assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
+
+        enrollmentService.incompleteEnrollment( enrollment.getEnrollment() );
+        
+        enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );
+        assertEquals( EnrollmentStatus.ACTIVE, enrollment.getStatus() );
+
+        event = createEvent( programA.getUid(), programStageB.getUid(), organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
+        event.setEnrollment( enrollment.getEnrollment() );
+        importSummary = eventService.addEvent( event, null, false );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
     }
 

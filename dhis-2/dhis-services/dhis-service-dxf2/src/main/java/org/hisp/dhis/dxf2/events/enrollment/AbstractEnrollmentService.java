@@ -456,6 +456,26 @@ public abstract class AbstractEnrollmentService
         ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance, program, programStatus,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit, enrollment.getEnrollment() );
 
+        if ( programStatus == ProgramStatus.COMPLETED || programStatus == ProgramStatus.CANCELLED )
+        {
+            Date date = enrollment.getCompletedDate();
+
+            if ( date == null )
+            {
+                date = new Date();
+            }
+
+            String user = enrollment.getCompletedBy();
+
+            if ( user == null )
+            {
+                user = importOptions.getUser().getUsername();
+            }
+
+            programInstance.setCompletedBy( user );
+            programInstance.setEndDate( date );
+        }
+
         programInstanceService.addProgramInstance( programInstance );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment );
@@ -726,12 +746,31 @@ public abstract class AbstractEnrollmentService
 
         if ( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) != enrollment.getStatus() )
         {
+            Date endDate = enrollment.getCompletedDate();
+
+            String user = enrollment.getCompletedBy();
+
+            if ( enrollment.getCompletedDate() == null )
+            {
+                endDate = new Date();
+            }
+
+            if ( user == null )
+            {
+                user = importOptions.getUser().getUsername();
+            }
+
             if ( EnrollmentStatus.CANCELLED == enrollment.getStatus() )
             {
+                programInstance.setEndDate( endDate );
+
                 programInstanceService.cancelProgramInstanceStatus( programInstance );
             }
             else if ( EnrollmentStatus.COMPLETED == enrollment.getStatus() )
             {
+                programInstance.setEndDate( endDate );
+                programInstance.setCompletedBy( user );
+
                 programInstanceService.completeProgramInstanceStatus( programInstance );
             }
             else if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
@@ -1176,6 +1215,12 @@ public abstract class AbstractEnrollmentService
                 comment.setCreator( StringUtils.isEmpty( note.getStoredBy() ) ? User.getSafeUsername( storedBy ) : note.getStoredBy() );
 
                 Date created = DateUtils.parseDate( note.getStoredDate() );
+
+                if ( created == null )
+                {
+                    created = new Date();
+                }
+
                 comment.setCreated( created );
 
                 commentService.addTrackedEntityComment( comment );
@@ -1218,17 +1263,21 @@ public abstract class AbstractEnrollmentService
 
         Date createdAtClient = DateUtils.parseDate( enrollment.getCreatedAtClient() );
 
-        if ( createdAtClient != null )
+        if ( createdAtClient == null )
         {
-            programInstance.setCreatedAtClient( createdAtClient );
+            createdAtClient = new Date();
         }
 
-        String lastUpdatedAtClient = enrollment.getLastUpdatedAtClient();
+        programInstance.setCreatedAtClient( createdAtClient );
 
-        if ( lastUpdatedAtClient != null )
+        Date lastUpdatedAtClient = DateUtils.parseDate( enrollment.getLastUpdatedAtClient() );
+
+        if ( lastUpdatedAtClient == null )
         {
-            programInstance.setLastUpdatedAtClient( DateUtils.parseDate( lastUpdatedAtClient ) );
+            lastUpdatedAtClient = new Date();
         }
+
+        programInstance.setLastUpdatedAtClient( lastUpdatedAtClient );
     }
 
     protected ImportOptions updateImportOptions( ImportOptions importOptions )

@@ -1177,7 +1177,7 @@ public abstract class AbstractEventService
             return new ImportSummary( ImportStatus.ERROR, "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found." );
         }
 
-        errors = validateEventDates( event );
+        errors = validateEvent( event, programStageInstance.getProgramInstance(), importOptions );
 
         if ( !errors.isEmpty() )
         {
@@ -1648,7 +1648,7 @@ public abstract class AbstractEventService
 
         boolean dryRun = importOptions.isDryRun();
 
-        List <String> errors = validateEventDates( event );
+        List <String> errors = validateEvent( event, programInstance, importOptions );
 
         if ( !errors.isEmpty() )
         {
@@ -2455,7 +2455,7 @@ public abstract class AbstractEventService
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
     }
 
-    private List<String> validateEventDates( Event event )
+    private List<String> validateEvent( Event event, ProgramInstance programInstance, ImportOptions importOptions )
     {
         List<String> errors = new ArrayList<>();
 
@@ -2477,6 +2477,28 @@ public abstract class AbstractEventService
         if ( event.getLastUpdatedAtClient() != null && !DateUtils.dateIsValid( event.getLastUpdatedAtClient() ) )
         {
             errors.add( "Invalid event last updated at client date: " + event.getLastUpdatedAtClient() );
+        }
+
+        if ( programInstance.getStatus().equals( ProgramStatus.COMPLETED ) )
+        {
+            if ( importOptions == null || importOptions.getUser() == null || importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
+            {
+                return errors;
+            }
+
+            Date referenceDate = DateUtils.parseDate( event.getCreated() );
+
+            if ( referenceDate == null )
+            {
+                referenceDate = new Date();
+            }
+
+            referenceDate = DateUtils.removeTimeStamp( referenceDate );
+
+            if ( referenceDate.after( DateUtils.removeTimeStamp( programInstance.getEndDate() ) ) )
+            {
+                errors.add( "Not possible to add event to a completed enrollment. Event created date ( " + referenceDate + " ) is after enrollment completed date ( " + DateUtils.removeTimeStamp( programInstance.getEndDate() ) + " )." );
+            }
         }
 
         return errors;
