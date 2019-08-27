@@ -34,6 +34,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.OrganisationUnitResolutionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -153,6 +154,7 @@ public class HibernateTrackedEntityInstanceStore
             .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
             .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
             .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
+            .replaceFirst( "inner join fetch tei.programOwners", "inner join tei.programOwners" )
             .replaceFirst( "order by case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end asc, tei.lastUpdated desc ", "" )
             .replaceFirst( "order by tei.lastUpdated desc ", "" );
     }
@@ -162,9 +164,20 @@ public class HibernateTrackedEntityInstanceStore
         SqlHelper hlp = new SqlHelper( true );
 
         String hql = "select tei from TrackedEntityInstance tei ";
-
+        
+        params.handleOrganisationUnits();
+        
+      //Used for switing between registration org unit or ownership org unit. Default source is registration ou.
+        String teiOuSource = "tei.organisationUnit";
+        
         if ( params.hasProgram() )
         {
+            if ( params.getOrganisationUnitResolution() == OrganisationUnitResolutionMode.OWNERSHIP )
+            {
+                hql += "inner join fetch tei.programOwners as po ";
+                teiOuSource = "po.organisationUnit";
+            }
+            
             hql += "inner join fetch tei.programInstances as pi ";
 
             if ( params.hasFilterForEvents() )
@@ -179,7 +192,12 @@ public class HibernateTrackedEntityInstanceStore
                 hql += hlp.whereAnd() + getEventWhereClauseHql( params );
 
             }
-
+           
+            if ( params.getOrganisationUnitResolution() == OrganisationUnitResolutionMode.OWNERSHIP )
+            {
+                hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
+            }
+            
             hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
 
             if ( params.hasProgramStatus() )
@@ -270,8 +288,7 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasOrganisationUnits() )
         {
-            params.handleOrganisationUnits();
-
+            
             if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
             {
                 String ouClause = "(";
@@ -280,7 +297,7 @@ public class HibernateTrackedEntityInstanceStore
 
                 for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
                 {
-                    ouClause += orHlp.or() + "tei.organisationUnit.path LIKE '" + organisationUnit.getPath() + "%'";
+                    ouClause += orHlp.or() + teiOuSource + ".path LIKE '" + organisationUnit.getPath() + "%'";
                 }
 
                 ouClause += ")";
@@ -289,7 +306,7 @@ public class HibernateTrackedEntityInstanceStore
             }
             else
             {
-                hql += hlp.whereAnd() + "tei.organisationUnit.uid in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
+                hql += hlp.whereAnd() + teiOuSource + ".uid in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
             }
         }
 
@@ -479,8 +496,19 @@ public class HibernateTrackedEntityInstanceStore
         String sql = "from trackedentityinstance tei "
             + "inner join trackedentitytype te on tei.trackedentitytypeid = te.trackedentitytypeid ";
 
+        params.handleOrganisationUnits();
+        
+        //Used for switing between registration org unit or ownership org unit. Default source is registration ou.
+        String orgUnitSource = "tei.organisationunitid";
+        
         if ( params.hasProgram() )
         {
+            if ( params.getOrganisationUnitResolution() == OrganisationUnitResolutionMode.OWNERSHIP )
+            {
+                sql += "inner join (select trackedentityinstanceid, organisationunitid from trackedentityprogramowner where programid = ";
+                sql += params.getProgram().getId() + ") as tepo ON tei.trackedentityinstanceid = tepo.trackedentityinstanceid ";
+                orgUnitSource = "tepo.organisationunitid";
+            }   
             sql += "inner join ("
                 + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
                 + "from programinstance pi ";
@@ -539,7 +567,7 @@ public class HibernateTrackedEntityInstanceStore
             sql += " group by trackedentityinstanceid ) as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
         }
 
-        sql += "inner join organisationunit ou on tei.organisationunitid = ou.organisationunitid ";
+        sql += "inner join organisationunit ou on " + orgUnitSource + " = ou.organisationunitid ";
 
         for ( QueryItem item : params.getAttributesAndFilters() )
         {
@@ -570,8 +598,6 @@ public class HibernateTrackedEntityInstanceStore
             sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
         }
 
-        params.handleOrganisationUnits();
-
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
         {
             // No restriction
@@ -593,7 +619,7 @@ public class HibernateTrackedEntityInstanceStore
         }
         else // SELECTED (default)
         {
-            sql += hlp.whereAnd() + " tei.organisationunitid in ("
+            sql += hlp.whereAnd() + " " + orgUnitSource + " in ("
                 + getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) ) + ") ";
         }
 

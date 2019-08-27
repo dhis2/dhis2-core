@@ -36,6 +36,8 @@ import java.util.Set;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -43,6 +45,7 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
+import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
 
@@ -139,6 +142,29 @@ public class PartitionUtils
     }
 
     /**
+     * Returns partitions for the given {@link DataQueryParams} and
+     * {@link AnalyticsTableType}. Includes a "latest" partition depending
+     * on the given table type.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param tableType the {@link AnalyticsTableType}.
+     * @return partitions for query and planner parameters.
+     */
+    public static Partitions getPartitions( DataQueryParams params, AnalyticsTableType tableType )
+    {
+        Partitions partitions = params.hasStartEndDate() ?
+            getPartitions( params.getStartDate(), params.getEndDate() ) :
+            getPartitions( params.getAllPeriods() );
+
+        if ( tableType.hasLatestPartition() )
+        {
+            partitions.add( AnalyticsTablePartition.LATEST_PARTITION );
+        }
+
+        return partitions;
+    }
+
+    /**
      * Returns the years which the given period spans.
      *
      * @param period the period.
@@ -204,6 +230,21 @@ public class PartitionUtils
         }
 
         return partitions;
+    }
+
+    /**
+     * Returns the latest table partition based on the given list. Expects a single
+     * analytics table in the given list.
+     *
+     * @param tables list of {@link AnalyticsTable}.
+     * @return the  {@link AnalyticsTablePartition}.
+     * @throws IllegalArgumentException if the given list does not contain exactly one item.
+     */
+    public static AnalyticsTablePartition getLatestTablePartition( List<AnalyticsTable> tables )
+    {
+        Assert.isTrue( tables.size() == 1, "Expecting a single analytics table in list" );
+
+        return tables.get( 0 ).getLatestPartition();
     }
 
     /**

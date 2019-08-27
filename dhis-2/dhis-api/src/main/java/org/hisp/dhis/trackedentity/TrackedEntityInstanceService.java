@@ -31,6 +31,7 @@ package org.hisp.dhis.trackedentity;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitResolutionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
@@ -162,7 +163,7 @@ public interface TrackedEntityInstanceService
      * @return a TrackedEntityInstanceQueryParams.
      */
     TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
-        Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
+        Set<String> ou, OrganisationUnitSelectionMode ouMode, OrganisationUnitResolutionMode ouResolution, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStart, Date lastUpdatedEndDate, String lastUpdatedDuration,
         Date programEnrollmentStartDate, Date programEnrollmentEndDate, Date programIncidentStartDate,
         Date programIncidentEndDate, String trackedEntityType, EventStatus eventStatus, Date eventStartDate,

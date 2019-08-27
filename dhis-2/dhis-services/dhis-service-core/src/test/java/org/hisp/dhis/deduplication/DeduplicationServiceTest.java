@@ -38,6 +38,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -154,7 +155,7 @@ public class DeduplicationServiceTest
         deduplicationService.addPotentialDuplicate( pd2 );
         deduplicationService.addPotentialDuplicate( pd3 );
 
-        query.setTei( "ABCDEFGHIJ1" );
+        query.setTeis( Arrays.asList( "ABCDEFGHIJ1") );
 
         List<PotentialDuplicate> list = deduplicationService.getAllPotentialDuplicates( query );
 
@@ -176,13 +177,13 @@ public class DeduplicationServiceTest
         deduplicationService.addPotentialDuplicate( pd2 );
         deduplicationService.addPotentialDuplicate( pd3 );
 
-        query.setTei( "ABCDEFGHIJ1" );
+        query.setTeis( Arrays.asList( "ABCDEFGHIJ1" ) );
 
         int count = deduplicationService.countPotentialDuplicates( query );
 
         assertEquals( 2, count );
 
-        query.setTei( "ABCDEFGHIJ2" );
+        query.setTeis( Arrays.asList( "ABCDEFGHIJ2" ) );
         count = deduplicationService.countPotentialDuplicates( query );
 
         assertEquals( 1, count );

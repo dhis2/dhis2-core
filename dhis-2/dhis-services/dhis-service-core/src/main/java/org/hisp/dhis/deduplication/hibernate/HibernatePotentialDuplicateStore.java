@@ -61,13 +61,11 @@ public class HibernatePotentialDuplicateStore
     @Override
     public int getCountByQuery( PotentialDuplicateQuery query )
     {
-        if ( query.getTei() != null )
+        if ( query.getTeis() != null && query.getTeis().size() > 0 )
         {
             Query<Long> hibernateQuery = getTypedQuery(
-                "select count(*) from PotentialDuplicate pr where pr.teiA = :tei or pr.teiB = :tei" );
-
-            hibernateQuery.setParameter( "tei", query.getTei() );
-
+                "select count(*) from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
+            hibernateQuery.setParameterList( "uids", query.getTeis() );
             return hibernateQuery.getSingleResult().intValue();
         }
         else
@@ -79,13 +77,10 @@ public class HibernatePotentialDuplicateStore
     @Override
     public List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query )
     {
-        if ( query.getTei() != null )
+        if ( query.getTeis() != null && query.getTeis().size() > 0 )
         {
-            Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                "from PotentialDuplicate pr where pr.teiA = :tei or pr.teiB = :tei" );
-
-            hibernateQuery.setParameter( "tei", query.getTei() );
-
+            Query<PotentialDuplicate> hibernateQuery = getTypedQuery( "from PotentialDuplicate pr where pr.teiA in (:uids)  or pr.teiB in (:uids)" );
+            hibernateQuery.setParameterList( "uids", query.getTeis() );
             return hibernateQuery.getResultList();
         }
         else

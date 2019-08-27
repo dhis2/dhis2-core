@@ -72,7 +72,7 @@ public class AnalyticsTable
     // Constructors
     // -------------------------------------------------------------------------
 
-    protected AnalyticsTable()
+    public AnalyticsTable()
     {
     }
 
@@ -148,6 +148,13 @@ public class AnalyticsTable
     public boolean hasPartitionTables()
     {
         return !tablePartitions.isEmpty();
+    }
+
+    public AnalyticsTablePartition getLatestPartition()
+    {
+        return tablePartitions.stream()
+            .filter( AnalyticsTablePartition::isLatestPartition )
+            .findAny().orElse( null );
     }
 
     // -------------------------------------------------------------------------
