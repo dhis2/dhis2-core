@@ -216,6 +216,39 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
+    public void testCreateSimpleProgramRegNextScheduleDate() throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_reg1_valid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+
+        params.setObjects( metadata );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertTrue( validate.getErrorReports().isEmpty() );
+
+        objectBundleService.commit( bundle );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_reg1_invalid_nextschedule.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new ObjectBundleParams();
+        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+
+        params.setObjects( metadata );
+
+        bundle = objectBundleService.create( params );
+        validate = objectBundleValidationService.validate( bundle );
+        validate.getErrorReports().forEach( System.out::println );
+        assertFalse( validate.getErrorReports().isEmpty() );
+    }
+
+    @Test
     public void testValidateTrackedEntityAttributeSecurityNotShared()
         throws IOException
     {

@@ -62,13 +62,13 @@ public class ProgramStageObjectBundleHook
 
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( programStage.getNextScheduleDate() != null
-            && programStage.getDataElements().contains( programStage.getNextScheduleDate() ) )
+        if ( programStage.getNextScheduleDate() != null )
         {
             DataElement nextScheduleDate = bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class,
                 programStage.getNextScheduleDate().getUid() );
 
-            if ( nextScheduleDate == null || !nextScheduleDate.getValueType().equals( ValueType.DATE ) )
+            if ( !programStage.getDataElements().contains( programStage.getNextScheduleDate() )
+                || nextScheduleDate == null || !nextScheduleDate.getValueType().equals( ValueType.DATE ) )
             {
                 errors.add( new ErrorReport( ProgramStage.class, ErrorCode.E6001, programStage.getUid(),
                     programStage.getNextScheduleDate().getUid() ) );
