@@ -322,42 +322,33 @@ public class RegistrationMultiEventsServiceTest
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setCompletedDate( new DateTime( 2019, 8, 20, 0, 0, 0, 0 ).toDate() );
         
+        enrollmentService.updateEnrollment( enrollment, null );
+        importSummary = enrollmentService.updateEnrollment( enrollment, null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+
         enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );
         assertEquals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
 
-        importSummary = enrollmentService.updateEnrollment( enrollment, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         event = createEvent( programA.getUid(), programStageB.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         event.setEnrollment( enrollment.getEnrollment() );
 
         importSummary = eventService.addEvent( event, null, false );
+
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
 
-        enrollment.setStatus( EnrollmentStatus.ACTIVE );
-        importSummary = enrollmentService.updateEnrollment( enrollment, null );
+        enrollmentService.incompleteEnrollment( enrollment.getEnrollment() );
         
-        enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
+        enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );
         assertEquals( EnrollmentStatus.ACTIVE, enrollment.getStatus() );
-
-        enrollment.setStatus( EnrollmentStatus.COMPLETED );
-        enrollment.setCompletedDate( new DateTime( 2019, 8, 27, 0, 0, 0, 0 ).toDate() );
-        importSummary = enrollmentService.updateEnrollment( enrollment, null );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        
-        enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
-        
-        assertEquals( EnrollmentStatus.COMPLETED, enrollment.getStatus() );
 
         event = createEvent( programA.getUid(), programStageB.getUid(), organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementB.getUid() );
         event.setEnrollment( enrollment.getEnrollment() );
-
         importSummary = eventService.addEvent( event, null, false );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
     }
 
