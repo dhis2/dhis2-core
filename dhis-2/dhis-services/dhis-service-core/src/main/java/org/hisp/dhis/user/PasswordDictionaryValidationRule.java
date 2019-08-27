@@ -39,7 +39,10 @@ import java.util.List;
 public class PasswordDictionaryValidationRule
         implements PasswordValidationRule
 {
-    List<String> dictionary = Arrays.asList( "user", "admin", "system", "administrator", "username", "password", "login", "manager");
+    public static final String ERROR = "Password must not have any generic word";
+    public static final String I18_ERROR = "password_dictionary_validation";
+
+    private static final List<String> DICTIONARY = Arrays.asList( "user", "admin", "system", "administrator", "username", "password", "login", "manager");
 
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
@@ -50,11 +53,16 @@ public class PasswordDictionaryValidationRule
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
-        for ( String reserved : dictionary )
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
+        for ( String reserved : DICTIONARY )
         {
             if ( StringUtils.containsIgnoreCase( credentialsInfo.getPassword(), reserved ) )
             {
-                return new PasswordValidationResult( "Password must not have any generic word", "password_dictionary_validation", false );
+                return new PasswordValidationResult( ERROR, I18_ERROR, false );
             }
         }
 

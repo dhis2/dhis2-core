@@ -36,6 +36,9 @@ import org.apache.commons.lang.StringUtils;
 public class UserParameterValidationRule
     implements PasswordValidationRule
 {
+    public static final String ERROR = "Username/Email must not be a part of password";
+    private static final String I18_ERROR = "password_username_validation";
+
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
     {
@@ -49,10 +52,16 @@ public class UserParameterValidationRule
         String password = credentialsInfo.getPassword();
         String username = credentialsInfo.getUsername();
 
-        if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
-            StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
+        if ( StringUtils.isBlank( email ) || StringUtils.isBlank( password ) || StringUtils.isBlank( username ) )
         {
-            return new PasswordValidationResult( "Username/Email must not be a part of password", "password_username_validation", false );
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
+        // Password should not contain part of either username or email
+        if ( StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( username, null ) ) ||
+                StringUtils.containsIgnoreCase( password, StringUtils.defaultIfEmpty( email, null ) ) )
+        {
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
         }
 
         return new PasswordValidationResult( true );

@@ -28,6 +28,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.regex.Pattern;
 
 /**
@@ -37,12 +39,20 @@ public class UpperCasePatternValidationRule implements PasswordValidationRule
 {
     private static final Pattern UPPERCASE_PATTERN = Pattern.compile( ".*[A-Z].*" );
 
+    public static final String ERROR = "Password must have at least one upper case";
+    public static final String I18_ERROR = "password_uppercase_validation";
+
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
         if ( !UPPERCASE_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
         {
-            return new PasswordValidationResult( "Password must have at least one upper case", "password_uppercase_validation",false );
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
         }
 
         return new PasswordValidationResult( true );
