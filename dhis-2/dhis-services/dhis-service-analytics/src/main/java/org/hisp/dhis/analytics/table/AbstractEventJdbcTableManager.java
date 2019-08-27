@@ -153,7 +153,7 @@ public abstract class AbstractEventJdbcTableManager
     @Override
     protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
     {
-        return false;
+        throw new IllegalStateException( "This method should never be invoked" );
     }
 
     /**
