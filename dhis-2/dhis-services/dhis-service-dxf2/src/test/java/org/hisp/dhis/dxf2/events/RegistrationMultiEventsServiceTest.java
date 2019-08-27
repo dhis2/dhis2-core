@@ -1,7 +1,5 @@
 package org.hisp.dhis.dxf2.events;
 
-import org.apache.http.impl.cookie.DateUtils;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
