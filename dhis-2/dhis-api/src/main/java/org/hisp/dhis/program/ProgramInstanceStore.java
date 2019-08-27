@@ -106,12 +106,12 @@ public interface ProgramInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of deleted ProgramInstances from the provided UIDs
+     * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
      *
      * @param uids PSI UIDs to check
-     * @return Set containing UIDs of PSIs that are deleted
+     * @return Set containing UIDs of existing PSIs (including deleted)
      */
-    List<String> getIncludingDeleted( List<String> uids );
+    List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
      * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.

@@ -244,7 +244,7 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<String> getIncludingDeleted( List<String> uids )
+    public List<String> getUidsIncludingDeleted( List<String> uids )
     {
         if ( !uids.isEmpty() )
         {

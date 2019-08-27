@@ -407,7 +407,7 @@ public abstract class AbstractEnrollmentService
 
     private void checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )
     {
-        List<String> foundEnrollments = programInstanceService.getProgramInstancesIncludingDeleted( enrollments.stream()
+        List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted( enrollments.stream()
             .map( Enrollment::getEnrollment )
             .collect( Collectors.toList() ) );
 

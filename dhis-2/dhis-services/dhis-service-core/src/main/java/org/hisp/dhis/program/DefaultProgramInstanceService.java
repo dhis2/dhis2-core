@@ -189,9 +189,9 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getProgramInstancesIncludingDeleted( List<String> uids )
+    public List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids )
     {
-        return programInstanceStore.getIncludingDeleted( uids );
+        return programInstanceStore.getUidsIncludingDeleted( uids );
     }
 
     @Override
