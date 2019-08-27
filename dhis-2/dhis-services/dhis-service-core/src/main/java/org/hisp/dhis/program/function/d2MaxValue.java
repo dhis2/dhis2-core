@@ -1,7 +1,7 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.program.function;
 
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,15 @@ package org.hisp.dhis.commons.sqlfunc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 /**
- * Function which evaluates conditional statements.
- *
- * @author Lars Helge Overland
+ * @Author Zubair Asghar.
  */
-public class ConditionalSqlFunction
-    implements SqlFunction
+public class d2MaxValue extends ProgramMinMaxFunction
 {
-    public static final String KEY = "condition";
-
     @Override
-    public String evaluate( String... args )
+    public String getAggregationOperator()
     {
-        if ( args == null || args.length != 3 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 3 arguments: condition, true-value, false-value" );
-        }
-
-        String condition = args[0];
-        String trueValue = args[1];
-        String falseValue = args[2];
-
-        String conditional = condition.replaceAll( "^\"|^'|\"$|'$", "" ).replaceAll( "==", "=" );
-
-        return "case when (" + conditional + ") then " + trueValue + " else " + falseValue + " end";
-    }
-    
-    public String getSampleValue()
-    {
-        return "1";
+        return "max";
     }
 }

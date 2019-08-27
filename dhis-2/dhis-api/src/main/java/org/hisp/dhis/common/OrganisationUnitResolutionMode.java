@@ -1,4 +1,4 @@
-package org.hisp.dhis.commons.sqlfunc;
+package org.hisp.dhis.common;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -29,31 +29,16 @@ package org.hisp.dhis.commons.sqlfunc;
  */
 
 /**
- * Function which evaluates numerical values to zero if negative or null, unchanged
- * if zero or positive.
- *
- * @author Lars Helge Overland
+ * Defines which orgunit field is used when querying teis
+ * 
+ * <ul>
+ * <li>REGISTRATION: prgunits resolved on registration org units.</li>
+ * <li>OWNERSHIP: orgunits resolved on ownership org units.</li>
+ * </ul>
+ * 
+ * @author Ameen Mohamed
  */
-public class ZeroIfNegativeSqlFunction
-    implements SqlFunction
+public enum OrganisationUnitResolutionMode
 {
-    public static final String KEY = "zing";
-
-    @Override
-    public String evaluate( String... args )
-    {
-        if ( args == null || args.length != 1 )
-        {
-            throw new IllegalArgumentException( "Illegal arguments, expected 1 argument: value" );
-        }
-
-        String value = args[0];
-
-        return "coalesce(case when " + value + " < 0 then 0 else " + value + " end, 0)";
-    }
-    
-    public String getSampleValue()
-    {
-        return "1";
-    }
+    REGISTRATION, OWNERSHIP
 }

@@ -79,7 +79,7 @@ public interface QueryPlanner
      * @param params the data query parameters
      * @return a data query parameters
      */
-    DataQueryParams assignPartitionsFromQueryPeriods( DataQueryParams params );
+    DataQueryParams assignPartitionsFromQueryPeriods( DataQueryParams params, AnalyticsTableType tableType );
 
     /**
      * If organisation units appear as dimensions; groups the given query into

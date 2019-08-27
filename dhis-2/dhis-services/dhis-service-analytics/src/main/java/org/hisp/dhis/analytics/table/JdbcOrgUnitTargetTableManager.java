@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -99,7 +100,9 @@ public class JdbcOrgUnitTargetTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        return Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
+        return params.isLatestUpdate() ?
+            Lists.newArrayList() :
+            Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -112,6 +115,12 @@ public class JdbcOrgUnitTargetTableManager
     public String validState()
     {
         return null;
+    }
+
+    @Override
+    protected boolean hasUpdatedLatestData( Date startDate, Date endDate )
+    {
+        return false;
     }
 
     @Override
