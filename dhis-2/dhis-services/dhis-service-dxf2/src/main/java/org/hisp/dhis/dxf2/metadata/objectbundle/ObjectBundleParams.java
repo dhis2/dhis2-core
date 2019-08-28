@@ -80,6 +80,8 @@ public class ObjectBundleParams
 
     private boolean skipValidation;
 
+    private boolean metadataSyncImport;
+
     private JobConfiguration jobId;
 
     public ObjectBundleParams()
@@ -228,6 +230,14 @@ public class ObjectBundleParams
     {
         this.skipValidation = skipValidation;
         return this;
+    }
+
+    public boolean isMetadataSyncImport() {
+        return metadataSyncImport;
+    }
+
+    public void setMetadataSyncImport(boolean metadataSyncImport) {
+        this.metadataSyncImport = metadataSyncImport;
     }
 
     public JobConfiguration getJobId()
