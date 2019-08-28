@@ -28,6 +28,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.regex.Pattern;
 
 /**
@@ -38,12 +40,20 @@ public class SpecialCharacterValidationRule
 {
     private static final Pattern SPECIAL_CHARACTER = Pattern.compile( ".*[^A-Za-z0-9].*" );
 
+    public static final String ERROR = "Password must have at least one special character";
+    public static final String I18_ERROR = "password_specialcharacter_validation";
+
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
         if ( !SPECIAL_CHARACTER.matcher( credentialsInfo.getPassword() ).matches() )
         {
-            return new PasswordValidationResult( "Password must have at least one special character", "password_specialcharacter_validation",false );
+            return new PasswordValidationResult( ERROR, I18_ERROR ,false );
         }
 
         return new PasswordValidationResult( true );

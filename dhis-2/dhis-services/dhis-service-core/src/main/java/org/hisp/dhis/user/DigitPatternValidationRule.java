@@ -28,6 +28,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.regex.Pattern;
 
 /**
@@ -37,12 +39,20 @@ public class DigitPatternValidationRule implements PasswordValidationRule
 {
     private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
 
+    public static final String ERROR = "Password must have at least one digit";
+    private static final String I18_ERROR = "password_digit_validation";
+
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
         if ( !DIGIT_PATTERN.matcher( credentialsInfo.getPassword() ).matches() )
         {
-            return new PasswordValidationResult( "Password must have at least one digit", "password_digit_validation", false );
+            return new PasswordValidationResult( ERROR, I18_ERROR, false );
         }
 
         return new PasswordValidationResult( true );

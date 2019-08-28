@@ -28,6 +28,7 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,12 +38,25 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class PasswordLengthValidationRule implements PasswordValidationRule
 {
+    public static final String ERROR = "Password must have at least %d, and at most %d characters";
+    private static final String I18_ERROR = "password_length_validation";
+
+    private final SystemSettingManager systemSettingManager;
+
     @Autowired
-    private SystemSettingManager systemSettingManager;
+    public PasswordLengthValidationRule( SystemSettingManager systemSettingManager )
+    {
+        this.systemSettingManager = systemSettingManager;
+    }
 
     @Override
     public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
     {
+        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
+        {
+            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
+        }
+
         int minCharLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH );
 
         int maxCharLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH );
@@ -51,8 +65,7 @@ public class PasswordLengthValidationRule implements PasswordValidationRule
 
         if ( password.trim().length() < minCharLimit || password.trim().length() > maxCharLimit )
         {
-            return new PasswordValidationResult( String.format(
-                    "Password must have at least %d, and at most %d characters", minCharLimit, maxCharLimit ), "password_length_validation", false );
+            return new PasswordValidationResult( String.format( ERROR, minCharLimit, maxCharLimit ), I18_ERROR, false );
         }
 
         return new PasswordValidationResult( true );
