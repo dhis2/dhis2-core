@@ -407,17 +407,21 @@ public abstract class AbstractEnrollmentService
 
     private void checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )
     {
-        List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted( enrollments.stream()
-            .map( Enrollment::getEnrollment )
-            .collect( Collectors.toList() ) );
+        List<List<Enrollment>> enrollmentsPartitions = Lists.partition( Lists.newArrayList( enrollments ), 20000 );
 
-        if ( !foundEnrollments.isEmpty() )
+        for ( List<Enrollment> partition : enrollmentsPartitions )
         {
-            for ( String foundEnrollmentUid : foundEnrollments )
+            List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted(
+                partition.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
+
+            if ( !foundEnrollments.isEmpty() )
             {
-                ImportSummary is = new ImportSummary( ImportStatus.ERROR,
-                    "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier" ).setReference( foundEnrollmentUid ).incrementIgnored();
-                importSummaries.addImportSummary( is );
+                for ( String foundEnrollmentUid : foundEnrollments )
+                {
+                    ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+                        "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier" ).setReference( foundEnrollmentUid ).incrementIgnored();
+                    importSummaries.addImportSummary( is );
+                }
             }
         }
     }
