@@ -180,9 +180,21 @@ public class DefaultQueryItemLocator implements QueryItemLocator
 
         ProgramIndicator pi = programIndicatorService.getProgramIndicatorByUid( getSecondElement( dimension ) );
 
-        if ( pi != null && program.getProgramIndicators().contains( pi ) )
+        // only allow a program indicator from a different program to be add, when a relationship type is present
+        if ( pi != null )
         {
-            qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null, relationshipType);
+            if ( relationshipType != null )
+            {
+                qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null,
+                    relationshipType );
+            }
+            else
+            {
+                if ( program.getProgramIndicators().contains( pi ) )
+                {
+                    qi = new QueryItem( pi, program, legendSet, ValueType.NUMBER, pi.getAggregationType(), null );
+                }
+            }
         }
 
         return Optional.ofNullable( qi );

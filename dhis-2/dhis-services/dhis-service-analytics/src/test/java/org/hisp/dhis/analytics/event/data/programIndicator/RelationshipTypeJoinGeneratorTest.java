@@ -56,7 +56,7 @@ public class RelationshipTypeJoinGeneratorTest
 
     private final static String PI_JOIN = " ax.pi in (select pi.uid from programinstance pi LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid ";
 
-    private final static String PSI_JOIN = " ax.pi in (select pi.uid from programstageinstance psi LEFT JOIN relationshipitem ri on psi.programstageinstance = ri.programinstanceid ";
+    private final static String PSI_JOIN = " ax.pi in (select psi.uid from programstageinstance psi LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programinstanceid ";
 
     @Test
     public void verifyTeiToTei()

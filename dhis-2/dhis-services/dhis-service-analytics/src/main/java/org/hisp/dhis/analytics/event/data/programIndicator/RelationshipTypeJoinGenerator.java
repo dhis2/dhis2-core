@@ -150,8 +150,8 @@ public class RelationshipTypeJoinGenerator
 
     private static String getEvent( RelationshipType relationshipType )
     {
-        return " ax.pi in (select pi.uid from programstageinstance psi"
-            + " LEFT JOIN relationshipitem ri on psi.programstageinstance = ri.programinstanceid "
+        return " ax.pi in (select psi.uid from programstageinstance psi"
+            + " LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programinstanceid "
             + addRelationshipJoinClause( relationshipType.getId() );
     }
 
