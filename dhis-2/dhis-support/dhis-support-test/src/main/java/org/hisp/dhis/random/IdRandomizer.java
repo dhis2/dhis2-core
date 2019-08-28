@@ -1,5 +1,3 @@
-package org.hisp.dhis.parser.expression.operator;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,27 +26,23 @@ package org.hisp.dhis.parser.expression.operator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+package org.hisp.dhis.random;
+
+import org.apache.commons.lang3.RandomUtils;
+import org.hisp.dhis.common.CodeGenerator;
+
+import io.github.benas.randombeans.api.Randomizer;
 
 /**
- * Expression compare operator: equal
- *
- * @author Jim Grace
+ * @author Luciano Fiandesio
  */
-public class OperatorCompareEqual
-    extends
-    OperatorCompare
+public class IdRandomizer
+    implements
+    Randomizer<Long>
 {
     @Override
-    public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
+    public Long getRandomValue()
     {
-        return compare( ctx, visitor ) == 0;
-    }
-
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return visitor.castStringVisit( ctx.expr( 0 ) ) + " = " + visitor.castStringVisit( ctx.expr( 1 ) );
+        return RandomUtils.nextLong( 1, 100000 );
     }
 }

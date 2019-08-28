@@ -175,6 +175,20 @@ public interface ProgramIndicatorService
     String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate );
 
     /**
+     * Gets the the analytics SQL clause of an expression.
+     * Does not ignore missing numeric values for data elements and attributes.
+     *
+     * @param expression the expression.
+     * @param programIndicator the program indicator to evaluate.
+     * @param startDate the start date.
+     * @param endDate the end date.
+     * @param tableAlias use this table alias for expression returning a inner query
+     * @return the SQL string.
+     */
+
+    String getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias );
+
+    /**
      * Returns a SQL clause which matches any value for the data elements and
      * attributes in the given expression.
      *
