@@ -56,7 +56,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -246,16 +246,20 @@ public class HibernateProgramInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        if ( !uids.isEmpty() )
-        {
-            String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
+        String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
+        List<String> resultUids = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
-            return getSession().createQuery( hql, String.class ).setParameter( "uids", uids ).list();
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+            }
         }
 
-        return Collections.emptyList();
+        return resultUids;
     }
-
 
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )

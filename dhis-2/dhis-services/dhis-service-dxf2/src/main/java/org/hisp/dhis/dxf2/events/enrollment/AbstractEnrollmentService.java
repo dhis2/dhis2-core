@@ -376,15 +376,16 @@ public abstract class AbstractEnrollmentService
     @Override
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
-        List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
 
-        checkForExistingEnrollmentsIncludingDeleted( enrollments, importSummaries );
-        if ( importSummaries.getIgnored() > 0 )
-        {
-            return importSummaries;
-        }
+        List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments, importSummaries );
+
+        List<Enrollment> validEnrollments = enrollments.stream()
+            .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
+            .collect( Collectors.toList());
+
+        List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
 
         for ( List<Enrollment> _enrollments : partitions )
         {
@@ -405,25 +406,19 @@ public abstract class AbstractEnrollmentService
         return importSummaries;
     }
 
-    private void checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )
+    private List<String> checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )
     {
-        List<List<Enrollment>> enrollmentsPartitions = Lists.partition( Lists.newArrayList( enrollments ), 20000 );
+        List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted(
+            enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
 
-        for ( List<Enrollment> partition : enrollmentsPartitions )
+        for ( String foundEnrollmentUid : foundEnrollments )
         {
-            List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted(
-                partition.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
-
-            if ( !foundEnrollments.isEmpty() )
-            {
-                for ( String foundEnrollmentUid : foundEnrollments )
-                {
-                    ImportSummary is = new ImportSummary( ImportStatus.ERROR,
-                        "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier" ).setReference( foundEnrollmentUid ).incrementIgnored();
-                    importSummaries.addImportSummary( is );
-                }
-            }
+            ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+                "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier" ).setReference( foundEnrollmentUid ).incrementIgnored();
+            importSummaries.addImportSummary( is );
         }
+
+        return foundEnrollments;
     }
 
     @Override
