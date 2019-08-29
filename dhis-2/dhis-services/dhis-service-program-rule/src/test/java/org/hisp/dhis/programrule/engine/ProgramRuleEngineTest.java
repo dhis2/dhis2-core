@@ -237,7 +237,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSendMessageForEnrollment() throws Exception
+    public void testSendMessageForEnrollment()
     {
         setUpSendMessageForEnrollment();
 
@@ -257,7 +257,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSendMessageForEvent() throws Exception
+    public void testSendMessageForEvent()
     {
         setUpSendMessageForEnrollment();
 
@@ -277,7 +277,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSchedulingByProgramRule() throws Exception
+    public void testSchedulingByProgramRule()
     {
         setUpScheduleMessage();
 
