@@ -94,6 +94,8 @@ import org.hisp.staxwax.factory.XMLFactory;
 import com.google.common.collect.ImmutableSet;
 import org.springframework.stereotype.Service;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -150,6 +152,23 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         AggregateAccessManager accessManager, DataSetNotificationEventPublisher notificationPublisher,
         MessageService messageService )
     {
+        checkNotNull( cdsrStore );
+        checkNotNull( idObjManager );
+        checkNotNull( orgUnitService );
+        checkNotNull( notifier );
+        checkNotNull( i18nManager );
+        checkNotNull( batchHandlerFactory );
+        checkNotNull( systemSettingManager );
+        checkNotNull( systemSettingManager );
+        checkNotNull( categoryService );
+        checkNotNull( periodService );
+        checkNotNull( currentUserService );
+        checkNotNull( registrationService );
+        checkNotNull( inputUtils );
+        checkNotNull( accessManager );
+        checkNotNull( notificationPublisher );
+        checkNotNull( messageService );
+        
         this.cdsrStore = cdsrStore;
         this.idObjManager = idObjManager;
         this.orgUnitService = orgUnitService;
@@ -427,8 +446,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         // Set up meta-data
         // ---------------------------------------------------------------------
 
-        MetaDataCaches caches = new MetaDataCaches();
-        MetaDataCallables metaDataCallables = new MetaDataCallables( cfg, this.idObjManager, this.periodService,
+        MetadataCaches caches = new MetadataCaches();
+        MetadataCallables metaDataCallables = new MetadataCallables( cfg, this.idObjManager, this.periodService,
             this.categoryService );
 
         if ( importOptions.isPreheatCacheDefaultFalse() )
@@ -460,10 +479,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     /**
      * @return total number of processed CompleteDataSetRegistration objects
      */
-    private int batchImport( CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
-        ImportSummary summary, MetaDataCallables mdCallables, MetaDataCaches mdCaches )
+    private int batchImport(CompleteDataSetRegistrations completeRegistrations, ImportConfig config,
+                            ImportSummary summary, MetadataCallables mdCallables, MetadataCaches mdCaches )
     {
-        final String currentUser = currentUserService.getCurrentUsername();
+        final User currentUser = currentUserService.getCurrentUser();
+        final String currentUserName = currentUser.getUsername();
         final Set<OrganisationUnit> userOrgUnits = currentUserService.getCurrentUserOrganisationUnits();
         final I18n i18n = i18nManager.getI18n();
 
@@ -484,7 +504,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // Init meta-data properties against meta-data cache
             // ---------------------------------------------------------------------
 
-            MetaDataProperties mdProps = initMetaDataProperties( cdsr, mdCallables, mdCaches );
+            MetadataProperties mdProps = initMetaDataProperties( cdsr, mdCallables, mdCaches );
 
             heatCaches( mdCaches, config );
 
@@ -501,7 +521,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 // Validate CDSR meta-data properties
 
                 mdProps.validate( cdsr, config );
-                validateOrgUnitInUserHierarchy( mdCaches, mdProps, userOrgUnits, currentUser );
+                validateOrgUnitInUserHierarchy( mdCaches, mdProps, userOrgUnits, currentUserName );
 
                 // Constraints validation
 
@@ -524,11 +544,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                 storedBy = cdsr.getStoredBy();
                 validateStoredBy( storedBy, i18n );
-                storedBy = StringUtils.isBlank( storedBy ) ? currentUser : storedBy;
+                storedBy = StringUtils.isBlank( storedBy ) ? currentUserName : storedBy;
 
                 lastUpdatedBy = cdsr.getLastUpdatedBy();
                 validateStoredBy( lastUpdatedBy, i18n );
-                lastUpdatedBy = StringUtils.isBlank( lastUpdatedBy ) ? currentUser : lastUpdatedBy;
+                lastUpdatedBy = StringUtils.isBlank( lastUpdatedBy ) ? currentUserName : lastUpdatedBy;
 
                 cdsr.setLastUpdatedBy( lastUpdatedBy );
 
@@ -571,7 +591,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             // Data Sharing check
             // ---------------------------------------------------------------------
 
-            List<String> errors = validateDataAccess( currentUserService.getCurrentUser(), mdProps );
+            List<String> errors = validateDataAccess( currentUser, mdProps );
             if ( !errors.isEmpty() )
             {
                 summary.getConflicts().addAll(
@@ -682,8 +702,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     private static CompleteDataSetRegistration createCompleteDataSetRegistration(
-        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataProperties mdProps, Date now,
-        String storedBy )
+            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataProperties mdProps, Date now,
+            String storedBy )
     {
         Date date = cdsr.hasDate() ? DateUtils.parseDate( cdsr.getDate() ) : now;
 
@@ -696,15 +716,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
      * @param user currently logged-in user
      * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
      */
-    private List<String> validateDataAccess( User user, MetaDataProperties metaDataProperties )
+    private List<String> validateDataAccess( User user, MetadataProperties metaDataProperties )
     {
         List<String> errors = accessManager.canWrite( user, metaDataProperties.dataSet );
         errors.addAll( accessManager.canWrite( user, metaDataProperties.attrOptCombo ) );
         return errors;
     }
 
-    private static void validateOrgUnitInUserHierarchy( MetaDataCaches mdCaches, MetaDataProperties mdProps,
-        final Set<OrganisationUnit> userOrgUnits, String currentUsername )
+    private static void validateOrgUnitInUserHierarchy(MetadataCaches mdCaches, MetadataProperties mdProps,
+                                                       final Set<OrganisationUnit> userOrgUnits, String currentUsername )
         throws ImportConflictException
     {
         boolean inUserHierarchy = mdCaches.getOrgUnitInHierarchyMap().get( mdProps.orgUnit.getUid(),
@@ -730,7 +750,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private void validateAttrOptCombo( MetaDataProperties mdProps, MetaDataCaches mdCaches, ImportConfig config )
+    private void validateAttrOptCombo(MetadataProperties mdProps, MetadataCaches mdCaches, ImportConfig config )
         throws ImportConflictException
     {
         final Period pe = mdProps.period;
@@ -786,7 +806,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         throw new ImportConflictException( new ImportConflict( storedBy, i18n.getString( result ) ) );
     }
 
-    private static void validateAocMatchesDataSetCc( MetaDataProperties mdProps )
+    private static void validateAocMatchesDataSetCc( MetadataProperties mdProps )
         throws ImportConflictException
     {
         // TODO MdCache?
@@ -800,7 +820,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private static void validateHasMatchingPeriodTypes( MetaDataProperties props )
+    private static void validateHasMatchingPeriodTypes( MetadataProperties props )
         throws ImportConflictException
     {
         // TODO MdCache?
@@ -815,7 +835,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private static void validateDataSetIsAssignedToOrgUnit( MetaDataProperties props )
+    private static void validateDataSetIsAssignedToOrgUnit( MetadataProperties props )
         throws ImportConflictException
     {
         if ( !props.orgUnit.getDataSets().contains( props.dataSet ) )
@@ -826,7 +846,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private void heatCaches( MetaDataCaches caches, ImportConfig config )
+    private void heatCaches(MetadataCaches caches, ImportConfig config )
     {
         if ( !caches.getDataSets().isCacheLoaded() && exceedsThreshold( caches.getDataSets() ) )
         {
@@ -859,8 +879,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         }
     }
 
-    private MetaDataProperties initMetaDataProperties(
-            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache)
+    private MetadataProperties initMetaDataProperties(
+            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetadataCallables callables, MetadataCaches cache)
     {
         String ds = StringUtils.trimToNull( cdsr.getDataSet() );
         String pe = StringUtils.trimToNull( cdsr.getPeriod() );
@@ -872,7 +892,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
-        return new MetaDataProperties( cache.getDataSets().get( ds, callables.getDataSetCallable().setId( ds ) ),
+        return new MetadataProperties( cache.getDataSets().get( ds, callables.getDataSetCallable().setId( ds ) ),
             cache.getPeriods().get( pe, callables.getPeriodCallable().setId( pe ) ),
             cache.getOrgUnits().get( ou, callables.getOrgUnitCallable().setId( ou ) ),
             cache.getAttrOptionCombos().get( aoc, callables.getOptionComboCallable().setId( aoc ) ) );
@@ -887,7 +907,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // Internal classes
     // -----------------------------------------------------------------
 
-    private static class MetaDataProperties
+    private static class MetadataProperties
     {
         final DataSet dataSet;
 
@@ -897,8 +917,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         CategoryOptionCombo attrOptCombo;
 
-        MetaDataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit,
-            CategoryOptionCombo attrOptCombo )
+        MetadataProperties( DataSet dataSet, Period period, OrganisationUnit orgUnit, CategoryOptionCombo attrOptCombo )
         {
             this.dataSet = dataSet;
             this.period = period;

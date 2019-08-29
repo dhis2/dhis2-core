@@ -38,7 +38,7 @@ import org.hisp.dhis.common.IdScheme;
  * Retrieves the category option combination with the given identifier and
  * id scheme. Checks that the current user has {@code data write} access.
  *
- * @author Lars Helge Overland
+ * @author Luciano Fiandesio
  */
 public class CategoryOptionComboCallable
     extends IdentifiableObjectCallable<CategoryOptionCombo>
