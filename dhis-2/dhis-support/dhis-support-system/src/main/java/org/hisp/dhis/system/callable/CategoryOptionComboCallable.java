@@ -1,4 +1,4 @@
-package org.hisp.dhis.cache;
+package org.hisp.dhis.system.callable;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,22 +28,40 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.concurrent.ExecutionException;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdScheme;
+
 /**
- * Provides cache builder to build instances.
- * 
- * @author Ameen Mohamed
+ * Retrieves the category option combination with the given identifier and
+ * id scheme. Checks that the current user has {@code data write} access.
+ *
+ * @author Luciano Fiandesio
  */
-public interface CacheProvider
+public class CategoryOptionComboCallable
+    extends IdentifiableObjectCallable<CategoryOptionCombo>
 {
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a cache that
-     * stores the valueType specified.
-     * 
-     * 
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}
-     */
-    <V> CacheBuilder<V> newCacheBuilder(Class<V> valueType);
-    
+    private CategoryService categoryService;
+
+    public CategoryOptionComboCallable(CategoryService categoryService, IdScheme idScheme, String id )
+    {
+        super( null, CategoryOptionCombo.class, idScheme, id );
+        this.categoryService = categoryService;
+    }
+
+    @Override
+    public CategoryOptionCombo call()
+        throws ExecutionException
+    {
+        return categoryService.getCategoryOptionCombo( id );
+    }
+
+    @Override
+    public CategoryOptionComboCallable setId(String id )
+    {
+        this.id = id;
+        return this;
+    }
 }
