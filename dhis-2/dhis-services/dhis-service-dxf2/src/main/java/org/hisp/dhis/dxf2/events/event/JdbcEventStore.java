@@ -194,7 +194,7 @@ public class JdbcEventStore
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        prepopulateCaches( params, sql, isSuperUser );
+        populateCaches( params, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -401,7 +401,7 @@ public class JdbcEventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        prepopulateCaches( params, sql, isSuperUser );
+        populateCaches( params, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -1422,7 +1422,7 @@ public class JdbcEventStore
         }
     }
 
-    private void prepopulateCaches( EventSearchParams params, String sql, boolean isSuperUser )
+    private void populateCaches( EventSearchParams params, String sql, boolean isSuperUser )
     {
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
         IdScheme idScheme = idSchemes.getDataElementIdScheme();
