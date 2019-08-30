@@ -2199,6 +2199,11 @@ public class DataQueryParams
         return ListUtils.union( getAllProgramAttributes(), getAllProgramDataElements() );
     }
 
+    public boolean isSkipDataDimensionValidation()
+    {
+        return this.skipDataDimensionValidation;
+    }
+    
     /**
      * Returns all validation results part of a dimension or filter.
      */
@@ -2805,6 +2810,12 @@ public class DataQueryParams
         public Builder withOrgUnitLevels( List<OrganisationUnitLevel> orgUnitLevels )
         {
             this.params.orgUnitLevels = orgUnitLevels;
+            return this;
+        }
+
+        public Builder withSkipDataDimensionValidation( boolean skipDataDimensionValidation )
+        {
+            this.params.skipDataDimensionValidation = skipDataDimensionValidation;
             return this;
         }
 
