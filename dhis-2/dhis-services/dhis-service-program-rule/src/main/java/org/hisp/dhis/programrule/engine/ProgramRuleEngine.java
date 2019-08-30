@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.program.Program;
@@ -83,11 +84,13 @@ public class ProgramRuleEngine
 
     private final CurrentUserService currentUserService;
 
+    private final ConstantService constantService;
+
     public ProgramRuleEngine( ProgramRuleEntityMapperService programRuleEntityMapperService,
         ProgramRuleExpressionEvaluator programRuleExpressionEvaluator, ProgramRuleService programRuleService,
         ProgramRuleVariableService programRuleVariableService,
         OrganisationUnitGroupService organisationUnitGroupService, RuleVariableInMemoryMap inMemoryMap,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService, ConstantService constantService )
     {
 
         checkNotNull( programRuleEntityMapperService );
@@ -97,6 +100,7 @@ public class ProgramRuleEngine
         checkNotNull( organisationUnitGroupService );
         checkNotNull( currentUserService );
         checkNotNull( inMemoryMap );
+        checkNotNull( constantService );
 
         this.programRuleEntityMapperService = programRuleEntityMapperService;
         this.programRuleExpressionEvaluator = programRuleExpressionEvaluator;
@@ -105,6 +109,7 @@ public class ProgramRuleEngine
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.inMemoryMap = inMemoryMap;
         this.currentUserService = currentUserService;
+        this.constantService = constantService;
     }
 
     public List<RuleEffect> evaluateEnrollment(ProgramInstance enrollment )
@@ -176,6 +181,7 @@ public class ProgramRuleEngine
 
         try
         {
+
             ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
 
             ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
@@ -194,6 +200,8 @@ public class ProgramRuleEngine
     private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
+
+        Map<String, String> constantMap = constantService.getConstantMap().entrySet().stream().collect( Collectors.toMap( Map.Entry::getKey, v -> v.getValue().toString() ) );
 
         List<String> orgUnitGroups = new ArrayList<>();
 
@@ -233,6 +241,7 @@ public class ProgramRuleEngine
             .calculatedValueMap( inMemoryMap.getVariablesMap() )
             .rules( rules )
             .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
+            .constantsValue( constantMap )
             .build().toEngineBuilder().triggerEnvironment( TriggerEnvironment.SERVER );
     }
 
