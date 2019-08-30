@@ -86,8 +86,10 @@ public class DefaultMetadataSyncService
     public MetadataSyncParams getParamsFromMap( Map<String, List<String>> parameters )
     {
         List<String> versionName = getVersionsFromParams( parameters );
+        MetadataImportParams importParams = new MetadataImportParams();
+        importParams.setMetadataSyncImport( true );
         MetadataSyncParams syncParams = new MetadataSyncParams();
-        syncParams.setImportParams( new MetadataImportParams() );
+        syncParams.setImportParams( importParams );
         String versionNameStr = versionName.get( 0 );
 
         if ( StringUtils.isNotEmpty( versionNameStr ) )
