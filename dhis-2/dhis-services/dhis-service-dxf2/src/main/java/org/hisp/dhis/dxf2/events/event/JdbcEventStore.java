@@ -194,6 +194,7 @@ public class JdbcEventStore
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
+        populateCaches( params, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -400,6 +401,7 @@ public class JdbcEventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
+        populateCaches( params, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -531,6 +533,7 @@ public class JdbcEventStore
 
         for ( String uid : dataElementUids )
         {
+            //Cache is pre-populated
             DataElement de = dataElementToCodeCache.get( uid, dataElementCallable.setId( uid ) );
 
             if ( de == null )
@@ -546,36 +549,9 @@ public class JdbcEventStore
     private Map<String, String> getDataElementsUidToAttribute( Set<EventDataValue> eventDataValues )
     {
         Map<String, String> dataElementsUidToAttribute = new HashMap<>();
-        Set<String> uidsToFetch = new HashSet<>();
-
         List<String> dataElementsUids = eventDataValues.stream()
             .map( EventDataValue::getDataElement )
             .collect( Collectors.toList());
-
-        for ( String uid : dataElementsUids )
-        {
-            if ( dataElementToAttributeCache.get( uid ) == null )
-            {
-                uidsToFetch.add( uid );
-            }
-        }
-
-        if ( uidsToFetch.size() > 0 )
-        {
-            String dataElementsUidsSqlString = uidsToFetch.stream().collect( Collectors.joining( "', '", "'", "'" ) );
-
-            String sql = "SELECT de.uid, av.value " +
-                "FROM dataelement de JOIN dataelementattributevalues deav ON de.dataelementid = deav.dataelementid " +
-                "JOIN attributevalue av ON av.attributevalueid = deav.attributevalueid " + "WHERE de.uid IN (" +
-                dataElementsUidsSqlString + ")";
-
-            SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-            while ( rowSet.next() )
-            {
-                dataElementToAttributeCache.put( rowSet.getString( "uid" ), rowSet.getString( "value" ) );
-            }
-        }
 
         dataElementsUids.forEach( uid -> dataElementsUidToAttribute.put( uid, dataElementToAttributeCache.get( uid ) ) );
 
@@ -1443,6 +1419,57 @@ public class JdbcEventStore
         {
             log.error( "Parsing EventDataValues json string failed. String value: " + jsonString );
             throw new IllegalArgumentException( e );
+        }
+    }
+
+    private void populateCaches( EventSearchParams params, String sql, boolean isSuperUser )
+    {
+        IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
+        IdScheme idScheme = idSchemes.getDataElementIdScheme();
+
+        if ( idScheme == IdScheme.ID || idScheme == IdScheme.UID )
+        {
+            return;
+        }
+
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        Set<String> deUids = new HashSet<>();
+
+        while ( rowSet.next() )
+        {
+            if ( (params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet )) )
+            {
+                continue;
+            }
+
+            if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
+            {
+                Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
+                eventDataValues.forEach( edv -> deUids.add( edv.getDataElement() ) );
+            }
+        }
+
+        if ( idScheme.isAttribute() )
+        {
+            List<DataElement> dataElements = manager.get( DataElement.class, deUids );
+            dataElements.forEach( de -> dataElementToCodeCache.put( de.getUid(), de ) );
+        }
+        else
+        {
+            String dataElementsUidsSqlString = deUids.stream().collect( Collectors.joining( "', '", "'", "'" ) );
+
+            String deSql = "SELECT de.uid, av.value " +
+                "FROM dataelement de JOIN dataelementattributevalues deav ON de.dataelementid = deav.dataelementid " +
+                "JOIN attributevalue av ON av.attributevalueid = deav.attributevalueid " + "WHERE de.uid IN (" +
+                dataElementsUidsSqlString + ")";
+
+            SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
+
+            while ( deRowSet.next() )
+            {
+                dataElementToAttributeCache.put( deRowSet.getString( "uid" ), deRowSet.getString( "value" ) );
+            }
         }
     }
 
