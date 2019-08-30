@@ -45,7 +45,6 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -448,7 +447,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
     /**
      * Sorts the tracked entity instances according to the tracked entity instance identifier.
-     * 
+     *
      * @param trackedEntityInstances the list of tracked entity instances.
      */
     private void sortTrackedEntityInstanceUpdates( List<TrackedEntityInstance> trackedEntityInstances )
@@ -1148,6 +1147,8 @@ public abstract class AbstractTrackedEntityInstanceService
             return null;
         }
 
+        Set<TrackedEntityAttribute> readableAttributesCopy = new HashSet<>( readableAttributes );
+
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( daoTrackedEntityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( daoTrackedEntityInstance.getOrganisationUnit().getUid() );
@@ -1200,9 +1201,21 @@ public abstract class AbstractTrackedEntityInstanceService
 
         }
 
+        if ( params.isDataSynchronizationQuery() )
+        {
+            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( e -> e.getProgram() ).collect( Collectors.toList() );
+
+            IdSchemes idSchemes = new IdSchemes();
+            for ( String programUid : programs )
+            {
+                Program program = getProgram( idSchemes, programUid );
+                readableAttributesCopy.addAll( program.getTrackedEntityAttributes() );
+            }
+        }
+
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {
-            if ( readableAttributes.contains( attributeValue.getAttribute() ) )
+            if ( readableAttributesCopy.contains( attributeValue.getAttribute() ) )
             {
                 Attribute attribute = new Attribute();
 
