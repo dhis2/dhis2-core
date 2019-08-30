@@ -28,6 +28,7 @@ package org.hisp.dhis.dxf2.metadata.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -337,6 +338,7 @@ DefaultMetadataVersionService
                 List<String> defaultFilterList = new ArrayList<String>();
                 defaultFilterList.add( "lastUpdated:gte:" + DateUtils.getLongGmtDateString( minDate ) );
                 exportParams.setDefaultFilter( defaultFilterList );
+                exportParams.setDefaultFields(Lists.newArrayList( ":all" ) );
                 metadataExportService.validate( exportParams );
             }
 

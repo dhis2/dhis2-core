@@ -126,6 +126,11 @@ public class MetadataImportParams
     private boolean skipValidation;
 
     /**
+     * Is this import request from Metadata Sync service.
+     */
+    private boolean metadataSyncImport;
+
+    /**
      * Name of file that was used for import (if available).
      */
     private String filename;
@@ -312,6 +317,16 @@ public class MetadataImportParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMetadataSyncImport() {
+        return metadataSyncImport;
+    }
+
+    public void setMetadataSyncImport(boolean metadataSyncImport) {
+        this.metadataSyncImport = metadataSyncImport;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSkipValidation()
     {
         return skipValidation;
@@ -455,6 +470,7 @@ public class MetadataImportParams
         params.setMergeMode( mergeMode );
         params.setFlushMode( flushMode );
         params.setImportReportMode( importReportMode );
+        params.setMetadataSyncImport( metadataSyncImport );
 
         return params;
     }
