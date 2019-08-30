@@ -28,7 +28,6 @@ package org.hisp.dhis.random;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import io.github.benas.randombeans.FieldDefinitionBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import org.hisp.dhis.period.PeriodType;
 
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
+import static io.github.benas.randombeans.FieldDefinitionBuilder.*;
 
 /**
  * @author Luciano Fiandesio
@@ -48,7 +48,8 @@ public class BeanRandomizer
     {
         rand = aNewEnhancedRandomBuilder()
             .randomize( PeriodType.class, new PeriodTypeRandomizer() )
-            .randomize( FieldDefinitionBuilder.field().named( "uid" ).ofType( String.class ).get(), new UidRandomizer() )
+            .randomize( field().named( "uid" ).ofType( String.class ).get(), new UidRandomizer() )
+            .randomize( field().named( "id" ).ofType( long.class ).get(), new IdRandomizer() )
             .build();
     }
 

@@ -31,7 +31,6 @@ package org.hisp.dhis.trackedentity;
 import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.OrganisationUnitResolutionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -160,11 +159,6 @@ public class TrackedEntityInstanceQueryParams
      * Selection mode for user assignment of events.
      */
     private AssignedUserSelectionMode assignedUserSelectionMode;
-    
-    /**
-     * Resolution mode for the specified organisation units, default is REGISTRATION.
-     */
-    private OrganisationUnitResolutionMode organisationUnitResolution;
     
     /**
      * Set of user ids to filter based on events assigned to the users.
@@ -958,17 +952,6 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setOrganisationUnitMode( OrganisationUnitSelectionMode organisationUnitMode )
     {
         this.organisationUnitMode = organisationUnitMode;
-        return this;
-    }
-    
-    public OrganisationUnitResolutionMode getOrganisationUnitResolution()
-    {
-        return organisationUnitResolution;
-    }
-    
-    public TrackedEntityInstanceQueryParams setOrganisationUnitResolution( OrganisationUnitResolutionMode organisationUnitResolution )
-    {
-        this.organisationUnitResolution = organisationUnitResolution;
         return this;
     }
 

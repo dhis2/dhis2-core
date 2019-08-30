@@ -58,6 +58,8 @@ public abstract class SmsGateway
     protected static final String PROTOCOL_VERSION = "X-Version";
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
     protected static final String BASIC = " Basic ";
+    public static final String KEY_TEXT = "text";
+    public static final String KEY_RECIPIENT = "recipients";
 
     public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
         HttpStatus.ACCEPTED, HttpStatus.CREATED );
@@ -85,14 +87,14 @@ public abstract class SmsGateway
 
     protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 
-    public HttpStatus send( String urlTemplate, HttpEntity<?> request, Class<?> klass )
+    public HttpStatus send( String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass )
     {
         ResponseEntity<?> response;
         HttpStatus statusCode;
 
         try
         {
-            response = restTemplate.exchange( urlTemplate, HttpMethod.POST, request, klass );
+            response = restTemplate.exchange( urlTemplate, httpMethod, request, klass );
 
             if ( response != null )
             {

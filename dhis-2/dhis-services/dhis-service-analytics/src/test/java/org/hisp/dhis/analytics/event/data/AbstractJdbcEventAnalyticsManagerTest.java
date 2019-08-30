@@ -40,6 +40,7 @@ import java.util.Date;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.programIndicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.QueryItem;
@@ -89,8 +90,8 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService );
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
 
         // data init
 

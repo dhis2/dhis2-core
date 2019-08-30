@@ -40,7 +40,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -57,17 +56,22 @@ public class InputUtils
 {
     private static Cache<Long> ATTR_OPTION_COMBO_ID_CACHE;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
     
-    @Autowired
-    private CacheProvider cacheProvider;
+    private final CacheProvider cacheProvider;
+
+    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager, Environment env,
+        CacheProvider cacheProvider )
+    {
+        this.categoryService = categoryService;
+        this.idObjectManager = idObjectManager;
+        this.env = env;
+        this.cacheProvider = cacheProvider;
+    }
 
     @PostConstruct
     public void init()
@@ -136,7 +140,7 @@ public class InputUtils
             throw new IllegalQueryException( "Illegal category combo identifier: " + cc );
         }
 
-        if ( categoryCombo == null && opts == null )
+        if ( categoryCombo == null )
         {
             if ( skipFallback )
             {

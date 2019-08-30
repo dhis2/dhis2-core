@@ -33,7 +33,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -92,6 +95,7 @@ import com.google.common.collect.Sets;
  */
 public class ProgramRuleEngineTest extends DhisSpringTest
 {
+    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
     private Program programA;
 
     private Program programS;
@@ -127,7 +131,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String scheduledDate;
 
-    private String dob = "1984-09-01";
+    private String dob = "1984-01-01";
 
     private String expressionA = "#{ProgramRuleVariableA}=='malaria'";
 
@@ -138,6 +142,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private String dataExpression = "d2:addDays('2018-04-15', '2')";
 
     private String calculatedDateExpression = "true";
+
+    private Date psEventDate;
 
     @Autowired
     ProgramRuleEngine programRuleEngine;
@@ -194,7 +200,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
     @Override
-    public void setUpTest()
+    public void setUpTest() throws ParseException
     {
         dataElementA = createDataElement( 'A', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementB = createDataElement( 'B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
@@ -220,12 +226,18 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         attributeService.addTrackedEntityAttribute( attributeA );
         attributeService.addTrackedEntityAttribute( attributeB );
 
+        Calendar cal = Calendar.getInstance();
+        cal.setTime( simpleDateFormat.parse( dob ) );
+        cal.add( Calendar.YEAR, 10 );
+
+        psEventDate = cal.getTime();
+
         setupEvents();
         setupProgramRuleEngine();
     }
 
     @Test
-    public void testSendMessageForEnrollment() throws Exception
+    public void testSendMessageForEnrollment()
     {
         setUpSendMessageForEnrollment();
 
@@ -245,7 +257,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSendMessageForEvent() throws Exception
+    public void testSendMessageForEvent()
     {
         setUpSendMessageForEnrollment();
 
@@ -265,7 +277,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     }
 
     @Test
-    public void testSchedulingByProgramRule() throws Exception
+    public void testSchedulingByProgramRule()
     {
         setUpScheduleMessage();
 
@@ -310,7 +322,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
 
         assertNotNull( ruleEffects );
-        assertEquals( ruleEffects.get( 0 ).data(), "34" );
+        assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
 
     @Test
@@ -323,7 +335,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
 
         assertNotNull( ruleEffects );
-        assertEquals( ruleEffects.get( 0 ).data(), "34" );
+        assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
 
     private void setupEvents()
@@ -458,14 +470,14 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         ProgramStageInstance programStageInstanceDate = new ProgramStageInstance( programInstanceA, programStageAge );
         programStageInstanceDate.setDueDate( enrollmentDate );
-        programStageInstanceDate.setExecutionDate( new Date() );
+        programStageInstanceDate.setExecutionDate( psEventDate );
         programStageInstanceDate.setUid( "UID-PS12" );
         programStageInstanceDate.setEventDataValues( Sets.newHashSet( eventDataValueDate ) );
         programStageInstanceService.addProgramStageInstance( programStageInstanceDate );
 
         ProgramStageInstance programStageInstanceAge = new ProgramStageInstance( programInstanceA, programStageAge );
         programStageInstanceAge.setDueDate( enrollmentDate );
-        programStageInstanceAge.setExecutionDate( new Date() );
+        programStageInstanceAge.setExecutionDate( psEventDate );
         programStageInstanceAge.setUid( "UID-PS13" );
         programStageInstanceAge.setEventDataValues( Sets.newHashSet( eventDataValueAge ) );
         programStageInstanceService.addProgramStageInstance( programStageInstanceAge );

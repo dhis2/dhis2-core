@@ -102,7 +102,7 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
-    
+
     @Autowired
     private AclService aclService;
 
@@ -188,6 +188,13 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids )
+    {
+        return programInstanceStore.getUidsIncludingDeleted( uids );
+    }
+
+    @Override
     @Transactional
     public void updateProgramInstance( ProgramInstance programInstance )
     {
@@ -203,7 +210,7 @@ public class DefaultProgramInstanceService
         boolean includeDeleted )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-        
+
         Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
 
         User user = currentUserService.getCurrentUser();
@@ -223,7 +230,7 @@ public class DefaultProgramInstanceService
                 {
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
                 }
-                
+
                 if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
                 {
                     throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );

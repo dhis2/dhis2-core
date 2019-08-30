@@ -33,6 +33,7 @@ import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -75,7 +76,7 @@ public class BulkSmsHttpGateway
         HttpEntity<BulkSmsRequestEntity> request =
             new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ), getRequestHeaderParameters( bulkSmsGatewayConfig ) );
 
-        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, String.class );
+        HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, HttpMethod.POST, String.class );
 
         return wrapHttpStatus( httpStatus );
     }

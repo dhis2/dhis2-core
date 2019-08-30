@@ -91,7 +91,8 @@ public enum ErrorCode
     E4027( "Value `{0}` is not a valid for property `{1}`" ),
 
     /* Program Errors */
-    E6000( "Program `{0}` has more than one Program Instances" ),
+    E6000( "Program `{0}` has more than one Program Instances"),
+    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
 
     /* Scheduling errors */
     E7000( "Failed to add/update job configuration - Another job of the same job type is already scheduled with this cron expression" ),

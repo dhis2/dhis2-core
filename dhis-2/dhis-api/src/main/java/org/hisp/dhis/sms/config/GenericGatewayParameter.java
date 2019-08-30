@@ -40,25 +40,15 @@ public class GenericGatewayParameter
 {
     private static final long serialVersionUID = -863990758156009672L;
 
-    private boolean header;
-
     private String key;
 
     private String value;
 
-    private boolean classified;
+    private boolean header;
 
-    public GenericGatewayParameter()
-    {
-    }
+    private boolean encode;
 
-    public GenericGatewayParameter( String key, String value, boolean classified )
-    {
-        super();
-        this.key = key;
-        this.value = value;
-        this.classified = classified;
-    }
+    private boolean confidential;
 
     @JsonProperty( value = "key" )
     public String getKey()
@@ -74,7 +64,7 @@ public class GenericGatewayParameter
     @JsonProperty( value = "value" )
     public String getValue()
     {
-        return classified ? "" : value;
+        return confidential ? "" : value;
     }
 
     public String getValueForKey()
@@ -87,15 +77,15 @@ public class GenericGatewayParameter
         this.value = value;
     }
 
-    @JsonProperty( value = "classified" )
-    public boolean isClassified()
+    @JsonProperty( value = "confidential" )
+    public boolean isConfidential()
     {
-        return classified;
+        return confidential;
     }
 
-    public void setClassified( boolean classified )
+    public void setConfidential( boolean confidential )
     {
-        this.classified = classified;
+        this.confidential = confidential;
     }
 
     @JsonProperty
@@ -107,5 +97,16 @@ public class GenericGatewayParameter
     public void setHeader( boolean header )
     {
         this.header = header;
+    }
+
+    @JsonProperty
+    public boolean isEncode()
+    {
+        return encode;
+    }
+
+    public void setEncode( boolean encode )
+    {
+        this.encode = encode;
     }
 }
