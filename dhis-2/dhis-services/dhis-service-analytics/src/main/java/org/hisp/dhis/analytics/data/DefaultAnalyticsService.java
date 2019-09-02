@@ -1081,7 +1081,9 @@ public class DefaultAnalyticsService
 
         DataQueryParams orgUnitTargetParams = DataQueryParams.newBuilder( params )
             .pruneToDimensionType( DimensionType.ORGANISATION_UNIT )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, DimensionType.ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID,
+                DimensionType.ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
+            .withOutputFormat( OutputFormat.ANALYTICS )
             .withSkipPartitioning( true )
             .withSkipDataDimensionValidation( true )
             .build();
@@ -1359,6 +1361,7 @@ public class DefaultAnalyticsService
             .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
             .withSkipHeaders( true )
+            .withOutputFormat( OutputFormat.ANALYTICS )
             .withResolvedExpressionItems( items )
             .withSkipMeta( true ).build();
 
