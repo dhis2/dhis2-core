@@ -82,6 +82,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.core.env.Environment;
@@ -93,6 +94,7 @@ import com.google.common.collect.Sets;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( DefaultCompleteDataSetRegistrationExchangeService.class )
+@PowerMockIgnore("javax.management.*")
 public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
 
@@ -212,7 +214,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
             .thenReturn( false );
 
-        when( currentUserService.getCurrentUsername() ).thenReturn( "john1" );
         when( currentUserService.getCurrentUserOrganisationUnits() )
             .thenReturn( Collections.singleton( createOrganisationUnit( 'A' ) ) );
         when( i18nManager.getI18n() ).thenReturn( i18n );
