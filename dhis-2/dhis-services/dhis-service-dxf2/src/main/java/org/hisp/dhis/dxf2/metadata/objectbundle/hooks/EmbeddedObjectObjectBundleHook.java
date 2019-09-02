@@ -28,13 +28,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Session;
+import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.DefaultAnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -46,6 +50,9 @@ import java.util.Collection;
 public class EmbeddedObjectObjectBundleHook
     extends AbstractObjectBundleHook
 {
+    @Autowired
+    private DefaultAnalyticalObjectImportHandler analyticalObjectImportHandler;
+
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
@@ -56,7 +63,9 @@ public class EmbeddedObjectObjectBundleHook
             return;
         }
 
-        handleEmbeddedObjects( object, bundle, schema.getEmbeddedObjectProperties().values() );
+        Collection<Property> properties = schema.getEmbeddedObjectProperties().values();
+
+        handleEmbeddedObjects( object, bundle, properties );
     }
 
     @Override
@@ -70,7 +79,6 @@ public class EmbeddedObjectObjectBundleHook
         }
 
         Collection<Property> properties = schema.getEmbeddedObjectProperties().values();
-
 
         clearEmbeddedObjects( persistedObject, bundle, properties );
         handleEmbeddedObjects( object, bundle, properties );
@@ -100,24 +108,26 @@ public class EmbeddedObjectObjectBundleHook
     {
         for ( Property property : properties )
         {
+            Object propertyObject =  ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+
             if ( property.isCollection() )
             {
-                Collection<?> objects = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-                objects.forEach( o ->
+                Collection<?> objects = (Collection<?>) propertyObject;
+                objects.forEach( itemPropertyObject ->
                 {
-                    handleProperty( o, bundle, property );
+                    handleProperty( itemPropertyObject, bundle, property );
+                    handleEmbeddedAnalyticalProperty( itemPropertyObject, bundle, property );
                 } );
             }
             else
             {
-                Object o = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-
-                handleProperty( o, bundle, property );
+                handleProperty( propertyObject, bundle, property );
+                handleEmbeddedAnalyticalProperty( propertyObject, bundle, property );
             }
         }
     }
     
-    private void handleProperty( Object o, ObjectBundle bundle, Property property ) 
+    private void handleProperty( Object o, ObjectBundle bundle, Property property )
     {
         if ( property.isIdentifiableObject() )
         {
@@ -140,5 +150,16 @@ public class EmbeddedObjectObjectBundleHook
         }
 
         preheatService.connectReferences( o, bundle.getPreheat(), bundle.getPreheatIdentifier() );
+    }
+
+    private void handleEmbeddedAnalyticalProperty(Object identifiableObject, ObjectBundle bundle, Property property )
+    {
+        if ( identifiableObject == null || !property.isAnalyticalObject() ) return;
+
+        Session session = sessionFactory.getCurrentSession();
+
+        Schema propertySchema = schemaService.getDynamicSchema( property.getItemKlass() );
+
+        analyticalObjectImportHandler.handleAnalyticalObject( session, propertySchema, ( BaseAnalyticalObject ) identifiableObject, bundle );
     }
 }
