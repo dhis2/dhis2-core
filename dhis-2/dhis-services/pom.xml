@@ -23,7 +23,6 @@
     <module>dhis-service-schema</module>
     <module>dhis-service-setting</module>
     <!-- Level 2 -->
-    <module>dhis-service-logging</module>
     <module>dhis-service-acl</module>
     <!-- Level 4 -->
     <module>dhis-service-node</module>
