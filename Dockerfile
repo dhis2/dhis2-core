@@ -54,7 +54,7 @@ RUN mvn clean install -T1C -U -f /src/dhis-2/dhis-web/pom.xml -DskipTests
 ##########
 FROM tomcat:8.5.34-jre8-alpine as serve
 
-ENV DHIS2_HOME=/DHIS2_home
+ENV DHIS2_HOME=/DHIS2_home JAVA_OPTIONS="-Djava.awt.headless=true"
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
