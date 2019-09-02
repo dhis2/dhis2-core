@@ -361,7 +361,7 @@ public class AnalyticsUtils
         int ouInx = grid.getIndexOfHeader( ORGUNIT_DIM_ID );
         int coInx = grid.getIndexOfHeader( CATEGORYOPTIONCOMBO_DIM_ID );
         int aoInx = grid.getIndexOfHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID );
-        int vlInx = grid.getWidth() - 1;
+        int vlInx = grid.getHeaderWidth() - 1;
 
         Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
         Assert.isTrue( peInx >= 0, "Period dimension index must be greater than or equal to zero" );
@@ -429,7 +429,7 @@ public class AnalyticsUtils
         List<Object> aocCol = Lists.newArrayList();
 
         int dxInx = grid.getIndexOfHeader( DATA_X_DIM_ID );
-        int vlInx = grid.getWidth() - 1;
+        int vlInx = grid.getHeaderWidth() - 1;
 
         Assert.isTrue( dxInx >= 0, "Data dimension index must be greater than or equal to zero" );
         Assert.isTrue( vlInx >= 0, "Value index must be greater than or equal to zero" );
