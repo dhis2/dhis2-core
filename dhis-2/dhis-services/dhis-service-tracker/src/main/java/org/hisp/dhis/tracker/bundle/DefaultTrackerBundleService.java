@@ -28,12 +28,13 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.FlushMode;
@@ -66,7 +67,7 @@ import java.util.List;
 @Service
 public class DefaultTrackerBundleService implements TrackerBundleService
 {
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerBundleService.class );
+    private static final Log log = LogFactory.getLog( DefaultTrackerBundleService.class );
 
     private final TrackerPreheatService trackerPreheatService;
     private final TrackerConverterService<TrackedEntity, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityTrackerConverterService;
