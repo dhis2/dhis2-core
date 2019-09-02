@@ -29,7 +29,7 @@
 package org.hisp.dhis.analytics.event.data.programIndicator;
 
 import com.google.common.collect.ImmutableMap;
-import org.hisp.dhis.analytics.event.data.programIndicator.RelationshipTypeJoinGenerator;
+import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -46,17 +46,32 @@ public class RelationshipTypeJoinGeneratorTest
 {
     private BeanRandomizer beanRandomizer;
 
+    private final static String ALIAS = "subax";
+
+    private final static String RELATIONSHIP_JOIN = " LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
+        + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
+        + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid ";
+
     @Before
     public void setUp()
     {
         beanRandomizer = new BeanRandomizer();
     }
 
-    private final static String TEI_JOIN = " ax.tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid ";
+    private final static String TEI_JOIN_START = ALIAS
+        + ".tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid ";
 
-    private final static String PI_JOIN = " ax.pi in (select pi.uid from programinstance pi LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid ";
+    private final static String PI_JOIN_START = ALIAS
+        + ".pi in (select pi.uid from programinstance pi LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid ";
 
-    private final static String PSI_JOIN = " ax.pi in (select psi.uid from programstageinstance psi LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programinstanceid ";
+    private final static String PSI_JOIN_START = ALIAS
+        + ".psi in (select psi.uid from programstageinstance psi LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid ";
+
+    private final static String TEI_RELTO_JOIN = "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
+
+    private final static String PI_RELTO_JOIN = "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid";
+
+    private final static String PSI_RELTO_JOIN = "LEFT JOIN programstageinstance psi on psi.programstageinstanceid = ri2.programstageinstanceid";
 
     @Test
     public void verifyTeiToTei()
@@ -64,8 +79,9 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( TRACKED_ENTITY_INSTANCE.getName(),
             TRACKED_ENTITY_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( TEI_JOIN + addCommonJoin( relationshipType ), sql );
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
+
+        asserter( relationshipType, AnalyticsType.EVENT );
     }
 
     @Test
@@ -74,9 +90,11 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_INSTANCE.getName(),
             PROGRAM_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( PI_JOIN + addCommonJoin( relationshipType ), sql );
+        asserter( relationshipType, AnalyticsType.EVENT );
+
+        asserter( relationshipType, AnalyticsType.ENROLLMENT );
     }
+
 
     @Test
     public void verifyPsiToPsi()
@@ -84,8 +102,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_STAGE_INSTANCE.getName(),
             PROGRAM_STAGE_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( PSI_JOIN + addCommonJoin( relationshipType ), sql );
+        asserter( relationshipType, AnalyticsType.EVENT);
+        asserter( relationshipType, AnalyticsType.ENROLLMENT);
     }
 
     @Test
@@ -94,9 +112,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( TRACKED_ENTITY_INSTANCE.getName(),
             PROGRAM_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( " ( (" + TEI_JOIN + addCommonJoin( relationshipType ) + ") OR (" + PI_JOIN
-            + addCommonJoin( relationshipType ) + ") )", sql );
+        asserter( relationshipType, AnalyticsType.EVENT);
+        asserter( relationshipType, AnalyticsType.ENROLLMENT);
     }
 
     @Test
@@ -105,9 +122,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( TRACKED_ENTITY_INSTANCE.getName(),
             PROGRAM_STAGE_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( " ( (" + TEI_JOIN + addCommonJoin( relationshipType ) + ") OR (" + PSI_JOIN
-            + addCommonJoin( relationshipType ) + ") )", sql );
+        asserter( relationshipType, AnalyticsType.EVENT);
+        asserter( relationshipType, AnalyticsType.ENROLLMENT);
     }
 
     @Test
@@ -116,9 +132,8 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_INSTANCE.getName(),
             TRACKED_ENTITY_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( " ( (" + PI_JOIN + addCommonJoin( relationshipType ) + ") OR (" + TEI_JOIN
-            + addCommonJoin( relationshipType ) + ") )", sql );
+        asserter( relationshipType, AnalyticsType.EVENT);
+        asserter( relationshipType, AnalyticsType.ENROLLMENT);
     }
 
     @Test
@@ -127,31 +142,28 @@ public class RelationshipTypeJoinGeneratorTest
         RelationshipType relationshipType = createRelationshipType( PROGRAM_INSTANCE.getName(),
             PROGRAM_STAGE_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( " ( (" + PI_JOIN + addCommonJoin( relationshipType ) + ") OR (" + PSI_JOIN
-            + addCommonJoin( relationshipType ) + ") )", sql );
+        asserter( relationshipType, AnalyticsType.EVENT);
+        asserter( relationshipType, AnalyticsType.ENROLLMENT);
     }
 
     @Test
     public void verifyPsiToTei()
     {
         RelationshipType relationshipType = createRelationshipType( PROGRAM_STAGE_INSTANCE.getName(),
-                TRACKED_ENTITY_INSTANCE.getName() );
+            TRACKED_ENTITY_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( " ( (" + PSI_JOIN + addCommonJoin( relationshipType ) + ") OR (" + TEI_JOIN
-                + addCommonJoin( relationshipType ) + ") )", sql );
+        asserter( relationshipType, AnalyticsType.EVENT);
+        asserter( relationshipType, AnalyticsType.ENROLLMENT);
     }
 
     @Test
     public void verifyPsiToPi()
     {
         RelationshipType relationshipType = createRelationshipType( PROGRAM_STAGE_INSTANCE.getName(),
-                PROGRAM_INSTANCE.getName() );
+            PROGRAM_INSTANCE.getName() );
 
-        String sql = RelationshipTypeJoinGenerator.generate( relationshipType );
-        assertEquals( " ( (" + PSI_JOIN + addCommonJoin( relationshipType ) + ") OR (" + PI_JOIN
-                + addCommonJoin( relationshipType ) + ") )", sql );
+        asserter( relationshipType, AnalyticsType.EVENT);
+        asserter( relationshipType, AnalyticsType.ENROLLMENT);
     }
 
     private RelationshipType createRelationshipType( String fromConstraint, String toConstraint )
@@ -163,10 +175,51 @@ public class RelationshipTypeJoinGeneratorTest
         return relationshipType;
     }
 
-    private String addCommonJoin( RelationshipType relationshipType )
+    private String addWhere( RelationshipType relationshipType )
     {
         return new org.apache.commons.text.StrSubstitutor(
             ImmutableMap.<String, Long> builder().put( "relationshipid", relationshipType.getId() ).build() )
                 .replace( RelationshipTypeJoinGenerator.RELATIONSHIP_JOIN );
+    }
+
+    private void asserter( RelationshipType relationshipType, AnalyticsType type )
+    {
+        RelationshipEntity from = relationshipType.getFromConstraint().getRelationshipEntity();
+        RelationshipEntity to = relationshipType.getToConstraint().getRelationshipEntity();
+        String expected = " ";
+        expected += getFromRelationshipEntity( from, type );
+        expected += RELATIONSHIP_JOIN;
+        expected += getToRelationshipEntity( to );
+        expected += addWhere( relationshipType );
+        expected += (to.equals(TRACKED_ENTITY_INSTANCE) ? " AND tei.uid = ax.tei )":(to.equals(PROGRAM_INSTANCE)?" AND pi.uid = ax.pi )":" AND psi.uid = ax.psi )"));
+        assertEquals(expected, RelationshipTypeJoinGenerator.generate( ALIAS, relationshipType,  type));
+    }
+
+    private static String getFromRelationshipEntity( RelationshipEntity relationshipEntity,
+                                                     AnalyticsType programIndicatorType )
+    {
+        switch ( relationshipEntity )
+        {
+            case TRACKED_ENTITY_INSTANCE:
+                return TEI_JOIN_START;
+            case PROGRAM_STAGE_INSTANCE:
+            case PROGRAM_INSTANCE:
+                return (programIndicatorType.equals( AnalyticsType.EVENT ) ? PSI_JOIN_START : PI_JOIN_START);
+        }
+        return "";
+    }
+
+    private static String getToRelationshipEntity( RelationshipEntity relationshipEntity )
+    {
+        switch ( relationshipEntity )
+        {
+            case TRACKED_ENTITY_INSTANCE:
+                return TEI_RELTO_JOIN;
+            case PROGRAM_STAGE_INSTANCE:
+                return PSI_RELTO_JOIN;
+            case PROGRAM_INSTANCE:
+                return PI_RELTO_JOIN;
+        }
+        return "";
     }
 }

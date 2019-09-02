@@ -210,11 +210,13 @@ public class EnrollmentAnalyticsManagerTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
                 + programA.getUid().toLowerCase() + " as subax WHERE  "
-                + "ax.tei in (select tei.uid from trackedentityinstance tei "
-                + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
-                + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
-                + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-                + "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + ")) as \"" + programIndicatorA.getUid()
+                + "subax.tei in (select tei.uid from trackedentityinstance tei " +
+                "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
+                "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
+                "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
+                "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
+                "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
+                "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + " AND tei.uid = ax.tei )) as \"" + programIndicatorA.getUid()
                 + "\"  " + "from analytics_enrollment_" + programA.getUid()
                 + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
@@ -246,14 +248,13 @@ public class EnrollmentAnalyticsManagerTest
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
         String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
-            + programA.getUid().toLowerCase() + " as subax WHERE  "
-            + "( ( ax.tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
-            + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId()
-            + ")) OR ( ax.pi in (select pi.uid from programinstance pi "
-            + "LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid  LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid WHERE rty.relationshiptypeid = "
-            + relationshipTypeA.getId() + ")) )) " + "as \"" + programIndicatorA.getUid() + "\"  "
+            + programA.getUid().toLowerCase() + " as subax WHERE "
+            + " subax.tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
+                "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
+                "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
+                "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
+                "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid WHERE rty.relationshiptypeid " +
+                "= " + relationshipTypeA.getId() + " AND pi.uid = ax.pi ))" + " as \"" + programIndicatorA.getUid() + "\"  "
             + "from analytics_enrollment_" + programA.getUid()
             + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
@@ -315,11 +316,13 @@ public class EnrollmentAnalyticsManagerTest
 
         String expected = "ax.\"monthly\",ax.\"ou\",(SELECT avg (" + piSubquery + ") FROM analytics_event_"
             + programB.getUid().toLowerCase() + " as subax WHERE  "
-            + "ax.tei in (select tei.uid from trackedentityinstance tei "
-            + "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  "
-            + "LEFT JOIN relationship r on r.relationshipid = ri.relationshipid "
-            + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid "
-            + "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + ")) as \"" + programIndicatorA.getUid()
+            + "subax.tei in (select tei.uid from trackedentityinstance tei " +
+                "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
+                "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
+                "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
+                "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
+                "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
+                "WHERE rty.relationshiptypeid = " + relationshipTypeA.getId() + " AND tei.uid = ax.tei )) as \"" + programIndicatorA.getUid()
             + "\"  " + "from analytics_enrollment_" + programA.getUid()
             + " as ax where enrollmentdate >= '2015-01-01' and enrollmentdate <= '2017-04-08' and (uidlevel0 = 'ouabcdefghA' ) limit 101";
 
