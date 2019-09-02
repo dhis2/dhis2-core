@@ -278,7 +278,7 @@ public class SpringDataValueSetStore
             sql += "left join orgunitgroupmembers ougm on (ou.organisationunitid=ougm.organisationunitid) ";
         }
 
-        sql += "where de.dataelementid in (" + dataElements + ") ";
+        sql += "where de.dataelementid in (" + (!dataElements.isEmpty() ? dataElements : "null") + ") ";
 
         if ( params.isIncludeChildren() )
         {
