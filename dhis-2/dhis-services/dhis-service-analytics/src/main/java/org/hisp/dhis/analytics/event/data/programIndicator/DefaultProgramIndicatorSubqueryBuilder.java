@@ -151,7 +151,7 @@ public class DefaultProgramIndicatorSubqueryBuilder
         String condition = "";
         if ( relationshipType != null )
         {
-            condition = RelationshipTypeJoinGenerator.generate( relationshipType );
+            condition = RelationshipTypeJoinGenerator.generate( SUBQUERY_TABLE_ALIAS, relationshipType, pi.getAnalyticsType() );
         }
         else
         {
