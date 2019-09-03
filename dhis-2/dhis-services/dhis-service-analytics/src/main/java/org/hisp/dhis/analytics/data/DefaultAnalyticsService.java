@@ -527,11 +527,11 @@ public class DefaultAnalyticsService
             }
         }
     }
-    
+
     /**
      * Checks whether the measure criteria in dataqueryparams is satisfied for
      * this indicator value.
-     * 
+     *
      * @param params The dataQueryParams
      * @param value The indicatorValue
      * @param indicator The indicator
@@ -1071,8 +1071,11 @@ public class DefaultAnalyticsService
 
         DataQueryParams orgUnitTargetParams = DataQueryParams.newBuilder( params )
             .pruneToDimensionType( DimensionType.ORGANISATION_UNIT )
-            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID, DimensionType.ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
-            .withSkipPartitioning( true ).build();
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_GROUP_DIM_ID,
+                DimensionType.ORGANISATION_UNIT_GROUP, new ArrayList<DimensionalItemObject>( orgUnitGroups ) ) )
+            .withOutputFormat( OutputFormat.ANALYTICS )
+            .withSkipPartitioning( true )
+            .build();
 
         Map<String, Double> orgUnitCountMap = getAggregatedOrganisationUnitTargetMap( orgUnitTargetParams );
 
@@ -1334,6 +1337,7 @@ public class DefaultAnalyticsService
             .replaceDimension( dimension )
             .withMeasureCriteria( new HashMap<>() )
             .withIncludeNumDen( false )
+            .withOutputFormat( OutputFormat.ANALYTICS )
             .withSkipHeaders( true )
             .withSkipMeta( true ).build();
 
