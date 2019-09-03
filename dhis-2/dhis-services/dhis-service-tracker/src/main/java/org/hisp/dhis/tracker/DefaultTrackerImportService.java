@@ -29,10 +29,11 @@ package org.hisp.dhis.tracker;
  */
 
 import com.google.common.base.Enums;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
@@ -57,7 +58,7 @@ import java.util.Map;
 @Service
 public class DefaultTrackerImportService implements TrackerImportService
 {
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerImportService.class );
+    private static final Log log = LogFactory.getLog( DefaultTrackerImportService.class );
 
     private final TrackerBundleService trackerBundleService;
     private final TrackerValidationService trackerValidationService;

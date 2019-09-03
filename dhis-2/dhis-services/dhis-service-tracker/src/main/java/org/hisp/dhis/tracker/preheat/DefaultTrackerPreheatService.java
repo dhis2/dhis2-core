@@ -29,12 +29,13 @@ package org.hisp.dhis.tracker.preheat;
  */
 
 import com.google.common.collect.Lists;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
@@ -67,7 +68,7 @@ import java.util.Set;
 @Service
 public class DefaultTrackerPreheatService implements TrackerPreheatService
 {
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultTrackerPreheatService.class );
+    private static final Log log = LogFactory.getLog( DefaultTrackerPreheatService.class );
 
     private final SchemaService schemaService;
     private final QueryService queryService;

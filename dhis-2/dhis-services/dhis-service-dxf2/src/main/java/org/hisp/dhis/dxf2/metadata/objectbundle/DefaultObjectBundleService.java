@@ -28,6 +28,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -45,7 +47,6 @@ import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.logging.LoggingManager;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -79,7 +80,7 @@ import java.util.Map;
 @Transactional
 public class DefaultObjectBundleService implements ObjectBundleService
 {
-    private static final LoggingManager.Logger log = LoggingManager.createLogger( DefaultObjectBundleService.class );
+    private static final Log log = LogFactory.getLog( DefaultObjectBundleService.class );
 
     @Autowired
     private CurrentUserService currentUserService;
