@@ -1226,7 +1226,7 @@
       <dependency>
         <groupId>org.apache.qpid</groupId>
         <artifactId>qpid-jms-client</artifactId>
-        <version>0.39.0</version>
+        <version>0.45.0</version>
         <exclusions>
           <exclusion>
             <groupId>io.netty</groupId>
@@ -1430,7 +1430,7 @@
     <geotools.version>18.0</geotools.version>
     <jasperreports.version>6.3.1</jasperreports.version>
     <jacoco.version>0.8.2</jacoco.version>
-    <artemis.version>2.6.3</artemis.version>
+    <artemis.version>2.10.0</artemis.version>
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.jacoco.reportPath>${rootDir}/../target/jacoco.exec</sonar.jacoco.reportPath>
   </properties>
