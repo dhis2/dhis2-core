@@ -159,9 +159,14 @@ public interface Grid
     int getHeight();
 
     /**
-     * Returns the current width / number of columns in the grid.
+     * Returns the current width based on the number of columns in the grid.
      */
     int getWidth();
+
+    /**
+     * Returns the current width based on the number of headers in the grid.
+     */
+    int getHeaderWidth();
 
     /**
      * Returns the current width / number of visible columns in the grid.
