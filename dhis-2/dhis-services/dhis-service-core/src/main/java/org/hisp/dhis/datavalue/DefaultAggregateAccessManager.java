@@ -40,7 +40,6 @@ import org.hisp.dhis.user.User;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
 import javax.annotation.PostConstruct;
@@ -49,6 +48,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -60,12 +61,15 @@ public class DefaultAggregateAccessManager
 
     private final AclService aclService;
 
-    @Autowired
-    private Environment env;
+    private final Environment env;
 
-    public DefaultAggregateAccessManager( AclService aclService )
+    public DefaultAggregateAccessManager( AclService aclService, Environment env )
     {
+        checkNotNull( aclService );
+        checkNotNull( env );
+
         this.aclService = aclService;
+        this.env = env;
     }
 
     // ---------------------------------------------------------------------

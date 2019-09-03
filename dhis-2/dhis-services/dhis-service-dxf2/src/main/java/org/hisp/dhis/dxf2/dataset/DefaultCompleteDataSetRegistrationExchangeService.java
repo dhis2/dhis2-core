@@ -79,21 +79,17 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.callable.CategoryOptionComboAclCallable;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
-import org.hisp.dhis.system.callable.PeriodCallable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -114,50 +110,60 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private CompleteDataSetRegistrationExchangeStore cdsrStore;
+    private final CompleteDataSetRegistrationExchangeStore cdsrStore;
 
-    @Autowired
-    private IdentifiableObjectManager idObjManager;
+    private final IdentifiableObjectManager idObjManager;
 
-    @Autowired
-    private OrganisationUnitService orgUnitService;
+    private final OrganisationUnitService orgUnitService;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    @Autowired
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    @Autowired
-    private BatchHandlerFactory batchHandlerFactory;
+    private final BatchHandlerFactory batchHandlerFactory;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private PeriodService periodService;
+    private final PeriodService periodService;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private CompleteDataSetRegistrationService registrationService;
+    private final CompleteDataSetRegistrationService registrationService;
 
-    @Autowired
-    private InputUtils inputUtils;
+    private final InputUtils inputUtils;
 
-    @Autowired
-    private AggregateAccessManager accessManager;
+    private final AggregateAccessManager accessManager;
 
-    @Autowired
-    private DataSetNotificationEventPublisher notificationPublisher;
+    private final DataSetNotificationEventPublisher notificationPublisher;
 
-    @Autowired
-    private MessageService messageService;
+    private final MessageService messageService;
+
+    public DefaultCompleteDataSetRegistrationExchangeService( CompleteDataSetRegistrationExchangeStore cdsrStore,
+        IdentifiableObjectManager idObjManager, OrganisationUnitService orgUnitService, Notifier notifier,
+        I18nManager i18nManager, BatchHandlerFactory batchHandlerFactory, SystemSettingManager systemSettingManager,
+        CategoryService categoryService, PeriodService periodService, CurrentUserService currentUserService,
+        CompleteDataSetRegistrationService registrationService, InputUtils inputUtils,
+        AggregateAccessManager accessManager, DataSetNotificationEventPublisher notificationPublisher,
+        MessageService messageService )
+    {
+        this.cdsrStore = cdsrStore;
+        this.idObjManager = idObjManager;
+        this.orgUnitService = orgUnitService;
+        this.notifier = notifier;
+        this.i18nManager = i18nManager;
+        this.batchHandlerFactory = batchHandlerFactory;
+        this.systemSettingManager = systemSettingManager;
+        this.categoryService = categoryService;
+        this.periodService = periodService;
+        this.currentUserService = currentUserService;
+        this.registrationService = registrationService;
+        this.inputUtils = inputUtils;
+        this.accessManager = accessManager;
+        this.notificationPublisher = notificationPublisher;
+        this.messageService = messageService;
+    }
 
     // -------------------------------------------------------------------------
     // CompleteDataSetRegistrationService implementation
@@ -413,14 +419,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         log.info( "Import options: " + importOptions );
 
-        ImportConfig cfg = new ImportConfig( completeRegistrations, importOptions );
+        ImportConfig cfg = new ImportConfig( this.systemSettingManager, this.categoryService, completeRegistrations, importOptions );
 
         // ---------------------------------------------------------------------
         // Set up meta-data
         // ---------------------------------------------------------------------
 
         MetaDataCaches caches = new MetaDataCaches();
-        MetaDataCallables metaDataCallables = new MetaDataCallables( cfg );
+        MetaDataCallables metaDataCallables = new MetaDataCallables( cfg, this.idObjManager, this.periodService,
+            this.categoryService );
 
         if ( importOptions.isPreheatCacheDefaultFalse() )
         {
@@ -496,19 +503,19 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
                 // Constraints validation
 
-                if ( config.strictAttrOptionCombos )
+                if ( config.isStrictAttrOptionCombos() )
                 {
                     validateAocMatchesDataSetCc( mdProps );
                 }
 
                 validateAttrOptCombo( mdProps, mdCaches, config );
 
-                if ( config.strictPeriods )
+                if ( config.isStrictPeriods() )
                 {
                     validateHasMatchingPeriodTypes( mdProps );
                 }
 
-                if ( config.strictOrgUnits )
+                if ( config.isStrictOrgUnits() )
                 {
                     validateDataSetIsAssignedToOrgUnit( mdProps );
                 }
@@ -558,6 +565,18 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 }
             }
 
+            // ---------------------------------------------------------------------
+            // Data Sharing check
+            // ---------------------------------------------------------------------
+
+            List<String> errors = validateDataAccess( currentUserService.getCurrentUser(), mdProps );
+            if ( !errors.isEmpty() )
+            {
+                summary.getConflicts().addAll(
+                    errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
+                continue;
+            }
+            
             // -----------------------------------------------------------------
             // Create complete data set registration
             // -----------------------------------------------------------------
@@ -565,25 +584,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             CompleteDataSetRegistration internalCdsr = createCompleteDataSetRegistration( cdsr, mdProps, now,
                 storedBy );
 
-            CompleteDataSetRegistration existingCdsr = config.skipExistingCheck ? null
+            CompleteDataSetRegistration existingCdsr = config.isSkipExistingCheck() ? null
                 : batchHandler.findObject( internalCdsr );
+            
+            ImportStrategy strategy = config.getStrategy();
 
-            // ---------------------------------------------------------------------
-            // Data Sharing check
-            // ---------------------------------------------------------------------
+            boolean isDryRun = config.isDryRun();
 
-            List<String> errors = accessManager.canWrite( currentUserService.getCurrentUser(), internalCdsr.getDataSet() );
-            if ( !errors.isEmpty() )
-            {
-                summary.getConflicts().addAll( errors.stream().map( s -> new ImportConflict( "dataSet", s ) ).collect( Collectors.toList() ) );
-                continue;
-            }
-
-            ImportStrategy strategy = config.strategy;
-
-            boolean isDryRun = config.dryRun;
-
-            if ( !config.skipExistingCheck && existingCdsr != null )
+            if ( !config.isSkipExistingCheck() && existingCdsr != null )
             {
                 // CDSR already exists
 
@@ -681,11 +689,23 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             date, storedBy, date, cdsr.getLastUpdatedBy(), cdsr.getCompleted() );
     }
 
+    /**
+     * Check write permission for {@see DataSet} and {@see CategoryOptionCombo}
+     * @param user currently logged-in user
+     * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
+     */
+    private List<String> validateDataAccess( User user, MetaDataProperties metaDataProperties )
+    {
+        List<String> errors = accessManager.canWrite( user, metaDataProperties.dataSet );
+        errors.addAll( accessManager.canWrite( user, metaDataProperties.attrOptCombo ) );
+        return errors;
+    }
+
     private static void validateOrgUnitInUserHierarchy( MetaDataCaches mdCaches, MetaDataProperties mdProps,
         final Set<OrganisationUnit> userOrgUnits, String currentUsername )
         throws ImportConflictException
     {
-        boolean inUserHierarchy = mdCaches.orgUnitInHierarchyMap.get( mdProps.orgUnit.getUid(),
+        boolean inUserHierarchy = mdCaches.getOrgUnitInHierarchyMap().get( mdProps.orgUnit.getUid(),
             () -> mdProps.orgUnit.isDescendant( userOrgUnits ) );
 
         if ( !inUserHierarchy )
@@ -697,7 +717,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     private void sendNotifications( ImportConfig config, CompleteDataSetRegistration registration )
     {
-        if ( !config.skipNotifications )
+        if ( !config.isSkipNotifications() )
         {
             if ( registration.getDataSet() != null  && registration.getDataSet().isNotifyCompletingUser() )
             {
@@ -715,7 +735,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( mdProps.attrOptCombo == null )
         {
-            if ( config.requireAttrOptionCombos )
+            if ( config.isRequireAttrOptionCombos() )
             {
                 throw new ImportConflictException( new ImportConflict( "Attribute option combo",
                     "Attribute option combo is required but is not specified" ) );
@@ -738,7 +758,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         final String aocOrgUnitKey = aoc.getUid() + mdProps.orgUnit.getUid();
 
-        boolean isOrgUnitValidForAoc = mdCaches.attrOptComboOrgUnitMap.get( aocOrgUnitKey, () -> {
+        boolean isOrgUnitValidForAoc = mdCaches.getAttrOptComboOrgUnitMap().get( aocOrgUnitKey, () -> {
             Set<OrganisationUnit> aocOrgUnits = aoc.getOrganisationUnits();
             return aocOrgUnits == null || mdProps.orgUnit.isDescendant( aocOrgUnits );
         } );
@@ -806,39 +826,39 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     private void heatCaches( MetaDataCaches caches, ImportConfig config )
     {
-        if ( !caches.dataSets.isCacheLoaded() && exceedsThreshold( caches.dataSets ) )
+        if ( !caches.getDataSets().isCacheLoaded() && exceedsThreshold( caches.getDataSets() ) )
         {
-            caches.dataSets.load( idObjManager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
+            caches.getDataSets().load( idObjManager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.getDsScheme() ) );
 
             log.info( "Data set cache heated after cache miss threshold reached" );
         }
 
-        if ( !caches.orgUnits.isCacheLoaded() && exceedsThreshold( caches.orgUnits ) )
+        if ( !caches.getOrgUnits().isCacheLoaded() && exceedsThreshold( caches.getOrgUnits() ) )
         {
-            caches.orgUnits.load( idObjManager.getAll( OrganisationUnit.class ),
-                ou -> ou.getPropertyValue( config.ouScheme ) );
+            caches.getOrgUnits().load( idObjManager.getAll( OrganisationUnit.class ),
+                ou -> ou.getPropertyValue( config.getOuScheme() ) );
 
             log.info( "Org unit cache heated after cache miss threshold reached" );
         }
 
         // TODO Consider need for checking/re-heating attrOptCombo and period caches
 
-        if ( !caches.attrOptionCombos.isCacheLoaded() && exceedsThreshold( caches.attrOptionCombos ) )
+        if ( !caches.getAttrOptionCombos().isCacheLoaded() && exceedsThreshold( caches.getAttrOptionCombos() ) )
         {
-            caches.attrOptionCombos.load( idObjManager.getAll( CategoryOptionCombo.class ),
-                aoc -> aoc.getPropertyValue( config.aocScheme ) );
+            caches.getAttrOptionCombos().load( idObjManager.getAll( CategoryOptionCombo.class ),
+                aoc -> aoc.getPropertyValue( config.getAocScheme() ) );
 
             log.info( "Attribute option combo cache heated after cache miss threshold reached" );
         }
 
-        if ( !caches.periods.isCacheLoaded() && exceedsThreshold( caches.periods ) )
+        if ( !caches.getPeriods().isCacheLoaded() && exceedsThreshold( caches.getPeriods() ) )
         {
-            caches.periods.load( idObjManager.getAll( Period.class ), pe -> pe.getPropertyValue( null ) );
+            caches.getPeriods().load( idObjManager.getAll( Period.class ), pe -> pe.getPropertyValue( null ) );
         }
     }
 
-    public MetaDataProperties initMetaDataProperties(
-        org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache )
+    private MetaDataProperties initMetaDataProperties(
+            org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr, MetaDataCallables callables, MetaDataCaches cache)
     {
         String ds = StringUtils.trimToNull( cdsr.getDataSet() );
         String pe = StringUtils.trimToNull( cdsr.getPeriod() );
@@ -850,11 +870,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
-
-        return new MetaDataProperties( cache.dataSets.get( ds, callables.dataSetCallable.setId( ds ) ),
-            cache.periods.get( pe, callables.periodCallable.setId( pe ) ),
-            cache.orgUnits.get( ou, callables.orgUnitCallable.setId( ou ) ),
-            cache.attrOptionCombos.get( aoc, callables.optionComboCallable.setId( aoc ) ) );
+        return new MetaDataProperties( cache.getDataSets().get( ds, callables.getDataSetCallable().setId( ds ) ),
+            cache.getPeriods().get( pe, callables.getPeriodCallable().setId( pe ) ),
+            cache.getOrgUnits().get( ou, callables.getOrgUnitCallable().setId( ou ) ),
+            cache.getAttrOptionCombos().get( aoc, callables.getOptionComboCallable().setId( aoc ) ) );
     }
 
     private static boolean exceedsThreshold( CachingMap<?, ?> cachingMap )
@@ -909,104 +928,16 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
             if ( attrOptCombo == null )
             {
-                if ( config.requireAttrOptionCombos )
+                if ( config.isRequireAttrOptionCombos() )
                 {
                     throw new ImportConflictException( new ImportConflict( "Attribute option combo",
                         "Attribute option combo is required but is not specified" ) );
                 }
                 else
                 {
-                    attrOptCombo = config.fallbackCatOptCombo;
+                    attrOptCombo = config.getFallbackCatOptCombo();
                 }
             }
-        }
-    }
-
-    private class MetaDataCallables
-    {
-        final IdentifiableObjectCallable<DataSet> dataSetCallable;
-
-        final IdentifiableObjectCallable<OrganisationUnit> orgUnitCallable;
-
-        final IdentifiableObjectCallable<CategoryOptionCombo> optionComboCallable;
-
-        final IdentifiableObjectCallable<Period> periodCallable;
-
-        MetaDataCallables( ImportConfig config )
-        {
-            dataSetCallable = new IdentifiableObjectCallable<>( idObjManager, DataSet.class, config.dsScheme, null );
-            orgUnitCallable = new IdentifiableObjectCallable<>( idObjManager, OrganisationUnit.class, config.ouScheme,
-                null );
-            optionComboCallable = new CategoryOptionComboAclCallable( categoryService, config.aocScheme, null );
-            periodCallable = new PeriodCallable( periodService, null, null );
-        }
-    }
-
-    private static class MetaDataCaches
-    {
-        CachingMap<String, DataSet> dataSets = new CachingMap<>();
-
-        CachingMap<String, OrganisationUnit> orgUnits = new CachingMap<>();
-
-        CachingMap<String, Period> periods = new CachingMap<>();
-
-        CachingMap<String, CategoryOptionCombo> attrOptionCombos = new CachingMap<>();
-
-        CachingMap<String, Boolean> orgUnitInHierarchyMap = new CachingMap<>();
-
-        CachingMap<String, Boolean> attrOptComboOrgUnitMap = new CachingMap<>();
-
-        void preheat( IdentifiableObjectManager manager, final ImportConfig config )
-        {
-            dataSets.load( manager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.dsScheme ) );
-            orgUnits.load( manager.getAll( OrganisationUnit.class ), ou -> ou.getPropertyValue( config.ouScheme ) );
-            attrOptionCombos.load( manager.getAll( CategoryOptionCombo.class ),
-                oc -> oc.getPropertyValue( config.aocScheme ) );
-        }
-    }
-
-    private class ImportConfig
-    {
-        IdScheme dsScheme, ouScheme, aocScheme;
-
-        ImportStrategy strategy;
-
-        boolean dryRun, skipExistingCheck, strictPeriods, strictAttrOptionCombos, strictOrgUnits,
-            requireAttrOptionCombos, skipNotifications;
-
-        CategoryOptionCombo fallbackCatOptCombo;
-
-        ImportConfig( CompleteDataSetRegistrations cdsr, ImportOptions options )
-        {
-            dsScheme = IdScheme.from( cdsr.getDataSetIdSchemeProperty() );
-            ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );
-            aocScheme = IdScheme.from( cdsr.getAttributeOptionComboIdSchemeProperty() );
-
-            log.info( String.format( "Data set scheme: %s, org unit scheme: %s, attribute option combo scheme: %s",
-                dsScheme, ouScheme, aocScheme ) );
-
-            strategy = cdsr.getStrategy() != null ? ImportStrategy.valueOf( cdsr.getStrategy() )
-                : options.getImportStrategy();
-
-            dryRun = cdsr.getDryRun() != null ? cdsr.getDryRun() : options.isDryRun();
-
-            skipNotifications = options.isSkipNotifications();
-
-            skipExistingCheck = options.isSkipExistingCheck();
-
-            strictPeriods = options.isStrictPeriods()
-                || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
-
-            strictAttrOptionCombos = options.isStrictAttributeOptionCombos() || (Boolean) systemSettingManager
-                .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
-
-            strictOrgUnits = options.isStrictOrganisationUnits()
-                || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
-
-            requireAttrOptionCombos = options.isRequireAttributeOptionCombo() || (Boolean) systemSettingManager
-                .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
-
-            fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
         }
     }
 
