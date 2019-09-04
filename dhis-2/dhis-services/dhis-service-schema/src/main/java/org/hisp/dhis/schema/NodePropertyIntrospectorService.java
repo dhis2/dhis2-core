@@ -33,6 +33,7 @@ import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.NameableObject;
@@ -77,6 +78,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
             property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( itemKlass ) );
             property.setNameableObject( NameableObject.class.isAssignableFrom( itemKlass ) );
             property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
+            property.setAnalyticalObject( AnalyticalObject.class.isAssignableFrom( klass ) );
         }
 
         return property;
