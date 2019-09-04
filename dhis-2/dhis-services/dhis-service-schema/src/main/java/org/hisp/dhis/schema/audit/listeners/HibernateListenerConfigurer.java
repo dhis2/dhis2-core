@@ -1,5 +1,3 @@
-package org.hisp.dhis.amqp;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,47 +26,45 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsTopic;
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
+package org.hisp.dhis.schema.audit.listeners;
+
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.event.spi.PostUpdateEventListener;
+import org.hibernate.internal.SessionFactoryImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
 @Component
-public class AmqpTester
-{
-    private final JmsTemplate jmsTemplate;
+public class HibernateListenerConfigurer {
 
-    public AmqpTester( JmsTemplate jmsTemplate )
-    {
-        this.jmsTemplate = jmsTemplate;
-    }
+    @PersistenceUnit
+    private EntityManagerFactory emf;
 
-//    @Scheduled( initialDelay = 10_000, fixedRate = 5_000 )
-//    public void listener() throws Exception
-//    {
-//        for ( ; ; )
-//        {
-//            TextMessage textMessage = (TextMessage) jmsTemplate.receive( new JmsTopic( "dhis2.metadata" ) );
-//
-//            if ( textMessage == null )
-//            {
-//                continue;
-//            }
-//
-//            System.err.println( "JMS: " + textMessage.getText() );
-//        }
-//    }
+    @Autowired
+    private PostInsertAuditListener listenerI;
+    @Autowired
+    private PostUpdateEventListener listenerU;
 
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener( TextMessage message ) throws JMSException
-    {
-        System.err.println( "JmsListener:" + message.getText() );
+    @PostConstruct
+    protected void init() {
+
+        SessionFactoryImpl sessionFactory = emf.unwrap(SessionFactoryImpl.class);
+
+        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService(EventListenerRegistry.class);
+
+        registry.getEventListenerGroup(EventType.POST_INSERT).appendListener(listenerI);
+
+        registry.getEventListenerGroup(EventType.POST_UPDATE).appendListener(listenerU);
+
+//        registry.getEventListenerGroup(EventType.POST_DELETE).appendListener(listener);
+
     }
 }

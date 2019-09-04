@@ -171,4 +171,76 @@ public class MetadataAudit
             .add( "value", value )
             .toString();
     }
+
+
+    public static final class MetadataAuditBuilder {
+        private int id;
+        private Date createdAt = new Date();
+        private String createdBy;
+        private String klass;
+        private String uid;
+        private String code;
+        private AuditType type;
+        private String value;
+
+        private MetadataAuditBuilder() {
+        }
+
+        public static MetadataAuditBuilder aMetadataAudit() {
+            return new MetadataAuditBuilder();
+        }
+
+        public MetadataAuditBuilder withId(int id) {
+            this.id = id;
+            return this;
+        }
+
+        public MetadataAuditBuilder withCreatedAt(Date createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public MetadataAuditBuilder withCreatedBy(String createdBy) {
+            this.createdBy = createdBy;
+            return this;
+        }
+
+        public MetadataAuditBuilder withKlass(String klass) {
+            this.klass = klass;
+            return this;
+        }
+
+        public MetadataAuditBuilder withUid(String uid) {
+            this.uid = uid;
+            return this;
+        }
+
+        public MetadataAuditBuilder withCode(String code) {
+            this.code = code;
+            return this;
+        }
+
+        public MetadataAuditBuilder withType(AuditType type) {
+            this.type = type;
+            return this;
+        }
+
+        public MetadataAuditBuilder withValue(String value) {
+            this.value = value;
+            return this;
+        }
+
+        public MetadataAudit build() {
+            MetadataAudit metadataAudit = new MetadataAudit();
+            metadataAudit.setId(id);
+            metadataAudit.setCreatedAt(createdAt);
+            metadataAudit.setCreatedBy(createdBy);
+            metadataAudit.setKlass(klass);
+            metadataAudit.setUid(uid);
+            metadataAudit.setCode(code);
+            metadataAudit.setType(type);
+            metadataAudit.setValue(value);
+            return metadataAudit;
+        }
+    }
 }

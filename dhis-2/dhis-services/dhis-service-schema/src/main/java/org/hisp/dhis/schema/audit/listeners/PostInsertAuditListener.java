@@ -1,5 +1,3 @@
-package org.hisp.dhis.amqp;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,47 +26,35 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsTopic;
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
+package org.hisp.dhis.schema.audit.listeners;
+
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.event.spi.PostInsertEventListener;
+import org.hibernate.event.spi.PostUpdateEvent;
+import org.hibernate.event.spi.PostUpdateEventListener;
+import org.hibernate.persister.entity.EntityPersister;
 import org.springframework.stereotype.Component;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
 @Component
-public class AmqpTester
-{
-    private final JmsTemplate jmsTemplate;
+public class PostInsertAuditListener
+    implements
+    PostInsertEventListener
 
-    public AmqpTester( JmsTemplate jmsTemplate )
+{
+
+    @Override
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
-        this.jmsTemplate = jmsTemplate;
+        return false;
     }
 
-//    @Scheduled( initialDelay = 10_000, fixedRate = 5_000 )
-//    public void listener() throws Exception
-//    {
-//        for ( ; ; )
-//        {
-//            TextMessage textMessage = (TextMessage) jmsTemplate.receive( new JmsTopic( "dhis2.metadata" ) );
-//
-//            if ( textMessage == null )
-//            {
-//                continue;
-//            }
-//
-//            System.err.println( "JMS: " + textMessage.getText() );
-//        }
-//    }
-
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener( TextMessage message ) throws JMSException
+    @Override
+    public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        System.err.println( "JmsListener:" + message.getText() );
+        System.err.println( " on post insert ");
+
     }
 }

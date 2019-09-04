@@ -1,5 +1,3 @@
-package org.hisp.dhis.amqp;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,47 +26,63 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.schema.audit.listeners;
+
 import org.apache.qpid.jms.JmsTopic;
-import org.springframework.jms.annotation.JmsListener;
+import org.hibernate.event.spi.PostUpdateEvent;
+import org.hibernate.event.spi.PostUpdateEventListener;
+import org.hibernate.persister.entity.EntityPersister;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.schema.audit.MetadataAudit;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import java.util.Date;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
 @Component
-public class AmqpTester
+public class PostUpdateAuditListener
+    implements
+    PostUpdateEventListener
 {
-    private final JmsTemplate jmsTemplate;
 
-    public AmqpTester( JmsTemplate jmsTemplate )
+    @Autowired
+    private JmsTemplate jmsTemplate;
+    
+    @Autowired
+    private RenderService renderService;
+    
+    @Override
+    public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        this.jmsTemplate = jmsTemplate;
+        String entity = postUpdateEvent.getEntity().getClass().getName();
+        if ( AuditUtils.isAuditable( postUpdateEvent.getEntity() ) )
+        {
+            IdentifiableObject io = (IdentifiableObject) postUpdateEvent.getEntity();
+
+            jmsTemplate.convertAndSend( new JmsTopic( "dhis2.metadata" ), renderService.toJsonAsString( MetadataAudit.MetadataAuditBuilder.aMetadataAudit()
+                    .withCreatedAt(new Date() )
+                    .withCreatedBy( "todo" )
+                    .withKlass( entity )
+                    .withUid(io.getUid())
+                    .withCode(io.getCode())
+                    .withType(AuditType.UPDATE)
+                    .build( ) ));
+        
+        }
+
+        System.err.println( " on post update for klass: " + entity );
+
     }
 
-//    @Scheduled( initialDelay = 10_000, fixedRate = 5_000 )
-//    public void listener() throws Exception
-//    {
-//        for ( ; ; )
-//        {
-//            TextMessage textMessage = (TextMessage) jmsTemplate.receive( new JmsTopic( "dhis2.metadata" ) );
-//
-//            if ( textMessage == null )
-//            {
-//                continue;
-//            }
-//
-//            System.err.println( "JMS: " + textMessage.getText() );
-//        }
-//    }
-
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener( TextMessage message ) throws JMSException
+    @Override
+    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
     {
-        System.err.println( "JmsListener:" + message.getText() );
+        return false;
     }
 }

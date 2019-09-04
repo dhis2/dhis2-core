@@ -338,22 +338,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 
-            MetadataAudit audit = new MetadataAudit();
-            audit.setCreatedAt( new Date() );
-            audit.setCreatedBy( bundle.getUsername() );
-            audit.setKlass( klass.getName() );
-            audit.setUid( object.getUid() );
-            audit.setCode( object.getCode() );
-            audit.setType( AuditType.UPDATE );
-
-            if ( log.isDebugEnabled() )
-            {
-                String msg = "(" + bundle.getUsername() + ") Updated object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
-                log.debug( msg );
-            }
-
-            jmsTemplate.convertAndSend( new JmsTopic( "dhis2.metadata" ), renderService.toJsonAsString( audit ) );
-
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
         }
 

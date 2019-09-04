@@ -30,6 +30,7 @@ package org.hisp.dhis.amqp;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.api.core.TransportConfiguration;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
 import org.apache.activemq.artemis.core.config.CoreQueueConfiguration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
@@ -84,7 +85,8 @@ public class ArtemisConfig
         JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", amqpConfig.getHost(), amqpConfig.getPort() ) );
         connectionFactory.setClientIDPrefix( "dhis2" );
         connectionFactory.setCloseLinksThatFailOnReconnect( false );
-
+        // don't wait for  Broker ACK
+        connectionFactory.setForceAsyncSend( true );
         return connectionFactory;
     }
 
@@ -103,9 +105,8 @@ public class ArtemisConfig
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory( connectionFactory );
         factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
-        factory.setConcurrency( "10" );
+        factory.setConcurrency( "1" );
         // factory.setSessionTransacted( true );
-
         return factory;
     }
 
@@ -135,7 +136,8 @@ public class ArtemisConfig
         org.apache.activemq.artemis.core.config.Configuration config = new ConfigurationImpl();
 
         config.addAcceptorConfiguration( "tcp",
-            String.format( "tcp://%s:%d?protocols=AMQP", amqpConfig.getHost(), amqpConfig.getPort() ) );
+            String.format( "tcp://%s:%d?protocols=AMQP&nioRemotingThreads=5", amqpConfig.getHost(), amqpConfig.getPort() ) );
+
         config.setSecurityEnabled( amqpConfig.getEmbedded().isSecurity() );
         config.setPersistenceEnabled( amqpConfig.getEmbedded().isPersistence() );
 
@@ -149,6 +151,7 @@ public class ArtemisConfig
             config.setBindingsDirectory( dataDir + "/artemis/bindings" );
             config.setPagingDirectory( dataDir + "/artemis/paging" );
         }
+
 
         config.addAddressesSetting( "#",
             new AddressSettings()
@@ -172,6 +175,8 @@ public class ArtemisConfig
                     new CoreQueueConfiguration()
                         .setName( "ExpiryQueue" )
                         .setRoutingType( RoutingType.ANYCAST ) ) );
+
+
 
         server.setConfiguration( config );
 

@@ -1,5 +1,3 @@
-package org.hisp.dhis.amqp;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,47 +26,17 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsTopic;
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Component
-public class AmqpTester
-{
-    private final JmsTemplate jmsTemplate;
-
-    public AmqpTester( JmsTemplate jmsTemplate )
-    {
-        this.jmsTemplate = jmsTemplate;
-    }
-
-//    @Scheduled( initialDelay = 10_000, fixedRate = 5_000 )
-//    public void listener() throws Exception
-//    {
-//        for ( ; ; )
-//        {
-//            TextMessage textMessage = (TextMessage) jmsTemplate.receive( new JmsTopic( "dhis2.metadata" ) );
-//
-//            if ( textMessage == null )
-//            {
-//                continue;
-//            }
-//
-//            System.err.println( "JMS: " + textMessage.getText() );
-//        }
-//    }
-
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener( TextMessage message ) throws JMSException
-    {
-        System.err.println( "JmsListener:" + message.getText() );
-    }
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = ElementType.TYPE)
+public @interface Auditable {
 }
