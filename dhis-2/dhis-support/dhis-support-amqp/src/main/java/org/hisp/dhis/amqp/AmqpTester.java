@@ -28,53 +28,47 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.amqp.config.AmqpConfig;
-import org.hisp.dhis.amqp.config.AmqpMode;
-import org.springframework.stereotype.Service;
+import org.apache.qpid.jms.JmsTopic;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
-public class AmqpManager
+@Component
+public class AmqpTester
 {
-    private final Log log = LogFactory.getLog( AmqpManager.class );
+    private final JmsTemplate jmsTemplate;
 
-    private final EmbeddedActiveMQ embeddedActiveMQ;
-    private final AmqpConfig amqpConfig;
-
-    public AmqpManager(
-        EmbeddedActiveMQ embeddedActiveMQ,
-        AmqpConfig amqpConfig )
+    public AmqpTester( JmsTemplate jmsTemplate )
     {
-        this.embeddedActiveMQ = embeddedActiveMQ;
-        this.amqpConfig = amqpConfig;
+        this.jmsTemplate = jmsTemplate;
     }
 
-    @PostConstruct
-    public void startAmqp() throws Exception
+    @Scheduled( initialDelay = 10_000, fixedRate = 5_000 )
+    public void listener() throws Exception
     {
-        if ( AmqpMode.EMBEDDED == amqpConfig.getMode() )
+        for ( ; ; )
         {
-            log.info( "Starting embedded Artemis ActiveMQ server." );
-            embeddedActiveMQ.start();
+            TextMessage textMessage = (TextMessage) jmsTemplate.receive( new JmsTopic( "dhis2.metadata" ) );
+
+            if ( textMessage == null )
+            {
+                continue;
+            }
+
+            System.err.println( "JMS: " + textMessage.getText() );
         }
     }
 
-    @PreDestroy
-    public void stopAmqp() throws Exception
+    @JmsListener( containerFactory = "jmsListenerContainerFactory", destination = "metadataDestination" )
+    public void metadataEventListener( TextMessage message ) throws JMSException
     {
-        if ( embeddedActiveMQ == null )
-        {
-            return;
-        }
-
-        embeddedActiveMQ.stop();
+        System.err.println( "JmsListener:" + message.getText() );
     }
 }

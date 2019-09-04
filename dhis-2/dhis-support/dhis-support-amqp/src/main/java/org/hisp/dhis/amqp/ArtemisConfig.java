@@ -28,178 +28,111 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.ImmutableList;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
-import org.apache.activemq.artemis.core.config.Configuration;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
 import org.apache.activemq.artemis.core.config.CoreQueueConfiguration;
 import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.qpid.jms.JmsConnectionFactory;
+import org.apache.qpid.jms.JmsQueue;
+import org.apache.qpid.jms.JmsTopic;
 import org.hisp.dhis.amqp.config.AmqpConfig;
 import org.hisp.dhis.amqp.config.AmqpEmbeddedConfig;
 import org.hisp.dhis.amqp.config.AmqpMode;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.destination.BeanFactoryDestinationResolver;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.jms.Connection;
-import javax.jms.JMSException;
+import javax.jms.ConnectionFactory;
+import javax.jms.Destination;
+import javax.jms.Message;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
-public class DefaultAmqpManager implements AmqpManager
+@EnableJms
+@Configuration
+public class ArtemisConfig
 {
-    private final Log log = LogFactory.getLog( DefaultAmqpManager.class );
-
     private final DhisConfigurationProvider dhisConfig;
     private final LocationManager locationManager;
-    private AmqpConfig amqpConfig = null;
-    private JmsConnectionFactory connectionFactory = null;
-    private EmbeddedActiveMQ embeddedActiveMQ = null;
+    private final BeanFactory springContextBeanFactory;
 
-    private ImmutableList<String> topics = ImmutableList.<String>builder()
-        .add( "dhis2.stats" )
-        .build();
-
-    private ImmutableList<String> queues = ImmutableList.<String>builder()
-        .add( "DLO" )
-        .add( "ExpiryQueue" )
-        .build();
-
-    public DefaultAmqpManager( DhisConfigurationProvider dhisConfig, LocationManager locationManager )
+    public ArtemisConfig(
+        DhisConfigurationProvider dhisConfig,
+        LocationManager locationManager,
+        BeanFactory springContextBeanFactory )
     {
         this.dhisConfig = dhisConfig;
         this.locationManager = locationManager;
+        this.springContextBeanFactory = springContextBeanFactory;
     }
 
-    @PostConstruct
-    public void startAmqp() throws Exception
+    @Bean
+    public ConnectionFactory jmsConnectionFactory( AmqpConfig amqpConfig )
     {
-        AmqpConfig amqpConfig = getAmqpConfig();
+        JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", amqpConfig.getHost(), amqpConfig.getPort() ) );
+        connectionFactory.setClientIDPrefix( "dhis2" );
+        connectionFactory.setCloseLinksThatFailOnReconnect( false );
 
-        if ( AmqpMode.EMBEDDED == amqpConfig.getMode() )
-        {
-            embeddedActiveMQ = createEmbeddedServer( amqpConfig );
-
-            log.info( "Starting embedded Artemis ActiveMQ server." );
-            embeddedActiveMQ.start();
-        }
-
-        AmqpClient client = getClient();
-
-        topics.forEach( t -> {
-            try
-            {
-                client.createTopic( t );
-            }
-            catch ( JMSException e )
-            {
-                log.info( e.getMessage() );
-            }
-        } );
-
-        queues.forEach( t -> {
-            try
-            {
-                client.createQueue( t );
-            }
-            catch ( JMSException e )
-            {
-                log.info( e.getMessage() );
-            }
-        } );
-
-        client.close();
-    }
-
-    @PreDestroy
-    public void stopAmqp() throws Exception
-    {
-        if ( embeddedActiveMQ == null )
-        {
-            return;
-        }
-
-        embeddedActiveMQ.stop();
-        embeddedActiveMQ = null;
-        connectionFactory = null;
-    }
-
-    @Override
-    public AmqpClient getClient()
-    {
-        AmqpConfig amqpConfig = getAmqpConfig();
-        Connection connection = createConnection( amqpConfig );
-
-        if ( connection == null )
-        {
-            return null;
-        }
-
-        try
-        {
-            connection.start();
-            connection.setExceptionListener( exception -> System.err.println( exception.getMessage() ) );
-        }
-        catch ( JMSException e )
-        {
-            e.printStackTrace();
-        }
-
-        return new AmqpClient( connection );
-    }
-
-    private Connection createConnection( AmqpConfig amqpConfig )
-    {
-        if ( connectionFactory == null )
-        {
-            connectionFactory = createConnectionFactory( amqpConfig );
-        }
-
-        Connection connection = null;
-
-        try
-        {
-            if ( StringUtils.isEmpty( amqpConfig.getUsername() ) || StringUtils.isEmpty( amqpConfig.getPassword() ) )
-            {
-                connection = connectionFactory.createConnection();
-            }
-            else
-            {
-                connection = connectionFactory.createConnection( amqpConfig.getUsername(), amqpConfig.getPassword() );
-            }
-        }
-        catch ( JMSException e )
-        {
-            e.printStackTrace();
-        }
-
-        return connection;
-    }
-
-    private JmsConnectionFactory createConnectionFactory( AmqpConfig amqpConfig )
-    {
-        connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", amqpConfig.getHost(), amqpConfig.getPort() ) );
         return connectionFactory;
     }
 
-    private EmbeddedActiveMQ createEmbeddedServer( AmqpConfig amqpConfig ) throws Exception
+    @Bean
+    public JmsTemplate jmsTemplate( ConnectionFactory connectionFactory )
+    {
+        JmsTemplate template = new JmsTemplate( connectionFactory );
+        template.setDeliveryMode( Message.DEFAULT_DELIVERY_MODE );
+
+        return template;
+    }
+
+    @Bean
+    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory )
+    {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory( connectionFactory );
+        factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
+        factory.setConcurrency( "10" );
+        // factory.setSessionTransacted( true );
+
+        return factory;
+    }
+
+    @Bean
+    public Destination metadataDestination()
+    {
+        return new JmsTopic( "dhis2.metadata" );
+    }
+
+    @Bean
+    public Destination dloDestination()
+    {
+        return new JmsQueue( "DLO" );
+    }
+
+    @Bean
+    public Destination expiryQueueDestination()
+    {
+        return new JmsQueue( "ExpiryQueue" );
+    }
+
+    @Bean
+    public EmbeddedActiveMQ createEmbeddedServer( AmqpConfig amqpConfig ) throws Exception
     {
         EmbeddedActiveMQ server = new EmbeddedActiveMQ();
 
-        Configuration config = new ConfigurationImpl();
+        org.apache.activemq.artemis.core.config.Configuration config = new ConfigurationImpl();
 
         config.addAcceptorConfiguration( "tcp",
             String.format( "tcp://%s:%d?protocols=AMQP", amqpConfig.getHost(), amqpConfig.getPort() ) );
@@ -245,14 +178,10 @@ public class DefaultAmqpManager implements AmqpManager
         return server;
     }
 
-    private AmqpConfig getAmqpConfig()
+    @Bean
+    public AmqpConfig getAmqpConfig()
     {
-        if ( amqpConfig != null )
-        {
-            return amqpConfig;
-        }
-
-        amqpConfig = new AmqpConfig();
+        AmqpConfig amqpConfig = new AmqpConfig();
         amqpConfig.setMode( AmqpMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.AMQP_MODE )).toUpperCase() ) );
         amqpConfig.setHost( dhisConfig.getProperty( ConfigurationKey.AMQP_HOST ) );
         amqpConfig.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.AMQP_PORT ) ) );
