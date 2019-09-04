@@ -54,8 +54,8 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.destination.BeanFactoryDestinationResolver;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
 import javax.jms.Destination;
-import javax.jms.Message;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -92,7 +92,7 @@ public class ArtemisConfig
     public JmsTemplate jmsTemplate( ConnectionFactory connectionFactory )
     {
         JmsTemplate template = new JmsTemplate( connectionFactory );
-        template.setDeliveryMode( Message.DEFAULT_DELIVERY_MODE );
+        template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
 
         return template;
     }
@@ -103,8 +103,7 @@ public class ArtemisConfig
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory( connectionFactory );
         factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
-        factory.setConcurrency( "10" );
-        // factory.setSessionTransacted( true );
+        factory.setConcurrency( "1" );
 
         return factory;
     }

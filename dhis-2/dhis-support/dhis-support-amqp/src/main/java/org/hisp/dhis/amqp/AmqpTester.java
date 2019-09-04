@@ -28,10 +28,8 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsTopic;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.jms.JMSException;
@@ -50,25 +48,17 @@ public class AmqpTester
         this.jmsTemplate = jmsTemplate;
     }
 
-    @Scheduled( initialDelay = 10_000, fixedRate = 5_000 )
-    public void listener() throws Exception
+    @JmsListener( destination = "metadataDestination" )
+    public void metadataEventListener1( TextMessage message ) throws JMSException
     {
-        for ( ; ; )
-        {
-            TextMessage textMessage = (TextMessage) jmsTemplate.receive( new JmsTopic( "dhis2.metadata" ) );
-
-            if ( textMessage == null )
-            {
-                continue;
-            }
-
-            System.err.println( "JMS: " + textMessage.getText() );
-        }
+        System.err.println( "JmsListener1:" + message.getText() );
+        message.acknowledge();
     }
 
     @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener( TextMessage message ) throws JMSException
+    public void metadataEventListener2( TextMessage message ) throws JMSException
     {
-        System.err.println( "JmsListener:" + message.getText() );
+        System.err.println( "JmsListener2:" + message.getText() );
+        message.acknowledge();
     }
 }
