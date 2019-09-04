@@ -33,16 +33,29 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
+import org.hisp.dhis.render.RenderFormat;
+import org.hisp.dhis.render.RenderService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
+import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -61,6 +74,12 @@ public class MappingServiceTest
     @Autowired
     private MappingService mappingService;
 
+    @Autowired
+    private MetadataImportService importService;
+
+    @Autowired
+    private RenderService _renderService;
+
     private CategoryOption coA = createCategoryOption( 'A' );
     private Category caA = createCategory( 'A', coA );
     private DataElement deA = createDataElement( 'A' );
@@ -71,6 +90,7 @@ public class MappingServiceTest
     @Override
     public void setUpTest()
     {
+        renderService = _renderService;
         deA.setCategoryCombo( categoryService.getDefaultCategoryCombo() );
         ougsA.addOrganisationUnitGroup( ougA );
         idObjectManager.save( Lists.newArrayList( coA, caA, deA, ouA, ougA, ougsA ) );
@@ -117,5 +137,39 @@ public class MappingServiceTest
         assertEquals( deA, mapView.getDataElements().get( 0 ) );
         assertEquals( ouA, mapView.getOrganisationUnits().get( 0 ) );
         assertEquals( ougsdA, mapView.getOrganisationUnitGroupSetDimensions().get( 0 ) );
+    }
+
+    @Test
+    public void testImportMapCreateAndUpdate() throws IOException {
+        java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+                new ClassPathResource("create_map.json").getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        List<Map> maps = idObjectManager.getAll( Map.class );
+        assertEquals( 1, maps.size() );
+        assertEquals( "test1", maps.get(0).getName() );
+        assertEquals( 1, maps.get(0).getMapViews().size() );
+
+        metadata = renderService.fromMetadata(
+                new ClassPathResource("update_map.json").getInputStream(), RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        Map map = mappingService.getMap( "LTNgXfzTFTv" );
+        assertNotNull( map );
+        assertEquals( 1, map.getMapViews().size() );
     }
 }
