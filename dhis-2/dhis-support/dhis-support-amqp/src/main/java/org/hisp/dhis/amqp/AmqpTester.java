@@ -66,7 +66,7 @@ public class AmqpTester
         }
     }
 
-    @JmsListener( containerFactory = "jmsListenerContainerFactory", destination = "metadataDestination" )
+    @JmsListener( destination = "metadataDestination" )
     public void metadataEventListener( TextMessage message ) throws JMSException
     {
         System.err.println( "JmsListener:" + message.getText() );
