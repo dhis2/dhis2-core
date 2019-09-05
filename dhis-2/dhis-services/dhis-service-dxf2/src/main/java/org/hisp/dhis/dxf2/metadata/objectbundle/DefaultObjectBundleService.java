@@ -30,11 +30,12 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.qpid.jms.JmsTopic;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditType;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -54,16 +55,13 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.print.attribute.standard.Destination;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -113,7 +111,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private RenderService renderService;
 
     @Autowired
-    private JmsTemplate jmsTemplate;
+    private AuditManager auditManager;
 
     @Autowired( required = false )
     private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
@@ -252,21 +250,23 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), object );
 
-            MetadataAudit audit = new MetadataAudit();
-            audit.setCreatedAt( new Date() );
-            audit.setCreatedBy( bundle.getUsername() );
-            audit.setKlass( klass.getName() );
-            audit.setUid( object.getUid() );
-            audit.setCode( object.getCode() );
-            audit.setType( AuditType.CREATE );
-
             if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Created object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
                 log.debug( msg );
             }
 
-            jmsTemplate.convertAndSend( new JmsTopic( "dhis2.metadata" ), renderService.toJsonAsString( audit ) );
+            auditManager.sendTopic( "dhis2.metadata",
+                Audit.builder()
+                    .withAuditType( org.hisp.dhis.artemis.audit.AuditType.CREATE )
+                    .withCreatedAt( new Date() )
+                    .withCreatedBy( bundle.getUsername() )
+                    .withClass( klass )
+                    .withUid( object.getUid() )
+                    .withCode( object.getCode() )
+                    .build(),
+                object
+            );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
         }
@@ -338,21 +338,23 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 
-            MetadataAudit audit = new MetadataAudit();
-            audit.setCreatedAt( new Date() );
-            audit.setCreatedBy( bundle.getUsername() );
-            audit.setKlass( klass.getName() );
-            audit.setUid( object.getUid() );
-            audit.setCode( object.getCode() );
-            audit.setType( AuditType.UPDATE );
-
             if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Updated object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
                 log.debug( msg );
             }
 
-            jmsTemplate.convertAndSend( new JmsTopic( "dhis2.metadata" ), renderService.toJsonAsString( audit ) );
+            auditManager.sendTopic( "dhis2.metadata",
+                Audit.builder()
+                    .withAuditType( AuditType.UPDATE )
+                    .withCreatedAt( new Date() )
+                    .withCreatedBy( bundle.getUsername() )
+                    .withClass( klass )
+                    .withUid( object.getUid() )
+                    .withCode( object.getCode() )
+                    .build(),
+                object
+            );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
         }
@@ -405,21 +407,23 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             bundle.getPreheat().remove( bundle.getPreheatIdentifier(), object );
 
-            MetadataAudit audit = new MetadataAudit();
-            audit.setCreatedAt( new Date() );
-            audit.setCreatedBy( bundle.getUsername() );
-            audit.setKlass( klass.getName() );
-            audit.setUid( object.getUid() );
-            audit.setCode( object.getCode() );
-            audit.setType( AuditType.DELETE );
-
             if ( log.isDebugEnabled() )
             {
                 String msg = "(" + bundle.getUsername() + ") Deleted object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
                 log.debug( msg );
             }
 
-            jmsTemplate.convertAndSend( new JmsTopic( "dhis2.metadata" ), renderService.toJsonAsString( audit ) );
+            auditManager.sendTopic( "dhis2.metadata",
+                Audit.builder()
+                    .withAuditType( AuditType.DELETE )
+                    .withCreatedAt( new Date() )
+                    .withCreatedBy( bundle.getUsername() )
+                    .withClass( klass )
+                    .withUid( object.getUid() )
+                    .withCode( object.getCode() )
+                    .build(),
+                object
+            );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
         }

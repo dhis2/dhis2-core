@@ -28,29 +28,10 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class ArtemisTester
+public enum MessageType
 {
-    private final JmsTemplate jmsTemplate;
-
-    public ArtemisTester( JmsTemplate jmsTemplate )
-    {
-        this.jmsTemplate = jmsTemplate;
-    }
-
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener1( TextMessage message ) throws JMSException
-    {
-        System.err.println( message.getText() );
-    }
+    AUDIT
 }

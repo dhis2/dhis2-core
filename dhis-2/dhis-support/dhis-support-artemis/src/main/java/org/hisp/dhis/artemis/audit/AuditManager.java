@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.artemis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,29 +28,78 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.annotation.JmsListener;
+import com.google.common.primitives.Primitives;
+import org.apache.qpid.jms.JmsQueue;
+import org.apache.qpid.jms.JmsTopic;
+import org.hisp.dhis.render.RenderService;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
+import javax.jms.Destination;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class ArtemisTester
+public class AuditManager
 {
     private final JmsTemplate jmsTemplate;
+    private final RenderService renderService;
 
-    public ArtemisTester( JmsTemplate jmsTemplate )
+    public AuditManager(
+        JmsTemplate jmsTemplate,
+        RenderService renderService
+    )
     {
         this.jmsTemplate = jmsTemplate;
+        this.renderService = renderService;
     }
 
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener1( TextMessage message ) throws JMSException
+    public void send( Destination destination, Audit audit )
     {
-        System.err.println( message.getText() );
+        send( destination, audit, null );
+    }
+
+    public void send( Destination destination, Audit audit, Object data )
+    {
+        String payload = null;
+
+        if ( data != null )
+        {
+            Class<?> klass = data.getClass();
+
+            if ( klass.isPrimitive() || Primitives.isWrapperType( klass ) )
+            {
+                payload = String.valueOf( data );
+            }
+            else
+            {
+                payload = renderService.toJsonAsString( data );
+            }
+        }
+
+        audit.setData( payload );
+
+        jmsTemplate.send( destination, session -> session.createTextMessage( renderService.toJsonAsString( audit ) ) );
+    }
+
+    public void sendTopic( String topic, Audit audit )
+    {
+        send( new JmsTopic( topic ), audit );
+    }
+
+    public void sendTopic( String topic, Audit audit, Object data )
+    {
+        send( new JmsTopic( topic ), audit, data );
+    }
+
+    public void sendQueue( String queue, Audit audit )
+    {
+        send( new JmsQueue( queue ), audit );
+    }
+
+    public void sendQueue( String queue, Audit audit, Object data )
+    {
+        send( new JmsQueue( queue ), audit, data );
     }
 }

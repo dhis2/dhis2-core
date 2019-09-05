@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.artemis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,29 +28,10 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class ArtemisTester
+public enum AuditType
 {
-    private final JmsTemplate jmsTemplate;
-
-    public ArtemisTester( JmsTemplate jmsTemplate )
-    {
-        this.jmsTemplate = jmsTemplate;
-    }
-
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener1( TextMessage message ) throws JMSException
-    {
-        System.err.println( message.getText() );
-    }
+    CREATE, READ, UPDATE, DELETE, SEARCH, SECURITY
 }
