@@ -52,13 +52,11 @@ public class ArtemisTester
     public void metadataEventListener1( TextMessage message ) throws JMSException
     {
         System.err.println( "JmsListener1:" + message.getText() );
-        message.acknowledge();
     }
 
     @JmsListener( destination = "metadataDestination" )
     public void metadataEventListener2( TextMessage message ) throws JMSException
     {
         System.err.println( "JmsListener2:" + message.getText() );
-        message.acknowledge();
     }
 }

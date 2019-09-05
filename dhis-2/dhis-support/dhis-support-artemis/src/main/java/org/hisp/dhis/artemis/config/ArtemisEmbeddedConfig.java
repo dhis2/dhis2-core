@@ -43,6 +43,8 @@ public class ArtemisEmbeddedConfig
 
     private boolean persistence = true;
 
+    private int nioRemotingThreads = 5;
+
     public ArtemisEmbeddedConfig()
     {
     }
@@ -54,9 +56,10 @@ public class ArtemisEmbeddedConfig
         return security;
     }
 
-    public void setSecurity( boolean security )
+    public ArtemisEmbeddedConfig setSecurity( boolean security )
     {
         this.security = security;
+        return this;
     }
 
     @JsonProperty
@@ -66,8 +69,20 @@ public class ArtemisEmbeddedConfig
         return persistence;
     }
 
-    public void setPersistence( boolean persistence )
+    public ArtemisEmbeddedConfig setPersistence( boolean persistence )
     {
         this.persistence = persistence;
+        return this;
+    }
+
+    public int getNioRemotingThreads()
+    {
+        return nioRemotingThreads;
+    }
+
+    public ArtemisEmbeddedConfig setNioRemotingThreads( int nioRemotingThreads )
+    {
+        this.nioRemotingThreads = nioRemotingThreads;
+        return this;
     }
 }

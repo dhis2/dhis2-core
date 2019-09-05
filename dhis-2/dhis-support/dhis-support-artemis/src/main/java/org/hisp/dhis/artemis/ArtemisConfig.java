@@ -83,6 +83,7 @@ public class ArtemisConfig
         JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", artemisConfig.getHost(), artemisConfig.getPort() ) );
         connectionFactory.setClientIDPrefix( "dhis2" );
         connectionFactory.setCloseLinksThatFailOnReconnect( false );
+        connectionFactory.setForceAsyncAcks( true );
 
         return connectionFactory;
     }
@@ -143,12 +144,18 @@ public class ArtemisConfig
 
         org.apache.activemq.artemis.core.config.Configuration config = new ConfigurationImpl();
 
-        config.addAcceptorConfiguration( "tcp",
-            String.format( "tcp://%s:%d?protocols=AMQP", artemisConfig.getHost(), artemisConfig.getPort() ) );
-        config.setSecurityEnabled( artemisConfig.getEmbedded().isSecurity() );
-        config.setPersistenceEnabled( artemisConfig.getEmbedded().isPersistence() );
+        ArtemisEmbeddedConfig embeddedConfig = artemisConfig.getEmbedded();
 
-        if ( locationManager.externalDirectorySet() && artemisConfig.getEmbedded().isPersistence() )
+        config.addAcceptorConfiguration( "tcp",
+            String.format( "tcp://%s:%d?protocols=AMQP&nioRemotingThreads=%d",
+                artemisConfig.getHost(),
+                artemisConfig.getPort(),
+                embeddedConfig.getNioRemotingThreads() ) );
+
+        config.setSecurityEnabled( embeddedConfig.isSecurity() );
+        config.setPersistenceEnabled( embeddedConfig.isPersistence() );
+
+        if ( locationManager.externalDirectorySet() && embeddedConfig.isPersistence() )
         {
             String dataDir = locationManager.getExternalDirectoryPath();
             config.setJournalDirectory( dataDir + "/artemis/journal" );
