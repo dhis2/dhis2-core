@@ -102,4 +102,10 @@ public class DefaultDeduplicationService
     {
         return potentialDuplicateStore.getAllByQuery( query );
     }
+
+    @Override
+    public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    {
+        potentialDuplicateStore.delete( potentialDuplicate );
+    }
 }

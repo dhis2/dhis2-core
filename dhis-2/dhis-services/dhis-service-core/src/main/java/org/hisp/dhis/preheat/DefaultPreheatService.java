@@ -1004,18 +1004,6 @@ public class DefaultPreheatService implements PreheatService
 
     private boolean skipConnect( Class<?> klass )
     {
-        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || isEmbeddedObject( klass ));
-    }
-
-    private boolean isEmbeddedObject( Class<?> klass )
-    {
-        if ( AnalyticalObject.class.isAssignableFrom( klass ) || MetadataObject.class.isAssignableFrom( klass ) )
-        {
-            return false;
-        }
-        else
-        {
-            return  EmbeddedObject.class.isAssignableFrom( klass ) ;
-        }
+        return klass != null && (UserCredentials.class.isAssignableFrom( klass ) || EmbeddedObject.class.isAssignableFrom( klass ) );
     }
 }

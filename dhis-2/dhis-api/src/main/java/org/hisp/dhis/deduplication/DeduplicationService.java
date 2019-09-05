@@ -47,4 +47,6 @@ public interface DeduplicationService
         boolean exists( PotentialDuplicate potentialDuplicate );
 
         List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query );
+
+        void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 }
