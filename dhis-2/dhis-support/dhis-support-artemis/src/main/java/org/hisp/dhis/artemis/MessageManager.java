@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.artemis;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,24 +28,56 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.artemis.MessageManager;
+import org.apache.qpid.jms.JmsQueue;
+import org.apache.qpid.jms.JmsTopic;
+import org.hisp.dhis.render.RenderService;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
+
+import javax.jms.Destination;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component
-public class AuditManager
+public class MessageManager
 {
-    private final MessageManager messageManager;
+    private final JmsTemplate jmsTemplate;
+    private final RenderService renderService;
 
-    public AuditManager( MessageManager messageManager )
+    public MessageManager( JmsTemplate jmsTemplate, RenderService renderService )
     {
-        this.messageManager = messageManager;
+        this.jmsTemplate = jmsTemplate;
+        this.renderService = renderService;
     }
 
-    public void send( Audit audit )
+    public void send( Destination destination, Message message )
     {
-        messageManager.send( audit.getAuditScope().getDestination(), audit );
+        send( destination, message, null );
+    }
+
+    public void send( Destination destination, Message message, Object data )
+    {
+        jmsTemplate.send( destination, session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+    }
+
+    public void sendTopic( String topic, Message message )
+    {
+        send( new JmsTopic( topic ), message );
+    }
+
+    public void sendTopic( String topic, Message message, Object data )
+    {
+        send( new JmsTopic( topic ), message, data );
+    }
+
+    public void sendQueue( String queue, Message message )
+    {
+        send( new JmsQueue( queue ), message );
+    }
+
+    public void sendQueue( String queue, Message message, Object data )
+    {
+        send( new JmsQueue( queue ), message, data );
     }
 }

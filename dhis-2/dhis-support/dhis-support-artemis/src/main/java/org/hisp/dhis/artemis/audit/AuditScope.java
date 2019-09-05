@@ -28,10 +28,26 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.qpid.jms.JmsTopic;
+
+import javax.jms.Destination;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public enum AuditScope
 {
-    METADATA
+    METADATA( new JmsTopic( "dhis2.metadata" ) );
+
+    private final Destination destination;
+
+    AuditScope( Destination destination )
+    {
+        this.destination = destination;
+    }
+
+    public Destination getDestination()
+    {
+        return destination;
+    }
 }

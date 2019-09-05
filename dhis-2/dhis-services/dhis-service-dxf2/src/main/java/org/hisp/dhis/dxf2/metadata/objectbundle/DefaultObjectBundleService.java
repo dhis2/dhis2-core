@@ -257,15 +257,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 log.debug( msg );
             }
 
-            auditManager.sendTopic( "dhis2.metadata",
+            auditManager.send(
                 Audit.builder()
                     .withAuditType( AuditType.CREATE )
                     .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withObject( object )
-                    .build(),
-                object
+                    .withData( object )
+                    .build()
             );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
@@ -344,15 +344,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 log.debug( msg );
             }
 
-            auditManager.sendTopic( "dhis2.metadata",
+            auditManager.send(
                 Audit.builder()
                     .withAuditType( AuditType.UPDATE )
                     .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withObject( object )
-                    .build(),
-                object
+                    .withData( object )
+                    .build()
             );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
@@ -412,15 +412,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 log.debug( msg );
             }
 
-            auditManager.sendTopic( "dhis2.metadata",
+            auditManager.send(
                 Audit.builder()
                     .withAuditType( AuditType.DELETE )
                     .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withObject( object )
-                    .build(),
-                object
+                    .withData( object )
+                    .build()
             );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();

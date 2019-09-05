@@ -126,9 +126,9 @@ public class ArtemisConfig
     }
 
     @Bean
-    public Destination dloDestination()
+    public Destination dlqDestination()
     {
-        return new JmsQueue( "DLO" );
+        return new JmsQueue( "DLQ" );
     }
 
     @Bean

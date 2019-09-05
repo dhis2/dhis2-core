@@ -29,7 +29,6 @@ package org.hisp.dhis.artemis.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.artemis.Message;
@@ -86,6 +85,13 @@ public class Audit implements Message
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public AuditScope getAuditScope()
+    {
+        return auditScope;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getCreatedAt()
     {
         return createdAt;
@@ -135,7 +141,6 @@ public class Audit implements Message
     }
 
     @JsonProperty
-    @JsonRawValue
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Object getData()
     {
