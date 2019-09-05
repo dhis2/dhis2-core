@@ -1,4 +1,4 @@
-package org.hisp.dhis.amqp.config;
+package org.hisp.dhis.artemis.config;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -36,38 +36,92 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "amqpEmbedded", namespace = DxfNamespaces.DXF_2_0 )
-public class AmqpEmbeddedConfig
+@JacksonXmlRootElement( localName = "amqp", namespace = DxfNamespaces.DXF_2_0 )
+public class ArtemisConfig
 {
-    private boolean security = false;
+    private ArtemisMode mode = ArtemisMode.EMBEDDED;
 
-    private boolean persistence = false;
+    private String host = "127.0.0.1";
 
-    public AmqpEmbeddedConfig()
+    // AMQP port should be 5672/5673 but we don't want to cause issues with existing AMQP installations
+    // so we keep 15672 as default port (since we default to embedded server).
+    private int port = 15672;
+
+    private String username = "guest";
+
+    private String password = "guest";
+
+    private ArtemisEmbeddedConfig embedded = new ArtemisEmbeddedConfig();
+
+    public ArtemisConfig()
     {
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isSecurity()
+    public ArtemisMode getMode()
     {
-        return security;
+        return mode;
     }
 
-    public void setSecurity( boolean security )
+    public void setMode( ArtemisMode mode )
     {
-        this.security = security;
+        this.mode = mode;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isPersistence()
+    public String getHost()
     {
-        return persistence;
+        return host;
     }
 
-    public void setPersistence( boolean persistence )
+    public void setHost( String host )
     {
-        this.persistence = persistence;
+        this.host = host;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getPort()
+    {
+        return port;
+    }
+
+    public void setPort( int port )
+    {
+        this.port = port;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername( String username )
+    {
+        this.username = username;
+    }
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword( String password )
+    {
+        this.password = password;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ArtemisEmbeddedConfig getEmbedded()
+    {
+        return embedded;
+    }
+
+    public void setEmbedded( ArtemisEmbeddedConfig embedded )
+    {
+        this.embedded = embedded;
     }
 }

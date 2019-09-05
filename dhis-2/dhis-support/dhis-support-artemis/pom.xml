@@ -9,7 +9,7 @@
     <version>2.34-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dhis-support-amqp</artifactId>
+  <artifactId>dhis-support-artemis</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Artemis AMQP/JMS Support</name>
 

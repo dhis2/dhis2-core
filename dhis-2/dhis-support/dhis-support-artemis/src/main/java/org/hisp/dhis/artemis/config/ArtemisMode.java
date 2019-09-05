@@ -1,4 +1,4 @@
-package org.hisp.dhis.amqp;
+package org.hisp.dhis.artemis.config;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,37 +28,10 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Component
-public class AmqpTester
+public enum ArtemisMode
 {
-    private final JmsTemplate jmsTemplate;
-
-    public AmqpTester( JmsTemplate jmsTemplate )
-    {
-        this.jmsTemplate = jmsTemplate;
-    }
-
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener1( TextMessage message ) throws JMSException
-    {
-        System.err.println( "JmsListener1:" + message.getText() );
-        message.acknowledge();
-    }
-
-    @JmsListener( destination = "metadataDestination" )
-    public void metadataEventListener2( TextMessage message ) throws JMSException
-    {
-        System.err.println( "JmsListener2:" + message.getText() );
-        message.acknowledge();
-    }
+    EMBEDDED, NATIVE
 }

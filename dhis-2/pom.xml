@@ -473,7 +473,7 @@
       </dependency>
       <dependency>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-support-amqp</artifactId>
+        <artifactId>dhis-support-artemis</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

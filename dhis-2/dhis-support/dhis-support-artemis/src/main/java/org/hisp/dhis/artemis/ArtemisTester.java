@@ -1,4 +1,4 @@
-package org.hisp.dhis.amqp;
+package org.hisp.dhis.artemis;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,53 +28,37 @@ package org.hisp.dhis.amqp;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.amqp.config.AmqpConfig;
-import org.hisp.dhis.amqp.config.AmqpMode;
-import org.springframework.stereotype.Service;
+import org.springframework.jms.annotation.JmsListener;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service
-public class AmqpManager
+@Component
+public class ArtemisTester
 {
-    private final Log log = LogFactory.getLog( AmqpManager.class );
+    private final JmsTemplate jmsTemplate;
 
-    private final EmbeddedActiveMQ embeddedActiveMQ;
-    private final AmqpConfig amqpConfig;
-
-    public AmqpManager(
-        EmbeddedActiveMQ embeddedActiveMQ,
-        AmqpConfig amqpConfig )
+    public ArtemisTester( JmsTemplate jmsTemplate )
     {
-        this.embeddedActiveMQ = embeddedActiveMQ;
-        this.amqpConfig = amqpConfig;
+        this.jmsTemplate = jmsTemplate;
     }
 
-    @PostConstruct
-    public void startAmqp() throws Exception
+    @JmsListener( destination = "metadataDestination" )
+    public void metadataEventListener1( TextMessage message ) throws JMSException
     {
-        if ( AmqpMode.EMBEDDED == amqpConfig.getMode() )
-        {
-            log.info( "Starting embedded Artemis ActiveMQ server." );
-            embeddedActiveMQ.start();
-        }
+        System.err.println( "JmsListener1:" + message.getText() );
+        message.acknowledge();
     }
 
-    @PreDestroy
-    public void stopAmqp() throws Exception
+    @JmsListener( destination = "metadataDestination" )
+    public void metadataEventListener2( TextMessage message ) throws JMSException
     {
-        if ( embeddedActiveMQ == null )
-        {
-            return;
-        }
-
-        embeddedActiveMQ.stop();
+        System.err.println( "JmsListener2:" + message.getText() );
+        message.acknowledge();
     }
 }

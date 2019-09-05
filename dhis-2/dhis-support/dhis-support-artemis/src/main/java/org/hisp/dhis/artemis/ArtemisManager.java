@@ -1,4 +1,4 @@
-package org.hisp.dhis.amqp.config;
+package org.hisp.dhis.artemis;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,10 +28,53 @@ package org.hisp.dhis.amqp.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.artemis.config.ArtemisConfig;
+import org.hisp.dhis.artemis.config.ArtemisMode;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AmqpMode
+@Service
+public class ArtemisManager
 {
-    EMBEDDED, NATIVE
+    private final Log log = LogFactory.getLog( ArtemisManager.class );
+
+    private final EmbeddedActiveMQ embeddedActiveMQ;
+    private final ArtemisConfig artemisConfig;
+
+    public ArtemisManager(
+        EmbeddedActiveMQ embeddedActiveMQ,
+        ArtemisConfig artemisConfig )
+    {
+        this.embeddedActiveMQ = embeddedActiveMQ;
+        this.artemisConfig = artemisConfig;
+    }
+
+    @PostConstruct
+    public void startAmqp() throws Exception
+    {
+        if ( ArtemisMode.EMBEDDED == artemisConfig.getMode() )
+        {
+            log.info( "Starting embedded Artemis ActiveMQ server." );
+            embeddedActiveMQ.start();
+        }
+    }
+
+    @PreDestroy
+    public void stopAmqp() throws Exception
+    {
+        if ( embeddedActiveMQ == null )
+        {
+            return;
+        }
+
+        embeddedActiveMQ.stop();
+    }
 }

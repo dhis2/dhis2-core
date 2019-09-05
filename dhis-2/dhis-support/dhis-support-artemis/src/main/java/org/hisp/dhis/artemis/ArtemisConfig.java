@@ -1,4 +1,4 @@
-package org.hisp.dhis.amqp;
+package org.hisp.dhis.artemis;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -39,9 +39,8 @@ import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.qpid.jms.JmsConnectionFactory;
 import org.apache.qpid.jms.JmsQueue;
 import org.apache.qpid.jms.JmsTopic;
-import org.hisp.dhis.amqp.config.AmqpConfig;
-import org.hisp.dhis.amqp.config.AmqpEmbeddedConfig;
-import org.hisp.dhis.amqp.config.AmqpMode;
+import org.hisp.dhis.artemis.config.ArtemisEmbeddedConfig;
+import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -79,9 +78,9 @@ public class ArtemisConfig
     }
 
     @Bean
-    public ConnectionFactory jmsConnectionFactory( AmqpConfig amqpConfig )
+    public ConnectionFactory jmsConnectionFactory( org.hisp.dhis.artemis.config.ArtemisConfig artemisConfig )
     {
-        JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", amqpConfig.getHost(), amqpConfig.getPort() ) );
+        JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", artemisConfig.getHost(), artemisConfig.getPort() ) );
         connectionFactory.setClientIDPrefix( "dhis2" );
         connectionFactory.setCloseLinksThatFailOnReconnect( false );
 
@@ -127,18 +126,18 @@ public class ArtemisConfig
     }
 
     @Bean
-    public EmbeddedActiveMQ createEmbeddedServer( AmqpConfig amqpConfig ) throws Exception
+    public EmbeddedActiveMQ createEmbeddedServer( org.hisp.dhis.artemis.config.ArtemisConfig artemisConfig ) throws Exception
     {
         EmbeddedActiveMQ server = new EmbeddedActiveMQ();
 
         org.apache.activemq.artemis.core.config.Configuration config = new ConfigurationImpl();
 
         config.addAcceptorConfiguration( "tcp",
-            String.format( "tcp://%s:%d?protocols=AMQP", amqpConfig.getHost(), amqpConfig.getPort() ) );
-        config.setSecurityEnabled( amqpConfig.getEmbedded().isSecurity() );
-        config.setPersistenceEnabled( amqpConfig.getEmbedded().isPersistence() );
+            String.format( "tcp://%s:%d?protocols=AMQP", artemisConfig.getHost(), artemisConfig.getPort() ) );
+        config.setSecurityEnabled( artemisConfig.getEmbedded().isSecurity() );
+        config.setPersistenceEnabled( artemisConfig.getEmbedded().isPersistence() );
 
-        if ( locationManager.externalDirectorySet() && amqpConfig.getEmbedded().isPersistence() )
+        if ( locationManager.externalDirectorySet() && artemisConfig.getEmbedded().isPersistence() )
         {
             String dataDir = locationManager.getExternalDirectoryPath();
             config.setJournalDirectory( dataDir + "/artemis/journal" );
@@ -178,21 +177,21 @@ public class ArtemisConfig
     }
 
     @Bean
-    public AmqpConfig getAmqpConfig()
+    public org.hisp.dhis.artemis.config.ArtemisConfig getArtemisConfig()
     {
-        AmqpConfig amqpConfig = new AmqpConfig();
-        amqpConfig.setMode( AmqpMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.AMQP_MODE )).toUpperCase() ) );
-        amqpConfig.setHost( dhisConfig.getProperty( ConfigurationKey.AMQP_HOST ) );
-        amqpConfig.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.AMQP_PORT ) ) );
-        amqpConfig.setUsername( dhisConfig.getProperty( ConfigurationKey.AMQP_USERNAME ) );
-        amqpConfig.setPassword( dhisConfig.getProperty( ConfigurationKey.AMQP_PASSWORD ) );
+        org.hisp.dhis.artemis.config.ArtemisConfig artemisConfig = new org.hisp.dhis.artemis.config.ArtemisConfig();
+        artemisConfig.setMode( ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) );
+        artemisConfig.setHost( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST ) );
+        artemisConfig.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) ) );
+        artemisConfig.setUsername( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_USERNAME ) );
+        artemisConfig.setPassword( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PASSWORD ) );
 
-        AmqpEmbeddedConfig amqpEmbeddedConfig = new AmqpEmbeddedConfig();
-        amqpEmbeddedConfig.setSecurity( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.AMQP_EMBEDDED_SECURITY ) ) );
-        amqpEmbeddedConfig.setPersistence( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.AMQP_EMBEDDED_PERSISTENCE ) ) );
+        ArtemisEmbeddedConfig artemisEmbeddedConfig = new ArtemisEmbeddedConfig();
+        artemisEmbeddedConfig.setSecurity( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) ) );
+        artemisEmbeddedConfig.setPersistence( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) ) );
 
-        amqpConfig.setEmbedded( amqpEmbeddedConfig );
+        artemisConfig.setEmbedded( artemisEmbeddedConfig );
 
-        return amqpConfig;
+        return artemisConfig;
     }
 }
