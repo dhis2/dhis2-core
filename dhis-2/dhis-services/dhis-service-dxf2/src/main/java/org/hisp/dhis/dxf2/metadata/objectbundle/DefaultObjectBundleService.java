@@ -34,6 +34,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditScope;
 import org.hisp.dhis.artemis.audit.AuditType;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -259,6 +260,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             auditManager.sendTopic( "dhis2.metadata",
                 Audit.builder()
                     .withAuditType( AuditType.CREATE )
+                    .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withClass( klass )
@@ -347,6 +349,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             auditManager.sendTopic( "dhis2.metadata",
                 Audit.builder()
                     .withAuditType( AuditType.UPDATE )
+                    .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withClass( klass )
@@ -416,6 +419,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             auditManager.sendTopic( "dhis2.metadata",
                 Audit.builder()
                     .withAuditType( AuditType.DELETE )
+                    .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withClass( klass )

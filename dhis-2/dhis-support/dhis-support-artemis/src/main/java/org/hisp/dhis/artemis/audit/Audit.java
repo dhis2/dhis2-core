@@ -46,6 +46,7 @@ import java.util.Date;
 public class Audit implements Message
 {
     private final AuditType auditType;
+    private final AuditScope auditScope;
     private final Date createdAt;
     private final String createdBy;
     private Class<?> klass;
@@ -55,10 +56,11 @@ public class Audit implements Message
 
     public Audit(
         AuditType auditType,
-        Date createdAt,
+        AuditScope auditScope, Date createdAt,
         String createdBy )
     {
         this.auditType = auditType;
+        this.auditScope = auditScope;
         this.createdAt = createdAt;
         this.createdBy = createdBy;
     }
@@ -147,6 +149,7 @@ public class Audit implements Message
     public static final class AuditBuilder
     {
         private AuditType auditType;
+        private AuditScope auditScope;
         private Date createdAt = new Date();
         private String createdBy;
         private Class<?> klass;
@@ -161,6 +164,12 @@ public class Audit implements Message
         public AuditBuilder withAuditType( AuditType auditType )
         {
             this.auditType = auditType;
+            return this;
+        }
+
+        public AuditBuilder withAuditScope( AuditScope auditScope )
+        {
+            this.auditScope = auditScope;
             return this;
         }
 
@@ -203,11 +212,13 @@ public class Audit implements Message
         public Audit build()
         {
             Assert.notNull( auditType, "AuditType is required." );
+            Assert.notNull( auditScope, "AuditScope is required." );
             Assert.notNull( createdAt, "CreatedAt is required." );
             Assert.notNull( createdBy, "CreatedBy is required." );
 
             Audit audit = new Audit(
                 auditType,
+                auditScope,
                 createdAt,
                 createdBy
             );
