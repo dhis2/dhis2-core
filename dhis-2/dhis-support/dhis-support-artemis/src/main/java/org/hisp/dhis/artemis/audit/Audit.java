@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 
 import java.util.Date;
@@ -182,6 +183,24 @@ public class Audit implements Message
         public AuditBuilder withCreatedBy( String createdBy )
         {
             this.createdBy = createdBy;
+            return this;
+        }
+
+        public AuditBuilder withObject( Object o )
+        {
+            if ( o == null )
+            {
+                return this;
+            }
+
+            klass = o.getClass();
+
+            if ( o instanceof IdentifiableObject )
+            {
+                uid = ((IdentifiableObject) o).getUid();
+                code = ((IdentifiableObject) o).getCode();
+            }
+
             return this;
         }
 

@@ -263,9 +263,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
-                    .withClass( klass )
-                    .withUid( object.getUid() )
-                    .withCode( object.getCode() )
+                    .withObject( object )
                     .build(),
                 object
             );
@@ -352,9 +350,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
-                    .withClass( klass )
-                    .withUid( object.getUid() )
-                    .withCode( object.getCode() )
+                    .withObject( object )
                     .build(),
                 object
             );
@@ -422,9 +418,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
-                    .withClass( klass )
-                    .withUid( object.getUid() )
-                    .withCode( object.getCode() )
+                    .withObject( object )
                     .build(),
                 object
             );
