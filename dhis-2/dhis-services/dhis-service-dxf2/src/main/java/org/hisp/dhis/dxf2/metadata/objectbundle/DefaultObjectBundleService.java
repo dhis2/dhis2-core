@@ -258,7 +258,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             auditManager.sendTopic( "dhis2.metadata",
                 Audit.builder()
-                    .withAuditType( org.hisp.dhis.artemis.audit.AuditType.CREATE )
+                    .withAuditType( AuditType.CREATE )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withClass( klass )
