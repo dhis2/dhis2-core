@@ -36,7 +36,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "amqp", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "artemis", namespace = DxfNamespaces.DXF_2_0 )
 public class ArtemisConfig
 {
     private ArtemisMode mode = ArtemisMode.EMBEDDED;

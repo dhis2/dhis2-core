@@ -36,12 +36,12 @@ import org.hisp.dhis.common.DxfNamespaces;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "amqpEmbedded", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "artemisEmbedded", namespace = DxfNamespaces.DXF_2_0 )
 public class ArtemisEmbeddedConfig
 {
     private boolean security = false;
 
-    private boolean persistence = false;
+    private boolean persistence = true;
 
     public ArtemisEmbeddedConfig()
     {

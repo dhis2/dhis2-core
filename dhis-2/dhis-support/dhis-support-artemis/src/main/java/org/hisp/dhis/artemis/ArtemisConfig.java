@@ -96,13 +96,24 @@ public class ArtemisConfig
         return template;
     }
 
-    @Bean
+    @Bean // configured for topics
     public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory )
     {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory( connectionFactory );
         factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
         factory.setConcurrency( "1" );
+
+        return factory;
+    }
+
+    @Bean // configured for queues
+    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory )
+    {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory( connectionFactory );
+        factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
+        factory.setConcurrency( "3-10" );
 
         return factory;
     }
