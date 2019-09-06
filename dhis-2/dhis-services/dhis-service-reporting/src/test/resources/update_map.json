@@ -1,0 +1,55 @@
+{
+  "maps": [
+    {
+      "basemap": "osmLight",
+      "mapViews": [
+        {
+          "id" : "zyFOjTfzLws",
+          "columns": [
+            {
+              "dimension": "dx",
+              "items": [
+                {
+                  "id": "fbfJHSPpUQD",
+                  "name": "ANC 1st visit",
+                  "dimensionItemType": "DATA_ELEMENT"
+                }
+              ],
+              "objectName": "de"
+            }
+          ],
+          "endDate": "2019-09-01",
+          "filters": [
+            {
+              "dimension": "pe",
+              "items": [
+                {
+                  "id": "LAST_12_MONTHS",
+                  "name": "Last 12 months"
+                }
+              ]
+            }
+          ],
+          "layer": "thematic",
+          "name": "ANC 1st visit",
+          "opacity": 0.9,
+          "rows": [
+            {
+              "dimension": "ou",
+              "items": [
+                {
+                  "id": "LEVEL-2"
+                }
+              ]
+            }
+          ],
+          "startDate": "2018-09-01",
+          "valueType": "de"
+        }
+      ],
+      "name": "test1",
+      "description": "test1",
+      "id": "LTNgXfzTFTv"
+    }
+  ]
+}
