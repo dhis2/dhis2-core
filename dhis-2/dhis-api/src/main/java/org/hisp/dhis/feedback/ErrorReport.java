@@ -28,6 +28,7 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -62,6 +63,14 @@ public class ErrorReport
     {
         this.mainKlass = mainKlass;
         this.message = message;
+    }
+    
+    @JsonCreator
+    public ErrorReport( @JsonProperty( "mainKlass" ) Class<?> mainKlass, @JsonProperty( "errorCode" ) ErrorCode errorCode,
+        @JsonProperty( "message" ) String message )
+    {
+        this.mainKlass = mainKlass;
+        this.message = new ErrorMessage( errorCode, message );
     }
 
     @JsonProperty
