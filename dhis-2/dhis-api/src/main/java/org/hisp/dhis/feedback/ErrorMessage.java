@@ -52,7 +52,7 @@ public class ErrorMessage
     }
 
     @JsonCreator
-    public ErrorMessage( @JsonProperty( "errorCode" ) ErrorCode errorCode, @JsonProperty( "message" ) String message )
+    public ErrorMessage( @JsonProperty( "message" ) String message, @JsonProperty( "errorCode" ) ErrorCode errorCode )
     {
         this.errorCode = errorCode;
         this.args = null;
