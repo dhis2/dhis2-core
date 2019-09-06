@@ -71,7 +71,7 @@ public class ErrorReport
         @JsonProperty( "message" ) String message )
     {
         this.mainKlass = mainKlass;
-        this.message = new ErrorMessage( errorCode, message );
+        this.message = new ErrorMessage( message, errorCode );
     }
 
     @JsonProperty
