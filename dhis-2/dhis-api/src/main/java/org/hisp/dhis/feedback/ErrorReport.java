@@ -66,8 +66,8 @@ public class ErrorReport
     }
     
     @JsonCreator
-    public ErrorReport( @JsonProperty( "mainKlass" ) Class<?> mainKlass, @JsonProperty( "errorCode" ) ErrorCode errorCode,
-        @JsonProperty( "message" ) String message )
+    public ErrorReport( @JsonProperty( "message" ) String message, @JsonProperty( "mainKlass" ) Class<?> mainKlass,
+        @JsonProperty( "errorCode" ) ErrorCode errorCode )
     {
         this.mainKlass = mainKlass;
         this.message = new ErrorMessage( message, errorCode );
