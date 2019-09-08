@@ -46,7 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -280,11 +279,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         OrganisationUnit ou = getOwner( entityInstance, program );
         if ( program.isOpen() || program.isAudited() )
         {
-            return isInHierarchy( ou, user.getTeiSearchOrganisationUnitsWithFallback() );
+            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
         }
         else
         {
-            return isInHierarchy( ou, user.getOrganisationUnits() ) || hasTemporaryAccess( entityInstance, program, user );
+            return organisationUnitService.isInUserHierarchyCached( user, ou ) || hasTemporaryAccess( entityInstance, program, user );
         }
     }
 
@@ -354,19 +353,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         return temporaryTrackerOwnershipCache.get( tempAccessKey( entityInstance.getUid(), program.getUid(), user.getUsername() ) ).orElse( false );
     }
 
-    /**
-     * Check whether the specified organisation unit is part of any descendants
-     * of the given set of org units.
-     * 
-     * @param organisationUnit The OU to be searched in the hierarchy.
-     * @param organisationUnits The set of candidate ous which represents the
-     *        hierarchy,
-     * @return true if the ou is in the hierarchy, false otherwise.
-     */
-    private boolean isInHierarchy( OrganisationUnit organisationUnit, Set<OrganisationUnit> organisationUnits )
-    {
-        return organisationUnit != null && organisationUnits != null && organisationUnit.isDescendant( organisationUnits );
-    }
 
     /**
      * Ownership check can be skipped if the user is super user or if the
