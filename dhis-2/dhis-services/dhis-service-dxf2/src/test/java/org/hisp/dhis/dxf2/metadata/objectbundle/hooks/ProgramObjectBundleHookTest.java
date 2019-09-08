@@ -161,6 +161,7 @@ public class ProgramObjectBundleHookTest
 
         verifyZeroInteractions( programInstanceService );
     }
+    
 
     @Test
     public void verifyUpdateProgramStage()
