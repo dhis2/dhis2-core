@@ -1,5 +1,39 @@
 package org.hisp.dhis.organisationunit;
 
+import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
+
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.SortProperty;
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.filter.FilterUtils;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.hierarchy.HierarchyViolationException;
+import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
+import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
+import org.hisp.dhis.system.util.GeoUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.version.VersionService;
+import org.springframework.transaction.annotation.Transactional;
+
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -32,33 +66,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.collect.Sets;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.SortProperty;
-import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.hierarchy.HierarchyViolationException;
-import org.hisp.dhis.organisationunit.comparator.OrganisationUnitLevelComparator;
-import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
-import org.hisp.dhis.system.util.GeoUtils;
-import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.version.VersionService;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
-
 /**
  * @author Torgeir Lorange Ostby
  */
@@ -72,6 +79,12 @@ public class DefaultOrganisationUnitService
         .expireAfterWrite( 3, TimeUnit.HOURS )
         .initialCapacity( 1000 )
         .maximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+    
+    private static Cache<String, Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = Caffeine.newBuilder()
+        .expireAfterWrite( 3, TimeUnit.HOURS )
+        .initialCapacity( 1000 )
+        .maximumSize( SystemUtils.isTestRun() ? 0 : 20000 ).build();
+
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -428,10 +441,18 @@ public class DefaultOrganisationUnitService
     @Override
     public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
     {
-        String cacheKey = joinHyphen( currentUserService.getCurrentUsername(), organisationUnit.getUid() );
-
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( organisationUnit ) );
+        return isInUserHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) );
+    }
+
 
     @Override
     public boolean isInUserHierarchy( User user, OrganisationUnit organisationUnit )
@@ -450,6 +471,41 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null ? organisationUnit.isDescendant( organisationUnits ) : false;
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchy( OrganisationUnit organisationUnit )
+    {
+        return isInUserSearchHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchyCached( OrganisationUnit organisationUnit )
+    {
+        return isInUserSearchHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit )
+    {
+        if ( user == null || user.getTeiSearchOrganisationUnitsWithFallback() == null || user.getTeiSearchOrganisationUnitsWithFallback().isEmpty() )
+        {
+            return false;
+        }
+
+        return organisationUnit.isDescendant( user.getTeiSearchOrganisationUnitsWithFallback() );
     }
 
     // -------------------------------------------------------------------------
