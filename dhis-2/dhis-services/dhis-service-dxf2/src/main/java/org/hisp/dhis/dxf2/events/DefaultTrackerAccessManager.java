@@ -1,7 +1,5 @@
 package org.hisp.dhis.dxf2.events;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -51,27 +49,20 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@Component( "org.hisp.dhis.dxf2.events.TrackerAccessManager" )
 public class DefaultTrackerAccessManager implements TrackerAccessManager
 {
     private final AclService aclService;
 
     private final TrackerOwnershipManager ownershipAccessManager;
-
+    
     private final OrganisationUnitService organisationUnitService;
 
     public DefaultTrackerAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager, OrganisationUnitService organisationUnitService )
     {
-        checkNotNull( aclService );
-        checkNotNull( ownershipAccessManager );
-        checkNotNull( organisationUnitService );
-
         this.aclService = aclService;
         this.ownershipAccessManager = ownershipAccessManager;
         this.organisationUnitService = organisationUnitService;
@@ -380,7 +371,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         return errors;
     }
-
+    
     @Override
     public List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck )
     {
@@ -633,6 +624,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         return errors;
     }
 
+
     @Override
     public List<String> canRead( User user, Relationship relationship )
     {
@@ -665,7 +657,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         errors.addAll( canRead( user, to.getProgramInstance(), false ) );
         errors.addAll( canRead( user, to.getProgramStageInstance(), false ) );
 
-        return errors;
+        return errors;  
     }
 
     @Override
@@ -696,9 +688,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         errors.addAll( canUpdate( user, from.getProgramInstance(), false ) );
         errors.addAll( canUpdate( user, from.getProgramStageInstance(), false ) );
 
-        errors.addAll( canWrite( user, to.getTrackedEntityInstance() ) );
-        errors.addAll( canUpdate( user, to.getProgramInstance(), false ) );
-        errors.addAll( canUpdate( user, to.getProgramStageInstance(), false ) );
+        errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, to.getProgramInstance(), false ) );
+        errors.addAll( canRead( user, to.getProgramStageInstance(), false ) );
 
         return errors;
     }
@@ -793,5 +785,4 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     {
         return programStage == null || programStage.getProgram() == null;
     }
-
 }
