@@ -319,4 +319,10 @@ public class ProgramStageInstance
     {
         this.geometry = geometry;
     }
+    
+    public boolean isCreatableInSearchScope()
+    {
+        return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.getExecutionDate() == null;
+    }
+
 }
