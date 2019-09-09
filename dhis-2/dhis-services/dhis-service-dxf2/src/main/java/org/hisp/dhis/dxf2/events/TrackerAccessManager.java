@@ -54,11 +54,15 @@ public interface TrackerAccessManager
 
     List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+    List<String> canCreate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+    List<String> canUpdate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+    List<String> canDelete( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+    List<String> canCreate( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+    List<String> canUpdate( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
+    List<String> canDelete( User user, ProgramStageInstance programStageInstance, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, Relationship relationship );
 

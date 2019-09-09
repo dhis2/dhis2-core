@@ -578,7 +578,7 @@ public abstract class AbstractEventService
             }
         }
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(),
+        List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
             new ProgramStageInstance( programInstance, programStage ).setOrganisationUnit( organisationUnit ).setStatus( event.getStatus() ), false );
 
         if ( !errors.isEmpty() )
@@ -1158,7 +1158,7 @@ public abstract class AbstractEventService
             return importSummary.incrementIgnored();
         }
 
-        List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), programStageInstance, false );
+        List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -1417,7 +1417,7 @@ public abstract class AbstractEventService
             return;
         }
 
-        List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance, false );
+        List<String> errors = trackerAccessManager.canUpdate( currentUserService.getCurrentUser(), programStageInstance, false );
 
         if ( !errors.isEmpty() )
         {
@@ -1478,7 +1478,7 @@ public abstract class AbstractEventService
         {
             ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
 
-            List<String> errors = trackerAccessManager.canWrite( currentUserService.getCurrentUser(), programStageInstance, false );
+            List<String> errors = trackerAccessManager.canDelete( currentUserService.getCurrentUser(), programStageInstance, false );
 
             if ( !errors.isEmpty() )
             {
