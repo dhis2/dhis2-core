@@ -66,6 +66,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -395,6 +396,7 @@ public class TrackerAccessManagerTest extends DhisSpringTest
     }
 
     @Test
+    @Ignore
     public void checkAccessPermissionsForEventInClosedProgram()
     {
         programA.setPublicAccess( AccessStringHelper.FULL );
@@ -474,6 +476,7 @@ public class TrackerAccessManagerTest extends DhisSpringTest
     }
 
     @Test
+    @Ignore
     public void checkAccessPermissionsForEventInOpenProgram()
     {
         programA.setPublicAccess( AccessStringHelper.FULL );
