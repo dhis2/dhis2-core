@@ -1093,7 +1093,7 @@ public class PredictionServiceTest
 
         dataValueBatchHandler.flush();
 
-        Expression expression0 = new Expression("percentileCont(0,#{" + dataElementA.getUid() + "})", "expression0" );
+        Expression expression0 = new Expression( "percentileCont(0,#{" + dataElementA.getUid() + "})", "expression0" );
         Expression expression20 = new Expression("percentileCont(.2,#{" + dataElementA.getUid() + "})", "expression20" );
         Expression expression50 = new Expression("percentileCont(.5,#{" + dataElementA.getUid() + "})", "expression50" );
         Expression expression100 = new Expression("percentileCont(1,#{" + dataElementA.getUid() + "})", "expression100" );
