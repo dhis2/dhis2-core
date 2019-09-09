@@ -215,7 +215,7 @@ public class MetadataImportTest
     }
 
     @Test
-    public void shouldImportInvalidMetadataAsync()
+    public void shouldReturnImportSummariesWhenImportingInvalidMetadataAsync()
         throws Exception
     {
         // arrange
