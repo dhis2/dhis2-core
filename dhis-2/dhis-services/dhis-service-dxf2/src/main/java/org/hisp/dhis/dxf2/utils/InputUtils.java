@@ -38,7 +38,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -46,6 +45,9 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
@@ -56,11 +58,18 @@ public class InputUtils
         .initialCapacity( 1000 )
         .maximumSize( SystemUtils.isTestRun() ? 0 : 10000 ).build();
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
+
+    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager )
+    {
+        checkNotNull( categoryService );
+        checkNotNull( idObjectManager );
+
+        this.categoryService = categoryService;
+        this.idObjectManager = idObjectManager;
+    }
 
     /**
      * Validates and retrieves the attribute option combo. 409 conflict as
@@ -117,7 +126,7 @@ public class InputUtils
             throw new IllegalQueryException( "Illegal category combo identifier: " + cc );
         }
 
-        if ( categoryCombo == null && opts == null )
+        if ( categoryCombo == null )
         {
             if ( skipFallback )
             {

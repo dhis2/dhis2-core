@@ -391,7 +391,7 @@ public class DefaultCategoryService
             return "category_combo_cannot_have_duplicate_categories";
         }
 
-        Set<CategoryOption> categoryOptions = new HashSet<CategoryOption>();
+        Set<CategoryOption> categoryOptions = new HashSet<>();
 
         for ( Category category : categoryCombo.getCategories() )
         {
@@ -481,6 +481,14 @@ public class DefaultCategoryService
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public CategoryOptionCombo getCategoryOptionCombo( IdentifiableProperty property, String id )
+    {
+        return idObjectManager.getObject( CategoryOptionCombo.class, property, id );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public List<CategoryOptionCombo> getAllCategoryOptionCombos()
     {
         return categoryOptionComboStore.getAll();
