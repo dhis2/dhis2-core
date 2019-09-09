@@ -71,15 +71,12 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -217,28 +214,61 @@ public class MetadataImportTest
         assertEquals( total, objectReports.size(), "Not all imported entities had object reports" );
     }
 
-    private Stream<Arguments> getPayloads()
+    @Test
+    public void shouldImportInvalidMetadataAsync()
         throws Exception
     {
+        // arrange
+        String params = "?async=true" +
+            "&importReportMode=DEBUG" +
+            "&importStrategy=CREATE_AND_UPDATE" +
+            "&atomicMode=NONE";
 
-        ArrayList<Arguments> arguments = new ArrayList<>();
         JsonObject metadata = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
 
-        JsonObject invalidMetadata = metadata.deepCopy();
-        invalidMetadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
+        metadata.getAsJsonArray( "organisationUnits" ).get( 0 ).getAsJsonObject()
             .addProperty( "shortName", RandomStringUtils.random( 51 ) );
 
-        arguments.add( Arguments.of( "Valid metadata", metadata ) );
-        arguments.add( Arguments.of( "Invalid metadata", invalidMetadata ) );
+        // act
+        ApiResponse response = metadataActions.post( params, metadata );
+        response.validate()
+            .statusCode( 200 )
+            .body( not( equalTo( "null" ) ) )
+            .body( "response.name", equalTo( "metadataImport" ) )
+            .body( "response.jobType", equalTo( "METADATA_IMPORT" ) );
 
-        return arguments.stream();
+        String taskId = response.extractString( "response.id" );
+
+        // Validate that job was successful
+
+        response = systemActions.waitUntilTaskCompleted( "METADATA_IMPORT", taskId );
+
+        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Start" ) ) );
+        assertThat( response.extractList( "message" ), hasItem( containsString( "Import:Done" ) ) );
+
+        // validate task summaries were created
+        response = systemActions.getTaskSummariesResponse( "METADATA_IMPORT", taskId );
+
+        response.validate().statusCode( 200 )
+            .body( not( equalTo( "null" ) ) )
+            .body( "status", equalTo( "WARNING" ) )
+            .body( "typeReports", notNullValue() )
+            .rootPath( "typeReports" )
+            .body( "stats.total", everyItem( greaterThan( 0 ) ) )
+            .body( "stats.ignored", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "objectReports", notNullValue() )
+            .body( "objectReports", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "objectReports.errorReports", notNullValue() );
+
     }
 
-    @ParameterizedTest( name = "{0}" )
-    @MethodSource( "getPayloads" )
-    public void shouldImportMetadataAsync( String identifier, JsonObject object )
+    @Test
+    public void shouldImportMetadataAsync()
+        throws Exception
     {
+        JsonObject object = new FileReaderUtils()
+            .readJsonAndGenerateData( new File( "src/test/resources/metadata/uniqueMetadata.json" ) );
         // arrange
         String params = "?async=false" +
             "&importReportMode=DEBUG" +
