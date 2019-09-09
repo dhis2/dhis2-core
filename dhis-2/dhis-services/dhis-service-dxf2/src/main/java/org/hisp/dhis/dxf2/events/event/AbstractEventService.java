@@ -88,7 +88,6 @@ import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.program.notification.ProgramNotificationEventType;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.query.Order;
@@ -136,7 +135,6 @@ import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public abstract class AbstractEventService
     implements EventService
 {
@@ -260,6 +258,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
@@ -306,6 +305,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
         notifier.clear( jobId ).notify( jobId, "Importing events" );
@@ -332,6 +332,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional
     public ImportSummary addEvent( Event event, ImportOptions importOptions )
     {
         return addEvent( event, currentUserService.getCurrentUser(), importOptions );
@@ -517,6 +518,7 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional(readOnly = true)
     public Events getEvents( EventSearchParams params )
     {
         validate( params );
@@ -550,6 +552,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Grid getEventsGrid( EventSearchParams params )
     {
         
@@ -637,6 +640,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public int getAnonymousEventValuesCountLastUpdatedAfter( Date lastSuccessTime )
     {
         EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
@@ -644,6 +648,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Events getAnonymousEventValuesLastUpdatedAfter( Date lastSuccessTime )
     {
         EventSearchParams params = buildAnonymousEventsSearchParams( lastSuccessTime );
@@ -663,6 +668,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventRows getEventRows( EventSearchParams params )
     {
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
@@ -677,6 +683,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Event getEvent( ProgramStageInstance programStageInstance )
     {
         if ( programStageInstance == null )
@@ -813,6 +820,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
         String trackedEntityInstance, Date startDate, Date endDate, Date dueDateStart, Date dueDateEnd,
@@ -951,6 +959,7 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummaries updateEvents( List<Event> events, boolean singleValue, boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
@@ -997,12 +1006,14 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional
     public ImportSummary updateEvent( Event event, boolean singleValue )
     {
         return updateEvent( event, singleValue, null );
     }
 
     @Override
+    @Transactional
     public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions )
     {
         return updateEvent( event, currentUserService.getCurrentUser(), singleValue, importOptions );
@@ -1205,6 +1216,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional
     public void updateEventForNote( Event event )
     {
         ProgramStageInstance programStageInstance = programStageInstanceService
@@ -1220,6 +1232,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional
     public void updateEventForEventDate( Event event )
     {
         ProgramStageInstance programStageInstance = programStageInstanceService
@@ -1265,6 +1278,7 @@ public abstract class AbstractEventService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public ImportSummary deleteEvent( String uid )
     {
         ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
@@ -1281,6 +1295,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional
     public ImportSummaries deleteEvents( List<String> uids )
     {
         ImportSummaries importSummaries = new ImportSummaries();
@@ -1741,6 +1756,7 @@ public abstract class AbstractEventService
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void validate( EventSearchParams params )
         throws IllegalQueryException
     {
