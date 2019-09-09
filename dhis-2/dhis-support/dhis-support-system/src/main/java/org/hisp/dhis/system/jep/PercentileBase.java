@@ -96,7 +96,7 @@ public abstract class PercentileBase
             }
             else
             {
-                double[] vals = ArrayUtils.toPrimitive( valList.toArray( new Double[0]) );
+                double[] vals = ArrayUtils.toPrimitive( valList.toArray( new Double[0] ) );
 
                 Double result = percentile.evaluate( vals, fraction * 100. );
 
