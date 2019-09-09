@@ -57,6 +57,7 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import static org.junit.Assert.*;
@@ -66,6 +67,8 @@ import static org.junit.Assert.*;
  */
 public class ProgramRuleEngineTest extends DhisSpringTest
 {
+    private static final SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat( "yyyy-MM-dd" );
+
     private Program programA;
 
     private Program programS;
@@ -181,6 +184,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private String ageExpression = "d2:yearsBetween(#{DOB}, V{event_date})";
 
+    private Date psEventDate;
+
     @Autowired
     ProgramRuleEngine programRuleEngine;
 
@@ -242,7 +247,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
 
     @Override
-    public void setUpTest()
+    public void setUpTest() throws Exception
     {
         dataElementA = createDataElement( 'A', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementB = createDataElement( 'B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
@@ -264,6 +269,12 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         attributeService.addTrackedEntityAttribute( attributeA );
         attributeService.addTrackedEntityAttribute( attributeB );
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime( SIMPLE_DATE_FORMAT.parse( dob ) );
+        cal.add( Calendar.YEAR, 10 );
+
+        psEventDate = cal.getTime();
 
         setupEvents();
         setupProgramRuleEngine();
@@ -357,8 +368,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
 
         assertNotNull( ruleEffects );
-        assertFalse( ruleEffects.isEmpty() );
-        assertEquals( ruleEffects.get( 0 ).data(), "34" );
+        assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
 
     @Test
@@ -371,7 +381,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         List<RuleEffect> ruleEffects = programRuleEngine.evaluateEvent( programStageInstance );
 
         assertNotNull( ruleEffects );
-        assertEquals( ruleEffects.get( 0 ).data(), "34" );
+        assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
 
     private void setupEvents()
@@ -520,13 +530,13 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         programStageInstanceAge = new ProgramStageInstance( programInstanceA, programStageAge );
         programStageInstanceAge.setDueDate( enrollmentDate );
-        programStageInstanceAge.setExecutionDate( new Date() );
+        programStageInstanceAge.setExecutionDate( psEventDate );
         programStageInstanceAge.setUid( "UID-PS12" );
         programStageInstanceService.addProgramStageInstance( programStageInstanceAge );
 
         programStageInstanceDate = new ProgramStageInstance( programInstanceA, programStageAge );
         programStageInstanceDate.setDueDate( enrollmentDate );
-        programStageInstanceDate.setExecutionDate( new Date() );
+        programStageInstanceDate.setExecutionDate( psEventDate );
         programStageInstanceDate.setUid( "UID-PS13" );
         programStageInstanceService.addProgramStageInstance( programStageInstanceDate );
 
