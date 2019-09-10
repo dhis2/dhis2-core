@@ -138,6 +138,8 @@
     <sec:intercept-url pattern="/api/account/recovery" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/restore" access="permitAll()" />
     <sec:intercept-url pattern="/api/account/password" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/validatePassword" method="POST" access="permitAll()" />
+    <sec:intercept-url pattern="/api/account/validateUsername" method="POST" access="permitAll()" />
     <sec:intercept-url pattern="/api/account" access="permitAll()" />
     <sec:intercept-url pattern="/api/staticContent/*" method="GET" access="permitAll()" />
     <sec:intercept-url pattern="/api/externalFileResources/*" method="GET" access="permitAll()" />
