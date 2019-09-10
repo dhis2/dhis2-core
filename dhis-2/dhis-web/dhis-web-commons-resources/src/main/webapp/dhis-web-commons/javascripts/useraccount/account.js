@@ -11,14 +11,17 @@ var validationRules = {
     username: {
       required: true,
       rangelength: [4, 80],
-      remote: "../../api/account/username"
+      remote: {
+            url: "../../api/account/validateUsername",
+            type: "post"}
     },
     password: {
       required: true,
       rangelength: [8, 40],
       password: true,
-      remote: "../../api/account/password"
-
+      remote: {
+            url: "../../api/account/validatePassword",
+            type: "post"}
     },
     retypePassword: {
       required: true,
