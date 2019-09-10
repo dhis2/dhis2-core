@@ -487,7 +487,7 @@ public class AccountController
     }
 
     @RequestMapping( value = "/validateUsername", method = RequestMethod.POST )
-    public void validateUserNameGetPost( @RequestParam String username, HttpServletResponse response ) throws IOException
+    public void validateUserNamePost( @RequestParam String username, HttpServletResponse response ) throws IOException
     {
         Map<String, String> result = validateUserName( username );
 
