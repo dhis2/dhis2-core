@@ -91,7 +91,7 @@ public class DefaultAppManager
     @Override
     public List<App> getApps( String contextPath )
     {
-        List<App> apps = appCache.getAll().stream().collect( Collectors.toList() );
+        List<App> apps = appCache.getAll().stream().filter( app -> app.getAppState() != AppStatus.DELETION_IN_PROGRESS ).collect( Collectors.toList() );
 
         apps.forEach( a -> a.init( contextPath ) );
 
