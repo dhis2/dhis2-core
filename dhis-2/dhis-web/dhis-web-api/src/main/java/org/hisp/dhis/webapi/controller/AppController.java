@@ -181,6 +181,11 @@ public class AppController
         {
             throw new ReadAccessDeniedException( "You don't have access to application " + app + "." );
         }
+        
+        if ( application.getAppState() == AppStatus.DELETION_IN_PROGRESS )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
+        }
 
         // Get page requested
         String pageName = getUrl( request.getPathInfo(), app );
