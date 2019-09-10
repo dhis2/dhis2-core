@@ -668,6 +668,8 @@ public class EventController
         @RequestParam( required = false ) Date endDate,
         @RequestParam( required = false ) String attributeCc,
         @RequestParam( required = false ) String attributeCos,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
         @RequestParam( required = false ) boolean totalPages,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -684,7 +686,7 @@ public class EventController
         EventSearchParams params = eventService.getFromUrl( program, null, programStatus, null,
             orgUnit, ouMode, null, startDate, endDate, null, null,
             null, null, null, eventStatus, attributeOptionCombo,
-            null, null, null, totalPages, skipPaging, getOrderParams( order ), null,
+            null, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null,
             true, null, skipEventId, null, null, null, null,
             false, includeDeleted );
 

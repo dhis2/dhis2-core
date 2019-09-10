@@ -1,7 +1,8 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.dxf2.metadata;
+
 
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,46 +30,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  */
 
 import org.hibernate.Session;
-import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.AnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.schema.Schema;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.Order;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Order( 10 )
-public class AnalyticalObjectObjectBundleHook
-    extends AbstractObjectBundleHook
+public interface AnalyticalObjectImportHandler
 {
-    @Autowired
-    private AnalyticalObjectImportHandler analyticalObjectImportHandler;
-
-    @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
-    {
-        if ( !AnalyticalObject.class.isInstance( object ) ) return;
-        BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
-        Schema schema = schemaService.getDynamicSchema( analyticalObject.getClass() );
-        Session session = sessionFactory.getCurrentSession();
-
-        analyticalObjectImportHandler.handleAnalyticalObject( session, schema, analyticalObject, bundle );
-    }
-
-    @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
-    {
-        if ( !AnalyticalObject.class.isInstance( object ) ) return;
-
-        BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
-
-        Schema schema = schemaService.getDynamicSchema( analyticalObject.getClass() );
-        Session session = sessionFactory.getCurrentSession();
-
-        analyticalObjectImportHandler.handleAnalyticalObject( session, schema, analyticalObject, bundle );
-    }
+    void handleAnalyticalObject( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle );
 }

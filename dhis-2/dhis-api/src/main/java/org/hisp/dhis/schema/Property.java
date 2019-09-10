@@ -171,6 +171,11 @@ public class Property implements Ordered, Klass
     private boolean embeddedObject;
 
     /**
+     * Does this class implement {@link EmbeddedObject} ?
+     */
+    private boolean analyticalObject;
+
+    /**
      * Can this property be read.
      */
     private boolean readable;
@@ -521,6 +526,18 @@ public class Property implements Ordered, Klass
     public void setEmbeddedObject( boolean embeddedObject )
     {
         this.embeddedObject = embeddedObject;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isAnalyticalObject()
+    {
+        return analyticalObject;
+    }
+
+    public void setAnalyticalObject(boolean analyticalObject)
+    {
+        this.analyticalObject = analyticalObject;
     }
 
     @JsonProperty

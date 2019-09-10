@@ -75,6 +75,8 @@ public class DefaultOrganisationUnitService
 
     private static Cache<String, Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
 
+    private static Cache<String, Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -138,7 +140,12 @@ public class DefaultOrganisationUnitService
         IN_USER_ORG_UNIT_HIERARCHY_CACHE = Caffeine.newBuilder()
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .initialCapacity( 1000 )
-            .maximumSize( SystemUtils.isTestRun(env.getActiveProfiles() ) ? 0 : 20000 ).build();
+            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+
+        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = Caffeine.newBuilder()
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .initialCapacity( 1000 )
+            .maximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -469,9 +476,16 @@ public class DefaultOrganisationUnitService
     @Transactional(readOnly = true)
     public boolean isInUserHierarchyCached( OrganisationUnit organisationUnit )
     {
-        String cacheKey = joinHyphen( currentUserService.getCurrentUsername(), organisationUnit.getUid() );
+        return isInUserHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+    }
 
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( organisationUnit ) );
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) );
     }
 
     @Override
@@ -494,6 +508,42 @@ public class DefaultOrganisationUnitService
 
         return organisationUnit != null && organisationUnit.isDescendant(organisationUnits);
     }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchy( OrganisationUnit organisationUnit )
+    {
+        return isInUserSearchHierarchy( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchyCached( OrganisationUnit organisationUnit )
+    {
+        return isInUserSearchHierarchyCached( currentUserService.getCurrentUser(), organisationUnit );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchyCached( User user, OrganisationUnit organisationUnit )
+    {
+        String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
+
+        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isInUserSearchHierarchy( User user, OrganisationUnit organisationUnit )
+    {
+        if ( user == null || user.getTeiSearchOrganisationUnitsWithFallback() == null || user.getTeiSearchOrganisationUnitsWithFallback().isEmpty() )
+        {
+            return false;
+        }
+
+        return organisationUnit.isDescendant( user.getTeiSearchOrganisationUnitsWithFallback() );
+    }
+
 
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
