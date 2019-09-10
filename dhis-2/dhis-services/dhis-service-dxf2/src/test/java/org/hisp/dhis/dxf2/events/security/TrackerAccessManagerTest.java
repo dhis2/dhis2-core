@@ -246,6 +246,31 @@ public class TrackerAccessManagerTest extends DhisSpringTest
         List<String> errors = trackerAccessManager.canRead( user, tei );
         assertTrue( errors.size() == 0 );
 
+        // Can write
+        errors = trackerAccessManager.canWrite( user, tei );
+        assertTrue( errors.size() == 0 );
+
+    }
+
+    @Test
+    public void checkAccessPermissionForTeiWhenTeiOuOutsideSearchScope()
+    {
+        programA.setPublicAccess( AccessStringHelper.FULL );
+        manager.update( programA );
+
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
+
+        trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
+
+        manager.update( trackedEntityType );
+
+        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
+
+        // Cannot Read
+        List<String> errors = trackerAccessManager.canRead( user, tei );
+        assertTrue( errors.size() == 1 );
+        assertTrue( errors.get( 0 ).contains( "User has no read access to organisation unit:" ) );
+
         // Cannot write
         errors = trackerAccessManager.canWrite( user, tei );
         assertTrue( errors.size() == 1 );
