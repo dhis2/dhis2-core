@@ -122,7 +122,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
-            if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
+            if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
             {
                 errors.add( "User has no write access to organisation unit: " + ou.getUid() );
             }
