@@ -102,7 +102,7 @@ public class DefaultProgramInstanceService
     private ApplicationEventPublisher eventPublisher;
     
     @Autowired
-    protected TrackerOwnershipManager trackerOwnershipAccessManager;
+    private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
