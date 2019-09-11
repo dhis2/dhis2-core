@@ -351,6 +351,37 @@ public class MeController
         return null;
     }
 
+    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT , consumes = { "text/*", "application/*" } )
+    @ResponseStatus( HttpStatus.ACCEPTED )
+    public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
+        throws WebMessageException, NotAuthenticatedException
+    {
+        User currentUser = currentUserService.getCurrentUser();
+
+        if ( currentUser == null )
+        {
+            throw new NotAuthenticatedException();
+        }
+
+        String oldPassword = body.get( "oldPassword" );
+        String newPassword = body.get( "newPassword" );
+
+        if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword and newPassword must be provided" ) );
+        }
+
+        boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
+
+        if ( !valid )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword is incorrect" ) );
+        }
+
+        updatePassword( currentUser, newPassword );
+        manager.update( currentUser );
+    }
+
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
     public @ResponseBody RootNode verifyPasswordText( @RequestBody String password, HttpServletResponse response )
         throws WebMessageException
