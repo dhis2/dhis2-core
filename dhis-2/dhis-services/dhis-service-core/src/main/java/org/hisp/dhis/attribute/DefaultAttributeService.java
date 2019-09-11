@@ -247,7 +247,7 @@ public class DefaultAttributeService
         }
 
         object.setAttributeValues( object.getAttributeValues().stream()
-                .filter( av -> !av.getAttribute().getUid().equals( attribute.getUid() ) ).collect(Collectors.toSet() ) );
+                .filter( av -> !av.getAttribute().equals( attribute.getUid() ) ).collect(Collectors.toSet() ) );
         sessionFactory.getCurrentSession().update( object );
     }
 
