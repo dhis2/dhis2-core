@@ -25,75 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.hisp.dhis.dto;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
-import java.util.List;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@JsonIgnoreProperties( ignoreUnknown = true )
-public class ImportSummary
+public class Conflict
 {
-    private String status;
+    private String object;
 
-    private String description;
+    private String value;
 
-    private String reference;
-
-    private ImportCount importCount;
-
-    private List<Conflict> conflicts;
-
-    public String getStatus()
+    public String getObject()
     {
-        return status;
+        return object;
     }
 
-    public void setStatus( String status )
+    public void setObject( String object )
     {
-        this.status = status;
+        this.object = object;
     }
 
-    public String getDescription()
+    public String getValue()
     {
-        return description;
+        return value;
     }
 
-    public void setDescription( String description )
+    public void setValue( String value )
     {
-        this.description = description;
-    }
-
-    public String getReference()
-    {
-        return reference;
-    }
-
-    public void setReference( String reference )
-    {
-        this.reference = reference;
-    }
-
-    public ImportCount getImportCount()
-    {
-        return importCount;
-    }
-
-    public void setImportCount( ImportCount importCount )
-    {
-        this.importCount = importCount;
-    }
-
-    public List<Conflict> getConflicts()
-    {
-        return conflicts;
-    }
-
-    public void setConflicts( List<Conflict> conflicts )
-    {
-        this.conflicts = conflicts;
+        this.value = value;
     }
 }
