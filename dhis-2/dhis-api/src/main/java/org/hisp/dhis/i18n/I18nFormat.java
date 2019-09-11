@@ -63,9 +63,9 @@ public class I18nFormat
 
     private static final String INVALID_DATE = "Invalid date format";
 
-    public static final String FORMAT_DATE = "yyyy-MM-dd";
-    public static final String FORMAT_TIME = "HH:mm";
-    public static final String FORMAT_DATETIME = "yyyy-MM-dd HH:mm";
+    private static final String FORMAT_DATE = "yyyy-MM-dd";
+    private static final String FORMAT_TIME = "HH:mm";
+    private static final String FORMAT_DATETIME = "yyyy-MM-dd HH:mm";
 
     private ResourceBundle resourceBundle;
 

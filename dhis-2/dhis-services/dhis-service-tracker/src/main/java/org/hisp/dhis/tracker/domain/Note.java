@@ -46,6 +46,9 @@ public class Note
 
     private String storedDate;
 
+    /**
+     * Required by Jackson
+     */
     public Note()
     {
     }

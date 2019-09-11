@@ -69,22 +69,17 @@ public class SingleEventListener
 
     private final SMSCommandService smsCommandService;
 
-    private final ProgramInstanceService programInstanceService;
-
     public SingleEventListener( ProgramInstanceService programInstanceService,
         CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        ProgramInstanceService programInstanceService1 )
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService )
     {
         super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
-        checkNotNull( programInstanceService1 );
 
         this.smsCommandService = smsCommandService;
-        this.programInstanceService = programInstanceService1;
     }
 
     // -------------------------------------------------------------------------

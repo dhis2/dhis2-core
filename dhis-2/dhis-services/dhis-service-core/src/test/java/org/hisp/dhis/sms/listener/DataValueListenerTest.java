@@ -176,7 +176,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
     {
         subject = new DataValueSMSListener( programInstanceService, dataElementCategoryService,
             programStageInstanceService, userService, currentUserService, incomingSmsService, smsSender,
-            registrationService, dataValueService, dataElementCategoryService, smsCommandService, dataSetService,
+            registrationService, dataValueService, smsCommandService, dataSetService,
             dataElementService );
 
         setUpInstances();

@@ -49,7 +49,7 @@ import java.util.UUID;
  * Job will fetch all the image FileResources with flag hasMultiple set to false. It will process those image FileResources create three images files for each of them.
  * Once created, images will be stored at EWS and flag hasMultiple is set to true.
  *
- * @Author Zubair Asghar.
+ * @author Zubair Asghar.
  */
 
 @Component( "imageResizingJob" )
@@ -102,9 +102,10 @@ public class ImageResizingJob extends AbstractJob
 
                 tmpFile = new File( UUID.randomUUID().toString() );
 
-                FileOutputStream fileOutputStream = new FileOutputStream( tmpFile );
+                try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)) {
 
-                fileResourceContentStore.copyContent( key, fileOutputStream );
+                    fileResourceContentStore.copyContent(key, fileOutputStream);
+                }
 
                 Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, tmpFile );
 

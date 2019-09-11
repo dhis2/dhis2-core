@@ -48,6 +48,9 @@ public class TrackerStats
 
     private int ignored;
 
+    /**
+     * Required by Jackson
+     */
     public TrackerStats()
     {
     }

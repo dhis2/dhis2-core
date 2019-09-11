@@ -56,6 +56,9 @@ public class Relationship
 
     private String lastUpdated;
 
+    /**
+     * Required by Jackson
+     */
     public Relationship()
     {
     }

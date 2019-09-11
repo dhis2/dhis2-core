@@ -114,7 +114,7 @@ public class DeleteEventSMSListenerTest
 
     // Needed for this test
 
-    DeleteEventSMSListener subject;
+    private DeleteEventSMSListener subject;
 
     private IncomingSms incomingSmsDelete;
 

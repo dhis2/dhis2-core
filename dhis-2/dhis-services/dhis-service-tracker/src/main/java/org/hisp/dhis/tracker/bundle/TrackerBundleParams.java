@@ -113,6 +113,9 @@ public class TrackerBundleParams
      */
     private List<Event> events = new ArrayList<>();
 
+    /**
+     * Required by Jackson
+     */
     public TrackerBundleParams()
     {
     }

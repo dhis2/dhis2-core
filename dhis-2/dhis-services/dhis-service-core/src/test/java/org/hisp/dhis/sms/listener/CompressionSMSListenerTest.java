@@ -39,7 +39,7 @@ import org.hisp.dhis.smscompression.models.SMSMetadata;
 import org.hisp.dhis.smscompression.models.SMSSubmission;
 import org.hisp.dhis.user.User;
 
-public class CompressionSMSListenerTest
+public abstract class CompressionSMSListenerTest
     extends
     DhisConvenienceTest
 {
