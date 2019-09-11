@@ -43,7 +43,6 @@ import org.hisp.dhis.dto.ObjectReport;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -78,11 +77,13 @@ public class RestApiActions
         return post( "", object, null );
     }
 
-    public ApiResponse post( String resource, Object object) {
-        return post( resource, ContentType.JSON.toString(), object, null);
+    public ApiResponse post( String resource, Object object )
+    {
+        return post( resource, ContentType.JSON.toString(), object, null );
     }
 
-    public ApiResponse post( String resource, Object object, QueryParamsBuilder queryParams) {
+    public ApiResponse post( String resource, Object object, QueryParamsBuilder queryParams )
+    {
         return post( resource, ContentType.JSON.toString(), object, queryParams );
     }
 
@@ -91,10 +92,9 @@ public class RestApiActions
         return post( "", ContentType.JSON.toString(), object, queryParamsBuilder );
     }
 
-
-    public ApiResponse post( String resource, String contentType, Object object,  QueryParamsBuilder queryParams )
+    public ApiResponse post( String resource, String contentType, Object object, QueryParamsBuilder queryParams )
     {
-        String path = queryParams == null ?  "" : queryParams.build();
+        String path = queryParams == null ? "" : queryParams.build();
 
         ApiResponse response = new ApiResponse( this.given()
             .body( object )
@@ -132,7 +132,7 @@ public class RestApiActions
      */
     public ApiResponse get( String path )
     {
-        return get(path, null);
+        return get( path, null );
     }
 
     /**
@@ -154,7 +154,7 @@ public class RestApiActions
      */
     public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
-        String path = queryParamsBuilder == null ? "": queryParamsBuilder.build();
+        String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
         Response response = this.given()
             .contentType( ContentType.TEXT )
@@ -202,14 +202,14 @@ public class RestApiActions
         return new ApiResponse( response );
     }
 
-
-    public ApiResponse postFile( File file) {
+    public ApiResponse postFile( File file )
+    {
         return this.postFile( file, null );
     }
 
     public ApiResponse postFile( File file, QueryParamsBuilder queryParamsBuilder )
     {
-        String url = queryParamsBuilder == null ? "": queryParamsBuilder.build();
+        String url = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
         ApiResponse response = new ApiResponse( this.given()
             .body( file )

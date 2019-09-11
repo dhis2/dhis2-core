@@ -73,7 +73,7 @@ public class SchemasActions
 
     public String findSchemaPropertyByKnownProperty( String propertyToFind, String knownPropertyName, String knownPropertyValue )
     {
-        return get( "", new QueryParamsBuilder().add(String.format( "fields=%s,%s", propertyToFind, knownPropertyName)))
+        return get( "", new QueryParamsBuilder().add( String.format( "fields=%s,%s", propertyToFind, knownPropertyName ) ) )
             .extractString(
                 String.format( "schemas.find{it.%s == '%s'}.%s", knownPropertyName, knownPropertyValue, propertyToFind ) );
     }

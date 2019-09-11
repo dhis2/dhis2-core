@@ -28,7 +28,6 @@
 package org.hisp.dhis.actions.metadata;
 
 import io.restassured.matcher.RestAssuredMatchers;
-import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;

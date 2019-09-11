@@ -71,7 +71,7 @@ public class IdGenerator
 
     public String generateUniqueId()
     {
-        String id = get( "id.json",  new QueryParamsBuilder().add("limit=1" ))
+        String id = get( "id.json", new QueryParamsBuilder().add( "limit=1" ) )
             .validate()
             .statusCode( 200 )
             .extract().path( "codes[0]" );

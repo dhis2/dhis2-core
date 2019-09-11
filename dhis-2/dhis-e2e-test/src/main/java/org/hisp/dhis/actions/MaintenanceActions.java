@@ -49,12 +49,14 @@ public class MaintenanceActions
 
     public void removeSoftDeletedEvents()
     {
-        sendRequest(  true, "softDeletedEventRemoval=true" );
+        sendRequest( true, "softDeletedEventRemoval=true" );
     }
 
     public void removeSoftDeletedMetadata()
     {
-        sendRequest(true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true", "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true", "softDeletedDataValueRemoval=true" );
+        sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true",
+            "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true",
+            "softDeletedDataValueRemoval=true" );
     }
 
     private void sendRequest( boolean validate, String... queryParams )

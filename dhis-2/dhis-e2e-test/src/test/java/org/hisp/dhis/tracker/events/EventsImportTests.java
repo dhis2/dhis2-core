@@ -64,7 +64,8 @@ public class EventsImportTests
             .get();
 
         ApiResponse response = eventActions
-            .post(  "", contentType, obj, new QueryParamsBuilder().addAll( "dryRun=false",  "eventIdScheme=UID", "orgUnitIdScheme=UID", "skipFirst=true", "async=true" ));
+            .post( "", contentType, obj, new QueryParamsBuilder()
+                .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "skipFirst=true", "async=true" ) );
 
         response
             .validate()
@@ -120,7 +121,8 @@ public class EventsImportTests
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "async=" + String.valueOf( async ) );
 
-        ApiResponse response = eventActions.postFile( new File( "src/test/resources/tracker/events/" + fileName ), queryParamsBuilder);
+        ApiResponse response = eventActions
+            .postFile( new File( "src/test/resources/tracker/events/" + fileName ), queryParamsBuilder );
         return response;
     }
 

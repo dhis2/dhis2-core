@@ -138,7 +138,7 @@ public class RelationshipsTest
         {
         case "trackedEntityInstance":
         {
-            return trackedEntityInstanceActions.get( id, new QueryParamsBuilder().add( "fields=relationships" ));
+            return trackedEntityInstanceActions.get( id, new QueryParamsBuilder().add( "fields=relationships" ) );
         }
 
         case "event":
