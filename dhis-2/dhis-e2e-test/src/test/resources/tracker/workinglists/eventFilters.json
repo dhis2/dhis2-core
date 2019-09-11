@@ -3,7 +3,7 @@
   "description": "Simple Filter",
   "name": "TA event program events",
   "eventQueryCriteria": {
-    "organisationUnit": "r16njpPwUCb",
+    "organisationUnit": "O6uvpzGd5pu",
     "eventStatus": "COMPLETED",
     "eventDate": {
       "startDate": "2014-05-01",

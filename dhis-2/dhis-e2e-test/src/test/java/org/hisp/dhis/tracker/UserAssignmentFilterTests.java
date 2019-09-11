@@ -67,7 +67,8 @@ public class UserAssignmentFilterTests
     private String userUsername;
 
     private String programId = "BJ42SUrAvHo";
-    private String orgUnit = "r16njpPwUCb";
+
+    private String orgUnit = "O6uvpzGd5pu";
 
     private String userId;
 
