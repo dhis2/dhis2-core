@@ -146,7 +146,7 @@ public class DeduplicationController
         return potentialDuplicate;
     }
 
-    @PutMapping( value = "/{id}/invalidate" )
+    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST }, value = "/{id}/invalidation")
     public void markPotentialDuplicateInvalid(
         @PathVariable String id
     )
