@@ -47,6 +47,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -99,6 +100,9 @@ public class DefaultProgramInstanceService
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+    
+    @Autowired
+    private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Autowired
     private ProgramInstanceAuditService programInstanceAuditService;
@@ -526,6 +530,13 @@ public class DefaultProgramInstanceService
             incidentDate, organisationUnit, uid );
         addProgramInstance( programInstance );
 
+        // ---------------------------------------------------------------------
+        // Add program owner and overwrite if already exists.
+        // ---------------------------------------------------------------------
+
+        trackerOwnershipAccessManager.assignOwnership( trackedEntityInstance, program, organisationUnit, true, true );
+
+        
         // -----------------------------------------------------------------
         // Send enrollment notifications (if any)
         // -----------------------------------------------------------------
