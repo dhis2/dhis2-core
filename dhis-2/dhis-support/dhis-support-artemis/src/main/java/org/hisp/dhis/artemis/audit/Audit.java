@@ -45,14 +45,18 @@ import java.util.Date;
 @JacksonXmlRootElement( localName = "audit", namespace = DxfNamespaces.DXF_2_0 )
 public class Audit implements Message
 {
-    private final AuditType auditType;
-    private final AuditScope auditScope;
-    private final Date createdAt;
-    private final String createdBy;
-    private Class<?> klass;
+    private AuditType auditType;
+    private AuditScope auditScope;
+    private Date createdAt;
+    private String createdBy;
+    private String klass;
     private String uid;
     private String code;
     private Object data;
+
+    public Audit()
+    {
+    }
 
     public Audit(
         AuditType auditType,
@@ -106,12 +110,12 @@ public class Audit implements Message
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Class<?> getKlass()
+    public String getKlass()
     {
         return klass;
     }
 
-    public void setKlass( Class<?> klass )
+    public void setKlass( String klass )
     {
         this.klass = klass;
     }
@@ -247,7 +251,7 @@ public class Audit implements Message
                 createdBy
             );
 
-            audit.setKlass( klass );
+            audit.setKlass( klass.getName() );
             audit.setUid( uid );
             audit.setCode( code );
             audit.setData( data );

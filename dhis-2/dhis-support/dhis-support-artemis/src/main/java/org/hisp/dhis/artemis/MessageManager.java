@@ -53,11 +53,6 @@ public class MessageManager
 
     public void send( Destination destination, Message message )
     {
-        send( destination, message, null );
-    }
-
-    public void send( Destination destination, Message message, Object data )
-    {
         jmsTemplate.send( destination, session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 
@@ -66,18 +61,8 @@ public class MessageManager
         send( new JmsTopic( topic ), message );
     }
 
-    public void sendTopic( String topic, Message message, Object data )
-    {
-        send( new JmsTopic( topic ), message, data );
-    }
-
     public void sendQueue( String queue, Message message )
     {
         send( new JmsQueue( queue ), message );
-    }
-
-    public void sendQueue( String queue, Message message, Object data )
-    {
-        send( new JmsQueue( queue ), message, data );
     }
 }

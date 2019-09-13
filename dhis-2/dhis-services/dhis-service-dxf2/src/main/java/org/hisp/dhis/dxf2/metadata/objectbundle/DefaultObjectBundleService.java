@@ -56,6 +56,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -264,7 +265,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withObject( object )
-                    .withData( object )
+                    .withData( new MetadataAudit()
+                        .setType( org.hisp.dhis.common.AuditType.CREATE )
+                        .setCreatedAt( new Date() )
+                        .setCreatedBy( bundle.getUsername() )
+                        .setKlass( object.getClass().getName() )
+                        .setUid( object.getUid() )
+                        .setCode( object.getCode() )
+                        .setValue( renderService.toJsonAsString( object ) )
+                    )
                     .build()
             );
 
@@ -350,8 +359,16 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     .withAuditScope( AuditScope.METADATA )
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
-                    .withObject( object )
-                    .withData( object )
+                    .withObject( persistedObject )
+                    .withData( new MetadataAudit()
+                        .setType( org.hisp.dhis.common.AuditType.UPDATE )
+                        .setCreatedAt( new Date() )
+                        .setCreatedBy( bundle.getUsername() )
+                        .setKlass( persistedObject.getClass().getName() )
+                        .setUid( persistedObject.getUid() )
+                        .setCode( persistedObject.getCode() )
+                        .setValue( renderService.toJsonAsString( persistedObject ) )
+                    )
                     .build()
             );
 
@@ -419,7 +436,15 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     .withCreatedAt( new Date() )
                     .withCreatedBy( bundle.getUsername() )
                     .withObject( object )
-                    .withData( object )
+                    .withData( new MetadataAudit()
+                        .setType( org.hisp.dhis.common.AuditType.DELETE )
+                        .setCreatedAt( new Date() )
+                        .setCreatedBy( bundle.getUsername() )
+                        .setKlass( object.getClass().getName() )
+                        .setUid( object.getUid() )
+                        .setCode( object.getCode() )
+                        .setValue( renderService.toJsonAsString( object ) )
+                    )
                     .build()
             );
 

@@ -48,7 +48,7 @@ public class ArtemisTester
         this.jmsTemplate = jmsTemplate;
     }
 
-    @JmsListener( destination = "metadataDestination" )
+    // @JmsListener( destination = "metadataDestination" )
     public void metadataEventListener1( TextMessage message ) throws JMSException
     {
         System.err.println( message.getText() );

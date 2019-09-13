@@ -28,10 +28,19 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.render.RenderService;
+import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -43,11 +52,35 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultMetadataAuditService implements MetadataAuditService
 {
     private final MetadataAuditStore auditStore;
+    private final RenderService renderService;
+    private final boolean persistAudit;
 
-    public DefaultMetadataAuditService( MetadataAuditStore auditStore )
+    public DefaultMetadataAuditService(
+        MetadataAuditStore auditStore,
+        RenderService renderService,
+        DhisConfigurationProvider dhisConfig )
     {
         checkNotNull( auditStore );
+        checkNotNull( renderService );
+        checkNotNull( dhisConfig );
+
         this.auditStore = auditStore;
+        this.renderService = renderService;
+        this.persistAudit = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
+    }
+
+    @JmsListener( destination = "metadataDestination" )
+    public void metadataAuditListener( TextMessage message ) throws JMSException, IOException
+    {
+        if ( !persistAudit || message.getText() == null )
+        {
+            return;
+        }
+
+        Audit audit = renderService.fromJson( message.getText(), Audit.class );
+        MetadataAudit metadataAudit = renderService.fromJson( (String) audit.getData(), MetadataAudit.class );
+
+        addMetadataAudit( metadataAudit );
     }
 
     @Override

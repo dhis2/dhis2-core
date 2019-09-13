@@ -29,6 +29,7 @@ package org.hisp.dhis.artemis.audit;
  */
 
 import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.render.RenderService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,14 +39,17 @@ import org.springframework.stereotype.Component;
 public class AuditManager
 {
     private final MessageManager messageManager;
+    private final RenderService renderService;
 
-    public AuditManager( MessageManager messageManager )
+    public AuditManager( MessageManager messageManager, RenderService renderService )
     {
         this.messageManager = messageManager;
+        this.renderService = renderService;
     }
 
     public void send( Audit audit )
     {
+        audit.setData( renderService.toJsonAsString( audit.getData() ) );
         messageManager.send( audit.getAuditScope().getDestination(), audit );
     }
 }

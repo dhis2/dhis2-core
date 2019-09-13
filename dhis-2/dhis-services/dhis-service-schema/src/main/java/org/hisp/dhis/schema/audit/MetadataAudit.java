@@ -69,9 +69,10 @@ public class MetadataAudit
         return id;
     }
 
-    public void setId( int id )
+    public MetadataAudit setId( int id )
     {
         this.id = id;
+        return this;
     }
 
     @JsonProperty
@@ -81,9 +82,10 @@ public class MetadataAudit
         return createdAt;
     }
 
-    public void setCreatedAt( Date createdAt )
+    public MetadataAudit setCreatedAt( Date createdAt )
     {
         this.createdAt = createdAt;
+        return this;
     }
 
     @JsonProperty
@@ -93,9 +95,10 @@ public class MetadataAudit
         return createdBy;
     }
 
-    public void setCreatedBy( String createdBy )
+    public MetadataAudit setCreatedBy( String createdBy )
     {
         this.createdBy = createdBy;
+        return this;
     }
 
     @JsonProperty
@@ -105,9 +108,10 @@ public class MetadataAudit
         return klass;
     }
 
-    public void setKlass( String klass )
+    public MetadataAudit setKlass( String klass )
     {
         this.klass = klass;
+        return this;
     }
 
     @JsonProperty
@@ -117,9 +121,10 @@ public class MetadataAudit
         return uid;
     }
 
-    public void setUid( String uid )
+    public MetadataAudit setUid( String uid )
     {
         this.uid = uid;
+        return this;
     }
 
     @JsonProperty
@@ -129,9 +134,10 @@ public class MetadataAudit
         return code;
     }
 
-    public void setCode( String code )
+    public MetadataAudit setCode( String code )
     {
         this.code = code;
+        return this;
     }
 
     @JsonProperty
@@ -141,22 +147,23 @@ public class MetadataAudit
         return type;
     }
 
-    public void setType( AuditType type )
+    public MetadataAudit setType( AuditType type )
     {
         this.type = type;
+        return this;
     }
 
     @JsonProperty
-    @JsonRawValue
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getValue()
     {
         return value;
     }
 
-    public void setValue( String value )
+    public MetadataAudit setValue( String value )
     {
         this.value = value;
+        return this;
     }
 
     @Override

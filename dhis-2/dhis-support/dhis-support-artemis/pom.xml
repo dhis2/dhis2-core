@@ -14,7 +14,7 @@
   <name>DHIS Artemis AMQP/JMS Support</name>
 
   <dependencies>
-  
+
     <!-- DHIS -->
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -24,7 +24,7 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-external</artifactId>
     </dependency>
-    
+
     <!-- Other -->
     <dependency>
       <groupId>org.apache.activemq</groupId>
