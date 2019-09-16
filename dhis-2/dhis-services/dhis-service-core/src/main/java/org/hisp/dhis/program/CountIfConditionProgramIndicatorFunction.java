@@ -47,16 +47,16 @@ public class CountIfConditionProgramIndicatorFunction
     @Override
     public String evaluate( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, String... args )
     {
-        if ( args == null || args.length % 2 != 0 || args.length == 0 )
+        if ( args == null || args.length % 3 != 0 || args.length == 0 )
         {
-            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: source data element/tracked entity attribute, value to count."
+            throw new IllegalArgumentException( "Illegal arguments, expected multiple of 3 arguments: data element, operand and value."
                 + " Arguments passed: " + Arrays.toString( args ) );
         }
         
         List<String> conditions = new ArrayList<String>();
-        for( int i = 0; i < args.length; i = i + 2 )
+        for( int i = 0; i < args.length; i = i + 3 )
         {
-            conditions.add( args[i] + args[i+1].replace( "'", "" ) );
+            conditions.add( args[i] + args[i+1].replace( "'", "" ) + args[i+2] );
         }
         
         return this.countWhereCondition( programIndicator, reportingStartDate, reportingEndDate, conditions );
