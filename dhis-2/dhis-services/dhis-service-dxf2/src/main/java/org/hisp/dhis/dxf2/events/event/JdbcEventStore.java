@@ -73,8 +73,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -101,19 +99,6 @@ public class JdbcEventStore
 {
     private static final Log log = LogFactory.getLog( JdbcEventStore.class );
 
-    private static final String ORG_UNIT_UID_SQL = "ou.uid as ou_identifier, ";
-    private static final String ORG_UNIT_ATTRIBUTE_SQL = "ouav.value as ou_identifier, ";
-    private static final String ORG_UNIT_CODE_SQL = "ou.code as ou_identifier, ";
-    private static final String PROGRAM_UID_SQL = "p.uid as p_identifier, ";
-    private static final String PROGRAM_ATTRIBUTE_SQL = "pav.value as p_identifier, ";
-    private static final String PROGRAM_CODE_SQL = "p.code as p_identifier, ";
-    private static final String PROGRAM_STAGE_UID_SQL = "ps.uid as ps_identifier, ";
-    private static final String PROGRAM_STAGE_ATTRIBUTE_SQL = "psav.value as ps_identifier, ";
-    private static final String PROGRAM_STAGE_CODE_SQL = "ps.code as ps_identifier, ";
-    private static final String COC_UID_SQL = "coc.uid as coc_identifier, ";
-    private static final String COC_ATTRIBUTE_SQL = "cocav.value as coc_identifier, ";
-    private static final String COC_CODE_SQL = "coc.code as coc_identifier, ";
-
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String>builder()
         .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
         .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
@@ -123,19 +108,6 @@ public class JdbcEventStore
         .put( "lastUpdated", "psi_lastupdated" ).put( "completedBy", "psi_completedby" )
         .put( "attributeOptionCombo", "psi_aoc" ).put( "completedDate", "psi_completeddate" )
         .put( "deleted", "psi_deleted" ).build();
-
-    // -------------------------------------------------------------------------
-    // Caching
-    // -------------------------------------------------------------------------
-    private final static int DATA_ELEMENT_TO_CODE_CACHE_THRESHOLD = 200;
-    private final static int DATA_ELEMENT_TO_ATTRIBUTE_CACHE_THRESHOLD = 500;
-    private final static Duration CACHE_DATA_DURATION = Duration.ofMinutes( 15 );
-
-    private Instant dataElementToCodeCacheLastCleared = Instant.now();
-    private Instant dataElementToAttributeCacheLastCleared = Instant.now();
-
-    private CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
-    private CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -194,7 +166,10 @@ public class JdbcEventStore
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        populateCaches( params, sql, isSuperUser );
+
+        CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
+        CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
+        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -303,7 +278,8 @@ public class JdbcEventStore
             {
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
                 Map<String, String> dataElementsUidToIdentifier =
-                    getDataElementsUidToIdentifier( eventDataValues, idSchemes.getDataElementIdScheme() );
+                    getDataElementsUidToIdentifier( eventDataValues, idSchemes.getDataElementIdScheme(),
+                        dataElementToCodeCache, dataElementToAttributeCache );
 
                 for( EventDataValue dv : eventDataValues )
                 {
@@ -339,8 +315,6 @@ public class JdbcEventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
         }
-
-        clearCaches();
 
         if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
         {
@@ -378,7 +352,6 @@ public class JdbcEventStore
             list.add( map );
         }
 
-        clearCaches();
         return list;
     }
 
@@ -401,7 +374,10 @@ public class JdbcEventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-        populateCaches( params, sql, isSuperUser );
+
+        CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
+        CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
+        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -479,7 +455,8 @@ public class JdbcEventStore
                 List<DataValue> dataValues = new ArrayList<>();
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
                 Map<String, String> dataElementsUidToIdentifier =
-                    getDataElementsUidToIdentifier( eventDataValues, idSchemes.getDataElementIdScheme() );
+                    getDataElementsUidToIdentifier( eventDataValues, idSchemes.getDataElementIdScheme(),
+                        dataElementToCodeCache, dataElementToAttributeCache );
 
                 for( EventDataValue dv : eventDataValues )
                 {
@@ -502,11 +479,11 @@ public class JdbcEventStore
             }
         }
         eventRows.forEach(e -> e.setDataValues( processedDataValues.get( e.getUid())));
-        clearCaches();
         return eventRows;
     }
 
-    private Map<String, String> getDataElementsUidToIdentifier( Set<EventDataValue> eventDataValues, IdScheme idScheme )
+    private Map<String, String> getDataElementsUidToIdentifier( Set<EventDataValue> eventDataValues, IdScheme idScheme,
+        CachingMap<String, DataElement> dataElementToCodeCache, CachingMap<String, String> dataElementToAttributeCache )
     {
         if ( idScheme == IdScheme.ID || idScheme == IdScheme.UID )
         {
@@ -514,15 +491,16 @@ public class JdbcEventStore
         }
         else if ( idScheme.isAttribute() )
         {
-            return getDataElementsUidToAttribute( eventDataValues );
+            return getDataElementsUidToAttribute( eventDataValues, dataElementToAttributeCache );
         }
         else
         {
-            return getDataElementsUidToCode( eventDataValues );
+            return getDataElementsUidToCode( eventDataValues, dataElementToCodeCache );
         }
     }
 
-    private Map<String, String> getDataElementsUidToCode( Set<EventDataValue> eventDataValues )
+    private Map<String, String> getDataElementsUidToCode( Set<EventDataValue> eventDataValues,
+        CachingMap<String, DataElement> dataElementToCodeCache )
     {
         //Get mapping only when needed
         Map<String, String> dataElementsUidToCode = new HashMap<>();
@@ -546,7 +524,8 @@ public class JdbcEventStore
         return dataElementsUidToCode;
     }
 
-    private Map<String, String> getDataElementsUidToAttribute( Set<EventDataValue> eventDataValues )
+    private Map<String, String> getDataElementsUidToAttribute( Set<EventDataValue> eventDataValues,
+        CachingMap<String, String> dataElementToAttributeCache )
     {
         Map<String, String> dataElementsUidToAttribute = new HashMap<>();
         List<String> dataElementsUids = eventDataValues.stream()
@@ -579,24 +558,24 @@ public class JdbcEventStore
         String sql = "";
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getOrgUnitIdScheme(),
-            ORG_UNIT_UID_SQL,
-            ORG_UNIT_ATTRIBUTE_SQL,
-            ORG_UNIT_CODE_SQL );
+            "ou.uid as ou_identifier, ",
+            "ouav.value as ou_identifier, ",
+            "ou.code as ou_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramIdScheme(),
-            PROGRAM_UID_SQL,
-            PROGRAM_ATTRIBUTE_SQL,
-            PROGRAM_CODE_SQL );
+            "p.uid as p_identifier, ",
+            "pav.value as p_identifier, ",
+            "p.code as p_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getProgramStageIdScheme(),
-            PROGRAM_STAGE_UID_SQL,
-            PROGRAM_STAGE_ATTRIBUTE_SQL,
-            PROGRAM_STAGE_CODE_SQL );
+            "ps.uid as ps_identifier, ",
+            "psav.value as ps_identifier, ",
+            "ps.code as ps_identifier, " );
 
         sql += getIdSqlBasedOnIdScheme( idSchemes.getCategoryOptionComboIdScheme(),
-            COC_UID_SQL,
-            COC_ATTRIBUTE_SQL,
-            COC_CODE_SQL );
+            "coc.uid as coc_identifier, ",
+            "cocav.value as coc_identifier, ",
+            "coc.code as coc_identifier, " );
 
         return sql;
     }
@@ -667,7 +646,6 @@ public class JdbcEventStore
 
         log.debug( "Event query count SQL: " + sql );
 
-        clearCaches();
         return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
@@ -1422,7 +1400,8 @@ public class JdbcEventStore
         }
     }
 
-    private void populateCaches( EventSearchParams params, String sql, boolean isSuperUser )
+    private void populateCaches( EventSearchParams params, CachingMap<String, DataElement> dataElementToCodeCache,
+        CachingMap<String, String> dataElementToAttributeCache, String sql, boolean isSuperUser )
     {
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
         IdScheme idScheme = idSchemes.getDataElementIdScheme();
@@ -1450,7 +1429,7 @@ public class JdbcEventStore
             }
         }
 
-        if ( idScheme.isAttribute() )
+        if ( !idScheme.isAttribute() )
         {
             List<DataElement> dataElements = manager.get( DataElement.class, deUids );
             dataElements.forEach( de -> dataElementToCodeCache.put( de.getUid(), de ) );
@@ -1459,9 +1438,9 @@ public class JdbcEventStore
         {
             String dataElementsUidsSqlString = deUids.stream().collect( Collectors.joining( "', '", "'", "'" ) );
 
-            String deSql = "SELECT de.uid, av.value " +
-                "FROM dataelement de JOIN dataelementattributevalues deav ON de.dataelementid = deav.dataelementid " +
-                "JOIN attributevalue av ON av.attributevalueid = deav.attributevalueid " + "WHERE de.uid IN (" +
+            String deSql = "select de.uid, av.value " +
+                "from dataelement de join dataelementattributevalues deav on de.dataelementid = deav.dataelementid " +
+                "join attributevalue av on av.attributevalueid = deav.attributevalueid " + "where de.uid in (" +
                 dataElementsUidsSqlString + ")";
 
             SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
@@ -1470,23 +1449,6 @@ public class JdbcEventStore
             {
                 dataElementToAttributeCache.put( deRowSet.getString( "uid" ), deRowSet.getString( "value" ) );
             }
-        }
-    }
-
-    private void clearCaches()
-    {
-        if ( dataElementToCodeCache.size() > DATA_ELEMENT_TO_CODE_CACHE_THRESHOLD ||
-            dataElementToCodeCacheLastCleared.plus( CACHE_DATA_DURATION ).isBefore( Instant.now() ) )
-        {
-            dataElementToCodeCache.clear();
-            dataElementToCodeCacheLastCleared = Instant.now();
-        }
-
-        if ( dataElementToAttributeCache.size() > DATA_ELEMENT_TO_ATTRIBUTE_CACHE_THRESHOLD ||
-            dataElementToAttributeCacheLastCleared.plus( CACHE_DATA_DURATION ).isBefore( Instant.now() ) )
-        {
-            dataElementToAttributeCache.clear();
-            dataElementToAttributeCacheLastCleared = Instant.now();
         }
     }
 }
