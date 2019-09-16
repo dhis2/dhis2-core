@@ -312,6 +312,9 @@ public class EventController
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ), null, false, eventIds, null, null,
             includeDeleted );
 
+        /* force clause LIMIT on generated query **/
+        params.setFixedLimit( 10_000L );
+
         Events events = eventService.getEvents( params );
 
         if ( hasHref( fields ) )
