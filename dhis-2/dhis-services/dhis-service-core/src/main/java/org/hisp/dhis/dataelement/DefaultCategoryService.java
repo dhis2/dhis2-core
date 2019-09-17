@@ -457,7 +457,7 @@ public class DefaultCategoryService
     @Transactional( noRollbackFor = DeleteNotAllowedException.class )
     public void deleteCategoryOptionComboNoRollback( CategoryOptionCombo categoryOptionCombo )
     {
-        categoryOptionComboStore.delete( categoryOptionCombo );
+        categoryOptionComboStore.deleteNoRollBack( categoryOptionCombo );
     }
 
     @Override
