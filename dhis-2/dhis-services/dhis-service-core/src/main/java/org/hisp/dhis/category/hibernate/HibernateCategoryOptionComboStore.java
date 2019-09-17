@@ -35,6 +35,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -105,5 +106,16 @@ public class HibernateCategoryOptionComboStore
                 dbmsManager.clearSession();
             }
         }
+    }
+
+    @Override
+    public void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo )
+    {
+        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( categoryOptionCombo );
+        event.setShouldRollBack( false );
+
+        publisher.publishEvent( event );
+
+        getSession().delete( categoryOptionCombo );
     }
 }

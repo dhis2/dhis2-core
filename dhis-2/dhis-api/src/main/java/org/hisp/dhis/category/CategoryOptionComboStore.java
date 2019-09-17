@@ -41,4 +41,6 @@ public interface CategoryOptionComboStore
     CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
     
     void updateNames();
+
+    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
 }
