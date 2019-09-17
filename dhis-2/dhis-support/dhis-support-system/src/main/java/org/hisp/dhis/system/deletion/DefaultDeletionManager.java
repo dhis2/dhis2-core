@@ -69,8 +69,20 @@ public class DefaultDeletionManager
     // -------------------------------------------------------------------------
 
     @Transactional
-    @EventListener
+    @EventListener( condition = "#event.shouldRollBack" )
     public void objectDeletionListener( ObjectDeletionRequestedEvent event )
+    {
+       deleteObjects( event );
+    }
+
+    @Transactional ( noRollbackFor = DeleteNotAllowedException.class )
+    @EventListener( condition = "!#event.shouldRollBack" )
+    public void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event )
+    {
+        deleteObjects( event );
+    }
+
+    private void deleteObjects( ObjectDeletionRequestedEvent event )
     {
         if ( deletionHandlers == null || deletionHandlers.isEmpty() )
         {

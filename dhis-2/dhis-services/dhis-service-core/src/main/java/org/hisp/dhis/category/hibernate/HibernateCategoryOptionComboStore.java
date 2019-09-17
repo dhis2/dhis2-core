@@ -35,6 +35,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -43,6 +45,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -105,5 +108,17 @@ public class HibernateCategoryOptionComboStore
                 dbmsManager.clearSession();
             }
         }
+    }
+
+    @Override
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
+    public void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo )
+    {
+        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( categoryOptionCombo );
+        event.setShouldRollBack( false );
+
+        publisher.publishEvent( event );
+
+        getSession().delete( categoryOptionCombo );
     }
 }
