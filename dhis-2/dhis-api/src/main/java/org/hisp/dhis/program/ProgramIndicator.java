@@ -70,7 +70,7 @@ public class ProgramIndicator
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
 
-    private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+    private static final Set<AnalyticsPeriodBoundary> DEFAULT_EVENT_TYPE_BOUNDARIES = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
     
@@ -153,7 +153,7 @@ public class ProgramIndicator
     public Boolean hasNonDefaultBoundaries()
     {
         return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT &&
-            !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
+            !this.analyticsPeriodBoundaries.containsAll( DEFAULT_EVENT_TYPE_BOUNDARIES ) ||
             this.analyticsType == AnalyticsType.ENROLLMENT );
     }
 
