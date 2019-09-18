@@ -28,6 +28,7 @@ package org.hisp.dhis.programstagefilter;
  */
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -119,6 +120,11 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             if ( eventQC.getEvents() != null && !eventQC.getEvents().isEmpty() && eventQC.getDataFilters() != null && !eventQC.getDataFilters().isEmpty() )
             {
                 errors.add( "Event UIDs and filters can not be specified at the same time" );
+            }
+
+            if ( eventQC.getDisplayColumnOrder() != null && eventQC.getDisplayColumnOrder().size() > 0 && (new HashSet<String>( eventQC.getDisplayColumnOrder() )).size() < eventQC.getDisplayColumnOrder().size() )
+            {
+                errors.add( "Event query criteria can not have duplicate column ordering fields" );
             }
         }
 
