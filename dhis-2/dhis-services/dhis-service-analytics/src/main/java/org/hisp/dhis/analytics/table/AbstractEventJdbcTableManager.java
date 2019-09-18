@@ -119,6 +119,10 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || value || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
+        else if ( valueType.isOrganisationUnit() )
+        {
+            return "ou.name from organisationunit ou where ou.uid = (select value " ;
+        }
         else
         {
             return "value";
