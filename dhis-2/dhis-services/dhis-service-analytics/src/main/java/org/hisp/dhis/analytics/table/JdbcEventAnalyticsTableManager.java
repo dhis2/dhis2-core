@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
@@ -239,7 +240,7 @@ public class JdbcEventAnalyticsTableManager
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet();
 
             String sql = "(select " + select + " from trackedentitydatavalue where programstageinstanceid=psi.programstageinstanceid " +
-                "and dataelementid=" + dataElement.getId() + dataClause + ") as " + quote( dataElement.getUid() );
+                "and dataelementid=" + dataElement.getId() + dataClause + ")" + addClosingParentheses(select)  + " as " + quote( dataElement.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql, skipIndex ) );
         }
@@ -343,5 +344,24 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );
+    }
+
+    private String addClosingParentheses( String selectSql )
+    {
+        int open = 0;
+
+        for ( int i = 0; i < selectSql.length(); i++ )
+        {
+            if ( selectSql.charAt( i ) == '(' )
+            {
+                open++;
+            }
+            else if ( selectSql.charAt( i ) == ')' )
+            {
+                open--;
+            }
+
+        }
+        return StringUtils.repeat(")", open);
     }
 }
