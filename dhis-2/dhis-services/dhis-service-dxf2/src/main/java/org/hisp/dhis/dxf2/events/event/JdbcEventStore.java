@@ -105,7 +105,7 @@ public class JdbcEventStore
         .put( "dueDate", "psi_duedate" ).put( "storedBy", "psi_storedby" ).put( "created", "psi_created" )
         .put( "lastUpdated", "psi_lastupdated" ).put( "completedBy", "psi_completedby" )
         .put( "attributeOptionCombo", "psi_aoc" ).put( "completedDate", "psi_completeddate" )
-        .put( "deleted", "psi_deleted" ).build();
+        .put( "deleted", "psi_deleted" ).put( "assignedUser", "user_assigned_username").build();
 
     // -------------------------------------------------------------------------
     // Dependencies
