@@ -44,6 +44,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Chau Thu Tran
@@ -62,6 +63,9 @@ public class ProgramIndicator
 
     public static final String VAR_ENROLLMENT_DATE = "enrollment_date";
     public static final String VAR_INCIDENT_DATE = "incident_date";
+
+    private static final String ANALYTICS_VARIABLE_REGEX = "V\\{analytics_period_(start|end)\\}";
+    private static final Pattern ANALYTICS_VARIABLE_PATTERN = Pattern.compile( ANALYTICS_VARIABLE_REGEX );
 
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
@@ -148,7 +152,19 @@ public class ProgramIndicator
      */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsPeriodBoundaries.size() != 2 ||  this.analyticsType == AnalyticsType.EVENT ;
+        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT &&
+            !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
+            this.analyticsType == AnalyticsType.ENROLLMENT );
+    }
+
+    /**
+     * Checks if expression contains V{analytics_period_end} or V{analytics_period_start}. It will be use in conjunction with hasNonDefaultBoundaries() in order to
+     * split sql queries for each period provided.
+     * @return true if expression has analytics period variables.
+     */
+    public boolean hasAnalyticsVariables()
+    {
+        return ANALYTICS_VARIABLE_PATTERN.matcher( this.expression ).find();
     }
     
     /**

@@ -612,6 +612,11 @@ public class EventQueryParams
         return hasProgramIndicatorDimension() && getProgramIndicator().hasNonDefaultBoundaries();
     }
 
+    public boolean hasAnalyticsVariables()
+    {
+        return hasProgramIndicatorDimension() && getProgramIndicator().hasAnalyticsVariables();
+    }
+
     public Set<OrganisationUnit> getOrganisationUnitChildren()
     {
         Set<OrganisationUnit> children = new HashSet<>();
