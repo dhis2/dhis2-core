@@ -117,9 +117,12 @@ public abstract class AbstractEventJdbcTableManager
         {
             return "cast(" + columnName + " as timestamp)";
         }
-        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
-        {
+        else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() ) {
             return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+        }
+        else if ( valueType.isOrganisationUnit() )
+        {
+            return "ou.name from organisationunit ou where ou.uid = (select " + columnName ;
         }
         else
         {
