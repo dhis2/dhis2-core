@@ -148,9 +148,7 @@ public class ProgramIndicator
      */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
-            !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
-            this.analyticsType == AnalyticsType.ENROLLMENT );
+        return this.analyticsPeriodBoundaries.size() != 2 ||  this.analyticsType == AnalyticsType.EVENT ;
     }
     
     /**
