@@ -104,7 +104,7 @@ public class ImageResizingJob extends AbstractJob
 
                 try( FileOutputStream fileOutputStream = new FileOutputStream( tmpFile ) ) {
 
-                    fileResourceContentStore.copyContent(key, fileOutputStream);
+                    fileResourceContentStore.copyContent( key, fileOutputStream );
                 }
 
                 Map<ImageFileDimension, File> imageFiles = imageProcessingService.createImages( fileResource, tmpFile );
