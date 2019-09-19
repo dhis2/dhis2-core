@@ -1,43 +1,5 @@
 package org.hisp.dhis.dxf2.events;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
 /*
  * Copyright (c) 2004-2018, University of Oslo
  * All rights reserved.
@@ -67,6 +29,41 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.joda.time.DateTime;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -90,6 +87,8 @@ public class TrackedEntityInstanceServiceTest
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance dateConflictsMaleA;
 
     private OrganisationUnit organisationUnitA;
     private OrganisationUnit organisationUnitB;
@@ -116,11 +115,13 @@ public class TrackedEntityInstanceServiceTest
         maleB = createTrackedEntityInstance( 'B', organisationUnitB );
         femaleA = createTrackedEntityInstance( 'C', organisationUnitA );
         femaleB = createTrackedEntityInstance( 'D', organisationUnitB );
+        dateConflictsMaleA = createTrackedEntityInstance( 'E', organisationUnitA );
 
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
         femaleB.setTrackedEntityType( trackedEntityType );
+        dateConflictsMaleA.setTrackedEntityType( trackedEntityType );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
@@ -136,12 +137,18 @@ public class TrackedEntityInstanceServiceTest
         manager.save( maleB );
         manager.save( femaleA );
         manager.save( femaleB );
+        manager.save( dateConflictsMaleA );
         manager.save( programA );
         manager.save( programStageA1 );
         manager.save( programStageA2 );
 
         programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
-        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, null, null, organisationUnitA );
+        programInstanceService
+            .enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), null,
+                organisationUnitA );
+        programInstanceService
+            .enrollTrackedEntityInstance( dateConflictsMaleA, programA, DateTime.now().plusMonths( 1 ).toDate(),
+                DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
     }
 
     @Test
@@ -228,7 +235,6 @@ public class TrackedEntityInstanceServiceTest
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
 
-
         Event event1 = new Event();
         event1.setEnrollment( enrollment1.getEnrollment() );
         event1.setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
@@ -263,6 +269,20 @@ public class TrackedEntityInstanceServiceTest
  
     
     @Test
+    public void testSyncTeiFutureDatesForEnrollmentAndIncident()
+    {
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
+            .getTrackedEntityInstance( dateConflictsMaleA.getUid() );
+
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
+            null, new ImportOptions().setImportStrategy( ImportStrategy.SYNC ), true );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflicts().size() );
+        assertEquals( trackedEntityInstance.getEnrollments().get( 0 ).getEnrollment(),
+            importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
+
+    }
+
     public void testDeletePerson()
     {
         trackedEntityInstanceService.deleteTrackedEntityInstance( maleA.getUid() );
