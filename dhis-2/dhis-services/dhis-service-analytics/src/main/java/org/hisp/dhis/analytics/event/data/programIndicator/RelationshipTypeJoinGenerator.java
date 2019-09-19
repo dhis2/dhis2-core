@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableMap;
 public class RelationshipTypeJoinGenerator
 {
     final static String RELATIONSHIP_JOIN = " WHERE rty.relationshiptypeid = ${relationshipid}";
-
+    private final static String ERROR = "Non valid Relationship Entity type: ";
     /**
      * Generate a sub query that joins an incoming Event/Enrollment/TEI UID to one or more related entities, based
      * on the selected relationship type
@@ -84,7 +84,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
         default:
-            throw new IllegalQueryException( "Non valid Relationship Entity type: " + relationshipEntity.getName() );
+            throw new IllegalQueryException( ERROR + relationshipEntity.getName() );
         }
     }
 
@@ -99,7 +99,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return (programIndicatorType.equals( AnalyticsType.EVENT ) ? getEvent( alias ) : getEnrollment( alias ));
         }
-        throw new IllegalQueryException( "Non valid Relationship Entity type: " + relationshipEntity.getName() );
+        throw new IllegalQueryException( ERROR + relationshipEntity.getName() );
     }
 
     private static String getTei( String alias )
@@ -135,7 +135,7 @@ public class RelationshipTypeJoinGenerator
         case PROGRAM_INSTANCE:
             return sql + "pi.uid = ax.pi ";
         default:
-            throw new IllegalQueryException( "Non valid Relationship Entity type: " + toRelationshipEntity.getName() );
+            throw new IllegalQueryException( ERROR + toRelationshipEntity.getName() );
         }
     }
 }

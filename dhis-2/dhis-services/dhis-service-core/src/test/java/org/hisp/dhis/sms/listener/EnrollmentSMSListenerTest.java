@@ -131,7 +131,7 @@ public class EnrollmentSMSListenerTest
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
 
-    EnrollmentSMSListener subject;
+    private EnrollmentSMSListener subject;
 
     // Needed for all
 

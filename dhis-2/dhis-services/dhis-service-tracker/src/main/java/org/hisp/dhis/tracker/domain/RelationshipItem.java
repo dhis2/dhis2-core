@@ -47,6 +47,9 @@ public class RelationshipItem
 
     private Event event;
 
+    /**
+     * Required by Jackson
+     */
     public RelationshipItem()
     {
 

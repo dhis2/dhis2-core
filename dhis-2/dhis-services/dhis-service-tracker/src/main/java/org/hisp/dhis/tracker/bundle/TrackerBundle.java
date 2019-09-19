@@ -112,6 +112,9 @@ public class TrackerBundle
 
     private List<Relationship> relationships = new ArrayList<>();
 
+    /**
+     * Required by Jackson
+     */
     public TrackerBundle()
     {
     }
