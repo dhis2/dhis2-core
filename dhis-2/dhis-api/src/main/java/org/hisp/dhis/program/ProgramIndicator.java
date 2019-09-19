@@ -105,6 +105,9 @@ public class ProgramIndicator
     public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_REGEX );
     public static final Pattern VALUECOUNT_PATTERN = Pattern.compile( VALUECOUNT_REGEX );
 
+    private static final String ANALYTICS_VARIABLE_REGEX = "V\\{analytics_period_(start|end)\\}";
+    private static final Pattern ANALYTICS_VARIABLE_PATTERN = Pattern.compile( ANALYTICS_VARIABLE_REGEX );
+
     public static final String VALID = "valid";
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
     public static final String INVALID_IDENTIFIERS_IN_EXPRESSION = "invalid_identifiers_in_expression";
@@ -125,7 +128,7 @@ public class ProgramIndicator
         put( ProgramIndicator.VAR_PROGRAM_STAGE_ID, "ps" ).
         put( ProgramIndicator.VAR_PROGRAM_STAGE_NAME, "ps" ).build();
 
-    private static final Set<AnalyticsPeriodBoundary> defaultEventTypeBoundaries = ImmutableSet.<AnalyticsPeriodBoundary>builder().
+    private static final Set<AnalyticsPeriodBoundary> DEFAULT_EVENT_TYPE_BOUNDARIES = ImmutableSet.<AnalyticsPeriodBoundary>builder().
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
         add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
     
@@ -289,11 +292,21 @@ public class ProgramIndicator
      */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT && 
-            !this.analyticsPeriodBoundaries.containsAll( defaultEventTypeBoundaries ) ||
+        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT &&
+            !this.analyticsPeriodBoundaries.containsAll( DEFAULT_EVENT_TYPE_BOUNDARIES ) ||
             this.analyticsType == AnalyticsType.ENROLLMENT );
     }
-    
+
+    /**
+     * Checks if indicator expression or indicator filter expression contains V{analytics_period_end} or V{analytics_period_start}. It will be use in conjunction with hasNonDefaultBoundaries() in order to
+     * split sql queries for each period provided.
+     * @return true if expression has analytics period variables.
+     */
+    public boolean hasAnalyticsVariables()
+    {
+        return ANALYTICS_VARIABLE_PATTERN.matcher( this.expression ).find() || ANALYTICS_VARIABLE_PATTERN.matcher( this.filter ).find();
+    }
+
     /**
      * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries event data.
      */
