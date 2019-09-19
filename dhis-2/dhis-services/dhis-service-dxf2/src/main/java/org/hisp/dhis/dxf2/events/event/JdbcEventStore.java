@@ -169,9 +169,10 @@ public class JdbcEventStore
 
         CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
         CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
-        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, rowSet, isSuperUser );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -377,9 +378,10 @@ public class JdbcEventStore
 
         CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
         CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
-        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, sql, isSuperUser );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
+
+        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, rowSet, isSuperUser );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -1401,7 +1403,7 @@ public class JdbcEventStore
     }
 
     private void populateCaches( EventSearchParams params, CachingMap<String, DataElement> dataElementToCodeCache,
-        CachingMap<String, String> dataElementToAttributeCache, String sql, boolean isSuperUser )
+        CachingMap<String, String> dataElementToAttributeCache, SqlRowSet rowSet, boolean isSuperUser )
     {
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
         IdScheme idScheme = idSchemes.getDataElementIdScheme();
@@ -1410,8 +1412,6 @@ public class JdbcEventStore
         {
             return;
         }
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         Set<String> deUids = new HashSet<>();
 
@@ -1428,6 +1428,8 @@ public class JdbcEventStore
                 eventDataValues.forEach( edv -> deUids.add( edv.getDataElement() ) );
             }
         }
+
+        rowSet.beforeFirst();
 
         if ( !idScheme.isAttribute() )
         {
