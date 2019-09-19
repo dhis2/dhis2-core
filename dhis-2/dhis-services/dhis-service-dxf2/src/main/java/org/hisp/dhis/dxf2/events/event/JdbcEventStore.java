@@ -480,7 +480,7 @@ public class JdbcEventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
         }
-        eventRows.forEach(e -> e.setDataValues( processedDataValues.get( e.getUid())));
+        eventRows.forEach( e -> e.setDataValues( processedDataValues.get( e.getUid() ) ) );
         return eventRows;
     }
 
@@ -1079,7 +1079,7 @@ public class JdbcEventStore
         if ( organisationUnits != null && !organisationUnits.isEmpty() )
         {
             sql += hlp.whereAnd() + " psi.organisationunitid in ("
-                    + getCommaDelimitedString( getIdentifiers( organisationUnits ) ) + ") ";
+                + getCommaDelimitedString( getIdentifiers( organisationUnits ) ) + ") ";
         }
 
         if ( params.getProgramStage() != null )
@@ -1417,7 +1417,7 @@ public class JdbcEventStore
 
         while ( rowSet.next() )
         {
-            if ( (params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet )) )
+            if ( ( params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet ) ) )
             {
                 continue;
             }
