@@ -47,7 +47,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * @author David Katuscak
  */
-@Component( "programDataSyncJob" )
+@Component( "trackerProgramsDataSyncJob" )
 public class TrackerProgramsDataSynchronizationJob extends AbstractJob
 {
     private static final Log log = LogFactory.getLog( TrackerProgramsDataSynchronizationJob.class );
