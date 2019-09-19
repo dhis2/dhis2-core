@@ -112,16 +112,6 @@ public class HibernateCategoryOptionComboStore
     @Override
     public List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupUid )
     {
-        // TODO
-        //    private final static String SQL = "SELECT coc.uid " +
-//            "FROM categoryoptioncombos_categoryoptions ccc " +
-//            "JOIN categoryoptioncombo coc ON ccc.categoryoptioncomboid = coc.categoryoptioncomboid " +
-//            "WHERE categoryoptionid IN " +
-//            "    (SELECT categoryoptionid " +
-//            "     FROM categoryoptiongroupmembers cogm " +
-//            "     JOIN categoryoptiongroup cog ON cogm.categoryoptiongroupid = cog.categoryoptiongroupid " +
-//            "     WHERE cog.uid = ?)";
-
         CriteriaBuilder builder = getCriteriaBuilder();
         CriteriaQuery<CategoryOptionCombo> query = builder.createQuery( CategoryOptionCombo.class );
         Root<CategoryOptionCombo> root = query.from( CategoryOptionCombo.class );
