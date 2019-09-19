@@ -243,15 +243,15 @@ public class DefaultAppManager
         if ( app != null )
         {
             getAppStorageServiceByApp( app ).deleteApp( app );
-        }
 
-        if ( deleteAppData )
-        {
-            keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
-            log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
-        }
+            if ( deleteAppData )
+            {
+                keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
+                log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
+            }
 
-        appCache.invalidate( app.getKey() );
+            appCache.invalidate( app.getKey() );
+        }
     }
     
     @Override

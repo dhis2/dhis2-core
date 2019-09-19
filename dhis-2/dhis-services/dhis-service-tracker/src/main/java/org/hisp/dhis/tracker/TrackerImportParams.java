@@ -114,6 +114,9 @@ public class TrackerImportParams
      */
     private List<Event> events = new ArrayList<>();
 
+    /**
+     * Required by Jackson
+     */
     public TrackerImportParams()
     {
     }

@@ -101,7 +101,7 @@ public class BaseIdentifiableObject
      */
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
-    protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
+    private Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
     /**
      * Set of available object translation, normally filtered by locale.
@@ -112,7 +112,7 @@ public class BaseIdentifiableObject
      * Cache for object translations, where the cache key is a combination of
      * locale and translation property, and value is the translated value.
      */
-    protected Map<String, String> translationCache = new HashMap<>();
+    private Map<String, String> translationCache = new HashMap<>();
 
     /**
      * This object is available as external read-only.
@@ -532,7 +532,7 @@ public class BaseIdentifiableObject
     {
         User user = UserContext.getUser();
 
-        return user != null && favorites != null ? favorites.contains( user.getUid() ) : false;
+        return (user != null && favorites != null) && favorites.contains( user.getUid() );
     }
 
     @Override

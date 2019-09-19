@@ -47,6 +47,9 @@ public class TrackerImportReport
 
     private List<TrackerBundleReport> bundleReports = new ArrayList<>();
 
+    /**
+     * Required by Jackson
+     */
     public TrackerImportReport()
     {
     }

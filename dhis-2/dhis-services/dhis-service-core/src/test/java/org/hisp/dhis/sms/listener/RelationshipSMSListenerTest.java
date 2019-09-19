@@ -121,7 +121,7 @@ public class RelationshipSMSListenerTest
 
     // Needed for this test
 
-    RelationshipSMSListener subject;
+    private RelationshipSMSListener subject;
 
     private IncomingSms incomingSmsRelationship;
 

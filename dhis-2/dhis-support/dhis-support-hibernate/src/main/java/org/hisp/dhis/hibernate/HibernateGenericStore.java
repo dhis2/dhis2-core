@@ -51,12 +51,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Order;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -217,8 +212,6 @@ public class HibernateGenericStore<T>
     /**
      * Method for adding additional Predicates into where clause
      *
-     * @param builder
-     * @param predicates
      */
     protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicates )
     {
@@ -245,7 +238,6 @@ public class HibernateGenericStore<T>
     /**
      * Get List objects returned by executable TypedQuery
      *
-     * @param typedQuery
      * @return list result
      */
     protected final List<T> getList( TypedQuery<T> typedQuery )
@@ -256,7 +248,6 @@ public class HibernateGenericStore<T>
     /**
      * Get List objects return by querying given JpaQueryParameters
      *
-     * @param builder
      * @param parameters JpaQueryParameters
      * @return list objects
      */
@@ -268,8 +259,6 @@ public class HibernateGenericStore<T>
     /**
      * Get executable TypedQuery from JpaQueryParameter.
      *
-     * @param builder
-     * @param parameters
      * @return executable TypedQuery
      */
     protected final TypedQuery<T> getTypedQuery( CriteriaBuilder builder, JpaQueryParameters<T> parameters )
@@ -313,7 +302,6 @@ public class HibernateGenericStore<T>
     /**
      * Count number of objects based on given parameters
      *
-     * @param builder
      * @param parameters JpaQueryParameters
      * @return number of objects
      */
@@ -456,7 +444,7 @@ public class HibernateGenericStore<T>
         List<Predicate> predicates = attributes.stream()
             .map( attribute ->
                 builder.isNotNull(
-                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, getAttributeValues( root ),
                     builder.literal( attribute.getUid() ) ) ) )
             .collect( Collectors.toList() );
 
@@ -476,7 +464,7 @@ public class HibernateGenericStore<T>
         CriteriaBuilder.Coalesce<String> coalesce = builder.coalesce();
         attributes.stream().forEach( attribute ->
             coalesce.value(
-                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, getAttributeValues( root ) ,
                     builder.literal( attribute.getUid() )  ) ) );
 
         query.select( coalesce );
@@ -484,7 +472,7 @@ public class HibernateGenericStore<T>
         List<Predicate> predicates = attributes.stream()
             .map( attribute ->
                 builder.isNotNull(
-                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ),
+                    builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, getAttributeValues( root ),
                         builder.literal( attribute.getUid() ) ) ) )
             .collect( Collectors.toList() );
 
@@ -518,7 +506,7 @@ public class HibernateGenericStore<T>
         Root<T> root = query.from( getClazz() );
 
         query.select(root );
-        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ) ).isNotNull()  );
+        query.where( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, getAttributeValues( root ), builder.literal( attribute.getUid() ) ).isNotNull()  );
 
         return getSession().createQuery( query ).list();
     }
@@ -532,7 +520,7 @@ public class HibernateGenericStore<T>
         Root<T> root = query.from( getClazz() );
         query.select( root );
         query.where( builder.equal(
-                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+                        builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, getAttributeValues( root ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
         return getSession().createQuery( query ).list();
     }
 
@@ -544,11 +532,11 @@ public class HibernateGenericStore<T>
         CriteriaQuery<String> query = builder.createQuery( String.class );
         Root<T> root = query.from( getClazz() );
 
-        query.select( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, root.get( "attributeValues" ) ,
+        query.select( builder.function( FUNCTION_JSONB_EXTRACT_PATH, String.class, getAttributeValues( root ) ,
             builder.literal( attribute.getUid() ) ) );
 
         query.where( builder.equal(
-            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, getAttributeValues( root ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
 
         List<String> result = getSession().createQuery( query ).list();
 
@@ -564,7 +552,7 @@ public class HibernateGenericStore<T>
         Root<T> root = query.from( getClazz() );
         query.select( root );
         query.where( builder.equal(
-            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attributeValue.getAttribute().getUid() ),  builder.literal( "value" ) ) , attributeValue.getValue() ) );
+            builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, getAttributeValues( root ), builder.literal( attributeValue.getAttribute().getUid() ),  builder.literal( "value" ) ) , attributeValue.getValue() ) );
         return getSession().createQuery( query ).list();
     }
 
@@ -590,5 +578,10 @@ public class HibernateGenericStore<T>
     protected JpaQueryParameters<T> newJpaParameters()
     {
         return new JpaQueryParameters<>();
+    }
+
+    private Path<Object> getAttributeValues( Root<T> root )
+    {
+        return root.get( "attributeValues" );
     }
 }

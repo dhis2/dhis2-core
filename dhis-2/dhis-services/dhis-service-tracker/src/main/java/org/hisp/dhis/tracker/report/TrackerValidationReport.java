@@ -45,6 +45,9 @@ public class TrackerValidationReport
 {
     private List<TrackerErrorReport> errorReports = new ArrayList<>();
 
+    /**
+     * Required by Jackson
+     */
     public TrackerValidationReport()
     {
     }
