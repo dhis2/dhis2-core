@@ -174,6 +174,7 @@ public class DefaultDataQueryService
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
             .withApiVersion( request.getApiVersion() )
+            .withUserOrgUnitType( request.getUserOrgUnitType() )
             .build();
     }
 
@@ -543,14 +544,27 @@ public class DefaultDataQueryService
 
         if ( userOrgUnit != null )
         {
-            DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
+            units.addAll(DimensionalObjectUtils.getItemsFromParam( userOrgUnit ).stream()
                 .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
                 .filter( Objects::nonNull )
-                .forEach( ou -> units.add( ou ) );
+                .collect( Collectors.toList() ) );
         }
-        else if ( currentUser != null && currentUser.hasOrganisationUnit() )
+        else if ( currentUser != null && currentUser.hasAnyOrganisationUnit() )
         {
-            units.addAll( currentUser.getSortedOrganisationUnits() );
+            switch ( params.getUserOrgUnitType() )
+            {
+            case DATA_CAPTURE:
+                units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
+                break;
+            case DATA_OUTPUT:
+                units.addAll(
+                    currentUser.getDataViewOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
+                break;
+            case TEI_SEARCH:
+                units.addAll(
+                    currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
+                break;
+            }
         }
 
         return units;

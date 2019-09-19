@@ -388,6 +388,11 @@ public class DataQueryParams
     protected Date endDateRestriction;
 
     /**
+     * Used to set the type of OrgUnit from the current user to the {@see DataQueryParams} object
+     */
+    protected UserOrgUnitType userOrgUnitType;
+
+    /**
      * Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels.
      */
     protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
@@ -500,6 +505,7 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.resolvedExpressionItems = this.resolvedExpressionItems;
+        params.userOrgUnitType = this.userOrgUnitType;
         return params;
     }
 
@@ -541,6 +547,7 @@ public class DataQueryParams
             .add( order )
             .add( timeField )
             .add( orgUnitField )
+            .add( userOrgUnitType )
             .addIgnoreNull( apiVersion ).build();
     }
 
@@ -1544,25 +1551,9 @@ public class DataQueryParams
      */
     private DataQueryParams pruneToDimensionType( DimensionType type )
     {
-        Iterator<DimensionalObject> dimensionIter = dimensions.iterator();
+        dimensions.removeIf( dimensionalObject -> dimensionalObject.getDimensionType() != type );
 
-        while ( dimensionIter.hasNext() )
-        {
-            if ( dimensionIter.next().getDimensionType() != type )
-            {
-                dimensionIter.remove();
-            }
-        }
-
-        Iterator<DimensionalObject> filterIter = filters.iterator();
-
-        while ( filterIter.hasNext() )
-        {
-            if ( filterIter.next().getDimensionType() != type )
-            {
-                filterIter.remove();
-            }
-        }
+        filters.removeIf( dimensionalObject -> dimensionalObject.getDimensionType() != type );
 
         return this;
     }
@@ -2434,10 +2425,14 @@ public class DataQueryParams
         return ImmutableList.copyOf( getFilterOptions( ORGUNIT_DIM_ID ) );
     }
 
+    public UserOrgUnitType getUserOrgUnitType()
+    {
+        return userOrgUnitType;
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
-
     /**
      * Builder for {@link DataQueryParams} instances.
      */
@@ -2950,11 +2945,15 @@ public class DataQueryParams
             return this;
         }
 
+        public Builder withUserOrgUnitType( UserOrgUnitType userOrgUnitType )
+        {
+            this.params.userOrgUnitType = userOrgUnitType;
+            return this;
+        }
+
         public DataQueryParams build()
         {
             return params;
         }
-
-
     }
 }

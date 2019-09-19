@@ -28,11 +28,8 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.*;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -46,12 +43,11 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Nguyen Hong Duc
@@ -204,18 +200,15 @@ public class User
         return CollectionUtils.isEmpty( organisationUnits ) ? null : organisationUnits.iterator().next();
     }
 
-    public List<OrganisationUnit> getSortedOrganisationUnits()
-    {
-        List<OrganisationUnit> sortedOrgUnits = new ArrayList<>( organisationUnits );
-
-        Collections.sort( sortedOrgUnits );
-
-        return sortedOrgUnits;
-    }
-
     public boolean hasOrganisationUnit()
     {
         return !CollectionUtils.isEmpty( organisationUnits );
+    }
+
+    public boolean hasAnyOrganisationUnit()
+    {
+        return !(CollectionUtils.isEmpty( organisationUnits ) && CollectionUtils.isEmpty( dataViewOrganisationUnits )
+            && CollectionUtils.isEmpty( teiSearchOrganisationUnits ));
     }
 
     // -------------------------------------------------------------------------

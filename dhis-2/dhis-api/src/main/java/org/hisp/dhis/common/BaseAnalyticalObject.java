@@ -38,6 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
@@ -151,6 +152,8 @@ public abstract class BaseAnalyticalObject
     protected Set<Interpretation> interpretations = new HashSet<>();
 
     protected Set<String> subscribers = new HashSet<>();
+
+    protected UserOrgUnitType userOrgUnitType;
 
     // -------------------------------------------------------------------------
     // Analytical properties
@@ -1254,7 +1257,19 @@ public abstract class BaseAnalyticalObject
     {
         User user = UserContext.getUser();
 
-        return user != null && subscribers != null ? subscribers.contains( user.getUid() ) : false;
+        return (user != null && subscribers != null) && subscribers.contains(user.getUid());
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserOrgUnitType getUserOrgUnitType()
+    {
+        return userOrgUnitType;
+    }
+
+    public void setUserOrgUnitType( UserOrgUnitType userOrgUnitType )
+    {
+        this.userOrgUnitType = userOrgUnitType;
     }
 
     @Override
