@@ -102,7 +102,7 @@ public class ImageResizingJob extends AbstractJob
 
                 tmpFile = new File( UUID.randomUUID().toString() );
 
-                try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile)) {
+                try( FileOutputStream fileOutputStream = new FileOutputStream( tmpFile ) ) {
 
                     fileResourceContentStore.copyContent(key, fileOutputStream);
                 }
