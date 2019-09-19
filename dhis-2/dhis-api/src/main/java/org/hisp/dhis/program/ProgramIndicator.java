@@ -158,15 +158,15 @@ public class ProgramIndicator
     }
 
     /**
-     * Checks if expression contains V{analytics_period_end} or V{analytics_period_start}. It will be use in conjunction with hasNonDefaultBoundaries() in order to
+     * Checks if indicator expression or indicator filter expression contains V{analytics_period_end} or V{analytics_period_start}. It will be use in conjunction with hasNonDefaultBoundaries() in order to
      * split sql queries for each period provided.
      * @return true if expression has analytics period variables.
      */
     public boolean hasAnalyticsVariables()
     {
-        return ANALYTICS_VARIABLE_PATTERN.matcher( this.expression ).find();
+        return ANALYTICS_VARIABLE_PATTERN.matcher( this.expression ).find() || ANALYTICS_VARIABLE_PATTERN.matcher( this.filter ).find();
     }
-    
+
     /**
      * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries event data.
      */
