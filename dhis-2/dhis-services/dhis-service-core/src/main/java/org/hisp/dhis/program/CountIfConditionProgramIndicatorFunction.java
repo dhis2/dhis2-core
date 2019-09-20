@@ -1,7 +1,9 @@
 package org.hisp.dhis.program;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -45,14 +47,18 @@ public class CountIfConditionProgramIndicatorFunction
     @Override
     public String evaluate( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, String... args )
     {
-        if ( args == null || args.length != 2 )
+        if ( args == null || args.length % 3 != 0 || args.length == 0 )
         {
-            throw new IllegalArgumentException( "Illegal arguments, expected 2 arguments: source data element/tracked entity attribute, value to count."
+            throw new IllegalArgumentException( "Illegal arguments, expected multiple of 3 arguments: data element, operand and value."
                 + " Arguments passed: " + Arrays.toString( args ) );
         }
         
-        String condition = args[1].replace( "'", "" );
+        List<String> conditions = new ArrayList<String>();
+        for( int i = 0; i < args.length; i = i + 3 )
+        {
+            conditions.add( args[i] + args[i+1].replace( "'", "" ) + args[i+2] );
+        }
         
-        return this.countWhereCondition( programIndicator, reportingStartDate, reportingEndDate, args[0], condition );
+        return this.countWhereCondition( programIndicator, reportingStartDate, reportingEndDate, conditions );
     }
 }

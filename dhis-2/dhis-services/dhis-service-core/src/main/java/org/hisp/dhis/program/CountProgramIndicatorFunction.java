@@ -1,7 +1,9 @@
 package org.hisp.dhis.program;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /*
  * Copyright (c) 2004-2018, University of Oslo
@@ -51,8 +53,9 @@ public class CountProgramIndicatorFunction
                 + " Arguments passed: " + Arrays.toString( args ) );
         }
         
-        String condition = " is not null";
+        List<String> conditions = new ArrayList<String>();
+        conditions.add( args[0] + " is not null" );
         
-        return this.countWhereCondition( programIndicator, reportingStartDate, reportingEndDate, args[0], condition );
+        return this.countWhereCondition( programIndicator, reportingStartDate, reportingEndDate, conditions );
     }
 }

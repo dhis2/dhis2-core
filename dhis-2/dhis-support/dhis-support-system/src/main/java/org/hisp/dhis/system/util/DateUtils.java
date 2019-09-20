@@ -36,6 +36,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+import org.joda.time.IllegalInstantException;
 import org.joda.time.LocalDate;
 import org.joda.time.Months;
 import org.joda.time.format.DateTimeFormat;
@@ -279,7 +280,7 @@ public class DateUtils
      */
     public static Date getMediumDate( String string )
     {
-        return string != null ? MEDIUM_DATE_FORMAT.parseLocalDateTime( string ).toDate() : null;
+        return string != null ? safeParseDateTime( string, MEDIUM_DATE_FORMAT ) : null;
     }
 
     /**
@@ -525,7 +526,7 @@ public class DateUtils
     {
         try
         {
-            DATE_TIME_FORMAT.parseLocalDateTime( dateTimeString );
+            safeParseDateTime( dateTimeString, DATE_TIME_FORMAT );
             return true;
         }
         catch ( IllegalArgumentException ex )
@@ -655,7 +656,7 @@ public class DateUtils
             return null;
         }
 
-        return DATE_FORMATTER.parseLocalDateTime( dateString ).toDate();
+        return safeParseDateTime( dateString, DATE_FORMATTER );
     }
 
     /**
@@ -743,5 +744,32 @@ public class DateUtils
     public static java.sql.Date asSqlDate( Date date )
     {
         return new java.sql.Date( date.getTime() );
+    }
+
+    /**
+     * Parses the given string into a Date object. In case the date parsed falls in a
+     * daylight savings transition, the date is parsed via a local date and converted to the
+     * first valid time after the DST gap. When the fallback is used, any timezone offset in the given
+     * format would be ignored.
+     * 
+     * @param dateString The string to parse
+     * @param formatter The formatter to use for parsing
+     * @return Parsed Date object. Null if the supplied dateString is empty.
+     */
+    private static Date safeParseDateTime( final String dateString, final DateTimeFormatter formatter )
+    {
+        if ( StringUtils.isEmpty( dateString ) )
+        {
+            return null;
+        }
+
+        try
+        {
+            return formatter.parseDateTime( dateString ).toDate();
+        }
+        catch( IllegalInstantException e )
+        {
+            return formatter.parseLocalDateTime( dateString ).toDate();
+        }
     }
 }
