@@ -274,7 +274,6 @@ public class DefaultEventQueryPlanner
     {
         List<EventQueryParams> queries = new ArrayList<>();
 
-
         if ( ( params.isFirstOrLastPeriodAggregationType() || params.useIndividualQuery() )  &&
             !params.getPeriods().isEmpty() )
         {
