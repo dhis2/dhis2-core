@@ -659,7 +659,7 @@ public abstract class AbstractEnrollmentService
             importSummary.setConflicts( importConflicts );
             importSummary.setStatus( ImportStatus.ERROR );
             importSummary.incrementIgnored();
-            importSummary.setReference(enrollment.getEnrollment());
+            importSummary.setReference( enrollment.getEnrollment() );
         }
 
         return importSummary;
@@ -726,7 +726,7 @@ public abstract class AbstractEnrollmentService
         {
             ImportSummary importSummary = new ImportSummary( ImportStatus.ERROR ).incrementIgnored();
             importSummary.setConflicts( importConflicts );
-            importSummary.setReference(enrollment.getEnrollment());
+            importSummary.setReference( enrollment.getEnrollment() );
             return importSummary;
         }
 
