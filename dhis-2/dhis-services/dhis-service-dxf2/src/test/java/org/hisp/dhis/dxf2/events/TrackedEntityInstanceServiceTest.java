@@ -248,13 +248,16 @@ public class TrackedEntityInstanceServiceTest
     }
 
     @Test
-    public void testSyncTeiFutureDatesForEnrollmentAndIncident() {
+    public void testSyncTeiFutureDatesForEnrollmentAndIncident()
+    {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( dateConflictsMaleA.getUid() );
 
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, new ImportOptions().setImportStrategy(ImportStrategy.SYNC), true );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
+            null, new ImportOptions().setImportStrategy( ImportStrategy.SYNC ), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflicts().size() );
-        assertEquals( importSummary.getReference(), importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
+        assertEquals( trackedEntityInstance.getEnrollments().get( 0 ).getEnrollment(),
+            importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
 
     }
 
