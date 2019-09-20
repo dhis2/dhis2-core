@@ -71,6 +71,8 @@ public class DefaultCategoryManager
     @Transactional
     public void addAndPruneOptionCombos( CategoryCombo categoryCombo )
     {
+        System.out.println( "DefaultCategoryManager.addAndPruneOptionCombos" );
+
         if ( categoryCombo == null || !categoryCombo.isValid() )
         {
             log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );
@@ -118,6 +120,7 @@ public class DefaultCategoryManager
 
                 iterator.remove();
                 categoryCombo.getOptionCombos().remove( persistedOptionCombo );
+                categoryService.deleteCategoryOptionCombo( persistedOptionCombo );
 
                 log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: " + categoryCombo.getName() );
                 modified = true;

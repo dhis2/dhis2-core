@@ -69,6 +69,7 @@ public class HibernateCategoryOptionComboStore
         this.dbmsManager = dbmsManager;
     }
 
+
     @Override
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions )
     {
@@ -111,7 +112,6 @@ public class HibernateCategoryOptionComboStore
     }
 
     @Override
-    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
     public void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo )
     {
         ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( categoryOptionCombo );

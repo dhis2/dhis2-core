@@ -253,6 +253,7 @@ public class MetadataImportServiceTest
         params.setSkipSharing( false );
 
         report = importService.importMetadata( params );
+        System.out.println( "report = " + report );
         assertEquals( Status.OK, report.getStatus() );
 
         chart = manager.get( Chart.class, "gyYXi0rXAIc" );
