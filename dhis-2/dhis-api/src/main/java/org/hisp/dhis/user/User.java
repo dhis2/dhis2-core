@@ -205,12 +205,6 @@ public class User
         return !CollectionUtils.isEmpty( organisationUnits );
     }
 
-    public boolean hasAnyOrganisationUnit()
-    {
-        return !(CollectionUtils.isEmpty( organisationUnits ) && CollectionUtils.isEmpty( dataViewOrganisationUnits )
-            && CollectionUtils.isEmpty( teiSearchOrganisationUnits ));
-    }
-
     // -------------------------------------------------------------------------
     // Logic - data view organisation unit
     // -------------------------------------------------------------------------

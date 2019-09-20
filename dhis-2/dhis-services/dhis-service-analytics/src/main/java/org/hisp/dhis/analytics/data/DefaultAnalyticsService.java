@@ -104,6 +104,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -919,7 +920,8 @@ public class DefaultAnalyticsService
             User user = securityManager.getCurrentUser( params );
 
             List<OrganisationUnit> organisationUnits = asTypedList( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
-            Collection<OrganisationUnit> roots = user != null ? user.getOrganisationUnits() : null;
+
+            Collection<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
 
             if ( params.isHierarchyMeta() )
             {

@@ -549,7 +549,7 @@ public class DefaultDataQueryService
                 .filter( Objects::nonNull )
                 .collect( Collectors.toList() ) );
         }
-        else if ( currentUser != null && currentUser.hasAnyOrganisationUnit() )
+        else if ( currentUser != null && params.getUserOrgUnitType() != null )
         {
             switch ( params.getUserOrgUnitType() )
             {
