@@ -142,8 +142,8 @@ public class TrackedEntityInstanceServiceTest
         manager.save( programStageA2 );
 
         programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
-        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths(1).toDate(), null, organisationUnitA );
-        programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA, DateTime.now().plusMonths(1).toDate(), DateTime.now().plusMonths(2).toDate(), organisationUnitA );
+        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), null, organisationUnitA );
+        programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
     }
 
     @Test
@@ -253,8 +253,8 @@ public class TrackedEntityInstanceServiceTest
 
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, new ImportOptions().setImportStrategy(ImportStrategy.SYNC), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get(0).getConflicts().size() );
-        assertEquals( importSummary.getReference(), importSummary.getEnrollments().getImportSummaries().get(0).getReference() );
+        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflicts().size() );
+        assertEquals( importSummary.getReference(), importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
 
     }
 
