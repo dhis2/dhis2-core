@@ -549,7 +549,7 @@ public class DefaultDataQueryService
                 .filter( Objects::nonNull )
                 .collect( Collectors.toList() ) );
         }
-        else if ( currentUser != null && params.getUserOrgUnitType() != null )
+        else if ( currentUser != null && params != null && params.getUserOrgUnitType() != null )
         {
             switch ( params.getUserOrgUnitType() )
             {
@@ -565,6 +565,10 @@ public class DefaultDataQueryService
                     currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
                 break;
             }
+        }
+        else if ( currentUser!=null )
+        {
+            units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( Collectors.toList() ) );
         }
 
         return units;
