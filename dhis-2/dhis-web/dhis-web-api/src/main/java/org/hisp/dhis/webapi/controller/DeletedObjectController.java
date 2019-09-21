@@ -72,6 +72,8 @@ public class DeletedObjectController
     public RootNode getDeletedObjects( DeletedObjectQuery query )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        int totalDeletedObjects = deletedObjectService.countDeletedObjects( query );
+        query.setTotal( totalDeletedObjects );
 
         if ( fields.isEmpty() )
         {
@@ -84,7 +86,7 @@ public class DeletedObjectController
 
         if ( !query.isSkipPaging() )
         {
-            query.setTotal( deletedObjectService.countDeletedObjects( query ) );
+            query.setTotal( totalDeletedObjects );
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 
