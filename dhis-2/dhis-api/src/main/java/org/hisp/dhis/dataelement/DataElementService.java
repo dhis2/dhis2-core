@@ -30,7 +30,6 @@ package org.hisp.dhis.dataelement;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;

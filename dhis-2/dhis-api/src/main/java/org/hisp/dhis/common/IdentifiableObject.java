@@ -29,7 +29,6 @@ package org.hisp.dhis.common;
  */
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translation;
@@ -71,15 +70,15 @@ public interface IdentifiableObject
     void setAttributeValues( Set<AttributeValue> attributeValues );
 
     Set<Translation> getTranslations();
-    
+
     Set<String> getFavorites();
 
     boolean isFavorite();
-    
+
     boolean setAsFavorite( User user );
-    
+
     boolean removeAsFavorite( User user );
-    
+
     //-----------------------------------------------------------------------------
     // Sharing
     //-----------------------------------------------------------------------------
