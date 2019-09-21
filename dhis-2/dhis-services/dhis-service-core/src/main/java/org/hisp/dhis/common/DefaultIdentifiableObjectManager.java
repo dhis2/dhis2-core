@@ -1048,6 +1048,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional( readOnly = true )
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -1064,7 +1065,7 @@ public class DefaultIdentifiableObjectManager
             return null;
         }
 
-        return store.getByAttributeAndValue( attribute, value );
+        return (List<T>) store.getByAttributeAndValue( attribute, value );
     }
 
     @Override

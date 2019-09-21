@@ -117,14 +117,14 @@ public class DefaultCsvImportService
 
         switch ( options.getImportClass() )
         {
-            case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
-                metadata.setOrganisationUnitGroups( organisationUnitGroupMembership( reader ) );
-                break;
             case DATA_ELEMENT_GROUP_MEMBERSHIP:
-                metadata.setDataElementGroups( dataElementGroupMembership( reader ) );
+                metadata.setDataElementGroups( dataElementGroupMembersFromCsv( reader ) );
                 break;
             case INDICATOR_GROUP_MEMBERSHIP:
-                metadata.setIndicatorGroups( indicatorGroupMembership( reader ) );
+                metadata.setIndicatorGroups( indicatorGroupMembersFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
+                metadata.setOrganisationUnitGroups( orgUnitGroupMembersFromCsv( reader ) );
                 break;
             case DATA_ELEMENT:
                 metadata.setDataElements( dataElementsFromCsv( reader ) );
@@ -139,7 +139,7 @@ public class DefaultCsvImportService
                 metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
                 break;
             case ORGANISATION_UNIT:
-                metadata.setOrganisationUnits( organisationUnitsFromCsv( reader ) );
+                metadata.setOrganisationUnits( orgUnitsFromCsv( reader ) );
                 break;
             case ORGANISATION_UNIT_GROUP:
                 metadata.setOrganisationUnitGroups( organisationUnitGroupsFromCsv( reader ) );
@@ -150,8 +150,6 @@ public class DefaultCsvImportService
             case OPTION_SET:
                 setOptionSetsFromCsv( reader, metadata );
                 break;
-            case TRANSLATION:
-                break;
             default:
                 break;
         }
@@ -159,7 +157,7 @@ public class DefaultCsvImportService
         return metadata;
     }
 
-    private List<DataElementGroup> dataElementGroupMembership( CsvReader reader )
+    private List<DataElementGroup> dataElementGroupMembersFromCsv( CsvReader reader )
         throws IOException
     {
         CachingMap<String, DataElementGroup> uidMap = new CachingMap<>();
@@ -177,7 +175,6 @@ public class DefaultCsvImportService
 
                 if ( persistedGroup != null )
                 {
-
                     DataElementGroup group = uidMap.get( groupUid, () -> {
                         DataElementGroup nonPersistedGroup = new DataElementGroup();
                         nonPersistedGroup.setUid( persistedGroup.getUid() );
@@ -195,7 +192,7 @@ public class DefaultCsvImportService
         return new ArrayList<>( uidMap.values() );
     }
 
-    private List<IndicatorGroup> indicatorGroupMembership( CsvReader reader )
+    private List<IndicatorGroup> indicatorGroupMembersFromCsv( CsvReader reader )
         throws IOException
     {
         CachingMap<String, IndicatorGroup> uidMap = new CachingMap<>();
@@ -230,7 +227,7 @@ public class DefaultCsvImportService
         return new ArrayList<>( uidMap.values() );
     }
 
-    private List<OrganisationUnitGroup> organisationUnitGroupMembership( CsvReader reader )
+    private List<OrganisationUnitGroup> orgUnitGroupMembersFromCsv( CsvReader reader )
         throws IOException
     {
         CachingMap<String, OrganisationUnitGroup> uidMap = new CachingMap<>();
@@ -448,14 +445,13 @@ public class DefaultCsvImportService
     private void setGeometry( OrganisationUnit ou, FeatureType featureType, String coordinates )
         throws IOException
     {
-
-        if ( !(featureType == FeatureType.NONE)  && StringUtils.isNotBlank( coordinates ) )
+        if ( !( featureType == FeatureType.NONE)  && StringUtils.isNotBlank( coordinates ) )
         {
             ou.setGeometryAsJson( String.format( JSON_GEOMETRY_TEMLPLATE, featureType.value(), coordinates ) );
         }
     }
 
-    private List<OrganisationUnit> organisationUnitsFromCsv( CsvReader reader )
+    private List<OrganisationUnit> orgUnitsFromCsv( CsvReader reader )
         throws IOException
     {
         List<OrganisationUnit> list = new ArrayList<>();

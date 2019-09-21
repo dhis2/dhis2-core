@@ -28,39 +28,27 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-/**
- * @author Zubair Asghar
- */
-public class BulkSmsRequestEntity
+public class BulkSmsRecipient
 {
-    private Set<BulkSmsRecipient> recipients = new HashSet<>();
+    private String type = "INTERNATIONAL";
+    private String address;
 
-    private String body;
-
-    public BulkSmsRequestEntity()
+    public BulkSmsRecipient()
     {
     }
 
-    public BulkSmsRequestEntity( String body, Set<String> recipients )
+    public BulkSmsRecipient( String address )
     {
-        this.recipients = recipients.stream().map( BulkSmsRecipient::new ).collect( Collectors.toSet() );
-        this.body = body;
+        this.address = address;
     }
 
-    @JsonProperty( value = "to" )
-    public Set<BulkSmsRecipient> getRecipients()
+    public String getType()
     {
-        return recipients;
+        return type;
     }
 
-    public String getBody()
+    public String getAddress()
     {
-        return body;
+        return address;
     }
 }
