@@ -101,8 +101,9 @@ public class CsvImportServiceTest
     public void testCategoryOptionImport()
         throws IOException
     {
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects,
-            new CsvImportOptions().setImportClass( CsvImportClass.CATEGORY_OPTION ).setFirstRowIsHeader( true ) );
+        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, new CsvImportOptions()
+                .setImportClass( CsvImportClass.CATEGORY_OPTION )
+                .setFirstRowIsHeader( true ) );
 
         assertEquals( 3, metadata.getCategoryOptions().size() );
 
@@ -120,8 +121,9 @@ public class CsvImportServiceTest
     {
         inputBasicObjects = new ClassPathResource( "csv/basic_objects_no_header.csv" ).getInputStream();
 
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects,
-            new CsvImportOptions().setImportClass( CsvImportClass.CATEGORY_OPTION ).setFirstRowIsHeader( false )  );
+        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, new CsvImportOptions()
+            .setImportClass( CsvImportClass.CATEGORY_OPTION )
+            .setFirstRowIsHeader( false )  );
 
         assertEquals( 3, metadata.getCategoryOptions().size() );
 
@@ -137,9 +139,9 @@ public class CsvImportServiceTest
     public void testOrganisationUnitGroupMembershipImport()
         throws IOException
     {
-        Metadata metadata = csvImportService
-            .fromCsv( orgUnitGroupMembership,
-                new CsvImportOptions().setImportClass( CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP ).setFirstRowIsHeader( true )  );
+        Metadata metadata = csvImportService.fromCsv( orgUnitGroupMembership, new CsvImportOptions()
+            .setImportClass( CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP )
+            .setFirstRowIsHeader( true ) );
 
         assertEquals( 2, metadata.getOrganisationUnitGroups().size() );
     }
