@@ -117,15 +117,6 @@ public class DefaultCsvImportService
 
         switch ( options.getImportClass() )
         {
-            case DATA_ELEMENT_GROUP_MEMBERSHIP:
-                metadata.setDataElementGroups( dataElementGroupMembersFromCsv( reader ) );
-                break;
-            case INDICATOR_GROUP_MEMBERSHIP:
-                metadata.setIndicatorGroups( indicatorGroupMembersFromCsv( reader ) );
-                break;
-            case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
-                metadata.setOrganisationUnitGroups( orgUnitGroupMembersFromCsv( reader ) );
-                break;
             case DATA_ELEMENT:
                 metadata.setDataElements( dataElementsFromCsv( reader ) );
                 break;
@@ -135,6 +126,12 @@ public class DefaultCsvImportService
             case CATEGORY_OPTION:
                 metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
                 break;
+            case DATA_ELEMENT_GROUP_MEMBERSHIP:
+                metadata.setDataElementGroups( dataElementGroupMembersFromCsv( reader ) );
+                break;
+            case INDICATOR_GROUP_MEMBERSHIP:
+                metadata.setIndicatorGroups( indicatorGroupMembersFromCsv( reader ) );
+                break;
             case CATEGORY_OPTION_GROUP:
                 metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
                 break;
@@ -142,7 +139,10 @@ public class DefaultCsvImportService
                 metadata.setOrganisationUnits( orgUnitsFromCsv( reader ) );
                 break;
             case ORGANISATION_UNIT_GROUP:
-                metadata.setOrganisationUnitGroups( organisationUnitGroupsFromCsv( reader ) );
+                metadata.setOrganisationUnitGroups( orgUnitGroupsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
+                metadata.setOrganisationUnitGroups( orgUnitGroupMembersFromCsv( reader ) );
                 break;
             case VALIDATION_RULE:
                 metadata.setValidationRules( validationRulesFromCsv( reader ) );
@@ -157,115 +157,8 @@ public class DefaultCsvImportService
         return metadata;
     }
 
-    private List<DataElementGroup> dataElementGroupMembersFromCsv( CsvReader reader )
-        throws IOException
-    {
-        CachingMap<String, DataElementGroup> uidMap = new CachingMap<>();
-
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-
-            if ( values != null && values.length > 0 )
-            {
-                String groupUid = values[0];
-                String memberUid = values[1];
-
-                DataElementGroup persistedGroup = dataElementGroupService.getDataElementGroupByUid( groupUid );
-
-                if ( persistedGroup != null )
-                {
-                    DataElementGroup group = uidMap.get( groupUid, () -> {
-                        DataElementGroup nonPersistedGroup = new DataElementGroup();
-                        nonPersistedGroup.setUid( persistedGroup.getUid() );
-                        nonPersistedGroup.setName( persistedGroup.getName() );
-                        return nonPersistedGroup;
-                    } );
-
-                    DataElement member = new DataElement();
-                    member.setUid( memberUid );
-                    group.addDataElement( member );
-                }
-            }
-        }
-
-        return new ArrayList<>( uidMap.values() );
-    }
-
-    private List<IndicatorGroup> indicatorGroupMembersFromCsv( CsvReader reader )
-        throws IOException
-    {
-        CachingMap<String, IndicatorGroup> uidMap = new CachingMap<>();
-
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-
-            if ( values != null && values.length > 0 )
-            {
-                String groupUid = values[0];
-                String memberUid = values[1];
-
-                IndicatorGroup persistedGroup = indicatorGroupService.getIndicatorGroupByUid( groupUid );
-
-                if ( persistedGroup != null )
-                {
-
-                    IndicatorGroup group = uidMap.get( groupUid, () -> {
-                        IndicatorGroup nonPersistedGroup = new IndicatorGroup();
-                        nonPersistedGroup.setUid( persistedGroup.getUid() );
-                        nonPersistedGroup.setName( persistedGroup.getName() );
-                        return nonPersistedGroup;
-                    } );
-
-                    Indicator member = new Indicator();
-                    member.setUid( memberUid );
-                    group.addIndicator( member );
-                }
-            }
-        }
-        return new ArrayList<>( uidMap.values() );
-    }
-
-    private List<OrganisationUnitGroup> orgUnitGroupMembersFromCsv( CsvReader reader )
-        throws IOException
-    {
-        CachingMap<String, OrganisationUnitGroup> uidMap = new CachingMap<>();
-
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-
-            if ( values != null && values.length > 0 )
-            {
-                String groupUid = values[0];
-                String memberUid = values[1];
-
-                OrganisationUnitGroup persistedGroup = organisationUnitGroupService.getOrganisationUnitGroup( groupUid );
-
-                if ( persistedGroup != null )
-                {
-
-                    OrganisationUnitGroup group = uidMap.get( groupUid, () -> {
-                        OrganisationUnitGroup nonPersistedGroup = new OrganisationUnitGroup();
-
-                        nonPersistedGroup.setUid( persistedGroup.getUid() );
-                        nonPersistedGroup.setName( persistedGroup.getName() );
-
-                        return nonPersistedGroup;
-                    } );
-
-                    OrganisationUnit member = new OrganisationUnit();
-                    member.setUid( memberUid );
-                    group.addOrganisationUnit( member );
-                }
-            }
-        }
-        return new ArrayList<>( uidMap.values() );
-    }
-
     // -------------------------------------------------------------------------
-    // Supportive methods
+    // Private methods
     // -------------------------------------------------------------------------
 
     private List<CategoryOption> categoryOptionsFromCsv( CsvReader reader )
@@ -397,6 +290,76 @@ public class DefaultCsvImportService
         return list;
     }
 
+    private List<DataElementGroup> dataElementGroupMembersFromCsv( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, DataElementGroup> uidMap = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupUid = values[0];
+                String memberUid = values[1];
+
+                DataElementGroup persistedGroup = dataElementGroupService.getDataElementGroupByUid( groupUid );
+
+                if ( persistedGroup != null )
+                {
+                    DataElementGroup group = uidMap.get( groupUid, () -> {
+                        DataElementGroup nonPersistedGroup = new DataElementGroup();
+                        nonPersistedGroup.setUid( persistedGroup.getUid() );
+                        nonPersistedGroup.setName( persistedGroup.getName() );
+                        return nonPersistedGroup;
+                    } );
+
+                    DataElement member = new DataElement();
+                    member.setUid( memberUid );
+                    group.addDataElement( member );
+                }
+            }
+        }
+
+        return new ArrayList<>( uidMap.values() );
+    }
+
+    private List<IndicatorGroup> indicatorGroupMembersFromCsv( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, IndicatorGroup> uidMap = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupUid = values[0];
+                String memberUid = values[1];
+
+                IndicatorGroup persistedGroup = indicatorGroupService.getIndicatorGroupByUid( groupUid );
+
+                if ( persistedGroup != null )
+                {
+
+                    IndicatorGroup group = uidMap.get( groupUid, () -> {
+                        IndicatorGroup nonPersistedGroup = new IndicatorGroup();
+                        nonPersistedGroup.setUid( persistedGroup.getUid() );
+                        nonPersistedGroup.setName( persistedGroup.getName() );
+                        return nonPersistedGroup;
+                    } );
+
+                    Indicator member = new Indicator();
+                    member.setUid( memberUid );
+                    group.addIndicator( member );
+                }
+            }
+        }
+        return new ArrayList<>( uidMap.values() );
+    }
+
     private List<ValidationRule> validationRulesFromCsv( CsvReader reader )
         throws IOException
     {
@@ -416,8 +379,7 @@ public class DefaultCsvImportService
                 object.setDescription( getSafe( values, 3, null, 255 ) );
                 object.setInstruction( getSafe( values, 4, null, 255 ) );
                 object.setImportance( Importance.valueOf( getSafe( values, 5, Importance.MEDIUM.toString(), 255 ) ) );
-                // Left here so nobody wonders what field 6 is for
-                // object.setRuleType( RuleType.valueOf( getSafe( values, 6, RuleType.VALIDATION.toString(), 255 ) ) );
+                // Index 6 was rule type which has been removed from the data model
                 object.setOperator( Operator.safeValueOf( getSafe( values, 7, Operator.equal_to.toString(), 255 ) ) );
                 object.setPeriodType( PeriodType.getByNameIgnoreCase( getSafe( values, 8, MonthlyPeriodType.NAME, 255 ) ) );
 
@@ -493,7 +455,7 @@ public class DefaultCsvImportService
         return list;
     }
 
-    private List<OrganisationUnitGroup> organisationUnitGroupsFromCsv( CsvReader reader )
+    private List<OrganisationUnitGroup> orgUnitGroupsFromCsv( CsvReader reader )
         throws IOException
     {
         List<OrganisationUnitGroup> list = new ArrayList<>();
@@ -513,6 +475,44 @@ public class DefaultCsvImportService
         }
 
         return list;
+    }
+
+    private List<OrganisationUnitGroup> orgUnitGroupMembersFromCsv( CsvReader reader )
+        throws IOException
+    {
+        CachingMap<String, OrganisationUnitGroup> uidMap = new CachingMap<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                String groupUid = values[0];
+                String memberUid = values[1];
+
+                OrganisationUnitGroup persistedGroup = organisationUnitGroupService.getOrganisationUnitGroup( groupUid );
+
+                if ( persistedGroup != null )
+                {
+
+                    OrganisationUnitGroup group = uidMap.get( groupUid, () -> {
+                        OrganisationUnitGroup nonPersistedGroup = new OrganisationUnitGroup();
+
+                        nonPersistedGroup.setUid( persistedGroup.getUid() );
+                        nonPersistedGroup.setName( persistedGroup.getName() );
+
+                        return nonPersistedGroup;
+                    } );
+
+                    OrganisationUnit member = new OrganisationUnit();
+                    member.setUid( memberUid );
+                    group.addOrganisationUnit( member );
+                }
+            }
+        }
+
+        return new ArrayList<>( uidMap.values() );
     }
 
     /**
