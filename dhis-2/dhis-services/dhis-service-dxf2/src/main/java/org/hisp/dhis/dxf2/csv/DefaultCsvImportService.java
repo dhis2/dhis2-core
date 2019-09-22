@@ -38,12 +38,14 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
@@ -75,8 +77,6 @@ import com.csvreader.CsvReader;
 import org.springframework.stereotype.Service;
 
 /**
- * TODO Unit testing
- *
  * @author Lars Helge Overland
  */
 @Service ( "org.hisp.dhis.dxf2.csv.CsvImportService" )
@@ -95,11 +95,13 @@ public class DefaultCsvImportService
     @Autowired
     private IndicatorGroupService indicatorGroupService;
 
-    private String JSON_GEOMETRY_TEMLPLATE = "{\"type\":\"%s\", \"coordinates\":%s}";
+    private static final String JSON_GEOM_TEMPL = "{\"type\":\"%s\", \"coordinates\":%s}";
 
     // -------------------------------------------------------------------------
     // CsvImportService implementation
     // -------------------------------------------------------------------------
+
+    //TODO Add unit tests
 
     @Override
     public Metadata fromCsv( InputStream input, CsvImportOptions options )
@@ -123,14 +125,20 @@ public class DefaultCsvImportService
             case DATA_ELEMENT_GROUP:
                 metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
                 break;
-            case CATEGORY_OPTION:
-                metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
-                break;
             case DATA_ELEMENT_GROUP_MEMBERSHIP:
                 metadata.setDataElementGroups( dataElementGroupMembersFromCsv( reader ) );
                 break;
             case INDICATOR_GROUP_MEMBERSHIP:
                 metadata.setIndicatorGroups( indicatorGroupMembersFromCsv( reader ) );
+                break;
+            case CATEGORY_OPTION:
+                metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
+                break;
+            case CATEGORY:
+                metadata.setCategories( categoriesFromCsv( reader ) );
+                break;
+            case CATEGORY_COMBO:
+                metadata.setCategoryCombos( categoryCombosFromCsv( reader ) );
                 break;
             case CATEGORY_OPTION_GROUP:
                 metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
@@ -160,48 +168,6 @@ public class DefaultCsvImportService
     // -------------------------------------------------------------------------
     // Private methods
     // -------------------------------------------------------------------------
-
-    private List<CategoryOption> categoryOptionsFromCsv( CsvReader reader )
-        throws IOException
-    {
-        List<CategoryOption> list = new ArrayList<>();
-
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-
-            if ( values != null && values.length > 0 )
-            {
-                CategoryOption object = new CategoryOption();
-                setIdentifiableObject( object, values );
-                object.setShortName( getSafe( values, 3, object.getName(), 50 ) );
-                list.add( object );
-            }
-        }
-
-        return list;
-    }
-
-    private List<CategoryOptionGroup> categoryOptionGroupsFromCsv( CsvReader reader )
-        throws IOException
-    {
-        List<CategoryOptionGroup> list = new ArrayList<>();
-
-        while ( reader.readRecord() )
-        {
-            String[] values = reader.getValues();
-
-            if ( values != null && values.length > 0 )
-            {
-                CategoryOptionGroup object = new CategoryOptionGroup();
-                setIdentifiableObject( object, values );
-                object.setShortName( getSafe( values, 3, object.getName(), 50 ) );
-                list.add( object );
-            }
-        }
-
-        return list;
-    }
 
     private List<DataElement> dataElementsFromCsv( CsvReader reader )
         throws IOException
@@ -360,6 +326,93 @@ public class DefaultCsvImportService
         return new ArrayList<>( uidMap.values() );
     }
 
+    private List<CategoryOption> categoryOptionsFromCsv( CsvReader reader )
+        throws IOException
+    {
+        List<CategoryOption> list = new ArrayList<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                CategoryOption object = new CategoryOption();
+                setIdentifiableObject( object, values );
+                object.setShortName( getSafe( values, 3, object.getName(), 50 ) );
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    private List<Category> categoriesFromCsv( CsvReader reader )
+        throws IOException
+    {
+        List<Category> list = new ArrayList<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                Category object = new Category();
+                setIdentifiableObject( object, values );
+                object.setDescription( getSafe( values, 3, null, 255 ) );
+                object.setDataDimensionType( DataDimensionType.valueOf( getSafe( values, 4, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
+                object.setDataDimension( Boolean.valueOf( getSafe( values, 5, Boolean.FALSE.toString(), 40 ) ) );
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    private List<CategoryCombo> categoryCombosFromCsv( CsvReader reader )
+        throws IOException
+    {
+        List<CategoryCombo> list = new ArrayList<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                CategoryCombo object = new CategoryCombo();
+                setIdentifiableObject( object, values );
+                object.setDataDimensionType( DataDimensionType.valueOf( getSafe( values, 3, DataDimensionType.DISAGGREGATION.toString(), 40 ) ) );
+                object.setSkipTotal( Boolean.valueOf( getSafe( values, 4, Boolean.FALSE.toString(), 40 ) ) );
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
+    private List<CategoryOptionGroup> categoryOptionGroupsFromCsv( CsvReader reader )
+        throws IOException
+    {
+        List<CategoryOptionGroup> list = new ArrayList<>();
+
+        while ( reader.readRecord() )
+        {
+            String[] values = reader.getValues();
+
+            if ( values != null && values.length > 0 )
+            {
+                CategoryOptionGroup object = new CategoryOptionGroup();
+                setIdentifiableObject( object, values );
+                object.setShortName( getSafe( values, 3, object.getName(), 50 ) );
+                list.add( object );
+            }
+        }
+
+        return list;
+    }
+
     private List<ValidationRule> validationRulesFromCsv( CsvReader reader )
         throws IOException
     {
@@ -409,7 +462,7 @@ public class DefaultCsvImportService
     {
         if ( !( featureType == FeatureType.NONE)  && StringUtils.isNotBlank( coordinates ) )
         {
-            ou.setGeometryAsJson( String.format( JSON_GEOMETRY_TEMLPLATE, featureType.value(), coordinates ) );
+            ou.setGeometryAsJson( String.format( JSON_GEOM_TEMPL, featureType.value(), coordinates ) );
         }
     }
 
