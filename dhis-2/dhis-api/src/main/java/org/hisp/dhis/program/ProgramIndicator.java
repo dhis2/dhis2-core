@@ -166,7 +166,8 @@ public class ProgramIndicator
     public boolean hasAnalyticsVariables()
     {
         return ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.expression, "" ) ).find() ||
-               ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.filter, "" ) ).find();    }
+               ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.filter, "" ) ).find();
+    }
 
     /**
      * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries event data.
