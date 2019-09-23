@@ -28,12 +28,11 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.annotation.JmsListener;
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
-
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
+
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

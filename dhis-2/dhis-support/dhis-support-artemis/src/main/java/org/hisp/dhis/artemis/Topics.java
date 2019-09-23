@@ -31,5 +31,7 @@ package org.hisp.dhis.artemis;
 /**
  * @author Luciano Fiandesio
  */
-public class Topics {
+public interface Topics
+{
+    String METADATA_TOPIC_NAME = "dhis2.topic.metadata" ;
 }

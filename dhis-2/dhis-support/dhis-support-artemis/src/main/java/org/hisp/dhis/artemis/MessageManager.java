@@ -31,8 +31,6 @@ package org.hisp.dhis.artemis;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 
-import javax.jms.Destination;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -46,8 +44,8 @@ public class MessageManager
         this.jmsTemplate = jmsTemplate;
     }
 
-    public void send( Destination destination, Message message )
+    public void send( String destinationName, Message message )
     {
-        jmsTemplate.send( destination, session -> session.createObjectMessage( message ) );
+        jmsTemplate.send( destinationName, session -> session.createObjectMessage( message ) );
     }
 }

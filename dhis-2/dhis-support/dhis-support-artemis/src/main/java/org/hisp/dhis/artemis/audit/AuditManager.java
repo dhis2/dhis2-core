@@ -47,9 +47,9 @@ public class AuditManager
 {
     private final MessageManager messageManager;
     private final RenderService renderService;
-    private final Map<AuditScope, JmsTopic> auditScopeDestinationMap;
+    private final Map<AuditScope, String> auditScopeDestinationMap;
 
-    public AuditManager( MessageManager messageManager, RenderService renderService,  Map<AuditScope, JmsTopic> auditScopeDestinationMap)
+    public AuditManager( MessageManager messageManager, RenderService renderService,  Map<AuditScope, String> auditScopeDestinationMap)
     {
         checkNotNull( messageManager );
         checkNotNull( renderService );

@@ -33,7 +33,6 @@ import java.util.Map;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
-import javax.jms.Destination;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -44,22 +43,16 @@ import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.qpid.jms.JmsConnectionFactory;
-import org.apache.qpid.jms.JmsQueue;
-import org.apache.qpid.jms.JmsTopic;
-import org.hisp.dhis.artemis.config.ArtemisConfigData;
-import org.hisp.dhis.artemis.config.ArtemisEmbeddedConfig;
-import org.hisp.dhis.artemis.config.ArtemisMode;
+import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.support.destination.BeanFactoryDestinationResolver;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -70,16 +63,13 @@ public class ArtemisConfig
 {
     private final DhisConfigurationProvider dhisConfig;
     private final LocationManager locationManager;
-    private final BeanFactory springContextBeanFactory;
 
     public ArtemisConfig(
         DhisConfigurationProvider dhisConfig,
-        LocationManager locationManager,
-        BeanFactory springContextBeanFactory )
+        LocationManager locationManager )
     {
         this.dhisConfig = dhisConfig;
         this.locationManager = locationManager;
-        this.springContextBeanFactory = springContextBeanFactory;
     }
 
     @Bean
@@ -94,52 +84,23 @@ public class ArtemisConfig
     }
 
     @Bean
-    public JmsTemplate jmsTemplate( ConnectionFactory connectionFactory )
+    public JmsTemplate jmsTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
     {
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
-
+        template.setDestinationResolver(nameDestinationResolver);
         return template;
     }
 
     @Bean // configured for topics
-    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory )
+    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
     {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory( connectionFactory );
-        factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
+        factory.setDestinationResolver( nameDestinationResolver );
         factory.setConcurrency( "1" );
 
         return factory;
-    }
-
-    @Bean // configured for queues
-    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory )
-    {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory( connectionFactory );
-        factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
-        factory.setConcurrency( "3-10" );
-
-        return factory;
-    }
-
-    @Bean
-    public Destination metadataDestination()
-    {
-        return new JmsTopic( "dhis2.metadata" );
-    }
-
-    @Bean
-    public Destination dlqDestination()
-    {
-        return new JmsQueue( "DLQ" );
-    }
-
-    @Bean
-    public Destination expiryQueueDestination()
-    {
-        return new JmsQueue( "ExpiryQueue" );
     }
 
     @Bean
@@ -220,10 +181,10 @@ public class ArtemisConfig
     }
 
     @Bean
-    public Map<AuditScope, JmsTopic> scopeToDestinationMap()
+    public Map<AuditScope, String> scopeToDestinationMap()
     {
-        Map<AuditScope, JmsTopic> scopeDestinationMap = new HashMap<>();
-        scopeDestinationMap.put( AuditScope.METADATA, new JmsTopic( "dhis2.metadata" ) );
+        Map<AuditScope, String> scopeDestinationMap = new HashMap<>();
+        scopeDestinationMap.put( AuditScope.METADATA, Topics.METADATA_TOPIC_NAME );
         return scopeDestinationMap;
     }
 }

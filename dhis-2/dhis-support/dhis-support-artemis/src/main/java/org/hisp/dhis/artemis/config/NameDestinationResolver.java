@@ -28,8 +28,63 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.jms.*;
+
+import org.springframework.jms.support.destination.DestinationResolver;
+import org.springframework.stereotype.Component;
+
 /**
  * @author Luciano Fiandesio
  */
-public class NameDestinationResolver {
+@Component
+public class NameDestinationResolver
+    implements
+    DestinationResolver
+{
+    @Override
+    public Destination resolveDestinationName( Session session, String destinationName, boolean pubSubDomain )
+        throws JMSException
+    {
+
+        if ( pubSubDomain )
+        {
+            return resolveTopic( session, destinationName );
+        }
+        else
+        {
+            return resolveQueue( session, destinationName );
+        }
+
+    }
+
+    private Destination resolveTopic( Session session, String topicName )
+        throws JMSException
+    {
+        if ( session instanceof TopicSession )
+        {
+            // Cast to TopicSession: will work on both JMS 1.1 and 1.0.2
+            return session.createTopic( topicName );
+        }
+        else
+        {
+            // Fall back to generic JMS Session: will only work on JMS 1.1
+            return session.createTopic( topicName );
+        }
+    }
+
+    private Queue resolveQueue( Session session, String queueName )
+        throws JMSException
+    {
+        if ( session instanceof QueueSession )
+        {
+            // Cast to QueueSession: will work on both JMS 1.1 and 1.0.2
+            return session.createQueue( queueName );
+        }
+        else
+        {
+            // Fall back to generic JMS Session: will only work on JMS 1.1
+            return session.createQueue( queueName );
+        }
+    }
+
 }

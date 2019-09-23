@@ -33,6 +33,7 @@ import javax.jms.ObjectMessage;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditConsumer;
 import org.hisp.dhis.schema.audit.MetadataAudit;
@@ -58,7 +59,7 @@ public class MetadataAuditConsumer
         this.metadataAuditService = metadataAuditService;
     }
 
-    @JmsListener( destination = "metadataDestination" )
+    @JmsListener(destination = Topics.METADATA_TOPIC_NAME )
     public void consume( ObjectMessage message )
     {
         Audit auditMessage;
