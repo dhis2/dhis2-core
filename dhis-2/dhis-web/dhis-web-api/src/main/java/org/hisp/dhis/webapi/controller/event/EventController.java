@@ -724,7 +724,7 @@ public class EventController
 
     @RequestMapping( value = "/files", method = RequestMethod.GET )
     public void getEventDataValueFile( @RequestParam String eventUid, @RequestParam String dataElementUid, @RequestParam( required = false ) ImageFileDimension dimension,
-                                      HttpServletResponse response, HttpServletRequest request ) throws Exception
+        HttpServletResponse response, HttpServletRequest request ) throws Exception
     {
         Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ) );
 

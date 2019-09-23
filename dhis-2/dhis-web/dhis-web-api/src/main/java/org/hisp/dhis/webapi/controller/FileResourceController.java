@@ -97,7 +97,7 @@ public class FileResourceController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}" )
-    public FileResource getFileResource( @PathVariable String uid, @RequestParam ( required = false )ImageFileDimension dimension )
+    public FileResource getFileResource( @PathVariable String uid, @RequestParam ( required = false ) ImageFileDimension dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
