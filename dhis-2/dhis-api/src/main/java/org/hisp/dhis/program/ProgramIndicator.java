@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
 import org.springframework.util.Assert;
@@ -304,7 +305,8 @@ public class ProgramIndicator
      */
     public boolean hasAnalyticsVariables()
     {
-        return ANALYTICS_VARIABLE_PATTERN.matcher( this.expression ).find() || ANALYTICS_VARIABLE_PATTERN.matcher( this.filter ).find();
+        return ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.expression, "" ) ).find() ||
+               ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.filter, "" ) ).find();
     }
 
     /**
