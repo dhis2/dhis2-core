@@ -38,8 +38,6 @@ import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.legacy.AuditLegacyObjectFactory;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 

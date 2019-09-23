@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.artemis.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,54 +28,24 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-import java.util.Objects;
-
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Service( "org.hisp.dhis.schema.audit.MetadataAuditService" )
-public class DefaultMetadataAuditService implements MetadataAuditService
+public class AuditEnabledCondition extends PropertiesAwareConfigurationCondition
 {
-    private final MetadataAuditStore auditStore;
-    private final boolean persistAudit;
-
-    public DefaultMetadataAuditService(
-        MetadataAuditStore auditStore,
-        DhisConfigurationProvider dhisConfig )
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        checkNotNull( auditStore );
-        checkNotNull( dhisConfig );
-
-        this.auditStore = auditStore;
-        this.persistAudit = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
+        return !isTestRun(context);
     }
 
-    @Transactional
     @Override
-    public void addMetadataAudit( MetadataAudit audit )
+    public ConfigurationPhase getConfigurationPhase()
     {
-        auditStore.save( audit );
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public int count( MetadataAuditQuery query )
-    {
-        return auditStore.count( query );
-    }
-
-    @Transactional(readOnly = true)
-    @Override
-    public List<MetadataAudit> query( MetadataAuditQuery query )
-    {
-        return auditStore.query( query );
+        return ConfigurationPhase.REGISTER_BEAN;
     }
 }
