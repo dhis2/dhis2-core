@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.listener;
+package org.hisp.dhis.artemis.audit.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,24 +28,41 @@ package org.hisp.dhis.artemis.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.user.CurrentUserService;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AuditEnabledCondition extends PropertiesAwareConfigurationCondition
+public abstract class AbstractHibernateListener
 {
-    @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata )
+
+    protected final AuditManager auditManager;
+
+    protected final AuditLegacyObjectFactory legacyObjectFactory;
+
+    protected final CurrentUserService currentUserService;
+
+    public AbstractHibernateListener( AuditManager auditManager, AuditLegacyObjectFactory legacyObjectFactory,
+        CurrentUserService currentUserService )
     {
-        return !isTestRun(context);
+        this.auditManager = auditManager;
+        this.legacyObjectFactory = legacyObjectFactory;
+        this.currentUserService = currentUserService;
     }
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
+    boolean isAuditable(Object object)
     {
-        return ConfigurationPhase.REGISTER_BEAN;
+        return object.getClass().isAnnotationPresent( Auditable.class );
     }
+
+    AuditScope getScope( Object object )
+    {
+        Auditable auditable = object.getClass().getAnnotation( Auditable.class );
+        return auditable.scope();
+    }
+
 }

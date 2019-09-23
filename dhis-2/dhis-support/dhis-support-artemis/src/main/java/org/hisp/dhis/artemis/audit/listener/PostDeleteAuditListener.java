@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.listener;
+package org.hisp.dhis.artemis.audit.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -33,11 +33,9 @@ import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.artemis.audit.legacy.AuditLegacyObjectFactory;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
 

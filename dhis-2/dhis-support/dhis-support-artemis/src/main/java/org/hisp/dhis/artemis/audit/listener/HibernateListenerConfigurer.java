@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.listener;
+package org.hisp.dhis.artemis.audit.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo

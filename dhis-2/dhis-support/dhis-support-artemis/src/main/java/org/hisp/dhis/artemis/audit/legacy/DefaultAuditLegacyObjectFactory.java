@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.listener;
+package org.hisp.dhis.artemis.audit.legacy;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -30,56 +30,63 @@ package org.hisp.dhis.artemis.listener;
 
 import java.util.Date;
 
-import org.hibernate.event.spi.PostUpdateEvent;
-import org.hibernate.event.spi.PostUpdateEventListener;
-import org.hibernate.persister.entity.EntityPersister;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-public class PostUpdateAuditListener
-    extends
-    AbstractHibernateListener
-    implements
-    PostUpdateEventListener
-{
-    public PostUpdateAuditListener( AuditManager auditManager, AuditLegacyObjectFactory auditLegacyObjectFactory,
-                                    CurrentUserService currentUserService )
+public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory {
+    
+    private final RenderService renderService;
+
+    public DefaultAuditLegacyObjectFactory( RenderService renderService )
     {
-        super( auditManager, auditLegacyObjectFactory, currentUserService );
+        this.renderService = renderService;
     }
 
     @Override
-    public void onPostUpdate( PostUpdateEvent postUpdateEvent )
+    public Object create(AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user)
     {
-        Object entity = postUpdateEvent.getEntity();
-
-        if ( isAuditable( entity ) )
+        if ( auditScope.equals( AuditScope.METADATA ) )
         {
-            IdentifiableObject io = (IdentifiableObject) entity;
-
-            auditManager.send(Audit.builder().withAuditType(AuditType.UPDATE)
-                .withAuditScope( getScope( entity) )
-                .withCreatedAt( new Date() )
-                .withCreatedBy( currentUserService.getCurrentUsername() )
-                .withObject( entity )
-                .withData( this.legacyObjectFactory.create( getScope( entity ), AuditType.UPDATE, io, currentUserService.getCurrentUsername()) )
-                .build());
-
+            return new MetadataAudit()
+                .setType( mapAuditType( auditType ) )
+                .setCreatedAt( new Date() )
+                .setCreatedBy( user ) // TODO was bundle.getUsername()
+                .setKlass( identifiableObject.getClass().getName() )
+                .setUid( identifiableObject.getUid() )
+                .setCode( identifiableObject.getCode() )
+                .setValue( renderService.toJsonAsString(identifiableObject ) );
         }
+        
+        return null;
     }
 
-    @Override
-    public boolean requiresPostCommitHanding( EntityPersister entityPersister )
-    {
-        return false;
+
+    private org.hisp.dhis.common.AuditType mapAuditType(AuditType auditType) {
+
+        switch ( auditType )
+        {
+        case READ:
+            return org.hisp.dhis.common.AuditType.READ;
+        case CREATE:
+            return org.hisp.dhis.common.AuditType.CREATE;
+        case UPDATE:
+            return org.hisp.dhis.common.AuditType.UPDATE;
+        case SEARCH:
+            return org.hisp.dhis.common.AuditType.SEARCH;
+        case DELETE:
+            return org.hisp.dhis.common.AuditType.DELETE;
+        default:
+            throw new IllegalArgumentException("Invalid Audit Type");
+        }
+
     }
+
 }

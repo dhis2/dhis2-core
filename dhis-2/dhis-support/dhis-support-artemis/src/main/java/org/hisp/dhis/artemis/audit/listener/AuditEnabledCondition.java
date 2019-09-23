@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.legacy;
+package org.hisp.dhis.artemis.audit.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,15 +28,24 @@ package org.hisp.dhis.artemis.legacy;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
  * @author Luciano Fiandesio
  */
-public interface AuditLegacyObjectFactory {
+public class AuditEnabledCondition extends PropertiesAwareConfigurationCondition
+{
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata )
+    {
+        return !isTestRun(context);
+    }
 
-    Object create(AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user);
-
+    @Override
+    public ConfigurationPhase getConfigurationPhase()
+    {
+        return ConfigurationPhase.REGISTER_BEAN;
+    }
 }
