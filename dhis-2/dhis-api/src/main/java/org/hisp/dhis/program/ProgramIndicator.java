@@ -35,6 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.*;
 import org.springframework.util.Assert;
@@ -164,8 +165,8 @@ public class ProgramIndicator
      */
     public boolean hasAnalyticsVariables()
     {
-        return ANALYTICS_VARIABLE_PATTERN.matcher( this.expression ).find() || ANALYTICS_VARIABLE_PATTERN.matcher( this.filter ).find();
-    }
+        return ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.expression, "" ) ).find() ||
+               ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.filter, "" ) ).find();    }
 
     /**
      * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries event data.
