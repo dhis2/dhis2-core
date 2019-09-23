@@ -64,20 +64,6 @@ public class DefaultMetadataAuditService implements MetadataAuditService
         this.persistAudit = Objects.equals( dhisConfig.getProperty( ConfigurationKey.METADATA_AUDIT_PERSIST ), "on" );
     }
 
-//    @JmsListener( destination = "metadataDestination" )
-//    public void metadataAuditListener( TextMessage message ) throws JMSException, IOException
-//    {
-//        if ( !persistAudit || message.getText() == null )
-//        {
-//            return;
-//        }
-//
-//        Audit audit = renderService.fromJson( message.getText(), Audit.class );
-//        MetadataAudit metadataAudit = renderService.fromJson( (String) audit.getData(), MetadataAudit.class );
-//
-//        addMetadataAudit( metadataAudit );
-//    }
-
     @Override
     public void addMetadataAudit( MetadataAudit audit )
     {

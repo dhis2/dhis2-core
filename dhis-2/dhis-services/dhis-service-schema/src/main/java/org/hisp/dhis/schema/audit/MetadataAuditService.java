@@ -42,8 +42,6 @@ public interface MetadataAuditService
      */
     void addMetadataAudit( MetadataAudit audit );
 
-//    void metadataAuditListener( TextMessage message ) throws JMSException, IOException;
-
     int count( MetadataAuditQuery query );
 
     List<MetadataAudit> query( MetadataAuditQuery query );
