@@ -28,6 +28,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.*;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
@@ -37,12 +41,7 @@ import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditScope;
 import org.hisp.dhis.artemis.audit.AuditType;
 import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MergeMode;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
@@ -60,15 +59,8 @@ import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,44 +71,66 @@ public class DefaultObjectBundleService implements ObjectBundleService
 {
     private static final Log log = LogFactory.getLog( DefaultObjectBundleService.class );
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
-    @Autowired
-    private PreheatService preheatService;
+    private final PreheatService preheatService;
 
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+    private final SessionFactory sessionFactory;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
-    @Autowired
-    private DbmsManager dbmsManager;
+    private final DbmsManager dbmsManager;
 
-    @Autowired
-    private HibernateCacheManager cacheManager;
+    private final HibernateCacheManager cacheManager;
 
-    @Autowired
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    @Autowired
-    private MergeService mergeService;
+    private final MergeService mergeService;
 
-    @Autowired
-    private DeletedObjectService deletedObjectService;
+    private final DeletedObjectService deletedObjectService;
 
-    @Autowired
-    private RenderService renderService;
+    private final RenderService renderService;
 
-    @Autowired
-    private AuditManager auditManager;
+    private final AuditManager auditManager;
 
-    @Autowired( required = false )
-    private List<ObjectBundleHook> objectBundleHooks = new ArrayList<>();
+    private List<ObjectBundleHook> objectBundleHooks;
+
+    public DefaultObjectBundleService( CurrentUserService currentUserService, PreheatService preheatService,
+        SchemaService schemaService, SessionFactory sessionFactory, IdentifiableObjectManager manager,
+        DbmsManager dbmsManager, HibernateCacheManager cacheManager, Notifier notifier, MergeService mergeService,
+        DeletedObjectService deletedObjectService, RenderService renderService, AuditManager auditManager,
+        List<ObjectBundleHook> objectBundleHooks )
+    {
+        checkNotNull( currentUserService );
+        checkNotNull( preheatService );
+        checkNotNull( schemaService );
+        checkNotNull( sessionFactory );
+        checkNotNull( manager );
+        checkNotNull( dbmsManager );
+        checkNotNull( cacheManager );
+        checkNotNull( notifier );
+        checkNotNull( mergeService );
+        checkNotNull( deletedObjectService );
+        checkNotNull( renderService );
+        checkNotNull( auditManager );
+
+        this.objectBundleHooks = (objectBundleHooks != null) ? objectBundleHooks : new ArrayList<>();
+
+        this.currentUserService = currentUserService;
+        this.preheatService = preheatService;
+        this.schemaService = schemaService;
+        this.sessionFactory = sessionFactory;
+        this.manager = manager;
+        this.dbmsManager = dbmsManager;
+        this.cacheManager = cacheManager;
+        this.notifier = notifier;
+        this.mergeService = mergeService;
+        this.deletedObjectService = deletedObjectService;
+        this.renderService = renderService;
+        this.auditManager = auditManager;
+    }
 
     @Override
     public ObjectBundle create( ObjectBundleParams params )
@@ -222,16 +236,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
             notifier.notify( bundle.getJobId(), message );
         }
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> {
-            hook.preCreate( object, bundle );
-        } ) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.preCreate( object, bundle )) );
 
         session.flush();
 
-        for ( int idx = 0; idx < objects.size(); idx++ )
+        for ( IdentifiableObject object : objects )
         {
-            IdentifiableObject object = objects.get( idx );
-
             ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
@@ -242,7 +252,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             {
                 ((BaseIdentifiableObject) object).setUser( bundle.getOverrideUser() );
 
-                if ( User.class.isInstance( object ) )
+                if ( object instanceof User )
                 {
                     ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
                 }
@@ -254,37 +264,26 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( log.isDebugEnabled() )
             {
-                String msg = "(" + bundle.getUsername() + ") Created object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
+                String msg = "(" + bundle.getUsername() + ") Created object '"
+                    + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
                 log.debug( msg );
             }
 
-            auditManager.send(
-                Audit.builder()
-                    .withAuditType( AuditType.CREATE )
-                    .withAuditScope( AuditScope.METADATA )
-                    .withCreatedAt( new Date() )
-                    .withCreatedBy( bundle.getUsername() )
-                    .withObject( object )
-                    .withData( new MetadataAudit()
-                        .setType( org.hisp.dhis.common.AuditType.CREATE )
-                        .setCreatedAt( new Date() )
-                        .setCreatedBy( bundle.getUsername() )
-                        .setKlass( object.getClass().getName() )
-                        .setUid( object.getUid() )
-                        .setCode( object.getCode() )
-                        .setValue( renderService.toJsonAsString( object ) )
-                    )
-                    .build()
-            );
+            auditManager.send( Audit.builder().withAuditType( AuditType.CREATE ).withAuditScope( AuditScope.METADATA )
+                .withCreatedAt( new Date() ).withCreatedBy( bundle.getUsername() ).withObject( object )
+                .withData( new MetadataAudit().setType( org.hisp.dhis.common.AuditType.CREATE )
+                    .setCreatedAt( new Date() ).setCreatedBy( bundle.getUsername() )
+                    .setKlass( object.getClass().getName() ).setUid( object.getUid() ).setCode( object.getCode() )
+                    .setValue( renderService.toJsonAsString( object ) ) )
+                .build() );
 
-            if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
+            if ( FlushMode.OBJECT == bundle.getFlushMode() )
+                session.flush();
         }
 
         session.flush();
 
-        objects.forEach( object -> objectBundleHooks.forEach( hook -> {
-            hook.postCreate( object, bundle );
-        } ) );
+        objects.forEach( object -> objectBundleHooks.forEach( hook -> hook.postCreate( object, bundle )) );
 
         return typeReport;
     }
@@ -315,9 +314,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         session.flush();
 
-        for ( int idx = 0; idx < objects.size(); idx++ )
+        for ( IdentifiableObject object : objects )
         {
-            IdentifiableObject object = objects.get( idx );
             IdentifiableObject persistedObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(), object );
 
             ObjectReport objectReport = new ObjectReport( object, bundle );
@@ -328,8 +326,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( bundle.getMergeMode() != MergeMode.NONE )
             {
-                mergeService.merge( new MergeParams<>( object, persistedObject )
-                    .setMergeMode( bundle.getMergeMode() )
+                mergeService.merge( new MergeParams<>( object, persistedObject ).setMergeMode( bundle.getMergeMode() )
                     .setSkipSharing( bundle.isSkipSharing() ) );
             }
 
@@ -337,7 +334,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             {
                 ((BaseIdentifiableObject) persistedObject).setUser( bundle.getOverrideUser() );
 
-                if ( User.class.isInstance( object ) )
+                if (object instanceof User)
                 {
                     ((User) object).getUserCredentials().setUser( bundle.getOverrideUser() );
                 }
@@ -349,30 +346,21 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( log.isDebugEnabled() )
             {
-                String msg = "(" + bundle.getUsername() + ") Updated object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
+                String msg = "(" + bundle.getUsername() + ") Updated object '"
+                    + bundle.getPreheatIdentifier().getIdentifiersWithName( persistedObject ) + "'";
                 log.debug( msg );
             }
 
-            auditManager.send(
-                Audit.builder()
-                    .withAuditType( AuditType.UPDATE )
-                    .withAuditScope( AuditScope.METADATA )
-                    .withCreatedAt( new Date() )
-                    .withCreatedBy( bundle.getUsername() )
-                    .withObject( persistedObject )
-                    .withData( new MetadataAudit()
-                        .setType( org.hisp.dhis.common.AuditType.UPDATE )
-                        .setCreatedAt( new Date() )
-                        .setCreatedBy( bundle.getUsername() )
-                        .setKlass( persistedObject.getClass().getName() )
-                        .setUid( persistedObject.getUid() )
-                        .setCode( persistedObject.getCode() )
-                        .setValue( renderService.toJsonAsString( persistedObject ) )
-                    )
-                    .build()
-            );
+            auditManager.send( Audit.builder().withAuditType( AuditType.UPDATE ).withAuditScope( AuditScope.METADATA )
+                .withCreatedAt( new Date() ).withCreatedBy( bundle.getUsername() ).withObject( persistedObject )
+                .withData( new MetadataAudit().setType( org.hisp.dhis.common.AuditType.UPDATE )
+                    .setCreatedAt( new Date() ).setCreatedBy( bundle.getUsername() )
+                    .setKlass( persistedObject.getClass().getName() ).setUid( persistedObject.getUid() )
+                    .setCode( persistedObject.getCode() ).setValue( renderService.toJsonAsString( persistedObject ) ) )
+                .build() );
 
-            if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
+            if ( FlushMode.OBJECT == bundle.getFlushMode() )
+                session.flush();
         }
 
         session.flush();
@@ -406,9 +394,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
         List<IdentifiableObject> persistedObjects = bundle.getPreheat().getAll( bundle.getPreheatIdentifier(), objects );
 
-        for ( int idx = 0; idx < persistedObjects.size(); idx++ )
+        for ( IdentifiableObject object : persistedObjects )
         {
-            IdentifiableObject object = persistedObjects.get( idx );
             ObjectReport objectReport = new ObjectReport( object, bundle );
             objectReport.setDisplayName( IdentifiableObjectUtils.getDisplayName( object ) );
             typeReport.addObjectReport( objectReport );
@@ -416,7 +403,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
             objectBundleHooks.forEach( hook -> hook.preDelete( object, bundle ) );
             manager.delete( object, bundle.getUser() );
 
-            if ( MetadataObject.class.isInstance( object ) )
+            if (object instanceof MetadataObject)
             {
                 deletedObjectService.deleteDeletedObjects( new DeletedObjectQuery( object ) );
             }
@@ -425,30 +412,21 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( log.isDebugEnabled() )
             {
-                String msg = "(" + bundle.getUsername() + ") Deleted object '" + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
+                String msg = "(" + bundle.getUsername() + ") Deleted object '"
+                    + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
                 log.debug( msg );
             }
 
-            auditManager.send(
-                Audit.builder()
-                    .withAuditType( AuditType.DELETE )
-                    .withAuditScope( AuditScope.METADATA )
-                    .withCreatedAt( new Date() )
-                    .withCreatedBy( bundle.getUsername() )
-                    .withObject( object )
-                    .withData( new MetadataAudit()
-                        .setType( org.hisp.dhis.common.AuditType.DELETE )
-                        .setCreatedAt( new Date() )
-                        .setCreatedBy( bundle.getUsername() )
-                        .setKlass( object.getClass().getName() )
-                        .setUid( object.getUid() )
-                        .setCode( object.getCode() )
-                        .setValue( renderService.toJsonAsString( object ) )
-                    )
-                    .build()
-            );
+            auditManager.send( Audit.builder().withAuditType( AuditType.DELETE ).withAuditScope( AuditScope.METADATA )
+                .withCreatedAt( new Date() ).withCreatedBy( bundle.getUsername() ).withObject( object )
+                .withData( new MetadataAudit().setType( org.hisp.dhis.common.AuditType.DELETE )
+                    .setCreatedAt( new Date() ).setCreatedBy( bundle.getUsername() )
+                    .setKlass( object.getClass().getName() ).setUid( object.getUid() ).setCode( object.getCode() )
+                    .setValue( renderService.toJsonAsString( object ) ) )
+                .build() );
 
-            if ( FlushMode.OBJECT == bundle.getFlushMode() ) session.flush();
+            if ( FlushMode.OBJECT == bundle.getFlushMode() )
+                session.flush();
         }
 
         return typeReport;
