@@ -28,6 +28,7 @@ package org.hisp.dhis.deletedobject;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hamcrest.CoreMatchers.*;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,7 +42,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import static org.junit.Assert.*;
-import static org.hamcrest.collection.IsIterableContainingInOrder.contains;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,9 +99,9 @@ public class DeletedObjectServiceTest
         assertEquals( 2, firstPageDeletedObjects.size() );
         assertEquals( 2, secondPageDeletedObjects.size() );
         assertEquals( 1, thirdPageDeletedObjects.size() );
-        assertThat( firstPageDeletedObjects, contains( elementA, elementB ) );
-        assertThat( secondPageDeletedObjects, contains( elementC, elementD ) );
-        assertThat( thirdPageDeletedObjects, contains( elementE ) );
+        assertThat( firstPageDeletedObjects, hasItems( elementA, elementB ) );
+        assertThat( secondPageDeletedObjects, hasItems( elementC, elementD ) );
+        assertThat( thirdPageDeletedObjects, hasItems( elementE ) );
     }
 
     @Test

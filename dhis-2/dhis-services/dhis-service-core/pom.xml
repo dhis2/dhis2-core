@@ -170,11 +170,6 @@
       <artifactId>javax.servlet-api</artifactId>
       <scope>compile</scope>
     </dependency>
-    <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>
