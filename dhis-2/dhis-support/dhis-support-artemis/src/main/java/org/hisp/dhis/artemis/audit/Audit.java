@@ -33,6 +33,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;

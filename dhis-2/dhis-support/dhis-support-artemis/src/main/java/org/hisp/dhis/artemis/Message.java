@@ -32,10 +32,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 
+import java.io.Serializable;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Message
+public interface Message extends Serializable
 {
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

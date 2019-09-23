@@ -28,9 +28,6 @@ package org.hisp.dhis.schema.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -45,7 +42,7 @@ public interface MetadataAuditService
      */
     void addMetadataAudit( MetadataAudit audit );
 
-    void metadataAuditListener( TextMessage message ) throws JMSException, IOException;
+//    void metadataAuditListener( TextMessage message ) throws JMSException, IOException;
 
     int count( MetadataAuditQuery query );
 

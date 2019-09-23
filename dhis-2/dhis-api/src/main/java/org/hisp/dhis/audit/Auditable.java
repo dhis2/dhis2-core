@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,26 +28,21 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.jms.Destination;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Component
-public class MessageManager
-{
-    private final JmsTemplate jmsTemplate;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(value = ElementType.TYPE)
+public @interface Auditable {
 
-    public MessageManager( JmsTemplate jmsTemplate )
-    {
-        this.jmsTemplate = jmsTemplate;
-    }
+    String[] eventType() default "all";
 
-    public void send( Destination destination, Message message )
-    {
-        jmsTemplate.send( destination, session -> session.createObjectMessage( message ) );
-    }
+    AuditScope scope();
 }

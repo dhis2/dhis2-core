@@ -28,100 +28,202 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
+import javax.jms.Destination;
+
+import org.apache.activemq.artemis.api.core.RoutingType;
+import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
+import org.apache.activemq.artemis.core.config.CoreQueueConfiguration;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.JournalType;
+import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
+import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
+import org.apache.qpid.jms.JmsConnectionFactory;
+import org.apache.qpid.jms.JmsQueue;
+import org.apache.qpid.jms.JmsTopic;
+import org.hisp.dhis.artemis.config.ArtemisConfigData;
+import org.hisp.dhis.artemis.config.ArtemisEmbeddedConfig;
+import org.hisp.dhis.artemis.config.ArtemisMode;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.location.LocationManager;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jms.annotation.EnableJms;
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
+import org.springframework.jms.core.JmsTemplate;
+import org.springframework.jms.support.destination.BeanFactoryDestinationResolver;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "artemis", namespace = DxfNamespaces.DXF_2_0 )
+@EnableJms
+@Configuration
 public class ArtemisConfig
 {
-    private ArtemisMode mode = ArtemisMode.EMBEDDED;
+    private final DhisConfigurationProvider dhisConfig;
+    private final LocationManager locationManager;
+    private final BeanFactory springContextBeanFactory;
 
-    private String host = "127.0.0.1";
-
-    // AMQP port should be 5672/5673 but we don't want to cause issues with existing AMQP installations
-    // so we keep 15672 as default port (since we default to embedded server).
-    private int port = 15672;
-
-    private String username = "guest";
-
-    private String password = "guest";
-
-    private ArtemisEmbeddedConfig embedded = new ArtemisEmbeddedConfig();
-
-    public ArtemisConfig()
+    public ArtemisConfig(
+        DhisConfigurationProvider dhisConfig,
+        LocationManager locationManager,
+        BeanFactory springContextBeanFactory )
     {
+        this.dhisConfig = dhisConfig;
+        this.locationManager = locationManager;
+        this.springContextBeanFactory = springContextBeanFactory;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ArtemisMode getMode()
+    @Bean
+    public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData)
     {
-        return mode;
+        JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
+        connectionFactory.setClientIDPrefix( "dhis2" );
+        connectionFactory.setCloseLinksThatFailOnReconnect( false );
+        connectionFactory.setForceAsyncAcks( true );
+
+        return connectionFactory;
     }
 
-    public void setMode( ArtemisMode mode )
+    @Bean
+    public JmsTemplate jmsTemplate( ConnectionFactory connectionFactory )
     {
-        this.mode = mode;
+        JmsTemplate template = new JmsTemplate( connectionFactory );
+        template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
+
+        return template;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getHost()
+    @Bean // configured for topics
+    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory )
     {
-        return host;
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory( connectionFactory );
+        factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
+        factory.setConcurrency( "1" );
+
+        return factory;
     }
 
-    public void setHost( String host )
+    @Bean // configured for queues
+    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory )
     {
-        this.host = host;
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory( connectionFactory );
+        factory.setDestinationResolver( new BeanFactoryDestinationResolver( springContextBeanFactory ) );
+        factory.setConcurrency( "3-10" );
+
+        return factory;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPort()
+    @Bean
+    public Destination metadataDestination()
     {
-        return port;
+        return new JmsTopic( "dhis2.metadata" );
     }
 
-    public void setPort( int port )
+    @Bean
+    public Destination dlqDestination()
     {
-        this.port = port;
+        return new JmsQueue( "DLQ" );
     }
 
-    public String getUsername()
+    @Bean
+    public Destination expiryQueueDestination()
     {
-        return username;
+        return new JmsQueue( "ExpiryQueue" );
     }
 
-    public void setUsername( String username )
+    @Bean
+    public EmbeddedActiveMQ createEmbeddedServer( ArtemisConfigData artemisConfigData) throws Exception
     {
-        this.username = username;
+        EmbeddedActiveMQ server = new EmbeddedActiveMQ();
+
+        org.apache.activemq.artemis.core.config.Configuration config = new ConfigurationImpl();
+
+        ArtemisEmbeddedConfig embeddedConfig = artemisConfigData.getEmbedded();
+
+        config.addAcceptorConfiguration( "tcp",
+            String.format( "tcp://%s:%d?protocols=AMQP&jms.useAsyncSend=%s&nioRemotingThreads=%d",
+                artemisConfigData.getHost(),
+                artemisConfigData.getPort(),
+                artemisConfigData.isSendAsync(),
+                embeddedConfig.getNioRemotingThreads() ) );
+
+        config.setSecurityEnabled( embeddedConfig.isSecurity() );
+        config.setPersistenceEnabled( embeddedConfig.isPersistence() );
+
+        if ( locationManager.externalDirectorySet() && embeddedConfig.isPersistence() )
+        {
+            String dataDir = locationManager.getExternalDirectoryPath();
+            config.setJournalDirectory( dataDir + "/artemis/journal" );
+
+            config.setJournalType( JournalType.NIO );
+            config.setLargeMessagesDirectory( dataDir + "/artemis/largemessages" );
+            config.setBindingsDirectory( dataDir + "/artemis/bindings" );
+            config.setPagingDirectory( dataDir + "/artemis/paging" );
+        }
+
+        config.addAddressesSetting( "#",
+            new AddressSettings()
+                .setDeadLetterAddress( SimpleString.toSimpleString( "DLQ" ) )
+                .setExpiryAddress( SimpleString.toSimpleString( "ExpiryQueue" ) ) );
+
+        config.addAddressConfiguration(
+            new CoreAddressConfiguration()
+                .setName( "DLQ" )
+                .addRoutingType( RoutingType.ANYCAST )
+                .addQueueConfiguration(
+                    new CoreQueueConfiguration()
+                        .setName( "DLQ" )
+                        .setRoutingType( RoutingType.ANYCAST ) ) );
+
+        config.addAddressConfiguration(
+            new CoreAddressConfiguration()
+                .setName( "ExpiryQueue" )
+                .addRoutingType( RoutingType.ANYCAST )
+                .addQueueConfiguration(
+                    new CoreQueueConfiguration()
+                        .setName( "ExpiryQueue" )
+                        .setRoutingType( RoutingType.ANYCAST ) ) );
+
+        server.setConfiguration( config );
+
+        return server;
     }
 
-    public String getPassword()
+    @Bean
+    public ArtemisConfigData getArtemisConfig()
     {
-        return password;
+        ArtemisConfigData artemisConfigData = new ArtemisConfigData();
+        artemisConfigData.setMode( ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) );
+        artemisConfigData.setHost( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_HOST ) );
+        artemisConfigData.setPort( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PORT ) ) );
+        artemisConfigData.setUsername( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_USERNAME ) );
+        artemisConfigData.setPassword( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PASSWORD ) );
+
+        ArtemisEmbeddedConfig artemisEmbeddedConfig = new ArtemisEmbeddedConfig();
+        artemisEmbeddedConfig.setSecurity( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) ) );
+        artemisEmbeddedConfig.setPersistence( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) ) );
+
+        artemisConfigData.setEmbedded( artemisEmbeddedConfig );
+
+        return artemisConfigData;
     }
 
-    public void setPassword( String password )
+    @Bean
+    public Map<AuditScope, JmsTopic> scopeToDestinationMap()
     {
-        this.password = password;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ArtemisEmbeddedConfig getEmbedded()
-    {
-        return embedded;
-    }
-
-    public void setEmbedded( ArtemisEmbeddedConfig embedded )
-    {
-        this.embedded = embedded;
+        Map<AuditScope, JmsTopic> scopeDestinationMap = new HashMap<>();
+        scopeDestinationMap.put( AuditScope.METADATA, new JmsTopic( "dhis2.metadata" ) );
+        return scopeDestinationMap;
     }
 }

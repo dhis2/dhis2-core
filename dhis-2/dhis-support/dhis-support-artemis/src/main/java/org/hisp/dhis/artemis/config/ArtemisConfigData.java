@@ -1,4 +1,4 @@
-package org.hisp.dhis.schema.audit;
+package org.hisp.dhis.artemis.config;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -29,154 +29,112 @@ package org.hisp.dhis.schema.audit;
  */
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
-
-import java.io.Serializable;
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@JacksonXmlRootElement( localName = "metadataAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataAudit implements Serializable
+@JacksonXmlRootElement( localName = "artemis", namespace = DxfNamespaces.DXF_2_0 )
+public class ArtemisConfigData
 {
-    private int id;
+    private ArtemisMode mode = ArtemisMode.EMBEDDED;
 
-    private Date createdAt = new Date();
+    private String host = "127.0.0.1";
 
-    private String createdBy;
+    // AMQP port should be 5672/5673 but we don't want to cause issues with existing AMQP installations
+    // so we keep 15672 as default port (since we default to embedded server).
+    private int port = 15672;
 
-    private String klass;
+    private String username = "guest";
 
-    private String uid;
+    private String password = "guest";
 
-    private String code;
+    private ArtemisEmbeddedConfig embedded = new ArtemisEmbeddedConfig();
 
-    private AuditType type;
+    // if true, the producer will not wait for the broker ACK
+    private boolean sendAsync = true;
 
-    private String value;
-
-    public MetadataAudit()
+    public ArtemisConfigData()
     {
-    }
-
-    public int getId()
-    {
-        return id;
-    }
-
-    public MetadataAudit setId( int id )
-    {
-        this.id = id;
-        return this;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getCreatedAt()
+    public ArtemisMode getMode()
     {
-        return createdAt;
+        return mode;
     }
 
-    public MetadataAudit setCreatedAt( Date createdAt )
+    public void setMode( ArtemisMode mode )
     {
-        this.createdAt = createdAt;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCreatedBy()
-    {
-        return createdBy;
-    }
-
-    public MetadataAudit setCreatedBy( String createdBy )
-    {
-        this.createdBy = createdBy;
-        return this;
+        this.mode = mode;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getKlass()
+    public String getHost()
     {
-        return klass;
+        return host;
     }
 
-    public MetadataAudit setKlass( String klass )
+    public void setHost( String host )
     {
-        this.klass = klass;
-        return this;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getUid()
-    {
-        return uid;
-    }
-
-    public MetadataAudit setUid( String uid )
-    {
-        this.uid = uid;
-        return this;
+        this.host = host;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getCode()
+    public int getPort()
     {
-        return code;
+        return port;
     }
 
-    public MetadataAudit setCode( String code )
+    public void setPort( int port )
     {
-        this.code = code;
-        return this;
+        this.port = port;
+    }
+
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername( String username )
+    {
+        this.username = username;
+    }
+
+    public String getPassword()
+    {
+        return password;
+    }
+
+    public void setPassword( String password )
+    {
+        this.password = password;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public AuditType getType()
+    public ArtemisEmbeddedConfig getEmbedded()
     {
-        return type;
+        return embedded;
     }
 
-    public MetadataAudit setType( AuditType type )
+    public void setEmbedded( ArtemisEmbeddedConfig embedded )
     {
-        this.type = type;
-        return this;
+        this.embedded = embedded;
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getValue()
-    {
-        return value;
+    public boolean isSendAsync() {
+        return sendAsync;
     }
 
-    public MetadataAudit setValue( String value )
-    {
-        this.value = value;
-        return this;
-    }
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "createdAt", createdAt )
-            .add( "createdBy", createdBy )
-            .add( "uid", uid )
-            .add( "code", code )
-            .add( "type", type )
-            .add( "value", value )
-            .toString();
+    public void setSendAsync(boolean sendAsync) {
+        this.sendAsync = sendAsync;
     }
 }

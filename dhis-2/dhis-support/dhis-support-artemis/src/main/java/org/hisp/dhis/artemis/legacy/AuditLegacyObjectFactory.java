@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis;
+package org.hisp.dhis.artemis.legacy;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,26 +28,15 @@ package org.hisp.dhis.artemis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.springframework.jms.core.JmsTemplate;
-import org.springframework.stereotype.Component;
-
-import javax.jms.Destination;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.common.IdentifiableObject;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-@Component
-public class MessageManager
-{
-    private final JmsTemplate jmsTemplate;
+public interface AuditLegacyObjectFactory {
 
-    public MessageManager( JmsTemplate jmsTemplate )
-    {
-        this.jmsTemplate = jmsTemplate;
-    }
+    Object create(AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user);
 
-    public void send( Destination destination, Message message )
-    {
-        jmsTemplate.send( destination, session -> session.createObjectMessage( message ) );
-    }
 }

@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,26 +28,10 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.apache.qpid.jms.JmsTopic;
-
-import javax.jms.Destination;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum AuditScope
+public enum AuditType
 {
-    METADATA( new JmsTopic( "dhis2.metadata" ) );
-
-    private final Destination destination;
-
-    AuditScope( Destination destination )
-    {
-        this.destination = destination;
-    }
-
-    public Destination getDestination()
-    {
-        return destination;
-    }
+    CREATE, READ, UPDATE, DELETE, SEARCH, SECURITY
 }

@@ -31,7 +31,7 @@ package org.hisp.dhis.artemis;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hisp.dhis.artemis.config.ArtemisConfig;
+import org.hisp.dhis.artemis.config.ArtemisConfigData;
 import org.hisp.dhis.artemis.config.ArtemisMode;
 import org.springframework.stereotype.Service;
 
@@ -47,20 +47,20 @@ public class ArtemisManager
     private final Log log = LogFactory.getLog( ArtemisManager.class );
 
     private final EmbeddedActiveMQ embeddedActiveMQ;
-    private final ArtemisConfig artemisConfig;
+    private final ArtemisConfigData artemisConfigData;
 
     public ArtemisManager(
         EmbeddedActiveMQ embeddedActiveMQ,
-        ArtemisConfig artemisConfig )
+        ArtemisConfigData artemisConfigData)
     {
         this.embeddedActiveMQ = embeddedActiveMQ;
-        this.artemisConfig = artemisConfig;
+        this.artemisConfigData = artemisConfigData;
     }
 
     @PostConstruct
     public void startAmqp() throws Exception
     {
-        if ( ArtemisMode.EMBEDDED == artemisConfig.getMode() )
+        if ( ArtemisMode.EMBEDDED == artemisConfigData.getMode() )
         {
             log.info( "Starting embedded Artemis ActiveMQ server." );
             embeddedActiveMQ.start();

@@ -35,6 +35,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -75,6 +77,7 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  *
  * @author Kristian Nordal
  */
+@Auditable(scope = AuditScope.METADATA)
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElement
     extends BaseDimensionalItemObject

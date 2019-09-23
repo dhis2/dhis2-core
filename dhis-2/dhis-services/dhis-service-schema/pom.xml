@@ -34,11 +34,6 @@
       <artifactId>dhis-support-system</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-artemis</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
     </dependency>

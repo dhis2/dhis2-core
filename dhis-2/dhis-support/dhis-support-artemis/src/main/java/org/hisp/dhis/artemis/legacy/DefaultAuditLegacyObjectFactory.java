@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.artemis.legacy;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,41 +28,65 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Date;
 
-import org.apache.qpid.jms.JmsTopic;
-import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.render.RenderService;
-import org.nfunk.jep.function.Str;
+import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
 @Component
-public class AuditManager
-{
-    private final MessageManager messageManager;
+public class DefaultAuditLegacyObjectFactory implements AuditLegacyObjectFactory {
+    
     private final RenderService renderService;
-    private final Map<AuditScope, JmsTopic> auditScopeDestinationMap;
 
-    public AuditManager( MessageManager messageManager, RenderService renderService,  Map<AuditScope, JmsTopic> auditScopeDestinationMap)
+    public DefaultAuditLegacyObjectFactory( RenderService renderService )
     {
-        checkNotNull( messageManager );
-        checkNotNull( renderService );
-        
-        this.messageManager = messageManager;
         this.renderService = renderService;
-        this.auditScopeDestinationMap = auditScopeDestinationMap;
     }
 
-    public void send( Audit audit )
+    @Override
+    public Object create(AuditScope auditScope, AuditType auditType, IdentifiableObject identifiableObject, String user)
     {
-        //audit.setData( renderService.toJsonAsString( audit.getData() ) );
-
-        messageManager.send( auditScopeDestinationMap.get(audit.getAuditScope()), audit );
+        if ( auditScope.equals( AuditScope.METADATA ) )
+        {
+            return new MetadataAudit()
+                .setType( mapAuditType( auditType ) )
+                .setCreatedAt( new Date() )
+                .setCreatedBy( user ) // TODO was bundle.getUsername()
+                .setKlass( identifiableObject.getClass().getName() )
+                .setUid( identifiableObject.getUid() )
+                .setCode( identifiableObject.getCode() )
+                .setValue( renderService.toJsonAsString(identifiableObject ) );
+        }
+        
+        return null;
     }
+
+
+    private org.hisp.dhis.common.AuditType mapAuditType(AuditType auditType) {
+
+        switch ( auditType )
+        {
+        case READ:
+            return org.hisp.dhis.common.AuditType.READ;
+        case CREATE:
+            return org.hisp.dhis.common.AuditType.CREATE;
+        case UPDATE:
+            return org.hisp.dhis.common.AuditType.UPDATE;
+        case SEARCH:
+            return org.hisp.dhis.common.AuditType.SEARCH;
+        case DELETE:
+            return org.hisp.dhis.common.AuditType.DELETE;
+        default:
+            throw new IllegalArgumentException("Invalid Audit Type");
+        }
+
+    }
+
 }

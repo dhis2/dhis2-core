@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.artemis.listener;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,10 +28,42 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.legacy.AuditLegacyObjectFactory;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.user.CurrentUserService;
+
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio
  */
-public enum AuditType
+public abstract class AbstractHibernateListener
 {
-    CREATE, READ, UPDATE, DELETE, SEARCH, SECURITY
+
+    protected final AuditManager auditManager;
+
+    protected final AuditLegacyObjectFactory legacyObjectFactory;
+
+    protected final CurrentUserService currentUserService;
+
+    public AbstractHibernateListener( AuditManager auditManager, AuditLegacyObjectFactory legacyObjectFactory,
+        CurrentUserService currentUserService )
+    {
+        this.auditManager = auditManager;
+        this.legacyObjectFactory = legacyObjectFactory;
+        this.currentUserService = currentUserService;
+    }
+
+    boolean isAuditable(Object object)
+    {
+        return object.getClass().isAnnotationPresent( Auditable.class );
+    }
+
+    AuditScope getScope( Object object )
+    {
+        Auditable auditable = object.getClass().getAnnotation( Auditable.class );
+        return auditable.scope();
+    }
+
 }

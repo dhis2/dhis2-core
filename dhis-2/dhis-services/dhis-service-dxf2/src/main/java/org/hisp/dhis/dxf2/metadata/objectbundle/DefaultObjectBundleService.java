@@ -36,10 +36,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditScope;
-import org.hisp.dhis.artemis.audit.AuditType;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -55,7 +51,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.audit.MetadataAudit;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -93,14 +88,12 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
     private final RenderService renderService;
 
-    private final AuditManager auditManager;
-
     private List<ObjectBundleHook> objectBundleHooks;
 
     public DefaultObjectBundleService( CurrentUserService currentUserService, PreheatService preheatService,
         SchemaService schemaService, SessionFactory sessionFactory, IdentifiableObjectManager manager,
         DbmsManager dbmsManager, HibernateCacheManager cacheManager, Notifier notifier, MergeService mergeService,
-        DeletedObjectService deletedObjectService, RenderService renderService, AuditManager auditManager,
+        DeletedObjectService deletedObjectService, RenderService renderService,
         List<ObjectBundleHook> objectBundleHooks )
     {
         checkNotNull( currentUserService );
@@ -114,7 +107,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         checkNotNull( mergeService );
         checkNotNull( deletedObjectService );
         checkNotNull( renderService );
-        checkNotNull( auditManager );
 
         this.objectBundleHooks = (objectBundleHooks != null) ? objectBundleHooks : new ArrayList<>();
 
@@ -129,7 +121,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
         this.mergeService = mergeService;
         this.deletedObjectService = deletedObjectService;
         this.renderService = renderService;
-        this.auditManager = auditManager;
     }
 
     @Override
@@ -269,14 +260,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 log.debug( msg );
             }
 
-            auditManager.send( Audit.builder().withAuditType( AuditType.CREATE ).withAuditScope( AuditScope.METADATA )
-                .withCreatedAt( new Date() ).withCreatedBy( bundle.getUsername() ).withObject( object )
-                .withData( new MetadataAudit().setType( org.hisp.dhis.common.AuditType.CREATE )
-                    .setCreatedAt( new Date() ).setCreatedBy( bundle.getUsername() )
-                    .setKlass( object.getClass().getName() ).setUid( object.getUid() ).setCode( object.getCode() )
-                    .setValue( renderService.toJsonAsString( object ) ) )
-                .build() );
-
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
                 session.flush();
         }
@@ -351,14 +334,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
                 log.debug( msg );
             }
 
-            auditManager.send( Audit.builder().withAuditType( AuditType.UPDATE ).withAuditScope( AuditScope.METADATA )
-                .withCreatedAt( new Date() ).withCreatedBy( bundle.getUsername() ).withObject( persistedObject )
-                .withData( new MetadataAudit().setType( org.hisp.dhis.common.AuditType.UPDATE )
-                    .setCreatedAt( new Date() ).setCreatedBy( bundle.getUsername() )
-                    .setKlass( persistedObject.getClass().getName() ).setUid( persistedObject.getUid() )
-                    .setCode( persistedObject.getCode() ).setValue( renderService.toJsonAsString( persistedObject ) ) )
-                .build() );
-
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
                 session.flush();
         }
@@ -416,14 +391,6 @@ public class DefaultObjectBundleService implements ObjectBundleService
                     + bundle.getPreheatIdentifier().getIdentifiersWithName( object ) + "'";
                 log.debug( msg );
             }
-
-            auditManager.send( Audit.builder().withAuditType( AuditType.DELETE ).withAuditScope( AuditScope.METADATA )
-                .withCreatedAt( new Date() ).withCreatedBy( bundle.getUsername() ).withObject( object )
-                .withData( new MetadataAudit().setType( org.hisp.dhis.common.AuditType.DELETE )
-                    .setCreatedAt( new Date() ).setCreatedBy( bundle.getUsername() )
-                    .setKlass( object.getClass().getName() ).setUid( object.getUid() ).setCode( object.getCode() )
-                    .setValue( renderService.toJsonAsString( object ) ) )
-                .build() );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
                 session.flush();

@@ -1,4 +1,4 @@
-package org.hisp.dhis.artemis.audit;
+package org.hisp.dhis.audit;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,16 +28,10 @@ package org.hisp.dhis.artemis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
 /**
  * @author Luciano Fiandesio
  */
-@Retention( RetentionPolicy.RUNTIME )
-@Target( value = ElementType.TYPE )
-public @interface Auditable
-{
+public enum  AuditScope {
+
+    METADATA
 }
