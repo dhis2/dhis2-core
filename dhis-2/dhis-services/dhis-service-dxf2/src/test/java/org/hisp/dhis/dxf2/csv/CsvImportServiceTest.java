@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.csv;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dxf2.metadata.Metadata;
@@ -179,10 +180,10 @@ public class CsvImportServiceTest
             .setImportClass( CsvImportClass.CATEGORY_COMBO )
             .setFirstRowIsHeader( true ) );
 
-        assertEquals( 2, metadata.getCategories().size() );
+        assertEquals( 2, metadata.getCategoryCombos().size() );
 
-        Category genderAge = metadata.getCategories().get( 0 );
-        Category partner = metadata.getCategories().get( 1 );
+        CategoryCombo genderAge = metadata.getCategoryCombos().get( 0 );
+        CategoryCombo partner = metadata.getCategoryCombos().get( 1 );
 
         assertEquals( "Gender and Age", genderAge.getName() );
         assertEquals( DataDimensionType.DISAGGREGATION, genderAge.getDataDimensionType() );
