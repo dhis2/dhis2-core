@@ -56,7 +56,6 @@ public enum JobType
         "skipTableTypes", "/api/analytics/tableTypes"
     ) ),
     DATA_SYNC( "dataSynchJob", true, null, null ),
-    PROGRAM_DATA_SYNC( "programDataSyncJob", true, null, null ),
     TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true,
         TrackerProgramsDataSynchronizationJobParameters.class, null ),
     EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true,

@@ -1,5 +1,3 @@
-package org.hisp.dhis.sms.outbound;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -28,39 +26,14 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+package org.hisp.dhis.analytics.resolver;
 
 /**
- * @author Zubair Asghar
+ * A component that can analyze and resolve analytics expressions so that they
+ *
+ * @author Luciano Fiandesio
  */
-public class BulkSmsRequestEntity
+public interface ExpressionResolver
 {
-    private Set<BulkSmsRecipient> recipients = new HashSet<>();
-
-    private String body;
-
-    public BulkSmsRequestEntity()
-    {
-    }
-
-    public BulkSmsRequestEntity( String body, Set<String> recipients )
-    {
-        this.recipients = recipients.stream().map( BulkSmsRecipient::new ).collect( Collectors.toSet() );
-        this.body = body;
-    }
-
-    @JsonProperty( value = "to" )
-    public Set<BulkSmsRecipient> getRecipients()
-    {
-        return recipients;
-    }
-
-    public String getBody()
-    {
-        return body;
-    }
+    String resolve( String expression );
 }

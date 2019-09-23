@@ -714,6 +714,7 @@ public class DefaultExpressionService
                 "D".equals( key ) ? PROGRAM_DATA_ELEMENT :
                 "A".equals( key ) ? PROGRAM_ATTRIBUTE :
                 "I".equals( key ) ? PROGRAM_INDICATOR :
+                "N".equals( key ) ? INDICATOR :
                 "R".equals( key ) ? REPORTING_RATE : null;
 
             if ( itemType != null )

@@ -59,7 +59,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
-import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.mock.MockAnalyticsService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -121,9 +120,6 @@ public class AnalyticsValidationServiceTest
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private IndicatorService indicatorService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;

@@ -34,11 +34,12 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.Collections;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CyclicReferenceException;
 import org.hisp.dhis.common.DimensionType;
@@ -75,22 +76,104 @@ public class AnalyticsServiceIndicatorTest
     @Autowired
     private DataElementService dataElementService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     @Rule
     public ExpectedException thrown = ExpectedException.none();
 
     private final static String ERROR_STRING = "Item of type INDICATOR with identifier '%s' has a cyclic reference to another item";
 
+    private DataElement dataElementA;
+    private CategoryOption coA;
+    private CategoryOption coB;
+    private CategoryOption coC;
+    private CategoryOption coD;
+    private CategoryOption coE;
+    private CategoryOption coF;
+    private CategoryOption coG;
+
+    private Category cA;
+    private Category cB;
+    private Category cC;
+
+    private CategoryCombo ccA;
+    private CategoryCombo ccB;
+
+    private CategoryOptionCombo cocA;
+    private CategoryOptionCombo cocB;
+    private CategoryOptionGroup cogA;
+    
     @Before
     public void setUp()
     {
-        DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setUid( "dataElemenA" );
+        dataElementA = createDataElement( 'A' );
         dataElementA.setAggregationType( AggregationType.SUM );
         dataElementA.setDomainType( DataElementDomain.AGGREGATE );
         dataElementA.setName( "DeA" );
         dataElementService.addDataElement( dataElementA );
+
+        // Category options //
+        coA = new CategoryOption( "male" );
+        coB = new CategoryOption( "female" );
+        coC = new CategoryOption( "neutral" );
+
+        coD = new CategoryOption( "blue" );
+        coE = new CategoryOption( "brown" );
+        coF = new CategoryOption( "green" );
+
+        coG = new CategoryOption( "older than 5" );
+
+        saveCategoryOptions( coA, coB, coC, coD, coE, coF, coG );
+
+        // Categories -> group of Category options //
+        cA = createCategory( 'A' );
+        cA.setCategoryOptions( Lists.newArrayList( coA, coB, coC ) );
+        categoryService.addCategory( cA );
+
+        cB = createCategory( 'B' );
+        cA.setCategoryOptions( Lists.newArrayList( coD, coE, coF ) );
+        categoryService.addCategory( cB );
+
+        cC = createCategory( 'C' );
+        cA.setCategoryOptions( Lists.newArrayList( coG ) );
+        categoryService.addCategory( cC );
+
+        // Category Combination -> aggregation of categories //
+
+        ccA = createCategoryCombo( 'A', cA, cB );
+        categoryService.addCategoryCombo( ccA );
+
+        ccB = createCategoryCombo( 'B', cB, cC );
+        categoryService.addCategoryCombo( ccB );
+
+        // Category Option Combo -> combination of all possible Category Options in a
+        // Category Combination
+        cocA = createCategoryOptionCombo( 'A' );
+        cocA.setCategoryCombo( ccA );
+
+        cocB = createCategoryOptionCombo( 'B' );
+        cocB.setCategoryCombo( ccB );
+
+        ccA.getOptionCombos().add( cocA );
+        ccA.getOptionCombos().add( cocB );
+
+        categoryService.addCategoryOptionCombo( cocA );
+        categoryService.addCategoryOptionCombo( cocB );
+
+        cogA = createCategoryOptionGroup( 'A', coA, coB, coC, coD, coE, coF );
+        categoryService.saveCategoryOptionGroup( cogA );
+
+        dataElementA.setCategoryCombo( ccA );
     }
 
+    private void saveCategoryOptions( CategoryOption... cos )
+    {
+        for ( CategoryOption categoryOption : cos )
+        {
+            categoryService.addCategoryOption( categoryOption );
+        }
+    }
     /**
      * IndicatorF -> IndicatorG -> IndicatorH -> IndicatorI
      *
@@ -104,7 +187,7 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorG}" );
         createIndicator( 'G', indicatorTypeB, "N{mindicatorH}/6" );
         createIndicator( 'H', indicatorTypeB, "N{mindicatorI}+2" );
-        createIndicator( 'I', indicatorTypeB, "#{dataElemenA}/3" );
+        createIndicator( 'I', indicatorTypeB, "#{dataelemena}/3" );
 
         this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
     }
@@ -128,7 +211,7 @@ public class AnalyticsServiceIndicatorTest
         indicatorService.addIndicatorType( indicatorTypeB );
 
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorH}" );
-        createIndicator( 'G', indicatorTypeB, "#{dataElemenA}/6" );
+        createIndicator( 'G', indicatorTypeB, "#{dataelemena}/6" );
         createIndicator( 'H', indicatorTypeB, "N{mindicatorF}" );
 
         thrown.expect( CyclicReferenceException.class );
@@ -167,8 +250,8 @@ public class AnalyticsServiceIndicatorTest
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, "N{mindicatorG}" );
         createIndicator( 'G', indicatorTypeB, "N{mindicatorH}*N{mindicatorI}-N{mindicatorL}" );
         createIndicator( 'H', indicatorTypeB, "N{mindicatorM}" );
-        createIndicator( 'I', indicatorTypeB, "#{dataElemenA}/2" );
-        createIndicator( 'L', indicatorTypeB, "#{dataElemenA}/4" );
+        createIndicator( 'I', indicatorTypeB, "#{dataelemena}/2" );
+        createIndicator( 'L', indicatorTypeB, "#{dataelemena}/4" );
         createIndicator( 'M', indicatorTypeB, "N{mindicatorG}" );
 
         thrown.expect( CyclicReferenceException.class );
@@ -207,25 +290,51 @@ public class AnalyticsServiceIndicatorTest
         createIndicator( 'G', indicatorTypeB, "N{mindicatorH}*N{mindicatorI}-N{mindicatorL}" );
 
         createIndicator( 'H', indicatorTypeB, "N{mindicatorI}*N{indicatorM}" );
-        createIndicator( 'I', indicatorTypeB, "#{dataElemenA}/2" );
-        createIndicator( 'L', indicatorTypeB, "#{dataElemenA}/4" );
+        createIndicator( 'I', indicatorTypeB, "#{dataelemena}/2" );
+        createIndicator( 'L', indicatorTypeB, "#{dataelemena}/4" );
 
-        createIndicator( 'M', indicatorTypeB, "#{dataElemenA}/6" );
+        createIndicator( 'M', indicatorTypeB, "#{dataelemena}/6" );
 
         Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
         assertNotNull( grid );
     }
-
-    private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator )
+    
+    
+    @Test
+    public void case1_COCUID_as_second_elem_works()
     {
-        Indicator indicator = createIndicator( uniqueCharacter, type );
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeB );
 
-        indicator.setUid( "mindicator" + uniqueCharacter );
-        indicator.setNumerator( numerator );
-        indicator.setDenominator( "1" );
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, createIndicatorExp(dataElementA, cocA, cocB) );
 
-        indicatorService.addIndicator( indicator );
-        return indicator;
+        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
+
+    }
+
+    @Test
+    public void case1_COGUID_as_second_elem_works()
+    {
+
+        IndicatorType indicatorTypeB = createIndicatorType( 'B' );
+        indicatorService.addIndicatorType( indicatorTypeB );
+
+        Indicator indicatorF = createIndicator( 'F', indicatorTypeB, createIndicatorExp(dataElementA, cogA, cocA)  );
+
+        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
+
+    }
+
+    private String createIndicatorExp( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
+                                       CategoryOptionCombo attributeOptionCombo )
+    {
+        return String.format("#{%s.%s.%s}", dataElement.getUid(), categoryOptionCombo.getUid(), attributeOptionCombo.getUid());
+    }
+
+    private String createIndicatorExp( DataElement dataElement, CategoryOptionGroup categoryOptionGroup,
+                                       CategoryOptionCombo attributeOptionCombo )
+    {
+        return String.format("#{%s.%s.%s}", dataElement.getUid(), categoryOptionGroup.getUid(), attributeOptionCombo.getUid());
     }
 
     private DataQueryParams createParamsWithRootIndicator( Indicator indicator )
@@ -242,5 +351,17 @@ public class AnalyticsServiceIndicatorTest
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .build();
+    }
+
+    private Indicator createIndicator( char uniqueCharacter, IndicatorType type, String numerator )
+    {
+        Indicator indicator = createIndicator( uniqueCharacter, type );
+
+        indicator.setUid( "mindicator" + uniqueCharacter );
+        indicator.setNumerator( numerator );
+        indicator.setDenominator( "1" );
+
+        indicatorService.addIndicator( indicator );
+        return indicator;
     }
 }

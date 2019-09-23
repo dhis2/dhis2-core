@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.joda.time.DateTime;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,10 +63,7 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -89,6 +87,7 @@ public class TrackedEntityInstanceServiceTest
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+    private org.hisp.dhis.trackedentity.TrackedEntityInstance dateConflictsMaleA;
 
     private OrganisationUnit organisationUnitA;
     private OrganisationUnit organisationUnitB;
@@ -114,11 +113,13 @@ public class TrackedEntityInstanceServiceTest
         maleB = createTrackedEntityInstance( organisationUnitB );
         femaleA = createTrackedEntityInstance( organisationUnitA );
         femaleB = createTrackedEntityInstance( organisationUnitB );
+        dateConflictsMaleA = createTrackedEntityInstance( organisationUnitA );
 
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
         femaleB.setTrackedEntityType( trackedEntityType );
+        dateConflictsMaleA.setTrackedEntityType( trackedEntityType );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
@@ -135,12 +136,14 @@ public class TrackedEntityInstanceServiceTest
         manager.save( maleB );
         manager.save( femaleA );
         manager.save( femaleB );
+        manager.save( dateConflictsMaleA );
         manager.save( programA );
         manager.save( programStageA1 );
         manager.save( programStageA2 );
 
         programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
-        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, null, null, organisationUnitA );
+        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), null, organisationUnitA );
+        programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA, DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
     }
 
     @Test
@@ -241,6 +244,20 @@ public class TrackedEntityInstanceServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
+
+    }
+
+    @Test
+    public void testSyncTeiFutureDatesForEnrollmentAndIncident()
+    {
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( dateConflictsMaleA.getUid() );
+
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
+            null, new ImportOptions().setImportStrategy( ImportStrategy.SYNC ), true );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflicts().size() );
+        assertEquals( trackedEntityInstance.getEnrollments().get( 0 ).getEnrollment(),
+            importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
 
     }
 

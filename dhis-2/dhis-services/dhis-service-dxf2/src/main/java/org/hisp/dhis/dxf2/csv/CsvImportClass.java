@@ -32,25 +32,19 @@ package org.hisp.dhis.dxf2.csv;
  */
 public enum CsvImportClass
 {
-    ORGANISATION_UNIT_GROUP_MEMBERSHIP("organisation_unit_group_membership"),
-    DATA_ELEMENT_GROUP_MEMBERSHIP("data_element_group_membership"),
-    INDICATOR_GROUP_MEMBERSHIP("indicator_group_membership"),
-    DATA_ELEMENT("data_element"),
-    DATA_ELEMENT_GROUP("data_element_group"),
-    CATEGORY_OPTION("category_option"),
-    CATEGORY_OPTION_GROUP("category_option_group"),
-    ORGANISATION_UNIT("organisation_unit"),
-    ORGANISATION_UNIT_GROUP("organisation_unit_group"),
-    VALIDATION_RULE("validation_rule"),
-    OPTION_SET("option_set"),
-    TRANSLATION("translation");
-
-    private String name;
-
-    CsvImportClass(String name)
-    {
-        this.name = name;
-    }
+    ORGANISATION_UNIT_GROUP_MEMBERSHIP,
+    DATA_ELEMENT_GROUP_MEMBERSHIP,
+    INDICATOR_GROUP_MEMBERSHIP,
+    DATA_ELEMENT,
+    DATA_ELEMENT_GROUP,
+    CATEGORY_OPTION,
+    CATEGORY,
+    CATEGORY_COMBO,
+    CATEGORY_OPTION_GROUP,
+    ORGANISATION_UNIT,
+    ORGANISATION_UNIT_GROUP,
+    VALIDATION_RULE,
+    OPTION_SET;
 
     public static boolean classExists( String classKey )
     {
@@ -64,10 +58,5 @@ public enum CsvImportClass
         }
 
         return true;
-    }
-
-    public String getName()
-    {
-        return name;
     }
 }
