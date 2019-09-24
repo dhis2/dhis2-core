@@ -36,19 +36,14 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.render.EmptyStringToNullStdDeserializer;
 import org.hisp.dhis.render.ParseDateStdDeserializer;
 import org.hisp.dhis.render.WriteDateStdSerializer;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.util.Clock;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
@@ -58,7 +53,6 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Implementation of EventService that uses Jackson for serialization and
@@ -118,8 +112,8 @@ public class JacksonEventService extends AbstractEventService
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
-        JSON_MAPPER.registerModules( module, new JtsModule(  ) );
-        XML_MAPPER.registerModules( module, new JtsModule(  ) );
+        JSON_MAPPER.registerModules( module, new JtsModule() );
+        XML_MAPPER.registerModules( module, new JtsModule() );
     }
 
     @Override
@@ -150,7 +144,7 @@ public class JacksonEventService extends AbstractEventService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseXmlEvents( input );
 
-        return  processEventImport( events, updateImportOptions( importOptions ), jobId );
+        return processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
     @Override
@@ -165,7 +159,7 @@ public class JacksonEventService extends AbstractEventService
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<Event> events = parseJsonEvents( input );
 
-        return  processEventImport( events, updateImportOptions( importOptions ), jobId );
+        return processEventImport( events, updateImportOptions( importOptions ), jobId );
     }
 
     // -------------------------------------------------------------------------
@@ -176,11 +170,13 @@ public class JacksonEventService extends AbstractEventService
     {
         List<Event> events = new ArrayList<>();
 
-        try {
+        try
+        {
             Events multiple = fromXml( input, Events.class );
             events.addAll( multiple.getEvents() );
         }
-        catch ( JsonMappingException ex ) {
+        catch ( JsonMappingException ex )
+        {
             Event single = fromXml( input, Event.class );
             events.add( single );
         }
@@ -194,11 +190,13 @@ public class JacksonEventService extends AbstractEventService
 
         JsonNode root = JSON_MAPPER.readTree( input );
 
-        if ( root.get( "events" ) != null ) {
-                Events multiple = fromJson( input, Events.class );
-                events.addAll( multiple.getEvents() );
+        if ( root.get( "events" ) != null )
+        {
+            Events multiple = fromJson( input, Events.class );
+            events.addAll( multiple.getEvents() );
         }
-        else {
+        else
+        {
             Event single = fromJson( input, Event.class );
             events.add( single );
         }

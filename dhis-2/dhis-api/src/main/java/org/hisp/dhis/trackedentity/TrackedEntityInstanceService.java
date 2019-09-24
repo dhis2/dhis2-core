@@ -179,7 +179,7 @@ public interface TrackedEntityInstanceService
      * considered valid if no exception are thrown and the method returns
      * normally.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params       the TrackedEntityInstanceQueryParams.
      * @param isGridSearch specifies whether search is made for a Grid response
      * @throws IllegalQueryException if the given params is invalid.
      */
@@ -259,6 +259,8 @@ public interface TrackedEntityInstanceService
      * @return true/false depending on result
      */
     boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
+
+    List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids );
 
     /**
      * Register a new entityInstance

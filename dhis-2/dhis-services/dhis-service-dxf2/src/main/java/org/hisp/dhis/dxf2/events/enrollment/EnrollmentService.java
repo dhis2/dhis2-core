@@ -49,6 +49,8 @@ public interface EnrollmentService
 {
     int FLUSH_FREQUENCY = 100;
 
+    ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions );
+
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------

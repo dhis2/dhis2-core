@@ -302,7 +302,6 @@ public abstract class AbstractEventService
         notifier.clear( jobId ).notify( jobId, "Importing events" );
         Clock clock = new Clock( log ).startClock();
 
-
         List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
         for ( List<Event> _events : partitions )

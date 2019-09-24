@@ -48,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -110,7 +111,7 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() +  "pi.lastUpdated >= '" +
+            hql += hlp.whereAnd() + "pi.lastUpdated >= '" +
                 getLongGmtDateString( nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
         else if ( params.hasLastUpdated() )
@@ -208,7 +209,7 @@ public class HibernateProgramInstanceStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
-            .addPredicate( root -> builder.equal( root.get( "program" ), program) )
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) ) );
     }
 
@@ -226,6 +227,23 @@ public class HibernateProgramInstanceStore
         return result != null && result > 0;
     }
 
+    @Override
+    public List<String> getUidsIncludingDeleted( List<String> uids )
+    {
+        String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
+        List<String> resultUids = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return resultUids;
+    }
 
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )

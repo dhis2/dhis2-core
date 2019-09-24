@@ -32,6 +32,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -68,6 +69,8 @@ public interface ProgramInstanceService
      * @param forceDelete     soft delete or hard delete
      */
     void deleteProgramInstance( ProgramInstance programInstance, boolean forceDelete );
+
+    List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids );
 
     /**
      * Updates an {@link ProgramInstance}.

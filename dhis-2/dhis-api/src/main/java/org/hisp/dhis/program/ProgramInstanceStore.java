@@ -106,6 +106,14 @@ public interface ProgramInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
+     * Checks for the existence of a PI by UIDs. Takes into account also the deleted PIs.
+     *
+     * @param uids PSI UID to check for
+     * @return List of existing enrollments depending on result
+     */
+    List<String> getUidsIncludingDeleted( List<String> uids );
+
+    /**
      * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
      *
      * @param template         the template.

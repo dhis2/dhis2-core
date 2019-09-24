@@ -133,7 +133,7 @@ public class DefaultTrackedEntityInstanceService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
@@ -170,7 +170,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         decideAccess( params );
@@ -193,7 +193,7 @@ public class DefaultTrackedEntityInstanceService
     // TODO lower index on attribute value?
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
     {
         decideAccess( params );
@@ -372,7 +372,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void decideAccess( TrackedEntityInstanceQueryParams params )
     {
         User user = params.isInternalSearch() ? null : currentUserService.getCurrentUser();
@@ -405,7 +405,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void validate( TrackedEntityInstanceQueryParams params )
         throws IllegalQueryException
     {
@@ -488,7 +488,7 @@ public class DefaultTrackedEntityInstanceService
             violation = "Filters cannot be specified more than once: " + params.getDuplicateFilters();
         }
 
-        if ( params.hasLastUpdatedDuration() && ( params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate() ) )
+        if ( params.hasLastUpdatedDuration() && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate()) )
         {
             violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
         }
@@ -507,7 +507,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void validateSearchScope( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
         throws IllegalQueryException
     {
@@ -528,7 +528,7 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
 
-        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() && !params.hasOrganisationUnits()  )
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() && !params.hasOrganisationUnits() )
         {
             List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
 
@@ -611,8 +611,8 @@ public class DefaultTrackedEntityInstanceService
             }
 
             if ( maxTeiLimit > 0 &&
-                ( ( isGridSearch && trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params ) > maxTeiLimit ) ||
-                    ( !isGridSearch && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit ) ) )
+                ((isGridSearch && trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params ) > maxTeiLimit) ||
+                    (!isGridSearch && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit)) )
             {
                 throw new IllegalQueryException( "maxteicountreached" );
             }
@@ -642,7 +642,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityInstanceQueryParams getFromUrl( String query, Set<String> attribute, Set<String> filter,
         Set<String> ou, OrganisationUnitSelectionMode ouMode, String program, ProgramStatus programStatus,
         Boolean followUp, Date lastUpdatedStartDate, Date lastUpdatedEndDate, String lastUpdatedDuration,
@@ -877,7 +877,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
@@ -908,7 +908,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityInstance getTrackedEntityInstance( int id )
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.get( id );
@@ -919,7 +919,7 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityInstance getTrackedEntityInstance( String uid )
     {
         TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( uid );
@@ -930,17 +930,23 @@ public class DefaultTrackedEntityInstanceService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean trackedEntityInstanceExists( String uid )
     {
         return trackedEntityInstanceStore.exists( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean trackedEntityInstanceExistsIncludingDeleted( String uid )
     {
         return trackedEntityInstanceStore.existsIncludingDeleted( uid );
+    }
+
+    @Override
+    public List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids )
+    {
+        return trackedEntityInstanceStore.getUidsIncludingDeleted( uids );
     }
 
     private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )

@@ -68,6 +68,14 @@ public interface TrackedEntityInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
+     * Checks for the existence of a PI by UIDs. Takes into account also the deleted PIs.
+     *
+     * @param uids PSI UID to check for
+     * @return List of existing enrollments depending on result
+     */
+    List<String> getUidsIncludingDeleted( List<String> uids );
+
+    /**
      * Set lastSynchronized timestamp to provided timestamp for provided TEIs
      *
      * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where the lastSynchronized flag should be updated
