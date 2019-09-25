@@ -30,7 +30,6 @@ package org.hisp.dhis.security.oauth2;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.oauth2.provider.ClientDetailsService;
 import org.springframework.security.oauth2.provider.ClientRegistrationException;
 import org.springframework.security.oauth2.provider.client.ClientDetailsUserDetailsService;
@@ -45,10 +44,7 @@ public class DefaultClientDetailsUserDetailsService extends ClientDetailsUserDet
     public DefaultClientDetailsUserDetailsService( ClientDetailsService clientDetailsService )
     {
         super( clientDetailsService );
-        this.setPasswordEncoder( NoOpPasswordEncoder.getInstance() );
     }
-
-
 
     @Override
     public UserDetails loadUserByUsername( String username ) throws UsernameNotFoundException
