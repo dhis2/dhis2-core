@@ -121,7 +121,36 @@ public class ProgramRuleServiceTest
         assertEquals( ruleB, programRuleService.getProgramRule( idB ) );
         assertEquals( ruleC, programRuleService.getProgramRule( idC ) );
     }
-    
+
+    @Test
+    public void testAddGetDefaultValuesForEvaluationTimeAndEnvironments()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
+
+        long idA = programRuleService.addProgramRule( ruleA );
+
+        ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
+        assertEquals( ruleA, retrievedProgramRule );
+        assertEquals( ProgramRuleEvaluationTime.ALWAYS, retrievedProgramRule.getProgramRuleEvaluationTime() );
+        assertTrue( retrievedProgramRule.isWeb() );
+        assertTrue( retrievedProgramRule.isAndroid() );
+    }
+
+    @Test
+    public void testAddGetNotDefaultValuesForEvaluationTimeAndEnvironments()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null,
+            ProgramRuleEvaluationTime.ON_COMPLETE, false, false );
+
+        long idA = programRuleService.addProgramRule( ruleA );
+
+        ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
+        assertEquals( ruleA, retrievedProgramRule );
+        assertEquals( ProgramRuleEvaluationTime.ON_COMPLETE, retrievedProgramRule.getProgramRuleEvaluationTime() );
+        assertFalse( retrievedProgramRule.isWeb() );
+        assertFalse( retrievedProgramRule.isAndroid() );
+    }
+
     @Test
     public void testGetByProgram()
     {

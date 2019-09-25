@@ -29,7 +29,10 @@ package org.hisp.dhis.programrule;
  */
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.Set;
 
 /**
  * @author Enrico Colasante
@@ -64,5 +67,10 @@ public enum ProgramRuleEvaluationTime
     public static ProgramRuleEvaluationTime getDefault()
     {
         return ALWAYS;
+    }
+
+    public static Set<ProgramRuleEvaluationTime> getAll()
+    {
+        return Sets.newHashSet( ProgramRuleEvaluationTime.values() );
     }
 }

@@ -121,10 +121,12 @@ public class ProgramRule
 
     public ProgramRule( String name, String description, Program program, ProgramStage programStage,
         Set<ProgramRuleAction> programRuleActions, String condition, Integer priority,
-        ProgramRuleEvaluationTime programRuleEvaluationTime )
+        ProgramRuleEvaluationTime programRuleEvaluationTime, boolean web, boolean android )
     {
         this( name, description, program, programStage, programRuleActions, condition, priority );
         this.programRuleEvaluationTime = programRuleEvaluationTime;
+        this.web = web;
+        this.android = android;
     }
 
     // -------------------------------------------------------------------------
