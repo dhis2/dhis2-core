@@ -78,9 +78,10 @@ public class DefaultHibernateCacheManager
         clearObjectCache();
         clearQueryCache();
 
-        log.info( "Cleared Hibernate caches" );
+        log.info( "Hibernate caches cleared" );
     }
 
+    @Override
     @EventListener
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
