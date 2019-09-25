@@ -1,5 +1,7 @@
 package org.hisp.dhis.maintenance;
 
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -37,11 +39,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public interface MaintenanceService
 {
     String ID = MaintenanceService.class.getName();
-    
+
     /**
      * Deletes data values registered with 0 as value and associated with
      * data elements with sum as aggregation operator.
-     * 
+     *
      * @return the number of deleted data values.
      */
     int deleteZeroDataValues();
@@ -49,7 +51,7 @@ public interface MaintenanceService
     /**
      * Permanently deletes data values which have been soft deleted, i.e.
      * data values where the deleted property is true.
-     * 
+     *
      * @return the number of deleted data values.
      */
     int deleteSoftDeletedDataValues();
@@ -82,11 +84,11 @@ public interface MaintenanceService
      * Deletes periods which do not have data values associated with them.
      */
     void prunePeriods();
-    
+
     /**
      * Prunes complete data set registrations, data approvals, data value audits
      * and data values for the given organisation unit.
-     * 
+     *
      * @param organisationUnit the organisation unit.
      * @return true if the data pruning took place, false if not permitted.
      */
@@ -99,11 +101,17 @@ public interface MaintenanceService
      * @return true if the data pruning took place, false if not permitted.
      */
     boolean pruneData( DataElement dataElement );
-    
+
     /**
      * Deletes user accounts representing expired account invitations.
-     * 
+     *
      * @return the number of removed user invitations as a result of this operation.
      */
     int removeExpiredInvitations();
+
+    /**
+     * Emits an {@link ApplicationCacheClearedEvent} which relevant caches can listen
+     * and react to.
+     */
+    void clearApplicationCaches();
 }

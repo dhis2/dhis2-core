@@ -87,6 +87,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -112,6 +113,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
 import com.google.common.collect.ImmutableMap;
@@ -180,6 +182,13 @@ public class DefaultAnalyticsService
             .expireAfterWrite( expiration, TimeUnit.SECONDS ).withMaximumSize( enabled ? MAX_CACHE_ENTRIES : 0 ).build();
 
         log.info( String.format( "Analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
+    }
+
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        queryCache.invalidateAll();
+        log.info( "Analytics cache cleared" );
     }
 
     @Autowired

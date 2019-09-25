@@ -30,7 +30,8 @@ package org.hisp.dhis.cache;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
-
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.springframework.context.event.EventListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -41,7 +42,7 @@ public class DefaultHibernateCacheManager
     implements HibernateCacheManager
 {
     private static final Log log = LogFactory.getLog( DefaultHibernateCacheManager.class );
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -63,23 +64,29 @@ public class DefaultHibernateCacheManager
         sessionFactory.getCache().evictEntityRegions();
         sessionFactory.getCache().evictCollectionRegions();
      }
-    
+
     @Override
     public void clearQueryCache()
     {
         sessionFactory.getCache().evictDefaultQueryRegion();
         sessionFactory.getCache().evictQueryRegions();
     }
-    
+
     @Override
     public void clearCache()
     {
-        clearObjectCache();        
+        clearObjectCache();
         clearQueryCache();
-        
+
         log.info( "Cleared Hibernate caches" );
     }
-    
+
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        clearCache();
+    }
+
     @Override
     public Statistics getStatistics()
     {

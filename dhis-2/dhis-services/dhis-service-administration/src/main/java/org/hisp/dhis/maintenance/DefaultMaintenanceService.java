@@ -3,6 +3,7 @@ package org.hisp.dhis.maintenance;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.PageRange;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
@@ -14,6 +15,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,27 +66,29 @@ public class DefaultMaintenanceService
     // -------------------------------------------------------------------------
 
     private MaintenanceStore maintenanceStore;
-    
+
     private PeriodService periodService;
 
     private UserService userService;
 
     private CurrentUserService currentUserService;
-    
+
     private DataValueService dataValueService;
-    
+
     private DataValueAuditService dataValueAuditService;
-    
+
     private CompleteDataSetRegistrationService completeRegistrationService;
 
     private DataApprovalService dataApprovalService;
 
     private DataApprovalAuditService dataApprovalAuditService;
 
+    private ApplicationEventPublisher eventPublisher;
+
     public DefaultMaintenanceService( MaintenanceStore maintenanceStore, PeriodService periodService,
         UserService userService, CurrentUserService currentUserService, DataValueService dataValueService,
         DataValueAuditService dataValueAuditService, CompleteDataSetRegistrationService completeRegistrationService,
-        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService )
+        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService, ApplicationEventPublisher eventPublisher )
     {
 
         checkNotNull( maintenanceStore );
@@ -106,6 +110,7 @@ public class DefaultMaintenanceService
         this.completeRegistrationService = completeRegistrationService;
         this.dataApprovalService = dataApprovalService;
         this.dataApprovalAuditService = dataApprovalAuditService;
+        this.eventPublisher = eventPublisher;
     }
 
     // -------------------------------------------------------------------------
@@ -116,19 +121,19 @@ public class DefaultMaintenanceService
     public int deleteZeroDataValues()
     {
         int result = maintenanceStore.deleteZeroDataValues();
-        
+
         log.info( "Deleted zero data values: " + result );
-        
+
         return result;
     }
-    
+
     @Override
     public int deleteSoftDeletedDataValues()
     {
         int result = maintenanceStore.deleteSoftDeletedDataValues();
-        
+
         log.info( "Permanently deleted soft deleted data values: " + result );
-        
+
         return result;
     }
 
@@ -168,11 +173,11 @@ public class DefaultMaintenanceService
         for ( Period period : periodService.getAllPeriods() )
         {
             long periodId = period.getId();
-            
+
             try
             {
                 periodService.deletePeriod( period );
-                
+
                 log.info( "Deleted period with id: " + periodId );
             }
             catch ( DeleteNotAllowedException ex )
@@ -187,7 +192,7 @@ public class DefaultMaintenanceService
     public boolean pruneData( OrganisationUnit organisationUnit )
     {
         User user = currentUserService.getCurrentUser();
-        
+
         if ( user == null || !user.isSuper() )
         {
             return false;
@@ -198,9 +203,9 @@ public class DefaultMaintenanceService
         completeRegistrationService.deleteCompleteDataSetRegistrations( organisationUnit );
         dataValueAuditService.deleteDataValueAudits( organisationUnit );
         dataValueService.deleteDataValues( organisationUnit );
-        
+
         log.info( "Pruned data for organisation unit: " + organisationUnit );
-        
+
         return true;
     }
 
@@ -230,27 +235,27 @@ public class DefaultMaintenanceService
     {
         UserQueryParams params = new UserQueryParams();
         params.setInvitationStatus( UserInvitationStatus.EXPIRED );
-        
+
         int userCount = userService.getUserCount( params );
         int removeCount = 0;
-        
+
         PageRange range = new PageRange( userCount ).setPageSize( 200 );
         List<int[]> pages = range.getPages();
         Collections.reverse( pages ); // Iterate from end since users are deleted
-        
+
         log.debug( "Pages: " + pages );
-        
+
         for ( int[] page : pages )
         {
             params.setFirst( page[0] );
             params.setMax( range.getPageSize() );
             List<User> users = userService.getUsers( params );
-            
+
             for ( User user : users )
             {
                 try
                 {
-                    userService.deleteUser( user );                    
+                    userService.deleteUser( user );
                     removeCount++;
                 }
                 catch ( DeleteNotAllowedException ex )
@@ -259,9 +264,15 @@ public class DefaultMaintenanceService
                 }
             }
         }
-        
+
         log.info( "Removed expired invitations: " + removeCount );
-        
+
         return removeCount;
+    }
+
+    @Override
+    public void clearApplicationCaches()
+    {
+        eventPublisher.publishEvent( new ApplicationCacheClearedEvent() );
     }
 }
