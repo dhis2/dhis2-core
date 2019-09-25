@@ -28,6 +28,7 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
 import org.apache.commons.io.FilenameUtils;
@@ -43,6 +44,7 @@ import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -95,7 +97,7 @@ public class FileResourceController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}" )
-    public FileResource getFileResource( @PathVariable String uid, @RequestParam ( defaultValue = "original" ) String dimension )
+    public FileResource getFileResource( @PathVariable String uid, @RequestParam ( required = false ) ImageFileDimension dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -105,13 +107,13 @@ public class FileResourceController
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
 
-        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
+        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         return fileResource;
     }
 
     @GetMapping( value = "/{uid}/data" )
-    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response, @RequestParam ( defaultValue = "original" ) String dimension )
+    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response, @RequestParam ( required = false ) ImageFileDimension dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -121,7 +123,7 @@ public class FileResourceController
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
 
-        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
+        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         if ( !checkSharing( fileResource ) )
         {
