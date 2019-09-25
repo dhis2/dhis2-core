@@ -1,4 +1,4 @@
-package org.hisp.dhis.analytics.partition;
+package org.hisp.dhis.common.event;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,46 +28,21 @@ package org.hisp.dhis.analytics.partition;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.Partitions;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Manager for analytics table partitions.
- *
  * @author Lars Helge Overland
  */
-public interface PartitionManager
+public class ApplicationCacheClearedEvent
+    extends ApplicationEvent
 {
-    /**
-     * Returns a set of names of current event analytics partitions.
-     *
-     * @param tableType the type to get all existing table partitions for.
-     */
-    Set<String> getAnalyticsPartitions( AnalyticsTableType tableType );
+    public ApplicationCacheClearedEvent()
+    {
+        super( "ApplicationCacheCleared" );
+    }
 
-    /**
-     * Indicates whether the given analytics table exists.
-     *
-     * @param table the analytics table name.
-     */
-    boolean tableExists( String table );
-
-    /**
-     * Filters the set of integers for which a database partition table
-     * exists.
-     *
-     * @param partitions the partitions.
-     * @param tableName the table name.
-     */
-    void filterNonExistingPartitions( Partitions partitions, String tableName );
-
-    /**
-     * Event handler for {@link ApplicationCacheClearedEvent}.
-     *
-     * @param event the {@link ApplicationCacheClearedEvent}.
-     */
-    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
+    public ApplicationCacheClearedEvent( Object source )
+    {
+        super( source );
+    }
 }

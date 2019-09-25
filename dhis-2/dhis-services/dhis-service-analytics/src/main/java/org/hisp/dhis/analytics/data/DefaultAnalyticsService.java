@@ -98,6 +98,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -123,6 +124,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.Timer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
 import com.google.common.collect.ImmutableMap;
@@ -312,6 +314,14 @@ public class DefaultAnalyticsService
         DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
 
         return getAggregatedDataValueMapping( params );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        queryCache.invalidateAll();
+        log.info( "Analytics cache cleared" );
     }
 
     // -------------------------------------------------------------------------
