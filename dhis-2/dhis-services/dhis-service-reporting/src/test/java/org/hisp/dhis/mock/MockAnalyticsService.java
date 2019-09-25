@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.period.Period;
 
@@ -123,6 +124,11 @@ public class MockAnalyticsService
     public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
     {
         throw new NotImplementedException( "" );
+    }
+
+    @Override
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
     }
 
     // -------------------------------------------------------------------------
