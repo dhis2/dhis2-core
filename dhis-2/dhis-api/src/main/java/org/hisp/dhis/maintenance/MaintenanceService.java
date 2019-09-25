@@ -1,7 +1,5 @@
 package org.hisp.dhis.maintenance;
 
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-
 /*
  * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
@@ -32,6 +30,7 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
  * @author Lars Helge Overland
