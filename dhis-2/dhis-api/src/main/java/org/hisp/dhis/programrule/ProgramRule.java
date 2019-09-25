@@ -86,14 +86,17 @@ public class ProgramRule
      * makes sense at each stage of the rule validation.
      * Default to {@link ProgramRuleEvaluationTime#ALWAYS}
      */
-    private ProgramRuleEvaluationTime programRuleEvaluationTime;
+    private ProgramRuleEvaluationTime programRuleEvaluationTime = ProgramRuleEvaluationTime.ALWAYS;
 
     /**
-     * The environments where the rule is going to be evaluated. This field is used to run only the rules that
-     * makes sense in each environment.
-     * Default to {@link ProgramRuleEvaluationEnvironment#getDefault()}
+     * Flag to define if the rule needs to be evaluated in the web app.
      */
-    private Set<ProgramRuleEvaluationEnvironment> programRuleEvaluationEnvironments;
+    private boolean web = true;
+
+    /**
+     * Flag to define if the rule needs to be evaluated in the android.
+     */
+    private boolean android = true;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -114,6 +117,14 @@ public class ProgramRule
         this.programRuleActions = programRuleActions;
         this.condition = condition;
         this.priority = priority;
+    }
+
+    public ProgramRule( String name, String description, Program program, ProgramStage programStage,
+        Set<ProgramRuleAction> programRuleActions, String condition, Integer priority,
+        ProgramRuleEvaluationTime programRuleEvaluationTime )
+    {
+        this( name, description, program, programStage, programRuleActions, condition, priority );
+        this.programRuleEvaluationTime = programRuleEvaluationTime;
     }
 
     // -------------------------------------------------------------------------
@@ -209,17 +220,26 @@ public class ProgramRule
     }
 
     @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "evaluationEnvironments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "evaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRuleEvaluationEnvironment> getProgramRuleEvaluationEnvironments()
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isWeb()
     {
-        return programRuleEvaluationEnvironments;
+        return web;
     }
 
-    public void setProgramRuleEvaluationEnvironments(
-        Set<ProgramRuleEvaluationEnvironment> programRuleEvaluationEnvironments )
+    public void setWeb( boolean web )
     {
-        this.programRuleEvaluationEnvironments = programRuleEvaluationEnvironments;
+        this.web = web;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isAndroid()
+    {
+        return android;
+    }
+
+    public void setAndroid( boolean android )
+    {
+        this.android = android;
     }
 }
