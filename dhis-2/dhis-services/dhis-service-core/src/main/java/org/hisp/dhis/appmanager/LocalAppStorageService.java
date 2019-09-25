@@ -167,7 +167,7 @@ public class LocalAppStorageService
 
         if ( appList.isEmpty() )
         {
-            log.info(" No apps found during local discovery.");
+            log.info( "No apps found during local discovery.");
         }
 
         return appMap;
