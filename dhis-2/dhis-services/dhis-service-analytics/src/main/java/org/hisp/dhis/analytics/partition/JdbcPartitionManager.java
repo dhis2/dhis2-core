@@ -113,15 +113,10 @@ public class JdbcPartitionManager
     }
 
     @Override
-    public void clearCaches()
-    {
-        analyticsPartitions = new HashMap<>();
-        log.info( "Analytics partition cache cleared" );
-    }
-
     @EventListener
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
-        clearCaches();
+        analyticsPartitions = new HashMap<>();
+        log.info( "Analytics partition cache cleared" );
     }
 }

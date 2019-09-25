@@ -106,13 +106,6 @@ public class DefaultAppManager
         reloadApps();
     }
 
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        appCache.invalidateAll();
-        log.info( "App cache cleared" );
-    }
-
     @Override
     public List<App> getApps( String contextPath )
     {
@@ -340,6 +333,14 @@ public class DefaultAppManager
         throws IOException
     {
         return getAppStorageServiceByApp( app ).getAppResource( app, pageName );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        appCache.invalidateAll();
+        log.info( "App cache cleared" );
     }
 
     // -------------------------------------------------------------------------

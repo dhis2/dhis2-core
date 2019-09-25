@@ -184,13 +184,6 @@ public class DefaultAnalyticsService
         log.info( String.format( "Analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
     }
 
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        queryCache.invalidateAll();
-        log.info( "Analytics cache cleared" );
-    }
-
     @Autowired
     public DefaultAnalyticsService( AnalyticsManager analyticsManager, RawAnalyticsManager rawAnalyticsManager,
         AnalyticsSecurityManager securityManager, QueryPlanner queryPlanner, QueryValidator queryValidator,
@@ -314,6 +307,14 @@ public class DefaultAnalyticsService
         DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
 
         return getAggregatedDataValueMapping( params );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        queryCache.invalidateAll();
+        log.info( "Analytics cache cleared" );
     }
 
     // -------------------------------------------------------------------------

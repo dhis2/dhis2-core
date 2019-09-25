@@ -201,13 +201,6 @@ public class DefaultEventAnalyticsService
         log.info( String.format( "Event analytics server-side cache is enabled: %b with expiration: %d s", enabled, expiration ) );
     }
 
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        queryCache.invalidateAll();
-        log.info( "Event analytics cache cleared" );
-    }
-
     @Override
     public Grid getAggregatedEventData( EventQueryParams params, List<String> columns, List<String> rows )
     {
@@ -629,6 +622,14 @@ public class DefaultEventAnalyticsService
         params = queryPlanner.planEventQuery( params );
 
         return eventAnalyticsManager.getRectangle( params );
+    }
+
+    @Override
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        queryCache.invalidateAll();
+        log.info( "Event analytics cache cleared" );
     }
 
     // -------------------------------------------------------------------------
