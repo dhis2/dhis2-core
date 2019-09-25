@@ -100,6 +100,7 @@ public class JdbcMaintenanceStore
          */
         String[] sqlStmts = new String[] {
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
+            "delete from programmessage where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid in (select trackedentitycommentid from programstageinstancecomments where programstageinstanceid in "
                 + psiSelect + ")",
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
@@ -133,6 +134,7 @@ public class JdbcMaintenanceStore
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
             "delete from programstageinstance where programinstanceid in " + piSelect,
+            "delete from programmessage where programinstanceid in " + piSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
             "delete from programinstance where programinstanceid in " + piSelect,
