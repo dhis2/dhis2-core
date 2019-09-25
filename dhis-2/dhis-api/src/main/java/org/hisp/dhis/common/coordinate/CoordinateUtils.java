@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.Coordinate;
+package org.hisp.dhis.common.coordinate;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
