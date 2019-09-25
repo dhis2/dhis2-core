@@ -47,7 +47,8 @@ import java.util.Set;
  */
 @JacksonXmlRootElement( localName = "programRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRule
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * The description of the program rule
@@ -80,6 +81,20 @@ public class ProgramRule
      */
     private Integer priority;
 
+    /**
+     * The time when the rule is going to be evaluated. This field is used to run only the rules that
+     * makes sense at each stage of the rule validation.
+     * Default to {@link ProgramRuleEvaluationTime#ALWAYS}
+     */
+    private ProgramRuleEvaluationTime programRuleEvaluationTime;
+
+    /**
+     * The environments where the rule is going to be evaluated. This field is used to run only the rules that
+     * makes sense in each environment.
+     * Default to {@link ProgramRuleEvaluationEnvironment#getDefault()}
+     */
+    private Set<ProgramRuleEvaluationEnvironment> programRuleEvaluationEnvironments;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -89,7 +104,8 @@ public class ProgramRule
 
     }
 
-    public ProgramRule( String name, String description, Program program, ProgramStage programStage, Set<ProgramRuleAction> programRuleActions, String condition, Integer priority )
+    public ProgramRule( String name, String description, Program program, ProgramStage programStage,
+        Set<ProgramRuleAction> programRuleActions, String condition, Integer priority )
     {
         this.name = name;
         this.description = description;
@@ -178,5 +194,32 @@ public class ProgramRule
     public void setPriority( Integer priority )
     {
         this.priority = priority;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( localName = "evaluationTime", namespace = DxfNamespaces.DXF_2_0 )
+    public ProgramRuleEvaluationTime getProgramRuleEvaluationTime()
+    {
+        return programRuleEvaluationTime;
+    }
+
+    public void setProgramRuleEvaluationTime( ProgramRuleEvaluationTime programRuleEvaluationTime )
+    {
+        this.programRuleEvaluationTime = programRuleEvaluationTime;
+    }
+
+    @JsonProperty
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "evaluationEnvironments", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "evaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<ProgramRuleEvaluationEnvironment> getProgramRuleEvaluationEnvironments()
+    {
+        return programRuleEvaluationEnvironments;
+    }
+
+    public void setProgramRuleEvaluationEnvironments(
+        Set<ProgramRuleEvaluationEnvironment> programRuleEvaluationEnvironments )
+    {
+        this.programRuleEvaluationEnvironments = programRuleEvaluationEnvironments;
     }
 }
