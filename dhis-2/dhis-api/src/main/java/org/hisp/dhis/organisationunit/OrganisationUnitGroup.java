@@ -32,8 +32,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.common.*;
-import org.hisp.dhis.common.Coordinate.CoordinateObject;
-import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+import org.hisp.dhis.common.coordinate.CoordinateObject;
+import org.hisp.dhis.common.coordinate.CoordinateUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

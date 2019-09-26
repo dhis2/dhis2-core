@@ -1,4 +1,4 @@
-package org.hisp.dhis.sms.outbound;
+package org.hisp.dhis.common.coordinate;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,39 +28,25 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.organisationunit.FeatureType;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * @author Zubair Asghar
+ * @author Henning Håkonsen
  */
-public class BulkSmsRequestEntity
+public interface CoordinateObject
 {
-    private Set<BulkSmsRecipient> recipients = new HashSet<>();
+    FeatureType getFeatureType();
 
-    private String body;
+    String getCoordinates();
 
-    public BulkSmsRequestEntity()
+    boolean hasCoordinates();
+
+    boolean hasDescendantsWithCoordinates();
+
+    default String extractCoordinates( Geometry geometry )
     {
-    }
-
-    public BulkSmsRequestEntity( String body, Set<String> recipients )
-    {
-        this.recipients = recipients.stream().map( BulkSmsRecipient::new ).collect( Collectors.toSet() );
-        this.body = body;
-    }
-
-    @JsonProperty( value = "to" )
-    public Set<BulkSmsRecipient> getRecipients()
-    {
-        return recipients;
-    }
-
-    public String getBody()
-    {
-        return body;
+        return CoordinateUtils.getCoordinatesFromGeometry( geometry );
     }
 }

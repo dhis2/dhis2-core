@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event;
  */
 
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,6 +64,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -297,7 +299,7 @@ public class TrackedEntityInstanceController
         @PathVariable( "attributeId" ) String attributeId,
         @RequestParam( required = false ) Integer width,
         @RequestParam( required = false ) Integer height,
-        @RequestParam( defaultValue = "original" ) String dimension,
+        @RequestParam( required = false ) ImageFileDimension dimension,
         HttpServletResponse response,
         HttpServletRequest request )
         throws WebMessageException, NotFoundException
@@ -360,7 +362,7 @@ public class TrackedEntityInstanceController
         // Build response and return
         // ---------------------------------------------------------------------
 
-        FileResourceUtils.setImageFileDimensions( fileResource, dimension );
+        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
