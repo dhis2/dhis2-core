@@ -31,7 +31,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.time.DateUtils;
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.TransactionalIntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
@@ -130,9 +129,6 @@ public class DataValueSetServiceTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private SessionFactory sessionFactory;
 
     private Attribute attribute;
 

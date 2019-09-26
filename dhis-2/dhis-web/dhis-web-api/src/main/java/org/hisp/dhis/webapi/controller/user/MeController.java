@@ -33,6 +33,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -142,8 +143,7 @@ public class MeController
     @Autowired
     private DataSetService dataSetService;
 
-    private static final Set<UserSettingKey> USER_SETTING_KEYS = Sets.newHashSet(
-        UserSettingKey.values() ).stream().collect( Collectors.toSet() );
+    private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>( Sets.newHashSet( UserSettingKey.values() ) );
 
     @RequestMapping( value = "", method = RequestMethod.GET )
     public void getCurrentUser( HttpServletResponse response ) throws Exception

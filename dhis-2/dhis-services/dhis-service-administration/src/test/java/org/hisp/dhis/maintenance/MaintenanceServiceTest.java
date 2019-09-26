@@ -30,7 +30,6 @@ package org.hisp.dhis.maintenance;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
