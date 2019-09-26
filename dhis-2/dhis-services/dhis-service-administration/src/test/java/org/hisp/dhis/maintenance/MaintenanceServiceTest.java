@@ -31,6 +31,8 @@ package org.hisp.dhis.maintenance;
 import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -39,6 +41,8 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValue;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +79,15 @@ public class MaintenanceServiceTest
     private ProgramStageService programStageService;
 
     @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private TrackedEntityDataValueService trackedEntityDataValueService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
     private MaintenanceService maintenanceService;
 
     private Date incidenDate;
@@ -90,6 +103,8 @@ public class MaintenanceServiceTest
     private TrackedEntityInstance entityInstance;
 
     private Collection<Long> orgunitIds;
+
+    private int programInstanceId;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -110,8 +125,12 @@ public class MaintenanceServiceTest
 
         programService.addProgram( program );
 
+        DataElement dataElement = createDataElement( 'A' );
+        dataElementService.addDataElement( dataElement );
+
         ProgramStage stageA = createProgramStage( 'A', program );
         stageA.setSortOrder( 1 );
+        stageA.addDataElement( dataElement, 1 );
         programStageService.saveProgramStage( stageA );
 
         ProgramStage stageB = createProgramStage( 'B', program );
@@ -139,6 +158,26 @@ public class MaintenanceServiceTest
         programInstance = new ProgramInstance( enrollmentDate, incidenDate, entityInstance, program );
         programInstance.setUid( "UID-A" );
         programInstance.setOrganisationUnit( organisationUnit );
+
+        programInstanceId = programInstanceService.addProgramInstance( programInstance );
+
+        ProgramStageInstance stageInstanceA = programStageInstanceService
+            .createProgramStageInstance( programInstance, stageA, testDate1.toDate(), testDate2.toDate(),
+                organisationUnit );
+        ProgramStageInstance stageInstanceB = programStageInstanceService
+            .createProgramStageInstance( programInstance, stageA, testDate1.toDate(), testDate2.toDate(),
+                organisationUnit );
+
+        programStageInstanceService.addProgramStageInstance( stageInstanceA );
+        programStageInstanceService.addProgramStageInstance( stageInstanceB );
+
+        TrackedEntityDataValue trackedEntityDataValueA = new TrackedEntityDataValue( stageInstanceA, dataElement,
+            "99" );
+
+        trackedEntityDataValueService.saveTrackedEntityDataValue( trackedEntityDataValueA );
+
+        programInstance.setProgramStageInstances( Sets.newHashSet( stageInstanceA, stageInstanceB ) );
+        programInstanceService.updateProgramInstance( programInstance );
     }
 
     @Test
@@ -148,15 +187,13 @@ public class MaintenanceServiceTest
             Sets.newHashSet(),
             programInstance );
 
-        int idA = programInstanceService.addProgramInstance( programInstance );
-
         programMessageService.saveProgramMessage( message );
 
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
+        assertNotNull( programInstanceService.getProgramInstance( programInstanceId ) );
 
         programInstanceService.deleteProgramInstance( programInstance );
 
-        assertNull( programInstanceService.getProgramInstance( idA ) );
+        assertNull( programInstanceService.getProgramInstance( programInstanceId ) );
 
         assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
 
