@@ -103,7 +103,7 @@ public class AnalyticsServiceIndicatorTest
     private CategoryOptionCombo cocA;
     private CategoryOptionCombo cocB;
     private CategoryOptionGroup cogA;
-    
+
     @Before
     public void setUp()
     {
@@ -298,8 +298,8 @@ public class AnalyticsServiceIndicatorTest
         Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
         assertNotNull( grid );
     }
-    
-    
+
+
     @Test
     public void case1_COCUID_as_second_elem_works()
     {
@@ -308,8 +308,7 @@ public class AnalyticsServiceIndicatorTest
 
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, createIndicatorExp(dataElementA, cocA, cocB) );
 
-        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
-
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
     }
 
     @Test
@@ -321,8 +320,7 @@ public class AnalyticsServiceIndicatorTest
 
         Indicator indicatorF = createIndicator( 'F', indicatorTypeB, createIndicatorExp(dataElementA, cogA, cocA)  );
 
-        Grid grid = this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
-
+        this.analyticsService.getAggregatedDataValues( createParamsWithRootIndicator( indicatorF ) );
     }
 
     private String createIndicatorExp( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
