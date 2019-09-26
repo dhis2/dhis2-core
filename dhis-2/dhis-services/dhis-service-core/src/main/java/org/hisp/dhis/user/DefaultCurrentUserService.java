@@ -33,8 +33,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.session.SessionInformation;
-import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +41,6 @@ import org.hisp.dhis.cache.CacheProvider;
 
 import javax.annotation.PostConstruct;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -80,9 +77,7 @@ public class DefaultCurrentUserService
     
     private final CacheProvider cacheProvider;
 
-    private final SessionRegistry sessionRegistry;
-
-    public DefaultCurrentUserService( CurrentUserStore currentUserStore, Environment env, CacheProvider cacheProvider, SessionRegistry sessionRegistry )
+    public DefaultCurrentUserService( CurrentUserStore currentUserStore, Environment env, CacheProvider cacheProvider )
     {
         checkNotNull( currentUserStore );
         checkNotNull( env );
@@ -90,7 +85,6 @@ public class DefaultCurrentUserService
         this.currentUserStore = currentUserStore;
         this.env = env;
         this.cacheProvider = cacheProvider;
-        this.sessionRegistry = sessionRegistry;
     }
 
     // -------------------------------------------------------------------------
@@ -187,18 +181,5 @@ public class DefaultCurrentUserService
         User user = getCurrentUser();
 
         return user != null && user.getUserCredentials().isAuthorized( auth );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public void expireUserSessions()
-    {
-        UserDetails userDetails = getCurrentUserDetails();
-
-        if ( userDetails != null )
-        {
-            List<SessionInformation> sessions = sessionRegistry.getAllSessions( userDetails, false );
-            sessions.forEach( SessionInformation::expireNow );
-        }
     }
 }

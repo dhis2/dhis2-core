@@ -128,13 +128,9 @@
     <sec:csrf disabled="true" />
 
     <sec:http-basic entry-point-ref="basicAuthenticationEntryPoint" />
-    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" delete-cookies="JSESSIONID"/>
+    <sec:logout logout-url="/dhis-web-commons-security/logout.action" logout-success-url="/" />
     <sec:intercept-url pattern="/dhis-web-commons/i18nJavaScript.action" access="permitAll()" />
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
-
-    <sec:session-management>
-      <sec:concurrency-control max-sessions="10" expired-url="/dhis-web-commons-security/logout.action" session-registry-ref="sessionRegistry" />
-    </sec:session-management>
 
     <!-- Account recovery -->
 
@@ -478,5 +474,4 @@
   <bean id="appsSystemAuthoritiesProvider" class="org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider" />
 
   <bean id="authenticationListener" class="org.hisp.dhis.security.AuthenticationListener" />
-  <bean id="sessionRegistry" class="org.springframework.security.core.session.SessionRegistryImpl" />
 </beans>

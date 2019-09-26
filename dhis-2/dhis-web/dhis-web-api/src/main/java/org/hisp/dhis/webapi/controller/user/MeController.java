@@ -380,8 +380,6 @@ public class MeController
 
         updatePassword( currentUser, newPassword );
         manager.update( currentUser );
-
-        currentUserService.expireUserSessions();
     }
 
     @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )

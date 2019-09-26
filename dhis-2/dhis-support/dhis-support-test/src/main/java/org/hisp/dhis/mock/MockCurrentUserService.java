@@ -133,10 +133,4 @@ public class MockCurrentUserService
     {
         return true;
     }
-
-    @Override
-    public void expireUserSessions()
-    {
-        currentUser = null;
-    }
 }
