@@ -94,5 +94,5 @@ public interface CurrentUserService
     /**
      * Expire all the sessions associated with current user.
      */
-    void expireUserSessions();
+    public void expireUserSessions();
 }
