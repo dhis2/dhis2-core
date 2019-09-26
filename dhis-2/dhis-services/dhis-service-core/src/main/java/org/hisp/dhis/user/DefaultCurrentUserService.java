@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.session.SessionInformation;
@@ -82,7 +83,7 @@ public class DefaultCurrentUserService
 
     private final SessionRegistry sessionRegistry;
 
-    public DefaultCurrentUserService( CurrentUserStore currentUserStore, Environment env, CacheProvider cacheProvider, SessionRegistry sessionRegistry )
+    public DefaultCurrentUserService( CurrentUserStore currentUserStore, Environment env, CacheProvider cacheProvider, @Lazy SessionRegistry sessionRegistry )
     {
         checkNotNull( currentUserStore );
         checkNotNull( env );
