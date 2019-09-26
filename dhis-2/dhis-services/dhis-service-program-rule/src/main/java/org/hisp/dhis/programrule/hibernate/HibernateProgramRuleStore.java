@@ -32,9 +32,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleStore;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -115,6 +113,15 @@ public class HibernateProgramRuleStore
     {
         return getQuery( "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.priority IS NULL AND pra.programRuleActionType = :actionType" )
             .setParameter( "actionType", ProgramRuleActionType.ASSIGN )
+            .getResultList();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime evaluationTime )
+    {
+        return getQuery(
+            "FROM ProgramRule pr WHERE pr.programRuleEvaluationTime = :evaluationTime" )
+            .setParameter( "evaluationTime", evaluationTime )
             .getResultList();
     }
 

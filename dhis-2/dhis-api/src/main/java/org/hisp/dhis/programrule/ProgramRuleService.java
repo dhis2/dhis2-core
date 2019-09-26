@@ -121,5 +121,9 @@ public interface ProgramRuleService
 
     List<ProgramRule> getProgramRulesWithNoCondition();
 
+    List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime evaluationTime );
+
+    List<ProgramRule> getProgramRulesByEvaluationEnvironment( ProgramRuleEvaluationEnvironment evaluationEnvironment );
+
     List<ProgramRule> getProgramRulesWithNoAction();
 }

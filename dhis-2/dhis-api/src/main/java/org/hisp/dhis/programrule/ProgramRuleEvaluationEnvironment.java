@@ -28,51 +28,43 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.common.DxfNamespaces;
+
 import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-
 /**
- * @author markusbekken
+ * @author Enrico Colasante
  */
-public interface ProgramRuleStore
-    extends IdentifiableObjectStore<ProgramRule>
+@JacksonXmlRootElement( localName = "programRuleEvaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
+public enum ProgramRuleEvaluationEnvironment
 {
-    /**
-     * Get programRule by program
-     *
-     * @param program {@link Program}
-     * @return ProgramRuleVariable list
-     */
-    List<ProgramRule> get( Program program );
-    
-    /**
-     * Returns a {@link ProgramRule}.
-     *
-     * @param name the name of the ProgramRule to return.
-     * @param program {@link Program}.
-     * @return the ProgramRule with the given name
-     */
-    ProgramRule getByName( String name, Program program );
+    WEB( "web" ),
+    ANDROID( "android" );
 
-    /**
-     * Get validation by {@link Program}
-     *
-     * @param program Program
-     * @param key Search Program Rule by key
-     * @return ProgramRule list
-     */
-    List<ProgramRule> get( Program program, String key );
+    private final String value;
 
-    List<ProgramRule> getImplementableProgramRules( Program program, Set<ProgramRuleActionType> types );
+    ProgramRuleEvaluationEnvironment( String value )
+    {
+        this.value = value;
+    }
 
-    List<ProgramRule> getProgramRulesWithNoCondition();
+    public static ProgramRuleEvaluationEnvironment fromValue( String value )
+    {
+        for ( ProgramRuleEvaluationEnvironment type : ProgramRuleEvaluationEnvironment.values() )
+        {
+            if ( type.value.equalsIgnoreCase( value ) )
+            {
+                return type;
+            }
+        }
 
-    List<ProgramRule> getProgramRulesWithNoPriority();
+        return null;
+    }
 
-    List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime evaluationTime );
-
-    List<ProgramRule> getProgramRulesWithNoAction();
+    public static Set<ProgramRuleEvaluationEnvironment> getDefault()
+    {
+        return Sets.newHashSet(ProgramRuleEvaluationEnvironment.values());
+    }
 }

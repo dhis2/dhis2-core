@@ -71,39 +71,39 @@ public class ProgramRuleServiceTest
     
     @Autowired
     private ProgramRuleVariableService programRuleVariableService;
-    
+
     @Override
     public void setUpTest()
     {
         programA = createProgram( 'A', null, null );
         programB = createProgram( 'B', null, null );
         programC = createProgram( 'C', null, null );
-        
+
         programStageA = createProgramStage( 'A', 1 );
         programStageA.setProgram( programA );
         Set<ProgramStage> stagesA = new HashSet<>();
         stagesA.add( programStageA );
         programA.setProgramStages( stagesA );
-        
+
         programService.addProgram( programA );
         programService.addProgram( programB );
         programService.addProgram( programC );
-        
+
         programStageService.saveProgramStage( programStageA );
-        
+
         //Add a tree of variables, rules and actions to programA:
         programRuleA = createProgramRule( 'A', programA );
         programRuleService.addProgramRule( programRuleA );
-        
+
         programRuleActionA = createProgramRuleAction( 'A', programRuleA );
         programRuleActionB = createProgramRuleAction( 'B', programRuleA );
         programRuleActonService.addProgramRuleAction( programRuleActionA );
         programRuleActonService.addProgramRuleAction( programRuleActionB );
-        
+
         programRuleVariableA = createProgramRuleVariable( 'A', programA );
         programRuleVariableB = createProgramRuleVariable( 'B', programA );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableA );
-        programRuleVariableService.addProgramRuleVariable( programRuleVariableB );  
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableB );
     }
     
     @Test
@@ -132,23 +132,53 @@ public class ProgramRuleServiceTest
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         assertEquals( ruleA, retrievedProgramRule );
         assertEquals( ProgramRuleEvaluationTime.ALWAYS, retrievedProgramRule.getProgramRuleEvaluationTime() );
-        assertTrue( retrievedProgramRule.isWeb() );
-        assertTrue( retrievedProgramRule.isAndroid() );
+        assertEquals( ProgramRuleEvaluationEnvironment.getDefault().size(),
+            retrievedProgramRule.getProgramRuleEvaluationEnvironments().size() );
+        assertEquals( ProgramRuleEvaluationEnvironment.getDefault(),
+            retrievedProgramRule.getProgramRuleEvaluationEnvironments() );
     }
 
     @Test
     public void testAddGetNotDefaultValuesForEvaluationTimeAndEnvironments()
     {
         ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null,
-            ProgramRuleEvaluationTime.ON_COMPLETE, false, false );
+            ProgramRuleEvaluationTime.ON_COMPLETE, Sets.newHashSet( ProgramRuleEvaluationEnvironment.ANDROID ) );
 
         long idA = programRuleService.addProgramRule( ruleA );
 
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         assertEquals( ruleA, retrievedProgramRule );
         assertEquals( ProgramRuleEvaluationTime.ON_COMPLETE, retrievedProgramRule.getProgramRuleEvaluationTime() );
-        assertFalse( retrievedProgramRule.isWeb() );
-        assertFalse( retrievedProgramRule.isAndroid() );
+        assertEquals( 1, retrievedProgramRule.getProgramRuleEvaluationEnvironments().size() );
+    }
+
+    @Test
+    public void testAddRetrieveProgramRuleByEvaluationTime()
+    {
+        ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true",
+            null,
+            ProgramRuleEvaluationTime.ON_COMPLETE, Sets.newHashSet( ProgramRuleEvaluationEnvironment.ANDROID ) );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionB", programB, programStageA, null, "true", null,
+            ProgramRuleEvaluationTime.ALWAYS, Sets.newHashSet( ProgramRuleEvaluationEnvironment.WEB ) );
+
+        long idA = programRuleService.addProgramRule( ruleA );
+        long idB = programRuleService.addProgramRule( ruleB );
+
+        ProgramRule retrievedProgramRuleA = programRuleService.getProgramRule( idA );
+        ProgramRule retrievedProgramRuleB = programRuleService.getProgramRule( idB );
+        assertEquals( ruleA, retrievedProgramRuleA );
+        assertEquals( ProgramRuleEvaluationTime.ON_COMPLETE, retrievedProgramRuleA.getProgramRuleEvaluationTime() );
+
+        assertEquals( 2,
+            programRuleService.getProgramRulesByEvaluationEnvironment( ProgramRuleEvaluationEnvironment.WEB ).size() );
+        assertEquals( 2,
+            programRuleService.getProgramRulesByEvaluationEnvironment( ProgramRuleEvaluationEnvironment.ANDROID )
+                .size() );
+        assertEquals( 2,
+            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime.ALWAYS ).size() );
+        assertEquals( 1,
+            programRuleService.getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime.ON_COMPLETE ).size() );
+
     }
 
     @Test
@@ -225,8 +255,6 @@ public class ProgramRuleServiceTest
         
         assertEquals( ruleH, programRuleService.getProgramRule( idH ) );
     }
-    
-    
 
     @Test
     public void testDeleteProgramRule()

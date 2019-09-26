@@ -34,6 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -133,6 +134,21 @@ public class DefaultProgramRuleService
     public List<ProgramRule> getProgramRulesWithNoCondition()
     {
         return programRuleStore.getProgramRulesWithNoCondition();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime evaluationTime )
+    {
+        return programRuleStore.getProgramRulesByEvaluationTime( evaluationTime );
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
+        ProgramRuleEvaluationEnvironment evaluationEnvironment )
+    {
+        return programRuleStore.getAll().stream()
+            .filter( rule -> rule.getProgramRuleEvaluationEnvironments().contains( evaluationEnvironment ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
