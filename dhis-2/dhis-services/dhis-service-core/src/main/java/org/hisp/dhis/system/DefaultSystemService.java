@@ -118,13 +118,12 @@ public class DefaultSystemService
     {
         systemInfo = getFixedSystemInfo();
 
-        List<String> info = ImmutableList.<String>builder()
-            .add( "Version: " + systemInfo.getVersion() )
-            .add( "Revision: " + systemInfo.getRevision() )
-            .add( "Build date: " + systemInfo.getBuildTime() )
-            .add( "Database name: " + systemInfo.getDatabaseInfo().getName() )
-            .add( "Java version: " + systemInfo.getJavaVersion() )
-            .build();
+        List<String> info = ImmutableList.of(
+            "DHIS 2 Version: " + systemInfo.getVersion(),
+            "Revision: " + systemInfo.getRevision(),
+            "Build date: " + systemInfo.getBuildTime(),
+            "Database name: " + systemInfo.getDatabaseInfo().getName(),
+            "Java version: " + systemInfo.getJavaVersion() );
 
         log.info( StringUtils.join( info, ", " ) );
     }

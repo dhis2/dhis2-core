@@ -30,6 +30,7 @@ package org.hisp.dhis.analytics;
 
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 
 import java.util.List;
@@ -168,4 +169,11 @@ public interface AnalyticsService
      * @return a mapping of dimensional items and aggregated data values.
      */
     Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object );
+
+    /**
+     * Event handler for {@link ApplicationCacheClearedEvent}.
+     *
+     * @param event the {@link ApplicationCacheClearedEvent}.
+     */
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }

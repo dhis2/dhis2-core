@@ -124,9 +124,9 @@ public class CategoryOptionGroupResolver
 
             resolvedOperands
                 .addAll( evaluate( dataElementUid, dimensionalItemId.getId1(), dimensionalItemId.getId2() ) );
-            
+
             resolvedOperands.addAll( evaluate( dataElementUid, dimensionalItemId.getId2(), null ) );
-        } 
+        }
         if ( resolvedOperands.isEmpty() )
         {
             // nothing to resolve, add the expression as it is
@@ -134,7 +134,7 @@ public class CategoryOptionGroupResolver
         }
         return Joiner.on( "+" ).join( resolvedOperands );
     }
-    
+
     private List<String> evaluate( String dataElementUid, String uid, String uid2 )
     {
         List<String> resolvedExpression = new ArrayList<>();
@@ -146,11 +146,11 @@ public class CategoryOptionGroupResolver
         }
         return resolvedExpression;
     }
-    
+
     private String resolve( Set<String> cocs, String dataElementUid, String third )
     {
         boolean isAoc = isAoc( third );
-        
+
         return cocs.stream()
             .map( coc -> EXP_OPEN + dataElementUid + SEPARATOR + coc + (isAoc ? SEPARATOR + third : "") + EXP_CLOSE )
             .collect( Collectors.joining( "+" ) );

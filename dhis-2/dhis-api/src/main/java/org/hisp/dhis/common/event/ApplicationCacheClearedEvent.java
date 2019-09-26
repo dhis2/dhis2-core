@@ -1,4 +1,4 @@
-package org.hisp.dhis.common.Coordinate;
+package org.hisp.dhis.common.event;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,25 +28,21 @@ package org.hisp.dhis.common.Coordinate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.organisationunit.FeatureType;
-
-import com.vividsolutions.jts.geom.Geometry;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * @author Henning Håkonsen
+ * @author Lars Helge Overland
  */
-public interface CoordinateObject
+public class ApplicationCacheClearedEvent
+    extends ApplicationEvent
 {
-    FeatureType getFeatureType();
-
-    String getCoordinates();
-
-    boolean hasCoordinates();
-
-    boolean hasDescendantsWithCoordinates();
-
-    default String extractCoordinates( Geometry geometry )
+    public ApplicationCacheClearedEvent()
     {
-        return CoordinateUtils.getCoordinatesFromGeometry( geometry );
+        super( "ApplicationCacheCleared" );
+    }
+
+    public ApplicationCacheClearedEvent( Object source )
+    {
+        super( source );
     }
 }
