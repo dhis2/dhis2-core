@@ -414,6 +414,7 @@ public abstract class AbstractTrackedEntityInstanceService
         }
 
         ImportSummaries enrollmentImportSummaries = enrollmentService.addEnrollmentList( enrollments, importOptions );
+        linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
     }
@@ -546,7 +547,8 @@ public abstract class AbstractTrackedEntityInstanceService
             clearSession();
         }
 
-        enrollmentService.addEnrollmentList( enrollments, importOptions );
+        ImportSummaries enrollmentImportSummaries = enrollmentService.addEnrollmentList( enrollments, importOptions );
+        linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
     }
@@ -760,6 +762,48 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private void linkEnrollmentSummaries( ImportSummaries importSummaries, ImportSummaries enrollmentImportSummaries,
+        List<Enrollment> enrollments )
+    {
+        Map<String, List<Enrollment>> enrollmentsGroupedByTe = enrollments.stream()
+            .collect( Collectors.groupingBy( Enrollment::getTrackedEntityInstance ) );
+
+        Map<String, List<ImportSummary>> summariesGroupedByReference = importSummaries.getImportSummaries().stream()
+            .collect( Collectors.groupingBy( ImportSummary::getReference ) );
+
+        Map<String, List<ImportSummary>> enrollmentSummariesGroupedByReference = enrollmentImportSummaries.getImportSummaries().stream()
+            .collect( Collectors.groupingBy( ImportSummary::getReference ) );
+
+        for ( Map.Entry<String, List<Enrollment>> set : enrollmentsGroupedByTe.entrySet() )
+        {
+            if ( !summariesGroupedByReference.containsKey( set.getKey() ) )
+            {
+                continue;
+            }
+
+            ImportSummary importSummary = summariesGroupedByReference.get( set.getKey() ).get( 0 );
+            ImportSummaries enrollmentSummaries = new ImportSummaries();
+
+            for ( Enrollment enrollment : set.getValue() )
+            {
+                if ( !enrollmentSummariesGroupedByReference.containsKey( enrollment.getEnrollment() ) )
+                {
+                    continue;
+                }
+
+                ImportSummary enrollmentSummary = enrollmentSummariesGroupedByReference.get( enrollment.getEnrollment() ).get( 0 );
+                enrollmentSummaries.addImportSummary( enrollmentSummary );
+            }
+
+            if ( enrollmentImportSummaries.getImportSummaries().isEmpty() )
+            {
+                continue;
+            }
+
+            importSummary.setEnrollments( enrollmentSummaries );
+        }
+    }
 
     private ImportSummaries handleRelationships( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, ImportOptions importOptions )

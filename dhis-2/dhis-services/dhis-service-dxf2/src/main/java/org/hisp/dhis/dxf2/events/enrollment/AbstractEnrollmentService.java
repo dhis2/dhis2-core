@@ -418,6 +418,7 @@ public abstract class AbstractEnrollmentService
         }
 
         ImportSummaries eventImportSummaries = eventService.processEventImport( events, importOptions, null );
+        linkEventSummaries( importSummaries, eventImportSummaries, events );
 
         return importSummaries;
     }
@@ -654,6 +655,7 @@ public abstract class AbstractEnrollmentService
         }
 
         ImportSummaries eventImportSummaries = eventService.processEventImport( events, importOptions, null );
+        linkEventSummaries( importSummaries, eventImportSummaries, events );
 
         return importSummaries;
     }
@@ -909,6 +911,48 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private void linkEventSummaries( ImportSummaries importSummaries, ImportSummaries eventImportSummaries,
+        List<Event> events )
+    {
+        Map<String, List<Event>> eventsGroupedByEnrollment = events.stream()
+            .collect( Collectors.groupingBy( Event::getEnrollment ) );
+
+        Map<String, List<ImportSummary>> summariesGroupedByReference = importSummaries.getImportSummaries().stream()
+            .collect( Collectors.groupingBy( ImportSummary::getReference ) );
+
+        Map<String, List<ImportSummary>> eventSummariesGroupedByReference = eventImportSummaries.getImportSummaries().stream()
+            .collect( Collectors.groupingBy( ImportSummary::getReference ) );
+
+        for ( Map.Entry<String, List<Event>> set : eventsGroupedByEnrollment.entrySet() )
+        {
+            if ( !summariesGroupedByReference.containsKey( set.getKey() ) )
+            {
+                continue;
+            }
+
+            ImportSummary importSummary = summariesGroupedByReference.get( set.getKey() ).get( 0 );
+            ImportSummaries eventSummaries = new ImportSummaries();
+
+            for ( Event event : set.getValue() )
+            {
+                if ( !eventSummariesGroupedByReference.containsKey( event.getEvent() ) )
+                {
+                    continue;
+                }
+
+                ImportSummary enrollmentSummary = eventSummariesGroupedByReference.get( event.getEvent() ).get( 0 );
+                eventSummaries.addImportSummary( enrollmentSummary );
+            }
+
+            if ( eventImportSummaries.getImportSummaries().isEmpty() )
+            {
+                continue;
+            }
+
+            importSummary.setEvents( eventSummaries );
+        }
+    }
 
     private ImportSummaries handleEvents( Enrollment enrollment, ProgramInstance programInstance, ImportOptions importOptions )
     {
