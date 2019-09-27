@@ -182,6 +182,8 @@ public abstract class AbstractEnrollmentService
 
     private CachingMap<String, TrackedEntityAttribute> trackedEntityAttributeCache = new CachingMap<>();
 
+    private CachingMap<String, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstanceCache = new CachingMap<>();
+
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
@@ -386,9 +388,16 @@ public abstract class AbstractEnrollmentService
     @Transactional
     public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
-        List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
+
+        List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments, importSummaries );
+
+        List<Enrollment> validEnrollments = enrollments.stream()
+            .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
+            .collect( Collectors.toList() );
+
+        List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
 
         for ( List<Enrollment> _enrollments : partitions )
         {
@@ -407,6 +416,21 @@ public abstract class AbstractEnrollmentService
         }
 
         return importSummaries;
+    }
+
+    private List<String> checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments, ImportSummaries importSummaries )
+    {
+        List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted(
+            enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() ) );
+
+        for ( String foundEnrollmentUid : foundEnrollments )
+        {
+            ImportSummary is = new ImportSummary( ImportStatus.ERROR,
+                "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier" ).setReference( foundEnrollmentUid ).incrementIgnored();
+            importSummaries.addImportSummary( is );
+        }
+
+        return foundEnrollments;
     }
 
     @Override
@@ -550,7 +574,7 @@ public abstract class AbstractEnrollmentService
 
             Set<Enrollment> activeEnrollments = enrollments.stream()
                 .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE )
-                .collect( Collectors.toSet());
+                .collect( Collectors.toSet() );
 
             // When an enrollment with status COMPLETED or CANCELLED is being imported, no check whether there is already some ACTIVE one is needed
             if ( !activeEnrollments.isEmpty() && enrollment.getStatus() == EnrollmentStatus.ACTIVE )
@@ -569,7 +593,7 @@ public abstract class AbstractEnrollmentService
 
                 Set<Enrollment> activeOrCompletedEnrollments = enrollments.stream()
                     .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE || e.getStatus() == EnrollmentStatus.COMPLETED )
-                    .collect( Collectors.toSet());
+                    .collect( Collectors.toSet() );
 
                 if ( !activeOrCompletedEnrollments.isEmpty() )
                 {
@@ -938,6 +962,16 @@ public abstract class AbstractEnrollmentService
             query.setUser( user );
             query.add( Restrictions.in( "id", trackedEntityAttributes ) );
             queryService.query( query ).forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
+        }
+
+        Collection<String> trackedEntityInstances = enrollments.stream().map( Enrollment::getTrackedEntityInstance ).collect( Collectors.toList() );
+
+        if ( !trackedEntityInstances.isEmpty() )
+        {
+            Query query = Query.from( schemaService.getDynamicSchema( org.hisp.dhis.trackedentity.TrackedEntityInstance.class ) );
+            query.setUser( user );
+            query.add( Restrictions.in( "id", trackedEntityInstances ) );
+            queryService.query( query ).forEach( te -> trackedEntityInstanceCache.put( te.getUid(), (org.hisp.dhis.trackedentity.TrackedEntityInstance) te ) );
         }
     }
 

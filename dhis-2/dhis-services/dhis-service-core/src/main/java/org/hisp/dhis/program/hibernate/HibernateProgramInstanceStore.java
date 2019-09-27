@@ -48,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -224,6 +225,24 @@ public class HibernateProgramInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @Override
+    public List<String> getUidsIncludingDeleted( List<String> uids )
+    {
+        String hql = "select te.uid from TrackedEntityInstance as te where te.uid in (:uids)";
+        List<String> resultUids = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return resultUids;
     }
 
 
