@@ -28,6 +28,7 @@ package org.hisp.dhis.trackedentity.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,7 +55,14 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
@@ -79,7 +87,7 @@ public class HibernateTrackedEntityInstanceStore
 
     private StatementBuilder statementBuilder;
     private OrganisationUnitStore organisationUnitStore;
-    
+
     public void setStatementBuilder( StatementBuilder statementBuilder )
     {
         this.statementBuilder = statementBuilder;
@@ -144,17 +152,17 @@ public class HibernateTrackedEntityInstanceStore
 
         //Used for switing between registration org unit or ownership org unit. Default source is registration ou.
         String teiOuSource = "tei.organisationUnit";
-        
+
         if ( params.hasProgram() )
         {
             hql += "left join fetch tei.programInstances as pi ";
-            
+
             //Joining program owners and using that as tei ou source
             hql += "inner join fetch tei.programOwners as po ";
             teiOuSource = "po.organisationUnit";
 
             hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
-            
+
             hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
 
             if ( params.hasProgramStatus() )
@@ -211,7 +219,7 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() +  "tei.lastUpdated >= '" +
+            hql += hlp.whereAnd() + "tei.lastUpdated >= '" +
                 getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
         else
@@ -451,7 +459,7 @@ public class HibernateTrackedEntityInstanceStore
 
         String sql = "from trackedentityinstance tei "
             + "inner join trackedentitytype te on tei.trackedentitytypeid = te.trackedentitytypeid ";
-        
+
         String teiOuSource = "tei.organisationunitid";
 
         if ( params.hasProgram() )
@@ -460,22 +468,22 @@ public class HibernateTrackedEntityInstanceStore
             sql += "inner join (select trackedentityinstanceid, organisationunitid from trackedentityprogramowner where programid = ";
             sql += params.getProgram().getId() + ") as tepo ON tei.trackedentityinstanceid = tepo.trackedentityinstanceid ";
             teiOuSource = "tepo.organisationunitid";
-            
+
             sql += "inner join ("
                 + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
                 + "from programinstance pi ";
-            
+
             if ( params.hasEventStatus() )
             {
                 sql += " inner join (select programinstanceid from programstageinstance psi ";
 
                 sql += getEventStatusWhereClause( params );
-                
+
                 sql += ") as psi on pi.programinstanceid = psi.programinstanceid ";
             }
 
             sql += " where pi.programid= " + params.getProgram().getId() + " ";
-            
+
             if ( params.hasProgramStatus() )
             {
                 sql += "and status = '" + params.getProgramStatus() + "' ";
@@ -698,7 +706,7 @@ public class HibernateTrackedEntityInstanceStore
             sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '"
                 + EventStatus.SKIPPED.name() + "' and ";
         }
-        
+
         sql += " psi.deleted is false ";
 
         return sql;
@@ -716,6 +724,24 @@ public class HibernateTrackedEntityInstanceStore
     {
         Integer result = jdbcTemplate.queryForObject( "select count(*) from trackedentityinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
+    }
+
+    @Override
+    public List<String> getUidsIncludingDeleted( List<String> uids )
+    {
+        String hql = "select te.uid from TrackedEntityInstance as te where te.uid in (:uids)";
+        List<String> resultUids = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return resultUids;
     }
 
     @Override
@@ -759,8 +785,8 @@ public class HibernateTrackedEntityInstanceStore
     {
         if ( uid != null )
         {
-            return  Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
-                    .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
+            return Optional.ofNullable( organisationUnitStore.getByUid( uid ) )
+                .orElseGet( () -> new OrganisationUnit( "" ) ).getName();
         }
 
         return StringUtils.EMPTY;
