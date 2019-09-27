@@ -923,6 +923,12 @@ public class DefaultTrackedEntityInstanceService
         return trackedEntityInstanceStore.existsIncludingDeleted( uid );
     }
 
+    @Override
+    public List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids )
+    {
+        return trackedEntityInstanceStore.getUidsIncludingDeleted( uids );
+    }
+
     private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
         Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
