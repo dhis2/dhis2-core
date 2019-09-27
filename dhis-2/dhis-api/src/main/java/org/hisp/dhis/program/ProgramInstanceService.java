@@ -108,6 +108,8 @@ public interface ProgramInstanceService
      */
     boolean programInstanceExistsIncludingDeleted( String uid );
 
+    List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids );
+
     /**
      * Returns a ProgramInstanceQueryParams based on the given input.
      *
