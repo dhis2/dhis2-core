@@ -56,6 +56,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -123,8 +124,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
-        JSON_MAPPER.registerModules( module, new JtsModule(  ) );
-        XML_MAPPER.registerModules( module, new JtsModule(  ) );
+        JSON_MAPPER.registerModules( module, new JtsModule() );
+        XML_MAPPER.registerModules( module, new JtsModule() );
     }
 
     // -------------------------------------------------------------------------
@@ -165,16 +166,19 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
     }
 
-    private List<TrackedEntityInstance> parseJsonTrackedEntityInstances ( String input ) throws IOException {
+    private List<TrackedEntityInstance> parseJsonTrackedEntityInstances( String input ) throws IOException
+    {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
         JsonNode root = JSON_MAPPER.readTree( input );
 
-        if ( root.get( "trackedEntityInstances" ) != null ) {
+        if ( root.get( "trackedEntityInstances" ) != null )
+        {
             TrackedEntityInstances fromJson = fromJson( input, TrackedEntityInstances.class );
             trackedEntityInstances.addAll( fromJson.getTrackedEntityInstances() );
         }
-        else {
+        else
+        {
             TrackedEntityInstance fromJson = fromJson( input, TrackedEntityInstance.class );
             trackedEntityInstances.add( fromJson );
         }
@@ -182,7 +186,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         return trackedEntityInstances;
     }
 
-    private List<TrackedEntityInstance> parseXmlTrackedEntityInstances ( String input ) throws IOException {
+    private List<TrackedEntityInstance> parseXmlTrackedEntityInstances( String input ) throws IOException
+    {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
         try
@@ -220,7 +225,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
                 tei.getRelationships().forEach( rel ->
                 {
                     // Update from if it is empty. Current tei is then "from"
-                    if( rel.getFrom() == null )
+                    if ( rel.getFrom() == null )
                     {
                         rel.setFrom( item );
                     }
@@ -234,10 +239,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         }
         else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
         {
-            for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
-            {
-                sortCreatesAndUpdates( trackedEntityInstance, create, update );
-            }
+            sortCreatesAndUpdates( trackedEntityInstances, create, update );
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
         {
@@ -267,7 +269,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
 
         //TODO: Created importSummaries don't contain correct href (TEI endpoint instead of relationships is used)
-        importSummaries.addImportSummaries( relationshipService.processRelationshipList( relationships, importOptions ));
+        importSummaries.addImportSummaries( relationshipService.processRelationshipList( relationships, importOptions ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
@@ -275,6 +277,24 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         }
 
         return importSummaries;
+    }
+
+    private void sortCreatesAndUpdates( List<TrackedEntityInstance> trackedEntityInstances, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
+    {
+        List<String> ids = trackedEntityInstances.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() );
+        List<String> existingUids = teiService.getTrackedEntityInstancesUidsIncludingDeleted( ids );
+
+        for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+        {
+            if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) || !existingUids.contains( trackedEntityInstance.getTrackedEntityInstance() ) )
+            {
+                create.add( trackedEntityInstance );
+            }
+            else
+            {
+                update.add( trackedEntityInstance );
+            }
+        }
     }
 
     private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
