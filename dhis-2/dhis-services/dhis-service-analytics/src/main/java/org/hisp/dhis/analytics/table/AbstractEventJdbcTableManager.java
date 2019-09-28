@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.ColumnDataType;
 import org.hisp.dhis.common.ValueType;
@@ -143,5 +144,24 @@ public abstract class AbstractEventJdbcTableManager
         }
 
         return null;
+    }
+
+    protected String addClosingParentheses( String selectSql )
+    {
+        int open = 0;
+
+        for ( int i = 0; i < selectSql.length(); i++ )
+        {
+            if ( selectSql.charAt( i ) == '(' )
+            {
+                open++;
+            }
+            else if ( selectSql.charAt( i ) == ')' )
+            {
+                open--;
+            }
+
+        }
+        return StringUtils.repeat(")", open);
     }
 }
