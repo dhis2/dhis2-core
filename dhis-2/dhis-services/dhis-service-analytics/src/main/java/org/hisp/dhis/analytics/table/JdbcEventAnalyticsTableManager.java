@@ -268,8 +268,10 @@ public class JdbcEventAnalyticsTableManager
             String select = getSelectClause( attribute.getValueType() );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
-            String sql = "(select " + select + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ") as " + quote( attribute.getUid() );
+            String sql = "(select " + select
+                + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid "
+                + "and trackedentityattributeid=" + attribute.getId() + dataClause + ")"
+                + addClosingParentheses( select ) + " as " + quote( attribute.getUid() );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql, skipIndex ) );
         }
@@ -339,24 +341,5 @@ public class JdbcEventAnalyticsTableManager
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );
-    }
-
-    private String addClosingParentheses( String selectSql )
-    {
-        int open = 0;
-
-        for ( int i = 0; i < selectSql.length(); i++ )
-        {
-            if ( selectSql.charAt( i ) == '(' )
-            {
-                open++;
-            }
-            else if ( selectSql.charAt( i ) == ')' )
-            {
-                open--;
-            }
-
-        }
-        return StringUtils.repeat(")", open);
     }
 }
