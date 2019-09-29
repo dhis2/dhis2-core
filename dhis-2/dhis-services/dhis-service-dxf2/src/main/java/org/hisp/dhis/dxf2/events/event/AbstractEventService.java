@@ -1206,7 +1206,8 @@ public abstract class AbstractEventService
         programStageInstance.setDeleted( event.isDeleted() );
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );        
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );        
+        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        sendProgramNotification( programStageInstance, importOptions );
         updateTrackedEntityInstance( programStageInstance, user, bulkUpdate );
 
         Set<TrackedEntityDataValue> dataValues = new HashSet<>(
