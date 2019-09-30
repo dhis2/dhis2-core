@@ -400,7 +400,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 ImportSummary importSummary = addTrackedEntityInstance( trackedEntityInstance, importOptions, false );
                 importSummaries.addImportSummary( importSummary );
 
-                if ( importSummary.getConflicts().isEmpty() )
+                if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
                     enrollments.addAll( trackedEntityInstance.getEnrollments() );
                 }
@@ -542,7 +542,7 @@ public abstract class AbstractTrackedEntityInstanceService
                 ImportSummary importSummary = updateTrackedEntityInstance( trackedEntityInstance, null, importOptions, false, false );
                 importSummaries.addImportSummary( importSummary );
 
-                if ( importSummary.getConflicts().isEmpty() )
+                if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
                     enrollments.addAll( trackedEntityInstance.getEnrollments() );
                 }
@@ -781,6 +781,8 @@ public abstract class AbstractTrackedEntityInstanceService
     private void linkEnrollmentSummaries( ImportSummaries importSummaries, ImportSummaries enrollmentImportSummaries,
         List<Enrollment> enrollments )
     {
+        importSummaries.getImportSummaries().forEach( is -> is.setEnrollments( new ImportSummaries() ) );
+
         Map<String, List<Enrollment>> enrollmentsGroupedByTe = enrollments.stream()
             .filter( en -> !org.springframework.util.StringUtils.isEmpty( en.getTrackedEntityInstance() ) )
             .collect( Collectors.groupingBy( Enrollment::getTrackedEntityInstance ) );

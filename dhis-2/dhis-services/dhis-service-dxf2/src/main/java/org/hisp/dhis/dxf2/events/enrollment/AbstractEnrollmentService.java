@@ -401,7 +401,7 @@ public abstract class AbstractEnrollmentService
                 ImportSummary importSummary = addEnrollment( enrollment, importOptions, daoTrackedEntityInstance, false );
                 importSummaries.addImportSummary( importSummary );
 
-                if ( importSummary.getConflicts().isEmpty() )
+                if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
                     events.addAll( enrollment.getEvents() );
                 }
@@ -414,6 +414,7 @@ public abstract class AbstractEnrollmentService
         }
 
         ImportSummaries eventImportSummaries = eventService.processEventImport( events, importOptions, null );
+        System.err.println( "ev: " + eventImportSummaries );
         linkEventSummaries( importSummaries, eventImportSummaries, events );
 
         return importSummaries;
@@ -719,7 +720,7 @@ public abstract class AbstractEnrollmentService
                 ImportSummary importSummary = updateEnrollment( enrollment, importOptions, false );
                 importSummaries.addImportSummary( importSummary );
 
-                if ( importSummary.getConflicts().isEmpty() )
+                if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
                     events.addAll( enrollment.getEvents() );
                 }
@@ -1021,6 +1022,8 @@ public abstract class AbstractEnrollmentService
     private void linkEventSummaries( ImportSummaries importSummaries, ImportSummaries eventImportSummaries,
         List<Event> events )
     {
+        importSummaries.getImportSummaries().forEach( is -> is.setEvents( new ImportSummaries() ) );
+
         Map<String, List<Event>> eventsGroupedByEnrollment = events.stream()
             .filter( ev -> !StringUtils.isEmpty( ev.getEnrollment() ) )
             .collect( Collectors.groupingBy( Event::getEnrollment ) );
