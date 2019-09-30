@@ -74,7 +74,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -166,19 +166,11 @@ public class JdbcEventStore
         List<Event> events = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-
-        CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
-        CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
-
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, rowSet, isSuperUser );
 
         log.debug( "Event query SQL: " + sql );
 
         Set<String> notes = new HashSet<>();
-
-        IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
 
         while ( rowSet.next() )
         {
@@ -278,14 +270,10 @@ public class JdbcEventStore
             if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
             {
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
-                Map<String, String> dataElementsUidToIdentifier =
-                    getDataElementsUidToIdentifier( eventDataValues, idSchemes.getDataElementIdScheme(),
-                        dataElementToCodeCache, dataElementToAttributeCache );
 
                 for( EventDataValue dv : eventDataValues )
                 {
-                    DataValue dataValue = convertEventDataValueIntoDtoDataValue( dv, dataElementsUidToIdentifier,
-                        idSchemes.getDataElementIdScheme() );
+                    DataValue dataValue = convertEventDataValueIntoDtoDataValue( dv );
 
                     if ( params.isSynchronizationQuery() )
                     {
@@ -315,6 +303,18 @@ public class JdbcEventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
+        }
+
+        IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
+        IdScheme dataElementIdScheme = idSchemes.getDataElementIdScheme();
+
+        if ( dataElementIdScheme != IdScheme.ID && dataElementIdScheme != IdScheme.UID )
+        {
+            CachingMap<String, String> dataElementUidToIdentifierCache = new CachingMap<>();
+
+            List<Collection<DataValue>> dataValuesList = events.stream().map( e -> (Set<DataValue>) e.getDataValues() ).collect( Collectors.toList() );
+            populateCache( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
+            convertDataValuesIdentifiers( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
         }
 
         if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
@@ -375,13 +375,7 @@ public class JdbcEventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
-
-        CachingMap<String, DataElement> dataElementToCodeCache = new CachingMap<>();
-        CachingMap<String, String> dataElementToAttributeCache = new CachingMap<>();
-
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        populateCaches( params, dataElementToCodeCache, dataElementToAttributeCache, rowSet, isSuperUser );
 
         log.debug( "Event query SQL: " + sql );
 
@@ -390,8 +384,6 @@ public class JdbcEventStore
         eventRow.setEvent( "not_valid" );
 
         Set<String> notes = new HashSet<>();
-
-        IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
 
         Map<String, List<DataValue>> processedDataValues = new HashMap<>();
 
@@ -456,14 +448,10 @@ public class JdbcEventStore
             {
                 List<DataValue> dataValues = new ArrayList<>();
                 Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
-                Map<String, String> dataElementsUidToIdentifier =
-                    getDataElementsUidToIdentifier( eventDataValues, idSchemes.getDataElementIdScheme(),
-                        dataElementToCodeCache, dataElementToAttributeCache );
 
                 for( EventDataValue dv : eventDataValues )
                 {
-                    dataValues.add( convertEventDataValueIntoDtoDataValue( dv, dataElementsUidToIdentifier,
-                        idSchemes.getDataElementIdScheme() ) );
+                    dataValues.add( convertEventDataValueIntoDtoDataValue( dv ) );
                 }
                 processedDataValues.put(rowSet.getString( "psi_uid"), dataValues);
             }
@@ -481,62 +469,21 @@ public class JdbcEventStore
             }
         }
         eventRows.forEach( e -> e.setDataValues( processedDataValues.get( e.getUid() ) ) );
+
+        IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
+        IdScheme dataElementIdScheme = idSchemes.getDataElementIdScheme();
+
+        if ( dataElementIdScheme != IdScheme.ID && dataElementIdScheme != IdScheme.UID )
+        {
+            CachingMap<String, String> dataElementUidToIdentifierCache = new CachingMap<>();
+
+            List<Collection<DataValue>> dataValuesList = eventRows.stream().map( EventRow::getDataValues ).collect( Collectors.toList() );
+            populateCache( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
+            convertDataValuesIdentifiers( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
+        }
+
+
         return eventRows;
-    }
-
-    private Map<String, String> getDataElementsUidToIdentifier( Set<EventDataValue> eventDataValues, IdScheme idScheme,
-        CachingMap<String, DataElement> dataElementToCodeCache, CachingMap<String, String> dataElementToAttributeCache )
-    {
-        if ( idScheme == IdScheme.ID || idScheme == IdScheme.UID )
-        {
-            return Collections.emptyMap();
-        }
-        else if ( idScheme.isAttribute() )
-        {
-            return getDataElementsUidToAttribute( eventDataValues, dataElementToAttributeCache );
-        }
-        else
-        {
-            return getDataElementsUidToCode( eventDataValues, dataElementToCodeCache );
-        }
-    }
-
-    private Map<String, String> getDataElementsUidToCode( Set<EventDataValue> eventDataValues,
-        CachingMap<String, DataElement> dataElementToCodeCache )
-    {
-        //Get mapping only when needed
-        Map<String, String> dataElementsUidToCode = new HashMap<>();
-
-        List<String> dataElementUids = eventDataValues.stream()
-            .map( EventDataValue::getDataElement )
-            .collect( Collectors.toList() );
-
-        for ( String uid : dataElementUids )
-        {
-            //Cache is pre-populated
-            DataElement de = dataElementToCodeCache.get( uid, dataElementCallable.setId( uid ) );
-
-            if ( de == null )
-            {
-                throw new IllegalStateException( "No Data element for UID: " + uid + " was found." );
-            }
-            dataElementsUidToCode.put( uid, de.getCode() );
-        }
-
-        return dataElementsUidToCode;
-    }
-
-    private Map<String, String> getDataElementsUidToAttribute( Set<EventDataValue> eventDataValues,
-        CachingMap<String, String> dataElementToAttributeCache )
-    {
-        Map<String, String> dataElementsUidToAttribute = new HashMap<>();
-        List<String> dataElementsUids = eventDataValues.stream()
-            .map( EventDataValue::getDataElement )
-            .collect( Collectors.toList());
-
-        dataElementsUids.forEach( uid -> dataElementsUidToAttribute.put( uid, dataElementToAttributeCache.get( uid ) ) );
-
-        return dataElementsUidToAttribute;
     }
 
     private String getIdSqlBasedOnIdScheme( IdScheme idScheme, String uidSql, String attributeSql, String codeSql )
@@ -651,34 +598,15 @@ public class JdbcEventStore
         return jdbcTemplate.queryForObject( sql, Integer.class );
     }
 
-    private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue,
-        Map<String, String> dataElementsUidToIdentifier, IdScheme idScheme )
+private DataValue convertEventDataValueIntoDtoDataValue( EventDataValue eventDataValue )
     {
         DataValue dataValue = new DataValue();
         dataValue.setCreated( DateUtils.getIso8601NoTz( eventDataValue.getCreated() ) );
         dataValue.setLastUpdated( DateUtils.getIso8601NoTz( eventDataValue.getLastUpdated() ) );
+        dataValue.setDataElement( eventDataValue.getDataElement() );
         dataValue.setValue( eventDataValue.getValue() );
         dataValue.setProvidedElsewhere( eventDataValue.getProvidedElsewhere() );
         dataValue.setStoredBy( eventDataValue.getStoredBy() );
-
-        String deUid = eventDataValue.getDataElement();
-
-        if ( idScheme == IdScheme.ID || idScheme == IdScheme.UID )
-        {
-            dataValue.setDataElement( deUid );
-        }
-        else
-        {
-            String deIdentifier = dataElementsUidToIdentifier.get( deUid );
-
-            if ( deIdentifier == null )
-            {
-                throw new IllegalStateException(
-                    "DataElement: " + deUid + " does not have a value assigned for idScheme " + idScheme.name() );
-            }
-
-            dataValue.setDataElement( deIdentifier );
-        }
 
         return dataValue;
     }
@@ -1402,54 +1330,57 @@ public class JdbcEventStore
         }
     }
 
-    private void populateCaches( EventSearchParams params, CachingMap<String, DataElement> dataElementToCodeCache,
-        CachingMap<String, String> dataElementToAttributeCache, SqlRowSet rowSet, boolean isSuperUser )
+    private void convertDataValuesIdentifiers( IdScheme idScheme, List<Collection<DataValue>> dataValuesList,
+        CachingMap<String, String> dataElementUidToIdentifierCache )
     {
-        IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
-        IdScheme idScheme = idSchemes.getDataElementIdScheme();
-
-        if ( idScheme == IdScheme.ID || idScheme == IdScheme.UID )
+        for ( Collection<DataValue> dataValues : dataValuesList )
         {
-            return;
-        }
+            for ( DataValue dv : dataValues )
+            {
+                String deUid = dv.getDataElement();
+                String deIdentifier = dataElementUidToIdentifierCache.get( deUid );
 
+                if ( deIdentifier == null )
+                {
+                    throw new IllegalStateException(
+                        "DataElement: " + deUid + " does not have a value assigned for idScheme " + idScheme.name() );
+                }
+
+                dv.setDataElement( deIdentifier );
+            }
+        }
+    }
+
+private void populateCache( IdScheme idScheme, List<Collection<DataValue>> dataValuesList, CachingMap<String, String> dataElementUidToIdentifierCache )
+    {
         Set<String> deUids = new HashSet<>();
 
-        while ( rowSet.next() )
+        for ( Collection<DataValue> dataValues : dataValuesList )
         {
-            if ( ( params.getCategoryOptionCombo() == null && !isSuperUser && !userHasAccess( rowSet ) ) )
+            for ( DataValue dv : dataValues )
             {
-                continue;
-            }
-
-            if ( !org.springframework.util.StringUtils.isEmpty( rowSet.getString( "psi_eventdatavalues" ) ) )
-            {
-                Set<EventDataValue> eventDataValues = convertEventDataValueJsonIntoSet( rowSet.getString( "psi_eventdatavalues" ) );
-                eventDataValues.forEach( edv -> deUids.add( edv.getDataElement() ) );
+                deUids.add( dv.getDataElement() );
             }
         }
-
-        rowSet.beforeFirst();
 
         if ( !idScheme.isAttribute() )
         {
             List<DataElement> dataElements = manager.get( DataElement.class, deUids );
-            dataElements.forEach( de -> dataElementToCodeCache.put( de.getUid(), de ) );
+            dataElements.forEach( de -> dataElementUidToIdentifierCache.put( de.getUid(), de.getCode() ) );
         }
         else
         {
             String dataElementsUidsSqlString = deUids.stream().collect( Collectors.joining( "', '", "'", "'" ) );
 
-            String deSql = "select de.uid, av.value " +
-                "from dataelement de join dataelementattributevalues deav on de.dataelementid = deav.dataelementid " +
-                "join attributevalue av on av.attributevalueid = deav.attributevalueid " + "where de.uid in (" +
-                dataElementsUidsSqlString + ")";
+            String deSql = "select de.uid, de.attributevalues #>> '{" + idScheme.getAttribute() + ", value}' as value " +
+                "from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") " +
+                "and de.attributevalues ? '" + idScheme.getAttribute() + "'";
 
             SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
 
             while ( deRowSet.next() )
             {
-                dataElementToAttributeCache.put( deRowSet.getString( "uid" ), deRowSet.getString( "value" ) );
+                dataElementUidToIdentifierCache.put( deRowSet.getString( "uid" ), deRowSet.getString( "value" ) );
             }
         }
     }
