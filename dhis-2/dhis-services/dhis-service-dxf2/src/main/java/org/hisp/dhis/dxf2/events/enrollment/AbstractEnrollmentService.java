@@ -957,6 +957,8 @@ public abstract class AbstractEnrollmentService
     private void linkEventSummaries( ImportSummaries importSummaries, ImportSummaries eventImportSummaries,
         List<Event> events )
     {
+        importSummaries.getImportSummaries().forEach( is -> is.setEvents( new ImportSummaries() ) );
+
         Map<String, List<Event>> eventsGroupedByEnrollment = events.stream()
             .filter( ev -> !StringUtils.isEmpty( ev.getEnrollment() ) )
             .collect( Collectors.groupingBy( Event::getEnrollment ) );
