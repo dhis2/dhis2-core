@@ -62,7 +62,6 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.system.callable.IdentifiableObjectCallable;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -125,8 +124,6 @@ public class JdbcEventStore
 
     private final IdentifiableObjectManager manager;
 
-    private final IdentifiableObjectCallable<DataElement> dataElementCallable;
-
     public JdbcEventStore( StatementBuilder statementBuilder, @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
         CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager )
     {
@@ -139,7 +136,6 @@ public class JdbcEventStore
         this.jdbcTemplate = jdbcTemplate;
         this.currentUserService = currentUserService;
         this.manager = identifiableObjectManager;
-        this.dataElementCallable = new IdentifiableObjectCallable<>( manager, DataElement.class, IdScheme.UID, null );
     }
 
     // -------------------------------------------------------------------------
