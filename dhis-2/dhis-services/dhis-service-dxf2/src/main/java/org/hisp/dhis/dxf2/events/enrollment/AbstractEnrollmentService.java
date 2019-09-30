@@ -376,7 +376,8 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
+    public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
@@ -388,6 +389,7 @@ public abstract class AbstractEnrollmentService
             .collect( Collectors.toList() );
 
         List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
+        List<Event> events = new ArrayList<>();
 
         for ( List<Enrollment> _enrollments : partitions )
         {
@@ -396,7 +398,13 @@ public abstract class AbstractEnrollmentService
 
             for ( Enrollment enrollment : _enrollments )
             {
-                importSummaries.addImportSummary( addEnrollment( enrollment, importOptions, daoTrackedEntityInstance ) );
+                ImportSummary importSummary = addEnrollment( enrollment, importOptions, daoTrackedEntityInstance, false );
+                importSummaries.addImportSummary( importSummary );
+
+                if ( importSummary.getConflicts().isEmpty() )
+                {
+                    events.addAll( enrollment.getEvents() );
+                }
             }
 
             if ( clearSession && enrollments.size() >= FLUSH_FREQUENCY )
@@ -404,6 +412,9 @@ public abstract class AbstractEnrollmentService
                 clearSession();
             }
         }
+
+        ImportSummaries eventImportSummaries = eventService.processEventImport( events, importOptions, null );
+        linkEventSummaries( importSummaries, eventImportSummaries, events );
 
         return importSummaries;
     }
@@ -430,7 +441,14 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
+    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
+    {
+        return addEnrollment( enrollment, importOptions, daoTrackedEntityInstance, true );
+    }
+
+    private ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean handleEvents )
     {
         importOptions = updateImportOptions( importOptions );
 
@@ -524,7 +542,19 @@ public abstract class AbstractEnrollmentService
         importSummary.setReference( programInstance.getUid() );
         importSummary.getImportCount().incrementImported();
 
-        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+        if ( handleEvents )
+        {
+            importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+        }
+        else
+        {
+            for ( Event event : enrollment.getEvents() )
+            {
+                event.setEnrollment( enrollment.getEnrollment() );
+                event.setProgram( programInstance.getProgram().getUid() );
+                event.setTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
+            }
+        }
 
         return importSummary;
     }
@@ -676,6 +706,7 @@ public abstract class AbstractEnrollmentService
         List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
+        List<Event> events = new ArrayList<>();
 
         for ( List<Enrollment> _enrollments : partitions )
         {
@@ -684,7 +715,13 @@ public abstract class AbstractEnrollmentService
 
             for ( Enrollment enrollment : _enrollments )
             {
-                importSummaries.addImportSummary( updateEnrollment( enrollment, importOptions ) );
+                ImportSummary importSummary = updateEnrollment( enrollment, importOptions, false );
+                importSummaries.addImportSummary( importSummary );
+
+                if ( importSummary.getConflicts().isEmpty() )
+                {
+                    events.addAll( enrollment.getEvents() );
+                }
             }
 
             if ( clearSession && enrollments.size() >= FLUSH_FREQUENCY )
@@ -693,11 +730,19 @@ public abstract class AbstractEnrollmentService
             }
         }
 
+        ImportSummaries eventImportSummaries = eventService.processEventImport( events, importOptions, null );
+        linkEventSummaries( importSummaries, eventImportSummaries, events );
+
         return importSummaries;
     }
 
     @Override
     public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    {
+        return updateEnrollment( enrollment, importOptions, true );
+    }
+
+    private ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, boolean handleEvents )
     {
         importOptions = updateImportOptions( importOptions );
 
@@ -821,7 +866,19 @@ public abstract class AbstractEnrollmentService
         importSummary = new ImportSummary( enrollment.getEnrollment() ).incrementUpdated();
         importSummary.setReference( enrollment.getEnrollment() );
 
-        importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+        if ( handleEvents )
+        {
+            importSummary.setEvents( handleEvents( enrollment, programInstance, importOptions ) );
+        }
+        else
+        {
+            for ( Event event : enrollment.getEvents() )
+            {
+                event.setEnrollment( enrollment.getEnrollment() );
+                event.setProgram( programInstance.getProgram().getUid() );
+                event.setTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
+            }
+        }
 
         return importSummary;
     }
@@ -959,6 +1016,51 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
+
+    private void linkEventSummaries( ImportSummaries importSummaries, ImportSummaries eventImportSummaries,
+        List<Event> events )
+    {
+        Map<String, List<Event>> eventsGroupedByEnrollment = events.stream()
+            .filter( ev -> !StringUtils.isEmpty( ev.getEnrollment() ) )
+            .collect( Collectors.groupingBy( Event::getEnrollment ) );
+
+        Map<String, List<ImportSummary>> summariesGroupedByReference = importSummaries.getImportSummaries().stream()
+            .filter( ev -> !StringUtils.isEmpty( ev.getReference() ) )
+            .collect( Collectors.groupingBy( ImportSummary::getReference ) );
+
+        Map<String, List<ImportSummary>> eventSummariesGroupedByReference = eventImportSummaries.getImportSummaries().stream()
+            .filter( ev -> !StringUtils.isEmpty( ev.getReference() ) )
+            .collect( Collectors.groupingBy( ImportSummary::getReference ) );
+
+        for ( Map.Entry<String, List<Event>> set : eventsGroupedByEnrollment.entrySet() )
+        {
+            if ( !summariesGroupedByReference.containsKey( set.getKey() ) )
+            {
+                continue;
+            }
+
+            ImportSummary importSummary = summariesGroupedByReference.get( set.getKey() ).get( 0 );
+            ImportSummaries eventSummaries = new ImportSummaries();
+
+            for ( Event event : set.getValue() )
+            {
+                if ( !eventSummariesGroupedByReference.containsKey( event.getEvent() ) )
+                {
+                    continue;
+                }
+
+                ImportSummary enrollmentSummary = eventSummariesGroupedByReference.get( event.getEvent() ).get( 0 );
+                eventSummaries.addImportSummary( enrollmentSummary );
+            }
+
+            if ( eventImportSummaries.getImportSummaries().isEmpty() )
+            {
+                continue;
+            }
+
+            importSummary.setEvents( eventSummaries );
+        }
+    }
 
     private ImportSummaries handleEvents( Enrollment enrollment, ProgramInstance programInstance, ImportOptions importOptions )
     {
