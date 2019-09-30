@@ -413,7 +413,6 @@ public abstract class AbstractEnrollmentService
         }
 
         ImportSummaries eventImportSummaries = eventService.processEventImport( events, importOptions, null );
-        System.err.println( "ev: " + eventImportSummaries );
         linkEventSummaries( importSummaries, eventImportSummaries, events );
 
         return importSummaries;
