@@ -791,11 +791,11 @@ public abstract class AbstractTrackedEntityInstanceService
             .collect( Collectors.groupingBy( Enrollment::getTrackedEntityInstance ) );
 
         Map<String, List<ImportSummary>> summariesGroupedByReference = importSummaries.getImportSummaries().stream()
-            .filter( en -> !org.springframework.util.StringUtils.isEmpty( en.getReference() ) )
+            .filter( en -> !StringUtils.isEmpty( en.getReference() ) )
             .collect( Collectors.groupingBy( ImportSummary::getReference ) );
 
         Map<String, List<ImportSummary>> enrollmentSummariesGroupedByReference = enrollmentImportSummaries.getImportSummaries().stream()
-            .filter( en -> !org.springframework.util.StringUtils.isEmpty( en.getReference() ) )
+            .filter( en -> !StringUtils.isEmpty( en.getReference() ) )
             .collect( Collectors.groupingBy( ImportSummary::getReference ) );
 
         for ( Map.Entry<String, List<Enrollment>> set : enrollmentsGroupedByTe.entrySet() )
