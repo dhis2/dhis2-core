@@ -190,6 +190,7 @@ public class DefaultProgramInstanceService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids )
     {
         return programInstanceStore.getUidsIncludingDeleted( uids );

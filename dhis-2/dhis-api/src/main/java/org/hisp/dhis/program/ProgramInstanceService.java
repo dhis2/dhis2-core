@@ -108,6 +108,12 @@ public interface ProgramInstanceService
      */
     boolean programInstanceExistsIncludingDeleted( String uid );
 
+    /**
+     * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
+     *
+     * @param uids PSI UIDs to check
+     * @return Set containing UIDs of existing PSIs (including deleted)
+     */
     List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids );
 
     /**
