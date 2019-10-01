@@ -114,8 +114,6 @@ public class DefaultDataQueryService
     // DataQueryService implementation
     // -------------------------------------------------------------------------
 
-    // TODO introduce ExternalDataQueryParams and replace individual parameters
-
     @Override
     public DataQueryParams getFromRequest( DataQueryRequest request )
     {
@@ -281,7 +279,6 @@ public class DefaultDataQueryService
                         dataDimensionItems.addAll( group.getMembers() );
                         dimensionalKeywords.addGroupBy(group);
                     }
-
                 }
                 else
                 {
