@@ -230,7 +230,7 @@ public class HibernateProgramInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        String hql = "select te.uid from TrackedEntityInstance as te where te.uid in (:uids)";
+        String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
