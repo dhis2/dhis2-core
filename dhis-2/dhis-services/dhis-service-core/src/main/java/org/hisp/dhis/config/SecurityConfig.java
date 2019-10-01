@@ -187,10 +187,4 @@ public class SecurityConfig
     {
         return auth.getOrBuild();
     }
-
-    @Bean( "sessionRegistry" )
-    public SessionRegistry sessionRegistry()
-    {
-        return new SessionRegistryImpl();
-    }
 }
