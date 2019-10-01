@@ -85,4 +85,14 @@ public interface ExprItem
      * @return the generated SQL (as a String) for the function
      */
     Object getSql( ItemContext ctx, CommonExpressionVisitor visitor );
+
+    /**
+     * Regenerates the original expression from the parse tree,
+     * or substitutes a value if one is present.
+     *
+     * @param ctx the expression context
+     * @param visitor the tree visitor
+     * @return the regenerated expression (as a String) for the function
+     */
+    Object regenerate( ItemContext ctx, CommonExpressionVisitor visitor );
 }

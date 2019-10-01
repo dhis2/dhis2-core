@@ -29,23 +29,24 @@ package org.hisp.dhis.parser.expression.function;
  */
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExprFunction;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
- * Expression function If
+ * Function if
  *
  * @author Jim Grace
  */
 public class FunctionIf
-    implements ExprFunction
+    extends ScalarFunction
 {
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.castBooleanVisit( ctx.expr( 0 ) )
+        Boolean arg0 = visitor.castBooleanVisit( ctx.expr( 0 ) );
+
+        return arg0 != null && arg0
             ? visitor.visit( ctx.expr( 1 ) )
             : visitor.visit( ctx.expr( 2 ) );
     }
@@ -62,7 +63,7 @@ public class FunctionIf
             castClass( arg1.getClass(), arg2 );
         }
 
-        return arg0 ? arg1 : arg2;
+        return arg0 != null && arg0 ? arg1 : arg2;
     }
 
     @Override

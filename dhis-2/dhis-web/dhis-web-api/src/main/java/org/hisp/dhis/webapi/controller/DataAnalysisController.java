@@ -98,6 +98,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 /**
@@ -512,7 +513,7 @@ public class DataAnalysisController
         ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
     {
         for ( DataElementOperand operand : expressionService
-            .getOperandsInExpression( validationRule.getLeftSide().getExpression() ) )
+            .getExpressionOperands( validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
                 .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );
@@ -527,7 +528,7 @@ public class DataAnalysisController
         ValidationRule validationRule, OrganisationUnit organisationUnit, Period period )
     {
         for ( DataElementOperand operand : expressionService
-            .getOperandsInExpression( validationRule.getRightSide().getExpression() ) )
+            .getExpressionOperands( validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
         {
             DataValue dataValue = dataValueService
                 .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo() );

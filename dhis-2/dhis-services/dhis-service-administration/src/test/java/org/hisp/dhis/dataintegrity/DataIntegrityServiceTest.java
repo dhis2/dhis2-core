@@ -31,6 +31,7 @@ package org.hisp.dhis.dataintegrity;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -481,7 +482,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.expressionIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
+        when( expressionService.getExpressionDescription( anyString(), INDICATOR_EXPRESSION ) )
             .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
@@ -502,7 +503,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
-        when( expressionService.getIndicatorExpressionDescription( anyString() ) )
+        when( expressionService.getExpressionDescription( anyString(), INDICATOR_EXPRESSION ) )
             .thenThrow( new org.hisp.dhis.parser.expression.ParserException(  INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
@@ -525,7 +526,7 @@ public class DataIntegrityServiceTest
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
 
-        verify( expressionService, times( 0 ) ).getIndicatorExpressionDescription( anyString() );
+        verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), INDICATOR_EXPRESSION );
         assertNotNull( invalidExpressions );
         assertTrue( invalidExpressions.isEmpty() );
     }

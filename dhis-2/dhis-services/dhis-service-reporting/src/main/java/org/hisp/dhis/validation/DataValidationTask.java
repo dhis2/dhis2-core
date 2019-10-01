@@ -66,6 +66,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.system.util.MathUtils.*;
 
@@ -320,7 +322,11 @@ public class DataValidationTask
             }
         }
 
-        return !expressionIsTrue( leftSide, ruleX.getRule().getOperator(), rightSide );
+        String test = leftSide
+            + ruleX.getRule().getOperator().getMathematicalOperator()
+            + rightSide;
+
+        return ! (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST );
     }
 
     /**
@@ -487,8 +493,8 @@ public class DataValidationTask
                 values.putAll( nonAocValues );
             }
 
-            Double value = expressionService.getExpressionValue(
-                expression.getExpression(), values, context.getConstantMap(), null,
+            Double value = expressionService.getExpressionValue( expression.getExpression(),
+                VALIDATION_RULE_EXPRESSION, values, context.getConstantMap(), null,
                 period.getDaysInPeriod(), expression.getMissingValueStrategy() );
 
             if ( MathUtils.isValidDouble( value ) )

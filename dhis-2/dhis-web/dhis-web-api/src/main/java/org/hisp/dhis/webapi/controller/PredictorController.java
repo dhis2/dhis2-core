@@ -35,6 +35,7 @@ import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.expression.ParseType;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -55,6 +56,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+
+import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 
 /**
  * @author Ken Haase (ken@dhis2.org)
@@ -149,7 +152,7 @@ public class PredictorController
     {
         I18n i18n = i18nManager.getI18n();
 
-        ExpressionValidationOutcome result = expressionService.predictorExpressionIsValid( expression );
+        ExpressionValidationOutcome result = expressionService.expressionIsValid( expression, PREDICTOR_EXPRESSION );
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
         message.setStatus( result.isValid() ? Status.OK : Status.ERROR );
@@ -157,7 +160,7 @@ public class PredictorController
 
         if ( result.isValid() )
         {
-            message.setDescription( expressionService.getExpressionDescriptionRegEx( expression ) );
+            message.setDescription( expressionService.getExpressionDescription( expression, PREDICTOR_EXPRESSION ) );
         }
 
         webMessageService.sendJson( message, response );

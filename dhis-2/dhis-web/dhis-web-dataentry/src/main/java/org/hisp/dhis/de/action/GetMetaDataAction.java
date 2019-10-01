@@ -241,7 +241,7 @@ public class GetMetaDataAction
 
         indicators = indicatorService.getIndicatorsWithDataSets();
 
-        expressionService.substituteExpressions( indicators, null );
+        expressionService.substituteIndicatorExpressions( indicators, null );
 
         dataSets = dataSetService.getUserDataWrite( user );
         

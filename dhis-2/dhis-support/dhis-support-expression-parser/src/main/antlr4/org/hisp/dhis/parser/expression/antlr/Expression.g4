@@ -37,6 +37,20 @@ expr
     |   fun='isNull' '(' WS* item WS* ')'
     |   fun='least' '(' expr (',' expr )* ')'
 
+    //  Aggergation functions (alphabetical)
+
+    |   fun='avg' '(' expr ')'
+    |   fun='count' '(' expr ')'
+    |   fun='max' '(' expr ')'
+    |   fun='median' '(' expr ')'
+    |   fun='min' '(' expr ')'
+    |   fun='percentileCont' '(' expr ',' expr ')'
+    |   fun='stddev' '(' expr ')'
+    |   fun='stddevPop' '(' expr ')'
+    |   fun='stddevSamp' '(' expr ')'
+    |   fun='sum' '(' expr ')'
+    |   fun='variance' '(' expr ')'
+
     //  Program variables (alphabtical)
 
     |   'V{' fun='analytics_period_end' '}'
@@ -61,30 +75,20 @@ expr
 
     //  Program functions (alphabetical)
 
-    |   fun='d2:condition(' WS* stringLiteral WS* ',' expr ',' expr ')'
-    |   fun='d2:count(' WS* stageDataElement WS* ')'
-    |   fun='d2:countIfCondition(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
-    |   fun='d2:countIfValue(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
-    |   fun='d2:daysBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:hasValue(' item ')'
-    |   fun='d2:minutesBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:monthsBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:oizp(' expr ')'
-    |   fun='d2:relationshipCount(' WS* QUOTED_UID? WS* ')'
-    |   fun='d2:weeksBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:yearsBetween(' compareDate ',' compareDate ')'
-    |   fun='d2:zing(' expr ')'
-    |   fun='d2:zpvc(' item (',' item )* ')'
-
-    // Program functions for custom aggregation
-
-    |   fun='avg(' expr ')'
-    |   fun='count(' expr ')'
-    |   fun='max(' expr ')'
-    |   fun='min(' expr ')'
-    |   fun='stddev(' expr ')'
-    |   fun='sum(' expr ')'
-    |   fun='variance(' expr ')'
+    |   fun='d2:condition' '(' WS* stringLiteral WS* ',' expr ',' expr ')'
+    |   fun='d2:count' '(' WS* stageDataElement WS* ')'
+    |   fun='d2:countIfCondition' '(' WS* stageDataElement ',' WS* stringLiteral WS* ')'
+    |   fun='d2:countIfValue' '(' WS* stageDataElement WS* ',' WS* numStringLiteral WS*  ')'
+    |   fun='d2:daysBetween' '(' compareDate ',' compareDate ')'
+    |   fun='d2:hasValue' '(' item ')'
+    |   fun='d2:minutesBetween' '(' compareDate ',' compareDate ')'
+    |   fun='d2:monthsBetween' '(' compareDate ',' compareDate ')'
+    |   fun='d2:oizp' '(' expr ')'
+    |   fun='d2:relationshipCount' '(' WS* QUOTED_UID? WS* ')'
+    |   fun='d2:weeksBetween' '(' compareDate ',' compareDate ')'
+    |   fun='d2:yearsBetween' '(' compareDate ',' compareDate ')'
+    |   fun='d2:zing' '(' expr ')'
+    |   fun='d2:zpvc' '(' item (',' item )* ')'
 
     //  Other
 
@@ -182,17 +186,19 @@ IS_NOT_NULL     : 'isNotNull';
 IS_NULL         : 'isNull';
 LEAST           : 'least';
 
-// Items (alphabetical by symbol)
+// Aggegation functions (alphabetical)
 
-HASH_BRACE  : '#{';
-A_BRACE     : 'A{';
-C_BRACE     : 'C{';
-D_BRACE     : 'D{';
-I_BRACE     : 'I{';
-N_BRACE     : 'N{';
-OUG_BRACE   : 'OUG{';
-R_BRACE     : 'R{';
-DAYS        : '[days]';
+AVG             : 'avg';
+COUNT           : 'count';
+MAX             : 'max';
+MEDIAN          : 'median';
+MIN             : 'min';
+PERCENTILE_CONT : 'percentileCont';
+STDDEV          : 'stddev';
+STDDEV_POP      : 'stddevPop';
+STDDEV_SAMP     : 'stddevSamp';
+SUM             : 'sum';
+VARIANCE        : 'variance';
 
 // Program variables (alphabetical)
 
@@ -218,30 +224,32 @@ V_ZERO_POS_VALUE_COUNT  : 'zero_pos_value_count';
 
 // Program functions (alphabetical)
 
-D2_CONDITION            : 'd2:condition(';
-D2_COUNT                : 'd2:count(';
-D2_COUNT_IF_CONDITION   : 'd2:countIfCondition(';
-D2_COUNT_IF_VALUE       : 'd2:countIfValue(';
-D2_DAYS_BETWEEN         : 'd2:daysBetween(';
-D2_HAS_VALUE            : 'd2:hasValue(';
-D2_MINUTES_BETWEEN      : 'd2:minutesBetween(';
-D2_MONTHS_BETWEEN       : 'd2:monthsBetween(';
-D2_OIZP                 : 'd2:oizp(';
-D2_RELATIONSHIP_COUNT   : 'd2:relationshipCount(';
-D2_WEEKS_BETWEEN        : 'd2:weeksBetween(';
-D2_YEARS_BETWEEN        : 'd2:yearsBetween(';
-D2_ZING                 : 'd2:zing(';
-D2_ZPVC                 : 'd2:zpvc(';
+D2_CONDITION            : 'd2:condition';
+D2_COUNT                : 'd2:count';
+D2_COUNT_IF_CONDITION   : 'd2:countIfCondition';
+D2_COUNT_IF_VALUE       : 'd2:countIfValue';
+D2_DAYS_BETWEEN         : 'd2:daysBetween';
+D2_HAS_VALUE            : 'd2:hasValue';
+D2_MINUTES_BETWEEN      : 'd2:minutesBetween';
+D2_MONTHS_BETWEEN       : 'd2:monthsBetween';
+D2_OIZP                 : 'd2:oizp';
+D2_RELATIONSHIP_COUNT   : 'd2:relationshipCount';
+D2_WEEKS_BETWEEN        : 'd2:weeksBetween';
+D2_YEARS_BETWEEN        : 'd2:yearsBetween';
+D2_ZING                 : 'd2:zing';
+D2_ZPVC                 : 'd2:zpvc';
 
-// Program functions for custom aggregation
+// Items (alphabetical by symbol)
 
-AVG                     : 'avg(';
-COUNT                   : 'count(';
-MAX                     : 'max(';
-MIN                     : 'min(';
-STDDEV                  : 'stddev(';
-SUM                     : 'sum(';
-VARIANCE                : 'variance(';
+HASH_BRACE  : '#{';
+A_BRACE     : 'A{';
+C_BRACE     : 'C{';
+D_BRACE     : 'D{';
+I_BRACE     : 'I{';
+N_BRACE     : 'N{';
+OUG_BRACE   : 'OUG{';
+R_BRACE     : 'R{';
+DAYS        : '[days]';
 
 // -----------------------------------------------------------------------------
 // Lexer rules

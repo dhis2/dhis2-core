@@ -395,49 +395,49 @@ public class ProgramSqlGeneratorFunctionsTest
     }
 
     @Test
-    public void testAggAvg()
+    public void testVectorAvg()
     {
         String sql = test( "avg(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "avg(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggCount()
+    public void testVectorCount()
     {
         String sql = test( "count(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "count(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggMax()
+    public void testVectorMax()
     {
         String sql = test( "max(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "max(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggMin()
+    public void testVectorMin()
     {
         String sql = test( "min(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "min(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggStddev()
+    public void testVectorStddev()
     {
         String sql = test( "stddev(#{ProgrmStagA.DataElmentA})" );
-        assertThat( sql, is( "stddev(coalesce(\"DataElmentA\"::numeric,0))" ) );
+        assertThat( sql, is( "stddev_samp(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggSum()
+    public void testVectorSum()
     {
         String sql = test( "sum(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "sum(coalesce(\"DataElmentA\"::numeric,0))" ) );
     }
 
     @Test
-    public void testAggVariance()
+    public void testVectorVariance()
     {
         String sql = test( "variance(#{ProgrmStagA.DataElmentA})" );
         assertThat( sql, is( "variance(coalesce(\"DataElmentA\"::numeric,0))" ) );
@@ -482,6 +482,7 @@ public class ProgramSqlGeneratorFunctionsTest
             .withRelationshipTypeService( relationshipTypeService )
             .withStatementBuilder( statementBuilder )
             .withI18n( new I18n( null, null ) )
+            .withSamplePeriods( DEFAULT_SAMPLE_PERIODS )
             .buildForProgramIndicatorExpressions();
 
         visitor.setExpressionLiteral( exprLiteral );

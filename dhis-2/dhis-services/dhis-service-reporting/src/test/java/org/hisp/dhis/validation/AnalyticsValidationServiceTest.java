@@ -33,6 +33,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -421,8 +422,11 @@ public class AnalyticsValidationServiceTest
 
         for ( ValidationResult result : results )
         {
-            assertFalse( MathUtils.expressionIsTrue( result.getLeftsideValue(),
-                result.getValidationRule().getOperator(), result.getRightsideValue() ) );
+            String test = result.getLeftsideValue()
+                + result.getValidationRule().getOperator().getMathematicalOperator()
+                + result.getRightsideValue();
+
+            assertFalse( (Boolean) expressionService.getExpressionValue( test, SIMPLE_TEST ) );
         }
     }
 

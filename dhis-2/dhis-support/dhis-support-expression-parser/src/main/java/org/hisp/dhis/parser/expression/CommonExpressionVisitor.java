@@ -29,9 +29,11 @@ package org.hisp.dhis.parser.expression;
  */
 
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -41,6 +43,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.parser.expression.antlr.ExpressionBaseVisitor;
 import org.hisp.dhis.parser.expression.literal.DefaultLiteral;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
@@ -128,6 +131,11 @@ public class CommonExpressionVisitor
     private Set<DimensionalItemId> itemIds = new HashSet<>();
 
     /**
+     * Used to collect the sampled dimensional item ids in the expression.
+     */
+    private Set<DimensionalItemId> sampleItemIds = new HashSet<>();
+
+    /**
      * Used to collect the organisation unit group ids in the expression.
      */
     private Set<String> orgUnitGroupIds = new HashSet<>();
@@ -145,7 +153,18 @@ public class CommonExpressionVisitor
     /**
      * Values to use for dimensional items in evaluating an expression.
      */
-    private Map<String, Double> keyValueMap;
+    private Map<String, Double> itemValueMap;
+
+    /**
+     * Dimensional item values by period for aggregating in evaluating
+     * an expression.
+     */
+    private MapMap<Period, String, Double> periodItemValueMap;
+
+    /**
+     * Periods to sample over for predictor sample functions.
+     */
+    private List<Period> samplePeriods;
 
     /**
      * Count of dimension items found.
@@ -269,6 +288,12 @@ public class CommonExpressionVisitor
         return expressionLiteral.getBooleanLiteral( ctx );
     }
 
+    @Override
+    public Object visitTerminal( TerminalNode node )
+    {
+        return node.getText(); // Needed to regenerate an expression.
+    }
+
     // -------------------------------------------------------------------------
     // Logic for functions and items
     // -------------------------------------------------------------------------
@@ -349,7 +374,7 @@ public class CommonExpressionVisitor
     }
 
     /**
-     * Gets an expression item's value from the keyValueMap.
+     * Handles nulls and missing values.
      * <p/>
      * If we should replace nulls with the default value, then do so, and
      * remember how many items found, and how many of them had values, for
@@ -359,20 +384,18 @@ public class CommonExpressionVisitor
      * as this is likely for some function that is testing for nulls, and
      * a missing value should not count towards the MissingValueStrategy.
      *
-     * @param itemId the DimensionalItemObject id.
-     * @return the item's value.
+     * @param value the (possibly null) value
+     * @return the value we should return.
      */
-    public Double getItemValue( String itemId )
+    public Object handleNulls( Object value )
     {
-        Double value = keyValueMap.get( itemId );
-
         if ( replaceNulls )
         {
             itemsFound++;
 
             if ( value == null )
             {
-                value = DOUBLE_VALUE_IF_NULL;
+                return DOUBLE_VALUE_IF_NULL;
             }
             else
             {
@@ -539,6 +562,21 @@ public class CommonExpressionVisitor
         return itemIds;
     }
 
+    public void setItemIds(Set<DimensionalItemId> itemIds )
+    {
+        this.itemIds = itemIds;
+    }
+
+    public Set<DimensionalItemId> getSampleItemIds()
+    {
+        return sampleItemIds;
+    }
+
+    public void setSampleItemIds(Set<DimensionalItemId> sampleItemIds )
+    {
+        this.sampleItemIds = sampleItemIds;
+    }
+
     public Set<String> getOrgUnitGroupIds()
     {
         return orgUnitGroupIds;
@@ -554,9 +592,29 @@ public class CommonExpressionVisitor
         this.orgUnitCountMap = orgUnitCountMap;
     }
 
-    public void setKeyValueMap( Map<String, Double> keyValueMap )
+    public Map<String, Double> getItemValueMap()
     {
-        this.keyValueMap = keyValueMap;
+        return itemValueMap;
+    }
+
+    public void setItemValueMap( Map<String, Double> itemValueMap )
+    {
+        this.itemValueMap = itemValueMap;
+    }
+
+    public MapMap<Period, String, Double> getPeriodItemValueMap()
+    {
+        return periodItemValueMap;
+    }
+
+    public void setPeriodItemValueMap( MapMap<Period, String, Double> periodItemValueMap )
+    {
+        this.periodItemValueMap = periodItemValueMap;
+    }
+
+    public List<Period> getSamplePeriods()
+    {
+        return samplePeriods;
     }
 
     public Double getDays()
@@ -679,6 +737,12 @@ public class CommonExpressionVisitor
             return this;
         }
 
+        public Builder withSamplePeriods( List<Period> samplePeriods )
+        {
+            this.visitor.samplePeriods = samplePeriods;
+            return this;
+        }
+
         public CommonExpressionVisitor buildForExpressions()
         {
             Validate.notNull( this.visitor.dimensionService, "Missing required property 'dimensionService'" );
@@ -706,6 +770,7 @@ public class CommonExpressionVisitor
             Validate.notNull( this.visitor.itemMap, "Missing required property 'itemMap'" );
             Validate.notNull( this.visitor.functionMethod, "Missing required property 'functionMethod'" );
             Validate.notNull( this.visitor.itemMethod, "Missing required property 'itemMethod'" );
+            Validate.notNull( this.visitor.samplePeriods, "Missing required property 'samplePeriods'" );
 
             return visitor;
         }
