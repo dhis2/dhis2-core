@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
 
 import java.util.Set;
 
-import static org.hisp.dhis.programrule.ProgramRuleEvaluationTime.*;
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
 
 /**
  * @author Markus Bekken
@@ -60,7 +60,7 @@ public enum ProgramRuleActionType
 
     final String value;
 
-    final Set<ProgramRuleEvaluationTime> whenToRun;
+    final Set<ProgramRuleActionEvaluationTime> whenToRun;
 
     private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
         new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
@@ -77,7 +77,7 @@ public enum ProgramRuleActionType
         this.whenToRun = getAll();
     }
 
-    ProgramRuleActionType( String value, ProgramRuleEvaluationTime... whenToRun )
+    ProgramRuleActionType( String value, ProgramRuleActionEvaluationTime... whenToRun )
     {
         this.value = value;
         this.whenToRun = Sets.newHashSet( whenToRun );

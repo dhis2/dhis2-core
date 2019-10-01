@@ -4459,9 +4459,7 @@ CREATE TABLE programrule (
     programid integer NOT NULL,
     programstageid integer,
     rulecondition text,
-    priority integer,
-    evaluationtime character varying(50),
-    environments jsonb
+    priority integer
 );
 
 
@@ -4488,7 +4486,9 @@ CREATE TABLE programruleaction (
     optiongroupid integer,
     location character varying(255),
     content text,
-    data text
+    data text,
+    evaluationtime character varying(50),
+    environments jsonb
 );
 
 

@@ -29,7 +29,7 @@ package org.hisp.dhis.hibernate.jsonb.type;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.hibernate.HibernateException;
-import org.hisp.dhis.programrule.ProgramRuleEvaluationEnvironment;
+import org.hisp.dhis.programrule.ProgramRuleActionEvaluationEnvironment;
 
 import java.io.IOException;
 import java.util.*;
@@ -43,17 +43,25 @@ public class JsonProgramRuleEvaluationEnvironmentSetBinaryType
     public JsonProgramRuleEvaluationEnvironmentSetBinaryType()
     {
         super();
-        writer = MAPPER.writerFor( new TypeReference<Set<ProgramRuleEvaluationEnvironment>>() {} );
-        reader = MAPPER.readerFor( new TypeReference<Set<ProgramRuleEvaluationEnvironment>>() {} );
-        returnedClass = ProgramRuleEvaluationEnvironment.class;
+        writer = MAPPER.writerFor( new TypeReference<Set<ProgramRuleActionEvaluationEnvironment>>()
+        {
+        } );
+        reader = MAPPER.readerFor( new TypeReference<Set<ProgramRuleActionEvaluationEnvironment>>()
+        {
+        } );
+        returnedClass = ProgramRuleActionEvaluationEnvironment.class;
     }
 
     @Override
     protected void init( Class<?> klass )
     {
         returnedClass = klass;
-        reader = MAPPER.readerFor( new TypeReference<Set<ProgramRuleEvaluationEnvironment>>() {} );
-        writer = MAPPER.writerFor( new TypeReference<Set<ProgramRuleEvaluationEnvironment>>() {} );
+        reader = MAPPER.readerFor( new TypeReference<Set<ProgramRuleActionEvaluationEnvironment>>()
+        {
+        } );
+        writer = MAPPER.writerFor( new TypeReference<Set<ProgramRuleActionEvaluationEnvironment>>()
+        {
+        } );
     }
 
     @Override
@@ -75,7 +83,8 @@ public class JsonProgramRuleEvaluationEnvironmentSetBinaryType
     {
         try
         {
-            Set<ProgramRuleEvaluationEnvironment> environments = object == null ? Collections.emptySet() : (Set<ProgramRuleEvaluationEnvironment>) object;
+            Set<ProgramRuleActionEvaluationEnvironment> environments =
+                object == null ? Collections.emptySet() : (Set<ProgramRuleActionEvaluationEnvironment>) object;
 
             return writer.writeValueAsString( environments );
         }

@@ -72,7 +72,9 @@ public interface ProgramRuleStore
 
     List<ProgramRule> getProgramRulesWithNoPriority();
 
-    List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime evaluationTime );
+    List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime );
+
+    List<ProgramRule> getProgramRulesByEvaluationEnvironment( ProgramRuleActionEvaluationEnvironment environment );
 
     List<ProgramRule> getProgramRulesWithNoAction();
 }

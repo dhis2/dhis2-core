@@ -28,6 +28,8 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,18 +139,16 @@ public class DefaultProgramRuleService
     }
 
     @Override
-    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime evaluationTime )
+    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime )
     {
         return programRuleStore.getProgramRulesByEvaluationTime( evaluationTime );
     }
 
     @Override
     public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
-        ProgramRuleEvaluationEnvironment evaluationEnvironment )
+        ProgramRuleActionEvaluationEnvironment evaluationEnvironment )
     {
-        return programRuleStore.getAll().stream()
-            .filter( rule -> rule.getProgramRuleEvaluationEnvironments().contains( evaluationEnvironment ) )
-            .collect( Collectors.toList() );
+        return programRuleStore.getProgramRulesByEvaluationEnvironment( evaluationEnvironment );
     }
 
     @Override

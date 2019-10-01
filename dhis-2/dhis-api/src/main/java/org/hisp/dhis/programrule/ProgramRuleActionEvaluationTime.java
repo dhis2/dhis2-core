@@ -37,22 +37,23 @@ import java.util.Set;
 /**
  * @author Enrico Colasante
  */
-@JacksonXmlRootElement( localName = "programRuleEvaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
-public enum ProgramRuleEvaluationEnvironment
+@JacksonXmlRootElement( localName = "programRuleEvaluationTime", namespace = DxfNamespaces.DXF_2_0 )
+public enum ProgramRuleActionEvaluationTime
 {
-    WEB( "web" ),
-    ANDROID( "android" );
+    ON_DATA_ENTRY( "on_data_entry" ),
+    ON_COMPLETE( "on_complete" ),
+    ALWAYS( "always" );
 
     private final String value;
 
-    ProgramRuleEvaluationEnvironment( String value )
+    ProgramRuleActionEvaluationTime( String value )
     {
         this.value = value;
     }
 
-    public static ProgramRuleEvaluationEnvironment fromValue( String value )
+    public static ProgramRuleActionEvaluationTime fromValue( String value )
     {
-        for ( ProgramRuleEvaluationEnvironment type : ProgramRuleEvaluationEnvironment.values() )
+        for ( ProgramRuleActionEvaluationTime type : ProgramRuleActionEvaluationTime.values() )
         {
             if ( type.value.equalsIgnoreCase( value ) )
             {
@@ -63,8 +64,13 @@ public enum ProgramRuleEvaluationEnvironment
         return null;
     }
 
-    public static Set<ProgramRuleEvaluationEnvironment> getDefault()
+    public static ProgramRuleActionEvaluationTime getDefault()
     {
-        return Sets.newHashSet(ProgramRuleEvaluationEnvironment.values());
+        return ALWAYS;
+    }
+
+    public static Set<ProgramRuleActionEvaluationTime> getAll()
+    {
+        return Sets.newHashSet( ProgramRuleActionEvaluationTime.values() );
     }
 }

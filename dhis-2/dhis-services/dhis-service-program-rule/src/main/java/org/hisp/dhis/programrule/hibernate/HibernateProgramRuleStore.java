@@ -28,7 +28,10 @@ package org.hisp.dhis.programrule.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.Criteria;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.program.Program;
@@ -40,9 +43,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.*;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author markusbekken
@@ -117,11 +122,35 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleEvaluationTime evaluationTime )
+    public List<ProgramRule> getProgramRulesByEvaluationTime( ProgramRuleActionEvaluationTime evaluationTime )
     {
-        return getQuery(
-            "FROM ProgramRule pr WHERE pr.programRuleEvaluationTime = :evaluationTime" )
+        Session session = getSession();
+        session.clear();
+        return session.createQuery(
+            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.programRuleActionEvaluationTime = :defaultEvaluationTime OR pra.programRuleActionEvaluationTime = :evaluationTime" )
+            .setParameter( "defaultEvaluationTime", ProgramRuleActionEvaluationTime.getDefault() )
             .setParameter( "evaluationTime", evaluationTime )
+            .getResultList();
+    }
+
+    @Override
+    public List<ProgramRule> getProgramRulesByEvaluationEnvironment(
+        ProgramRuleActionEvaluationEnvironment environment )
+    {
+        List<BigInteger> bigIntegerList = getSession().createNativeQuery(
+            "select pra.programruleactionid from programrule pr JOIN programruleaction pra ON pr.programruleid=pra.programruleid " +
+                "where environments@> '[\"" + environment + "\"]';" )
+            .list();
+        List<Long> idList = bigIntegerList
+            .stream()
+            .map( item -> Long.valueOf( item.longValue() ) )
+            .collect( Collectors.toList() );
+
+        Session session = getSession();
+        session.clear();
+        return session.createQuery(
+            "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pra.id in (:ids)" )
+            .setParameterList( "ids", idList )
             .getResultList();
     }
 

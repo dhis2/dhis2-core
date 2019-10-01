@@ -81,21 +81,6 @@ public class ProgramRule
      */
     private Integer priority;
 
-    /**
-     * The time when the rule is going to be evaluated. This field is used to run only the rules that
-     * makes sense at each stage of the rule validation.
-     * Default to {@link ProgramRuleEvaluationTime#ALWAYS}
-     */
-    private ProgramRuleEvaluationTime programRuleEvaluationTime = ProgramRuleEvaluationTime.ALWAYS;
-
-    /**
-     * The environments where the rule is going to be evaluated. This field is used to run only the rules that
-     * makes sense in each environment.
-     * Default to {@link ProgramRuleEvaluationEnvironment#getDefault()}
-     */
-    private Set<ProgramRuleEvaluationEnvironment> programRuleEvaluationEnvironments = ProgramRuleEvaluationEnvironment
-        .getDefault();
-
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -115,15 +100,6 @@ public class ProgramRule
         this.programRuleActions = programRuleActions;
         this.condition = condition;
         this.priority = priority;
-    }
-
-    public ProgramRule( String name, String description, Program program, ProgramStage programStage,
-        Set<ProgramRuleAction> programRuleActions, String condition, Integer priority,
-        ProgramRuleEvaluationTime programRuleEvaluationTime, Set<ProgramRuleEvaluationEnvironment> environments )
-    {
-        this( name, description, program, programStage, programRuleActions, condition, priority );
-        this.programRuleEvaluationTime = programRuleEvaluationTime;
-        this.programRuleEvaluationEnvironments = environments;
     }
 
     // -------------------------------------------------------------------------
@@ -204,32 +180,5 @@ public class ProgramRule
     public void setPriority( Integer priority )
     {
         this.priority = priority;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( localName = "evaluationTime", namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramRuleEvaluationTime getProgramRuleEvaluationTime()
-    {
-        return programRuleEvaluationTime;
-    }
-
-    public void setProgramRuleEvaluationTime( ProgramRuleEvaluationTime programRuleEvaluationTime )
-    {
-        this.programRuleEvaluationTime = programRuleEvaluationTime;
-    }
-
-    @JsonProperty
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
-    @JacksonXmlElementWrapper( localName = "evaluationEnvironments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "evaluationEnvironment", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramRuleEvaluationEnvironment> getProgramRuleEvaluationEnvironments()
-    {
-        return programRuleEvaluationEnvironments;
-    }
-
-    public void setProgramRuleEvaluationEnvironments(
-        Set<ProgramRuleEvaluationEnvironment> programRuleEvaluationEnvironments )
-    {
-        this.programRuleEvaluationEnvironments = programRuleEvaluationEnvironments;
     }
 }
