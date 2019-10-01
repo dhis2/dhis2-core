@@ -216,21 +216,21 @@ public class HibernateProgramInstanceStore
     @Override
     public boolean exists( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=? and deleted is false", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(0) from programinstance where uid=? and deleted is false", Integer.class, uid );
         return result != null && result > 0;
     }
 
     @Override
     public boolean existsIncludingDeleted( String uid )
     {
-        Integer result = jdbcTemplate.queryForObject( "select count(*) from programinstance where uid=?", Integer.class, uid );
+        Integer result = jdbcTemplate.queryForObject( "select count(0) from programinstance where uid=?", Integer.class, uid );
         return result != null && result > 0;
     }
 
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        String hql = "select te.uid from TrackedEntityInstance as te where te.uid in (:uids)";
+        String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
@@ -244,7 +244,6 @@ public class HibernateProgramInstanceStore
 
         return resultUids;
     }
-
 
     @Override
     public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
