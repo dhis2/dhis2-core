@@ -28,6 +28,8 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import javax.sql.DataSource;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
@@ -42,20 +44,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 import org.springframework.security.ldap.authentication.UserDetailsServiceLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
+import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-
-import javax.sql.DataSource;
 
 /**
  * @author Luciano Fiandesio
@@ -67,8 +72,11 @@ public class SecurityConfig
     @Autowired
     private DhisConfigurationProvider configurationProvider;
 
+    @Autowired
+    private DataSource dataSource;
+
     @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder()
+    public PasswordEncoder encoder()
     {
         return new BCryptPasswordEncoder();
     }
@@ -95,7 +103,7 @@ public class SecurityConfig
     }
 
     @Bean( "authorizationCodeServices" )
-    public JdbcAuthorizationCodeServices jdbcAuthorizationCodeServices( DataSource dataSource )
+    public JdbcAuthorizationCodeServices jdbcAuthorizationCodeServices( )
     {
         return new JdbcAuthorizationCodeServices( dataSource );
     }
@@ -106,8 +114,9 @@ public class SecurityConfig
         return new TwoFactorWebAuthenticationDetailsSource();
     }
 
-    @Bean( "tokenServices" )
-    public DefaultTokenServices defaultTokenServices( DataSource dataSource )
+    @Primary
+    @Bean
+    public AuthorizationServerTokenServices tokenServices()
     {
         DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
         defaultTokenServices.setTokenStore( new JdbcTokenStore( dataSource ) );
@@ -116,31 +125,13 @@ public class SecurityConfig
     }
 
     @Bean
-    public OAuth2AuthenticationManager oAuth2AuthenticationManager( DataSource dataSource,
+    public OAuth2AuthenticationManager oAuth2AuthenticationManager(
         DefaultClientDetailsService defaultClientDetailsService )
     {
-
-        DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore( new JdbcTokenStore( dataSource ) );
-        defaultTokenServices.setSupportRefreshToken( true );
-
         OAuth2AuthenticationManager oa2Manager = new OAuth2AuthenticationManager();
-        oa2Manager.setTokenServices( defaultTokenServices );
+        oa2Manager.setTokenServices( (ResourceServerTokenServices) tokenServices());
         oa2Manager.setClientDetailsService( defaultClientDetailsService );
         return oa2Manager;
-    }
-
-    @Bean
-    public TwoFactorAuthenticationProvider twoFactorAuthenticationProvider( UserService userService,
-        UserDetailsService userDetailsService, SecurityService securityService )
-    {
-        TwoFactorAuthenticationProvider twoFactorAuthenticationProvider = new TwoFactorAuthenticationProvider();
-        twoFactorAuthenticationProvider.setPasswordEncoder( bCryptPasswordEncoder() );
-        twoFactorAuthenticationProvider.setUserService( userService );
-        twoFactorAuthenticationProvider.setUserDetailsService( userDetailsService );
-        twoFactorAuthenticationProvider.setSecurityService( securityService );
-
-        return twoFactorAuthenticationProvider;
     }
 
     @Bean
@@ -171,14 +162,22 @@ public class SecurityConfig
         throws Exception
     {
         TwoFactorAuthenticationProvider twoFactorAuthenticationProvider = new TwoFactorAuthenticationProvider();
-        twoFactorAuthenticationProvider.setPasswordEncoder( bCryptPasswordEncoder() );
+        twoFactorAuthenticationProvider.setPasswordEncoder( encoder() );
         twoFactorAuthenticationProvider.setUserService( userService );
         twoFactorAuthenticationProvider.setUserDetailsService( userDetailsService );
         twoFactorAuthenticationProvider.setSecurityService( securityService );
 
-        auth.authenticationProvider( twoFactorAuthenticationProvider )
+        // configure the Authentication providers
+
+        auth
+            // Two factor
+            .authenticationProvider( twoFactorAuthenticationProvider )
+            // LDAP Authentication
             .authenticationProvider( customLdapAuthenticationProvider )
-            .userDetailsService( defaultClientDetailsUserDetailsService );
+            //  OAUTH2
+            .userDetailsService( defaultClientDetailsUserDetailsService )
+                // Use a non-encoding password for oauth2 secrets, since the secret is generated by the client
+                .passwordEncoder(NoOpPasswordEncoder.getInstance());
     }
 
     @Bean( "authenticationManager" )

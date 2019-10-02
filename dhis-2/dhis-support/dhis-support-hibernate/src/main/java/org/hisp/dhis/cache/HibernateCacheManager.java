@@ -29,6 +29,7 @@ package org.hisp.dhis.cache;
  */
 
 import org.hibernate.stat.Statistics;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
  * @author Lars Helge Overland
@@ -44,16 +45,23 @@ public interface HibernateCacheManager
      * Evicts all queries from the cache.
      */
     void clearQueryCache();
-    
+
     /**
      * Evicts all entities, collections and queries from the cache.
      */
     void clearCache();
-    
+
     /**
      * Gets the statistics.
-     * 
+     *
      * @return the statistics.
      */
     Statistics getStatistics();
+
+    /**
+     * Event handler for {@link ApplicationCacheClearedEvent}.
+     *
+     * @param event the {@link ApplicationCacheClearedEvent}.
+     */
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }

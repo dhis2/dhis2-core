@@ -49,6 +49,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CachingMap;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationEventPublisher;
@@ -141,7 +142,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     private I18n i18n;
 
     @Mock
-    private BatchHandler batchHandler;
+    private BatchHandler<CompleteDataSetRegistration> batchHandler;
 
     @Mock
     private MetadataCaches metaDataCaches;
@@ -183,7 +184,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     private CategoryOptionCombo DEFAULT_COC;
 
     @Before
-    @SuppressWarnings( "unchecked" )
     public void setUp()
     {
         user = new User();

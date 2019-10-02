@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.geotools.geojson.geom.GeometryJSON;
-import org.hisp.dhis.common.Coordinate.CoordinateUtils;
+import org.hisp.dhis.common.coordinate.CoordinateUtils;
 import org.junit.Before;
 import org.junit.Test;
 

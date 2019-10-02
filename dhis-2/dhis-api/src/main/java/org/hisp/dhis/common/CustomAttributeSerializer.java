@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
 import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 

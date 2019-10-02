@@ -46,7 +46,7 @@ import org.cache2k.Cache2kBuilder;
 public class LocalCache<V> implements Cache<V>
 {
     private org.cache2k.Cache<String, V> cache2kInstance;
-    
+
     private V defaultValue;
 
     /**
@@ -55,6 +55,7 @@ public class LocalCache<V> implements Cache<V>
      *
      * @param cacheBuilder CacheBuilder instance
      */
+    @SuppressWarnings("unchecked")
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
         Cache2kBuilder<?, ?> builder = Cache2kBuilder.forUnknownTypes();
@@ -81,7 +82,7 @@ public class LocalCache<V> implements Cache<V>
         {
             builder.entryCapacity( cacheBuilder.getMaximumSize() );
         }
-        
+
         //Using unknown typed keyvalue for builder and casting it this way seems to work.
         this.cache2kInstance = (org.cache2k.Cache<String, V>) builder.build();
         this.defaultValue = cacheBuilder.getDefaultValue();
