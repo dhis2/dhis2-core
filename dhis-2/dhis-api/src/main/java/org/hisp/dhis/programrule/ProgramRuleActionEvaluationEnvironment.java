@@ -63,6 +63,12 @@ public enum ProgramRuleActionEvaluationEnvironment
         return null;
     }
 
+    /**
+     * By default, actions should be run in all environments, and its up to the client
+     * to decide which actions are unsuited to be run or not.
+     *
+     * @return Default environments where the actions should be run
+     */
     public static Set<ProgramRuleActionEvaluationEnvironment> getDefault()
     {
         return Sets.newHashSet( ProgramRuleActionEvaluationEnvironment.values() );

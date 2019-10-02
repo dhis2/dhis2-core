@@ -4486,9 +4486,7 @@ CREATE TABLE programruleaction (
     optiongroupid integer,
     location character varying(255),
     content text,
-    data text,
-    evaluationtime character varying(50),
-    environments jsonb
+    data text
 );
 
 
