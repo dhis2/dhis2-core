@@ -1,4 +1,4 @@
-package org.hisp.dhis.system.callable;
+package org.hisp.dhis.jdbc.batchhandler;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -28,45 +28,81 @@ package org.hisp.dhis.system.callable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodType;
+import org.hisp.quick.JdbcConfiguration;
+import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
-import java.util.concurrent.ExecutionException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
-/**
- * @author Lars Helge Overland
- */
-public class PeriodCallable
-    extends IdentifiableObjectCallable<Period>
+public class PeriodBatchHandler
+    extends AbstractBatchHandler<Period>
 {
-    private PeriodService periodService;
-
-    public PeriodCallable( PeriodService periodService, IdScheme idScheme, String id )
+    public PeriodBatchHandler( JdbcConfiguration configuration )
     {
-        super( null, Period.class, idScheme, id );
-        this.periodService = periodService;
+        super( configuration );
     }
 
     @Override
-    public Period call()
-        throws ExecutionException
+    public String getTableName()
     {
-        Period period = periodService.getPeriod( id );
-
-        if ( period == null )
-        {
-            period = PeriodType.getPeriodFromIsoString( id );
-        }
-
-        return period;
+        return "period";
     }
 
     @Override
-    public PeriodCallable setId( String id )
+    public String getAutoIncrementColumn()
     {
-        this.id = id;
-        return this;
+        return "periodid";
+    }
+
+    @Override
+    public boolean isInclusiveUniqueColumns()
+    {
+        return false;
+    }
+
+    @Override
+    public List<String> getIdentifierColumns()
+    {
+        return getStringList( "periodid" );
+    }
+
+    @Override
+    public List<Object> getIdentifierValues( Period period )
+    {
+        return getObjectList( period.getId() );
+    }
+
+    @Override
+    public List<String> getUniqueColumns()
+    {
+        return getStringList( "periodid" );
+    }
+
+    @Override
+    public List<Object> getUniqueValues( Period period )
+    {
+        return getObjectList( period.getId() );
+    }
+
+    @Override
+    public List<String> getColumns()
+    {
+        return getStringList( "periodtypeid", "startdate", "enddate" );
+    }
+
+    @Override
+    public List<Object> getValues( Period period )
+    {
+        return getObjectList( period.getPeriodType().getId(), period.getStartDate(), period.getEndDate() );
+    }
+
+    @Override
+    public Period mapRow( ResultSet resultSet )
+        throws SQLException
+    {
+        // We only use this class for inserting data, not retrieving.
+        return null;
     }
 }

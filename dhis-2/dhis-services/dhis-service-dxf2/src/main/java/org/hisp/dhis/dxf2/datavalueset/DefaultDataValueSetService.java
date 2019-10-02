@@ -28,24 +28,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
-import static org.hisp.dhis.util.DateUtils.parseDate;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.csvreader.CsvReader;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -91,6 +74,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
+import org.hisp.dhis.jdbc.batchhandler.PeriodBatchHandler;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
@@ -122,10 +106,24 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
-
-import com.csvreader.CsvReader;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.system.notification.NotificationLevel.*;
+import static org.hisp.dhis.util.DateUtils.parseDate;
 
 /**
  * Note that a mock BatchHandler factory is being injected.
@@ -149,9 +147,10 @@ public class DefaultDataValueSetService
 
     private final PeriodService periodService;
 
+
     private final DataApprovalService approvalService;
 
-    private  BatchHandlerFactory batchHandlerFactory;
+    private BatchHandlerFactory batchHandlerFactory;
 
     private final CompleteDataSetRegistrationService registrationService;
 
@@ -891,6 +890,7 @@ public class DefaultDataValueSetService
 
         BatchHandler<DataValue> dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
         BatchHandler<DataValueAudit> auditBatchHandler = batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init();
+        BatchHandler<Period> periodBatchHandler = batchHandlerFactory.createBatchHandler( PeriodBatchHandler.class ).init();
 
         int importCount = 0;
         int updateCount = 0;
@@ -1374,6 +1374,14 @@ public class DefaultDataValueSetService
             }
         }
 
+        periodMap.forEach( ( s, period ) -> {
+            if ( !periodBatchHandler.objectExists( period ) )
+                {
+                    periodBatchHandler.addObject( period );
+                }
+        } );
+
+        periodBatchHandler.flush();
         dataValueBatchHandler.flush();
         auditBatchHandler.flush();
 
