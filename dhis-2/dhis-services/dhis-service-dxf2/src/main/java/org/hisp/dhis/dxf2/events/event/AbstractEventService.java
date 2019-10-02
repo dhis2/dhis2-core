@@ -28,31 +28,25 @@ package org.hisp.dhis.dxf2.events.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.QueryFilter;
-import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -82,18 +76,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.EventSyncService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
@@ -122,32 +105,18 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dxf2.events.event.EventSearchParams.*;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Transactional
 public abstract class AbstractEventService
     implements EventService
 {
@@ -163,91 +132,134 @@ public abstract class AbstractEventService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    protected ProgramService programService;
+    protected final ProgramService programService;
 
-    @Autowired
-    protected ProgramStageService programStageService;
+    protected final ProgramStageService programStageService;
 
-    @Autowired
-    protected ProgramInstanceService programInstanceService;
+    protected final ProgramInstanceService programInstanceService;
 
-    @Autowired
-    protected ProgramStageInstanceService programStageInstanceService;
+    protected final ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
-    protected OrganisationUnitService organisationUnitService;
+    protected final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    protected DataElementService dataElementService;
+    protected final DataElementService dataElementService;
 
-    @Autowired
-    protected CurrentUserService currentUserService;
+    protected final CurrentUserService currentUserService;
 
-    @Autowired
-    protected EventDataValueService eventDataValueService;
+    private final EventDataValueService eventDataValueService;
 
-    @Autowired
-    protected TrackedEntityInstanceService entityInstanceService;
+    private final TrackedEntityInstanceService entityInstanceService;
 
-    @Autowired
-    protected TrackedEntityCommentService commentService;
+    private final TrackedEntityCommentService commentService;
 
-    @Autowired
-    protected EventStore eventStore;
+    private final EventStore eventStore;
 
-    @Autowired
-    protected I18nManager i18nManager;
+    protected final I18nManager i18nManager;
 
-    @Autowired
-    protected Notifier notifier;
+    protected final Notifier notifier;
 
-    @Autowired
-    protected SessionFactory sessionFactory;
+    protected final SessionFactory sessionFactory;
 
-    @Autowired
-    protected DbmsManager dbmsManager;
+    private final DbmsManager dbmsManager;
 
-    @Autowired
-    protected IdentifiableObjectManager manager;
+    protected final IdentifiableObjectManager manager;
 
-    @Autowired
-    protected CategoryService categoryService;
+    protected final CategoryService categoryService;
 
-    @Autowired
-    protected FileResourceService fileResourceService;
+    protected final FileResourceService fileResourceService;
 
-    @Autowired
-    protected SchemaService schemaService;
+    protected final SchemaService schemaService;
 
-    @Autowired
-    protected QueryService queryService;
+    protected final QueryService queryService;
 
-    @Autowired
-    protected TrackerAccessManager trackerAccessManager;
+    private final TrackerAccessManager trackerAccessManager;
 
-    @Autowired
-    protected TrackerOwnershipManager trackerOwnershipAccessManager;
+    private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    @Autowired
-    protected AclService aclService;
+    protected final AclService aclService;
 
-    @Autowired
-    private ApplicationEventPublisher eventPublisher;
+    private final ApplicationEventPublisher eventPublisher;
 
-    @Autowired
-    protected RelationshipService relationshipService;
+    private final RelationshipService relationshipService;
 
-    @Autowired
-    protected UserService userService;
+    protected final UserService userService;
 
-    @Autowired
-    protected EventSyncService eventSyncService;
+    private final EventSyncService eventSyncService;
 
-    @Autowired
-    private ProgramRuleVariableService ruleVariableService;
+    private final ProgramRuleVariableService ruleVariableService;
 
-    protected static final int FLUSH_FREQUENCY = 100;
+    private static final int FLUSH_FREQUENCY = 100;
+
+    public AbstractEventService( ProgramService programService, ProgramStageService programStageService,
+        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService,
+        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
+        CurrentUserService currentUserService, EventDataValueService eventDataValueService,
+        TrackedEntityInstanceService entityInstanceService, TrackedEntityCommentService commentService,
+        EventStore eventStore, I18nManager i18nManager, Notifier notifier, SessionFactory sessionFactory,
+        DbmsManager dbmsManager, IdentifiableObjectManager manager, CategoryService categoryService,
+        FileResourceService fileResourceService, SchemaService schemaService, QueryService queryService,
+        TrackerAccessManager trackerAccessManager, TrackerOwnershipManager trackerOwnershipAccessManager,
+        AclService aclService, ApplicationEventPublisher eventPublisher, RelationshipService relationshipService,
+        UserService userService, EventSyncService eventSyncService, ProgramRuleVariableService ruleVariableService )
+    {
+
+        checkNotNull( programService );
+        checkNotNull( programStageService );
+        checkNotNull( programInstanceService );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( organisationUnitService );
+        checkNotNull( dataElementService );
+        checkNotNull( currentUserService );
+        checkNotNull( eventDataValueService );
+        checkNotNull( entityInstanceService );
+        checkNotNull( commentService );
+        checkNotNull( eventStore );
+        checkNotNull( i18nManager );
+        checkNotNull( notifier );
+        checkNotNull( sessionFactory );
+        checkNotNull( dbmsManager );
+        checkNotNull( manager );
+        checkNotNull( categoryService );
+        checkNotNull( fileResourceService );
+        checkNotNull( schemaService );
+        checkNotNull( queryService );
+        checkNotNull( trackerAccessManager );
+        checkNotNull( trackerOwnershipAccessManager );
+        checkNotNull( aclService );
+        checkNotNull( eventPublisher );
+        checkNotNull( userService );
+        checkNotNull( eventSyncService );
+        checkNotNull( ruleVariableService );
+
+        this.programService = programService;
+        this.programStageService = programStageService;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
+        this.organisationUnitService = organisationUnitService;
+        this.dataElementService = dataElementService;
+        this.currentUserService = currentUserService;
+        this.eventDataValueService = eventDataValueService;
+        this.entityInstanceService = entityInstanceService;
+        this.commentService = commentService;
+        this.eventStore = eventStore;
+        this.i18nManager = i18nManager;
+        this.notifier = notifier;
+        this.sessionFactory = sessionFactory;
+        this.dbmsManager = dbmsManager;
+        this.manager = manager;
+        this.categoryService = categoryService;
+        this.fileResourceService = fileResourceService;
+        this.schemaService = schemaService;
+        this.queryService = queryService;
+        this.trackerAccessManager = trackerAccessManager;
+        this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+        this.aclService = aclService;
+        this.eventPublisher = eventPublisher;
+        this.relationshipService = relationshipService;
+        this.userService = userService;
+        this.eventSyncService = eventSyncService;
+        this.ruleVariableService = ruleVariableService;
+    }
 
     // -------------------------------------------------------------------------
     // Caches
@@ -258,8 +270,6 @@ public abstract class AbstractEventService
     private CachingMap<String, Program> programCache = new CachingMap<>();
 
     private CachingMap<String, ProgramStage> programStageCache = new CachingMap<>();
-
-    private CachingMap<String, DataElement> dataElementCache = new CachingMap<>();
 
     private CachingMap<String, CategoryOption> categoryOptionCache = new CachingMap<>();
 
@@ -281,10 +291,18 @@ public abstract class AbstractEventService
 
     private CachingMap<String, User> userCache = new CachingMap<>();
 
+    private static Cache<DataElement> DATA_ELEM_CACHE = new SimpleCacheBuilder<DataElement>()
+            .forRegion( "dataElementCache" )
+            .expireAfterAccess( 60, TimeUnit.MINUTES )
+            .withInitialCapacity( 1000 )
+            .withMaximumSize( 50000 )
+            .build();
+
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
 
+    @Transactional
     @Override
     public ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
@@ -367,6 +385,7 @@ public abstract class AbstractEventService
         return importSummaries;
     }
 
+    @Transactional
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
@@ -395,6 +414,7 @@ public abstract class AbstractEventService
         return importSummaries;
     }
 
+    @Transactional
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId )
     {
@@ -420,6 +440,7 @@ public abstract class AbstractEventService
         }
     }
 
+    @Transactional
     @Override
     public ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport )
     {
@@ -587,6 +608,7 @@ public abstract class AbstractEventService
     // READ
     // -------------------------------------------------------------------------
 
+    @Transactional(readOnly = true)
     @Override
     public Events getEvents( EventSearchParams params )
     {
@@ -632,7 +654,7 @@ public abstract class AbstractEventService
 
         return events;
     }
-
+    @Transactional(readOnly = true)
     @Override
     public Grid getEventsGrid( EventSearchParams params )
     {
@@ -754,6 +776,7 @@ public abstract class AbstractEventService
         return grid;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public int getAnonymousEventReadyForSynchronizationCount( Date skipChangedBefore )
     {
@@ -785,6 +808,7 @@ public abstract class AbstractEventService
         return anonymousEvents;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public EventRows getEventRows( EventSearchParams params )
     {
@@ -809,12 +833,14 @@ public abstract class AbstractEventService
         return eventRows;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance )
     {
         return getEvent( programStageInstance, false, false );
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery, boolean skipOwnershipCheck )
     {
@@ -908,24 +934,32 @@ public abstract class AbstractEventService
 
         for ( EventDataValue dataValue : dataValues )
         {
+
             DataElement dataElement = getDataElement( IdScheme.UID, dataValue.getDataElement() );
-
-            errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
-
-            if ( !errors.isEmpty() )
+            
+            if ( dataElement != null )
             {
-                continue;
+                errors = trackerAccessManager.canRead( user, programStageInstance, dataElement, true );
+
+                if ( !errors.isEmpty() )
+                {
+                    continue;
+                }
+
+                DataValue value = new DataValue();
+                value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
+                value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
+                value.setDataElement( dataValue.getDataElement() );
+                value.setValue( dataValue.getValue() );
+                value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
+                value.setStoredBy( dataValue.getStoredBy() );
+
+                event.getDataValues().add( value );
             }
-
-            DataValue value = new DataValue();
-            value.setCreated( DateUtils.getIso8601NoTz( dataValue.getCreated() ) );
-            value.setLastUpdated( DateUtils.getIso8601NoTz( dataValue.getLastUpdated() ) );
-            value.setDataElement( dataValue.getDataElement() );
-            value.setValue( dataValue.getValue() );
-            value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-            value.setStoredBy( dataValue.getStoredBy() );
-
-            event.getDataValues().add( value );
+            else
+            {
+                log.info( "Can not find a Data Element having UID [" + dataValue.getDataElement() + "]" );
+            }
         }
 
         List<TrackedEntityComment> comments = programStageInstance.getComments();
@@ -950,6 +984,7 @@ public abstract class AbstractEventService
         return event;
     }
 
+    @Transactional(readOnly = true)
     @Override
     public EventSearchParams getFromUrl( String program, String programStage, ProgramStatus programStatus,
         Boolean followUp, String orgUnit, OrganisationUnitSelectionMode orgUnitSelectionMode,
@@ -1094,6 +1129,7 @@ public abstract class AbstractEventService
     // UPDATE
     // -------------------------------------------------------------------------
 
+    @Transactional
     @Override
     public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue, boolean clearSession )
     {
@@ -1122,12 +1158,14 @@ public abstract class AbstractEventService
         return importSummaries;
     }
 
+    @Transactional
     @Override
     public ImportSummary updateEvent( Event event, boolean singleValue, boolean bulkUpdate )
     {
         return updateEvent( event, singleValue, null, bulkUpdate );
     }
 
+    @Transactional
     @Override
     public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate )
     {
@@ -1327,7 +1365,8 @@ public abstract class AbstractEventService
 
         saveTrackedEntityComment( programStageInstance, event, storedBy );
         preheatDataElementsCache( event, importOptions );
-        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, dataElementCache );
+        
+        eventDataValueService.processDataValues( programStageInstance, event, singleValue, importOptions, importSummary, DATA_ELEM_CACHE );
 
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
 
@@ -1339,7 +1378,7 @@ public abstract class AbstractEventService
 
         for ( DataValue dv :  event.getDataValues() )
         {
-            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
+            DataElement dataElement = DATA_ELEM_CACHE.get( dv.getDataElement() ).orElse( null );
 
             if ( dataElement != null )
             {
@@ -1392,7 +1431,7 @@ public abstract class AbstractEventService
             List<DataElement> dataElements = manager.getObjects( DataElement.class, IdentifiableProperty.UID,
                 dataElementIdentificators );
 
-            dataElements.forEach( de -> dataElementCache.put( de.getUid(), de ) );
+            dataElements.forEach( de -> DATA_ELEM_CACHE.put( de.getUid(), de ) );
         }
         else
         {
@@ -1401,6 +1440,7 @@ public abstract class AbstractEventService
         }
     }
 
+    @Transactional
     @Override
     public void updateEventForNote( Event event )
     {
@@ -1420,6 +1460,7 @@ public abstract class AbstractEventService
         updateTrackedEntityInstance( programStageInstance, currentUser, false );
     }
 
+    @Transactional
     @Override
     public void updateEventForEventDate( Event event )
     {
@@ -1472,6 +1513,7 @@ public abstract class AbstractEventService
         programStageInstanceService.updateProgramStageInstance( programStageInstance );
     }
 
+    @Transactional
     @Override
     public void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized )
     {
@@ -1482,6 +1524,7 @@ public abstract class AbstractEventService
     // DELETE
     // -------------------------------------------------------------------------
 
+    @Transactional
     @Override
     public ImportSummary deleteEvent( String uid )
     {
@@ -1516,6 +1559,7 @@ public abstract class AbstractEventService
         }
     }
 
+    @Transactional
     @Override
     public ImportSummaries deleteEvents( List<String> uids, boolean clearSession )
     {
@@ -1576,7 +1620,10 @@ public abstract class AbstractEventService
 
                     for ( ProgramStage programStage : program.getProgramStages() )
                     {
-                        dataElementCache.putAll( programStage.getDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
+                        for ( DataElement dataElement : programStage.getDataElements() )
+                        {
+                            DATA_ELEM_CACHE.put( dataElement.getUid(), dataElement );
+                        }
                     }
                 }
             }
@@ -1862,12 +1909,12 @@ public abstract class AbstractEventService
             programStageInstance.setAutoFields();
             programStageInstanceService.addProgramStageInstance( programStageInstance );
 
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
         else
         {
-            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, dataElementCache );
+            eventDataValueService.processDataValues( programStageInstance, event, false, importOptions, importSummary, DATA_ELEM_CACHE );
             programStageInstanceService.updateProgramStageInstance( programStageInstance );
         }
     }
@@ -2015,16 +2062,24 @@ public abstract class AbstractEventService
 
                 programStageCache.putAll( program.getProgramStages().stream().collect( Collectors.toMap( ProgramStage::getUid, ps -> ps ) ) );
 
-                for ( ProgramStage programStage : program.getProgramStages() )
-                {
-                    dataElementCache.putAll( programStage.getDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
-                }
+                cacheDataElements( program.getProgramStages() );
             }
         }
 
         return program;
     }
 
+    private void cacheDataElements( Set<ProgramStage> programStages )
+    {
+        for ( ProgramStage programStage : programStages )
+        {
+            for ( DataElement dataElement : programStage.getDataElements() )
+            {
+                DATA_ELEM_CACHE.put( dataElement.getUid(), dataElement );
+            }
+        }
+    }
+    
     private ProgramStage getProgramStage( IdScheme idScheme, String id )
     {
         if ( id == null )
@@ -2042,7 +2097,7 @@ public abstract class AbstractEventService
             {
                 programStageCache.put( id, programStage );
 
-                dataElementCache.putAll( programStage.getDataElements().stream().collect( Collectors.toMap( DataElement::getUid, de -> de ) ) );
+                cacheDataElements( Sets.newHashSet( programStage ) );
             }
         }
 
@@ -2051,7 +2106,7 @@ public abstract class AbstractEventService
 
     private DataElement getDataElement( IdScheme idScheme, String id )
     {
-        return dataElementCache.get( id, () -> manager.getObject( DataElement.class, idScheme, id ) );
+        return DATA_ELEM_CACHE.get( id, s -> manager.getObject( DataElement.class, idScheme, id ) ).orElse( null );
     }
 
     private CategoryOption getCategoryOption( IdScheme idScheme, String id )
@@ -2073,9 +2128,8 @@ public abstract class AbstractEventService
 
     private List<ProgramInstance> getActiveProgramInstances( String key, Program program )
     {
-        return activeProgramInstanceCache.get( key, () -> {
-            return programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE );
-        } );
+        return activeProgramInstanceCache.get( key,
+            () -> programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ) );
     }
 
     private IdentifiableObject getDefaultObject( Class<? extends IdentifiableObject> key )
@@ -2279,7 +2333,7 @@ public abstract class AbstractEventService
         programInstanceCache.clear();
         activeProgramInstanceCache.clear();
         trackedEntityInstanceCache.clear();
-        dataElementCache.clear();
+        DATA_ELEM_CACHE.invalidateAll();
         categoryOptionCache.clear();
         categoryOptionComboCache.clear();
         attributeOptionComboCache.clear();
@@ -2445,7 +2499,7 @@ public abstract class AbstractEventService
         return importOptions;
     }
 
-    protected void reloadUser( ImportOptions importOptions )
+    private void reloadUser(ImportOptions importOptions)
     {
         if ( importOptions == null || importOptions.getUser() == null )
         {

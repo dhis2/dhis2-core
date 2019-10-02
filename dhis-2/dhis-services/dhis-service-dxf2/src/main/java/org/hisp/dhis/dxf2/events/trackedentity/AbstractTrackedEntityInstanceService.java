@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.repository.TrackedEntityAttributeRepository;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -164,6 +165,9 @@ public abstract class AbstractTrackedEntityInstanceService
     @Autowired
     protected Notifier notifier;
 
+    @Autowired
+    protected TrackedEntityAttributeRepository trackedEntityAttributeRepository;
+
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
     private final CachingMap<String, Program> programCache = new CachingMap<>();
@@ -175,6 +179,14 @@ public abstract class AbstractTrackedEntityInstanceService
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
+
+    private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2, boolean condition )
+    {
+        if (condition) {
+            set1.addAll(set2);
+        }
+        return set1;
+    }
 
     @Override
     @Transactional( readOnly = true )
@@ -189,34 +201,27 @@ public abstract class AbstractTrackedEntityInstanceService
 
         List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
 
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityTypes.stream().collect( Collectors.toList() )
-            .stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
-
-        Set<TrackedEntityAttribute> attributes = new HashSet<>();
+        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeRepository.getTrackedEntityAttributesByTrackedEntityTypes();
+        //trackedEntityTypes.stream().collect( Collectors.toList() )
+            //.stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = trackedEntityAttributeRepository.getTrackedEntityAttributesByProgram();
 
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
-            List<Program> programs = manager.getAll( Program.class );
-
-            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-            {
-                attributes = new HashSet<>( trackedEntityTypeAttributes );
-
-                // pick only those program attributes that user is the owner
-                for ( Program program : programs )
+            daoTEIs.forEach(t -> {
+                Set<TrackedEntityAttribute> attributes = null;
+                for ( Program program : teaByProgram.keySet() )
                 {
-                    if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance, program ) )
-                    {
-                        attributes.addAll( program.getTrackedEntityAttributes() );
-                    }
+                    attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get(program),
+                            trackerOwnershipAccessManager.hasAccess( user, t, program ) );
                 }
+                dtoTeis.add( getTei( t, attributes , params, user ) );
 
-                dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-
-            }
+            } );
         }
         else
         {
+            Set<TrackedEntityAttribute> attributes;
             attributes = new HashSet<>( trackedEntityTypeAttributes );
 
             if ( queryParams.hasProgram() )
@@ -1405,7 +1410,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( params.isDataSynchronizationQuery() )
         {
-            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( e -> e.getProgram() ).collect( Collectors.toList() );
+            List<String> programs = trackedEntityInstance.getEnrollments().stream().map(Enrollment::getProgram).collect( Collectors.toList() );
 
             IdSchemes idSchemes = new IdSchemes();
             for ( String programUid : programs )
