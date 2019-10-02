@@ -202,7 +202,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         return enrollments;
     }
 
-    private ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
+    @Override
+    public ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
