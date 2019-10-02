@@ -352,7 +352,7 @@ public class DefaultInterpretationService
                 + interpretation.getUid();
             break;
         case CHART:
-            path = "/dhis-web-visualizer/index.html?id=" + interpretation.getChart().getUid() + "&interpretationid="
+            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getChart().getUid() + "/interpretation"
                 + interpretation.getUid();
             break;
         case EVENT_REPORT:
