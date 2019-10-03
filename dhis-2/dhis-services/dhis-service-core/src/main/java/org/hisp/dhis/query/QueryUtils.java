@@ -175,7 +175,8 @@ public final class QueryUtils
             return (T) items;
         }
 
-        return null;
+        noCompatibleParserFound:
+        throw new QueryParserException( "Unable to parse `" + value + "` to `" + klass.getSimpleName() + "`." );
     }
 
     /**
