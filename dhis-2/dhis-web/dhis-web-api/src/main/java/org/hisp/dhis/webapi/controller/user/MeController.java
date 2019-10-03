@@ -265,14 +265,14 @@ public class MeController
 
         if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword and newPassword must be provided" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "currentPassword and newPassword must be provided" ) );
         }
 
         boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
 
         if ( !valid )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword is incorrect" ) );
+            throw new WebMessageException( WebMessageUtils.conflict( "currentPassword is incorrect" ) );
         }
 
         updatePassword( currentUser, newPassword );
