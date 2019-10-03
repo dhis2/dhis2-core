@@ -1242,6 +1242,8 @@ public abstract class AbstractTrackedEntityInstanceService
             return null;
         }
 
+        Set<TrackedEntityAttribute> readableAttributesCopy = new HashSet<>( readableAttributes );
+
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         trackedEntityInstance.setTrackedEntityInstance( daoTrackedEntityInstance.getUid() );
         trackedEntityInstance.setOrgUnit( daoTrackedEntityInstance.getOrganisationUnit().getUid() );
@@ -1301,9 +1303,21 @@ public abstract class AbstractTrackedEntityInstanceService
 
         }
 
+        if ( params.isDataSynchronizationQuery() )
+        {
+            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( e -> e.getProgram() ).collect( Collectors.toList() );
+
+            IdSchemes idSchemes = new IdSchemes();
+            for ( String programUid : programs )
+            {
+                Program program = getProgram( idSchemes, programUid );
+                readableAttributesCopy.addAll( program.getTrackedEntityAttributes() );
+            }
+        }
+
         for ( TrackedEntityAttributeValue attributeValue : daoTrackedEntityInstance.getTrackedEntityAttributeValues() )
         {
-            if ( readableAttributes.contains( attributeValue.getAttribute() ) )
+            if ( readableAttributesCopy.contains( attributeValue.getAttribute() ) )
             {
                 Attribute attribute = new Attribute();
 
