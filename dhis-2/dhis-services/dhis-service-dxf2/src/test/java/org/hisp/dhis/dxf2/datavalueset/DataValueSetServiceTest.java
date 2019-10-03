@@ -59,6 +59,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
+import org.hisp.dhis.jdbc.batchhandler.PeriodBatchHandler;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.mock.batchhandler.MockBatchHandler;
 import org.hisp.dhis.mock.batchhandler.MockBatchHandlerFactory;
@@ -75,9 +76,6 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -90,6 +88,8 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -164,6 +164,7 @@ public class DataValueSetServiceTest
 
     private MockBatchHandler<DataValue> mockDataValueBatchHandler = null;
     private MockBatchHandler<DataValueAudit> mockDataValueAuditBatchHandler = null;
+    private MockBatchHandler<Period> mockPeriodBatchHandler = null;
     private MockBatchHandlerFactory mockBatchHandlerFactory = null;
 
     @Override
@@ -180,9 +181,11 @@ public class DataValueSetServiceTest
 
         mockDataValueBatchHandler = new MockBatchHandler<>();
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
+        mockPeriodBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
         mockBatchHandlerFactory.registerBatchHandler( DataValueBatchHandler.class, mockDataValueBatchHandler );
         mockBatchHandlerFactory.registerBatchHandler( DataValueAuditBatchHandler.class, mockDataValueAuditBatchHandler );
+        mockBatchHandlerFactory.registerBatchHandler( PeriodBatchHandler.class, mockPeriodBatchHandler );
         setDependency( dataValueSetService, "batchHandlerFactory", mockBatchHandlerFactory );
 
         attribute = new Attribute( "CUSTOM_ID", ValueType.TEXT );
