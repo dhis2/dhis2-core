@@ -28,15 +28,16 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.MILLISECOND;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThan;
 import static org.hisp.dhis.util.DateUtils.dateIsValid;
 import static org.hisp.dhis.util.DateUtils.dateTimeIsValid;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.util.DateUtils.getMediumDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -46,7 +47,6 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 import org.hisp.dhis.calendar.impl.NepaliCalendar;
-import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
@@ -101,7 +101,8 @@ public class DateUtilsTest
     @Test
     public void testDaysBetween()
     {
-        Assert.assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(), new DateTime( 2014, 3, 7, 0, 0 ).toDate() ) );
+        Assert.assertEquals( 6, DateUtils.daysBetween( new DateTime( 2014, 3, 1, 0, 0 ).toDate(),
+            new DateTime( 2014, 3, 7, 0, 0 ).toDate() ) );
     }
 
     @Test
@@ -110,9 +111,9 @@ public class DateUtilsTest
         java.util.Calendar cal = java.util.Calendar.getInstance();
 
         Date today = cal.getTime();
-        cal.add( java.util.Calendar.DATE, -1 );
+        cal.add( DATE, -1 );
         Date yesterday = cal.getTime();
-        cal.add( java.util.Calendar.DATE, +2 );
+        cal.add( DATE, +2 );
         Date tomorrow = cal.getTime();
 
         assertTrue( DateUtils.isToday( today ) );
@@ -295,7 +296,7 @@ public class DateUtilsTest
         int month = 4;
         int day = 14;
 
-        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day;
+        String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day;
 
         assertTrue( dateTimeIsValid( dateString + "T00:00" ) );
 
@@ -320,9 +321,10 @@ public class DateUtilsTest
         int month = 5;
         int day = 24;
 
-        String dateString = "" + year + "-" + ( month < 10 ? "0" : "" ) + month + "-"  + ( day < 10 ? "0" : "" ) + day + "T00:00Z";
+        String dateString = "" + year + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day
+            + "T00:00Z";
 
-        assertTrue( dateTimeIsValid( dateString  ) );
+        assertTrue( dateTimeIsValid( dateString ) );
 
         Date dateParsed = parseDate( dateString );
         cal.setTime( dateParsed );
@@ -331,5 +333,57 @@ public class DateUtilsTest
         assertEquals( month, cal.get( Calendar.MONTH ) + 1 );
         assertEquals( day, cal.get( Calendar.DAY_OF_MONTH ) );
         assertEquals( 0, cal.get( Calendar.HOUR_OF_DAY ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingPositiveDays()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, DATE );
+
+        // Then
+        assertThat( theNewDate, is( greaterThan( anyInitialDate ) ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingNegativeDays()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, DATE );
+
+        // Then
+        assertThat( theNewDate, is( lessThan( anyInitialDate ) ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingPositiveMilis()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, 1, MILLISECOND );
+
+        // Then
+        assertThat( theNewDate, is( greaterThan( anyInitialDate ) ) );
+    }
+
+    @Test
+    public void testCalculateDateFromUsingNegativeMilis()
+    {
+        // Given
+        final Date anyInitialDate = new Date();
+
+        // When
+        final Date theNewDate = DateUtils.calculateDateFrom( anyInitialDate, -1, MILLISECOND );
+
+        // Then
+        assertThat( theNewDate, is( lessThan( anyInitialDate ) ) );
     }
 }
