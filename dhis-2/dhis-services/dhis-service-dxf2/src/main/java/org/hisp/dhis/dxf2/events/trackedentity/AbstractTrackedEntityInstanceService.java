@@ -28,8 +28,12 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -72,12 +76,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -88,17 +87,8 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -180,10 +170,21 @@ public abstract class AbstractTrackedEntityInstanceService
     // READ
     // -------------------------------------------------------------------------
 
-    private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2, boolean condition )
+    /**
+     * Merges the two sets, if the passed condition is true
+     *
+     * @param set1 a Set
+     * @param set2 a second Set
+     * @param condition a boolean condition
+     * @return if condition is true, a new Set consisting of the first and second
+     *         set. If false, the first set
+     */
+    private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2,
+        boolean condition )
     {
-        if (condition) {
-            set1.addAll(set2);
+        if ( condition )
+        {
+            set1.addAll( set2 );
         }
         return set1;
     }
@@ -202,8 +203,7 @@ public abstract class AbstractTrackedEntityInstanceService
         List<TrackedEntityType> trackedEntityTypes = manager.getAll( TrackedEntityType.class );
 
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes = trackedEntityAttributeRepository.getTrackedEntityAttributesByTrackedEntityTypes();
-        //trackedEntityTypes.stream().collect( Collectors.toList() )
-            //.stream().map( TrackedEntityType::getTrackedEntityAttributes ).flatMap( Collection::stream ).collect( Collectors.toSet() );
+
         Map<Program, Set<TrackedEntityAttribute>> teaByProgram = trackedEntityAttributeRepository.getTrackedEntityAttributesByProgram();
 
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )

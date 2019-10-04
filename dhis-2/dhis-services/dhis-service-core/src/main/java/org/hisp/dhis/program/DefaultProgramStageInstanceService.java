@@ -393,7 +393,8 @@ public class DefaultProgramStageInstanceService
     private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
         ProgramStageInstance programStageInstance, AuditType auditType )
     {
-        if (dataElement == null) {
+        if ( dataElement == null )
+        {
             return;
         }
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, programStageInstance,
