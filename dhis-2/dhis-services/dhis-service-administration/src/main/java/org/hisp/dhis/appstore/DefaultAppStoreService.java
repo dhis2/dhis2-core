@@ -56,7 +56,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * Created by zubair@dhis2.org on 07.09.17.
  */
 @Service( "org.hisp.dhis.appstore.AppStoreService" )
-public class DefaultAppStoreService implements AppStoreService
+public class DefaultAppStoreService
+    implements
+    AppStoreService
 {
     private static final Log log = LogFactory.getLog( DefaultAppStoreService.class );
 
@@ -67,7 +69,7 @@ public class DefaultAppStoreService implements AppStoreService
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
     public DefaultAppStoreService( RestTemplate restTemplate, AppManager appManager,
-        DhisConfigurationProvider dhisConfigurationProvider)
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
         checkNotNull( restTemplate );
         checkNotNull( appManager );
@@ -81,8 +83,19 @@ public class DefaultAppStoreService implements AppStoreService
     public List<WebApp> getAppStore()
     {
         String appStoreApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_URL );
+        String appStoreApiVersion = dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_API_VERSION );
+        String allAppsUrl;
 
-        WebApp[] apps = restTemplate.getForObject( appStoreApiUrl, WebApp[].class );
+        if ( "" == appStoreApiVersion )
+        {
+            allAppsUrl = appStoreApiUrl + "/apps";
+        }
+        else
+        {
+            allAppsUrl = appStoreApiUrl + "/" + appStoreApiVersion + "/apps";
+        }
+
+        WebApp[] apps = restTemplate.getForObject( allAppsUrl, WebApp[].class );
 
         return Arrays.asList( apps );
     }
