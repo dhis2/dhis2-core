@@ -279,7 +279,7 @@ public class DefaultAppManager
     @Override
     public String getAppStoreUrl()
     {
-        return StringUtils.trimToNull(dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
+        return StringUtils.trimToNull( dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
     }
 
     /**
