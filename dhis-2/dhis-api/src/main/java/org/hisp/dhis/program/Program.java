@@ -288,7 +288,7 @@ public class Program
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
         return programAttributes.stream()
-            .map(ProgramTrackedEntityAttribute::getAttribute)
+            .map( ProgramTrackedEntityAttribute::getAttribute )
             .collect( Collectors.toList() );
     }
 

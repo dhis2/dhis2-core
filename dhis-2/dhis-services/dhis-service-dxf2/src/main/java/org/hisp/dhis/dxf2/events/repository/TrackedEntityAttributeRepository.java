@@ -80,7 +80,7 @@ public class TrackedEntityAttributeRepository
     {
         Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
 
-        Query query = sessionFactory.getCurrentSession().createQuery( "select p.programAttributes from Program p");
+        Query query = sessionFactory.getCurrentSession().createQuery( "select p.programAttributes from Program p" );
 
         List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = (List<ProgramTrackedEntityAttribute>) query.list();
 

@@ -320,7 +320,7 @@ public class DefaultProgramStageInstanceService
         Map<DataElement, EventDataValue> dataElementEventDataValueMap )
     {
         validateEventDataValues( dataElementEventDataValueMap );
-        Set<EventDataValue> eventDataValues = new HashSet<>(dataElementEventDataValueMap.values());
+        Set<EventDataValue> eventDataValues = new HashSet<>( dataElementEventDataValueMap.values() );
         programStageInstance.setEventDataValues( eventDataValues );
         addProgramStageInstance( programStageInstance );
 
