@@ -1,4 +1,4 @@
-package org.hisp.dhis.appstore2;
+package org.hisp.dhis.appstore;
 
 /*
  * Copyright (c) 2004-2019, University of Oslo
@@ -35,64 +35,61 @@ import java.util.Date;
 /**
  * Created by zubair@dhis2.org on 07.09.17.
  */
-public class ImageResource
+public class Review
 {
     private String id;
 
-    private String caption;
+    private String userId;
 
-    private String description;
+    private String reviewText;
 
-    private String imageUrl;
-
-    private boolean logo;
+    private int rate;
 
     private Date created;
 
     private Date lastUpdated;
 
-    @JsonProperty
-    public String getCaption()
+    public Review()
     {
-        return caption;
     }
 
-    public void setCaption( String caption )
+    public Review( String userId, String reviewText )
     {
-        this.caption = caption;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
+        this.userId = userId;
+        this.reviewText = reviewText;
     }
 
     @JsonProperty
-    public boolean isLogo()
+    public String getUserId()
     {
-        return logo;
+        return userId;
     }
 
-    public void setLogo( boolean logo )
+    public void setUserId( String userId )
     {
-        this.logo = logo;
+        this.userId = userId;
     }
 
     @JsonProperty
-    public String getImageUrl()
+    public String getReviewText()
     {
-        return imageUrl;
+        return reviewText;
     }
 
-    public void setImageUrl( String imageUrl )
+    public void setReviewText( String reviewText )
     {
-        this.imageUrl = imageUrl;
+        this.reviewText = reviewText;
+    }
+
+    @JsonProperty
+    public int getRate()
+    {
+        return rate;
+    }
+
+    public void setRate( int rate )
+    {
+        this.rate = rate;
     }
 
     @JsonProperty
@@ -107,17 +104,6 @@ public class ImageResource
     }
 
     @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
-
-    @JsonProperty
     public String getId()
     {
         return id;
@@ -126,5 +112,16 @@ public class ImageResource
     public void setId( String id )
     {
         this.id = id;
+    }
+
+    @JsonProperty
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
     }
 }
