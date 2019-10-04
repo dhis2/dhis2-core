@@ -2499,7 +2499,7 @@ public abstract class AbstractEventService
         return importOptions;
     }
 
-    private void reloadUser(ImportOptions importOptions)
+    private void reloadUser( ImportOptions importOptions )
     {
         if ( importOptions == null || importOptions.getUser() == null )
         {
