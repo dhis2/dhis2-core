@@ -102,7 +102,7 @@ public enum ConfigurationKey
     MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", "off", false ),
     APP_STORE_URL( "appstore.base.url", "https://play.dhis2.org/appstore", false ),
     APP_STORE_API_URL( "appstore.api.url", "https://play.dhis2.org/appstore/api", false ),
-    APP_STORE_API_VERSION("appstore.api.version", "", false);
+    APP_STORE_API_VERSION( "appstore.api.version", "", false );
 
     private final String key;
 
