@@ -28,54 +28,71 @@
 
 package org.hisp.dhis.dxf2.events.repository;
 
-import com.google.common.collect.Sets;
+import java.util.*;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
-
-import static java.util.stream.Collectors.groupingBy;
+import com.google.common.collect.Sets;
 
 /**
  * @author Luciano Fiandesio
  */
 @Repository
-public class TrackedEntityAttributeRepository {
+public class TrackedEntityAttributeRepository
+{
 
     private final SessionFactory sessionFactory;
 
-    public TrackedEntityAttributeRepository(SessionFactory sessionFactory) {
+    public TrackedEntityAttributeRepository( SessionFactory sessionFactory )
+    {
         this.sessionFactory = sessionFactory;
     }
 
+    /**
+     * Fetches all {@see TrackedEntityAttribute} linked to all
+     * {@see TrackedEntityType} present in the system
+     * 
+     * @return a Set of {@see TrackedEntityAttribute}
+     */
+    @SuppressWarnings("unchecked")
     public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
     {
         Query query = sessionFactory.getCurrentSession()
             .createQuery( "select tet.trackedEntityTypeAttributes from TrackedEntityType tet" );
+
         return new HashSet<>( query.list() );
     }
 
-    public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram() {
 
+    /**
+     * Fetches all {@see TrackedEntityAttribute} and groups them by {@see Program}
+     *
+     * @return a Map, where the key is the {@see Program} and the values is a Set of {@see TrackedEntityAttribute} associated
+     * to the {@see Program} in the key
+     */
+    @SuppressWarnings("unchecked")
+    public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
+    {
         Map<Program, Set<TrackedEntityAttribute>> result = new HashMap<>();
-        Query query = sessionFactory.getCurrentSession()
-                .createQuery("select p.programAttributes from Program p");
 
-        List<ProgramTrackedEntityAttribute> pteas = query.list();
-        for ( ProgramTrackedEntityAttribute ptea : pteas )
+        Query query = sessionFactory.getCurrentSession().createQuery( "select p.programAttributes from Program p");
+
+        List<ProgramTrackedEntityAttribute> programTrackedEntityAttributes = (List<ProgramTrackedEntityAttribute>) query.list();
+
+        for ( ProgramTrackedEntityAttribute programTrackedEntityAttribute : programTrackedEntityAttributes )
         {
-            if ( !result.containsKey( ptea.getProgram() ) )
+            if ( !result.containsKey( programTrackedEntityAttribute.getProgram() ) )
             {
-                result.put( ptea.getProgram(), Sets.newHashSet( ptea.getAttribute() ) );
+                result.put( programTrackedEntityAttribute.getProgram(), Sets.newHashSet( programTrackedEntityAttribute.getAttribute() ) );
             }
             else
             {
-                result.get( ptea.getProgram() ).add( ptea.getAttribute() );
+                result.get( programTrackedEntityAttribute.getProgram() ).add( programTrackedEntityAttribute.getAttribute() );
             }
         }
         return result;
