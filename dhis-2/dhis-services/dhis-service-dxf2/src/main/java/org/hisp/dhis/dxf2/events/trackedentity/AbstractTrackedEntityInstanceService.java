@@ -182,8 +182,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
     private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2, boolean condition )
     {
-        if (condition) {
-            set1.addAll(set2);
+        if ( condition ) {
+            set1.addAll( set2 );
         }
         return set1;
     }
@@ -208,11 +208,11 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( queryParams != null && queryParams.isIncludeAllAttributes() )
         {
-            daoTEIs.forEach(t -> {
+            daoTEIs.forEach( t -> {
                 Set<TrackedEntityAttribute> attributes = null;
                 for ( Program program : teaByProgram.keySet() )
                 {
-                    attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get(program),
+                    attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
                             trackerOwnershipAccessManager.hasAccess( user, t, program ) );
                 }
                 dtoTeis.add( getTei( t, attributes , params, user ) );
@@ -1410,7 +1410,7 @@ public abstract class AbstractTrackedEntityInstanceService
 
         if ( params.isDataSynchronizationQuery() )
         {
-            List<String> programs = trackedEntityInstance.getEnrollments().stream().map(Enrollment::getProgram).collect( Collectors.toList() );
+            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( Enrollment::getProgram ).collect( Collectors.toList() );
 
             IdSchemes idSchemes = new IdSchemes();
             for ( String programUid : programs )
