@@ -756,20 +756,22 @@ public class DataElement
         {
             return true;
         }
+
         if ( o == null || getClass() != o.getClass() )
         {
             return false;
         }
+
         if ( !super.equals( o ) )
         {
             return false;
         }
+
         DataElement that = (DataElement) o;
         return uid.equals( that.uid ) && zeroIsSignificant == that.zeroIsSignificant && valueType == that.valueType
             && Objects.equals( formName, that.formName ) && Objects.equals( displayFormName, that.displayFormName )
             && domainType == that.domainType && Objects.equals( categoryCombo, that.categoryCombo )
             && Objects.equals( url, that.url ) && Objects.equals( groups, that.groups )
-            && Objects.equals( dataSetElements, that.dataSetElements )
             && Objects.equals( aggregationLevels, that.aggregationLevels )
             && Objects.equals( optionSet, that.optionSet ) && Objects.equals( commentOptionSet, that.commentOptionSet )
             && Objects.equals( style, that.style ) && Objects.equals( fieldMask, that.fieldMask );
@@ -779,7 +781,7 @@ public class DataElement
     public int hashCode()
     {
         return Objects.hash( super.hashCode(), valueType, formName, displayFormName, domainType, categoryCombo, url,
-            groups, dataSetElements, aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
+            groups,aggregationLevels, zeroIsSignificant, optionSet, commentOptionSet, style,
             fieldMask );
     }
 }
