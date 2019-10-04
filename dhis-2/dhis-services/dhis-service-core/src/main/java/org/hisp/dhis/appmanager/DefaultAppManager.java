@@ -34,6 +34,8 @@ import org.apache.commons.logging.LogFactory;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.setting.SettingKey;
@@ -62,7 +64,7 @@ public class DefaultAppManager
 {
     private static final Log log = LogFactory.getLog( DefaultAppManager.class );
 
-    private final SystemSettingManager settingManager;
+    private final DhisConfigurationProvider dhisConfigurationProvider;
 
     private final CurrentUserService currentUserService;
 
@@ -74,18 +76,18 @@ public class DefaultAppManager
 
     private final CacheProvider cacheProvider;
 
-    public DefaultAppManager( SystemSettingManager settingManager, CurrentUserService currentUserService,
-        LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+    public DefaultAppManager(DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
+                             LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
+                             KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
-        checkNotNull( settingManager );
+        checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( keyJsonValueService );
         checkNotNull( cacheProvider );
 
-        this.settingManager = settingManager;
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
@@ -277,13 +279,7 @@ public class DefaultAppManager
     @Override
     public String getAppStoreUrl()
     {
-        return StringUtils.trimToNull( (String) settingManager.getSystemSetting( SettingKey.APP_STORE_URL ) );
-    }
-
-    @Override
-    public void setAppStoreUrl( String appStoreUrl )
-    {
-        settingManager.saveSystemSetting( SettingKey.APP_STORE_URL, appStoreUrl );
+        return StringUtils.trimToNull(dhisConfigurationProvider.getProperty( ConfigurationKey.APP_STORE_URL ) );
     }
 
     /**

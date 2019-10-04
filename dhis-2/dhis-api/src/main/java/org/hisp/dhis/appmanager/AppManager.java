@@ -143,13 +143,6 @@ public interface AppManager
     String getAppStoreUrl();
 
     /**
-     * Saves the URL of the apps repository
-     *
-     * @param appStoreUrl
-     */
-    void setAppStoreUrl( String appStoreUrl );
-
-    /**
      * Indicates whether the given app is accessible to the current user.
      *
      * @param app the app.
