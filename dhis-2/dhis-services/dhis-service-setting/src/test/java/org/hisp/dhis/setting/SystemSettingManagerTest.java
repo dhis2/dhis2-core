@@ -134,7 +134,7 @@ public class SystemSettingManagerTest
         systemSettingManager.saveSystemSetting( APPLICATION_TITLE, "valueA" );
         systemSettingManager.saveSystemSetting( APPLICATION_INTRO, "valueB" );
 
-        assertEquals( systemSettingManager.getSystemSettings( keys ).size(), 2);
+        assertEquals( systemSettingManager.getSystemSettings( keys ).size(), 2 );
     }
 
     @Test
