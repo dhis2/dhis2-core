@@ -76,7 +76,7 @@ public class DefaultAppManager
 
     private final CacheProvider cacheProvider;
 
-    public DefaultAppManager(DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
+    public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider, CurrentUserService currentUserService,
                              LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
                              KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
