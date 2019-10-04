@@ -30,7 +30,9 @@ package org.hisp.dhis.maintenance;
 
 import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.*;
@@ -39,6 +41,8 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
+import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +70,12 @@ public class MaintenanceServiceTest
     private TrackedEntityInstanceService entityInstanceService;
 
     @Autowired
+    private TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
@@ -73,6 +83,9 @@ public class MaintenanceServiceTest
 
     @Autowired
     private ProgramStageService programStageService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
 
     @Autowired
     private MaintenanceService maintenanceService;
@@ -139,6 +152,8 @@ public class MaintenanceServiceTest
         programInstance = new ProgramInstance( enrollmentDate, incidenDate, entityInstance, program );
         programInstance.setUid( "UID-A" );
         programInstance.setOrganisationUnit( organisationUnit );
+
+        programInstanceService.addProgramInstance( programInstance );
     }
 
     @Test
@@ -151,6 +166,39 @@ public class MaintenanceServiceTest
         long idA = programInstanceService.addProgramInstance( programInstance );
 
         programMessageService.saveProgramMessage( message );
+
+        assertNotNull( programInstanceService.getProgramInstance( idA ) );
+
+        programInstanceService.deleteProgramInstance( programInstance );
+
+        assertNull( programInstanceService.getProgramInstance( idA ) );
+
+        assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedProgramInstances();
+
+        assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+    }
+
+    @Test
+    public void testDeleteSoftDeletedProgramInstanceLinkedToATrackedEntityDataValueAudit()
+    {
+        DataElement dataElement = createDataElement( 'A' );
+        dataElementService.addDataElement( dataElement );
+
+        ProgramStageInstance programStageInstanceA = new ProgramStageInstance( programInstance,
+            program.getProgramStageByStage( 1 ) );
+        programStageInstanceA.setDueDate( enrollmentDate );
+        programStageInstanceA.setUid( "UID-A" );
+
+        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+
+        TrackedEntityDataValueAudit trackedEntityDataValueAudit = new TrackedEntityDataValueAudit( dataElement,
+            programStageInstanceA, "value", "modifiedBy", false, AuditType.UPDATE );
+
+        trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit( trackedEntityDataValueAudit );
+
+        long idA = programInstanceService.addProgramInstance( programInstance );
 
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
 
